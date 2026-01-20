@@ -72,7 +72,10 @@ public class GlyphModeManager {
         // Create new session
         Loadout effectiveLoadout = loadout != null ? loadout : Loadout.createDefaultLoadout();
         GlyphMode mode = new GlyphMode(playerRef, effectiveLoadout);
-        mode.enter();
+
+        // Enter with store to spawn orbital glyphs
+        Store<EntityStore> store = playerRef.getStore();
+        mode.enter(store);
 
         activeSessions.put(playerId, mode);
         return mode;
@@ -87,7 +90,14 @@ public class GlyphModeManager {
     public boolean exitGlyphMode(UUID playerId) {
         GlyphMode mode = activeSessions.get(playerId);
         if (mode != null && mode.isActive()) {
-            mode.exit();
+            // Exit with store to despawn orbital glyphs
+            Ref<EntityStore> playerRef = mode.getPlayer();
+            if (playerRef != null) {
+                Store<EntityStore> store = playerRef.getStore();
+                mode.exit(store);
+            } else {
+                mode.exit();
+            }
             return true;
         }
         return false;

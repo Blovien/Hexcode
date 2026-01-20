@@ -15,6 +15,7 @@ import com.hypixel.hytale.event.EventRegistry;
 import com.hypixel.hytale.server.core.event.events.player.PlayerMouseButtonEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.execution.ExecutionContext;
 import com.riprod.hexcode.execution.HexExecutor;
@@ -24,7 +25,9 @@ import com.riprod.hexcode.hex.Hex;
 import com.riprod.hexcode.mode.CompositionState;
 import com.riprod.hexcode.mode.GlyphMode;
 import com.riprod.hexcode.mode.GlyphModeManager;
+import com.riprod.hexcode.util.HexMathUtil;
 import com.riprod.hexcode.util.HexStaffUtil;
+import com.riprod.hexcode.util.RaycastUtil;
 import com.riprod.hexcode.visual.GlyphRenderer;
 import com.riprod.hexcode.visual.TrailEffect;
 import com.hypixel.hytale.math.vector.Vector3d;
@@ -215,7 +218,7 @@ public class EventHandlers {
         CompositionState composition = mode.getComposition();
 
         // Check if dropping in crafting space
-        if (isInCraftingSpace(mode, dropPosition)) {
+        if (isInCraftingSpace(mode, dropPosition, store)) {
             // Try to add the glyph to composition
             boolean added;
             if (composition.isEmpty()) {
@@ -278,9 +281,7 @@ public class EventHandlers {
         if (transform == null) {
             return;
         }
-        Vector3d origin = new Vector3d(transform.getPosition().x, transform.getPosition().y + 1.5,
-                transform.getPosition().z);
-        Vector3d direction = new Vector3d(0, 0, 1); // TODO: Get actual look direction
+        Vector3d direction = RaycastUtil.getPlayerLookDirection(transform);
 
         // Consume mana
         int manaConsumed = castResult.getManaCost();
@@ -288,7 +289,7 @@ public class EventHandlers {
         LOGGER.atInfo().log("Consumed %d mana (power: %.0f%%)", manaConsumed, castResult.getPowerMultiplier() * 100);
 
         // Execute the hex
-        HexExecutor.ExecutionResult result = hexExecutor.execute(hex, playerRef, store, null, origin, direction);
+        HexExecutor.ExecutionResult result = hexExecutor.execute(hex, playerRef, store, null, direction);
         if (result.isSuccess()) {
             LOGGER.atInfo().log("Hex cast successfully");
         } else {
@@ -302,10 +303,32 @@ public class EventHandlers {
     /**
      * Check if a position is within the crafting space.
      */
-    private boolean isInCraftingSpace(GlyphMode mode, Vector3d position) {
-        // Crafting space is in front of the player
-        // For now, always return true - actual implementation would check bounds
-        return position != null;
+    private boolean isInCraftingSpace(GlyphMode mode, Vector3d position, Store<EntityStore> store) {
+        if (position == null) {
+            return false;
+        }
+
+        // Get player position
+        Ref<EntityStore> playerRef = mode.getPlayer();
+        TransformComponent transform = store.getComponent(playerRef, TransformComponent.getComponentType());
+        if (transform == null) {
+            return true; // Fallback
+        }
+
+        Vector3d playerPos = transform.getPosition();
+        float craftingSpaceDistance = mode.getCraftingSpaceDistance();
+
+        // Calculate crafting space center (in front of player)
+        Vector3d lookDir = RaycastUtil.getPlayerLookDirection(transform);
+        Vector3d craftingCenter = new Vector3d(
+                playerPos.x + lookDir.x * craftingSpaceDistance,
+                playerPos.y + 1.5 + lookDir.y * craftingSpaceDistance,
+                playerPos.z + lookDir.z * craftingSpaceDistance
+        );
+
+        // Check if position is within crafting space bounds (1.5 block radius)
+        double distSq = HexMathUtil.distanceSquared(position, craftingCenter);
+        return distSq <= 2.25; // 1.5^2 = 2.25
     }
 
     /**
@@ -342,20 +365,18 @@ public class EventHandlers {
      * Get player's current mana.
      */
     private float getPlayerMana(Store<EntityStore> store, Ref<EntityStore> playerRef) {
-        // TODO: Implement actual mana retrieval from player stats
-        // For now, return a default value for testing
         EntityStatMap playerStats = store.getComponent(playerRef, EntityStatMap.getComponentType());
         if (playerStats == null) {
             return 0;
         }
 
-        int healthIndex = DefaultEntityStatTypes.getHealth();
+        int manaIndex = DefaultEntityStatTypes.getMana();
 
-        EntityStatValue healthValue = playerStats.get(healthIndex);
-        if (healthValue == null) {
+        EntityStatValue manaValue = playerStats.get(manaIndex);
+        if (manaValue == null) {
             return 0;
         }
-        return healthValue.get();
+        return manaValue.get();
     }
 
     /**
@@ -369,15 +390,16 @@ public class EventHandlers {
             return;
         }
 
-        int healthIndex = DefaultEntityStatTypes.getHealth();
-        EntityStatValue healthValue = playerStats.get(healthIndex);
-        if (healthValue == null) {
+        int manaIndex = DefaultEntityStatTypes.getMana();
+        EntityStatValue manaValue = playerStats.get(manaIndex);
+        if (manaValue == null) {
             return;
         }
 
-        playerStats.addStatValue(healthIndex, amount);
+        // Subtract mana (negative amount to consume)
+        playerStats.addStatValue(manaIndex, -amount);
 
-        LOGGER.atInfo().log("Would consume %d mana from player", amount);
+        LOGGER.atInfo().log("Consumed %.0f mana from player", amount);
     }
 
     /**

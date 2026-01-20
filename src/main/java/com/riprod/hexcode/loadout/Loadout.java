@@ -29,6 +29,20 @@ public class Loadout {
     }
 
     /**
+     * Create a loadout from a list of Glyph objects.
+     *
+     * @param glyphs The glyphs to include
+     * @return A new Loadout with the given glyphs
+     */
+    public static Loadout fromGlyphs(List<Glyph> glyphs) {
+        Loadout loadout = new Loadout();
+        for (Glyph glyph : glyphs) {
+            loadout.glyphIds.add(glyph.getId());
+        }
+        return loadout;
+    }
+
+    /**
      * @return Unmodifiable list of glyph IDs in this loadout
      */
     public List<String> getGlyphIds() {

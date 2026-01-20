@@ -52,6 +52,23 @@ public class CompositionState {
     }
 
     /**
+     * Add a glyph to the composition.
+     * If composition is empty, places as root.
+     * Otherwise, attempts to add based on glyph role and current state.
+     *
+     * @param glyph The glyph to add
+     * @return true if successful
+     */
+    public boolean addGlyph(Glyph glyph) {
+        if (isEmpty()) {
+            return placeAsRoot(glyph);
+        }
+        // For non-empty composition, wrap the root with this glyph
+        HexNode root = hex.getRoot();
+        return wrapNode(glyph, root);
+    }
+
+    /**
      * Place a glyph as the root of the hex.
      *
      * @param glyph The glyph to place

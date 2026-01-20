@@ -1,8 +1,17 @@
 package com.riprod.hexcode.entity;
 
+import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.protocol.ColorLight;
+import com.hypixel.hytale.component.AddReason;
+import com.hypixel.hytale.component.RemoveReason;
+import com.hypixel.hytale.server.core.entity.UUIDComponent;
+import com.hypixel.hytale.server.core.modules.entity.component.DynamicLight;
+import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.execution.ExecutionContext;
 import com.riprod.hexcode.execution.HexExecutor;
@@ -10,8 +19,8 @@ import com.riprod.hexcode.execution.TargetSet;
 import com.riprod.hexcode.glyph.selects.SelectGlyph;
 import com.riprod.hexcode.hex.HexNode;
 import com.riprod.hexcode.util.HexMathUtil;
-import com.hypixel.hytale.math.util.MathUtil;
-import com.hypixel.hytale.math.vector.Vector3d;
+
+import java.util.UUID;
 
 /**
  * Represents a spell beam entity in the world.
@@ -197,13 +206,33 @@ public class SpellBeamEntity {
      * @param store The entity store
      */
     public void spawn(Store<EntityStore> store) {
-        // TODO: Implement actual beam entity spawning
-        // This would create an entity with:
-        // - Custom beam component
-        // - Line renderer or particle effect
-        // - TransformComponent
+        if (entityRef != null) {
+            LOGGER.atWarning().log("Spell beam already spawned");
+            return;
+        }
 
-        LOGGER.atInfo().log("Spawning spell beam from (%.1f, %.1f, %.1f) with speed %.1f",
+        // Create entity holder
+        Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
+
+        // Add UUID component
+        holder.addComponent(UUIDComponent.getComponentType(), new UUIDComponent(UUID.randomUUID()));
+
+        // Add transform component
+        TransformComponent transform = new TransformComponent(startPosition, new Vector3f(0, 0, 0));
+        holder.addComponent(TransformComponent.getComponentType(), transform);
+
+        // Add dynamic light (beam glow)
+        ColorLight beamLight = new ColorLight();
+        beamLight.radius = 15;
+        beamLight.red = (byte) 200;
+        beamLight.green = (byte) 200;
+        beamLight.blue = (byte) 255;
+        holder.addComponent(DynamicLight.getComponentType(), new DynamicLight(beamLight));
+
+        // Add entity to store
+        entityRef = store.addEntity(holder, AddReason.SPAWN);
+
+        LOGGER.atInfo().log("Spawned spell beam from (%.1f, %.1f, %.1f) with speed %.1f",
                 startPosition.x, startPosition.y, startPosition.z, speed);
     }
 
@@ -214,8 +243,8 @@ public class SpellBeamEntity {
      */
     public void despawn(Store<EntityStore> store) {
         if (entityRef != null) {
-            // TODO: Implement actual entity despawning
-            LOGGER.atInfo().log("Despawning spell beam");
+            store.removeEntity(entityRef, RemoveReason.REMOVE);
+            LOGGER.atInfo().log("Despawned spell beam");
             entityRef = null;
         }
     }

@@ -4,6 +4,7 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.riprod.hexcode.glyph.Glyph;
 import com.riprod.hexcode.glyph.GlyphRegistry;
@@ -12,6 +13,7 @@ import com.riprod.hexcode.glyph.effects.EffectGlyph;
 import com.riprod.hexcode.glyph.selects.SelectGlyph;
 import com.riprod.hexcode.hex.Hex;
 import com.riprod.hexcode.hex.HexNode;
+import com.riprod.hexcode.util.RaycastUtil;
 import com.hypixel.hytale.math.vector.Vector3d;
 
 /**
@@ -47,7 +49,7 @@ public class HexExecutor {
      * @return Execution result
      */
     public ExecutionResult execute(Hex hex, Ref<EntityStore> caster, Store<EntityStore> store,
-                                   World world, Vector3d origin, Vector3d direction) {
+                                   World world, Vector3d direction) {
         if (hex == null || hex.getRoot() == null) {
             return ExecutionResult.failure("Hex is empty");
         }
@@ -61,6 +63,9 @@ public class HexExecutor {
             selfNode.addChild(root);
             root = selfNode;
         }
+
+        TransformComponent transform = store.getComponent(caster, TransformComponent.getComponentType());
+        Vector3d origin = RaycastUtil.getPlayerEyePosition(transform);
 
         // Create execution context
         ExecutionContext ctx = new ExecutionContext(caster, store, world, origin, direction);

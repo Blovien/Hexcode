@@ -1,13 +1,27 @@
 package com.riprod.hexcode.entity;
 
+import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.protocol.ColorLight;
+import com.hypixel.hytale.server.core.asset.type.model.config.Model;
+import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
+import com.hypixel.hytale.component.AddReason;
+import com.hypixel.hytale.component.RemoveReason;
+import com.hypixel.hytale.server.core.entity.UUIDComponent;
+import com.hypixel.hytale.server.core.modules.entity.component.DynamicLight;
+import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
+import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.config.HexcodeConfig;
 import com.riprod.hexcode.glyph.Glyph;
+import com.riprod.hexcode.glyph.GlyphVisual;
 import com.riprod.hexcode.util.HexMathUtil;
-import com.hypixel.hytale.math.vector.Vector3d;
+
+import java.util.UUID;
 
 /**
  * Represents a floating glyph entity in the orbital ring around a player.
@@ -168,15 +182,68 @@ public class OrbitalGlyphEntity {
      * @param playerPosition The player's position
      */
     public void spawn(Store<EntityStore> store, Vector3d playerPosition) {
-        // TODO: Implement actual entity spawning using Hytale's ECS
-        // This would create an entity with:
-        // - ModelComponent (glyph visual)
-        // - TransformComponent (position)
-        // - DynamicLight (glyph glow)
-        // - Custom OrbitalGlyphComponent
+        spawn(store, playerPosition, null);
+    }
+
+    /**
+     * Spawn this orbital glyph entity in the world.
+     *
+     * @param store The entity store
+     * @param playerPosition The player's position
+     * @param ownerPlayerId The owner player's UUID (for component-based system)
+     */
+    public void spawn(Store<EntityStore> store, Vector3d playerPosition, UUID ownerPlayerId) {
+        if (entityRef != null) {
+            LOGGER.atWarning().log("Orbital glyph '%s' already spawned", glyph.getDisplayName());
+            return;
+        }
 
         Vector3d position = calculatePosition(playerPosition);
-        LOGGER.atInfo().log("Spawning orbital glyph '%s' at (%.1f, %.1f, %.1f)",
+
+        // Create entity holder
+        Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
+
+        // Add UUID component
+        holder.addComponent(UUIDComponent.getComponentType(), new UUIDComponent(UUID.randomUUID()));
+
+        // Add transform component with position
+        TransformComponent transform = new TransformComponent(position, new Vector3f(0, 0, 0));
+        holder.addComponent(TransformComponent.getComponentType(), transform);
+
+        // Load model from glyph visual
+        GlyphVisual visual = glyph.getVisual();
+        String modelId = visual.getModelId();
+        ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(modelId);
+
+        if (modelAsset != null) {
+            Model model = Model.createUnitScaleModel(modelAsset);
+            holder.addComponent(ModelComponent.getComponentType(), new ModelComponent(model));
+        } else {
+            LOGGER.atWarning().log("Could not load model '%s' for glyph '%s'", modelId, glyph.getDisplayName());
+        }
+
+        // Add dynamic light based on glyph color
+        ColorLight colorLight = createColorLightFromGlyph(visual);
+        DynamicLight dynamicLight = new DynamicLight(colorLight);
+        holder.addComponent(DynamicLight.getComponentType(), dynamicLight);
+
+        // Add orbital glyph component if component type is registered
+        if (OrbitalGlyphComponent.getComponentType() != null && ownerPlayerId != null) {
+            OrbitalGlyphComponent orbitalComp = new OrbitalGlyphComponent(
+                    glyph.getId(),
+                    ownerPlayerId,
+                    orbitAngle,
+                    orbitSpeed,
+                    orbitalRadius,
+                    height
+            );
+            holder.addComponent(OrbitalGlyphComponent.getComponentType(), orbitalComp);
+        }
+
+        // Add entity to store
+        entityRef = store.addEntity(holder, AddReason.SPAWN);
+
+        LOGGER.atInfo().log("Spawned orbital glyph '%s' at (%.1f, %.1f, %.1f)",
                 glyph.getDisplayName(), position.x, position.y, position.z);
     }
 
@@ -187,9 +254,73 @@ public class OrbitalGlyphEntity {
      */
     public void despawn(Store<EntityStore> store) {
         if (entityRef != null) {
-            // TODO: Implement actual entity despawning
-            LOGGER.atInfo().log("Despawning orbital glyph '%s'", glyph.getDisplayName());
+            store.removeEntity(entityRef, RemoveReason.REMOVE);
+            LOGGER.atInfo().log("Despawned orbital glyph '%s'", glyph.getDisplayName());
             entityRef = null;
         }
+    }
+
+    /**
+     * Update the entity's position in the world.
+     *
+     * @param store The entity store
+     * @param playerPosition The player's current position
+     */
+    public void updateWorldPosition(Store<EntityStore> store, Vector3d playerPosition) {
+        if (entityRef == null) {
+            return;
+        }
+
+        TransformComponent transform = store.getComponent(entityRef, TransformComponent.getComponentType());
+        if (transform != null) {
+            Vector3d newPosition = calculatePosition(playerPosition);
+            transform.setPosition(newPosition);
+        }
+    }
+
+    /**
+     * Update the hover highlight visual.
+     *
+     * @param store The entity store
+     */
+    public void updateHoverVisual(Store<EntityStore> store) {
+        if (entityRef == null) {
+            return;
+        }
+
+        DynamicLight light = store.getComponent(entityRef, DynamicLight.getComponentType());
+        if (light != null) {
+            GlyphVisual visual = glyph.getVisual();
+            ColorLight colorLight = createColorLightFromGlyph(visual);
+
+            // Increase intensity when hovered
+            if (isHovered) {
+                colorLight.radius = (byte) Math.min(255, colorLight.radius + 4);
+            }
+
+            light.setColorLight(colorLight);
+        }
+    }
+
+    /**
+     * Create a ColorLight from glyph visual properties.
+     */
+    private ColorLight createColorLightFromGlyph(GlyphVisual visual) {
+        int color = visual.getColor();
+        float intensity = visual.getGlowIntensity();
+
+        // Extract RGB from color int
+        int red = (color >> 16) & 0xFF;
+        int green = (color >> 8) & 0xFF;
+        int blue = color & 0xFF;
+
+        // Create ColorLight
+        ColorLight colorLight = new ColorLight();
+        colorLight.radius = (byte) Math.min(255, (int) intensity);
+        colorLight.red = (byte) red;
+        colorLight.green = (byte) green;
+        colorLight.blue = (byte) blue;
+
+        return colorLight;
     }
 }

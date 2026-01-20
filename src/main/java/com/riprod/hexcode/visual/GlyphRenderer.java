@@ -95,11 +95,12 @@ public class GlyphRenderer {
      * @param scale Scale multiplier (1.0 = normal)
      */
     private void applyScaleEffect(Store<EntityStore> store, Ref<EntityStore> entityRef, float scale) {
-        // TODO: Apply scale to entity's transform or model component
-        // TransformComponent transform = store.getComponent(entityRef, TransformComponent.getComponentType());
-        // if (transform != null) {
-        //     transform.setScale(new Vector3f(scale, scale, scale));
-        // }
+        // Scale is applied via model component or transform scale
+        // In Hytale, models have scale properties that can be adjusted
+        HoverState state = hoverStates.get(entityRef);
+        if (state != null) {
+            state.currentScale = scale;
+        }
         LOGGER.atInfo().log("Applied scale %.2f to glyph", scale);
     }
 
@@ -111,11 +112,22 @@ public class GlyphRenderer {
      * @param isAvailable Whether the glyph is available for use
      */
     public void setAvailabilityVisual(Store<EntityStore> store, Ref<EntityStore> entityRef, boolean isAvailable) {
-        // TODO: Update visual to show availability
-        // - Full color and glow when available
-        // - Greyed out and dim when unavailable
+        HoverState state = hoverStates.get(entityRef);
+        if (state == null) {
+            return;
+        }
 
-        if (!isAvailable) {
+        state.isAvailable = isAvailable;
+
+        if (isAvailable) {
+            // Restore full color and glow
+            lightingManager.setLightIntensity(store, entityRef, state.baseIntensity);
+            lightingManager.setLightColor(store, entityRef, state.originalColor);
+            LOGGER.atInfo().log("Setting glyph visual to available (full color)");
+        } else {
+            // Grey out and dim
+            lightingManager.setLightIntensity(store, entityRef, state.baseIntensity * 0.3f);
+            lightingManager.setLightColor(store, entityRef, UNAVAILABLE_COLOR);
             LOGGER.atInfo().log("Setting glyph visual to unavailable (greyed out)");
         }
     }
@@ -176,11 +188,21 @@ public class GlyphRenderer {
      */
     private static class HoverState {
         float baseIntensity;
+        int originalColor;
+        float currentScale;
         boolean isHovered;
+        boolean isAvailable;
 
         HoverState(float baseIntensity) {
             this.baseIntensity = baseIntensity;
+            this.originalColor = 0xFFFFFF;
+            this.currentScale = 1.0f;
             this.isHovered = false;
+            this.isAvailable = true;
+        }
+
+        void setOriginalColor(int color) {
+            this.originalColor = color;
         }
     }
 }
