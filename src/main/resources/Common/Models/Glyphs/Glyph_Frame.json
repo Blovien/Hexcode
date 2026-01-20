@@ -1,0 +1,52 @@
+{
+  "$schema": "../../Schema/Model.json",
+  "name": "Glyph_Frame",
+  "description": "Base floating rune frame for glyph entities",
+  "type": "entity",
+  "bounds": {
+    "min": [-0.25, -0.25, -0.05],
+    "max": [0.25, 0.25, 0.05]
+  },
+  "pivot": [0, 0, 0],
+  "parts": [
+    {
+      "name": "frame",
+      "type": "cube",
+      "position": [0, 0, 0],
+      "size": [0.5, 0.5, 0.1],
+      "material": "hexcode:glyph_frame",
+      "emissive": true,
+      "emissiveIntensity": 0.5
+    },
+    {
+      "name": "rune",
+      "type": "plane",
+      "position": [0, 0, 0.06],
+      "size": [0.4, 0.4],
+      "material": "hexcode:glyph_rune",
+      "textureSlot": "rune",
+      "emissive": true,
+      "emissiveIntensity": 1.0
+    }
+  ],
+  "animations": {
+    "idle": {
+      "type": "rotation",
+      "axis": [0, 1, 0],
+      "speed": 0.5,
+      "loop": true
+    },
+    "hover": {
+      "type": "scale",
+      "target": [1.1, 1.1, 1.1],
+      "duration": 0.2
+    },
+    "pulse": {
+      "type": "emissive",
+      "min": 0.5,
+      "max": 1.0,
+      "frequency": 2.0,
+      "loop": true
+    }
+  }
+}

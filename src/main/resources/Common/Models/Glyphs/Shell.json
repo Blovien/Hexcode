@@ -1,0 +1,55 @@
+{
+  "$schema": "../../Schema/Model.json",
+  "name": "Shell",
+  "description": "Wrapper shell visual for modifier and select glyphs",
+  "type": "entity",
+  "bounds": {
+    "min": [-0.5, -0.5, -0.5],
+    "max": [0.5, 0.5, 0.5]
+  },
+  "pivot": [0, 0, 0],
+  "parts": [
+    {
+      "name": "shell_outer",
+      "type": "sphere",
+      "position": [0, 0, 0],
+      "radius": 0.5,
+      "segments": 16,
+      "material": "hexcode:shell_outer",
+      "transparent": true,
+      "opacity": 0.3,
+      "emissive": true,
+      "emissiveIntensity": 0.3
+    },
+    {
+      "name": "shell_inner",
+      "type": "sphere",
+      "position": [0, 0, 0],
+      "radius": 0.45,
+      "segments": 12,
+      "material": "hexcode:shell_inner",
+      "transparent": true,
+      "opacity": 0.1
+    }
+  ],
+  "animations": {
+    "idle": {
+      "type": "rotation",
+      "axis": [0, 1, 0],
+      "speed": 0.2,
+      "loop": true
+    },
+    "pulse": {
+      "type": "scale",
+      "min": [1.0, 1.0, 1.0],
+      "max": [1.05, 1.05, 1.05],
+      "frequency": 1.0,
+      "loop": true
+    }
+  },
+  "scalable": true,
+  "scaleRange": {
+    "min": 0.3,
+    "max": 2.0
+  }
+}
