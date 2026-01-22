@@ -34,7 +34,7 @@ public class IceGlyph extends EffectGlyph {
             ID,
             "Ice",
             BASE_COST,
-            GlyphVisual.effect(GlyphVisual.COLOR_ICE),
+            GlyphVisual.effect(GlyphVisual.COLOR_ICE, "ice"),
             Set.of("hexcode:power", "hexcode:duration")
         );
     }

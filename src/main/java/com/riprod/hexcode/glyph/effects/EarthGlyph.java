@@ -35,7 +35,7 @@ public class EarthGlyph extends EffectGlyph {
             ID,
             "Earth",
             BASE_COST,
-            GlyphVisual.effect(GlyphVisual.COLOR_EARTH),
+            GlyphVisual.effect(GlyphVisual.COLOR_EARTH, "earth"),
             Set.of("hexcode:power")
         );
     }

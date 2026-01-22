@@ -31,7 +31,7 @@ public class PushGlyph extends EffectGlyph {
             ID,
             "Push",
             BASE_COST,
-            GlyphVisual.effect(GlyphVisual.COLOR_UTILITY),
+            GlyphVisual.effect(GlyphVisual.COLOR_PUSH, "push"),
             Set.of("hexcode:power")
         );
     }

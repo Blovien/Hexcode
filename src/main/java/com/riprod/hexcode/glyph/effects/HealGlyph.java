@@ -27,7 +27,7 @@ public class HealGlyph extends EffectGlyph {
             ID,
             "Heal",
             BASE_COST,
-            GlyphVisual.effect(GlyphVisual.COLOR_UTILITY),
+            GlyphVisual.effect(GlyphVisual.COLOR_HEAL, "heal"),
             Set.of("hexcode:power")
         );
     }

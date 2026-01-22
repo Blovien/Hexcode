@@ -37,7 +37,7 @@ public class LightningGlyph extends EffectGlyph {
             ID,
             "Lightning",
             BASE_COST,
-            GlyphVisual.effect(GlyphVisual.COLOR_LIGHTNING),
+            GlyphVisual.effect(GlyphVisual.COLOR_LIGHTNING, "lightning"),
             Set.of("hexcode:power")
         );
     }

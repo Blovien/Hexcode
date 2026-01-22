@@ -21,12 +21,28 @@ public abstract class SelectGlyph implements Glyph {
     private final GlyphVisual visual;
     private final Set<String> compatibleModifiers;
 
-    protected SelectGlyph(String id, String displayName, boolean delayed, Set<String> compatibleModifiers) {
+    /**
+     * Create a select glyph with a specific texture.
+     *
+     * @param id Unique identifier
+     * @param displayName Display name
+     * @param delayed true if this select has delayed execution (travel time)
+     * @param textureName Texture name (e.g., "beam")
+     * @param compatibleModifiers Set of modifier IDs that can modify this select
+     */
+    protected SelectGlyph(String id, String displayName, boolean delayed, String textureName, Set<String> compatibleModifiers) {
         this.id = id;
         this.displayName = displayName;
         this.delayed = delayed;
-        this.visual = GlyphVisual.select();
+        this.visual = GlyphVisual.select(textureName);
         this.compatibleModifiers = compatibleModifiers;
+    }
+
+    /**
+     * @deprecated Use constructor with textureName parameter instead.
+     */
+    protected SelectGlyph(String id, String displayName, boolean delayed, Set<String> compatibleModifiers) {
+        this(id, displayName, delayed, deriveTextureName(id), compatibleModifiers);
     }
 
     protected SelectGlyph(String id, String displayName, boolean delayed, GlyphVisual visual, Set<String> compatibleModifiers) {
@@ -35,6 +51,15 @@ public abstract class SelectGlyph implements Glyph {
         this.delayed = delayed;
         this.visual = visual;
         this.compatibleModifiers = compatibleModifiers;
+    }
+
+    /**
+     * Derive texture name from glyph ID for backward compatibility.
+     */
+    private static String deriveTextureName(String id) {
+        // Extract name from "hexcode:beam" -> "beam"
+        int colonIndex = id.lastIndexOf(':');
+        return colonIndex >= 0 ? id.substring(colonIndex + 1) : id;
     }
 
     @Override

@@ -34,7 +34,7 @@ public class FireGlyph extends EffectGlyph {
             ID,
             "Fire",
             BASE_COST,
-            GlyphVisual.effect(GlyphVisual.COLOR_FIRE),
+            GlyphVisual.effect(GlyphVisual.COLOR_FIRE, "fire"),
             Set.of("hexcode:power", "hexcode:duration")
         );
     }

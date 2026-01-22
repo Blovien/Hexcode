@@ -30,7 +30,7 @@ public class ShieldGlyph extends EffectGlyph {
             ID,
             "Shield",
             BASE_COST,
-            GlyphVisual.effect(GlyphVisual.COLOR_UTILITY),
+            GlyphVisual.effect(GlyphVisual.COLOR_SHIELD, "shield"),
             Set.of("hexcode:power", "hexcode:duration")
         );
     }

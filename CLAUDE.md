@@ -1,10 +1,18 @@
 # Hexcode - Hexcasting Mod Implementation Plan
 
+> **Note**: This document describes the **expected architecture** after the TODO.md rework is implemented. The current codebase may not yet match all structures described here. See TODO.md for implementation progress.
+
 ## Overview
 
 Hexcode is a spell-crafting mod that allows players to enter **Glyph Mode** while wielding the **Hex Staff** (main hand) and **Hex Book** (offhand). In this mode, glyphs from the player's **loadout** orbit around them in 3D space as floating runes. Players compose spells by dragging glyphs into a central crafting space, building **Hexes** - tree-structured spell constructs where glyphs wrap around each other like shells.
 
-The system uses a **composite/component architecture** where:
+The system uses a **modular, asset-driven architecture** where:
+- **All glyphs are equal** - Whether defined by this plugin or external plugins, all glyphs use the same registration and execution path
+- **Asset-driven configuration** - Glyph properties (visuals, costs, power, variability) are defined in asset files, not code
+- **Context-based execution** - Glyphs receive and return a SpellContext object that carries execution state
+- **Per-player glyph data** - Drawing accuracy and speed are stored per-player for persistence
+
+The glyph roles are:
 - **EFFECT glyphs** are the innermost leaves (actions like FIRE, HEAL)
 - **MODIFIER glyphs** wrap around others as inner shells (amplify/alter behavior)
 - **SELECT glyphs** wrap around others as outer shells (determine targeting/delivery)
@@ -13,27 +21,60 @@ The system uses a **composite/component architecture** where:
 
 ## Core Concepts
 
+### Hex vs Chain
+
+The system distinguishes between two composition types:
+
+**HEX (Nested - glyphs influence each other):**
+```
+Beam[Charge[Fire[]]]
+- Beam wraps Charge wraps Fire
+- Context flows: Beam → Charge → Fire
+- Each glyph can modify the context for its children
+```
+
+**CHAIN (Sequential - glyphs execute independently):**
+```
+Fire[]:Ice[]:Heal[]
+- Fire, Ice, Heal execute one after another
+- Each receives the ORIGINAL context (not modified by siblings)
+- Syntax uses ":" to separate chain elements
+```
+
+**COMBINED:**
+```
+Beam[Charge[Fire[]]]:Beam[Blink[]]
+- Two hex chains: first is Beam[Charge[Fire[]]], second is Beam[Blink[]]
+- Depth-first: complete first hex entirely, then start second hex
+- Second Beam receives original context, NOT the context after Fire executed
+```
+
 ### The Hex
 
 A **Hex** is a tree-structured spell construct. Glyphs are composed by:
-1. **Wrapping** - A glyph surrounds another as a shell (parent-child)
-2. **Linking** - Glyphs connect side-by-side as siblings (execute sequentially)
+1. **Wrapping** - A glyph surrounds another as a shell (parent-child, context flows through)
+2. **Chaining** - Glyphs connect side-by-side as chain siblings (execute sequentially, context isolated)
 
 ```
-Example Hex: BEAM[POWER[FIRE[]], ICE[]]
+Example Spell: BEAM[POWER[FIRE[]]]:ICE[]
+
+Structure:
+Chain[0]: BEAM[POWER[FIRE[]]]  - nested hex
+Chain[1]: ICE[]                - second chain element
 
 Tree Structure:
 BEAM (SELECT - outer shell)
-├── POWER (MODIFIER - inner shell)
-│   └── FIRE (EFFECT - leaf)
-└── ICE (EFFECT - leaf, sibling to POWER[FIRE[]])
+└── POWER (MODIFIER - inner shell)
+    └── FIRE (EFFECT - leaf)
+: (chain separator)
+ICE (EFFECT - standalone)
 
-Visual (3D shells):
+Visual (3D shells for nested hex):
 ┌─────────────────────────────────┐
 │            BEAM                 │
-│  ┌───────────────┐   ┌───────┐  │
-│  │    POWER      │───│  ICE  │  │
-│  │  ┌─────────┐  │   └───────┘  │
+│  ┌───────────────┐              │
+│  │    POWER      │              │
+│  │  ┌─────────┐  │              │
 │  │  │  FIRE   │  │              │
 │  │  └─────────┘  │              │
 │  └───────────────┘              │
@@ -55,6 +96,50 @@ Visual (3D shells):
 - A MODIFIER only modifies its direct child, not grandchildren
   - `POWER[BEAM[ICE[]]]` - POWER modifies BEAM, not ICE
 - If no SELECT wraps a Hex, an implicit `SELF[]` is assumed
+
+### Power Decay Rules
+
+1. **Cast Decay**: Each subsequent cast of the same spell is weaker
+   - Formula: `effectivePower = basePower * (1.0 / castNumber)`
+   - Cast 1: 100%, Cast 2: 50%, Cast 3: 33%, etc.
+
+2. **Glyph Repetition Decay**: If a glyph executes multiple times in one spell, subsequent executions are weaker
+   - Formula: `effectivePower = basePower * (1.0 / executionCount)`
+   - First Fire[]: 100%, Second Fire[]: 50%, etc.
+
+### SpellContext
+
+The SpellContext object is the central data structure passed between glyphs during execution:
+
+```java
+SpellContext {
+    // Immutable base info
+    UUID casterId;
+    EntityRef caster;
+    Vector3d castOrigin;
+    Vector3d castDirection;
+    int castNumber;           // How many times this spell has been cast (1, 2, 3...)
+
+    // Mutable execution state
+    List<EntityRef> targets;
+    List<Vector3d> targetPositions;
+    float powerMultiplier;    // Accumulated power (default 1.0)
+    float rangeMultiplier;    // Accumulated range (default 1.0)
+    float durationMultiplier; // Accumulated duration (default 1.0)
+
+    // Execution history
+    List<GlyphExecutionRecord> executedGlyphs;  // In order of execution
+    Map<String, Integer> glyphExecutionCounts;  // How many times each glyph ID executed
+
+    // Extensible metadata
+    Map<String, Object> metadata;  // Glyphs can add custom data
+}
+```
+
+**Key Behavior:**
+- Chain elements get COPY of original context (isolated)
+- Nested children get SAME context (flows through)
+- Depth-first: complete entire hex before moving to next chain element
 
 ---
 
@@ -191,25 +276,37 @@ Each glyph self-defines its properties including: visual appearance (shape, colo
 - If no target exists, falls back to most recent target (default: caster)
 - Nested SELECTs originate from parent's position, not sibling results
 
-**Example Execution:**
+**Example Execution (Nested Hex):**
 
 ```
-Hex: SELF[BEAM[POWER[FIRE[]], ICE[]], BURST[HEAL[]]]
+Spell: BEAM[POWER[FIRE[]]]
 
-1. SELF establishes origin = caster position
-2. BEAM (sibling 1, delayed) fires from caster
-3.   └── [waits for hit on entity X]
-4.   └── On hit: POWER[FIRE[]] executes → powered fire on X
-5.   └── On hit: ICE[] executes → ice on X (same target)
-6. [All delays resolved]
-7. BURST (sibling 2) selects from SELF origin (caster), finds entities Y, Z
-8.   └── HEAL[] executes on Y, Z
+1. Create base context for caster
+2. BEAM.cast(context) - queues delayed execution, spawns beam
+3.   └── [beam travels, hits entity X]
+4.   └── On hit: context.addTarget(X)
+5.   └── POWER.cast(context) - context.multiplyPower(1.5)
+6.   └── FIRE.cast(context) - applies fire with power×1.5 to X
+```
+
+**Example Execution (Chain - Context Isolation):**
+
+```
+Spell: Beam[Charge[Fire[]]]:Beam[Blink[]]
+
+1. Create base context
+2. Execute Chain[0] with context COPY:
+   - Beam hits Enemy, Charge boosts power, Fire damages Enemy
+3. Execute Chain[1] with FRESH context COPY:
+   - Beam fires (second beam has decay: 1/2 = 50%)
+   - Beam misses, hits air block position
+   - Blink teleports caster to that position
 ```
 
 **Nested SELECT Example:**
 
 ```
-Hex: SELF[BEAM[BURST[FIRE[], ICE[]]]]
+Spell: SELF[BEAM[BURST[FIRE[], ICE[]]]]
 
 1. SELF establishes origin = caster
 2. BEAM fires from caster, hits entity X
@@ -263,27 +360,31 @@ Players don't have access to all glyphs at once. Like a deckbuilder (without ran
 
 **Formula:**
 ```
-TotalCost = Σ (effect_base_cost × target_multiplier × modifier_multiplier)
+TotalCost = Σ (glyph.calculateManaCost(context))
 
-Where:
-- Only EFFECT glyphs have base_cost
-- target_multiplier = number of targets hit by parent SELECT
-- modifier_multiplier = product of all modifiers wrapping the effect
+Where each glyph's calculateManaCost():
+- Reads baseManaCost from asset definition
+- Applies context multipliers if relevant
+- EFFECTs have base costs, SELECTs/MODIFIERs may have small costs
 ```
 
 **Examples:**
 ```
 BEAM[FIRE[]]
-→ FIRE base=15, BEAM hits 1 target, no modifiers
-→ Cost = 15 × 1 × 1 = 15
+→ FIRE base=15, BEAM base=0
+→ Cost = 15
 
 BURST[FIRE[]] (hits 5 entities)
-→ FIRE base=15, BURST hits 5 targets
-→ Cost = 15 × 5 × 1 = 75
+→ FIRE base=15, BURST base=0
+→ Cost = 15 (targets don't increase cost, but do increase power decay)
 
 BEAM[POWER[FIRE[]]]
-→ FIRE base=15, BEAM hits 1, POWER multiplier=1.5
-→ Cost = 15 × 1 × 1.5 = 22.5
+→ FIRE base=15, POWER base=5, BEAM base=0
+→ Cost = 20
+
+Chain: FIRE[]:ICE[]
+→ FIRE base=15, ICE base=15
+→ Cost = 30
 ```
 
 **Cast Validation:**
@@ -302,12 +403,22 @@ com.riprod.hexcode/
 ├── Hexcode.java                    // Main plugin class
 ├── config/
 │   └── HexcodeConfig.java          // Configuration codec
+├── asset/
+│   ├── GlyphAssetDefinition.java   // Asset-defined glyph properties
+│   └── GlyphAssetLoader.java       // Loads glyph assets from JSON files
+├── data/
+│   ├── PlayerGlyphData.java        // Per-player glyph instance data
+│   ├── GlyphInstanceData.java      // Single glyph's accuracy/speed data
+│   └── PlayerGlyphDataManager.java // Manages player data persistence
+├── drawing/
+│   └── DrawingTemplate.java        // PNG template for glyph drawing comparison
 ├── glyph/
 │   ├── Glyph.java                  // Base glyph interface
 │   ├── GlyphRole.java              // Enum: EFFECT, MODIFIER, SELECT
 │   ├── GlyphRegistry.java          // All glyph definitions and lookup
+│   ├── GlyphFactories.java         // Factory methods for built-in glyphs
 │   ├── GlyphVisual.java            // Visual properties (color, shape, particles)
-│   ├── ModifierCompatibility.java  // Compatibility definitions
+│   ├── GlyphShape.java             // Shape definitions
 │   ├── effects/
 │   │   ├── EffectGlyph.java        // Base class for EFFECT glyphs
 │   │   ├── FireGlyph.java
@@ -337,17 +448,17 @@ com.riprod.hexcode/
 │       ├── BurstGlyph.java
 │       └── ConeGlyph.java
 ├── hex/
-│   ├── Hex.java                    // Complete spell tree structure
-│   ├── HexNode.java                // Node in hex tree (glyph + children)
+│   ├── Spell.java                  // Top-level spell with chain of hexes
+│   ├── HexNode.java                // Node in hex tree (glyph + nested children)
 │   ├── HexBuilder.java             // Builds/validates hex during composition
 │   ├── HexValidator.java           // Validates compatibility rules
 │   └── HexSerializer.java          // Save/load hex structures
 ├── execution/
-│   ├── HexExecutor.java            // Executes a completed hex
-│   ├── ExecutionContext.java       // Runtime context (targets, caster, etc.)
+│   ├── HexExecutor.java            // Executes a completed spell
+│   ├── SpellContext.java           // Runtime context (targets, caster, multipliers)
 │   ├── TargetSet.java              // Set of target entities/blocks/positions
-│   ├── DelayedExecution.java       // Handles BEAM/PROJECTILE delays
-│   └── EffectApplicator.java       // Applies effects to targets
+│   ├── DelayedExecutionManager.java // Handles BEAM/PROJECTILE delays
+│   └── GlyphExecutionRecord.java   // Records single glyph execution
 ├── mode/
 │   ├── GlyphMode.java              // Player glyph mode state
 │   ├── GlyphModeManager.java       // Manages active glyph sessions
@@ -359,11 +470,13 @@ com.riprod.hexcode/
 │   └── LoadoutStorage.java         // Persistence
 ├── entity/
 │   ├── OrbitalGlyphEntity.java     // Floating glyph in ring
+│   ├── OrbitalGlyphComponent.java  // Component for orbital glyph entities
 │   ├── CraftedGlyphEntity.java     // Glyph in crafting space
 │   ├── SpellProjectileEntity.java  // PROJECTILE delivery
 │   └── SpellBeamEntity.java        // BEAM delivery
 ├── visual/
 │   ├── GlyphRenderer.java          // Handles glyph visual updates
+│   ├── GlyphParticleRenderer.java  // Particle effects for glyphs
 │   ├── ShellRenderer.java          // Renders wrapper shells
 │   ├── LinkRenderer.java           // Renders sibling connections
 │   ├── TrailEffect.java            // Rune glow trail particles
@@ -371,6 +484,7 @@ com.riprod.hexcode/
 ├── event/
 │   ├── GlyphModeEnterEvent.java
 │   ├── GlyphModeExitEvent.java
+│   ├── GlyphRegistrationEvent.java // Fired for external plugin glyph registration
 │   ├── GlyphDragEvent.java
 │   ├── GlyphPlaceEvent.java
 │   ├── GlyphLinkEvent.java
@@ -389,7 +503,7 @@ com.riprod.hexcode/
 
 ```java
 /**
- * Base interface for all glyphs
+ * Base interface for all glyphs (asset-driven)
  */
 public interface Glyph {
     // Identity
@@ -397,105 +511,138 @@ public interface Glyph {
     String getDisplayName();           // "Fire"
     GlyphRole getRole();               // EFFECT, MODIFIER, or SELECT
 
-    // Visual properties
-    GlyphVisual getVisual();           // Color, shape, particles, animation
+    // Asset-driven properties (loaded from asset file)
+    GlyphAssetDefinition getAssetDefinition();
 
-    // For MODIFIER glyphs
-    default Set<String> getCompatibleGlyphs() { return Set.of(); }
-    default float getModifierMultiplier() { return 1.0f; }
+    // Registration (called once when glyph is registered)
+    RegisterObject onRegister(GlyphRegistry registry);
 
-    // For SELECT glyphs
-    default boolean isDelayed() { return false; }
-    default TargetSet selectTargets(ExecutionContext ctx) { return TargetSet.empty(); }
+    // Execution (called each time glyph executes)
+    SpellContext cast(SpellContext context);
 
-    // For EFFECT glyphs
-    default int getBaseCost() { return 0; }
-    default void applyEffect(ExecutionContext ctx, TargetSet targets) {}
+    // Per-execution data (set by drawing system)
+    float getAccuracy();        // 0.0-1.0, set by drawing system
+    float getDrawSpeed();       // Seconds taken to draw
+    void setExecutionData(float accuracy, float drawSpeed);
+
+    // Mana calculation
+    float calculateManaCost(SpellContext context);
 }
 
 /**
- * A node in the Hex tree
+ * Glyph asset definition (loaded from JSON)
+ */
+public class GlyphAssetDefinition {
+    String id;                    // e.g., "hexcode:fire"
+    String displayName;           // e.g., "Fire"
+    String role;                  // "EFFECT", "MODIFIER", or "SELECT"
+
+    // Visual assets
+    String modelPath;             // Path to Blockbench .blockymodel file
+    String drawingTemplatePath;   // Path to PNG for drawing comparison
+
+    // Base stats (all default to 1.0 if not specified)
+    float basePower;              // Multiplier for effect strength
+    float baseManaCost;           // Mana cost before modifiers
+    float baseVariability;        // Drawing tolerance 0.0-1.0
+
+    // Role-specific properties
+    Map<String, Object> properties;  // Custom properties per glyph type
+}
+
+/**
+ * Top-level spell structure with chain of hexes
+ */
+public class Spell {
+    private final List<HexNode> chain;  // Top-level chain of hexes
+
+    public List<HexNode> getChain();
+    public boolean isChained();  // Returns true if chain.size() > 1
+    public int getChainLength();
+}
+
+/**
+ * A node in the Hex tree (nested structure)
  */
 public class HexNode {
     private final Glyph glyph;
-    private final List<HexNode> children;  // Empty for EFFECT, one for MODIFIER, many for SELECT
-    private HexNode parent;
+    private final List<HexNode> children;  // Nested children (hex relationship)
 
-    public boolean isLeaf() {
-        return children.isEmpty();
-    }
+    // Factory methods
+    public static HexNode leaf(Glyph glyph);
+    public static HexNode wrap(Glyph glyph, HexNode child);
+    public static HexNode wrap(Glyph glyph, List<HexNode> children);
 
-    public boolean isLinkedSibling() {
-        return parent != null && parent.children.size() > 1;
-    }
+    // Traversal
+    public boolean isLeaf();
+    public List<HexNode> getChildren();
+    public void forEachDepthFirst(Consumer<HexNode> action);
 }
 
 /**
- * Complete Hex structure
+ * Executes a spell with proper context handling
  */
-public class Hex {
-    private HexNode root;
+public class HexExecutor {
+    public void execute(Spell spell, EntityRef caster, int castNumber) {
+        Vector3d origin = getCasterPosition(caster);
+        Vector3d direction = getCasterLookDirection(caster);
 
-    public void execute(EntityRef caster) {
-        ExecutionContext ctx = new ExecutionContext(caster);
-        executeNode(root, ctx);
-    }
+        // Create base context
+        SpellContext baseContext = SpellContext.create(caster, origin, direction, castNumber);
 
-    private void executeNode(HexNode node, ExecutionContext ctx) {
-        Glyph glyph = node.getGlyph();
-
-        switch (glyph.getRole()) {
-            case SELECT:
-                SelectGlyph select = (SelectGlyph) glyph;
-                if (select.isDelayed()) {
-                    // Queue for delayed execution
-                    ctx.queueDelayed(node, select);
-                } else {
-                    TargetSet targets = select.selectTargets(ctx);
-                    ctx.pushTargets(targets);
-                    for (HexNode child : node.getChildren()) {
-                        executeNode(child, ctx);
-                    }
-                }
-                break;
-
-            case MODIFIER:
-                // Modifier affects the child - apply multiplier to context
-                ctx.pushModifier(glyph.getId(), glyph.getModifierMultiplier());
-                executeNode(node.getChildren().get(0), ctx);
-                ctx.popModifier(glyph.getId());
-                break;
-
-            case EFFECT:
-                EffectGlyph effect = (EffectGlyph) glyph;
-                TargetSet targets = ctx.getCurrentTargets();
-                effect.applyEffect(ctx, targets);
-                break;
+        // Execute each hex in chain with COPY of base context
+        for (HexNode hexNode : spell.getChain()) {
+            SpellContext chainContext = baseContext.copy();  // Fresh copy for each chain element
+            executeHexNode(hexNode, chainContext);
         }
     }
+
+    private SpellContext executeHexNode(HexNode node, SpellContext context) {
+        Glyph glyph = node.getGlyph();
+
+        // Execute this glyph (modifies context)
+        context = glyph.cast(context);
+
+        // Execute children depth-first (context flows down)
+        for (HexNode child : node.getChildren()) {
+            context = executeHexNode(child, context);
+        }
+
+        return context;
+    }
 }
 
 /**
- * Runtime execution context
+ * Runtime spell context (passed between glyphs)
  */
-public class ExecutionContext {
+public class SpellContext {
+    // Immutable base info
+    private final UUID casterId;
     private final EntityRef caster;
-    private final Deque<TargetSet> targetStack;
-    private final Map<String, Float> activeModifiers;
-    private final List<DelayedExecution> delayedQueue;
+    private final Vector3d castOrigin;
+    private final Vector3d castDirection;
+    private final int castNumber;
 
-    public TargetSet getCurrentTargets() {
-        return targetStack.isEmpty() ? TargetSet.of(caster) : targetStack.peek();
-    }
+    // Mutable execution state
+    private List<EntityRef> targets;
+    private List<Vector3d> targetPositions;
+    private float powerMultiplier = 1.0f;
+    private float rangeMultiplier = 1.0f;
+    private float durationMultiplier = 1.0f;
 
-    public float getModifier(String id) {
-        return activeModifiers.getOrDefault(id, 1.0f);
-    }
+    // Execution history
+    private List<GlyphExecutionRecord> executedGlyphs;
+    private Map<String, Integer> glyphExecutionCounts;
 
-    public float getTotalModifierMultiplier() {
-        return activeModifiers.values().stream()
-            .reduce(1.0f, (a, b) -> a * b);
-    }
+    // Extensible metadata
+    private Map<String, Object> metadata;
+
+    // Factory methods
+    static SpellContext create(EntityRef caster, Vector3d origin, Vector3d direction, int castNumber);
+    SpellContext copy();  // Deep copy for chain isolation
+
+    // Power decay calculation
+    float calculateDecayedPower(Glyph glyph);
 }
 ```
 
@@ -531,10 +678,50 @@ public class CraftedGlyphComponent {
 // Component for spell projectiles
 public class SpellProjectileComponent {
     HexNode pendingNode;       // Subtree to execute on hit
-    ExecutionContext context;  // Execution state
+    SpellContext context;      // Execution state (with context copy for chain isolation)
     EntityRef caster;
     float speed;
     float maxDistance;
+}
+```
+
+### Glyph Registration
+
+The GlyphRegistry is the single source of truth for all glyphs. It supports both built-in and external plugin glyphs:
+
+```java
+// During Hexcode initialization
+public void onEnable() {
+    // 1. Load all glyph asset definitions
+    Map<String, GlyphAssetDefinition> assets = GlyphAssetLoader.getInstance().loadAllGlyphAssets();
+
+    // 2. Fire GlyphRegistrationEvent (allows external plugins to register)
+    GlyphRegistrationEvent event = new GlyphRegistrationEvent(registry, assetLoader);
+    EventSystem.fire(event);
+
+    // 3. Register built-in glyphs using factories + assets
+    for (GlyphAssetDefinition asset : assets.values()) {
+        GlyphFactory factory = GlyphFactories.getFactory(asset.getId());
+        if (factory != null) {
+            registry.registerGlyphFromAsset(asset, factory);
+        }
+    }
+
+    // 4. Freeze registry (no more registrations)
+    registry.freeze();
+
+    // 5. Log summary
+    logger.info("Registered {} glyphs ({} effects, {} modifiers, {} selects)",
+        registry.getAllGlyphs().size(), ...);
+}
+```
+
+**External plugins register via the event:**
+```java
+@Subscribe
+public void onGlyphRegistration(GlyphRegistrationEvent event) {
+    GlyphAssetDefinition asset = event.loadAsset("myplugin:custom_glyph");
+    event.registerGlyph(new CustomGlyph(asset));
 }
 ```
 
@@ -544,7 +731,7 @@ public class SpellProjectileComponent {
 [Glyph Mode Entry]
     → Check offhand for Hex Staff
     → Create GlyphModeComponent on player
-    → Spawn OrbitalGlyphEntity for each loadout glyph
+    → Spawn OrbitalGlyphEntity for each known glyph from player's loadout
     → Initialize empty CompositionState
 
 [PlayerMouseButtonEvent - Drag Start]
@@ -612,17 +799,39 @@ for (EntityRef glyph : orbitalGlyphs) {
 
 **Delayed Execution (BEAM/PROJECTILE):**
 ```java
-// In BeamGlyph
-public void onHit(ExecutionContext ctx, EntityRef hitEntity, Vector3f hitPos) {
-    ctx.pushTargets(TargetSet.of(hitEntity));
+// In BeamGlyph.cast() - queues for delayed execution
+@Override
+public SpellContext cast(SpellContext context) {
+    context.recordGlyphExecution(this);
+
+    // Queue for delayed execution
+    UUID executionId = DelayedExecutionManager.getInstance()
+        .queueDelayedExecution(getCurrentNode(), context,
+                                context.getCastOrigin(),
+                                context.getCastDirection());
+
+    // Mark context as having pending delay
+    context.setMetadata("pendingDelayId", executionId);
+
+    return context;
+}
+
+// In DelayedExecutionManager.onProjectileHit()
+public void onHit(UUID executionId, EntityRef hitEntity, Vector3f hitPos) {
+    DelayedExecutionState state = pendingExecutions.get(executionId);
+    SpellContext context = state.getContext();
+
+    // Add hit entity as target
+    context.addTarget(hitEntity);
 
     // Execute all children on hit
-    for (HexNode child : this.node.getChildren()) {
-        ctx.getExecutor().executeNode(child, ctx);
+    HexExecutor executor = HexExecutor.getInstance();
+    for (HexNode child : state.getNode().getChildren()) {
+        executor.executeHexNode(child, context);
     }
 
-    // Signal delay resolved
-    ctx.resolveDelay(this);
+    // Remove from pending
+    pendingExecutions.remove(executionId);
 }
 ```
 
@@ -630,7 +839,11 @@ public void onHit(ExecutionContext ctx, EntityRef hitEntity, Vector3f hitPos) {
 
 ## Implementation Phases
 
-### Phase 1: Foundation
+> **Note**: The phases below represent the **original MVP implementation** which is complete. See **TODO.md** for the ongoing rework phases that transform the system to the asset-driven architecture described in this document.
+
+### Original MVP Phases (Complete)
+
+#### Phase 1: Foundation
 - [x] Create package structure
 - [x] Define Glyph interface and GlyphRole enum
 - [x] Implement GlyphRegistry with MVP glyph definitions
@@ -638,7 +851,7 @@ public void onHit(ExecutionContext ctx, EntityRef hitEntity, Vector3f hitPos) {
 - [x] Create Hex Staff item definition (JSON + texture)
 - [x] Implement offhand detection for staff
 
-### Phase 2: Glyph Mode Core
+#### Phase 2: Glyph Mode Core
 - [x] Create GlyphModeManager singleton
 - [x] Implement GlyphMode state class per player
 - [x] Add event listener for glyph mode toggle
@@ -646,7 +859,7 @@ public void onHit(ExecutionContext ctx, EntityRef hitEntity, Vector3f hitPos) {
 - [x] Handle mode exit conditions
 - [x] Implement basic loadout (hardcoded for MVP)
 
-### Phase 3: Orbital Ring Display
+#### Phase 3: Orbital Ring Display
 - [x] Create OrbitalGlyphEntity spawning
 - [x] Implement orbital positioning math
 - [x] Add dynamic lighting to glyph entities
@@ -654,7 +867,7 @@ public void onHit(ExecutionContext ctx, EntityRef hitEntity, Vector3f hitPos) {
 - [x] Implement orbit animation
 - [x] Add hover highlight visual
 
-### Phase 4: Hex Composition
+#### Phase 4: Hex Composition
 - [x] Implement CraftingSpace positioning
 - [x] Create HexBuilder for composition state
 - [x] Handle drag start/end events
@@ -664,7 +877,7 @@ public void onHit(ExecutionContext ctx, EntityRef hitEntity, Vector3f hitPos) {
 - [x] Add undo functionality
 - [x] Validate composition rules
 
-### Phase 5: Hex Execution - Instant
+#### Phase 5: Hex Execution - Instant
 - [x] Create ExecutionContext
 - [x] Implement tree traversal execution
 - [x] Implement TargetSet management
@@ -672,7 +885,7 @@ public void onHit(ExecutionContext ctx, EntityRef hitEntity, Vector3f hitPos) {
 - [x] Apply MODIFIER multipliers to context
 - [x] Execute EFFECT glyphs on targets
 
-### Phase 6: Hex Execution - Delayed
+#### Phase 6: Hex Execution - Delayed
 - [x] Create SpellProjectileEntity
 - [x] Create SpellBeamEntity
 - [x] Implement delayed execution queue
@@ -680,20 +893,86 @@ public void onHit(ExecutionContext ctx, EntityRef hitEntity, Vector3f hitPos) {
 - [x] Execute pending children on hit
 - [x] Resolve sibling continuation after delays
 
-### Phase 7: Mana & Casting
+#### Phase 7: Mana & Casting
 - [x] Implement mana cost calculation
 - [x] Add cost preview during composition
 - [x] Validate mana on cast
 - [x] Handle partial mana (75%+ rule)
 - [x] Consume mana and execute
 
-### Phase 8: Polish & Testing
+#### Phase 8: Polish & Testing
 - [x] Add sound effects for all interactions
 - [x] Particle trails for dragging
 - [x] Visual feedback for invalid actions
 - [x] Debug commands
 - [x] Performance optimization
 - [x] Multiplayer synchronization testing
+
+### Rework Phases (See TODO.md)
+
+The following rework phases transform the MVP into the asset-driven architecture:
+
+| Phase | Description | Status |
+|-------|-------------|--------|
+| 1 | Asset System Foundation | Not Started |
+| 2 | Core Glyph Interface Rework | Not Started |
+| 3 | Glyph Registry Rework | Not Started |
+| 4 | Hex/Chain Execution System | Not Started |
+| 5 | Per-Player Glyph Data | Not Started |
+| 6 | Delayed Execution Rework | Not Started |
+| 7 | Update All Glyph Implementations | Not Started |
+| 8 | Asset Files Creation | Not Started |
+| 9 | Testing & Validation | Not Started |
+| 10 | Documentation & Cleanup | Not Started |
+
+---
+
+## Asset System
+
+### Glyph Asset Files
+
+All glyphs are defined through asset files. This enables external plugins to add glyphs using the same system.
+
+**Asset File Location**: `Assets/Server/Hexcode/Glyphs/{glyphId}.json`
+
+**Example Asset File** (`Assets/Server/Hexcode/Glyphs/fire.json`):
+```json
+{
+  "id": "hexcode:fire",
+  "displayName": "Fire",
+  "role": "EFFECT",
+  "modelPath": "Hexcode/Models/Glyphs/fire.blockymodel",
+  "drawingTemplatePath": "Hexcode/Drawings/fire.png",
+  "basePower": 0.25,
+  "baseManaCost": 15,
+  "baseVariability": 0.6,
+  "properties": {
+    "damageType": "fire",
+    "baseDamage": 10.0,
+    "burnDuration": 3.0,
+    "burnEffectId": "hexcode:burn"
+  },
+  "compatibleModifiers": ["hexcode:power", "hexcode:duration"]
+}
+```
+
+### Drawing Templates
+
+Drawing templates are black & white PNGs used to compare player-drawn glyphs for accuracy.
+
+**Location**: `Assets/Common/Hexcode/Drawings/{glyphId}.png`
+
+**PNG Format Requirements**:
+- Black & white PNG (white = shape, black/transparent = background)
+- Recommended size: 128x128 pixels
+- Shape should be centered and fill ~80% of canvas
+
+### Per-Player Glyph Data
+
+Player glyph data (accuracy, speed, known glyphs) is stored per-player:
+- **Location**: `{universe}/players/{uuid}/hexcode.json`
+- Players can only create spells from **known glyphs**
+- Accuracy and draw speed affect spell power
 
 ---
 
@@ -705,6 +984,13 @@ public void onHit(ExecutionContext ctx, EntityRef hitEntity, Vector3f hitPos) {
 | Hex Staff | `Server/Item/Items/Hex_Staff.json` | Staff item definition |
 | Hex Staff Icon | `Common/Icons/ItemsGenerated/Hex_Staff.png` | Inventory icon |
 | Hex Staff Model | `Common/Models/Items/Hex_Staff.json` | 3D model |
+
+### Glyph Assets (per glyph)
+| Asset | Path | Description |
+|-------|------|-------------|
+| Glyph Definition | `Server/Hexcode/Glyphs/{id}.json` | Asset-defined glyph properties |
+| Glyph Model | `Common/Hexcode/Models/Glyphs/{id}.blockymodel` | 3D model |
+| Drawing Template | `Common/Hexcode/Drawings/{id}.png` | PNG for drawing comparison |
 
 ### Glyph Visuals
 | Asset | Path | Description |
@@ -775,8 +1061,8 @@ public void onHit(ExecutionContext ctx, EntityRef hitEntity, Vector3f hitPos) {
 
 ## Open Questions / Future Considerations
 
-1. **Glyph Drawing System**: Future implementation where players draw glyphs with mouse gestures, accuracy determines quality percentage
-2. **Glyph Unlocking**: Future progression system - discover glyphs in world, learn from scrolls/NPCs
+1. **Glyph Drawing System**: Future implementation where players draw glyphs with mouse gestures, accuracy determines quality percentage (per-player data structure ready)
+2. **Glyph Unlocking**: Per-player glyph data system supports known glyphs - discovery/learning mechanics TBD
 3. **Loadout UI**: Interface for managing which glyphs to bring into combat
 4. **Staff Tiers**: Multiple staff types with different mana efficiency or composition limits
 5. **PvP Balance**: How do spells interact with other players?
@@ -784,6 +1070,7 @@ public void onHit(ExecutionContext ctx, EntityRef hitEntity, Vector3f hitPos) {
 7. **Hex Saving**: Should players be able to save frequently used hex configurations?
 8. **Visual Customization**: Player-chosen glyph colors/styles?
 9. **Combo Effects**: Should certain glyph combinations create special effects? (Fire + Ice = Steam?)
+10. **External Plugin Glyphs**: GlyphRegistrationEvent allows external plugins to register custom glyphs
 
 ---
 

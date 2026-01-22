@@ -33,7 +33,7 @@ public class VoidGlyph extends EffectGlyph {
             ID,
             "Void",
             BASE_COST,
-            GlyphVisual.effect(GlyphVisual.COLOR_VOID),
+            GlyphVisual.effect(GlyphVisual.COLOR_VOID, "void"),
             Set.of("hexcode:power", "hexcode:duration")
         );
     }

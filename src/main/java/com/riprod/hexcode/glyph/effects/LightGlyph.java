@@ -37,7 +37,7 @@ public class LightGlyph extends EffectGlyph {
             ID,
             "Light",
             BASE_COST,
-            GlyphVisual.effect(GlyphVisual.COLOR_UTILITY),
+            GlyphVisual.effect(GlyphVisual.COLOR_LIGHT, "light"),
             Set.of("hexcode:power", "hexcode:duration")
         );
     }

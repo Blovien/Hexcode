@@ -1,6 +1,7 @@
 package com.riprod.hexcode.entity;
 
 import com.hypixel.hytale.component.CommandBuffer;
+import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -19,8 +20,10 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.config.HexcodeConfig;
 import com.riprod.hexcode.glyph.Glyph;
+import com.riprod.hexcode.glyph.GlyphShape;
 import com.riprod.hexcode.glyph.GlyphVisual;
 import com.riprod.hexcode.util.HexMathUtil;
+import com.riprod.hexcode.visual.GlyphParticleRenderer;
 
 import java.util.UUID;
 
@@ -46,6 +49,11 @@ public class OrbitalGlyphEntity {
     private boolean isDragging;
     private boolean isAvailable;
 
+    // Particle-based rendering
+    private final GlyphShape glyphShape;
+    private float particleRotation;
+    private int particleRefreshCounter;
+
     public OrbitalGlyphEntity(Glyph glyph, Ref<EntityStore> ownerPlayer, float initialAngle) {
         this.glyph = glyph;
         this.ownerPlayer = ownerPlayer;
@@ -59,6 +67,11 @@ public class OrbitalGlyphEntity {
         this.isHovered = false;
         this.isDragging = false;
         this.isAvailable = true;
+
+        // Initialize particle-based rendering
+        this.glyphShape = GlyphShape.fromGlyph(glyph);
+        this.particleRotation = 0.0f;
+        this.particleRefreshCounter = 0;
     }
 
     /**
@@ -164,6 +177,17 @@ public class OrbitalGlyphEntity {
                 orbitAngle -= Math.PI * 2;
             }
         }
+
+        // Update particle rotation for spinning effect
+        if (glyphShape.getRotationSpeed() > 0) {
+            particleRotation += glyphShape.getRotationSpeed() * dt;
+            if (particleRotation > Math.PI * 2) {
+                particleRotation -= Math.PI * 2;
+            }
+        }
+
+        // Increment particle refresh counter
+        particleRefreshCounter++;
     }
 
     /**
@@ -211,19 +235,26 @@ public class OrbitalGlyphEntity {
         TransformComponent transform = new TransformComponent(position, new Vector3f(0, 0, 0));
         holder.addComponent(TransformComponent.getComponentType(), transform);
 
-        // Load model from glyph visual
+        // Load model from glyph visual (only if not using particle rendering)
         GlyphVisual visual = glyph.getVisual();
-        String modelId = visual.getModelId();
-        ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(modelId);
-
-        if (modelAsset != null) {
-            Model model = Model.createUnitScaleModel(modelAsset);
-            holder.addComponent(ModelComponent.getComponentType(), new ModelComponent(model));
+        if (!visual.usesParticleRendering()) {
+            // Legacy model-based rendering
+            String modelId = visual.getModelId();
+            if (modelId != null) {
+                ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(modelId);
+                if (modelAsset != null) {
+                    Model model = Model.createUnitScaleModel(modelAsset);
+                    holder.addComponent(ModelComponent.getComponentType(), new ModelComponent(model));
+                } else {
+                    LOGGER.atWarning().log("Could not load model '%s' for glyph '%s'", modelId, glyph.getDisplayName());
+                }
+            }
         } else {
-            LOGGER.atWarning().log("Could not load model '%s' for glyph '%s'", modelId, glyph.getDisplayName());
+            // Particle-based rendering - no model component needed
+            LOGGER.atFine().log("Using particle-based rendering for glyph '%s'", glyph.getDisplayName());
         }
 
-        // Add dynamic light based on glyph color
+        // Add dynamic light based on glyph color (always add for glow effect)
         ColorLight colorLight = createColorLightFromGlyph(visual);
         DynamicLight dynamicLight = new DynamicLight(colorLight);
         holder.addComponent(DynamicLight.getComponentType(), dynamicLight);
@@ -244,8 +275,8 @@ public class OrbitalGlyphEntity {
         // Add entity to command buffer (deferred execution after tick completes)
         entityRef = commandBuffer.addEntity(holder, AddReason.SPAWN);
 
-        LOGGER.atInfo().log("Spawned orbital glyph '%s' at (%.1f, %.1f, %.1f)",
-                glyph.getDisplayName(), position.x, position.y, position.z);
+        LOGGER.atInfo().log("Spawned orbital glyph '%s' at (%.1f, %.1f, %.1f) [particle-mode: %b]",
+                glyph.getDisplayName(), position.x, position.y, position.z, visual.usesParticleRendering());
     }
 
     /**
@@ -323,5 +354,87 @@ public class OrbitalGlyphEntity {
         colorLight.blue = (byte) blue;
 
         return colorLight;
+    }
+
+    // ========== Particle-based Rendering ==========
+
+    /**
+     * @return The GlyphShape for particle rendering
+     */
+    public GlyphShape getGlyphShape() {
+        return glyphShape;
+    }
+
+    /**
+     * @return Current particle rotation angle in radians
+     */
+    public float getParticleRotation() {
+        return particleRotation;
+    }
+
+    /**
+     * Check if particle visual should be refreshed this tick.
+     * Particles are spawned every N ticks to maintain visibility.
+     *
+     * @param refreshInterval Ticks between particle spawns
+     * @return true if particle should be spawned this tick
+     */
+    public boolean shouldRefreshParticle(int refreshInterval) {
+        return glyph.getVisual().usesParticleRendering() && particleRefreshCounter >= refreshInterval;
+    }
+
+    /**
+     * Reset the particle refresh counter after spawning.
+     */
+    public void resetParticleRefreshCounter() {
+        particleRefreshCounter = 0;
+    }
+
+    /**
+     * Spawn the particle visual for this glyph.
+     * Should be called periodically to maintain visibility.
+     *
+     * @param componentAccessor The component accessor for entity queries
+     * @param position Current world position of the glyph
+     */
+    public void spawnParticleVisual(ComponentAccessor<EntityStore> componentAccessor, Vector3d position) {
+        if (!glyph.getVisual().usesParticleRendering()) {
+            return;
+        }
+
+        GlyphParticleRenderer renderer = GlyphParticleRenderer.getInstance();
+
+        // Use scaled glyph shape for hover effect
+        GlyphShape effectiveShape = isHovered ? getHoverScaledShape() : glyphShape;
+
+        renderer.spawnGlyphParticle(
+                componentAccessor,
+                position,
+                effectiveShape,
+                particleRotation,
+                null
+        );
+
+        resetParticleRefreshCounter();
+    }
+
+    /**
+     * Get a scaled version of the glyph shape for hover highlight.
+     */
+    private GlyphShape getHoverScaledShape() {
+        return new GlyphShape(
+                glyphShape.getTextureId(),
+                glyphShape.getColor(),
+                glyphShape.getScale() * 1.2f, // 20% larger when hovered
+                glyphShape.getGlowIntensity() * 1.5f, // Brighter when hovered
+                glyphShape.getRotationSpeed()
+        );
+    }
+
+    /**
+     * @return true if this glyph uses particle-based rendering
+     */
+    public boolean usesParticleRendering() {
+        return glyph.getVisual().usesParticleRendering();
     }
 }

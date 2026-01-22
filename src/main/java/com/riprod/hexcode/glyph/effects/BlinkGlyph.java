@@ -29,7 +29,7 @@ public class BlinkGlyph extends EffectGlyph {
             ID,
             "Blink",
             BASE_COST,
-            GlyphVisual.effect(GlyphVisual.COLOR_UTILITY),
+            GlyphVisual.effect(GlyphVisual.COLOR_BLINK, "blink"),
             Set.of("hexcode:range")
         );
     }

@@ -19,12 +19,28 @@ public abstract class ModifierGlyph implements Glyph {
     private final GlyphVisual visual;
     private final Set<String> incompatibleGlyphs;
 
-    protected ModifierGlyph(String id, String displayName, float multiplier, Set<String> incompatibleGlyphs) {
+    /**
+     * Create a modifier glyph with a specific texture.
+     *
+     * @param id Unique identifier
+     * @param displayName Display name
+     * @param multiplier Modifier multiplier
+     * @param textureName Texture name (e.g., "power")
+     * @param incompatibleGlyphs Set of glyph IDs that cannot be modified
+     */
+    protected ModifierGlyph(String id, String displayName, float multiplier, String textureName, Set<String> incompatibleGlyphs) {
         this.id = id;
         this.displayName = displayName;
         this.multiplier = multiplier;
-        this.visual = GlyphVisual.modifier();
+        this.visual = GlyphVisual.modifier(textureName);
         this.incompatibleGlyphs = incompatibleGlyphs;
+    }
+
+    /**
+     * @deprecated Use constructor with textureName parameter instead.
+     */
+    protected ModifierGlyph(String id, String displayName, float multiplier, Set<String> incompatibleGlyphs) {
+        this(id, displayName, multiplier, deriveTextureName(id), incompatibleGlyphs);
     }
 
     protected ModifierGlyph(String id, String displayName, float multiplier, GlyphVisual visual, Set<String> incompatibleGlyphs) {
@@ -33,6 +49,15 @@ public abstract class ModifierGlyph implements Glyph {
         this.multiplier = multiplier;
         this.visual = visual;
         this.incompatibleGlyphs = incompatibleGlyphs;
+    }
+
+    /**
+     * Derive texture name from glyph ID for backward compatibility.
+     */
+    private static String deriveTextureName(String id) {
+        // Extract name from "hexcode:power" -> "power"
+        int colonIndex = id.lastIndexOf(':');
+        return colonIndex >= 0 ? id.substring(colonIndex + 1) : id;
     }
 
     @Override
