@@ -1,0 +1,12 @@
+{
+  "$Comment": "Secondary (right-click) interaction for Hex Staff - toggles Glyph Mode",
+  "RequireNewClick": true,
+  "ClickQueuingTimeout": 0.1,
+  "Cooldown": {
+    "CooldownId": "hexcode_glyph_mode_toggle",
+    "Cooldown": 0.3
+  },
+  "Interactions": [
+    "Hexcode_GlyphModeToggle"
+  ]
+}

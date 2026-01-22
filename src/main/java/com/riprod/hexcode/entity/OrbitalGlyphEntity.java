@@ -1,5 +1,6 @@
 package com.riprod.hexcode.entity;
 
+import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -178,21 +179,21 @@ public class OrbitalGlyphEntity {
     /**
      * Spawn this orbital glyph entity in the world.
      *
-     * @param store The entity store
+     * @param commandBuffer The command buffer for deferred entity operations
      * @param playerPosition The player's position
      */
-    public void spawn(Store<EntityStore> store, Vector3d playerPosition) {
-        spawn(store, playerPosition, null);
+    public void spawn(CommandBuffer<EntityStore> commandBuffer, Vector3d playerPosition) {
+        spawn(commandBuffer, playerPosition, null);
     }
 
     /**
      * Spawn this orbital glyph entity in the world.
      *
-     * @param store The entity store
+     * @param commandBuffer The command buffer for deferred entity operations
      * @param playerPosition The player's position
      * @param ownerPlayerId The owner player's UUID (for component-based system)
      */
-    public void spawn(Store<EntityStore> store, Vector3d playerPosition, UUID ownerPlayerId) {
+    public void spawn(CommandBuffer<EntityStore> commandBuffer, Vector3d playerPosition, UUID ownerPlayerId) {
         if (entityRef != null) {
             LOGGER.atWarning().log("Orbital glyph '%s' already spawned", glyph.getDisplayName());
             return;
@@ -240,8 +241,8 @@ public class OrbitalGlyphEntity {
             holder.addComponent(OrbitalGlyphComponent.getComponentType(), orbitalComp);
         }
 
-        // Add entity to store
-        entityRef = store.addEntity(holder, AddReason.SPAWN);
+        // Add entity to command buffer (deferred execution after tick completes)
+        entityRef = commandBuffer.addEntity(holder, AddReason.SPAWN);
 
         LOGGER.atInfo().log("Spawned orbital glyph '%s' at (%.1f, %.1f, %.1f)",
                 glyph.getDisplayName(), position.x, position.y, position.z);
@@ -250,11 +251,11 @@ public class OrbitalGlyphEntity {
     /**
      * Despawn this orbital glyph entity.
      *
-     * @param store The entity store
+     * @param commandBuffer The command buffer for deferred entity operations
      */
-    public void despawn(Store<EntityStore> store) {
+    public void despawn(CommandBuffer<EntityStore> commandBuffer) {
         if (entityRef != null) {
-            store.removeEntity(entityRef, RemoveReason.REMOVE);
+            commandBuffer.removeEntity(entityRef, RemoveReason.REMOVE);
             LOGGER.atInfo().log("Despawned orbital glyph '%s'", glyph.getDisplayName());
             entityRef = null;
         }

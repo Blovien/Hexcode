@@ -1,7 +1,7 @@
 package com.riprod.hexcode.mode;
 
+import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.loadout.Loadout;
 
@@ -60,9 +60,10 @@ public class GlyphModeManager {
      * @param playerId The player's UUID
      * @param playerRef The player entity reference
      * @param loadout The player's loadout (or null for default)
+     * @param commandBuffer The command buffer for deferred entity operations
      * @return The new glyph mode session
      */
-    public GlyphMode enterGlyphMode(UUID playerId, Ref<EntityStore> playerRef, Loadout loadout) {
+    public GlyphMode enterGlyphMode(UUID playerId, Ref<EntityStore> playerRef, Loadout loadout, CommandBuffer<EntityStore> commandBuffer) {
         // If already in mode, just return existing session
         GlyphMode existing = activeSessions.get(playerId);
         if (existing != null && existing.isActive()) {
@@ -73,9 +74,8 @@ public class GlyphModeManager {
         Loadout effectiveLoadout = loadout != null ? loadout : Loadout.createDefaultLoadout();
         GlyphMode mode = new GlyphMode(playerRef, effectiveLoadout);
 
-        // Enter with store to spawn orbital glyphs
-        Store<EntityStore> store = playerRef.getStore();
-        mode.enter(store);
+        // Enter with command buffer to spawn orbital glyphs (deferred)
+        mode.enter(commandBuffer);
 
         activeSessions.put(playerId, mode);
         return mode;
@@ -85,19 +85,34 @@ public class GlyphModeManager {
      * Exit glyph mode for a player.
      *
      * @param playerId The player's UUID
+     * @param commandBuffer The command buffer for deferred entity operations
+     * @return true if the player was in glyph mode
+     */
+    public boolean exitGlyphMode(UUID playerId, CommandBuffer<EntityStore> commandBuffer) {
+        GlyphMode mode = activeSessions.get(playerId);
+        if (mode != null && mode.isActive()) {
+            // Exit with command buffer to despawn orbital glyphs (deferred)
+            if (commandBuffer != null) {
+                mode.exit(commandBuffer);
+            } else {
+                mode.exit();
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Exit glyph mode for a player (without entity cleanup).
+     * Use this only when CommandBuffer is not available (e.g., player disconnect).
+     *
+     * @param playerId The player's UUID
      * @return true if the player was in glyph mode
      */
     public boolean exitGlyphMode(UUID playerId) {
         GlyphMode mode = activeSessions.get(playerId);
         if (mode != null && mode.isActive()) {
-            // Exit with store to despawn orbital glyphs
-            Ref<EntityStore> playerRef = mode.getPlayer();
-            if (playerRef != null) {
-                Store<EntityStore> store = playerRef.getStore();
-                mode.exit(store);
-            } else {
-                mode.exit();
-            }
+            mode.exit();
             return true;
         }
         return false;
@@ -109,14 +124,15 @@ public class GlyphModeManager {
      * @param playerId The player's UUID
      * @param playerRef The player entity reference
      * @param loadout The player's loadout (or null for default)
+     * @param commandBuffer The command buffer for deferred entity operations
      * @return true if now in glyph mode, false if exited
      */
-    public boolean toggleGlyphMode(UUID playerId, Ref<EntityStore> playerRef, Loadout loadout) {
+    public boolean toggleGlyphMode(UUID playerId, Ref<EntityStore> playerRef, Loadout loadout, CommandBuffer<EntityStore> commandBuffer) {
         if (isInGlyphMode(playerId)) {
-            exitGlyphMode(playerId);
+            exitGlyphMode(playerId, commandBuffer);
             return false;
         } else {
-            enterGlyphMode(playerId, playerRef, loadout);
+            enterGlyphMode(playerId, playerRef, loadout, commandBuffer);
             return true;
         }
     }

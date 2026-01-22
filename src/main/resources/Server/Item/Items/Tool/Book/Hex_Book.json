@@ -1,0 +1,42 @@
+{
+  "TranslationProperties": {
+    "Name": "server.items.Hex_Book.name"
+  },
+  "Categories": [
+    "Items.Tools"
+  ],
+  "Quality": "Uncommon",
+  "ItemLevel": 30,
+  "Model": "Items/Tools/Book/Hex_Book.blockymodel",
+  "Texture": "Items/Tools/Book/Hex_Book_Texture.png",
+  "Icon": "Icons/ItemsGenerated/Hex_Book.png",
+  "DroppedItemAnimation": "Items/Animations/Dropped/Dropped_Diagonal_Left.blockyanim",
+  "PlayerAnimationsId": "Spellbook",
+  "IconProperties": {
+    "Scale": 0.745,
+    "Translation": [
+      -7.8,
+      -7.8
+    ],
+    "Rotation": [
+      45,
+      90,
+      0
+    ]
+  },
+  "Tags": {
+    "Family": [
+      "Book"
+    ],
+    "Type": [
+      "Tool"
+    ]
+  },
+  "Utility": {
+    "Usable": true,
+    "Compatible": true
+  },
+  "MaxStack": 1,
+  "Scale": 1.1,
+  "ItemSoundSetId": "ISS_Weapons_Books"
+}

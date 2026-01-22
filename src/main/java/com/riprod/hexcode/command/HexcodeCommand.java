@@ -236,7 +236,7 @@ public class HexcodeCommand extends AbstractPlayerCommand {
         }
 
         GlyphModeManager manager = GlyphModeManager.getInstance();
-        boolean entered = manager.toggleGlyphMode(playerId, ref, null);
+        boolean entered = manager.toggleGlyphMode(playerId, ref, null, null);
 
         if (entered) {
             ctx.sendMessage(Message.raw("Entered glyph mode"));
@@ -381,7 +381,7 @@ public class HexcodeCommand extends AbstractPlayerCommand {
 
         if (mode != null) {
             Loadout newLoadout = Loadout.fromGlyphs(glyphs);
-            mode.updateLoadout(newLoadout, store);
+            mode.updateLoadout(newLoadout, null);
             ctx.sendMessage(Message.raw("Loadout set with " + glyphs.size() + " glyphs"));
         } else {
             ctx.sendMessage(Message.raw("Enter glyph mode first to set loadout"));

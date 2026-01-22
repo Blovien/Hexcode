@@ -1,5 +1,6 @@
 package com.riprod.hexcode.mode;
 
+import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
@@ -101,13 +102,13 @@ public class GlyphMode {
     /**
      * Enter glyph mode with entity spawning.
      *
-     * @param store The entity store for spawning orbital entities
+     * @param commandBuffer The command buffer for deferred entity operations
      */
-    public void enter(Store<EntityStore> store) {
+    public void enter(CommandBuffer<EntityStore> commandBuffer) {
         if (!active) {
             active = true;
             modeEnteredAt = System.currentTimeMillis();
-            spawnOrbitalGlyphs(store);
+            spawnOrbitalGlyphs(commandBuffer);
             LOGGER.atInfo().log("Glyph mode entered with %d orbital glyphs", orbitalEntities.size());
         }
     }
@@ -129,11 +130,11 @@ public class GlyphMode {
     /**
      * Exit glyph mode with entity cleanup.
      *
-     * @param store The entity store for despawning orbital entities
+     * @param commandBuffer The command buffer for deferred entity operations
      */
-    public void exit(Store<EntityStore> store) {
+    public void exit(CommandBuffer<EntityStore> commandBuffer) {
         if (active) {
-            despawnOrbitalGlyphs(store);
+            despawnOrbitalGlyphs(commandBuffer);
             active = false;
             hoveredGlyph = null;
             draggingGlyph = null;
@@ -146,12 +147,12 @@ public class GlyphMode {
     /**
      * Spawn orbital glyph entities for all glyphs in the loadout.
      */
-    private void spawnOrbitalGlyphs(Store<EntityStore> store) {
+    private void spawnOrbitalGlyphs(CommandBuffer<EntityStore> commandBuffer) {
         // Clear any existing entities
         orbitalEntities.clear();
 
-        // Get player position
-        Vector3d playerPosition = getPlayerPosition(store);
+        // Get player position (read-only operation, safe to use store)
+        Vector3d playerPosition = getPlayerPosition(commandBuffer.getStore());
 
         List<Glyph> glyphs = loadout.getGlyphs();
         int glyphCount = glyphs.size();
@@ -162,7 +163,7 @@ public class GlyphMode {
             float initialAngle = angleStep * i;
 
             OrbitalGlyphEntity orbitalEntity = new OrbitalGlyphEntity(glyph, player, initialAngle);
-            orbitalEntity.spawn(store, playerPosition);
+            orbitalEntity.spawn(commandBuffer, playerPosition);
             orbitalEntities.add(orbitalEntity);
         }
 
@@ -172,9 +173,9 @@ public class GlyphMode {
     /**
      * Despawn all orbital glyph entities.
      */
-    private void despawnOrbitalGlyphs(Store<EntityStore> store) {
+    private void despawnOrbitalGlyphs(CommandBuffer<EntityStore> commandBuffer) {
         for (OrbitalGlyphEntity entity : orbitalEntities) {
-            entity.despawn(store);
+            entity.despawn(commandBuffer);
         }
         orbitalEntities.clear();
         LOGGER.atInfo().log("Despawned all orbital glyph entities");
@@ -438,11 +439,11 @@ public class GlyphMode {
      * Update the loadout (replaces current loadout).
      *
      * @param newLoadout The new loadout to use
-     * @param store      The entity store (to update orbital entities)
+     * @param commandBuffer The command buffer for deferred entity operations
      */
-    public void updateLoadout(Loadout newLoadout, Store<EntityStore> store) {
+    public void updateLoadout(Loadout newLoadout, CommandBuffer<EntityStore> commandBuffer) {
         // Despawn current orbital glyphs
-        despawnOrbitalGlyphs(store);
+        despawnOrbitalGlyphs(commandBuffer);
 
         // Update loadout reference (need to copy glyphs since loadout field is final)
         this.loadout.clear();
@@ -452,7 +453,7 @@ public class GlyphMode {
 
         // Respawn with new loadout
         if (active) {
-            spawnOrbitalGlyphs(store);
+            spawnOrbitalGlyphs(commandBuffer);
         }
     }
 }

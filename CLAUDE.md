@@ -2,7 +2,7 @@
 
 ## Overview
 
-Hexcode is a spell-crafting mod that allows players to enter **Glyph Mode** while holding a special staff in their offhand. In this mode, glyphs from the player's **loadout** orbit around them in 3D space as floating runes. Players compose spells by dragging glyphs into a central crafting space, building **Hexes** - tree-structured spell constructs where glyphs wrap around each other like shells.
+Hexcode is a spell-crafting mod that allows players to enter **Glyph Mode** while wielding the **Hex Staff** (main hand) and **Hex Book** (offhand). In this mode, glyphs from the player's **loadout** orbit around them in 3D space as floating runes. Players compose spells by dragging glyphs into a central crafting space, building **Hexes** - tree-structured spell constructs where glyphs wrap around each other like shells.
 
 The system uses a **composite/component architecture** where:
 - **EFFECT glyphs** are the innermost leaves (actions like FIRE, HEAL)
@@ -62,21 +62,37 @@ Visual (3D shells):
 
 ### 1. Glyph Mode System
 
-**Entry Condition:**
-- Player must have a **Hex Staff** item in their offhand slot
-- Toggle via keybind (right-click while holding staff, or dedicated key)
+**Required Equipment:**
+- **Hex Staff** in main hand (hotbar active slot)
+- **Hex Book** in offhand (utility slot)
+- Both items must be equipped simultaneously to use Hexcode
+
+**Interaction Controls:**
+- **Secondary (Right-click):** Toggle glyph mode on/off
+- **Primary (Left-click) in glyph mode:** Select and drag glyphs to compose hexes
+- **Primary (Left-click) outside glyph mode:** Cast the composed hex
+
+**Entering Glyph Mode:**
+- Right-click with Hex Staff in main hand AND Hex Book in offhand
+- Glyphs from loadout appear as orbital ring around player
 
 **While Active:**
 - Stamina drains continuously (existing stamina system)
 - Player can look around freely to see orbiting glyphs
 - Normal movement and actions are restricted/modified (slow down the player)
 - Glyphs from player's loadout appear as floating entities in orbital ring
+- Use left-click to drag glyphs into the crafting space
 
 **Exit Conditions:**
-- Player removes staff from offhand
-- Player presses toggle key again (casts the Hex)
+- Right-click again to exit glyph mode (hex is preserved for casting)
+- Player removes staff or book
 - Stamina depletes completely
 - Player takes significant damage (optional interrupt)
+
+**Casting:**
+- After composing a hex in glyph mode, right-click to exit
+- Left-click to cast the composed hex (consumes mana based on hex cost)
+- The hex is cleared after casting
 
 ### 2. Glyph Types (MVP)
 
@@ -784,17 +800,3 @@ Key documentation files in `/docs/` relevant to this implementation:
 - `extracted/physics.md` - Projectile physics
 - `extracted/networking.md` - Multiplayer sync considerations
 
----
-
-## Commands for Development
-
-```
-/hexcode debug              - Toggle debug visualization (show hex tree structure)
-/hexcode glyph <id>         - Spawn a glyph in crafting space
-/hexcode loadout <glyphs>   - Set loadout (comma-separated glyph IDs)
-/hexcode cast               - Force cast current composition
-/hexcode clear              - Discard current composition
-/hexcode mana <amount>      - Set mana for testing
-/hexcode stamina <amount>   - Set stamina for testing
-/hexcode tree               - Print current hex tree structure to console
-```
