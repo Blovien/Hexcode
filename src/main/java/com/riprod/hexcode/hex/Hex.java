@@ -1,9 +1,8 @@
 package com.riprod.hexcode.hex;
 
-import com.riprod.hexcode.glyph.Glyph;
-import com.riprod.hexcode.glyph.GlyphRole;
+import java.util.UUID;
 
-import java.util.List;
+import com.google.gson.JsonObject;
 
 /**
  * A complete Hex spell structure.
@@ -11,19 +10,35 @@ import java.util.List;
  * A Hex is a tree-structured spell construct where:
  * - EFFECT glyphs are the innermost leaves (actions like FIRE, HEAL)
  * - MODIFIER glyphs wrap around others as inner shells (amplify/alter behavior)
- * - SELECT glyphs wrap around others as outer shells (determine targeting/delivery)
+ * - SELECT glyphs wrap around others as outer shells (determine
+ * targeting/delivery)
  *
  * If no SELECT wraps the Hex, an implicit SELF[] is assumed.
  */
 public class Hex {
     private HexNode root;
+    // unique id
+    private final String id;
+    private int uses = 0;
 
+    
     public Hex() {
         this.root = null;
+        this.id = UUID.randomUUID().toString();
     }
 
+    public Hex(String id) {
+        this.root = null;
+        this.id = id != null ? id : UUID.randomUUID().toString();
+    }
+
+    public Hex(String id, HexNode root) {
+        this.root = root;
+        this.id = id != null ? id : UUID.randomUUID().toString();
+    }
     public Hex(HexNode root) {
         this.root = root;
+        this.id = UUID.randomUUID().toString();
     }
 
     /**
@@ -31,6 +46,24 @@ public class Hex {
      */
     public HexNode getRoot() {
         return root;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public int getUses() {
+        return uses;
+    }
+
+    public void incrementUses() {
+        this.uses++;
+    }
+
+    public Hex withIncrementedUses() {
+        Hex newHex = new Hex(this.id, this.root);
+        newHex.uses = this.uses + 1;
+        return newHex;
     }
 
     /**
@@ -57,63 +90,13 @@ public class Hex {
     }
 
     /**
-     * @return true if the Hex is valid and ready to cast
-     */
-    public boolean isValid() {
-        if (root == null) {
-            return false;
-        }
-        return validateNode(root);
-    }
-
-    private boolean validateNode(HexNode node) {
-        Glyph glyph = node.getGlyph();
-        GlyphRole role = glyph.getRole();
-
-        switch (role) {
-            case EFFECT:
-                // Effects must be leaves
-                return node.isLeaf();
-
-            case MODIFIER:
-                // Modifiers must have exactly one child
-                if (node.getChildCount() != 1) {
-                    return false;
-                }
-                return validateNode(node.getChildren().get(0));
-
-            case SELECT:
-                // Selects must have at least one child
-                if (node.getChildCount() == 0) {
-                    return false;
-                }
-                for (HexNode child : node.getChildren()) {
-                    if (!validateNode(child)) {
-                        return false;
-                    }
-                }
-                return true;
-
-            default:
-                return false;
-        }
-    }
-
-    /**
-     * @return true if the root is a SELECT glyph
-     */
-    public boolean hasExplicitSelect() {
-        return root != null && root.getGlyph().getRole() == GlyphRole.SELECT;
-    }
-
-    /**
      * @return Maximum depth of the Hex tree
      */
     public int getMaxDepth() {
         if (root == null) {
             return 0;
         }
-        return root.getMaxSubtreeDepth();
+        return root.getDepth();
     }
 
     /**
@@ -128,46 +111,10 @@ public class Hex {
 
     private int countNodes(HexNode node) {
         int count = 1;
-        for (HexNode child : node.getChildren()) {
+        for (HexNode child : node.children) {
             count += countNodes(child);
         }
         return count;
-    }
-
-    /**
-     * @return List of all leaf nodes (EFFECT glyphs)
-     */
-    public List<HexNode> getEffectNodes() {
-        if (root == null) {
-            return List.of();
-        }
-        return root.getLeaves();
-    }
-
-    /**
-     * Calculate the base mana cost of this Hex.
-     * Formula: Sum of (effect_base_cost) for all effects.
-     * This is before target and modifier multipliers.
-     *
-     * @return Base mana cost
-     */
-    public int getBaseCost() {
-        if (root == null) {
-            return 0;
-        }
-        return calculateBaseCost(root);
-    }
-
-    private int calculateBaseCost(HexNode node) {
-        Glyph glyph = node.getGlyph();
-        if (glyph.getRole() == GlyphRole.EFFECT) {
-            return glyph.getBaseCost();
-        }
-        int cost = 0;
-        for (HexNode child : node.getChildren()) {
-            cost += calculateBaseCost(child);
-        }
-        return cost;
     }
 
     /**
@@ -179,7 +126,23 @@ public class Hex {
         if (root == null) {
             return "Hex[]";
         }
-        return "Hex{" + root.toString() + "}";
+        return "Hex[" + root.toString() + "]";
+    }
+
+    public JsonObject toJson() {
+        JsonObject obj = new JsonObject();
+        if (root != null) {
+            obj.add("root", root.toJson());
+        }
+        return obj;
+    }
+
+    public static Hex fromJson(JsonObject obj) {
+        if (obj == null || !obj.has("root")) {
+            return new Hex();
+        }
+        HexNode rootNode = HexNode.fromJson(obj.getAsJsonObject("root"));
+        return new Hex(rootNode);
     }
 
     /**
@@ -189,6 +152,15 @@ public class Hex {
         if (root == null) {
             return "Empty Hex";
         }
-        return root.toTreeString();
+        return toTreeString(root, 0);
+    }
+
+    private String toTreeString(HexNode node, int depth) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("  ".repeat(depth)).append(node.getValue()).append("\n");
+        for (HexNode child : node.getChildren()) {
+            sb.append(toTreeString(child, depth + 1));
+        }
+        return sb.toString();
     }
 }

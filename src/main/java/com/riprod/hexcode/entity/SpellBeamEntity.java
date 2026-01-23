@@ -15,6 +15,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.execution.ExecutionContext;
 import com.riprod.hexcode.execution.HexExecutor;
+import com.riprod.hexcode.execution.SpellContext;
 import com.riprod.hexcode.execution.TargetSet;
 import com.riprod.hexcode.glyph.selects.SelectGlyph;
 import com.riprod.hexcode.hex.HexNode;
@@ -32,9 +33,7 @@ public class SpellBeamEntity {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     private final HexNode pendingNode;
-    private final ExecutionContext context;
-    private final SelectGlyph selectGlyph;
-    private final Ref<EntityStore> caster;
+    private final SpellContext context;
 
     private Ref<EntityStore> entityRef;
     private Vector3d startPosition;
@@ -45,17 +44,14 @@ public class SpellBeamEntity {
     private float currentLength;
     private boolean resolved;
 
-    public SpellBeamEntity(HexNode pendingNode, ExecutionContext context, SelectGlyph selectGlyph,
-                           Vector3d startPosition, Vector3d direction, float speed, float maxDistance) {
+    public SpellBeamEntity(HexNode pendingNode, SpellContext context) {
         this.pendingNode = pendingNode;
         this.context = context;
-        this.selectGlyph = selectGlyph;
-        this.caster = context.getCaster();
         this.startPosition = new Vector3d(startPosition);
         this.direction = new Vector3d(direction).normalize();
         this.endPosition = new Vector3d(startPosition);
-        this.speed = speed;
-        this.maxDistance = maxDistance;
+        this.speed = context.getSpeedMultiplier();
+        this.maxDistance = 10;
         this.currentLength = 0;
         this.resolved = false;
     }
@@ -70,7 +66,7 @@ public class SpellBeamEntity {
     /**
      * @return The execution context
      */
-    public ExecutionContext getContext() {
+    public SpellContext getContext() {
         return context;
     }
 
@@ -158,14 +154,13 @@ public class SpellBeamEntity {
 
         // Set the hit target and execute children
         TargetSet targets = TargetSet.of(hitEntity).withOrigin(hitPosition);
-        context.pushTargets(targets);
+        context.setTargets(targets.getEntities());
 
         // Execute all children of the select glyph
         for (HexNode child : pendingNode.getChildren()) {
-            executor.executeNode(child, context);
+            executor.executeHexNode(child, context);
         }
 
-        context.popTargets();
         resolved = true;
     }
 
@@ -189,14 +184,13 @@ public class SpellBeamEntity {
 
         // For block hits, execute with position target only
         TargetSet targets = TargetSet.ofPosition(hitPosition).withOrigin(hitPosition);
-        context.pushTargets(targets);
+        context.setTargets(targets.getEntities());
 
         // Execute all children
         for (HexNode child : pendingNode.getChildren()) {
-            executor.executeNode(child, context);
+            executor.executeHexNode(child, context);
         }
 
-        context.popTargets();
         resolved = true;
     }
 

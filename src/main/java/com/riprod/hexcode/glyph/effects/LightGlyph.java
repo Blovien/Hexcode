@@ -12,74 +12,74 @@ import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.DynamicLight;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.execution.ExecutionContext;
-import com.riprod.hexcode.execution.TargetSet;
+import com.riprod.hexcode.asset.GlyphAssetDefinition;
+import com.riprod.hexcode.execution.SpellContext;
 import com.riprod.hexcode.glyph.GlyphVisual;
 
-import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 /**
  * Light effect glyph - creates a light source at target location.
+ *
+ * <p>Asset-driven properties:
+ * <ul>
+ *   <li>lightRadius - base light radius in blocks (default: 10.0)</li>
+ *   <li>lightIntensity - light brightness (default: 15.0)</li>
+ *   <li>lightDuration - how long the light lasts in seconds (default: 60.0)</li>
+ *   <li>colorRed - red component 0-255 (default: 255)</li>
+ *   <li>colorGreen - green component 0-255 (default: 255)</li>
+ *   <li>colorBlue - blue component 0-255 (default: 240)</li>
+ * </ul>
  */
 public class LightGlyph extends EffectGlyph {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
-    public static final String ID = "hexcode:light";
-    public static final int BASE_COST = 10;
-    public static final float LIGHT_RADIUS = 10.0f;
-    public static final float LIGHT_INTENSITY = 15.0f;
-    public static final float LIGHT_DURATION = 60.0f; // 1 minute
-
-    public LightGlyph() {
-        super(
-            ID,
-            "Light",
-            BASE_COST,
-            GlyphVisual.effect(GlyphVisual.COLOR_LIGHT, "light"),
-            Set.of("hexcode:power", "hexcode:duration")
-        );
+    /**
+     * Create a light glyph from an asset definition.
+     *
+     * @param assetDefinition The asset definition containing glyph properties
+     */
+    public LightGlyph(GlyphAssetDefinition assetDefinition) {
+        super(assetDefinition, GlyphVisual.effect(GlyphVisual.COLOR_LIGHT, "light"));
     }
 
     @Override
-    public void applyEffect(ExecutionContext ctx, TargetSet targets) {
-        float intensity = getModifiedAmount(ctx, LIGHT_INTENSITY);
-        float duration = getModifiedDuration(ctx, LIGHT_DURATION);
-        float radius = LIGHT_RADIUS * (intensity / LIGHT_INTENSITY);
+    protected void applyEffect(SpellContext context, Ref<EntityStore> target, float power) {
+        Store<EntityStore> store = context.getStore();
 
-        Store<EntityStore> store = ctx.getStore();
-
-        LOGGER.atInfo().log("Creating light source: radius %.1f, intensity %.1f, duration %.1f",
-                radius, intensity, duration);
-
-        // Create light at target position(s)
-        if (targets.hasPositions()) {
-            // Light at the target position
-            List<Vector3d> position = targets.getPositions();
-            for (Vector3d pos : position) {
-                spawnLightEntity(store, pos, radius, intensity);
-            }
-        } else if (targets.getEntityCount() > 0) {
-            // Light at each target entity position
-            for (Ref<EntityStore> targetRef : targets.getEntities()) {
-                TransformComponent transform = store.getComponent(targetRef, TransformComponent.getComponentType());
-                if (transform != null) {
-                    Vector3d position = transform.getPosition();
-                    spawnLightEntity(store, position, radius, intensity);
-                }
-            }
-        } else {
-            // Light at origin
-            Vector3d origin = ctx.getCurrentOrigin();
-            spawnLightEntity(store, origin, radius, intensity);
+        // Get target position
+        TransformComponent transform = store.getComponent(target, TransformComponent.getComponentType());
+        if (transform != null) {
+            Vector3d position = transform.getPosition();
+            spawnLightAtPosition(context, position, power);
         }
+    }
+
+    @Override
+    protected void applyEffectAtPosition(SpellContext context, Vector3d position, float power) {
+        spawnLightAtPosition(context, position, power);
     }
 
     /**
      * Spawn a light entity at the given position.
      */
-    private void spawnLightEntity(Store<EntityStore> store, Vector3d position, float radius, float intensity) {
+    private void spawnLightAtPosition(SpellContext context, Vector3d position, float power) {
+        Store<EntityStore> store = context.getStore();
+
+        // Get asset-driven properties
+        float lightRadius = getProperty("lightRadius", 10.0f);
+        float lightIntensity = getProperty("lightIntensity", 15.0f);
+        int colorRed = getProperty("colorRed", 255);
+        int colorGreen = getProperty("colorGreen", 255);
+        int colorBlue = getProperty("colorBlue", 240);
+
+        // Apply power multiplier to intensity and radius
+        float actualIntensity = lightIntensity * power;
+        float actualRadius = lightRadius * (actualIntensity / lightIntensity);
+
+        LOGGER.atInfo().log("Creating light source: radius %.1f, intensity %.1f at (%.1f, %.1f, %.1f)",
+                actualRadius, actualIntensity, position.x, position.y, position.z);
+
         // Create entity holder
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
 
@@ -92,20 +92,19 @@ public class LightGlyph extends EffectGlyph {
 
         // Add dynamic light component
         ColorLight lightSettings = new ColorLight();
-        lightSettings.radius = (byte) radius;
-        lightSettings.red = (byte) 255;
-        lightSettings.green = (byte) 255;
-        lightSettings.blue = (byte) 240; // Slightly warm white
+        lightSettings.radius = (byte) Math.min(actualRadius, 127);
+        lightSettings.red = (byte) colorRed;
+        lightSettings.green = (byte) colorGreen;
+        lightSettings.blue = (byte) colorBlue;
         holder.addComponent(DynamicLight.getComponentType(), new DynamicLight(lightSettings));
 
         // Add entity to store
         Ref<EntityStore> lightRef = store.addEntity(holder, AddReason.SPAWN);
 
         LOGGER.atInfo().log("Spawned light entity at (%.1f, %.1f, %.1f) with radius %.1f",
-                position.x, position.y, position.z, radius);
+                position.x, position.y, position.z, actualRadius);
 
         // Note: Duration-based despawn would need to be handled by a separate system
         // that tracks light entities and removes them after their duration expires.
-        // For MVP, lights persist until manually despawned or server restart.
     }
 }

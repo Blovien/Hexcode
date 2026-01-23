@@ -1,0 +1,14 @@
+{
+  "id": "hexcode:self",
+  "displayName": "Self",
+  "role": "SELECT",
+  "modelPath": "Hexcode/Models/Glyphs/self.blockymodel",
+  "drawingTemplatePath": "Hexcode/Drawings/self.png",
+  "basePower": 1.0,
+  "baseManaCost": 0,
+  "baseVariability": 0.5,
+  "properties": {
+    "delayed": false
+  },
+  "compatibleModifiers": []
+}

@@ -1,9 +1,11 @@
 package com.riprod.hexcode.mode;
 
+import com.riprod.hexcode.data.GlyphInstance;
 import com.riprod.hexcode.glyph.Glyph;
 import com.riprod.hexcode.hex.Hex;
 import com.riprod.hexcode.hex.HexNode;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
@@ -59,29 +61,10 @@ public class CompositionState {
      * @param glyph The glyph to add
      * @return true if successful
      */
-    public boolean addGlyph(Glyph glyph) {
-        if (isEmpty()) {
-            return placeAsRoot(glyph);
-        }
+    public boolean addGlyph(GlyphInstance glyph) {
         // For non-empty composition, wrap the root with this glyph
         HexNode root = hex.getRoot();
-        return wrapNode(glyph, root);
-    }
-
-    /**
-     * Place a glyph as the root of the hex.
-     *
-     * @param glyph The glyph to place
-     * @return true if successful
-     */
-    public boolean placeAsRoot(Glyph glyph) {
-        if (!hex.isEmpty()) {
-            return false;
-        }
-        HexNode node = new HexNode(glyph);
-        hex.setRoot(node);
-        pushAction(new CompositionAction(CompositionActionType.PLACE_ROOT, node, null));
-        return true;
+        return addLeaf(glyph, root);
     }
 
     /**
@@ -91,8 +74,8 @@ public class CompositionState {
      * @param target The node to wrap
      * @return true if successful
      */
-    public boolean wrapNode(Glyph wrapper, HexNode target) {
-        if (target == null || wrapper == null) {
+    public boolean addLeaf(GlyphInstance glyph, HexNode target) {
+        if (target == null) {
             return false;
         }
 
@@ -154,6 +137,7 @@ public class CompositionState {
         CompositionAction action = undoStack.pop();
         switch (action.type) {
             case PLACE_ROOT:
+            case PLACE_SAVED_HEX:
                 hex.setRoot(null);
                 break;
             case WRAP:
@@ -163,6 +147,10 @@ public class CompositionState {
                 if (action.target != null) {
                     ((HexNode) action.target).removeChild(action.node);
                 }
+                break;
+            case WRAP_WITH_SAVED_HEX:
+                // Restore the previous root (which was wrapped)
+                hex.setRoot(action.target);
                 break;
         }
         return true;
@@ -202,10 +190,88 @@ public class CompositionState {
         return undoStack.size();
     }
 
+    // ==================== SAVED HEX SUPPORT ====================
+
+    /**
+     * Add a saved hex to the composition.
+     * The saved hex expands to its full tree structure.
+     *
+     * @param element The saved hex element to add
+     * @return true if added successfully
+     */
+    public boolean addSavedHex(@Nonnull SavedHexElement element) {
+        Hex expandedHex = element.getHex();
+
+        if (expandedHex == null || !expandedHex.hasRoot()) {
+            return false;
+        }
+
+        HexNode savedHexRoot = expandedHex.getRoot();
+
+        if (isEmpty()) {
+            // First element - copy the saved hex's root as our root
+            // Create a deep copy to avoid modifying the original
+            HexNode copiedRoot = deepCopyNode(savedHexRoot);
+            hex.setRoot(copiedRoot);
+            pushAction(new CompositionAction(CompositionActionType.PLACE_SAVED_HEX, copiedRoot, null));
+            return true;
+        }
+
+        // If not empty, the saved hex wraps the current composition
+        // This is like adding a SELECT glyph that has pre-defined children
+        HexNode copiedRoot = deepCopyNode(savedHexRoot);
+        HexNode currentRoot = hex.getRoot();
+
+        // Find the leaf of the copied saved hex tree
+        HexNode leaf = findFirstLeaf(copiedRoot);
+        if (leaf != null && leaf.getGlyph().getRole().canHaveChildren()) {
+            // Add current composition as a child of the saved hex's leaf
+            leaf.addChild(currentRoot);
+            hex.setRoot(copiedRoot);
+            pushAction(new CompositionAction(CompositionActionType.WRAP_WITH_SAVED_HEX, copiedRoot, currentRoot));
+            return true;
+        }
+
+        // If the saved hex doesn't have a suitable insertion point,
+        // we can't combine them
+        return false;
+    }
+
+    /**
+     * Deep copy a HexNode and all its children.
+     */
+    private HexNode deepCopyNode(HexNode node) {
+        if (node == null) {
+            return null;
+        }
+
+        HexNode copy = new HexNode(node.getGlyph());
+        for (HexNode child : node.getChildren()) {
+            HexNode childCopy = deepCopyNode(child);
+            copy.addChild(childCopy);
+        }
+        return copy;
+    }
+
+    /**
+     * Find the first leaf node (node with no children) in a tree.
+     */
+    private HexNode findFirstLeaf(HexNode node) {
+        if (node == null) {
+            return null;
+        }
+        if (node.getChildren().isEmpty()) {
+            return node;
+        }
+        return findFirstLeaf(node.getChildren().get(0));
+    }
+
     private enum CompositionActionType {
         PLACE_ROOT,
         WRAP,
-        ADD_SIBLING
+        ADD_SIBLING,
+        PLACE_SAVED_HEX,
+        WRAP_WITH_SAVED_HEX
     }
 
     private static class CompositionAction {

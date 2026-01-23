@@ -3,6 +3,7 @@ package com.riprod.hexcode.glyph.effects;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.OverlapBehavior;
 import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
@@ -10,72 +11,84 @@ import com.hypixel.hytale.server.core.modules.entity.damage.Damage;
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageCause;
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageSystems;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.execution.ExecutionContext;
-import com.riprod.hexcode.execution.TargetSet;
+import com.riprod.hexcode.asset.GlyphAssetDefinition;
+import com.riprod.hexcode.execution.SpellContext;
 import com.riprod.hexcode.glyph.GlyphVisual;
-
-import java.util.Set;
 
 /**
  * Void effect glyph - deals void damage and applies brief blindness.
+ *
+ * <p>Asset-driven properties:
+ * <ul>
+ *   <li>baseDamage - base void damage amount (default: 11.0)</li>
+ *   <li>blindDuration - duration of blindness effect in seconds (default: 2.0)</li>
+ *   <li>blindEffectId - ID of the blindness effect to apply (default: "hexcode:blindness")</li>
+ *   <li>damageType - damage type ID (default: "void")</li>
+ * </ul>
  */
 public class VoidGlyph extends EffectGlyph {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
-    public static final String ID = "hexcode:void";
-    public static final int BASE_COST = 15;
-    public static final float BASE_DAMAGE = 11.0f;
-    public static final float BLIND_DURATION = 2.0f;
-    public static final String BLIND_EFFECT_ID = "hexcode:blindness";
-
-    public VoidGlyph() {
-        super(
-            ID,
-            "Void",
-            BASE_COST,
-            GlyphVisual.effect(GlyphVisual.COLOR_VOID, "void"),
-            Set.of("hexcode:power", "hexcode:duration")
-        );
+    /**
+     * Create a void glyph from an asset definition.
+     *
+     * @param assetDefinition The asset definition containing glyph properties
+     */
+    public VoidGlyph(GlyphAssetDefinition assetDefinition) {
+        super(assetDefinition, GlyphVisual.effect(GlyphVisual.COLOR_VOID, "void"));
     }
 
     @Override
-    public void applyEffect(ExecutionContext ctx, TargetSet targets) {
-        float damage = getModifiedAmount(ctx, BASE_DAMAGE);
-        float blindDuration = getModifiedDuration(ctx, BLIND_DURATION);
+    protected void applyEffect(SpellContext context, Ref<EntityStore> target, float power) {
+        Store<EntityStore> store = context.getStore();
+        Ref<EntityStore> caster = context.getCaster();
 
-        Store<EntityStore> store = ctx.getStore();
-        Ref<EntityStore> caster = ctx.getCaster();
-
-        LOGGER.atInfo().log("Applying void effect: %.1f damage, %.1f blindness duration to %d targets",
-                damage, blindDuration, targets.getEntityCount());
-
-        // Apply to each target entity
-        for (Ref<EntityStore> targetRef : targets.getEntities()) {
-            // Skip self-damage
-            if (targetRef.equals(caster)) {
-                continue;
-            }
-
-            // Apply instant void damage
-            int damageCauseIndex = DamageCause.getAssetMap().getIndex("void");
-            Damage voidDamage = new Damage(
-                    new Damage.EntitySource(caster),
-                    damageCauseIndex,
-                    damage
-            );
-            DamageSystems.executeDamage(targetRef, store, voidDamage);
-
-            // Apply blindness effect
-            applyBlindnessEffect(targetRef, store, blindDuration);
-
-            LOGGER.atInfo().log("Applied void damage and blindness to target");
+        // Skip self-damage
+        if (target.equals(caster)) {
+            return;
         }
+
+        // Get asset-driven properties
+        float baseDamage = getProperty("baseDamage", 11.0f);
+        float blindDuration = getProperty("blindDuration", 2.0f);
+        String damageType = getProperty("damageType", "void");
+        String blindEffectId = getProperty("blindEffectId", "hexcode:blindness");
+
+        // Calculate final values with power and context multipliers
+        float actualDamage = baseDamage * power;
+        float actualDuration = getModifiedDuration(blindDuration, context);
+
+        LOGGER.atInfo().log("Applying void effect: %.1f damage, %.1f blindness duration",
+                actualDamage, actualDuration);
+
+        // Apply instant void damage
+        int damageCauseIndex = DamageCause.getAssetMap().getIndex(damageType);
+        Damage voidDamage = new Damage(
+                new Damage.EntitySource(caster),
+                damageCauseIndex,
+                actualDamage
+        );
+        DamageSystems.executeDamage(target, store, voidDamage);
+
+        // Apply blindness effect
+        applyBlindnessEffect(target, store, actualDuration, blindEffectId);
+
+        LOGGER.atInfo().log("Applied void damage and blindness to target");
+    }
+
+    @Override
+    protected void applyEffectAtPosition(SpellContext context, Vector3d position, float power) {
+        // Void can create a dark zone at a position
+        LOGGER.atInfo().log("Void effect at position (%.1f, %.1f, %.1f) with power %.2f",
+                position.x, position.y, position.z, power);
+        // Future: spawn void particles at position
     }
 
     /**
      * Apply the blindness status effect to a target.
      */
-    private void applyBlindnessEffect(Ref<EntityStore> targetRef, Store<EntityStore> store, float duration) {
+    private void applyBlindnessEffect(Ref<EntityStore> targetRef, Store<EntityStore> store,
+                                       float duration, String blindEffectId) {
         EffectControllerComponent effectController = store.getComponent(
                 targetRef,
                 EffectControllerComponent.getComponentType()
@@ -87,7 +100,7 @@ public class VoidGlyph extends EffectGlyph {
         }
 
         // Try to get the blindness effect asset
-        EntityEffect blindEffect = EntityEffect.getAssetMap().getAsset(BLIND_EFFECT_ID);
+        EntityEffect blindEffect = EntityEffect.getAssetMap().getAsset(blindEffectId);
         if (blindEffect == null) {
             // Fallback to generic blindness effect
             blindEffect = EntityEffect.getAssetMap().getAsset("blindness");

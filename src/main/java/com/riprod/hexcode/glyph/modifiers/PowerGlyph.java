@@ -1,20 +1,31 @@
 package com.riprod.hexcode.glyph.modifiers;
 
-import java.util.Set;
+import com.riprod.hexcode.asset.GlyphAssetDefinition;
+import com.riprod.hexcode.execution.SpellContext;
+import com.riprod.hexcode.glyph.GlyphVisual;
 
 /**
- * Power modifier glyph - amplifies damage/healing intensity by 50%.
+ * Power modifier glyph - amplifies damage/healing intensity.
+ *
+ * <p>Asset-driven properties:
+ * <ul>
+ *   <li>basePower - the multiplier (default: 1.5 = 50% increase)</li>
+ * </ul>
  */
 public class PowerGlyph extends ModifierGlyph {
-    public static final String ID = "hexcode:power";
-    public static final float MULTIPLIER = 1.5f;
 
-    public PowerGlyph() {
-        super(
-            ID,
-            "Power",
-            MULTIPLIER,
-            Set.of() // Compatible with all glyphs that accept it
-        );
+    /**
+     * Create a power glyph from an asset definition.
+     *
+     * @param assetDefinition The asset definition containing glyph properties
+     */
+    public PowerGlyph(GlyphAssetDefinition assetDefinition) {
+        super(assetDefinition, GlyphVisual.modifier("power"));
+    }
+
+    @Override
+    protected void applyModifier(SpellContext context) {
+        float multiplier = getMultiplier();
+        context.multiplyPower(multiplier);
     }
 }

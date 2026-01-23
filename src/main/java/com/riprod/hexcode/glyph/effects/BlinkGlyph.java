@@ -4,57 +4,81 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.execution.ExecutionContext;
-import com.riprod.hexcode.execution.TargetSet;
+import com.riprod.hexcode.asset.GlyphAssetDefinition;
+import com.riprod.hexcode.execution.SpellContext;
 import com.riprod.hexcode.glyph.GlyphVisual;
 import com.riprod.hexcode.util.HexMathUtil;
 
-import java.util.Set;
-
 /**
  * Blink effect glyph - teleports target a short distance.
+ *
+ * <p>Asset-driven properties:
+ * <ul>
+ *   <li>baseDistance - base teleport distance in blocks (default: 8.0)</li>
+ *   <li>keepVertical - whether to preserve Y coordinate (default: true)</li>
+ * </ul>
  */
 public class BlinkGlyph extends EffectGlyph {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
-    public static final String ID = "hexcode:blink";
-    public static final int BASE_COST = 25;
-    public static final float BASE_DISTANCE = 8.0f;
-
-    public BlinkGlyph() {
-        super(
-            ID,
-            "Blink",
-            BASE_COST,
-            GlyphVisual.effect(GlyphVisual.COLOR_BLINK, "blink"),
-            Set.of("hexcode:range")
-        );
+    /**
+     * Create a blink glyph from an asset definition.
+     *
+     * @param assetDefinition The asset definition containing glyph properties
+     */
+    public BlinkGlyph(GlyphAssetDefinition assetDefinition) {
+        super(assetDefinition, GlyphVisual.effect(GlyphVisual.COLOR_BLINK, "blink"));
     }
 
     @Override
-    public void applyEffect(ExecutionContext ctx, TargetSet targets) {
-        float distance = ctx.calculateModifiedRange(BASE_DISTANCE);
+    protected void applyEffect(SpellContext context, Ref<EntityStore> target, float power) {
+        Store<EntityStore> store = context.getStore();
 
-        Store<EntityStore> store = ctx.getStore();
-        Vector3d castDirection = ctx.getCastDirection();
+        // Get asset-driven properties
+        float baseDistance = getProperty("baseDistance", 8.0f);
+        boolean keepVertical = getProperty("keepVertical", true);
 
-        LOGGER.atInfo().log("Applying blink effect: %.1f distance to %d targets",
-                distance, targets.getEntityCount());
+        // Calculate final distance with range multiplier
+        float actualDistance = baseDistance * context.getRangeMultiplier();
 
-        // Teleport each target entity
-        for (Ref<EntityStore> targetRef : targets.getEntities()) {
-            teleportEntity(targetRef, store, castDirection, distance);
+        LOGGER.atInfo().log("Applying blink effect: %.1f distance", actualDistance);
+
+        // Teleport the target
+        teleportEntity(target, store, context.getCastDirection(), actualDistance, keepVertical);
+    }
+
+    @Override
+    protected void applyEffectAtPosition(SpellContext context, Vector3d position, float power) {
+        // Blink to a position - teleport caster to that position
+        Store<EntityStore> store = context.getStore();
+        Ref<EntityStore> caster = context.getCaster();
+
+        TransformComponent transform = store.getComponent(caster, TransformComponent.getComponentType());
+        if (transform == null) {
+            LOGGER.atWarning().log("Caster has no TransformComponent, cannot teleport");
+            return;
         }
+
+        Vector3d currentPos = transform.getPosition();
+        boolean keepVertical = getProperty("keepVertical", true);
+
+        Vector3d destination = keepVertical ?
+                new Vector3d(position.x, currentPos.y, position.z) :
+                position;
+
+        transform.setPosition(destination);
+
+        LOGGER.atInfo().log("Teleported caster to position (%.1f, %.1f, %.1f)",
+                destination.x, destination.y, destination.z);
     }
 
     /**
      * Teleport an entity in the given direction.
      */
     private void teleportEntity(Ref<EntityStore> targetRef, Store<EntityStore> store,
-                                 Vector3d direction, float distance) {
+                                 Vector3d direction, float distance, boolean keepVertical) {
         TransformComponent transform = store.getComponent(targetRef, TransformComponent.getComponentType());
         if (transform == null) {
             LOGGER.atWarning().log("Target has no TransformComponent, cannot teleport");
@@ -72,10 +96,10 @@ public class BlinkGlyph extends EffectGlyph {
                 currentPos.z + offset.z
         );
 
-        // Validate destination is safe (basic ground check)
-        destination = validateDestination(store, currentPos, destination);
+        // Validate destination is safe
+        destination = validateDestination(store, currentPos, destination, keepVertical);
 
-        // Update entity position by modifying existing component
+        // Update entity position
         transform.setPosition(destination);
 
         LOGGER.atInfo().log("Teleported entity from (%.1f, %.1f, %.1f) to (%.1f, %.1f, %.1f)",
@@ -85,17 +109,18 @@ public class BlinkGlyph extends EffectGlyph {
 
     /**
      * Validate and adjust the destination position if needed.
-     * Basic implementation - would need proper collision checking in production.
      */
-    private Vector3d validateDestination(Store<EntityStore> store, Vector3d from, Vector3d to) {
+    private Vector3d validateDestination(Store<EntityStore> store, Vector3d from, Vector3d to, boolean keepVertical) {
         // In a full implementation, this would:
         // 1. Check for solid blocks at destination
         // 2. Find safe ground if teleporting into air
         // 3. Prevent teleporting into walls
         // 4. Use raycasting to find valid landing spot
 
-        // For now, keep the y-coordinate the same to avoid falling/clipping issues
-        // This makes blink primarily horizontal movement
-        return new Vector3d(to.x, from.y, to.z);
+        // For now, optionally keep the y-coordinate the same to avoid falling/clipping issues
+        if (keepVertical) {
+            return new Vector3d(to.x, from.y, to.z);
+        }
+        return to;
     }
 }

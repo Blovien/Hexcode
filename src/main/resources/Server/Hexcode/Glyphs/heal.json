@@ -1,0 +1,14 @@
+{
+  "id": "hexcode:heal",
+  "displayName": "Heal",
+  "role": "EFFECT",
+  "modelPath": "Hexcode/Models/Glyphs/heal.blockymodel",
+  "drawingTemplatePath": "Hexcode/Drawings/heal.png",
+  "basePower": 1.0,
+  "baseManaCost": 20,
+  "baseVariability": 0.6,
+  "properties": {
+    "baseHealing": 15.0
+  },
+  "compatibleModifiers": ["hexcode:power"]
+}

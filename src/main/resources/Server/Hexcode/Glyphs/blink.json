@@ -1,0 +1,15 @@
+{
+  "id": "hexcode:blink",
+  "displayName": "Blink",
+  "role": "EFFECT",
+  "modelPath": "Hexcode/Models/Glyphs/blink.blockymodel",
+  "drawingTemplatePath": "Hexcode/Drawings/blink.png",
+  "basePower": 1.0,
+  "baseManaCost": 25,
+  "baseVariability": 0.6,
+  "properties": {
+    "baseDistance": 8.0,
+    "keepVertical": true
+  },
+  "compatibleModifiers": ["hexcode:range"]
+}

@@ -1,0 +1,18 @@
+{
+  "id": "hexcode:earth",
+  "displayName": "Earth",
+  "role": "EFFECT",
+  "modelPath": "Hexcode/Models/Glyphs/earth.blockymodel",
+  "drawingTemplatePath": "Hexcode/Drawings/earth.png",
+  "basePower": 1.0,
+  "baseManaCost": 15,
+  "baseVariability": 0.6,
+  "properties": {
+    "baseDamage": 15.0,
+    "knockbackStrength": 8.0,
+    "knockbackDuration": 0.4,
+    "upwardMultiplier": 0.4,
+    "damageType": "physical"
+  },
+  "compatibleModifiers": ["hexcode:power"]
+}

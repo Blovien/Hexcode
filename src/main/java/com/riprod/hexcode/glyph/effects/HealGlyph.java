@@ -3,56 +3,64 @@ package com.riprod.hexcode.glyph.effects;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
 import com.hypixel.hytale.server.core.modules.entitystats.asset.DefaultEntityStatTypes;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.execution.ExecutionContext;
-import com.riprod.hexcode.execution.TargetSet;
+import com.riprod.hexcode.asset.GlyphAssetDefinition;
+import com.riprod.hexcode.execution.SpellContext;
 import com.riprod.hexcode.glyph.GlyphVisual;
-
-import java.util.Set;
 
 /**
  * Heal effect glyph - restores health to target.
+ *
+ * <p>Asset-driven properties:
+ * <ul>
+ *   <li>baseHealing - amount of health to restore (default: 15.0)</li>
+ * </ul>
  */
 public class HealGlyph extends EffectGlyph {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
-    public static final String ID = "hexcode:heal";
-    public static final int BASE_COST = 20;
-    public static final float BASE_HEALING = 15.0f;
-
-    public HealGlyph() {
-        super(
-            ID,
-            "Heal",
-            BASE_COST,
-            GlyphVisual.effect(GlyphVisual.COLOR_HEAL, "heal"),
-            Set.of("hexcode:power")
-        );
+    /**
+     * Create a heal glyph from an asset definition.
+     *
+     * @param assetDefinition The asset definition containing glyph properties
+     */
+    public HealGlyph(GlyphAssetDefinition assetDefinition) {
+        super(assetDefinition, GlyphVisual.effect(GlyphVisual.COLOR_HEAL, "heal"));
     }
 
     @Override
-    public void applyEffect(ExecutionContext ctx, TargetSet targets) {
-        float healing = getModifiedAmount(ctx, BASE_HEALING);
-        Store<EntityStore> store = ctx.getStore();
+    protected void applyEffect(SpellContext context, Ref<EntityStore> target, float power) {
+        Store<EntityStore> store = context.getStore();
 
-        LOGGER.atInfo().log("Applying heal effect: %.1f healing to %d targets",
-                healing, targets.getEntityCount());
+        // Get asset-driven properties
+        float baseHealing = getProperty("baseHealing", 15.0f);
 
-        // Apply to each target entity
-        for (Ref<EntityStore> targetRef : targets.getEntities()) {
-            EntityStatMap statMap = store.getComponent(targetRef, EntityStatMap.getComponentType());
-            if (statMap == null) {
-                LOGGER.atWarning().log("Target has no EntityStatMap, cannot heal");
-                continue;
-            }
+        // Calculate final healing with power
+        float actualHealing = baseHealing * power;
 
-            // Get health stat index and add healing
-            int healthIndex = DefaultEntityStatTypes.getHealth();
-            statMap.addStatValue(healthIndex, healing);
+        LOGGER.atInfo().log("Applying heal effect: %.1f healing", actualHealing);
 
-            LOGGER.atInfo().log("Healed target for %.1f health", healing);
+        // Get entity stats
+        EntityStatMap statMap = store.getComponent(target, EntityStatMap.getComponentType());
+        if (statMap == null) {
+            LOGGER.atWarning().log("Target has no EntityStatMap, cannot heal");
+            return;
         }
+
+        // Get health stat index and add healing
+        int healthIndex = DefaultEntityStatTypes.getHealth();
+        statMap.addStatValue(healthIndex, actualHealing);
+
+        LOGGER.atInfo().log("Healed target for %.1f health", actualHealing);
+    }
+
+    @Override
+    protected void applyEffectAtPosition(SpellContext context, Vector3d position, float power) {
+        // Heal doesn't make sense at a position without a target
+        LOGGER.atInfo().log("Heal effect at position (%.1f, %.1f, %.1f) - no target to heal",
+                position.x, position.y, position.z);
     }
 }

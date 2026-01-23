@@ -6,40 +6,40 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.execution.ExecutionContext;
-import com.riprod.hexcode.execution.TargetSet;
-import com.riprod.hexcode.util.HexMathUtil;
+import com.riprod.hexcode.asset.GlyphAssetDefinition;
+import com.riprod.hexcode.execution.SpellContext;
+import com.riprod.hexcode.glyph.GlyphVisual;
 import com.riprod.hexcode.util.RaycastUtil;
 
-import java.util.Set;
-
 /**
- * Touch select glyph - targets entity in melee range (3 blocks).
- * Instant - no travel time.
+ * Touch select glyph - targets entity in melee range.
+ *
+ * <p>Instant - no travel time.
+ *
+ * <p>Asset-driven properties:
+ * <ul>
+ *   <li>range - base touch range in blocks (default: 3.0)</li>
+ *   <li>hitRadius - entity hit detection radius (default: 0.5)</li>
+ * </ul>
  */
 public class TouchGlyph extends SelectGlyph {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
-    public static final String ID = "hexcode:touch";
-    public static final float BASE_RANGE = 3.0f;
-    public static final float HIT_RADIUS = 0.5f; // Entity hit radius for raycast
-
-    public TouchGlyph() {
-        super(
-            ID,
-            "Touch",
-            false, // instant
-            Set.of("hexcode:range")
-        );
+    /**
+     * Create a touch glyph from an asset definition.
+     *
+     * @param assetDefinition The asset definition containing glyph properties
+     */
+    public TouchGlyph(GlyphAssetDefinition assetDefinition) {
+        super(assetDefinition, GlyphVisual.select("touch"), false);
     }
 
     @Override
-    public TargetSet selectTargets(ExecutionContext ctx) {
-        float range = getModifiedRange(ctx, BASE_RANGE);
-        Store<EntityStore> store = ctx.getStore();
-        Ref<EntityStore> caster = ctx.getCaster();
-        Vector3d origin = ctx.getCurrentOrigin();
-        Vector3d direction = ctx.getCastDirection();
+    protected void selectTargets(SpellContext context) {
+        float range = getModifiedRange(context);
+        Store<EntityStore> store = context.getStore();
+        Ref<EntityStore> caster = context.getCaster();
+        Vector3d direction = context.getCastDirection();
 
         LOGGER.atInfo().log("Touch selecting target within %.1f range", range);
 
@@ -47,7 +47,7 @@ public class TouchGlyph extends SelectGlyph {
         TransformComponent casterTransform = store.getComponent(caster, TransformComponent.getComponentType());
         if (casterTransform == null) {
             LOGGER.atWarning().log("Caster has no TransformComponent");
-            return TargetSet.empty();
+            return;
         }
 
         Vector3d eyePos = RaycastUtil.getPlayerEyePosition(casterTransform);
@@ -58,19 +58,18 @@ public class TouchGlyph extends SelectGlyph {
         if (hitEntity != null) {
             // Calculate hit position
             TransformComponent hitTransform = store.getComponent(hitEntity, TransformComponent.getComponentType());
-            Vector3d hitPosition = hitTransform != null ? hitTransform.getPosition() : origin;
+            Vector3d hitPosition = hitTransform != null ? hitTransform.getPosition() : eyePos;
 
             LOGGER.atInfo().log("Touch found target");
-            return TargetSet.of(hitEntity).withOrigin(hitPosition);
+            context.addTarget(hitEntity);
+            context.addTargetPosition(hitPosition);
+        } else {
+            LOGGER.atInfo().log("Touch found no target in range");
         }
-
-        LOGGER.atInfo().log("Touch found no target in range");
-        return TargetSet.empty();
     }
 
     /**
      * Find the first entity hit along a ray.
-     * In a full implementation, this would use proper spatial queries and collision detection.
      */
     private Ref<EntityStore> findEntityAlongRay(Store<EntityStore> store, Ref<EntityStore> caster,
                                                   Vector3d rayOrigin, Vector3d rayDirection, float maxDistance) {
@@ -79,7 +78,6 @@ public class TouchGlyph extends SelectGlyph {
         // 2. Sort by distance
         // 3. Return the closest one that passes collision test
 
-        // For now, this is a placeholder that indicates the structure
         LOGGER.atInfo().log("Touch raycast would query spatial index for entities along ray");
         return null; // Placeholder - spatial query needed
     }

@@ -1,35 +1,34 @@
 package com.riprod.hexcode.glyph.modifiers;
 
-import java.util.Set;
+import com.riprod.hexcode.asset.GlyphAssetDefinition;
+import com.riprod.hexcode.execution.SpellContext;
+import com.riprod.hexcode.glyph.GlyphVisual;
 
 /**
- * Range modifier glyph - extends distance/radius by 50%.
+ * Range modifier glyph - extends distance/radius.
  *
- * Incompatible with most EFFECT glyphs (they don't have range).
+ * <p>Incompatible with most EFFECT glyphs (they don't have range).
  * Compatible with SELECT glyphs that have range (BEAM, PROJECTILE, BURST, etc.)
+ *
+ * <p>Asset-driven properties:
+ * <ul>
+ *   <li>basePower - the multiplier (default: 1.5 = 50% increase)</li>
+ * </ul>
  */
 public class RangeGlyph extends ModifierGlyph {
-    public static final String ID = "hexcode:range";
-    public static final float MULTIPLIER = 1.5f;
 
-    public RangeGlyph() {
-        super(
-            ID,
-            "Range",
-            MULTIPLIER,
-            // Incompatible with most effect glyphs
-            Set.of(
-                "hexcode:fire",
-                "hexcode:ice",
-                "hexcode:lightning",
-                "hexcode:earth",
-                "hexcode:void",
-                "hexcode:light",
-                "hexcode:shield",
-                "hexcode:heal",
-                "hexcode:push",
-                "hexcode:self" // SELF has no range
-            )
-        );
+    /**
+     * Create a range glyph from an asset definition.
+     *
+     * @param assetDefinition The asset definition containing glyph properties
+     */
+    public RangeGlyph(GlyphAssetDefinition assetDefinition) {
+        super(assetDefinition, GlyphVisual.modifier("range"));
+    }
+
+    @Override
+    protected void applyModifier(SpellContext context) {
+        float multiplier = getMultiplier();
+        context.multiplyRange(multiplier);
     }
 }

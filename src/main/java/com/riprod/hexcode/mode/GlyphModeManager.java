@@ -2,8 +2,10 @@ package com.riprod.hexcode.mode;
 
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.loadout.Loadout;
+import com.riprod.hexcode.data.HexBookData;
+import com.riprod.hexcode.data.HexBookDataManager;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -59,20 +61,25 @@ public class GlyphModeManager {
      *
      * @param playerId The player's UUID
      * @param playerRef The player entity reference
-     * @param loadout The player's loadout (or null for default)
      * @param commandBuffer The command buffer for deferred entity operations
      * @return The new glyph mode session
      */
-    public GlyphMode enterGlyphMode(UUID playerId, Ref<EntityStore> playerRef, Loadout loadout, CommandBuffer<EntityStore> commandBuffer) {
+    public GlyphMode enterGlyphMode(UUID playerId, Ref<EntityStore> playerRef, CommandBuffer<EntityStore> commandBuffer) {
         // If already in mode, just return existing session
         GlyphMode existing = activeSessions.get(playerId);
         if (existing != null && existing.isActive()) {
             return existing;
         }
 
-        // Create new session
-        Loadout effectiveLoadout = loadout != null ? loadout : Loadout.createDefaultLoadout();
-        GlyphMode mode = new GlyphMode(playerRef, effectiveLoadout);
+        // Get book data from held Hex Book
+        HexBookData bookData = null;
+        if (commandBuffer != null && playerRef != null) {
+            Store<EntityStore> store = commandBuffer.getStore();
+            bookData = HexBookDataManager.getHeldBookData(store, playerRef);
+        }
+
+        // Create new session with book data
+        GlyphMode mode = new GlyphMode(playerRef, bookData);
 
         // Enter with command buffer to spawn orbital glyphs (deferred)
         mode.enter(commandBuffer);
@@ -127,12 +134,12 @@ public class GlyphModeManager {
      * @param commandBuffer The command buffer for deferred entity operations
      * @return true if now in glyph mode, false if exited
      */
-    public boolean toggleGlyphMode(UUID playerId, Ref<EntityStore> playerRef, Loadout loadout, CommandBuffer<EntityStore> commandBuffer) {
+    public boolean toggleGlyphMode(UUID playerId, Ref<EntityStore> playerRef, CommandBuffer<EntityStore> commandBuffer) {
         if (isInGlyphMode(playerId)) {
             exitGlyphMode(playerId, commandBuffer);
             return false;
         } else {
-            enterGlyphMode(playerId, playerRef, loadout, commandBuffer);
+            enterGlyphMode(playerId, playerRef, commandBuffer);
             return true;
         }
     }

@@ -62,7 +62,7 @@ public class CraftedGlyphEntity {
      * @return The glyph at this node
      */
     public Glyph getGlyph() {
-        return node.getGlyph();
+        return node.getValue().getGlyph();
     }
 
     /**
@@ -235,7 +235,7 @@ public class CraftedGlyphEntity {
         }
 
         // Calculate shell radius based on children
-        int childCount = node.getChildCount();
+        int childCount = node.getChildren().size();
         shellRadius = 0.3f + (childCount * 0.1f);
 
         // TODO: Update shell mesh/particle effect

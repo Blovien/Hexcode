@@ -1,230 +1,100 @@
 package com.riprod.hexcode.hex;
 
-import com.riprod.hexcode.glyph.Glyph;
-import com.riprod.hexcode.glyph.GlyphRole;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.riprod.hexcode.data.GlyphInstance;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
- * A node in the Hex tree structure.
+ * A complete Hex spell structure.
  *
- * Each node contains a glyph and its children:
- * - EFFECT nodes have no children (leaves)
- * - MODIFIER nodes have exactly one child
- * - SELECT nodes can have one or multiple children (linked siblings)
+ * A Hex is a tree-structured spell construct where:
+ * - EFFECT glyphs are the innermost leaves (actions like FIRE, HEAL)
+ * - MODIFIER glyphs wrap around others as inner shells (amplify/alter behavior)
+ * - SELECT glyphs wrap around others as outer shells (determine
+ * targeting/delivery)
+ *
+ * If no SELECT wraps the Hex, an implicit SELF[] is assumed.
  */
 public class HexNode {
-    private final Glyph glyph;
-    private final List<HexNode> children;
-    private HexNode parent;
+    GlyphInstance value;
+    List<HexNode> children = new ArrayList<HexNode>();
 
-    public HexNode(Glyph glyph) {
-        this.glyph = glyph;
-        this.children = new ArrayList<>();
-        this.parent = null;
+    public HexNode(GlyphInstance value) {
+        this.value = value;
     }
 
-    /**
-     * @return The glyph at this node
-     */
-    public Glyph getGlyph() {
-        return glyph;
-    }
-
-    /**
-     * @return Unmodifiable list of child nodes
-     */
-    public List<HexNode> getChildren() {
-        return Collections.unmodifiableList(children);
-    }
-
-    /**
-     * @return The parent node, or null if this is the root
-     */
-    public HexNode getParent() {
-        return parent;
-    }
-
-    /**
-     * @return true if this node has no children (is a leaf)
-     */
-    public boolean isLeaf() {
-        return children.isEmpty();
-    }
-
-    /**
-     * @return true if this node is a sibling in a linked chain
-     */
-    public boolean isLinkedSibling() {
-        return parent != null && parent.children.size() > 1;
-    }
-
-    /**
-     * @return true if this is the root node (no parent)
-     */
-    public boolean isRoot() {
-        return parent == null;
-    }
-
-    /**
-     * @return Number of children
-     */
-    public int getChildCount() {
-        return children.size();
-    }
-
-    /**
-     * Add a child node.
-     *
-     * @param child The child node to add
-     * @return true if added successfully
-     */
-    public boolean addChild(HexNode child) {
-        if (!canAddChild()) {
-            return false;
-        }
-        child.parent = this;
+    public void addChild(HexNode child) {
         children.add(child);
-        return true;
     }
 
-    /**
-     * Remove a child node.
-     *
-     * @param child The child node to remove
-     * @return true if removed successfully
-     */
-    public boolean removeChild(HexNode child) {
-        if (children.remove(child)) {
-            child.parent = null;
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Check if a child can be added to this node.
-     */
-    public boolean canAddChild() {
-        GlyphRole role = glyph.getRole();
-        switch (role) {
-            case EFFECT:
-                // Effects are always leaves
-                return false;
-            case MODIFIER:
-                // Modifiers can only have one child
-                return children.isEmpty();
-            case SELECT:
-                // Selects can have multiple children (linked siblings)
-                return true;
-            default:
-                return false;
-        }
+    public List<HexNode> getChildren() {
+        return children;
     }
 
     /**
      * Get the depth of this node in the tree.
-     *
-     * @return 0 for root, 1 for root's children, etc.
+     * The depth is defined as the length of the longest path
+     * @return
      */
-    public int getDepth() {
-        int depth = 0;
-        HexNode current = this.parent;
-        while (current != null) {
-            depth++;
-            current = current.parent;
-        }
-        return depth;
-    }
-
-    /**
-     * Get the maximum depth of the subtree rooted at this node.
-     *
-     * @return Maximum depth from this node to its deepest leaf
-     */
-    public int getMaxSubtreeDepth() {
-        if (isLeaf()) {
-            return 0;
+    public int getDepth () {
+        if (children.isEmpty()) {
+            return 1;
         }
         int maxChildDepth = 0;
         for (HexNode child : children) {
-            maxChildDepth = Math.max(maxChildDepth, child.getMaxSubtreeDepth());
+            int childDepth = child.getDepth();
+            if (childDepth > maxChildDepth) {
+                maxChildDepth = childDepth;
+            }
         }
         return 1 + maxChildDepth;
     }
 
-    /**
-     * Get all leaf nodes in this subtree.
-     *
-     * @return List of leaf nodes (EFFECT glyphs)
-     */
-    public List<HexNode> getLeaves() {
-        List<HexNode> leaves = new ArrayList<>();
-        collectLeaves(leaves);
-        return leaves;
+    public GlyphInstance getValue() {
+        return value;
     }
 
-    private void collectLeaves(List<HexNode> leaves) {
-        if (isLeaf()) {
-            leaves.add(this);
-        } else {
-            for (HexNode child : children) {
-                child.collectLeaves(leaves);
-            }
+    public Boolean isLeaf() {
+        return children.isEmpty();
+    }
+
+    public JsonObject toJson() {
+        JsonObject obj = new JsonObject();
+        obj.add("value", value.toJson());
+        JsonArray childrenArray = new JsonArray();
+        for (HexNode child : children) {
+            childrenArray.add(child.toJson());
         }
+        obj.add("children", childrenArray);
+        return obj;
     }
 
-    /**
-     * Find the root of the tree this node belongs to.
-     *
-     * @return The root node
-     */
-    public HexNode findRoot() {
-        HexNode current = this;
-        while (current.parent != null) {
-            current = current.parent;
+    public static HexNode fromJson(JsonObject obj) {
+        GlyphInstance instance = GlyphInstance.fromJson(obj.getAsJsonObject("value"));
+        HexNode node = new HexNode((GlyphInstance) instance);
+        JsonArray childrenArray = obj.getAsJsonArray("children");
+        for (int i = 0; i < childrenArray.size(); i++) {
+            JsonObject childObj = childrenArray.get(i).getAsJsonObject();
+            node.addChild(fromJson(childObj));
         }
-        return current;
-    }
-
-    /**
-     * Create a string representation of this node's subtree.
-     */
-    public String toTreeString() {
-        StringBuilder sb = new StringBuilder();
-        buildTreeString(sb, "", true);
-        return sb.toString();
-    }
-
-    private void buildTreeString(StringBuilder sb, String prefix, boolean isLast) {
-        sb.append(prefix);
-        sb.append(isLast ? "└── " : "├── ");
-        sb.append(glyph.getDisplayName());
-        sb.append(" (").append(glyph.getRole()).append(")");
-        sb.append("\n");
-
-        String childPrefix = prefix + (isLast ? "    " : "│   ");
-        for (int i = 0; i < children.size(); i++) {
-            children.get(i).buildTreeString(sb, childPrefix, i == children.size() - 1);
-        }
+        return node;
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(glyph.getId());
-        if (!children.isEmpty()) {
-            sb.append("[");
-            for (int i = 0; i < children.size(); i++) {
-                if (i > 0) sb.append(", ");
-                sb.append(children.get(i).toString());
+        sb.append(value.getGlyph().getId());
+        sb.append("[");
+        for (int i = 0; i < children.size(); i++) {
+            sb.append(children.get(i).toString());
+            if (i < children.size() - 1) {
+                sb.append(":");
             }
-            sb.append("]");
-        } else {
-            sb.append("[]");
         }
+        sb.append("]");
         return sb.toString();
     }
 }

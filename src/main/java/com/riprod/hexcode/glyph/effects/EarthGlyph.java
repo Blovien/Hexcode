@@ -11,75 +11,87 @@ import com.hypixel.hytale.server.core.modules.entity.damage.Damage;
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageCause;
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageSystems;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.execution.ExecutionContext;
-import com.riprod.hexcode.execution.TargetSet;
+import com.riprod.hexcode.asset.GlyphAssetDefinition;
+import com.riprod.hexcode.execution.SpellContext;
 import com.riprod.hexcode.glyph.GlyphVisual;
 import com.riprod.hexcode.util.HexMathUtil;
 
-import java.util.Set;
-
 /**
  * Earth effect glyph - deals physical damage with knockback.
+ *
+ * <p>Asset-driven properties:
+ * <ul>
+ *   <li>baseDamage - base physical damage amount (default: 15.0)</li>
+ *   <li>knockbackStrength - base knockback force (default: 8.0)</li>
+ *   <li>knockbackDuration - knockback effect duration (default: 0.4)</li>
+ *   <li>upwardMultiplier - vertical knockback component (default: 0.4)</li>
+ *   <li>damageType - damage type ID (default: "physical")</li>
+ * </ul>
  */
 public class EarthGlyph extends EffectGlyph {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
-    public static final String ID = "hexcode:earth";
-    public static final int BASE_COST = 15;
-    public static final float BASE_DAMAGE = 15.0f;
-    public static final float KNOCKBACK_STRENGTH = 8.0f;
-    public static final float KNOCKBACK_DURATION = 0.4f;
-
-    public EarthGlyph() {
-        super(
-            ID,
-            "Earth",
-            BASE_COST,
-            GlyphVisual.effect(GlyphVisual.COLOR_EARTH, "earth"),
-            Set.of("hexcode:power")
-        );
+    /**
+     * Create an earth glyph from an asset definition.
+     *
+     * @param assetDefinition The asset definition containing glyph properties
+     */
+    public EarthGlyph(GlyphAssetDefinition assetDefinition) {
+        super(assetDefinition, GlyphVisual.effect(GlyphVisual.COLOR_EARTH, "earth"));
     }
 
     @Override
-    public void applyEffect(ExecutionContext ctx, TargetSet targets) {
-        float damage = getModifiedAmount(ctx, BASE_DAMAGE);
-        float knockback = getModifiedAmount(ctx, KNOCKBACK_STRENGTH);
+    protected void applyEffect(SpellContext context, Ref<EntityStore> target, float power) {
+        Store<EntityStore> store = context.getStore();
+        Ref<EntityStore> caster = context.getCaster();
 
-        Store<EntityStore> store = ctx.getStore();
-        Ref<EntityStore> caster = ctx.getCaster();
-        Vector3d origin = ctx.getCurrentOrigin();
-
-        LOGGER.atInfo().log("Applying earth effect: %.1f damage, %.1f knockback to %d targets",
-                damage, knockback, targets.getEntityCount());
-
-        // Apply to each target entity
-        for (Ref<EntityStore> targetRef : targets.getEntities()) {
-            // Skip self-damage
-            if (targetRef.equals(caster)) {
-                continue;
-            }
-
-            // Apply instant physical damage
-            int damageCauseIndex = DamageCause.getAssetMap().getIndex("physical");
-            Damage earthDamage = new Damage(
-                    new Damage.EntitySource(caster),
-                    damageCauseIndex,
-                    damage
-            );
-            DamageSystems.executeDamage(targetRef, store, earthDamage);
-
-            // Apply knockback away from origin
-            applyKnockback(targetRef, store, origin, knockback);
-
-            LOGGER.atInfo().log("Applied earth damage and knockback to target");
+        // Skip self-damage
+        if (target.equals(caster)) {
+            return;
         }
+
+        // Get asset-driven properties
+        float baseDamage = getProperty("baseDamage", 15.0f);
+        float knockbackStrength = getProperty("knockbackStrength", 8.0f);
+        float knockbackDuration = getProperty("knockbackDuration", 0.4f);
+        float upwardMultiplier = getProperty("upwardMultiplier", 0.4f);
+        String damageType = getProperty("damageType", "physical");
+
+        // Calculate final values with power
+        float actualDamage = baseDamage * power;
+        float actualKnockback = knockbackStrength * power;
+
+        LOGGER.atInfo().log("Applying earth effect: %.1f damage, %.1f knockback",
+                actualDamage, actualKnockback);
+
+        // Apply instant physical damage
+        int damageCauseIndex = DamageCause.getAssetMap().getIndex(damageType);
+        Damage earthDamage = new Damage(
+                new Damage.EntitySource(caster),
+                damageCauseIndex,
+                actualDamage
+        );
+        DamageSystems.executeDamage(target, store, earthDamage);
+
+        // Apply knockback away from cast origin
+        applyKnockback(target, store, context.getCastOrigin(), actualKnockback, knockbackDuration, upwardMultiplier);
+
+        LOGGER.atInfo().log("Applied earth damage and knockback to target");
+    }
+
+    @Override
+    protected void applyEffectAtPosition(SpellContext context, Vector3d position, float power) {
+        // Earth can create a tremor at a position
+        LOGGER.atInfo().log("Earth effect at position (%.1f, %.1f, %.1f) with power %.2f",
+                position.x, position.y, position.z, power);
+        // Future: spawn rock/debris particles at position
     }
 
     /**
      * Apply knockback to a target, pushing them away from the origin.
      */
     private void applyKnockback(Ref<EntityStore> targetRef, Store<EntityStore> store,
-                                 Vector3d origin, float strength) {
+                                 Vector3d origin, float strength, float duration, float upwardMult) {
         // Get target position to calculate knockback direction
         TransformComponent targetTransform = store.getComponent(targetRef, TransformComponent.getComponentType());
         if (targetTransform == null) {
@@ -100,11 +112,11 @@ public class EarthGlyph extends EffectGlyph {
         // Calculate knockback velocity with upward component
         Vector3d knockbackVelocity = new Vector3d(
                 knockbackDir.x * strength,
-                knockbackDir.y * strength + strength * 0.4, // Strong upward for earth
+                knockbackDir.y * strength + strength * upwardMult,
                 knockbackDir.z * strength
         );
 
-        // Get knockback component - entities that can receive knockback should already have it
+        // Get knockback component
         KnockbackComponent knockbackComp = store.getComponent(targetRef, KnockbackComponent.getComponentType());
         if (knockbackComp == null) {
             LOGGER.atWarning().log("Target has no KnockbackComponent, cannot apply knockback");
@@ -114,7 +126,7 @@ public class EarthGlyph extends EffectGlyph {
         // Apply knockback
         knockbackComp.setVelocity(knockbackVelocity);
         knockbackComp.setVelocityType(ChangeVelocityType.Add);
-        knockbackComp.setDuration(KNOCKBACK_DURATION);
+        knockbackComp.setDuration(duration);
         knockbackComp.setTimer(0.0f);
 
         LOGGER.atInfo().log("Applied earth knockback: (%.1f, %.1f, %.1f)",

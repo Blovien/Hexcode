@@ -1,0 +1,16 @@
+{
+  "id": "hexcode:cone",
+  "displayName": "Cone",
+  "role": "SELECT",
+  "modelPath": "Hexcode/Models/Glyphs/cone.blockymodel",
+  "drawingTemplatePath": "Hexcode/Drawings/cone.png",
+  "basePower": 1.0,
+  "baseManaCost": 0,
+  "baseVariability": 0.5,
+  "properties": {
+    "range": 8.0,
+    "coneAngle": 45.0,
+    "delayed": false
+  },
+  "compatibleModifiers": ["hexcode:range"]
+}

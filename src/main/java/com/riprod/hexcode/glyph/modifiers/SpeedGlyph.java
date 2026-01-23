@@ -1,39 +1,33 @@
 package com.riprod.hexcode.glyph.modifiers;
 
-import java.util.Set;
+import com.riprod.hexcode.asset.GlyphAssetDefinition;
+import com.riprod.hexcode.execution.SpellContext;
+import com.riprod.hexcode.glyph.GlyphVisual;
 
 /**
- * Speed modifier glyph - increases projectile/beam velocity by 50%.
+ * Speed modifier glyph - increases projectile/beam velocity.
  *
- * Only compatible with SELECT glyphs that have travel time.
+ * <p>Only compatible with SELECT glyphs that have travel time (BEAM, PROJECTILE).
+ *
+ * <p>Asset-driven properties:
+ * <ul>
+ *   <li>basePower - the multiplier (default: 1.5 = 50% increase)</li>
+ * </ul>
  */
 public class SpeedGlyph extends ModifierGlyph {
-    public static final String ID = "hexcode:speed";
-    public static final float MULTIPLIER = 1.5f;
 
-    public SpeedGlyph() {
-        super(
-            ID,
-            "Speed",
-            MULTIPLIER,
-            // Incompatible with all effects and instant selects
-            Set.of(
-                "hexcode:fire",
-                "hexcode:ice",
-                "hexcode:lightning",
-                "hexcode:earth",
-                "hexcode:void",
-                "hexcode:light",
-                "hexcode:shield",
-                "hexcode:blink",
-                "hexcode:heal",
-                "hexcode:push",
-                "hexcode:self",
-                "hexcode:touch",
-                "hexcode:gaze",
-                "hexcode:burst",
-                "hexcode:cone"
-            )
-        );
+    /**
+     * Create a speed glyph from an asset definition.
+     *
+     * @param assetDefinition The asset definition containing glyph properties
+     */
+    public SpeedGlyph(GlyphAssetDefinition assetDefinition) {
+        super(assetDefinition, GlyphVisual.modifier("speed"));
+    }
+
+    @Override
+    protected void applyModifier(SpellContext context) {
+        float multiplier = getMultiplier();
+        context.multiplySpeed(multiplier);
     }
 }

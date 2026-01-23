@@ -44,7 +44,7 @@ public class CraftingSpace {
      */
     public Vector3d calculateNodePosition(HexNode node, int siblingIndex, int siblingCount) {
         Vector3d center = getCenter();
-        int depth = node.getDepth();
+        int depth = node.getChildren().size();
 
         // Calculate offset based on depth (shells are larger at lower depth)
         float depthOffset = depth * NODE_SPACING;

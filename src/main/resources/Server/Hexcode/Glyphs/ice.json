@@ -1,0 +1,18 @@
+{
+  "id": "hexcode:ice",
+  "displayName": "Ice",
+  "role": "EFFECT",
+  "modelPath": "Hexcode/Models/Glyphs/ice.blockymodel",
+  "drawingTemplatePath": "Hexcode/Drawings/ice.png",
+  "basePower": 1.0,
+  "baseManaCost": 15,
+  "baseVariability": 0.6,
+  "properties": {
+    "baseDamage": 8.0,
+    "slowDuration": 4.0,
+    "slowAmount": 0.5,
+    "slowEffectId": "hexcode:slow",
+    "damageType": "cold"
+  },
+  "compatibleModifiers": ["hexcode:power", "hexcode:duration"]
+}

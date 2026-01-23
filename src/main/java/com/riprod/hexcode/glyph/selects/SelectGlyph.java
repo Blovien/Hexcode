@@ -1,80 +1,103 @@
 package com.riprod.hexcode.glyph.selects;
 
-import com.riprod.hexcode.execution.ExecutionContext;
-import com.riprod.hexcode.execution.TargetSet;
+import com.riprod.hexcode.asset.GlyphAssetDefinition;
+import com.riprod.hexcode.execution.SpellContext;
 import com.riprod.hexcode.glyph.Glyph;
 import com.riprod.hexcode.glyph.GlyphRole;
 import com.riprod.hexcode.glyph.GlyphVisual;
 
-import java.util.Set;
-
 /**
  * Base class for SELECT glyphs - outer shells that determine targeting/delivery.
  *
- * Select glyphs wrap one glyph OR a linked chain of siblings.
- * They determine how targets are selected for the wrapped effects.
+ * <p>Select glyphs wrap one glyph OR a linked chain of siblings. They determine
+ * how targets are selected for the wrapped effects.
+ *
+ * <h2>Select Types</h2>
+ * <ul>
+ *   <li><b>Instant</b>: SELF, TOUCH, GAZE, BURST, CONE - targets selected immediately</li>
+ *   <li><b>Delayed</b>: BEAM, PROJECTILE - children execute when projectile hits</li>
+ * </ul>
+ *
+ * <h2>Asset-Driven Properties</h2>
+ * <p>Selects read their properties from the asset definition:
+ * <ul>
+ *   <li>basePower - may affect selection parameters</li>
+ *   <li>properties.range - base range for targeting</li>
+ *   <li>properties.speed - projectile speed for delayed selects</li>
+ *   <li>properties.radius - area for burst/cone selects</li>
+ *   <li>properties.delayed - whether this is a delayed select</li>
+ * </ul>
+ *
+ * <h2>Execution Flow</h2>
+ * <p>The {@link #cast(SpellContext)} method:
+ * <ol>
+ *   <li>Records this execution in the context</li>
+ *   <li>Calls {@link #selectTargets} to populate context targets</li>
+ *   <li>Returns the context with targets set</li>
+ * </ol>
+ *
+ * <h2>Delayed Execution</h2>
+ * <p>For delayed selects (BEAM, PROJECTILE), the {@link #selectTargets} method
+ * should spawn the projectile and queue delayed execution. The context should
+ * have "pendingDelayId" metadata set for the executor to handle.
+ *
+ * @see GlyphAssetDefinition
+ * @see SpellContext
  */
 public abstract class SelectGlyph implements Glyph {
-    private final String id;
-    private final String displayName;
-    private final boolean delayed;
+
+    private final GlyphAssetDefinition assetDefinition;
     private final GlyphVisual visual;
-    private final Set<String> compatibleModifiers;
+    private final boolean delayed;
+
+    // Per-execution data
+    private float accuracy = 0.75f;
+    private float drawSpeed = 0f;
 
     /**
-     * Create a select glyph with a specific texture.
+     * Create a select glyph from an asset definition.
      *
-     * @param id Unique identifier
-     * @param displayName Display name
-     * @param delayed true if this select has delayed execution (travel time)
-     * @param textureName Texture name (e.g., "beam")
-     * @param compatibleModifiers Set of modifier IDs that can modify this select
+     * @param assetDefinition The asset definition containing all glyph properties
      */
-    protected SelectGlyph(String id, String displayName, boolean delayed, String textureName, Set<String> compatibleModifiers) {
-        this.id = id;
-        this.displayName = displayName;
-        this.delayed = delayed;
+    protected SelectGlyph(GlyphAssetDefinition assetDefinition) {
+        this.assetDefinition = assetDefinition;
+
+        // Create visual from asset definition
+        String textureName = extractTextureName(assetDefinition.getId());
         this.visual = GlyphVisual.select(textureName);
-        this.compatibleModifiers = compatibleModifiers;
+
+        // Check if delayed from asset properties
+        this.delayed = assetDefinition.getPropertyBoolean("delayed", false);
     }
 
     /**
-     * @deprecated Use constructor with textureName parameter instead.
+     * Create a select glyph with custom visual and delayed flag.
+     *
+     * @param assetDefinition The asset definition
+     * @param visual Custom visual properties
+     * @param delayed Whether this is a delayed select
      */
-    protected SelectGlyph(String id, String displayName, boolean delayed, Set<String> compatibleModifiers) {
-        this(id, displayName, delayed, deriveTextureName(id), compatibleModifiers);
-    }
-
-    protected SelectGlyph(String id, String displayName, boolean delayed, GlyphVisual visual, Set<String> compatibleModifiers) {
-        this.id = id;
-        this.displayName = displayName;
-        this.delayed = delayed;
+    protected SelectGlyph(GlyphAssetDefinition assetDefinition, GlyphVisual visual, boolean delayed) {
+        this.assetDefinition = assetDefinition;
         this.visual = visual;
-        this.compatibleModifiers = compatibleModifiers;
+        this.delayed = delayed;
     }
 
-    /**
-     * Derive texture name from glyph ID for backward compatibility.
-     */
-    private static String deriveTextureName(String id) {
-        // Extract name from "hexcode:beam" -> "beam"
-        int colonIndex = id.lastIndexOf(':');
-        return colonIndex >= 0 ? id.substring(colonIndex + 1) : id;
-    }
+    // ========== IDENTITY ==========
 
     @Override
     public String getId() {
-        return id;
+        return assetDefinition.getId();
     }
 
     @Override
     public String getDisplayName() {
-        return displayName;
+        return assetDefinition.getDisplayName();
     }
 
     @Override
-    public GlyphRole getRole() {
-        return GlyphRole.SELECT;
+    public GlyphAssetDefinition getAssetDefinition() {
+        return assetDefinition;
     }
 
     @Override
@@ -82,59 +105,186 @@ public abstract class SelectGlyph implements Glyph {
         return visual;
     }
 
-    @Override
+    // ========== DELAYED FLAG ==========
+
+    /**
+     * @return true if this select has delayed execution (travel time)
+     */
     public boolean isDelayed() {
         return delayed;
     }
 
-    /**
-     * @return Set of modifier IDs that are compatible with this select
-     */
-    public Set<String> getCompatibleModifiers() {
-        return compatibleModifiers;
+    // ========== EXECUTION DATA ==========
+
+    @Override
+    public float getAccuracy() {
+        return accuracy;
     }
 
     @Override
-    public boolean isCompatibleWith(Glyph modifier) {
-        if (modifier.getRole() != GlyphRole.MODIFIER) {
-            return false;
-        }
-        // Check if this select accepts the modifier
-        if (!compatibleModifiers.isEmpty() && !compatibleModifiers.contains(modifier.getId())) {
-            return false;
-        }
-        // Also check modifier's compatibility with us
-        return Glyph.super.isCompatibleWith(modifier);
+    public float getDrawSpeed() {
+        return drawSpeed;
     }
 
+    @Override
+    public void setExecutionData(float accuracy, float drawSpeed) {
+        this.accuracy = accuracy;
+        this.drawSpeed = drawSpeed;
+    }
+
+    // ========== MANA CALCULATION ==========
+
+    @Override
+    public float calculateManaCost(SpellContext context) {
+        return assetDefinition.getBaseManaCost();
+    }
+
+    // ========== EXECUTION ==========
+
     /**
-     * Select targets based on the current execution context.
-     * Override in subclasses to implement specific targeting logic.
+     * Execute this select glyph.
+     *
+     * <p>Records execution and selects targets into the context.
+     *
+     * @param context The spell context
+     * @return The context with targets populated
      */
     @Override
-    public abstract TargetSet selectTargets(ExecutionContext ctx);
+    public SpellContext cast(SpellContext context) {
+        // Record this execution
+        context.recordGlyphExecution(this);
+
+        // Select targets
+        selectTargets(context);
+
+        return context;
+    }
+
+    // ========== ABSTRACT METHODS ==========
 
     /**
-     * Get the effective range after modifiers.
+     * Select targets and populate the context.
+     *
+     * <p>Implementations should:
+     * <ul>
+     *   <li>For instant selects: add entities to context.addTarget() and/or
+     *       positions to context.addTargetPosition()</li>
+     *   <li>For delayed selects: spawn projectile/beam and set
+     *       context.setMetadata("pendingDelayId", executionId)</li>
+     * </ul>
+     *
+     * @param context The spell context to populate with targets
      */
-    protected float getModifiedRange(ExecutionContext ctx, float baseRange) {
-        float rangeMod = ctx.getModifier("hexcode:range");
-        return baseRange * rangeMod;
+    protected abstract void selectTargets(SpellContext context);
+
+    // ========== HELPER METHODS ==========
+
+    /**
+     * Get the base range from asset properties.
+     *
+     * @return Base range in blocks
+     */
+    protected float getBaseRange() {
+        return getProperty("range", 10.0f);
     }
 
     /**
-     * Get the effective speed after modifiers.
+     * Get the effective range after context multiplier.
+     *
+     * @param context The spell context
+     * @return Modified range
      */
-    protected float getModifiedSpeed(ExecutionContext ctx, float baseSpeed) {
-        float speedMod = ctx.getModifier("hexcode:speed");
-        return baseSpeed * speedMod;
+    protected float getModifiedRange(SpellContext context) {
+        return getBaseRange() * context.getRangeMultiplier();
     }
 
     /**
-     * Get the split count after modifiers.
+     * Get the base speed from asset properties.
+     *
+     * @return Base speed (blocks per second for projectiles)
      */
-    protected int getSplitCount(ExecutionContext ctx) {
-        float splitMod = ctx.getModifier("hexcode:split");
-        return splitMod > 1.0f ? 3 : 1;
+    protected float getBaseSpeed() {
+        return getProperty("speed", 20.0f);
+    }
+
+    /**
+     * Get the effective speed after context multiplier.
+     *
+     * @param context The spell context
+     * @return Modified speed
+     */
+    protected float getModifiedSpeed(SpellContext context) {
+        return getBaseSpeed() * context.getSpeedMultiplier();
+    }
+
+    /**
+     * Get the base radius from asset properties.
+     *
+     * @return Base radius in blocks (for burst/cone selects)
+     */
+    protected float getBaseRadius() {
+        return getProperty("radius", 5.0f);
+    }
+
+    /**
+     * Get the effective radius after context multiplier (uses range).
+     *
+     * @param context The spell context
+     * @return Modified radius
+     */
+    protected float getModifiedRadius(SpellContext context) {
+        return getBaseRadius() * context.getRangeMultiplier();
+    }
+
+    /**
+     * Get a float property from the asset definition.
+     *
+     * @param key Property key
+     * @param defaultValue Default if not found
+     * @return The property value
+     */
+    protected float getProperty(String key, float defaultValue) {
+        return assetDefinition.getPropertyFloat(key, defaultValue);
+    }
+
+    /**
+     * Get a String property from the asset definition.
+     *
+     * @param key Property key
+     * @param defaultValue Default if not found
+     * @return The property value
+     */
+    protected String getProperty(String key, String defaultValue) {
+        return assetDefinition.getPropertyString(key, defaultValue);
+    }
+
+    /**
+     * Get an int property from the asset definition.
+     *
+     * @param key Property key
+     * @param defaultValue Default if not found
+     * @return The property value
+     */
+    protected int getProperty(String key, int defaultValue) {
+        return assetDefinition.getPropertyInt(key, defaultValue);
+    }
+
+    /**
+     * Get a boolean property from the asset definition.
+     *
+     * @param key Property key
+     * @param defaultValue Default if not found
+     * @return The property value
+     */
+    protected boolean getProperty(String key, boolean defaultValue) {
+        return assetDefinition.getPropertyBoolean(key, defaultValue);
+    }
+
+    /**
+     * Extract texture name from glyph ID.
+     */
+    private String extractTextureName(String id) {
+        int colonIndex = id.lastIndexOf(':');
+        return colonIndex >= 0 ? id.substring(colonIndex + 1) : id;
     }
 }

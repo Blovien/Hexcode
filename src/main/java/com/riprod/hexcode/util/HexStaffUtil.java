@@ -141,6 +141,23 @@ public class HexStaffUtil {
         }
         return null;
     }
+ 
+    /**
+     * Get the Hex Book from the player's mainhand.
+     *
+     * @param inventory The player's inventory
+     * @return The Hex Book item stack, or null if not equipped
+     */
+    public static ItemStack getHexBookFromMainHand(Inventory inventory) {
+        if (inventory == null) {
+            return null;
+        }
+        ItemStack mainHandItem = inventory.getItemInHand();
+        if (isHexBook(mainHandItem)) {
+            return mainHandItem;
+        }
+        return null;
+    }
 
     // ========== Deprecated methods for backwards compatibility ==========
 

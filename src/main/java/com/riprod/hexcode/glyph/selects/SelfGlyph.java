@@ -1,28 +1,40 @@
 package com.riprod.hexcode.glyph.selects;
 
-import com.riprod.hexcode.execution.ExecutionContext;
-import com.riprod.hexcode.execution.TargetSet;
-
-import java.util.Set;
+import com.hypixel.hytale.logger.HytaleLogger;
+import com.riprod.hexcode.asset.GlyphAssetDefinition;
+import com.riprod.hexcode.execution.SpellContext;
+import com.riprod.hexcode.glyph.GlyphVisual;
 
 /**
  * Self select glyph - targets the caster only.
- * Instant - no travel time.
+ *
+ * <p>Instant - no travel time. Always targets only the caster.
+ *
+ * <p>Asset-driven properties:
+ * <ul>
+ *   <li>No configurable properties - SELF always targets caster</li>
+ * </ul>
  */
 public class SelfGlyph extends SelectGlyph {
-    public static final String ID = "hexcode:self";
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
-    public SelfGlyph() {
-        super(
-            ID,
-            "Self",
-            false, // instant
-            Set.of() // No compatible modifiers (no range, speed, etc.)
-        );
+    /**
+     * Create a self glyph from an asset definition.
+     *
+     * @param assetDefinition The asset definition containing glyph properties
+     */
+    public SelfGlyph(GlyphAssetDefinition assetDefinition) {
+        super(assetDefinition, GlyphVisual.select("self"), false);
     }
 
     @Override
-    public TargetSet selectTargets(ExecutionContext ctx) {
-        return TargetSet.of(ctx.getCaster());
+    protected void selectTargets(SpellContext context) {
+        LOGGER.atInfo().log("Self selecting caster as target");
+
+        // Target the caster
+        context.addTarget(context.getCaster());
+
+        // Set cast origin as target position as well
+        context.addTargetPosition(context.getCastOrigin());
     }
 }

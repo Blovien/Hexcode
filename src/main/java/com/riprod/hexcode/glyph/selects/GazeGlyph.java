@@ -6,39 +6,40 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.execution.ExecutionContext;
-import com.riprod.hexcode.execution.TargetSet;
+import com.riprod.hexcode.asset.GlyphAssetDefinition;
+import com.riprod.hexcode.execution.SpellContext;
+import com.riprod.hexcode.glyph.GlyphVisual;
 import com.riprod.hexcode.util.RaycastUtil;
-
-import java.util.Set;
 
 /**
  * Gaze select glyph - targets first entity in line of sight.
- * Instant - no travel time, but longer range than Touch.
+ *
+ * <p>Instant - no travel time, but longer range than Touch.
+ *
+ * <p>Asset-driven properties:
+ * <ul>
+ *   <li>range - base gaze range in blocks (default: 50.0)</li>
+ *   <li>hitRadius - entity hit detection radius (default: 0.5)</li>
+ * </ul>
  */
 public class GazeGlyph extends SelectGlyph {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
-    public static final String ID = "hexcode:gaze";
-    public static final float BASE_RANGE = 50.0f;
-    public static final float HIT_RADIUS = 0.5f;
-
-    public GazeGlyph() {
-        super(
-            ID,
-            "Gaze",
-            false, // instant
-            Set.of("hexcode:range")
-        );
+    /**
+     * Create a gaze glyph from an asset definition.
+     *
+     * @param assetDefinition The asset definition containing glyph properties
+     */
+    public GazeGlyph(GlyphAssetDefinition assetDefinition) {
+        super(assetDefinition, GlyphVisual.select("gaze"), false);
     }
 
     @Override
-    public TargetSet selectTargets(ExecutionContext ctx) {
-        float range = getModifiedRange(ctx, BASE_RANGE);
-        Store<EntityStore> store = ctx.getStore();
-        Ref<EntityStore> caster = ctx.getCaster();
-        Vector3d origin = ctx.getCurrentOrigin();
-        Vector3d direction = ctx.getCastDirection();
+    protected void selectTargets(SpellContext context) {
+        float range = getModifiedRange(context);
+        Store<EntityStore> store = context.getStore();
+        Ref<EntityStore> caster = context.getCaster();
+        Vector3d direction = context.getCastDirection();
 
         LOGGER.atInfo().log("Gaze selecting target within %.1f range", range);
 
@@ -46,7 +47,7 @@ public class GazeGlyph extends SelectGlyph {
         TransformComponent casterTransform = store.getComponent(caster, TransformComponent.getComponentType());
         if (casterTransform == null) {
             LOGGER.atWarning().log("Caster has no TransformComponent");
-            return TargetSet.empty();
+            return;
         }
 
         Vector3d eyePos = RaycastUtil.getPlayerEyePosition(casterTransform);
@@ -57,21 +58,21 @@ public class GazeGlyph extends SelectGlyph {
         if (hitEntity != null) {
             // Calculate hit position
             TransformComponent hitTransform = store.getComponent(hitEntity, TransformComponent.getComponentType());
-            Vector3d hitPosition = hitTransform != null ? hitTransform.getPosition() : origin;
+            Vector3d hitPosition = hitTransform != null ? hitTransform.getPosition() : eyePos;
 
             LOGGER.atInfo().log("Gaze found target");
-            return TargetSet.of(hitEntity).withOrigin(hitPosition);
+            context.addTarget(hitEntity);
+            context.addTargetPosition(hitPosition);
+        } else {
+            // If no entity hit, target the point at max range (for position-based effects)
+            Vector3d endPoint = RaycastUtil.getPointAlongLookRay(casterTransform, range);
+            LOGGER.atInfo().log("Gaze found no entity, targeting end point");
+            context.addTargetPosition(endPoint);
         }
-
-        // If no entity hit, target the point at max range (for position-based effects)
-        Vector3d endPoint = RaycastUtil.getPointAlongLookRay(casterTransform, range);
-        LOGGER.atInfo().log("Gaze found no entity, targeting end point");
-        return TargetSet.ofPosition(endPoint).withOrigin(endPoint);
     }
 
     /**
      * Find the first entity in line of sight.
-     * In a full implementation, this would use proper spatial queries and occlusion testing.
      */
     private Ref<EntityStore> findFirstEntityInLineOfSight(Store<EntityStore> store, Ref<EntityStore> caster,
                                                            Vector3d rayOrigin, Vector3d rayDirection, float maxDistance) {
@@ -80,7 +81,6 @@ public class GazeGlyph extends SelectGlyph {
         // 2. Check for block occlusion between caster and each candidate
         // 3. Return the closest unoccluded entity
 
-        // For now, this is a placeholder that indicates the structure
         LOGGER.atInfo().log("Gaze raycast would query spatial index for entities in line of sight");
         return null; // Placeholder - spatial query needed
     }

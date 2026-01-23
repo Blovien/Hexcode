@@ -107,7 +107,7 @@ public class HexcodeGlyphModeToggle extends Interaction {
             LOGGER.atInfo().log("Player %s exited glyph mode via Secondary", playerId);
         } else {
             // Enter glyph mode (pass command buffer for deferred entity spawn)
-            modeManager.toggleGlyphMode(playerId, ref, null, context.getCommandBuffer());
+            modeManager.toggleGlyphMode(playerId, ref, context.getCommandBuffer());
             LOGGER.atInfo().log("Player %s entered glyph mode via Secondary", playerId);
         }
     }

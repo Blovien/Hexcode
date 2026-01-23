@@ -1,0 +1,12 @@
+{
+  "id": "hexcode:power",
+  "displayName": "Power",
+  "role": "MODIFIER",
+  "modelPath": "Hexcode/Models/Glyphs/power.blockymodel",
+  "drawingTemplatePath": "Hexcode/Drawings/power.png",
+  "basePower": 1.5,
+  "baseManaCost": 5,
+  "baseVariability": 0.5,
+  "properties": {},
+  "incompatibleGlyphs": []
+}

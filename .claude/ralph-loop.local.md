@@ -1,35 +1,9 @@
 ---
 active: true
-iteration: 3
+iteration: 29
 max_iterations: 0
 completion_promise: null
-started_at: "2026-01-22T23:40:33Z"
+started_at: "2026-01-23T01:40:04Z"
 ---
 
-You are implementing the Hexcode Glyph System Rework as defined in TODO.md. This is a Hytale mod using Java.
-
-CRITICAL RULES:
-1. Read TODO.md at the start of EVERY iteration to check current phase status
-2. Work through phases 1-10 IN ORDER - do not skip ahead
-3. Mark tasks complete in TODO.md as you finish them using checkboxes [x]
-4. After completing ALL tasks in a phase, update the Summary Checklist status
-5. If you encounter Hytale API questions, check docs/ folder or use web search for Hytale modding docs
-6. Test compilation after each major change with './gradlew build' or equivalent
-7. Create skills in .claude/skills/ for any reusable Hytale modding patterns learned
-
-KEY ARCHITECTURE (from TODO.md):
-- Hex = nested glyphs that influence each other (context flows through)
-- Chain = sequential glyphs separated by ':' (each gets COPY of original context)
-- SpellContext is the central execution state object
-- All glyph properties come from JSON asset files, NO hard-coded values
-- Power decays: cast decay (1/castNumber) and glyph repetition decay (1/executionCount)
-
-WORKFLOW PER ITERATION:
-1. Read TODO.md to find current incomplete phase
-2. Identify next unchecked task in that phase
-3. Implement the task following completion criteria exactly
-4. Mark task [x] complete in TODO.md
-5. If phase complete, update Summary Checklist
-6. Continue until all phases show 'Complete'
-
-When ALL 10 phases in the Summary Checklist show 'Complete', output: HEXCODE_REWORK_COMPLETE --completion-phrase=HEXCODE_REWORK_COMPLETE --max-iterations=50
+Implement Hexcode glyph system rework Phases 7-9 CONTEXT PRIORITY: Use    /commands skill for command patterns. Available skills: /event-system /item-system /commands /ecs-system              /serialization.   AFTER EACH PHASE: Review your work and provide a brief implementation summary noting any deviations or decisions made. Check off completed items in TODO.md as you go. CRITICAL: You must complete   ALL Phase 7-9 checklist items before saying <promise>HEXCODECOMPLETE</promise>. Do not say the completion phrase until every item in Phases 7-9 is checked off. --completion-promise=HEXCODECOMPLETE --max-iterations=3

@@ -20,8 +20,8 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHa
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.data.Collector;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.data.GlyphInstance;
 import com.riprod.hexcode.execution.HexExecutor;
-import com.riprod.hexcode.execution.ManaCostCalculator;
 import com.riprod.hexcode.glyph.Glyph;
 import com.riprod.hexcode.hex.Hex;
 import com.riprod.hexcode.mode.CompositionState;
@@ -52,7 +52,6 @@ public class HexcodeGlyphAction extends Interaction {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     private final HexExecutor hexExecutor;
-    private final ManaCostCalculator costCalculator;
     private final GlyphRenderer glyphRenderer;
     private final Map<UUID, TrailEffect> activeTrails;
 
@@ -64,7 +63,6 @@ public class HexcodeGlyphAction extends Interaction {
 
     public HexcodeGlyphAction() {
         this.hexExecutor = new HexExecutor();
-        this.costCalculator = new ManaCostCalculator();
         this.glyphRenderer = new GlyphRenderer();
         this.activeTrails = new HashMap<>();
     }
@@ -72,7 +70,6 @@ public class HexcodeGlyphAction extends Interaction {
     public HexcodeGlyphAction(String id) {
         super(id);
         this.hexExecutor = new HexExecutor();
-        this.costCalculator = new ManaCostCalculator();
         this.glyphRenderer = new GlyphRenderer();
         this.activeTrails = new HashMap<>();
     }
@@ -220,7 +217,7 @@ public class HexcodeGlyphAction extends Interaction {
      */
     private void handleDragStart(UUID playerId, Ref<EntityStore> playerRef, Store<EntityStore> store, GlyphMode mode) {
         // Check if player is looking at a glyph in the orbital ring
-        Glyph hoveredGlyph = mode.getHoveredGlyph();
+        GlyphInstance hoveredGlyph = mode.getHoveredGlyph();
         if (hoveredGlyph == null) {
             LOGGER.atFine().log("No glyph hovered to drag");
             return;
@@ -239,10 +236,10 @@ public class HexcodeGlyphAction extends Interaction {
 
         // Start dragging
         mode.startDrag(hoveredGlyph, startPos);
-        LOGGER.atInfo().log("Started dragging glyph '%s'", hoveredGlyph.getDisplayName());
+        LOGGER.atInfo().log("Started dragging glyph '%s'", hoveredGlyph.getGlyph().getDisplayName());
 
         // Start trail effect
-        int color = hoveredGlyph.getVisual().getColor();
+        int color = hoveredGlyph.getGlyph().getVisual().getColor();
         TrailEffect trail = new TrailEffect(color, 20, 0.5f);
         trail.start();
         activeTrails.put(playerId, trail);
@@ -259,7 +256,7 @@ public class HexcodeGlyphAction extends Interaction {
             return;
         }
 
-        Glyph draggingGlyph = mode.getDraggingGlyph();
+        GlyphInstance draggingGlyph = mode.getDraggingGlyph();
         Vector3d dropPosition = mode.getDragPosition();
 
         // Determine what to do with the dropped glyph
@@ -268,19 +265,11 @@ public class HexcodeGlyphAction extends Interaction {
         // Check if dropping in crafting space
         if (isInCraftingSpace(mode, dropPosition, store)) {
             // Try to add the glyph to composition
-            boolean added;
-            if (composition.isEmpty()) {
-                // First glyph becomes root
-                added = composition.placeAsRoot(draggingGlyph);
-            } else {
-                // Wrap the root node
-                added = composition.wrapNode(draggingGlyph, composition.getHex().getRoot());
-            }
+            boolean added = composition.addLeaf(draggingGlyph, composition.getHex().getRoot());
             if (added) {
-                LOGGER.atInfo().log("Added glyph '%s' to composition", draggingGlyph.getDisplayName());
-                showCostPreview(mode);
+                LOGGER.atInfo().log("Added glyph '%s' to composition", draggingGlyph.getGlyph().getDisplayName());
             } else {
-                LOGGER.atInfo().log("Failed to add glyph '%s' - invalid placement", draggingGlyph.getDisplayName());
+                LOGGER.atInfo().log("Failed to add glyph '%s' - invalid placement", draggingGlyph.getGlyph().getDisplayName());
             }
         }
 
@@ -299,25 +288,13 @@ public class HexcodeGlyphAction extends Interaction {
         CompositionState composition = mode.getComposition();
         Hex hex = composition.getHex();
 
-        if (hex.isEmpty() || !hex.isValid()) {
+        if (hex.isEmpty()) {
             LOGGER.atInfo().log("Failed to cast hex - empty or invalid composition");
             return;
         }
 
         // Calculate mana cost
-        int manaCost = costCalculator.calculateBaseCost(hex);
         float playerMana = getPlayerMana(store, playerRef);
-
-        // Check if player can cast
-        ManaCostCalculator.CastResult castResult = costCalculator.canCast(playerMana, manaCost);
-
-        LOGGER.atInfo().log("Hex mana cost: %d, player mana: %.1f, can cast: %b",
-                manaCost, playerMana, castResult.canCast());
-
-        if (!castResult.canCast()) {
-            LOGGER.atInfo().log("Not enough mana to cast");
-            return;
-        }
 
         // Get cast origin and direction
         TransformComponent transform = store.getComponent(playerRef, TransformComponent.getComponentType());
@@ -326,10 +303,8 @@ public class HexcodeGlyphAction extends Interaction {
         }
         Vector3d direction = RaycastUtil.getPlayerLookDirection(transform);
 
-        // Consume mana
-        int manaConsumed = castResult.getManaCost();
-        consumePlayerMana(playerRef, manaConsumed);
-        LOGGER.atInfo().log("Consumed %d mana (power: %.0f%%)", manaConsumed, castResult.getPowerMultiplier() * 100);
+        consumePlayerMana(playerRef, 999);
+        LOGGER.atInfo().log("Consumed %d mana (power: %.0f%%)", 999, playerMana);
 
         // Execute the hex
         HexExecutor.ExecutionResult result = hexExecutor.execute(hex, playerRef, store, null, direction);
@@ -371,19 +346,6 @@ public class HexcodeGlyphAction extends Interaction {
         // Check if position is within crafting space bounds (1.5 block radius)
         double distSq = HexMathUtil.distanceSquared(position, craftingCenter);
         return distSq <= 2.25; // 1.5^2 = 2.25
-    }
-
-    /**
-     * Show mana cost preview during composition.
-     */
-    private void showCostPreview(GlyphMode mode) {
-        CompositionState composition = mode.getComposition();
-        Hex hex = composition.getHex();
-
-        if (!hex.isEmpty()) {
-            int cost = costCalculator.calculateBaseCost(hex);
-            LOGGER.atInfo().log("Current composition cost: %d mana", cost);
-        }
     }
 
     /**

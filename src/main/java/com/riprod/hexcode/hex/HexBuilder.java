@@ -1,9 +1,8 @@
 package com.riprod.hexcode.hex;
 
+import com.riprod.hexcode.data.GlyphInstance;
 import com.riprod.hexcode.glyph.Glyph;
 import com.riprod.hexcode.glyph.GlyphRegistry;
-import com.riprod.hexcode.glyph.GlyphRole;
-import com.riprod.hexcode.glyph.selects.SelfGlyph;
 
 /**
  * Builder for creating Hex spell structures programmatically.
@@ -27,14 +26,9 @@ public class HexBuilder {
             return new Hex();
         }
 
-        // If root is not a SELECT, wrap with implicit SELF
-        if (root.getGlyph().getRole() != GlyphRole.SELECT) {
-            HexNode selfNode = new HexNode(registry.getImplicitSelf());
-            selfNode.addChild(root);
-            return new Hex(selfNode);
-        }
-
-        return new Hex(root);
+        HexNode selfNode = new HexNode(GlyphInstance.initial(registry.getImplicitSelf()));
+        selfNode.addChild(root);
+        return new Hex(selfNode);
     }
 
     /**
@@ -48,7 +42,7 @@ public class HexBuilder {
         if (glyph == null) {
             throw new IllegalArgumentException("Unknown glyph: " + glyphId);
         }
-        return build(new HexNode(glyph));
+        return build(new HexNode(GlyphInstance.initial(glyph)));
     }
 
     // ========== FLUENT BUILDER METHODS ==========
@@ -66,7 +60,8 @@ public class HexBuilder {
     public HexNode node(String id) {
         String fullId = id.contains(":") ? id : "hexcode:" + id;
         Glyph glyph = registry.getGlyphOrThrow(fullId);
-        return new HexNode(glyph);
+        GlyphInstance instance = GlyphInstance.initial(glyph);
+        return new HexNode(instance);
     }
 
     /**
@@ -74,9 +69,7 @@ public class HexBuilder {
      */
     public HexNode modifier(String id, HexNode child) {
         HexNode node = node(id);
-        if (!node.addChild(child)) {
-            throw new IllegalStateException("Cannot add child to " + id);
-        }
+        node.addChild(child);
         return node;
     }
 
@@ -86,9 +79,7 @@ public class HexBuilder {
     public HexNode select(String id, HexNode... children) {
         HexNode node = node(id);
         for (HexNode child : children) {
-            if (!node.addChild(child)) {
-                throw new IllegalStateException("Cannot add child to " + id);
-            }
+            node.addChild(child);
         }
         return node;
     }

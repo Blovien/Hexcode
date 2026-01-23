@@ -1,7 +1,5 @@
 # Hexcode - Hexcasting Mod Implementation Plan
 
-> **Note**: This document describes the **expected architecture** after the TODO.md rework is implemented. The current codebase may not yet match all structures described here. See TODO.md for implementation progress.
-
 ## Overview
 
 Hexcode is a spell-crafting mod that allows players to enter **Glyph Mode** while wielding the **Hex Staff** (main hand) and **Hex Book** (offhand). In this mode, glyphs from the player's **loadout** orbit around them in 3D space as floating runes. Players compose spells by dragging glyphs into a central crafting space, building **Hexes** - tree-structured spell constructs where glyphs wrap around each other like shells.
@@ -834,96 +832,6 @@ public void onHit(UUID executionId, EntityRef hitEntity, Vector3f hitPos) {
     pendingExecutions.remove(executionId);
 }
 ```
-
----
-
-## Implementation Phases
-
-> **Note**: The phases below represent the **original MVP implementation** which is complete. See **TODO.md** for the ongoing rework phases that transform the system to the asset-driven architecture described in this document.
-
-### Original MVP Phases (Complete)
-
-#### Phase 1: Foundation
-- [x] Create package structure
-- [x] Define Glyph interface and GlyphRole enum
-- [x] Implement GlyphRegistry with MVP glyph definitions
-- [x] Create Hex and HexNode tree structures
-- [x] Create Hex Staff item definition (JSON + texture)
-- [x] Implement offhand detection for staff
-
-#### Phase 2: Glyph Mode Core
-- [x] Create GlyphModeManager singleton
-- [x] Implement GlyphMode state class per player
-- [x] Add event listener for glyph mode toggle
-- [x] Implement stamina drain while in mode
-- [x] Handle mode exit conditions
-- [x] Implement basic loadout (hardcoded for MVP)
-
-#### Phase 3: Orbital Ring Display
-- [x] Create OrbitalGlyphEntity spawning
-- [x] Implement orbital positioning math
-- [x] Add dynamic lighting to glyph entities
-- [x] Create glyph model assets (or placeholder shapes)
-- [x] Implement orbit animation
-- [x] Add hover highlight visual
-
-#### Phase 4: Hex Composition
-- [x] Implement CraftingSpace positioning
-- [x] Create HexBuilder for composition state
-- [x] Handle drag start/end events
-- [x] Implement glyph placement logic
-- [x] Add shell wrapper visuals
-- [x] Implement sibling linking
-- [x] Add undo functionality
-- [x] Validate composition rules
-
-#### Phase 5: Hex Execution - Instant
-- [x] Create ExecutionContext
-- [x] Implement tree traversal execution
-- [x] Implement TargetSet management
-- [x] Create instant SELECT execution (SELF, TOUCH, BURST)
-- [x] Apply MODIFIER multipliers to context
-- [x] Execute EFFECT glyphs on targets
-
-#### Phase 6: Hex Execution - Delayed
-- [x] Create SpellProjectileEntity
-- [x] Create SpellBeamEntity
-- [x] Implement delayed execution queue
-- [x] Handle projectile/beam hit detection
-- [x] Execute pending children on hit
-- [x] Resolve sibling continuation after delays
-
-#### Phase 7: Mana & Casting
-- [x] Implement mana cost calculation
-- [x] Add cost preview during composition
-- [x] Validate mana on cast
-- [x] Handle partial mana (75%+ rule)
-- [x] Consume mana and execute
-
-#### Phase 8: Polish & Testing
-- [x] Add sound effects for all interactions
-- [x] Particle trails for dragging
-- [x] Visual feedback for invalid actions
-- [x] Debug commands
-- [x] Performance optimization
-- [x] Multiplayer synchronization testing
-
-### Rework Phases (See TODO.md)
-
-The following rework phases transform the MVP into the asset-driven architecture:
-
-| Phase | Description | Status |
-|-------|-------------|--------|
-| 1 | Asset System Foundation | Not Started |
-| 2 | Core Glyph Interface Rework | Not Started |
-| 3 | Glyph Registry Rework | Not Started |
-| 4 | Hex/Chain Execution System | Not Started |
-| 5 | Per-Player Glyph Data | Not Started |
-| 6 | Delayed Execution Rework | Not Started |
-| 7 | Update All Glyph Implementations | Not Started |
-| 8 | Asset Files Creation | Not Started |
-| 9 | Testing & Validation | Not Started |
-| 10 | Documentation & Cleanup | Not Started |
 
 ---
 

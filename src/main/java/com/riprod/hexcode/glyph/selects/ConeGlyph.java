@@ -6,76 +6,77 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.execution.ExecutionContext;
-import com.riprod.hexcode.execution.TargetSet;
+import com.riprod.hexcode.asset.GlyphAssetDefinition;
+import com.riprod.hexcode.execution.SpellContext;
+import com.riprod.hexcode.glyph.GlyphVisual;
 import com.riprod.hexcode.util.HexMathUtil;
 import com.riprod.hexcode.util.RaycastUtil;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Cone select glyph - selects entities in a cone in front of the caster.
- * Instant - no travel time.
+ *
+ * <p>Instant - no travel time.
+ *
+ * <p>Asset-driven properties:
+ * <ul>
+ *   <li>range - cone length in blocks (default: 8.0)</li>
+ *   <li>coneAngle - half-angle of cone in degrees (default: 45.0)</li>
+ * </ul>
  */
 public class ConeGlyph extends SelectGlyph {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
-    public static final String ID = "hexcode:cone";
-    public static final float BASE_RANGE = 8.0f;
-    public static final float CONE_ANGLE = 45.0f; // degrees (half-angle)
-
-    public ConeGlyph() {
-        super(
-            ID,
-            "Cone",
-            false, // instant
-            Set.of("hexcode:range")
-        );
+    /**
+     * Create a cone glyph from an asset definition.
+     *
+     * @param assetDefinition The asset definition containing glyph properties
+     */
+    public ConeGlyph(GlyphAssetDefinition assetDefinition) {
+        super(assetDefinition, GlyphVisual.select("cone"), false);
     }
 
     @Override
-    public TargetSet selectTargets(ExecutionContext ctx) {
-        float range = getModifiedRange(ctx, BASE_RANGE);
-        Store<EntityStore> store = ctx.getStore();
-        Ref<EntityStore> caster = ctx.getCaster();
-        Vector3d origin = ctx.getCurrentOrigin();
-        Vector3d direction = ctx.getCastDirection();
+    protected void selectTargets(SpellContext context) {
+        float range = getModifiedRange(context);
+        float coneAngle = getProperty("coneAngle", 45.0f);
+        Store<EntityStore> store = context.getStore();
+        Ref<EntityStore> caster = context.getCaster();
+        Vector3d direction = context.getCastDirection();
 
-        LOGGER.atInfo().log("Cone selecting targets within %.1f range, %.1f degree cone", range, CONE_ANGLE);
+        LOGGER.atInfo().log("Cone selecting targets within %.1f range, %.1f degree cone", range, coneAngle);
 
         // Get caster position and look direction
         TransformComponent casterTransform = store.getComponent(caster, TransformComponent.getComponentType());
         if (casterTransform == null) {
             LOGGER.atWarning().log("Caster has no TransformComponent");
-            return TargetSet.empty();
+            return;
         }
 
         Vector3d casterPos = RaycastUtil.getPlayerEyePosition(casterTransform);
 
         // Find all entities within the cone
-        List<Ref<EntityStore>> targetsInCone = findEntitiesInCone(store, caster, casterPos, direction, range, CONE_ANGLE);
+        List<Ref<EntityStore>> targetsInCone = findEntitiesInCone(store, caster, casterPos, direction, range, coneAngle);
 
         if (targetsInCone.isEmpty()) {
             LOGGER.atInfo().log("Cone found no targets");
-            return TargetSet.empty();
+            return;
         }
 
+        for (Ref<EntityStore> entity : targetsInCone) {
+            context.addTarget(entity);
+        }
+
+        // Add origin as target position
+        context.addTargetPosition(casterPos);
+
         LOGGER.atInfo().log("Cone found %d targets", targetsInCone.size());
-        return TargetSet.ofEntities(targetsInCone).withOrigin(casterPos);
     }
 
     /**
      * Find all entities within a cone.
-     *
-     * @param store The entity store
-     * @param caster The caster (excluded from results)
-     * @param coneOrigin The cone's origin point
-     * @param coneDirection The cone's direction (normalized)
-     * @param range The cone's length
-     * @param halfAngle The cone's half-angle in degrees
-     * @return List of entities within the cone
      */
     private List<Ref<EntityStore>> findEntitiesInCone(Store<EntityStore> store, Ref<EntityStore> caster,
                                                        Vector3d coneOrigin, Vector3d coneDirection,
@@ -86,18 +87,9 @@ public class ConeGlyph extends SelectGlyph {
         // 1. Query the spatial index for all entities within a sphere of radius = range
         // 2. Filter to those within the cone angle
 
-        // The filtering logic would be:
-        // for each candidate entity:
-        //   - Get entity position
-        //   - Calculate vector from cone origin to entity
-        //   - If distance > range, skip
-        //   - Calculate angle between cone direction and entity vector
-        //   - If angle <= halfAngle, add to results
-
         // Convert half angle to radians for comparison
         double cosHalfAngle = Math.cos(Math.toRadians(halfAngle));
 
-        // Placeholder - in real implementation, iterate over spatial query results
         LOGGER.atInfo().log("Cone selection would query spatial index for entities within range, then filter by angle");
 
         return results;
@@ -105,13 +97,6 @@ public class ConeGlyph extends SelectGlyph {
 
     /**
      * Check if an entity position is within the cone.
-     *
-     * @param coneOrigin The cone's origin point
-     * @param coneDirection The cone's direction (normalized)
-     * @param entityPos The entity's position
-     * @param range The cone's length
-     * @param cosHalfAngle The cosine of the cone's half-angle
-     * @return true if the entity is within the cone
      */
     private boolean isInCone(Vector3d coneOrigin, Vector3d coneDirection, Vector3d entityPos,
                               float range, double cosHalfAngle) {

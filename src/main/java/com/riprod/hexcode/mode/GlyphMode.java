@@ -7,14 +7,17 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.data.GlyphInstance;
+import com.riprod.hexcode.data.HexBookData;
 import com.riprod.hexcode.entity.OrbitalGlyphEntity;
+import com.riprod.hexcode.entity.OrbitalHexEntity;
 import com.riprod.hexcode.execution.HexExecutor;
-import com.riprod.hexcode.glyph.Glyph;
 import com.riprod.hexcode.hex.Hex;
-import com.riprod.hexcode.loadout.Loadout;
 import com.riprod.hexcode.util.RaycastUtil;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -30,8 +33,8 @@ public class GlyphMode {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     private final Ref<EntityStore> player;
-    private final Loadout loadout;
     private final CompositionState composition;
+    private HexBookData bookData;  // Data from the held Hex Book
 
     private boolean active;
     private long modeEnteredAt;
@@ -46,17 +49,23 @@ public class GlyphMode {
     private float craftingSpaceDistance;
 
     // Currently hovered/dragging glyph
-    private Glyph hoveredGlyph;
-    private Glyph draggingGlyph;
+    private GlyphInstance hoveredGlyph;
+    private GlyphInstance draggingGlyph;
     private Vector3d dragPosition;
 
     // Orbital glyph entities
     private List<OrbitalGlyphEntity> orbitalEntities;
+    private List<OrbitalHexEntity> orbitalSavedHexEntities;
     private OrbitalGlyphEntity hoveredOrbitalEntity;
+    private OrbitalHexEntity hoveredSavedHexEntity;
 
-    public GlyphMode(Ref<EntityStore> player, Loadout loadout) {
+    public GlyphMode(Ref<EntityStore> player) {
+        this(player, null);
+    }
+
+    public GlyphMode(Ref<EntityStore> player, @Nullable HexBookData bookData) {
         this.player = player;
-        this.loadout = loadout;
+        this.bookData = bookData;
         this.composition = new CompositionState();
         this.active = false;
         this.modeEnteredAt = 0;
@@ -68,8 +77,9 @@ public class GlyphMode {
         this.orbitSpeed = 0.3f;
         this.craftingSpaceDistance = 2.0f;
 
-        // Initialize orbital entities list
+        // Initialize orbital entities lists
         this.orbitalEntities = new ArrayList<>();
+        this.orbitalSavedHexEntities = new ArrayList<>();
     }
 
     // ========== STATE ==========
@@ -145,40 +155,67 @@ public class GlyphMode {
     }
 
     /**
-     * Spawn orbital glyph entities for all glyphs in the loadout.
+     * Spawn orbital glyph entities for all glyphs in the loadout or book.
+     * Also spawns saved hexes from the book as orbital entities.
      */
     private void spawnOrbitalGlyphs(CommandBuffer<EntityStore> commandBuffer) {
         // Clear any existing entities
         orbitalEntities.clear();
+        orbitalSavedHexEntities.clear();
 
         // Get player position (read-only operation, safe to use store)
         Vector3d playerPosition = getPlayerPosition(commandBuffer.getStore());
 
-        List<Glyph> glyphs = loadout.getGlyphs();
-        int glyphCount = glyphs.size();
-        float angleStep = (float) (2 * Math.PI / Math.max(1, glyphCount));
+        // Get glyphs from book data if available, otherwise from loadout
+        List<GlyphInstance> glyphs = getAvailableGlyphsFromBook();
 
-        for (int i = 0; i < glyphCount; i++) {
-            Glyph glyph = glyphs.get(i);
-            float initialAngle = angleStep * i;
+        // Get saved hexes from book
+        List<Hex> savedHexes = getSavedHexes();
 
+        // Calculate total entities for angle distribution
+        int totalEntities = glyphs.size() + savedHexes.size();
+        float angleStep = (float) (2 * Math.PI / Math.max(1, totalEntities));
+
+        int index = 0;
+
+        // Spawn glyph orbitals
+        for (GlyphInstance glyph : glyphs) {
+            float initialAngle = angleStep * index;
             OrbitalGlyphEntity orbitalEntity = new OrbitalGlyphEntity(glyph, player, initialAngle);
             orbitalEntity.spawn(commandBuffer, playerPosition);
             orbitalEntities.add(orbitalEntity);
+            index++;
         }
 
-        LOGGER.atInfo().log("Spawned %d orbital glyph entities", orbitalEntities.size());
+        // Spawn saved hex orbitals
+        for (Hex savedHex : savedHexes) {
+            float initialAngle = angleStep * index;
+            OrbitalHexEntity orbitalEntity = new OrbitalHexEntity(savedHex, player, initialAngle);
+            orbitalEntity.spawn(commandBuffer, playerPosition, null);
+            orbitalSavedHexEntities.add(orbitalEntity);
+            index++;
+        }
+
+        LOGGER.atInfo().log("Spawned %d orbital entities (%d glyphs, %d saved hexes)",
+                orbitalEntities.size() + orbitalSavedHexEntities.size(),
+                orbitalEntities.size(), orbitalSavedHexEntities.size());
     }
 
     /**
-     * Despawn all orbital glyph entities.
+     * Despawn all orbital glyph entities and saved hex entities.
      */
     private void despawnOrbitalGlyphs(CommandBuffer<EntityStore> commandBuffer) {
         for (OrbitalGlyphEntity entity : orbitalEntities) {
             entity.despawn(commandBuffer);
         }
         orbitalEntities.clear();
-        LOGGER.atInfo().log("Despawned all orbital glyph entities");
+
+        for (OrbitalHexEntity entity : orbitalSavedHexEntities) {
+            entity.despawn(commandBuffer);
+        }
+        orbitalSavedHexEntities.clear();
+
+        LOGGER.atInfo().log("Despawned all orbital entities");
     }
 
     /**
@@ -193,23 +230,27 @@ public class GlyphMode {
     }
 
     /**
-     * Update all orbital glyphs (called each tick).
+     * Update all orbital glyphs and saved hexes (called each tick).
      *
      * @param store The entity store
      * @param dt    Delta time in seconds
      */
     public void updateOrbitalGlyphs(Store<EntityStore> store, float dt) {
-        if (!active || orbitalEntities.isEmpty()) {
+        if (!active) {
             return;
         }
 
         Vector3d playerPosition = getPlayerPosition(store);
 
+        // Update glyph orbitals
         for (OrbitalGlyphEntity entity : orbitalEntities) {
-            // Update orbital angle
             entity.update(dt);
+            entity.updateWorldPosition(store, playerPosition);
+        }
 
-            // Update world position
+        // Update saved hex orbitals
+        for (OrbitalHexEntity entity : orbitalSavedHexEntities) {
+            entity.update(dt);
             entity.updateWorldPosition(store, playerPosition);
         }
     }
@@ -266,20 +307,73 @@ public class GlyphMode {
         return getTimeInMode() / 1000.0f;
     }
 
-    // ========== LOADOUT ==========
-
     /**
-     * @return The player's loadout
+     * Get glyphs available for casting from the book's data.
+     * This provides glyphs stored in the Hex Book.
+     *
+     * @return List of glyphs from book, or empty list if no book data
      */
-    public Loadout getLoadout() {
-        return loadout;
+    public List<GlyphInstance> getAvailableGlyphsFromBook() {
+        if (bookData == null) {
+            return Collections.emptyList();
+        }
+
+        List<GlyphInstance> glyphs = new ArrayList<>();
+
+        for (GlyphInstance glyph : bookData.getAllGlyphData()) {
+            if (glyph != null) {
+                glyphs.add(glyph);
+            }
+        }
+
+        return glyphs;
     }
 
     /**
-     * @return Glyphs available in the loadout
+     * Get accuracy for a glyph from book data.
+     *
+     * @param glyphId The glyph ID
+     * @return Accuracy from book data, or 0.75 default
      */
-    public List<Glyph> getAvailableGlyphs() {
-        return loadout.getGlyphs();
+    public float getGlyphAccuracy(String glyphId) {
+        if (bookData == null) {
+            return 0.75f;  // Default
+        }
+        return bookData.getAccuracy(glyphId);
+    }
+
+    /**
+     * Get saved hexes that can be cast like glyphs.
+     *
+     * @return List of saved hexes from book, or empty list if no book data
+     */
+    public List<Hex> getSavedHexes() {
+        if (bookData == null) {
+            return Collections.emptyList();
+        }
+        return bookData.getSavedHexes();
+    }
+
+    /**
+     * Get the orbital saved hex entities.
+     */
+    public List<OrbitalHexEntity> getOrbitalSavedHexEntities() {
+        return orbitalSavedHexEntities;
+    }
+
+    /**
+     * Set the book data.
+     */
+    public void setBookData(HexBookData bookData) {
+        this.bookData = bookData;
+    }
+
+    /**
+     * Get the book data.
+     */
+    @Nullable
+    public HexBookData getBookData() {
+        return bookData;
     }
 
     // ========== COMPOSITION ==========
@@ -303,21 +397,21 @@ public class GlyphMode {
     /**
      * @return The glyph currently being hovered
      */
-    public Glyph getHoveredGlyph() {
+    public GlyphInstance getHoveredGlyph() {
         return hoveredGlyph;
     }
 
     /**
      * Set the hovered glyph.
      */
-    public void setHoveredGlyph(Glyph glyph) {
+    public void setHoveredGlyph(GlyphInstance glyph) {
         this.hoveredGlyph = glyph;
     }
 
     /**
      * @return The glyph currently being dragged
      */
-    public Glyph getDraggingGlyph() {
+    public GlyphInstance getDraggingGlyph() {
         return draggingGlyph;
     }
 
@@ -331,7 +425,7 @@ public class GlyphMode {
     /**
      * Start dragging a glyph.
      */
-    public void startDrag(Glyph glyph, Vector3d startPosition) {
+    public void startDrag(GlyphInstance glyph, Vector3d startPosition) {
         this.draggingGlyph = glyph;
         this.dragPosition = startPosition;
     }
@@ -415,10 +509,6 @@ public class GlyphMode {
         }
 
         Hex hex = composition.getHex();
-        if (!hex.isValid()) {
-            LOGGER.atWarning().log("Cannot force cast - hex is not valid");
-            return;
-        }
 
         TransformComponent transform = store.getComponent(casterRef, TransformComponent.getComponentType());
         if (transform == null) {
@@ -433,27 +523,5 @@ public class GlyphMode {
 
         // Clear composition after cast
         clearComposition();
-    }
-
-    /**
-     * Update the loadout (replaces current loadout).
-     *
-     * @param newLoadout The new loadout to use
-     * @param commandBuffer The command buffer for deferred entity operations
-     */
-    public void updateLoadout(Loadout newLoadout, CommandBuffer<EntityStore> commandBuffer) {
-        // Despawn current orbital glyphs
-        despawnOrbitalGlyphs(commandBuffer);
-
-        // Update loadout reference (need to copy glyphs since loadout field is final)
-        this.loadout.clear();
-        for (Glyph glyph : newLoadout.getGlyphs()) {
-            this.loadout.addGlyph(glyph.getId());
-        }
-
-        // Respawn with new loadout
-        if (active) {
-            spawnOrbitalGlyphs(commandBuffer);
-        }
     }
 }
