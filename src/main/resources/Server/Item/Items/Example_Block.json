@@ -22,7 +22,7 @@
     "BlockParticleSetId": "Sand",
     "Textures": [
       {
-        "All": "BlockTextures/Example_Block.png",
+        "All": "VFX/Glyphs/Example_Block.png",
         "Weight": 1
       }
     ],

@@ -22,7 +22,7 @@ public class SpeedGlyph extends ModifierGlyph {
      * @param assetDefinition The asset definition containing glyph properties
      */
     public SpeedGlyph(GlyphAssetDefinition assetDefinition) {
-        super(assetDefinition, GlyphVisual.modifier("speed"));
+        super(assetDefinition, GlyphVisual.modifier("Speed"));
     }
 
     @Override

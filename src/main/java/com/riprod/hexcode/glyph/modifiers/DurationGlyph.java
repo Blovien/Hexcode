@@ -22,7 +22,7 @@ public class DurationGlyph extends ModifierGlyph {
      * @param assetDefinition The asset definition containing glyph properties
      */
     public DurationGlyph(GlyphAssetDefinition assetDefinition) {
-        super(assetDefinition, GlyphVisual.modifier("duration"));
+        super(assetDefinition, GlyphVisual.modifier("Duration"));
     }
 
     @Override

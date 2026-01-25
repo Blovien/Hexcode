@@ -2,10 +2,6 @@ package com.riprod.hexcode.asset;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.riprod.hexcode.glyph.Glyph;
-import com.riprod.hexcode.glyph.GlyphRegistry;
-import com.riprod.hexcode.glyph.GlyphRole;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -31,7 +27,7 @@ import java.util.Objects;
  *   "id": "hexcode:fire",
  *   "displayName": "Fire",
  *   "role": "EFFECT",
- *   "modelPath": "Hexcode/Models/Glyphs/fire.blockymodel",
+ *   "modelPath": "VFX/Glyphs/fire.blockymodel",
  *   "drawingTemplatePath": "Hexcode/Drawings/fire.png",
  *   "basePower": 0.25,
  *   "baseManaCost": 15,
@@ -54,12 +50,10 @@ public class GlyphAssetDefinition {
     private final float baseManaCost;
     private final float baseVariability;
     private final Map<String, Object> properties;
-    private final String glyphId;
 
     private GlyphAssetDefinition(Builder builder) {
         this.id = Objects.requireNonNull(builder.id, "id is required");
         this.displayName = Objects.requireNonNull(builder.displayName, "displayName is required");
-        this.glyphId = Objects.requireNonNull(builder.glyphId, "glyphId is required");
         this.modelPath = builder.modelPath;
         this.drawingTemplatePath = builder.drawingTemplatePath;
         this.basePower = builder.basePower;
@@ -80,13 +74,6 @@ public class GlyphAssetDefinition {
      */
     public String getDisplayName() {
         return displayName;
-    }
-
-    /**
-     * @return The role of this glyph: EFFECT, MODIFIER, or SELECT
-     */
-    public String getGlyphId() {
-        return glyphId;
     }
 
     /**
@@ -227,13 +214,6 @@ public class GlyphAssetDefinition {
         }
         builder.displayName(json.get("displayName").getAsString());
 
-        if (!json.has("glyphId")) {
-            throw new IllegalArgumentException("Missing required field: glyphId");
-        }
-
-        String glyphId = json.get("glyphId").getAsString().toUpperCase();
-        builder.glyphId(glyphId);
-
         // Optional fields with defaults
         if (json.has("modelPath")) {
             builder.modelPath(json.get("modelPath").getAsString());
@@ -286,7 +266,6 @@ public class GlyphAssetDefinition {
         // Required fields
         json.addProperty("id", id);
         json.addProperty("displayName", displayName);
-        json.addProperty("glyphId", glyphId); // or however you get the glyph's string ID
 
         // Optional fields (only include if non-default/non-null)
         if (modelPath != null) {
@@ -343,7 +322,6 @@ public class GlyphAssetDefinition {
     public static class Builder {
         private String id;
         private String displayName;
-        private String glyphId;
         private String modelPath;
         private String drawingTemplatePath;
         private float basePower = 1.0f;
@@ -361,11 +339,6 @@ public class GlyphAssetDefinition {
 
         public Builder displayName(String displayName) {
             this.displayName = displayName;
-            return this;
-        }
-
-        public Builder glyphId(String glyphId) {
-            this.glyphId = glyphId;
             return this;
         }
 
@@ -414,7 +387,6 @@ public class GlyphAssetDefinition {
         return "GlyphAssetDefinition{" +
                 "id='" + id + '\'' +
                 ", displayName='" + displayName + '\'' +
-                ", glyphId='" + glyphId + '\'' +
                 ", basePower=" + basePower +
                 ", baseManaCost=" + baseManaCost +
                 '}';

@@ -1,53 +1,68 @@
 package com.riprod.hexcode.glyph;
 
 /**
- * Visual properties for a glyph including color, shape, and particle effects.
+ * Visual properties for a glyph including color, model, and lighting.
  *
- * Supports two rendering modes:
- * 1. Model-based: Uses modelId to load a 3D blockymodel (deprecated)
- * 2. Particle-based: Uses textureId to display a 2D sprite particle (preferred)
- *
- * When textureId is set, particle-based rendering takes precedence over model rendering.
+ * All glyphs use blockymodel-based rendering. Each glyph specifies:
+ * - A blockymodel path for the 3D representation
+ * - A color for tinting and dynamic lighting
+ * - A glow intensity for the dynamic light radius
+ * - An optional rotation speed for spinning effects
  */
 public class GlyphVisual {
     private final int color;
     private final String modelId;
-    private final String particleId;
     private final float glowIntensity;
-
-    // Particle-based rendering fields
-    private final String textureId;
-    private final float particleScale;
     private final float rotationSpeed;
 
+    // Default model paths
+    private static final String DEFAULT_EFFECT_MODEL = "Effect_default";
+    private static final String DEFAULT_MODIFIER_MODEL = "Modifier_default";
+    private static final String DEFAULT_SELECT_MODEL = "Select_default";
+
     /**
-     * Legacy constructor for model-based rendering.
-     * @deprecated Use the full constructor with texture fields instead.
+     * Create a GlyphVisual with all properties.
+     *
+     * @param color RGB color as hex int (e.g., 0xFF6600 for orange)
+     * @param modelId Path to the blockymodel asset
+     * @param glowIntensity Light intensity/radius for dynamic lighting
+     * @param rotationSpeed Rotation speed in radians/sec (0 = static)
      */
-    public GlyphVisual(int color, String modelId, String particleId, float glowIntensity) {
-        this(color, modelId, particleId, glowIntensity, null, 1.0f, 0.0f);
+    public GlyphVisual(int color, String modelId, float glowIntensity, float rotationSpeed) {
+        this.color = color;
+        this.modelId = modelId;
+        this.glowIntensity = glowIntensity;
+        this.rotationSpeed = rotationSpeed;
     }
 
     /**
-     * Full constructor with particle-based rendering support.
+     * Create a GlyphVisual with default rotation (static).
      *
      * @param color RGB color as hex int
-     * @param modelId Model asset ID (null when using particle rendering)
-     * @param particleId Particle system ID for ambient effects
+     * @param modelId Path to the blockymodel asset
      * @param glowIntensity Light intensity for dynamic lighting
-     * @param textureId Path to glyph PNG texture (e.g., "hexcode:glyphs/fire")
-     * @param particleScale Size multiplier for the particle sprite
-     * @param rotationSpeed Rotation speed in radians/sec (0 = static)
      */
+    public GlyphVisual(int color, String modelId, float glowIntensity) {
+        this(color, modelId, glowIntensity, 0.0f);
+    }
+
+    /**
+     * Legacy constructor for backward compatibility.
+     * @deprecated Use the new constructors instead.
+     */
+    @Deprecated
+    public GlyphVisual(int color, String modelId, String particleId, float glowIntensity) {
+        this(color, modelId, glowIntensity, 0.0f);
+    }
+
+    /**
+     * Legacy constructor for backward compatibility.
+     * @deprecated Use the new constructors instead.
+     */
+    @Deprecated
     public GlyphVisual(int color, String modelId, String particleId, float glowIntensity,
                        String textureId, float particleScale, float rotationSpeed) {
-        this.color = color;
-        this.modelId = modelId;
-        this.particleId = particleId;
-        this.glowIntensity = glowIntensity;
-        this.textureId = textureId;
-        this.particleScale = particleScale;
-        this.rotationSpeed = rotationSpeed;
+        this(color, modelId, glowIntensity, rotationSpeed);
     }
 
     public int getColor() {
@@ -55,32 +70,14 @@ public class GlyphVisual {
     }
 
     /**
-     * @return Model asset ID, or null if using particle-based rendering
+     * @return The blockymodel asset path
      */
     public String getModelId() {
         return modelId;
     }
 
-    public String getParticleId() {
-        return particleId;
-    }
-
     public float getGlowIntensity() {
         return glowIntensity;
-    }
-
-    /**
-     * @return Path to the glyph texture for particle-based rendering, or null if using model
-     */
-    public String getTextureId() {
-        return textureId;
-    }
-
-    /**
-     * @return Size multiplier for particle sprite (default 1.0)
-     */
-    public float getParticleScale() {
-        return particleScale;
     }
 
     /**
@@ -91,10 +88,59 @@ public class GlyphVisual {
     }
 
     /**
-     * @return true if this visual uses particle-based rendering (has texture)
+     * Get the red component of the color.
+     * @return Red value (0-255)
      */
+    public int getRed() {
+        return (color >> 16) & 0xFF;
+    }
+
+    /**
+     * Get the green component of the color.
+     * @return Green value (0-255)
+     */
+    public int getGreen() {
+        return (color >> 8) & 0xFF;
+    }
+
+    /**
+     * Get the blue component of the color.
+     * @return Blue value (0-255)
+     */
+    public int getBlue() {
+        return color & 0xFF;
+    }
+
+    /**
+     * @deprecated Particle rendering is no longer used. Always returns false.
+     */
+    @Deprecated
     public boolean usesParticleRendering() {
-        return textureId != null && !textureId.isEmpty();
+        return false;
+    }
+
+    /**
+     * @deprecated Use getModelId() instead.
+     */
+    @Deprecated
+    public String getParticleId() {
+        return null;
+    }
+
+    /**
+     * @deprecated Particle rendering is no longer used. Returns 1.0.
+     */
+    @Deprecated
+    public float getParticleScale() {
+        return 1.0f;
+    }
+
+    /**
+     * @deprecated Use getModelId() instead.
+     */
+    @Deprecated
+    public String getTextureId() {
+        return null;
     }
 
     // Common color constants
@@ -112,105 +158,88 @@ public class GlyphVisual {
     public static final int COLOR_MODIFIER = 0xFFD700;  // Gold
     public static final int COLOR_SELECT = 0xC0C0C0;    // Silver
 
-    // Texture path constants
-    public static final String TEXTURE_BASE = "hexcode:glyphs/";
+    // Model ID prefix (empty since we use asset IDs directly)
+    public static final String MODEL_BASE = "";
 
     /**
-     * Create an effect glyph visual with particle-based rendering.
+     * Create an effect glyph visual with a blockymodel.
      *
-     * @param color The effect color
-     * @param textureName Texture name (without prefix, e.g., "fire")
-     * @return New GlyphVisual configured for particle rendering
+     * @param color The effect color for tinting and glow
+     * @param modelName Model name (without prefix, e.g., "fire")
+     * @return New GlyphVisual configured for blockymodel rendering
      */
-    public static GlyphVisual effect(int color, String textureName) {
+    public static GlyphVisual effect(int color, String modelName) {
         return new GlyphVisual(
                 color,
-                null, // No model - using particle rendering
-                "hexcode:glyph_idle",
-                10.0f,
-                TEXTURE_BASE + textureName,
-                1.0f,
-                0.0f
+                MODEL_BASE + modelName,
+                0.5f,
+                0.0f  // Effects don't rotate by default
         );
     }
 
     /**
-     * Legacy effect factory - uses default texture based on color.
-     * @deprecated Use effect(int color, String textureName) instead.
-     */
-    public static GlyphVisual effect(int color) {
-        // Map color to texture name for backward compatibility
-        String textureName = getDefaultTextureForColor(color);
-        return effect(color, textureName);
-    }
-
-    /**
-     * Create a modifier glyph visual with particle-based rendering.
+     * Create a modifier glyph visual with a blockymodel.
      *
-     * @param textureName Texture name (without prefix, e.g., "power")
-     * @return New GlyphVisual configured for particle rendering
+     * @param modelName Model name (without prefix, e.g., "power")
+     * @return New GlyphVisual configured for blockymodel rendering
      */
-    public static GlyphVisual modifier(String textureName) {
+    public static GlyphVisual modifier(String modelName) {
         return new GlyphVisual(
                 COLOR_MODIFIER,
-                null, // No model - using particle rendering
-                "hexcode:glyph_modifier",
-                8.0f,
-                TEXTURE_BASE + textureName,
-                1.0f,
-                0.5f // Modifiers rotate slowly
+                MODEL_BASE + modelName,
+                0.5f,
+                0.5f  // Modifiers rotate slowly
         );
     }
 
     /**
-     * Legacy modifier factory - uses default texture.
-     * @deprecated Use modifier(String textureName) instead.
-     */
-    public static GlyphVisual modifier() {
-        return modifier("modifier_default");
-    }
-
-    /**
-     * Create a select glyph visual with particle-based rendering.
+     * Create a select glyph visual with a blockymodel.
      *
-     * @param textureName Texture name (without prefix, e.g., "beam")
-     * @return New GlyphVisual configured for particle rendering
+     * @param modelName Model name (without prefix, e.g., "beam")
+     * @return New GlyphVisual configured for blockymodel rendering
      */
-    public static GlyphVisual select(String textureName) {
+    public static GlyphVisual select(String modelName) {
         return new GlyphVisual(
                 COLOR_SELECT,
-                null, // No model - using particle rendering
-                "hexcode:glyph_select",
+                MODEL_BASE + modelName,
                 12.0f,
-                TEXTURE_BASE + textureName,
-                1.2f, // Selects are slightly larger
-                0.3f  // Slow rotation
+                0.3f  // Selects rotate slowly
         );
     }
 
     /**
-     * Legacy select factory - uses default texture.
-     * @deprecated Use select(String textureName) instead.
+     * Create a select glyph visual with default model.
+     *
+     * @return New GlyphVisual with default select model
      */
     public static GlyphVisual select() {
-        return select("select_default");
+        return new GlyphVisual(
+                COLOR_SELECT,
+                DEFAULT_SELECT_MODEL,
+                12.0f,
+                0.3f
+        );
     }
 
     /**
-     * Map legacy color constants to default texture names.
+     * Get the default model path for a glyph role.
+     *
+     * @param role The glyph role
+     * @return The default model path
      */
-    private static String getDefaultTextureForColor(int color) {
-        if (color == COLOR_FIRE) return "fire";
-        if (color == COLOR_ICE) return "ice";
-        if (color == COLOR_LIGHTNING) return "lightning";
-        if (color == COLOR_EARTH) return "earth";
-        if (color == COLOR_VOID) return "void";
-        if (color == COLOR_LIGHT) return "light";
-        if (color == COLOR_HEAL) return "heal";
-        if (color == COLOR_SHIELD) return "shield";
-        if (color == COLOR_BLINK) return "blink";
-        if (color == COLOR_PUSH) return "push";
-        if (color == COLOR_UTILITY) return "utility";
-        return "effect_default";
+    public static String getDefaultModelForRole(GlyphRole role) {
+        if (role == null) {
+            return DEFAULT_EFFECT_MODEL;
+        }
+        switch (role) {
+            case EFFECT:
+                return DEFAULT_EFFECT_MODEL;
+            case MODIFIER:
+                return DEFAULT_MODIFIER_MODEL;
+            case SELECT:
+                return DEFAULT_SELECT_MODEL;
+            default:
+                return DEFAULT_EFFECT_MODEL;
+        }
     }
 }

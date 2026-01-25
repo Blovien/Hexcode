@@ -23,7 +23,7 @@ import com.riprod.hexcode.glyph.GlyphVisual;
  *   <li>baseDamage - base void damage amount (default: 11.0)</li>
  *   <li>blindDuration - duration of blindness effect in seconds (default: 2.0)</li>
  *   <li>blindEffectId - ID of the blindness effect to apply (default: "hexcode:blindness")</li>
- *   <li>damageType - damage type ID (default: "void")</li>
+ *   <li>damageType - damage type ID (default: "Void")</li>
  * </ul>
  */
 public class VoidGlyph extends EffectGlyph {
@@ -35,7 +35,7 @@ public class VoidGlyph extends EffectGlyph {
      * @param assetDefinition The asset definition containing glyph properties
      */
     public VoidGlyph(GlyphAssetDefinition assetDefinition) {
-        super(assetDefinition, GlyphVisual.effect(GlyphVisual.COLOR_VOID, "void"));
+        super(assetDefinition, GlyphVisual.effect(GlyphVisual.COLOR_VOID, "Void"));
     }
 
     @Override
@@ -51,7 +51,7 @@ public class VoidGlyph extends EffectGlyph {
         // Get asset-driven properties
         float baseDamage = getProperty("baseDamage", 11.0f);
         float blindDuration = getProperty("blindDuration", 2.0f);
-        String damageType = getProperty("damageType", "void");
+        String damageType = getProperty("damageType", "Void");
         String blindEffectId = getProperty("blindEffectId", "hexcode:blindness");
 
         // Calculate final values with power and context multipliers

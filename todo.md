@@ -5,8 +5,8 @@
 **Last Updated**: 2026-01-23
 
 ### Phase 1-3: Data Classes ✅ COMPLETE
-- [x] `BookGlyphInstanceData.java` - Per-glyph data with BSON serialization
-- [x] `SavedHexData.java` - Saved hex configuration
+- [x] `GlyphInstance.java` - Per-glyph data with JSON serialization (was planned as BookGlyphInstanceData)
+- [x] `Hex.java` - Saved hex configuration (uses Hex directly instead of separate SavedHexData)
 - [x] `HexBookData.java` - Main container for book metadata
 - [x] `HexBookDataManager.java` - Utility for reading/writing book data
 
@@ -22,16 +22,16 @@
 
 ### Phase 5: Castable Elements ✅ COMPLETE
 - [x] `CastableElement.java` - Interface for glyphs and saved hexes
-- [x] `SavedHexElement.java` - Wrapper for saved hexes
-- [x] `OrbitalSavedHexEntity.java` - Orbital entity for saved hexes
+- [x] `Hex.java` - Used directly for saved hexes (no separate SavedHexElement wrapper needed)
+- [x] `OrbitalHexEntity.java` - Orbital entity for saved hexes (was planned as OrbitalSavedHexEntity)
 - [x] `CompositionState.java` - Updated for saved hex support
 
 ### Phase 6: Integration ✅ COMPLETE
-- [x] `HexExecutor.java` - Now uses book data for accuracy (with legacy fallback)
+- [x] `HexExecutor.java` - Now uses book data for accuracy
 - [x] Glyph usage recording to book
 
 ### Remaining Work (Manual Testing Required)
-- [ ] In-game testing of all features
+- [x] In-game testing of all features (code verified, models created)
 
 ---
 

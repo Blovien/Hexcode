@@ -3,48 +3,48 @@ package com.riprod.hexcode.data;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.entity.entities.Player;
+import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.inventory.Inventory;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
+import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.hex.Hex;
 import com.riprod.hexcode.util.HexStaffUtil;
-import org.bson.BsonDocument;
-import org.bson.BsonString;
-import org.bson.BsonValue;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.UUID;
 
 /**
  * Utility class for managing HexBookData on Hex Book items.
  *
- * <p>This manager uses a UUID-based reference system where:
+ * <p>This manager uses a per-world, per-player storage system where:
  * <ul>
- *   <li>Each Hex Book stores only a UUID in its item metadata</li>
- *   <li>The actual glyph/hex data is stored in {@link HexBookDataStore}</li>
- *   <li>Data is persisted to a JSON file via HexBookDataStore</li>
+ *   <li>Data is stored per-world in the world's save directory</li>
+ *   <li>Each player has their own data directory</li>
+ *   <li>Different book types have separate data files</li>
+ *   <li>Data is persisted via {@link WorldBookDataStore}</li>
  * </ul>
  *
  * <p>Usage:
  * <pre>
- * // Read from player's held book
- * HexBookData data = HexBookDataManager.getHeldBookData(store, playerRef);
+ * // Read from player's held book with world context
+ * World world = store.getExternalData().getWorld();
+ * HexBookData data = HexBookDataManager.getHeldBookData(store, playerRef, world);
  *
  * // Modify
  * data.recordGlyphDrawing("hexcode:fire", 0.95f, 2.3f);
  *
- * // Write back (auto-saves to JSON file)
- * HexBookDataManager.updateHeldBookData(store, playerRef, data);
+ * // Write back (auto-saves to world-specific file)
+ * HexBookDataManager.updateHeldBookData(store, playerRef, world, data);
  * </pre>
  *
  * @see HexBookData
- * @see HexBookDataStore
+ * @see WorldBookDataStore
+ * @see BookType
  * @see HexStaffUtil
  */
 public class HexBookDataManager {
-
-    /** Metadata key for storing the book's UUID on the ItemStack */
-    public static final String UUID_KEY = "HexBookUUID";
 
     private HexBookDataManager() {} // Utility class
 
@@ -58,7 +58,7 @@ public class HexBookDataManager {
     }
 
     /**
-     * Find the Hex Book in player's offhand.
+     * Find the Hex Book in player's offhand or main hand.
      *
      * @param store Entity store
      * @param playerRef Player entity reference
@@ -88,214 +88,155 @@ public class HexBookDataManager {
         }
     }
 
+    // ==================== PRIVATE HELPERS ====================
+
     /**
-     * Get the player's inventory.
+     * Get the player's UUID from the entity store.
      */
     @Nullable
-    private static Inventory getInventory(Store<EntityStore> store, Ref<EntityStore> playerRef) {
+    private static UUID getPlayerUUID(Store<EntityStore> store, Ref<EntityStore> playerRef) {
         if (store == null || playerRef == null) {
             return null;
         }
 
-        Player player = store.getComponent(playerRef, Player.getComponentType());
-        if (player == null) {
+        UUIDComponent uuidComponent = store.getComponent(playerRef, UUIDComponent.getComponentType());
+        if (uuidComponent == null) {
             return null;
         }
 
-        return player.getInventory();
-    }
-
-    // ==================== UUID MANAGEMENT ====================
-
-    /**
-     * Get the UUID stored on a Hex Book.
-     *
-     * @param hexBook The Hex Book ItemStack
-     * @return The book's UUID, or null if none is stored
-     */
-    @Nullable
-    public static String getBookUUID(@Nonnull ItemStack hexBook) {
-        BsonDocument metadata = hexBook.getMetadata();
-        if (metadata == null) {
-            return null;
-        }
-
-        BsonValue uuidValue = metadata.get(UUID_KEY);
-        if (uuidValue == null || !uuidValue.isString()) {
-            return null;
-        }
-
-        return uuidValue.asString().getValue();
+        return uuidComponent.getUuid();
     }
 
     /**
-     * Create a new ItemStack with a UUID set.
-     *
-     * @param hexBook The original Hex Book
-     * @param uuid The UUID to set
-     * @return New ItemStack with UUID metadata
+     * Determine the BookType from an ItemStack.
+     * Currently defaults to HEX_BOOK but will support different book types in the future.
      */
     @Nonnull
-    public static ItemStack withUUID(@Nonnull ItemStack hexBook, @Nonnull String uuid) {
-        return hexBook.withMetadata(UUID_KEY, new BsonString(uuid));
-    }
-
-    /**
-     * Get or create a UUID for a Hex Book.
-     * If the book doesn't have a UUID, one will be generated.
-     *
-     * @param hexBook The Hex Book ItemStack
-     * @return The existing or new UUID
-     */
-    @Nonnull
-    public static String getOrCreateUUID(@Nonnull ItemStack hexBook) {
-        String existing = getBookUUID(hexBook);
-        if (existing != null) {
-            return existing;
+    private static BookType getBookType(@Nonnull ItemStack hexBook) {
+        String book_id = hexBook.getItem().getId();
+        if (book_id != null && book_id.toLowerCase().contains("hex") && book_id.toLowerCase().contains("book")) {
+            return BookType.fromFileId(book_id);
         }
-        return HexBookDataStore.generateBookUUID();
+        // Default to standard hex book
+        return BookType.HEX_BOOK;
     }
 
     // ==================== DATA ACCESS ====================
 
     /**
-     * Read HexBookData from an ItemStack via UUID lookup.
-     * Returns new empty HexBookData if the book has no data.
+     * Read HexBookData for a player in a specific world.
      *
-     * @param hexBook The Hex Book ItemStack
+     * @param world The world
+     * @param playerUuid The player's UUID
+     * @param bookType The book type
      * @return The HexBookData (existing or new empty)
      */
     @Nonnull
-    public static HexBookData getData(@Nonnull ItemStack hexBook) {
-        String uuid = getBookUUID(hexBook);
-        if (uuid == null) {
-            return new HexBookData();
-        }
-
-        return HexBookDataStore.get().getOrCreateBookData(uuid);
+    public static HexBookData getData(@Nonnull World world, @Nonnull UUID playerUuid, @Nonnull BookType bookType) {
+        return WorldBookDataStore.get().getBookData(world, playerUuid, bookType);
     }
 
     /**
-     * Read HexBookData from player's held Hex Book.
-     * Returns null if player doesn't have a Hex Book equipped.
+     * Read HexBookData from player's held Hex Book with world context.
      *
      * @param store Entity store
      * @param playerRef Player entity reference
+     * @param world The world context
      * @return The HexBookData, or null if no book equipped
      */
     @Nullable
-    public static HexBookData getHeldBookData(Store<EntityStore> store, Ref<EntityStore> playerRef) {
+    public static HexBookData getHeldBookData(Store<EntityStore> store, Ref<EntityStore> playerRef, @Nonnull World world) {
         ItemStack hexBook = findHeldHexBook(store, playerRef);
         if (hexBook == null) {
             return null;
         }
-        return getData(hexBook);
+
+        UUID playerUuid = getPlayerUUID(store, playerRef);
+        if (playerUuid == null) {
+            return null;
+        }
+
+        BookType bookType = getBookType(hexBook);
+        return WorldBookDataStore.get().getBookData(world, playerUuid, bookType);
     }
 
     /**
-     * Get the UUID of the player's held Hex Book.
+     * Read HexBookData from player's held Hex Book with world context and explicit book type.
      *
      * @param store Entity store
      * @param playerRef Player entity reference
-     * @return The book's UUID, or null if no book equipped
+     * @param world The world context
+     * @param bookType The book type to use
+     * @return The HexBookData, or null if no book equipped
      */
     @Nullable
-    public static String getHeldBookUUID(Store<EntityStore> store, Ref<EntityStore> playerRef) {
+    public static HexBookData getHeldBookData(Store<EntityStore> store, Ref<EntityStore> playerRef,
+                                               @Nonnull World world, @Nonnull BookType bookType) {
         ItemStack hexBook = findHeldHexBook(store, playerRef);
         if (hexBook == null) {
             return null;
         }
-        return getBookUUID(hexBook);
+
+        UUID playerUuid = getPlayerUUID(store, playerRef);
+        if (playerUuid == null) {
+            return null;
+        }
+
+        return WorldBookDataStore.get().getBookData(world, playerUuid, bookType);
     }
 
     // ==================== DATA MODIFICATION ====================
 
     /**
-     * Update the Hex Book in player's inventory with new data.
-     * The data is stored in HexBookDataStore and persisted to JSON.
-     * If the book doesn't have a UUID, one will be assigned.
+     * Update the Hex Book data for a player in a specific world.
      *
      * @param store Entity store
      * @param playerRef Player entity reference
+     * @param world The world context
      * @param data The new HexBookData to save
-     * @return true if updated successfully, false if no Hex Book found
+     * @return true if updated successfully, false if no Hex Book found or player UUID unavailable
      */
     public static boolean updateHeldBookData(Store<EntityStore> store,
                                               Ref<EntityStore> playerRef,
+                                              @Nonnull World world,
                                               @Nonnull HexBookData data) {
-        Inventory inventory = getInventory(store, playerRef);
-        if (inventory == null) {
+        ItemStack hexBook = findHeldHexBook(store, playerRef);
+        if (hexBook == null) {
             return false;
         }
 
-        ItemStack oldStack = inventory.getUtilityItem();
-        if (!isHexBook(oldStack)) {
+        UUID playerUuid = getPlayerUUID(store, playerRef);
+        if (playerUuid == null) {
             return false;
         }
 
-        // Get or create UUID for this book
-        String uuid = getBookUUID(oldStack);
-        boolean needsUUIDUpdate = (uuid == null);
-
-        if (needsUUIDUpdate) {
-            uuid = HexBookDataStore.generateBookUUID();
-        }
-
-        // Store data in the data store
-        HexBookDataStore.get().setBookData(uuid, data);
-
-        // Save to JSON file
-        HexBookDataStore.save();
-
-        // If we created a new UUID, update the item metadata
-        if (needsUUIDUpdate) {
-            ItemStack newStack = withUUID(oldStack, uuid);
-            inventory.getUtility().replaceItemStackInSlot(inventory.getActiveUtilitySlot(), oldStack, newStack);
-        }
-
+        BookType bookType = getBookType(hexBook);
+        WorldBookDataStore.get().saveBookData(world, playerUuid, bookType, data);
         return true;
     }
 
     /**
-     * Assign a UUID to a Hex Book that doesn't have one yet.
-     * This is useful for initializing new books.
+     * Update the Hex Book data for a player in a specific world with explicit book type.
      *
      * @param store Entity store
      * @param playerRef Player entity reference
-     * @return The assigned UUID, or null if no Hex Book found
+     * @param world The world context
+     * @param bookType The book type
+     * @param data The new HexBookData to save
+     * @return true if updated successfully, false if no player UUID available
      */
-    @Nullable
-    public static String initializeHeldBookUUID(Store<EntityStore> store, Ref<EntityStore> playerRef) {
-        Inventory inventory = getInventory(store, playerRef);
-        if (inventory == null) {
-            return null;
+    public static boolean updateHeldBookData(Store<EntityStore> store,
+                                              Ref<EntityStore> playerRef,
+                                              @Nonnull World world,
+                                              @Nonnull BookType bookType,
+                                              @Nonnull HexBookData data) {
+        UUID playerUuid = getPlayerUUID(store, playerRef);
+        if (playerUuid == null) {
+            return false;
         }
 
-        ItemStack oldStack = inventory.getUtilityItem();
-        if (!isHexBook(oldStack)) {
-            return null;
-        }
-
-        // Check if already has UUID
-        String existingUUID = getBookUUID(oldStack);
-        if (existingUUID != null) {
-            return existingUUID;
-        }
-
-        // Generate new UUID
-        String uuid = HexBookDataStore.generateBookUUID();
-
-        // Create empty data entry in store
-        HexBookDataStore.get().getOrCreateBookData(uuid);
-
-        // Update item with UUID
-        ItemStack newStack = withUUID(oldStack, uuid);
-        inventory.getUtility().replaceItemStackInSlot(inventory.getActiveUtilitySlot(), oldStack, newStack);
-
-        // Save to file
-        HexBookDataStore.save();
-
-        return uuid;
+        WorldBookDataStore.get().saveBookData(world, playerUuid, bookType, data);
+        return true;
     }
 
     // ==================== CONVENIENCE METHODS ====================
@@ -305,6 +246,7 @@ public class HexBookDataManager {
      *
      * @param store Entity store
      * @param playerRef Player entity reference
+     * @param world The world context
      * @param glyphId The glyph that was drawn
      * @param accuracy Drawing accuracy 0.0-1.0
      * @param drawSpeed Time in seconds to draw
@@ -312,16 +254,17 @@ public class HexBookDataManager {
      */
     public static boolean recordGlyphDrawing(Store<EntityStore> store,
                                               Ref<EntityStore> playerRef,
+                                              @Nonnull World world,
                                               @Nonnull String glyphId,
                                               float accuracy,
                                               float drawSpeed) {
-        HexBookData data = getHeldBookData(store, playerRef);
+        HexBookData data = getHeldBookData(store, playerRef, world);
         if (data == null) {
             return false;
         }
 
         data.recordGlyphDrawing(glyphId, accuracy, drawSpeed);
-        return updateHeldBookData(store, playerRef, data);
+        return updateHeldBookData(store, playerRef, world, data);
     }
 
     /**
@@ -329,19 +272,21 @@ public class HexBookDataManager {
      *
      * @param store Entity store
      * @param playerRef Player entity reference
+     * @param world The world context
      * @param glyphId The glyph to add
      * @return true if added successfully
      */
     public static boolean addGlyph(Store<EntityStore> store,
                                     Ref<EntityStore> playerRef,
+                                    @Nonnull World world,
                                     @Nonnull String glyphId) {
-        HexBookData data = getHeldBookData(store, playerRef);
+        HexBookData data = getHeldBookData(store, playerRef, world);
         if (data == null) {
             return false;
         }
 
         data.addGlyphWithDefault(glyphId);
-        return updateHeldBookData(store, playerRef, data);
+        return updateHeldBookData(store, playerRef, world, data);
     }
 
     /**
@@ -349,14 +294,15 @@ public class HexBookDataManager {
      *
      * @param store Entity store
      * @param playerRef Player entity reference
-     * @param name Display name for the hex
-     * @param hexString Serialized hex string
+     * @param world The world context
+     * @param hex The hex to save
      * @return true if saved successfully, false if no book or at capacity
      */
     public static boolean saveHex(Store<EntityStore> store,
                                    Ref<EntityStore> playerRef,
+                                   @Nonnull World world,
                                    @Nonnull Hex hex) {
-        HexBookData data = getHeldBookData(store, playerRef);
+        HexBookData data = getHeldBookData(store, playerRef, world);
         if (data == null) {
             return false;
         }
@@ -365,7 +311,7 @@ public class HexBookDataManager {
             return false;  // At max capacity
         }
 
-        return updateHeldBookData(store, playerRef, data);
+        return updateHeldBookData(store, playerRef, world, data);
     }
 
     /**
@@ -373,13 +319,15 @@ public class HexBookDataManager {
      *
      * @param store Entity store
      * @param playerRef Player entity reference
+     * @param world The world context
      * @param name Name of the hex to delete
      * @return true if deleted successfully
      */
     public static boolean deleteSavedHex(Store<EntityStore> store,
                                           Ref<EntityStore> playerRef,
+                                          @Nonnull World world,
                                           @Nonnull String name) {
-        HexBookData data = getHeldBookData(store, playerRef);
+        HexBookData data = getHeldBookData(store, playerRef, world);
         if (data == null) {
             return false;
         }
@@ -388,7 +336,7 @@ public class HexBookDataManager {
             return false;  // Not found
         }
 
-        return updateHeldBookData(store, playerRef, data);
+        return updateHeldBookData(store, playerRef, world, data);
     }
 
     /**
@@ -396,19 +344,21 @@ public class HexBookDataManager {
      *
      * @param store Entity store
      * @param playerRef Player entity reference
+     * @param world The world context
      * @param glyphId The glyph that was used
      * @return true if recorded successfully
      */
     public static boolean recordGlyphUsage(Store<EntityStore> store,
                                             Ref<EntityStore> playerRef,
+                                            @Nonnull World world,
                                             @Nonnull String glyphId) {
-        HexBookData data = getHeldBookData(store, playerRef);
+        HexBookData data = getHeldBookData(store, playerRef, world);
         if (data == null) {
             return false;
         }
 
         data.recordGlyphUsage(glyphId);
-        return updateHeldBookData(store, playerRef, data);
+        return updateHeldBookData(store, playerRef, world, data);
     }
 
     /**
@@ -416,18 +366,20 @@ public class HexBookDataManager {
      *
      * @param store Entity store
      * @param playerRef Player entity reference
+     * @param world The world context
      * @param hexName Name of the hex that was used
      * @return true if recorded successfully
      */
     public static boolean recordSavedHexUsage(Store<EntityStore> store,
                                                Ref<EntityStore> playerRef,
+                                               @Nonnull World world,
                                                @Nonnull String hexName) {
-        HexBookData data = getHeldBookData(store, playerRef);
+        HexBookData data = getHeldBookData(store, playerRef, world);
         if (data == null) {
             return false;
         }
 
         data.recordSavedHexUsage(hexName);
-        return updateHeldBookData(store, playerRef, data);
+        return updateHeldBookData(store, playerRef, world, data);
     }
 }

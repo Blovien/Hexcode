@@ -31,7 +31,7 @@ public class TouchGlyph extends SelectGlyph {
      * @param assetDefinition The asset definition containing glyph properties
      */
     public TouchGlyph(GlyphAssetDefinition assetDefinition) {
-        super(assetDefinition, GlyphVisual.select("touch"), false);
+        super(assetDefinition, GlyphVisual.select("Touch"), false);
     }
 
     @Override

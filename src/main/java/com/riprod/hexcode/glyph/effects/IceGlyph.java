@@ -36,7 +36,7 @@ public class IceGlyph extends EffectGlyph {
      * @param assetDefinition The asset definition containing glyph properties
      */
     public IceGlyph(GlyphAssetDefinition assetDefinition) {
-        super(assetDefinition, GlyphVisual.effect(GlyphVisual.COLOR_ICE, "ice"));
+        super(assetDefinition, GlyphVisual.effect(GlyphVisual.COLOR_ICE, "Ice"));
     }
 
     @Override

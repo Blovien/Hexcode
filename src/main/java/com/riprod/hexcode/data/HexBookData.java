@@ -4,50 +4,90 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.riprod.hexcode.hex.Hex;
-import com.riprod.hexcode.hex.Hex;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
 /**
- * Per-book data stored in Hex Book item metadata.
+ * Per-book data stored in world-scoped storage.
  *
- * Contains:
- * - Glyphs: Map of glyph ID to BookGlyphInstanceData (accuracy, speed, usage)
- * - SavedHexes: List of saved Hex configurations
+ * <p>Each HexBook has a unique UUID that serves as the storage key.
+ * Data is persisted in the world folder at:
+ * {@code <world>/hexcode/books/<book-uuid>.json}
  *
- * Usage:
+ * <p>Contains:
+ * <ul>
+ *   <li><b>bookId</b>: Unique identifier for this physical book</li>
+ *   <li><b>ownerId</b>: UUID of the player who created the book</li>
+ *   <li><b>Glyphs</b>: Map of glyph ID to GlyphInstance (accuracy, speed, usage)</li>
+ *   <li><b>SavedHexes</b>: List of saved Hex configurations</li>
+ * </ul>
+ *
+ * <p>Usage:
  * <pre>
- * // Read from ItemStack
- * HexBookData data = HexBookDataManager.getData(hexBookStack);
+ * // Read from world storage
+ * HexBookData data = WorldHexDataStore.get().loadBook(world, bookUuid);
  *
  * // Modify
  * data.recordGlyphDrawing("hexcode:fire", 0.95f, 2.3f);
  *
- * // Write back (creates new ItemStack)
- * ItemStack newStack = HexBookDataManager.withData(hexBookStack, data);
+ * // Save back
+ * WorldHexDataStore.get().saveBook(world, data);
  * </pre>
  *
- * @see HexBookDataManager
+ * @see WorldHexDataStore
  * @see GlyphInstance
  * @see Hex
  */
 public class HexBookData {
 
-    /** Metadata key for storing HexBookData in ItemStack */
+    /** Metadata key for storing book UUID in ItemStack */
     public static final String METADATA_KEY = "HexBookData";
+
+    /** Item metadata key for the book's UUID */
+    public static final String BOOK_UUID_KEY = "hexbook_uuid";
 
     /** Maximum number of saved hexes per book */
     public static final int MAX_SAVED_HEXES = 20;
+
+    /** Unique identifier for this book instance */
+    private UUID bookId;
+
+    /** UUID of the player who created/owns this book */
+    private UUID ownerId;
+
+    /** When this book was created */
+    private long createdAt;
+
+    /** When this book was last modified */
+    private long lastModifiedAt;
 
     private final Map<String, GlyphInstance> glyphs;
     private final List<Hex> savedHexes;
 
     /**
-     * Create empty book data.
+     * Create empty book data with a new UUID.
      */
     public HexBookData() {
+        this.bookId = UUID.randomUUID();
+        this.ownerId = null;
+        this.createdAt = System.currentTimeMillis();
+        this.lastModifiedAt = this.createdAt;
+        this.glyphs = new HashMap<>();
+        this.savedHexes = new ArrayList<>();
+    }
+
+    /**
+     * Create empty book data for a specific owner.
+     *
+     * @param ownerId The UUID of the player who owns this book
+     */
+    public HexBookData(@Nonnull UUID ownerId) {
+        this.bookId = UUID.randomUUID();
+        this.ownerId = ownerId;
+        this.createdAt = System.currentTimeMillis();
+        this.lastModifiedAt = this.createdAt;
         this.glyphs = new HashMap<>();
         this.savedHexes = new ArrayList<>();
     }
@@ -56,8 +96,92 @@ public class HexBookData {
      * Create book data with existing data.
      */
     public HexBookData(Map<String, GlyphInstance> glyphs, List<Hex> savedHexes) {
+        this.bookId = UUID.randomUUID();
+        this.ownerId = null;
+        this.createdAt = System.currentTimeMillis();
+        this.lastModifiedAt = this.createdAt;
         this.glyphs = new HashMap<>(glyphs);
         this.savedHexes = new ArrayList<>(savedHexes);
+    }
+
+    /**
+     * Create book data with all fields specified.
+     */
+    public HexBookData(@Nonnull UUID bookId, @Nullable UUID ownerId,
+                       Map<String, GlyphInstance> glyphs, List<Hex> savedHexes) {
+        this.bookId = bookId;
+        this.ownerId = ownerId;
+        this.createdAt = System.currentTimeMillis();
+        this.lastModifiedAt = this.createdAt;
+        this.glyphs = new HashMap<>(glyphs);
+        this.savedHexes = new ArrayList<>(savedHexes);
+    }
+
+    // ==================== BOOK IDENTITY ====================
+
+    /**
+     * Get the unique book ID.
+     *
+     * @return The book's UUID
+     */
+    @Nonnull
+    public UUID getBookId() {
+        return bookId;
+    }
+
+    /**
+     * Set the book ID (used during migration or deserialization).
+     *
+     * @param bookId The book's UUID
+     */
+    public void setBookId(@Nonnull UUID bookId) {
+        this.bookId = bookId;
+        markModified();
+    }
+
+    /**
+     * Get the owner's player UUID.
+     *
+     * @return The owner's UUID, or null if not set
+     */
+    @Nullable
+    public UUID getOwnerId() {
+        return ownerId;
+    }
+
+    /**
+     * Set the owner's player UUID.
+     *
+     * @param ownerId The owner's UUID
+     */
+    public void setOwnerId(@Nullable UUID ownerId) {
+        this.ownerId = ownerId;
+        markModified();
+    }
+
+    /**
+     * Get when this book was created.
+     *
+     * @return Creation timestamp (epoch millis)
+     */
+    public long getCreatedAt() {
+        return createdAt;
+    }
+
+    /**
+     * Get when this book was last modified.
+     *
+     * @return Last modification timestamp (epoch millis)
+     */
+    public long getLastModifiedAt() {
+        return lastModifiedAt;
+    }
+
+    /**
+     * Mark this book as modified (updates lastModifiedAt).
+     */
+    public void markModified() {
+        this.lastModifiedAt = System.currentTimeMillis();
     }
 
     // ==================== GLYPH OPERATIONS ====================
@@ -291,6 +415,14 @@ public class HexBookData {
     public JsonObject toJson() {
         JsonObject json = new JsonObject();
 
+        // Serialize book identity
+        json.addProperty("bookId", bookId.toString());
+        if (ownerId != null) {
+            json.addProperty("ownerId", ownerId.toString());
+        }
+        json.addProperty("createdAt", createdAt);
+        json.addProperty("lastModifiedAt", lastModifiedAt);
+
         // Serialize glyphs
         JsonObject glyphsObj = new JsonObject();
         for (Map.Entry<String, GlyphInstance> entry : glyphs.entrySet()) {
@@ -314,6 +446,31 @@ public class HexBookData {
     @Nonnull
     public static HexBookData fromJson(@Nonnull JsonObject json) {
         HexBookData data = new HexBookData();
+
+        // Deserialize book identity
+        if (json.has("bookId")) {
+            try {
+                data.bookId = UUID.fromString(json.get("bookId").getAsString());
+            } catch (IllegalArgumentException e) {
+                // Keep auto-generated UUID if parse fails
+            }
+        }
+
+        if (json.has("ownerId") && !json.get("ownerId").isJsonNull()) {
+            try {
+                data.ownerId = UUID.fromString(json.get("ownerId").getAsString());
+            } catch (IllegalArgumentException e) {
+                // Leave as null if parse fails
+            }
+        }
+
+        if (json.has("createdAt")) {
+            data.createdAt = json.get("createdAt").getAsLong();
+        }
+
+        if (json.has("lastModifiedAt")) {
+            data.lastModifiedAt = json.get("lastModifiedAt").getAsLong();
+        }
 
         // Deserialize glyphs
         if (json.has("glyphs") && json.get("glyphs").isJsonObject()) {
@@ -347,12 +504,26 @@ public class HexBookData {
      */
     @Nonnull
     public String getSummary() {
-        return String.format("HexBookData{glyphs=%d, savedHexes=%d}",
+        return String.format("HexBookData{bookId=%s, owner=%s, glyphs=%d, savedHexes=%d}",
+                             bookId, ownerId != null ? ownerId.toString().substring(0, 8) + "..." : "none",
                              glyphs.size(), savedHexes.size());
     }
 
     @Override
     public String toString() {
         return getSummary();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        HexBookData that = (HexBookData) o;
+        return Objects.equals(bookId, that.bookId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(bookId);
     }
 }

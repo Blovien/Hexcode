@@ -45,7 +45,7 @@ public class ProjectileGlyph extends SelectGlyph {
      * @param assetDefinition The asset definition
      */
     public ProjectileGlyph(GlyphAssetDefinition assetDefinition) {
-        super(assetDefinition, GlyphVisual.select("projectile"), true);
+        super(assetDefinition, GlyphVisual.select("Projectile"), true);
     }
 
     /**
@@ -67,7 +67,7 @@ public class ProjectileGlyph extends SelectGlyph {
         Vector3d direction = context.getCastDirection();
 
         // Store the execution ID in context metadata
-        context.setMetadata("delayType", "projectile");
+        context.setMetadata("delayType", "Projectile");
 
         // Note: The actual projectile entity spawning happens in DelayedExecutionManager
         // after HexExecutor detects the pendingDelayId metadata

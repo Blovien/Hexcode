@@ -37,7 +37,7 @@ public class EarthGlyph extends EffectGlyph {
      * @param assetDefinition The asset definition containing glyph properties
      */
     public EarthGlyph(GlyphAssetDefinition assetDefinition) {
-        super(assetDefinition, GlyphVisual.effect(GlyphVisual.COLOR_EARTH, "earth"));
+        super(assetDefinition, GlyphVisual.effect(GlyphVisual.COLOR_EARTH, "Earth"));
     }
 
     @Override

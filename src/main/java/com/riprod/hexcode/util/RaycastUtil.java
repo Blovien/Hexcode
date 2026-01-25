@@ -1,9 +1,10 @@
 package com.riprod.hexcode.util;
 
+import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.entity.OrbitalGlyphEntity;
@@ -12,17 +13,57 @@ import java.util.List;
 
 /**
  * Utility methods for raycasting and glyph hover detection.
+ *
+ * <p>Performance optimizations:
+ * <ul>
+ *   <li>Component types are cached lazily to avoid repeated lookups</li>
+ *   <li>Debug logging removed for hot path operations</li>
+ *   <li>Ray-sphere intersection uses optimized math without allocations</li>
+ * </ul>
  */
 public class RaycastUtil {
-    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
-
     // Default glyph bounding sphere radius for hit detection
     private static final float DEFAULT_GLYPH_HIT_RADIUS = 0.4f;
+
+    // Default eye height for players (in blocks)
+    private static final double DEFAULT_EYE_HEIGHT = 1.62;
+
+    // Cached component types for performance (lazy initialization)
+    private static volatile ComponentType<EntityStore, TransformComponent> cachedTransformType;
+    private static volatile ComponentType<EntityStore, HeadRotation> cachedHeadRotationType;
 
     private RaycastUtil() {}
 
     /**
+     * Get the cached TransformComponent type.
+     * Thread-safe lazy initialization.
+     */
+    private static ComponentType<EntityStore, TransformComponent> getTransformType() {
+        if (cachedTransformType == null) {
+            cachedTransformType = TransformComponent.getComponentType();
+        }
+        return cachedTransformType;
+    }
+
+    /**
+     * Get the cached HeadRotation component type.
+     * Thread-safe lazy initialization.
+     */
+    private static ComponentType<EntityStore, HeadRotation> getHeadRotationType() {
+        if (cachedHeadRotationType == null) {
+            cachedHeadRotationType = HeadRotation.getComponentType();
+        }
+        return cachedHeadRotationType;
+    }
+
+    /**
      * Find the orbital glyph entity that the player is looking at.
+     *
+     * <p>Performance: O(n) where n = number of orbital entities.
+     * Uses cached component types and avoids allocations in hot path.
+     *
+     * <p>Uses HeadRotation component for accurate look direction
+     * (not TransformComponent which only stores body rotation).
      *
      * @param store The entity store
      * @param playerRef The player entity reference
@@ -36,19 +77,34 @@ public class RaycastUtil {
             return null;
         }
 
-        // Get player eye position and look direction
-        TransformComponent playerTransform = store.getComponent(playerRef, TransformComponent.getComponentType());
+        ComponentType<EntityStore, TransformComponent> transformType = getTransformType();
+        ComponentType<EntityStore, HeadRotation> headRotationType = getHeadRotationType();
+        if (transformType == null || headRotationType == null) {
+            return null;
+        }
+
+        // Get player position
+        TransformComponent playerTransform = store.getComponent(playerRef, transformType);
         if (playerTransform == null) {
             return null;
         }
 
+        // Get player head rotation (where they're actually looking)
+        HeadRotation headRotation = store.getComponent(playerRef, headRotationType);
+        if (headRotation == null) {
+            return null;
+        }
+
         Vector3d eyePosition = getPlayerEyePosition(playerTransform);
-        Vector3d lookDirection = getPlayerLookDirection(playerTransform);
+        // Use HeadRotation.getDirection() for accurate look direction
+        Vector3d lookDirection = headRotation.getDirection();
 
         OrbitalGlyphEntity closest = null;
         double closestDistance = maxDistance;
 
-        for (OrbitalGlyphEntity orbitalEntity : orbitalEntities) {
+        for (int i = 0, size = orbitalEntities.size(); i < size; i++) {
+            OrbitalGlyphEntity orbitalEntity = orbitalEntities.get(i);
+
             if (orbitalEntity.isDragging()) {
                 continue; // Skip entities being dragged
             }
@@ -58,7 +114,7 @@ public class RaycastUtil {
                 continue;
             }
 
-            TransformComponent glyphTransform = store.getComponent(entityRef, TransformComponent.getComponentType());
+            TransformComponent glyphTransform = store.getComponent(entityRef, transformType);
             if (glyphTransform == null) {
                 continue;
             }
@@ -67,6 +123,7 @@ public class RaycastUtil {
 
             // Check ray-sphere intersection
             double hitDistance = rayIntersectsSphere(eyePosition, lookDirection, glyphPosition, DEFAULT_GLYPH_HIT_RADIUS);
+
             if (hitDistance >= 0 && hitDistance < closestDistance) {
                 closest = orbitalEntity;
                 closestDistance = hitDistance;
@@ -86,11 +143,27 @@ public class RaycastUtil {
     }
 
     /**
-     * Get the player's look direction from rotation.
-     * Rotation is stored as (yaw, pitch, roll) in degrees.
+     * Get the player's look direction from HeadRotation component.
+     *
+     * <p>IMPORTANT: Use HeadRotation, NOT TransformComponent.getRotation().
+     * TransformComponent stores body rotation, HeadRotation stores where
+     * the player is actually looking.
+     *
+     * @param headRotation The player's head rotation component
+     * @return The normalized look direction vector
      */
-    public static Vector3d getPlayerLookDirection(TransformComponent transform) {
-        // Get rotation in degrees
+    public static Vector3d getPlayerLookDirection(HeadRotation headRotation) {
+        // HeadRotation has a built-in getDirection() method
+        return headRotation.getDirection();
+    }
+
+    /**
+     * @deprecated Use {@link #getPlayerLookDirection(HeadRotation)} instead.
+     * TransformComponent.getRotation() returns body rotation, not head rotation.
+     */
+    @Deprecated
+    public static Vector3d getPlayerLookDirectionFromTransform(TransformComponent transform) {
+        // Get rotation in degrees (NOTE: This is BODY rotation, not HEAD)
         float yaw = transform.getRotation().y;
         float pitch = transform.getRotation().x;
 
@@ -214,20 +287,154 @@ public class RaycastUtil {
     }
 
     /**
-     * Calculate a 3D position from screen coordinates along the player's view ray.
+     * Calculate a 3D position along the player's view ray.
      *
-     * @param playerTransform The player's transform
+     * <p>Uses HeadRotation component for accurate look direction.
+     *
+     * @param playerTransform The player's transform (for position)
+     * @param headRotation The player's head rotation (for look direction)
      * @param distance Distance along the ray
      * @return The 3D position
      */
-    public static Vector3d getPointAlongLookRay(TransformComponent playerTransform, float distance) {
+    public static Vector3d getPointAlongLookRay(TransformComponent playerTransform,
+                                                  HeadRotation headRotation, float distance) {
         Vector3d eyePos = getPlayerEyePosition(playerTransform);
-        Vector3d lookDir = getPlayerLookDirection(playerTransform);
+        Vector3d lookDir = headRotation.getDirection();
 
         return new Vector3d(
                 eyePos.x + lookDir.x * distance,
                 eyePos.y + lookDir.y * distance,
                 eyePos.z + lookDir.z * distance
         );
+    }
+
+    /**
+     * @deprecated Use {@link #getPointAlongLookRay(TransformComponent, HeadRotation, float)} instead.
+     * This version uses body rotation instead of head rotation.
+     */
+    @Deprecated
+    public static Vector3d getPointAlongLookRayFromTransform(TransformComponent playerTransform, float distance) {
+        Vector3d eyePos = getPlayerEyePosition(playerTransform);
+        Vector3d lookDir = getPlayerLookDirectionFromTransform(playerTransform);
+
+        return new Vector3d(
+                eyePos.x + lookDir.x * distance,
+                eyePos.y + lookDir.y * distance,
+                eyePos.z + lookDir.z * distance
+        );
+    }
+
+    /**
+     * Calculate the drag position for a glyph based on player's gaze.
+     *
+     * <p>This method calculates where a dragged glyph should appear
+     * along the player's view ray at a fixed distance. Used for real-time
+     * glyph movement during drag operations.
+     *
+     * <p>Uses HeadRotation component for accurate look direction
+     * (not TransformComponent which only stores body rotation).
+     *
+     * @param store The entity store
+     * @param playerRef The player entity reference
+     * @param dragDistance Distance from player eye to glyph during drag
+     * @return The drag position, or null if components unavailable
+     */
+    public static Vector3d calculateDragPosition(Store<EntityStore> store, Ref<EntityStore> playerRef, float dragDistance) {
+        ComponentType<EntityStore, TransformComponent> transformType = getTransformType();
+        ComponentType<EntityStore, HeadRotation> headRotationType = getHeadRotationType();
+        if (transformType == null || headRotationType == null) {
+            return null;
+        }
+
+        TransformComponent playerTransform = store.getComponent(playerRef, transformType);
+        if (playerTransform == null) {
+            return null;
+        }
+
+        HeadRotation headRotation = store.getComponent(playerRef, headRotationType);
+        if (headRotation == null) {
+            return null;
+        }
+
+        return getPointAlongLookRay(playerTransform, headRotation, dragDistance);
+    }
+
+    /**
+     * Calculate drag position and write to existing Vector3d to avoid allocation.
+     *
+     * <p>Performance optimization: Reuses the output vector instead of allocating.
+     *
+     * <p>Uses HeadRotation component for accurate look direction
+     * (not TransformComponent which only stores body rotation).
+     *
+     * @param store The entity store
+     * @param playerRef The player entity reference
+     * @param dragDistance Distance from player eye to glyph during drag
+     * @param out The output vector to write position to
+     * @return true if position was calculated, false if components unavailable
+     */
+    public static boolean calculateDragPositionNoAlloc(Store<EntityStore> store, Ref<EntityStore> playerRef,
+                                                        float dragDistance, Vector3d out) {
+        ComponentType<EntityStore, TransformComponent> transformType = getTransformType();
+        ComponentType<EntityStore, HeadRotation> headRotationType = getHeadRotationType();
+        if (transformType == null || headRotationType == null) {
+            return false;
+        }
+
+        TransformComponent playerTransform = store.getComponent(playerRef, transformType);
+        if (playerTransform == null) {
+            return false;
+        }
+
+        // IMPORTANT: Use HeadRotation for look direction, NOT TransformComponent.getRotation()
+        HeadRotation headRotation = store.getComponent(playerRef, headRotationType);
+        if (headRotation == null) {
+            return false;
+        }
+
+        Vector3d pos = playerTransform.getPosition();
+
+        // Get look direction from HeadRotation (where player is actually looking)
+        Vector3d lookDir = headRotation.getDirection();
+
+        // Eye position + look direction * distance
+        out.x = pos.x + lookDir.x * dragDistance;
+        out.y = pos.y + DEFAULT_EYE_HEIGHT + lookDir.y * dragDistance;
+        out.z = pos.z + lookDir.z * dragDistance;
+
+        return true;
+    }
+
+    /**
+     * Get player transform using cached component type.
+     *
+     * @param store The entity store
+     * @param playerRef The player entity reference
+     * @return The transform component, or null if not found
+     */
+    public static TransformComponent getPlayerTransform(Store<EntityStore> store, Ref<EntityStore> playerRef) {
+        ComponentType<EntityStore, TransformComponent> transformType = getTransformType();
+        if (transformType == null) {
+            return null;
+        }
+        return store.getComponent(playerRef, transformType);
+    }
+
+    /**
+     * Get player head rotation using cached component type.
+     *
+     * <p>Use this to get the player's look direction, NOT TransformComponent.getRotation()
+     * which returns body rotation instead.
+     *
+     * @param store The entity store
+     * @param playerRef The player entity reference
+     * @return The head rotation component, or null if not found
+     */
+    public static HeadRotation getPlayerHeadRotation(Store<EntityStore> store, Ref<EntityStore> playerRef) {
+        ComponentType<EntityStore, HeadRotation> headRotationType = getHeadRotationType();
+        if (headRotationType == null) {
+            return null;
+        }
+        return store.getComponent(playerRef, headRotationType);
     }
 }

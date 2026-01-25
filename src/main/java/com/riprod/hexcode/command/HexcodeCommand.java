@@ -8,37 +8,29 @@ import com.hypixel.hytale.server.core.command.system.CommandContext;
 import com.hypixel.hytale.server.core.command.system.arguments.system.DefaultArg;
 import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
 import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayerCommand;
-import com.hypixel.hytale.server.core.entity.UUIDComponent;
-import com.hypixel.hytale.server.core.entity.entities.Player;
-import com.hypixel.hytale.server.core.inventory.Inventory;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.hypixel.hytale.server.core.plugin.PluginBase;
 import com.riprod.hexcode.asset.GlyphAssetDefinition;
 import com.riprod.hexcode.asset.GlyphAssetLoader;
 import com.riprod.hexcode.data.GlyphInstance;
 import com.riprod.hexcode.data.HexBookData;
 import com.riprod.hexcode.data.HexBookDataManager;
-import com.riprod.hexcode.execution.SpellContext;
+import com.riprod.hexcode.entity.GlyphEntityManager;
+import com.riprod.hexcode.entity.SelectableGlyphEntity;
 import com.riprod.hexcode.glyph.Glyph;
 import com.riprod.hexcode.glyph.GlyphRegistry;
-import com.riprod.hexcode.glyph.GlyphRole;
 import com.riprod.hexcode.hex.Hex;
-import com.riprod.hexcode.hex.HexBuilder;
-import com.riprod.hexcode.hex.HexInstance;
-import com.riprod.hexcode.hex.HexSerializer;
-import com.riprod.hexcode.hex.HexValidator;
-import com.riprod.hexcode.loadout.Loadout;
 import com.riprod.hexcode.mode.GlyphMode;
 import com.riprod.hexcode.mode.GlyphModeManager;
+import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
 import com.hypixel.hytale.server.core.modules.entitystats.asset.DefaultEntityStatTypes;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -69,7 +61,6 @@ public class HexcodeCommand extends AbstractPlayerCommand {
         addSubCommand(new TreeSubCommand());
         addSubCommand(new ClearSubCommand());
         addSubCommand(new ModeSubCommand());
-        addSubCommand(new CastSubCommand());
         addSubCommand(new ManaSubCommand());
         addSubCommand(new StaminaSubCommand());
         addSubCommand(new GlyphSubCommand());
@@ -82,6 +73,8 @@ public class HexcodeCommand extends AbstractPlayerCommand {
         addSubCommand(new SaveSubCommand());
         addSubCommand(new HexesSubCommand());
         addSubCommand(new DeleteHexSubCommand());
+        addSubCommand(new SpawnGlyphEntitySubCommand());
+        addSubCommand(new DespawnGlyphEntitiesSubCommand());
     }
 
     @Override
@@ -96,7 +89,6 @@ public class HexcodeCommand extends AbstractPlayerCommand {
         ctx.sendMessage(Message.raw("  /hexcode help            - Show this help message"));
         ctx.sendMessage(Message.raw("  /hexcode debug           - Toggle debug visualization"));
         ctx.sendMessage(Message.raw("  /hexcode glyph <id>      - Spawn glyph in crafting space"));
-        ctx.sendMessage(Message.raw("  /hexcode cast            - Force cast current composition"));
         ctx.sendMessage(Message.raw("  /hexcode clear           - Discard current composition"));
         ctx.sendMessage(Message.raw("  /hexcode mana <amount>   - Set mana for testing"));
         ctx.sendMessage(Message.raw("  /hexcode stamina <amount>- Set stamina for testing"));
@@ -112,6 +104,8 @@ public class HexcodeCommand extends AbstractPlayerCommand {
         ctx.sendMessage(Message.raw("  /hexcode save <name>     - Save current hex to book"));
         ctx.sendMessage(Message.raw("  /hexcode hexes           - List saved hexes in book"));
         ctx.sendMessage(Message.raw("  /hexcode deletehex <name>- Delete saved hex from book"));
+        ctx.sendMessage(Message.raw("  /hexcode spawnglyph <id> - Spawn a selectable glyph entity"));
+        ctx.sendMessage(Message.raw("  /hexcode despawnglyphs   - Despawn all glyph entities"));
     }
 
     public static boolean isDebugEnabled() {
@@ -245,41 +239,17 @@ public class HexcodeCommand extends AbstractPlayerCommand {
             }
 
             GlyphModeManager manager = GlyphModeManager.getInstance();
-            boolean entered = manager.toggleGlyphMode(playerId, ref, null, null);
+            // NOTE: Commands don't have access to CommandBuffer (runs outside entity system tick).
+            // Passing null means orbital glyph entities won't spawn, but mode state will toggle.
+            // For full functionality, use the staff interaction (right-click) instead.
+            boolean entered = manager.toggleGlyphMode(playerId, ref, null, world);
 
             if (entered) {
-                ctx.sendMessage(Message.raw("Entered glyph mode"));
+                ctx.sendMessage(Message.raw("Entered glyph mode (via command - no orbital glyphs)"));
+                ctx.sendMessage(Message.raw("Use staff right-click for full visual experience"));
             } else {
                 ctx.sendMessage(Message.raw("Exited glyph mode"));
             }
-        }
-    }
-
-    private class CastSubCommand extends AbstractPlayerCommand {
-        public CastSubCommand() {
-            super("cast", "Force cast current composition");
-        }
-
-        @Override
-        protected void execute(@Nonnull CommandContext ctx, Store<EntityStore> store, Ref<EntityStore> ref,
-                PlayerRef playerRef, World world) {
-            UUID playerId = playerRef.getUuid();
-            if (playerId == null) {
-                ctx.sendMessage(Message.raw("Could not get player ID"));
-                return;
-            }
-
-            GlyphModeManager manager = GlyphModeManager.getInstance();
-            GlyphMode mode = manager.getSession(playerId);
-
-            if (mode == null || mode.getComposition().isEmpty()) {
-                ctx.sendMessage(Message.raw("No hex composition to cast"));
-                return;
-            }
-
-            // Force cast ignoring mana cost
-            mode.forceCast(store, ref);
-            ctx.sendMessage(Message.raw("Force cast executed!"));
         }
     }
 
@@ -429,9 +399,9 @@ public class HexcodeCommand extends AbstractPlayerCommand {
             ctx.sendMessage(Message.raw("  Crafting distance: " + mode.getCraftingSpaceDistance()));
 
             ctx.sendMessage(Message.raw("=== Loadout ==="));
-            ctx.sendMessage(Message.raw("  Glyphs: " + mode.getAvailableGlyphs().size()));
-            for (Glyph g : mode.getAvailableGlyphs()) {
-                ctx.sendMessage(Message.raw("    - " + g.getId()));
+            ctx.sendMessage(Message.raw("  Glyphs: " + mode.getAvailableGlyphsFromBook().size()));
+            for (GlyphInstance g : mode.getAvailableGlyphsFromBook()) {
+                ctx.sendMessage(Message.raw("    - " + g.getGlyph().getId()));
             }
 
             ctx.sendMessage(Message.raw("=== Composition ==="));
@@ -442,7 +412,7 @@ public class HexcodeCommand extends AbstractPlayerCommand {
 
             ctx.sendMessage(Message.raw("=== Interaction ==="));
             ctx.sendMessage(Message.raw(
-                    "  Hovered glyph: " + (mode.getHoveredGlyph() != null ? mode.getHoveredGlyph().getId() : "none")));
+                    "  Hovered glyph: " + (mode.getHoveredGlyph() != null ? mode.getHoveredGlyph().getGlyph().getId() : "none")));
             ctx.sendMessage(Message.raw("  Dragging: " + mode.isDragging()));
         }
     }
@@ -497,7 +467,6 @@ public class HexcodeCommand extends AbstractPlayerCommand {
             for (GlyphAssetDefinition asset : assets.values()) {
                 String info = String.format("  %s [%s] - power:%.1f cost:%.0f var:%.1f",
                         asset.getId(),
-                        asset.getGlyphId(),
                         asset.getBasePower(),
                         asset.getBaseManaCost(),
                         asset.getBaseVariability());
@@ -541,8 +510,16 @@ public class HexcodeCommand extends AbstractPlayerCommand {
                 return;
             }
             ItemStack book = HexBookDataManager.findHeldHexBook(store, ref);
+            if (book == null) {
+                ctx.sendMessage(Message.raw("You must have a Hex Book in your offhand"));
+                return;
+            }
 
-            HexBookData bookData = HexBookDataManager.getData(book);
+            HexBookData bookData = HexBookDataManager.getHeldBookData(store, ref, world);
+            if (bookData == null) {
+                ctx.sendMessage(Message.raw("Could not access book data"));
+                return;
+            }
 
             if (bookData.hasGlyph(glyphId)) {
                 ctx.sendMessage(Message.raw("You already know " + glyph.getDisplayName()));
@@ -550,7 +527,7 @@ public class HexcodeCommand extends AbstractPlayerCommand {
             }
 
             bookData.addGlyphWithDefault(glyphId);
-            HexBookDataManager.updateHeldBookData(store, ref, bookData);
+            HexBookDataManager.updateHeldBookData(store, ref, world, bookData);
             ctx.sendMessage(Message.raw("Added glyph: " + glyph.getDisplayName()));
         }
     }
@@ -584,21 +561,19 @@ public class HexcodeCommand extends AbstractPlayerCommand {
                 return;
             }
 
-            UUID playerId = playerRef.getUuid();
-            if (playerId == null) {
-                ctx.sendMessage(Message.raw("Could not get player ID"));
+            HexBookData bookData = HexBookDataManager.getHeldBookData(store, ref, world);
+            if (bookData == null) {
+                ctx.sendMessage(Message.raw("You must have a Hex Book in your offhand"));
                 return;
             }
 
-            HexBookData playerData = HexBookDataManager.getData(playerId);
-
-            if (!playerData.knowsGlyph(glyphId)) {
-                ctx.sendMessage(Message.raw("You don't know " + glyph.getDisplayName()));
+            if (!bookData.hasGlyph(glyphId)) {
+                ctx.sendMessage(Message.raw("This book doesn't have " + glyph.getDisplayName()));
                 return;
             }
 
-            playerData.forgetGlyph(glyphId);
-            PlayerGlyphDataManager.savePlayerDataSync(playerId);
+            bookData.removeGlyph(glyphId);
+            HexBookDataManager.updateHeldBookData(store, ref, world, bookData);
             ctx.sendMessage(Message.raw("Forgot glyph: " + glyph.getDisplayName()));
         }
     }
@@ -634,17 +609,18 @@ public class HexcodeCommand extends AbstractPlayerCommand {
                 return;
             }
 
-            Hex hex = mode.getComposition().getHex();
+            Hex composedHex = mode.getComposition().getHex();
 
-            HexBookDataManager.saveHex(store, ref, "hex", hex);
+            // Create hex with user-provided name as ID
+            Hex hexToSave = new Hex(hexName, composedHex.getRoot());
 
-            boolean saved = HexBookDataManager.saveHex(store, ref, hexName, hexString);
+            boolean saved = HexBookDataManager.saveHex(store, ref, world, hexToSave);
             if (saved) {
                 ctx.sendMessage(Message.raw("Saved hex '" + hexName + "' to your Hex Book"));
-                ctx.sendMessage(Message.raw("  Structure: " + hexString));
+                ctx.sendMessage(Message.raw("  Structure: " + hexToSave.toString()));
             } else {
                 // Could be no book, or at max capacity
-                HexBookData data = HexBookDataManager.getHeldBookData(store, ref);
+                HexBookData data = HexBookDataManager.getHeldBookData(store, ref, world);
                 if (data == null) {
                     ctx.sendMessage(Message.raw("You must have a Hex Book in your offhand to save hexes"));
                 } else if (data.isAtMaxHexCapacity()) {
@@ -665,7 +641,7 @@ public class HexcodeCommand extends AbstractPlayerCommand {
         @Override
         protected void execute(@Nonnull CommandContext ctx, Store<EntityStore> store, Ref<EntityStore> ref,
                 PlayerRef playerRef, World world) {
-            HexBookData data = HexBookDataManager.getHeldBookData(store, ref);
+            HexBookData data = HexBookDataManager.getHeldBookData(store, ref, world);
             if (data == null) {
                 ctx.sendMessage(Message.raw("You must have a Hex Book in your offhand to view saved hexes"));
                 return;
@@ -680,10 +656,10 @@ public class HexcodeCommand extends AbstractPlayerCommand {
             ctx.sendMessage(Message
                     .raw("=== Saved Hexes (" + data.getSavedHexCount() + "/" + HexBookData.MAX_SAVED_HEXES + ") ==="));
             int index = 1;
-            for (HexInstance hex : data.getSavedHexes()) {
-                String usageInfo = hex.getTimesUsed() > 0 ? " (used " + hex.getTimesUsed() + "x)" : "";
-                ctx.sendMessage(Message.raw("  " + index + ". " + hex.getName() + usageInfo));
-                ctx.sendMessage(Message.raw("     " + hex.getHexString()));
+            for (Hex hex : data.getSavedHexes()) {
+                String usageInfo = hex.getUses() > 0 ? " (used " + hex.getUses() + "x)" : "";
+                ctx.sendMessage(Message.raw("  " + index + ". " + hex.getId() + usageInfo));
+                ctx.sendMessage(Message.raw("     " + hex.toString()));
                 index++;
             }
         }
@@ -706,11 +682,11 @@ public class HexcodeCommand extends AbstractPlayerCommand {
                 return;
             }
 
-            boolean deleted = HexBookDataManager.deleteSavedHex(store, ref, hexName);
+            boolean deleted = HexBookDataManager.deleteSavedHex(store, ref, world, hexName);
             if (deleted) {
                 ctx.sendMessage(Message.raw("Deleted hex '" + hexName + "' from your Hex Book"));
             } else {
-                HexBookData data = HexBookDataManager.getHeldBookData(store, ref);
+                HexBookData data = HexBookDataManager.getHeldBookData(store, ref, world);
                 if (data == null) {
                     ctx.sendMessage(Message.raw("You must have a Hex Book in your offhand"));
                 } else if (data.getSavedHex(hexName) == null) {
@@ -720,6 +696,76 @@ public class HexcodeCommand extends AbstractPlayerCommand {
                     ctx.sendMessage(Message.raw("Failed to delete hex"));
                 }
             }
+        }
+    }
+
+    private class SpawnGlyphEntitySubCommand extends AbstractPlayerCommand {
+        private final DefaultArg<String> modelIdArg;
+
+        public SpawnGlyphEntitySubCommand() {
+            super("spawnglyph", "Spawn a selectable glyph entity at player position");
+            this.modelIdArg = withDefaultArg("model_id", "Model asset ID (e.g., fire, ice)", ArgTypes.STRING, "fire", "Model ID");
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext ctx, Store<EntityStore> store, Ref<EntityStore> ref,
+                PlayerRef playerRef, World world) {
+            String modelId = ctx.get(modelIdArg);
+
+            // Get player position
+            TransformComponent transform = store.getComponent(ref, TransformComponent.getComponentType());
+            if (transform == null) {
+                ctx.sendMessage(Message.raw("Could not get player position"));
+                return;
+            }
+
+            // Spawn 2 blocks in front of player at eye height
+            Vector3d playerPos = transform.getPosition();
+            Vector3f playerRot = transform.getRotation();
+
+            // Calculate forward direction based on yaw
+            double yaw = Math.toRadians(playerRot.y);
+            double forwardX = -Math.sin(yaw);
+            double forwardZ = Math.cos(yaw);
+
+            Vector3d spawnPos = new Vector3d(
+                playerPos.x + forwardX * 2.0,
+                playerPos.y + 1.5,
+                playerPos.z + forwardZ * 2.0
+            );
+
+            // Spawn the entity
+            GlyphEntityManager manager = GlyphEntityManager.getInstance();
+            SelectableGlyphEntity entity = manager.spawnGlyph(store, modelId, modelId, spawnPos);
+
+            if (entity != null) {
+                ctx.sendMessage(Message.raw("Spawned selectable glyph entity '" + modelId + "' at (" +
+                    String.format("%.1f, %.1f, %.1f", spawnPos.x, spawnPos.y, spawnPos.z) + ")"));
+                ctx.sendMessage(Message.raw("Use Glyph Wand: right-click to select, left-click to drag"));
+            } else {
+                ctx.sendMessage(Message.raw("Failed to spawn glyph entity. Check model asset ID."));
+            }
+        }
+    }
+
+    private class DespawnGlyphEntitiesSubCommand extends AbstractPlayerCommand {
+        public DespawnGlyphEntitiesSubCommand() {
+            super("despawnglyphs", "Despawn all selectable glyph entities");
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext ctx, Store<EntityStore> store, Ref<EntityStore> ref,
+                PlayerRef playerRef, World world) {
+            GlyphEntityManager manager = GlyphEntityManager.getInstance();
+            int count = manager.getGlyphCount();
+
+            if (count == 0) {
+                ctx.sendMessage(Message.raw("No glyph entities to despawn"));
+                return;
+            }
+
+            manager.despawnAll(store);
+            ctx.sendMessage(Message.raw("Despawned " + count + " glyph entities"));
         }
     }
 }

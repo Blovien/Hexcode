@@ -18,6 +18,7 @@ import com.riprod.hexcode.hex.HexNode;
 import com.riprod.hexcode.util.RaycastUtil;
 import com.hypixel.hytale.math.vector.Vector3d;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -92,7 +93,7 @@ public class HexExecutor {
             HexNode rootToExecute = hex.getRoot();
 
             // Execute depth-first from the root
-            executeHexNode(rootToExecute, baseContext);
+            SpellContext resultContext = executeHexNode(rootToExecute, baseContext);
 
             return ExecutionResult.success();
         } catch (Exception e) {
@@ -111,53 +112,115 @@ public class HexExecutor {
      * <ol>
      * <li>Load per-player glyph data (accuracy, draw speed)</li>
      * <li>Execute the glyph at this node (modifies context)</li>
-     * <li>Execute children depth-first (context flows down)</li>
+     * <li>Execute nested children (context flows through)</li>
+     * <li>Execute chain siblings (isolated context copies)</li>
      * </ol>
+     *
+     * <h3>Context Flow Rules</h3>
+     * <ul>
+     * <li><b>Nested (single child)</b>: Context flows through - child sees parent's modifications</li>
+     * <li><b>Chain (multiple children)</b>: Each sibling gets isolated copy of parent's context</li>
+     * </ul>
      *
      * @param node    The node to execute
      * @param context The current spell context
-     * @return The (possibly modified) context
+     * @return The (possibly modified) context after execution
      */
-    public void executeHexNode(HexNode node, SpellContext context) {
-        GlyphInstance glyph = node.getValue();
+    public SpellContext executeHexNode(HexNode node, SpellContext context) {
+        GlyphInstance glyphInstance = node.getValue();
+
+        // Validate glyph instance
+        if (!glyphInstance.isValid()) {
+            LOGGER.atWarning().log("Skipping invalid glyph instance: %s", glyphInstance.getGlyphId());
+            // Still process children even if this node is invalid
+            List<HexNode> children = node.getChildren();
+            if (children.size() == 1) {
+                return executeHexNode(children.get(0), context);
+            } else if (children.size() > 1) {
+                SpellContext originalContext = context;
+                for (HexNode child : children) {
+                    SpellContext siblingContext = originalContext.copy();
+                    executeHexNode(child, siblingContext);
+                }
+            }
+            return context;
+        }
 
         LOGGER.atFine().log("Executing glyph '%s' (quality=%s, accuracy=%.2f)",
-                glyph.getGlyph().getDisplayName(), glyph.getQualityRating(), glyph.getAccuracy());
+                glyphInstance.getGlyph().getDisplayName(), glyphInstance.getQualityRating(), glyphInstance.getAccuracy());
 
         // Execute this glyph (modifies context)
-        context = glyph.cast(context);
+        context = glyphInstance.cast(context);
 
         // Record usage in player data
-        recordGlyphUsage(glyph, context);
+        recordGlyphUsage(glyphInstance, context);
 
         // Check if this is a delayed execution (BEAM, PROJECTILE)
         if (context.hasMetadata("pendingDelayId")) {
             // For delayed execution, children are executed when the delay resolves
             // The DelayedExecutionManager handles this
             LOGGER.atInfo().log("Glyph '%s' has pending delay - children will execute on resolution",
-                    glyph.getGlyph().getDisplayName());
+                    glyphInstance.getGlyph().getDisplayName());
 
             // Store the remaining children for later execution
             storeChildrenForDelayedExecution(node, context);
+            return context;
         }
 
-        // Execute children depth-first (context flows down)
-        for (HexNode child : node.getChildren()) {
-            // Send a copy to each chained child
-            SpellContext childContext = context.copy();
-            executeHexNode(child, childContext);
+        List<HexNode> children = node.getChildren();
+        if (children.isEmpty()) {
+            // Leaf node - no children to execute
+            return context;
         }
+
+        if (children.size() == 1) {
+            // Single child = nested relationship
+            // Context flows through: child sees and can modify the same context
+            context = executeHexNode(children.get(0), context);
+        } else {
+            // Multiple children = chain siblings
+            // Each sibling gets an isolated copy of the current context
+            // Siblings cannot see each other's modifications
+            SpellContext originalContext = context;
+            for (HexNode child : children) {
+                SpellContext siblingContext = originalContext.copy();
+                executeHexNode(child, siblingContext);
+            }
+        }
+
+        return context;
     }
 
     /**
-     * Store children for delayed execution.
+     * Store children for delayed execution using DelayedExecutionManager.
+     *
+     * <p>Called when a glyph (like BEAM or PROJECTILE) sets the "pendingDelayId"
+     * metadata to indicate that its children should be executed later when
+     * the projectile/beam hits a target.
+     *
+     * @param node The node whose children should be executed on hit
+     * @param context The current spell context
      */
     private void storeChildrenForDelayedExecution(HexNode node, SpellContext context) {
-        // The DelayedExecutionManager needs to know about the remaining children
-        // This is handled through metadata
-        if (!node.getChildren().isEmpty()) {
-            context.setMetadata("pendingChildren", node.getChildren());
+        if (node.getChildren().isEmpty()) {
+            return;
         }
+
+        // Queue the execution with DelayedExecutionManager
+        // The BEAM/PROJECTILE glyph should have already set pendingDelayId,
+        // but we update it with the manager's execution ID
+        UUID executionId = DelayedExecutionManager.getInstance().queueDelayedExecution(
+                node,
+                context,
+                context.getCastOrigin(),
+                context.getCastDirection()
+        );
+
+        // Update the metadata with the actual execution ID
+        context.setMetadata("pendingDelayId", executionId);
+
+        LOGGER.atInfo().log("Stored %d children for delayed execution (ID: %s)",
+                node.getChildren().size(), executionId);
     }
 
     // ========== PLAYER DATA INTEGRATION ==========
@@ -166,7 +229,7 @@ public class HexExecutor {
      * Record that a glyph was used (for player statistics).
      *
      * <p>
-     * Records usage in both the Hex Book (if equipped) and player data (legacy).
+     * Records usage in the Hex Book using per-world storage.
      *
      * @param glyph   The glyph that was executed
      * @param context The spell context
@@ -176,9 +239,9 @@ public class HexExecutor {
         Ref<EntityStore> casterRef = context.getCaster();
         glyph.incrementUsage();
 
-        // Record in Hex Book if available
-        if (store != null && casterRef != null) {
-            HexBookDataManager.recordGlyphUsage(store, casterRef, glyph.getGlyph().getId());
+        // Record in Hex Book using per-world storage
+        if (store != null && casterRef != null && context.getWorld() != null) {
+            HexBookDataManager.recordGlyphUsage(store, casterRef, context.getWorld(), glyph.getGlyph().getId());
         }
     }
 

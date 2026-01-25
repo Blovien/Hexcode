@@ -24,7 +24,7 @@ public class SelfGlyph extends SelectGlyph {
      * @param assetDefinition The asset definition containing glyph properties
      */
     public SelfGlyph(GlyphAssetDefinition assetDefinition) {
-        super(assetDefinition, GlyphVisual.select("self"), false);
+        super(assetDefinition, GlyphVisual.select("Self"), false);
     }
 
     @Override

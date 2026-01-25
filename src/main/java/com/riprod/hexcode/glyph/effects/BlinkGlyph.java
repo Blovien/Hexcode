@@ -29,7 +29,7 @@ public class BlinkGlyph extends EffectGlyph {
      * @param assetDefinition The asset definition containing glyph properties
      */
     public BlinkGlyph(GlyphAssetDefinition assetDefinition) {
-        super(assetDefinition, GlyphVisual.effect(GlyphVisual.COLOR_BLINK, "blink"));
+        super(assetDefinition, GlyphVisual.effect(GlyphVisual.COLOR_BLINK, "Blink"));
     }
 
     @Override

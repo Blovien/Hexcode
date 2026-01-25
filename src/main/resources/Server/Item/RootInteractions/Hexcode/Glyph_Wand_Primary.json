@@ -1,0 +1,12 @@
+{
+  "$Comment": "Primary (left-click) interaction for Glyph Wand - drag selected glyph entities",
+  "RequireNewClick": false,
+  "ClickQueuingTimeout": 0.0,
+  "Cooldown": {
+    "CooldownId": "glyph_wand_drag",
+    "Cooldown": 0.05
+  },
+  "Interactions": [
+    "Glyph_Wand_Primary"
+  ]
+}

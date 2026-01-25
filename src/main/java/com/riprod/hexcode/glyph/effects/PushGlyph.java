@@ -32,7 +32,7 @@ public class PushGlyph extends EffectGlyph {
      * @param assetDefinition The asset definition containing glyph properties
      */
     public PushGlyph(GlyphAssetDefinition assetDefinition) {
-        super(assetDefinition, GlyphVisual.effect(GlyphVisual.COLOR_PUSH, "push"));
+        super(assetDefinition, GlyphVisual.effect(GlyphVisual.COLOR_PUSH, "Push"));
     }
 
     @Override

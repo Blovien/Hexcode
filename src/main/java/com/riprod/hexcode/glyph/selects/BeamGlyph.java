@@ -43,7 +43,7 @@ public class BeamGlyph extends SelectGlyph {
      * @param assetDefinition The asset definition
      */
     public BeamGlyph(GlyphAssetDefinition assetDefinition) {
-        super(assetDefinition, GlyphVisual.select("beam"), true);
+        super(assetDefinition, GlyphVisual.select("Beam"), true);
     }
 
     /**
@@ -66,7 +66,7 @@ public class BeamGlyph extends SelectGlyph {
 
         // Store the execution ID in context metadata
         // context.setMetadata("pendingDelayId", executionId);
-        context.setMetadata("delayType", "beam");
+        context.setMetadata("delayType", "Beam");
 
         // Note: The actual beam entity spawning happens in DelayedExecutionManager
         // after HexExecutor detects the pendingDelayId metadata

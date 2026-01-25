@@ -25,7 +25,7 @@ import java.util.Set;
  *   <li>chainCount - number of times to chain (default: 2)</li>
  *   <li>chainRange - range to find chain targets (default: 5.0)</li>
  *   <li>chainFalloff - damage multiplier per chain (default: 0.7)</li>
- *   <li>damageType - damage type ID (default: "lightning")</li>
+ *   <li>damageType - damage type ID (default: "Lightning")</li>
  * </ul>
  */
 public class LightningGlyph extends EffectGlyph {
@@ -40,7 +40,7 @@ public class LightningGlyph extends EffectGlyph {
      * @param assetDefinition The asset definition containing glyph properties
      */
     public LightningGlyph(GlyphAssetDefinition assetDefinition) {
-        super(assetDefinition, GlyphVisual.effect(GlyphVisual.COLOR_LIGHTNING, "lightning"));
+        super(assetDefinition, GlyphVisual.effect(GlyphVisual.COLOR_LIGHTNING, "Lightning"));
     }
 
     @Override
@@ -65,7 +65,7 @@ public class LightningGlyph extends EffectGlyph {
         int chainCount = getProperty("chainCount", 2);
         float chainRange = getProperty("chainRange", 5.0f);
         float chainFalloff = getProperty("chainFalloff", 0.7f);
-        String damageType = getProperty("damageType", "lightning");
+        String damageType = getProperty("damageType", "Lightning");
 
         // Calculate final damage
         float actualDamage = baseDamage * power;

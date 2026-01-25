@@ -9,6 +9,9 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
@@ -19,13 +22,18 @@ import java.util.stream.Stream;
 /**
  * Loads glyph asset definitions from JSON files.
  *
- * <p>This loader follows the Hytale plugin pattern for file access, using
- * the plugin's data directory as the base path. It supports loading from
- * multiple sources to enable plugin extensibility.
+ * <p>This loader supports dual-location loading for easy customization:
+ * <ol>
+ *   <li><b>Bundled defaults</b>: Loaded from JAR resources (classpath)</li>
+ *   <li><b>User overrides</b>: Loaded from plugin data directory (filesystem)</li>
+ * </ol>
+ * User files take precedence over bundled defaults, allowing modpack developers
+ * and server admins to customize or add glyphs without recompiling.
  *
  * <h2>Asset Locations</h2>
  * <ul>
- *   <li><b>Primary</b>: {@code {dataDirectory}/glyphs/} - Built-in glyphs</li>
+ *   <li><b>Bundled</b>: {@code /Server/Riprod_Hexcode/glyphs/} in JAR resources</li>
+ *   <li><b>User</b>: {@code {dataDirectory}/glyphs/} on filesystem</li>
  *   <li><b>External</b>: Registered via {@link #registerExternalAssetPath(String, Path)}</li>
  * </ul>
  *
@@ -50,6 +58,9 @@ public class GlyphAssetLoader {
 
     private static final String GLYPHS_SUBDIRECTORY = "glyphs";
     private static final String JSON_EXTENSION = ".json";
+
+    /** Path to bundled glyph assets within JAR resources */
+    private static final String BUNDLED_RESOURCE_PATH = "/Server/Riprod_Hexcode/glyphs";
 
     // Static instance following BarterShopState pattern
     private static Path dataDirectory;
@@ -209,9 +220,10 @@ public class GlyphAssetLoader {
     /**
      * Load all glyph assets from all registered paths.
      *
-     * <p>Loads from:
+     * <p>Loads from (in order, later sources override earlier):
      * <ol>
-     *   <li>Primary glyphs directory</li>
+     *   <li>Bundled JAR resources (defaults)</li>
+     *   <li>User data directory (overrides)</li>
      *   <li>All registered external paths</li>
      * </ol>
      *
@@ -223,17 +235,132 @@ public class GlyphAssetLoader {
 
         Map<String, GlyphAssetDefinition> assets = new HashMap<>();
 
-        // Load from primary directory
-        Path primaryDir = getGlyphsDirectory();
-        loadFromDirectory(primaryDir, "hexcode", assets);
+        // Step 1: Load bundled defaults from JAR resources
+        int bundledCount = loadFromBundledResources(assets);
+        LOGGER.atInfo().log("Loaded %d bundled glyph assets from JAR resources", bundledCount);
 
-        // Load from all external paths
+        // Step 2: Load from user data directory (overrides bundled)
+        Path primaryDir = getGlyphsDirectory();
+        int userCount = loadFromDirectory(primaryDir, "hexcode", assets);
+        if (userCount > 0) {
+            LOGGER.atInfo().log("Loaded %d user glyph assets from %s (may override bundled)", userCount, primaryDir);
+        }
+
+        // Step 3: Load from all external plugin paths
         for (Map.Entry<String, Path> entry : externalAssetPaths.entrySet()) {
             loadFromDirectory(entry.getValue(), entry.getKey(), assets);
         }
 
-        LOGGER.atInfo().log("Loaded %d glyph assets total", assets.size());
+        LOGGER.atInfo().log("Loaded %d glyph assets total from directory %s", assets.size(), primaryDir);
         return assets;
+    }
+
+    /**
+     * Load glyph assets from bundled JAR resources.
+     *
+     * @param assets Map to add loaded assets to
+     * @return Number of assets loaded
+     */
+    private static int loadFromBundledResources(@Nonnull Map<String, GlyphAssetDefinition> assets) {
+        int loadedCount = 0;
+
+        try {
+            // Get the resource URL for the glyphs directory
+            java.net.URL resourceUrl = GlyphAssetLoader.class.getResource(BUNDLED_RESOURCE_PATH);
+            if (resourceUrl == null) {
+                LOGGER.atWarning().log("Bundled glyph resources not found at: %s", BUNDLED_RESOURCE_PATH);
+                return 0;
+            }
+
+            // Handle JAR and filesystem differently
+            java.net.URI uri = resourceUrl.toURI();
+            if (uri.getScheme().equals("jar")) {
+                // Running from JAR - use FileSystem to access
+                loadedCount = loadFromJarResources(uri, assets);
+            } else {
+                // Running from filesystem (IDE/development) - use Path directly
+                Path resourcePath = Paths.get(uri);
+                loadedCount = loadFromResourcePath(resourcePath, assets);
+            }
+        } catch (Exception e) {
+            LOGGER.atWarning().log("Failed to load bundled glyph resources: %s", e.getMessage());
+        }
+
+        return loadedCount;
+    }
+
+    /**
+     * Load glyph assets from JAR file resources.
+     */
+    private static int loadFromJarResources(java.net.URI jarUri, Map<String, GlyphAssetDefinition> assets) {
+        int loadedCount = 0;
+
+        try {
+            // Split JAR URI into filesystem and path parts
+            String[] parts = jarUri.toString().split("!");
+            java.net.URI fsUri = java.net.URI.create(parts[0]);
+            String pathInJar = parts[1];
+
+            // Use try-with-resources for the FileSystem, but check if it already exists
+            java.nio.file.FileSystem fs = null;
+            boolean createdFs = false;
+            try {
+                fs = FileSystems.getFileSystem(fsUri);
+            } catch (java.nio.file.FileSystemNotFoundException e) {
+                fs = FileSystems.newFileSystem(fsUri, Collections.emptyMap());
+                createdFs = true;
+            }
+
+            try {
+                Path jarPath = fs.getPath(pathInJar);
+                loadedCount = loadFromResourcePath(jarPath, assets);
+            } finally {
+                if (createdFs && fs != null) {
+                    fs.close();
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.atWarning().log("Failed to load from JAR resources: %s", e.getMessage());
+        }
+
+        return loadedCount;
+    }
+
+    /**
+     * Load glyph assets from a resource path (works for both JAR and filesystem).
+     */
+    private static int loadFromResourcePath(Path resourcePath, Map<String, GlyphAssetDefinition> assets) {
+        int loadedCount = 0;
+
+        if (!Files.exists(resourcePath) || !Files.isDirectory(resourcePath)) {
+            LOGGER.atFine().log("Resource path does not exist or is not a directory: %s", resourcePath);
+            return 0;
+        }
+
+        try (Stream<Path> paths = Files.list(resourcePath)) {
+            List<Path> jsonFiles = paths
+                    .filter(path -> path.toString().endsWith(JSON_EXTENSION))
+                    .toList();
+
+            for (Path path : jsonFiles) {
+                try {
+                    GlyphAssetDefinition asset = loadFromPath(path);
+                    if (asset != null) {
+                        assets.put(asset.getId(), asset);
+                        loadedAssets.put(asset.getId(), asset);
+                        LOGGER.atFine().log("Loaded bundled glyph asset: %s", asset.getId());
+                        loadedCount++;
+                    }
+                } catch (Exception e) {
+                    LOGGER.atWarning().log("Failed to load bundled glyph from %s: %s",
+                            path.getFileName(), e.getMessage());
+                }
+            }
+        } catch (IOException e) {
+            LOGGER.atSevere().log("Failed to scan bundled glyph resources at %s: %s", resourcePath, e.getMessage());
+        }
+
+        return loadedCount;
     }
 
     /**
@@ -242,13 +369,16 @@ public class GlyphAssetLoader {
      * @param directory The directory to load from
      * @param namespace The namespace for these assets
      * @param assets Map to add loaded assets to
+     * @return Number of assets loaded
      */
-    private static void loadFromDirectory(@Nonnull Path directory, @Nonnull String namespace,
+    private static int loadFromDirectory(@Nonnull Path directory, @Nonnull String namespace,
                                           @Nonnull Map<String, GlyphAssetDefinition> assets) {
         if (!Files.exists(directory)) {
             LOGGER.atFine().log("Glyph asset directory does not exist: %s", directory);
-            return;
+            return 0;
         }
+
+        int[] loadedCount = {0};  // Use array for lambda capture
 
         try (Stream<Path> paths = Files.list(directory)) {
             paths.filter(path -> path.toString().endsWith(JSON_EXTENSION))
@@ -259,6 +389,7 @@ public class GlyphAssetLoader {
                                 assets.put(asset.getId(), asset);
                                 loadedAssets.put(asset.getId(), asset);
                                 LOGGER.atInfo().log("Loaded glyph asset: %s", asset.getId());
+                                loadedCount[0]++;
                             }
                         } catch (Exception e) {
                             LOGGER.atWarning().log("Failed to load glyph from %s: %s",
@@ -268,6 +399,8 @@ public class GlyphAssetLoader {
         } catch (IOException e) {
             LOGGER.atSevere().log("Failed to scan glyph asset directory %s: %s", directory, e.getMessage());
         }
+
+        return loadedCount[0];
     }
 
     /**

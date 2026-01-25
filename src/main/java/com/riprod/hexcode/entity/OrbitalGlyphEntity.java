@@ -1,32 +1,32 @@
 package com.riprod.hexcode.entity;
 
+import java.util.UUID;
+
+import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.CommandBuffer;
-import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.math.shape.Box;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.ColorLight;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
-import com.hypixel.hytale.component.AddReason;
-import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
+import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
 import com.hypixel.hytale.server.core.modules.entity.component.DynamicLight;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
+import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.config.HexcodeConfig;
 import com.riprod.hexcode.data.GlyphInstance;
-import com.riprod.hexcode.glyph.Glyph;
-import com.riprod.hexcode.glyph.GlyphShape;
 import com.riprod.hexcode.glyph.GlyphVisual;
 import com.riprod.hexcode.util.HexMathUtil;
-import com.riprod.hexcode.visual.GlyphParticleRenderer;
-
-import java.util.UUID;
 
 /**
  * Represents a floating glyph entity in the orbital ring around a player.
@@ -36,6 +36,7 @@ import java.util.UUID;
  */
 public class OrbitalGlyphEntity {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+    private static final float BOUNDING_BOX_SIZE = 0.25f;
 
     private final GlyphInstance glyph;
     private final Ref<EntityStore> ownerPlayer;
@@ -50,10 +51,8 @@ public class OrbitalGlyphEntity {
     private boolean isDragging;
     private boolean isAvailable;
 
-    // Particle-based rendering
-    private final GlyphShape glyphShape;
-    private float particleRotation;
-    private int particleRefreshCounter;
+    // Visual rotation for spinning effect
+    private float visualRotation;
 
     public OrbitalGlyphEntity(GlyphInstance glyph, Ref<EntityStore> ownerPlayer, float initialAngle) {
         this.glyph = glyph;
@@ -68,11 +67,7 @@ public class OrbitalGlyphEntity {
         this.isHovered = false;
         this.isDragging = false;
         this.isAvailable = true;
-
-        // Initialize particle-based rendering
-        this.glyphShape = GlyphShape.fromGlyph(glyph.getGlyph());
-        this.particleRotation = 0.0f;
-        this.particleRefreshCounter = 0;
+        this.visualRotation = 0.0f;
     }
 
     /**
@@ -179,16 +174,24 @@ public class OrbitalGlyphEntity {
             }
         }
 
-        // Update particle rotation for spinning effect
-        if (glyphShape.getRotationSpeed() > 0) {
-            particleRotation += glyphShape.getRotationSpeed() * dt;
-            if (particleRotation > Math.PI * 2) {
-                particleRotation -= Math.PI * 2;
+        // Update visual rotation for spinning effect
+        GlyphVisual visual = glyph.getGlyph().getVisual();
+        float rotationSpeed = visual.getRotationSpeed();
+        if (rotationSpeed > 0) {
+            visualRotation += rotationSpeed * dt;
+            if (visualRotation > Math.PI * 2) {
+                visualRotation -= Math.PI * 2;
             }
         }
+    }
 
-        // Increment particle refresh counter
-        particleRefreshCounter++;
+    /**
+     * Get the current visual rotation angle.
+     *
+     * @return Rotation in radians
+     */
+    public float getVisualRotation() {
+        return visualRotation;
     }
 
     /**
@@ -202,9 +205,10 @@ public class OrbitalGlyphEntity {
     }
 
     /**
-     * Spawn this orbital glyph entity in the world.
+     * Spawn this orbital glyph entity in the world using CommandBuffer.
+     * Must be used when calling from within a system tick.
      *
-     * @param commandBuffer The command buffer for deferred entity operations
+     * @param commandBuffer  The command buffer for deferred entity operations
      * @param playerPosition The player's position
      */
     public void spawn(CommandBuffer<EntityStore> commandBuffer, Vector3d playerPosition) {
@@ -212,11 +216,13 @@ public class OrbitalGlyphEntity {
     }
 
     /**
-     * Spawn this orbital glyph entity in the world.
+     * Spawn this orbital glyph entity in the world using CommandBuffer.
+     * Always uses blockymodel-based rendering (particle rendering is deprecated).
+     * Must be used when calling from within a system tick.
      *
-     * @param commandBuffer The command buffer for deferred entity operations
+     * @param commandBuffer  The command buffer for deferred entity operations
      * @param playerPosition The player's position
-     * @param ownerPlayerId The owner player's UUID (for component-based system)
+     * @param ownerPlayerId  The owner player's UUID (for component-based system)
      */
     public void spawn(CommandBuffer<EntityStore> commandBuffer, Vector3d playerPosition, UUID ownerPlayerId) {
         if (entityRef != null) {
@@ -236,29 +242,43 @@ public class OrbitalGlyphEntity {
         TransformComponent transform = new TransformComponent(position, new Vector3f(0, 0, 0));
         holder.addComponent(TransformComponent.getComponentType(), transform);
 
-        // Load model from glyph visual (only if not using particle rendering)
+        // Always use blockymodel-based rendering
         GlyphVisual visual = glyph.getGlyph().getVisual();
-        if (!visual.usesParticleRendering()) {
-            // Legacy model-based rendering
-            String modelId = visual.getModelId();
-            if (modelId != null) {
-                ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(modelId);
-                if (modelAsset != null) {
-                    Model model = Model.createUnitScaleModel(modelAsset);
-                    holder.addComponent(ModelComponent.getComponentType(), new ModelComponent(model));
-                } else {
-                    LOGGER.atWarning().log("Could not load model '%s' for glyph '%s'", modelId, glyph.getGlyph().getDisplayName());
-                }
-            }
+        String modelId = visual.getModelId();
+
+        ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(modelId);
+        if (modelAsset != null) {
+            Model model = Model.createUnitScaleModel(modelAsset);
+            holder.addComponent(ModelComponent.getComponentType(), new ModelComponent(model));
+            holder.addComponent(PersistentModel.getComponentType(), new PersistentModel(model.toReference()));
         } else {
-            // Particle-based rendering - no model component needed
-            LOGGER.atFine().log("Using particle-based rendering for glyph '%s'", glyph.getGlyph().getDisplayName());
+            LOGGER.atWarning().log("Could not load model '%s' for glyph '%s', trying default",
+                    modelId, glyph.getGlyph().getDisplayName());
+
+            // Try loading the base_glyph model as fallback
+            ModelAsset fallbackAsset = ModelAsset.getAssetMap().getAsset("Base_glyph");
+            if (fallbackAsset != null) {
+                Model model = Model.createUnitScaleModel(fallbackAsset);
+                holder.addComponent(ModelComponent.getComponentType(), new ModelComponent(model));
+                holder.addComponent(PersistentModel.getComponentType(), new PersistentModel(model.toReference()));
+            } else {
+                LOGGER.atWarning().log("Could not load fallback model for glyph '%s'",
+                        glyph.getGlyph().getDisplayName());
+            }
         }
 
-        // Add dynamic light based on glyph color (always add for glow effect)
+        // Add dynamic light based on glyph color for glow effect
         ColorLight colorLight = createColorLightFromGlyph(visual);
         DynamicLight dynamicLight = new DynamicLight(colorLight);
         holder.addComponent(DynamicLight.getComponentType(), dynamicLight);
+
+        holder.addComponent(NetworkId.getComponentType(), new NetworkId(commandBuffer.getExternalData().takeNextNetworkId()));
+
+        // Add BoundingBox for hit detection
+        Box box = new Box(
+                -BOUNDING_BOX_SIZE, -BOUNDING_BOX_SIZE, -BOUNDING_BOX_SIZE,
+                BOUNDING_BOX_SIZE, BOUNDING_BOX_SIZE, BOUNDING_BOX_SIZE);
+        holder.addComponent(BoundingBox.getComponentType(), new BoundingBox(box));
 
         // Add orbital glyph component if component type is registered
         if (OrbitalGlyphComponent.getComponentType() != null && ownerPlayerId != null) {
@@ -268,20 +288,20 @@ public class OrbitalGlyphEntity {
                     orbitAngle,
                     orbitSpeed,
                     orbitalRadius,
-                    height
-            );
+                    height);
             holder.addComponent(OrbitalGlyphComponent.getComponentType(), orbitalComp);
         }
 
-        // Add entity to command buffer (deferred execution after tick completes)
+        // Add entity via CommandBuffer (deferred execution after tick completes)
         entityRef = commandBuffer.addEntity(holder, AddReason.SPAWN);
 
-        LOGGER.atInfo().log("Spawned orbital glyph '%s' at (%.1f, %.1f, %.1f) [particle-mode: %b]",
-                glyph.getGlyph().getDisplayName(), position.x, position.y, position.z, visual.usesParticleRendering());
+        LOGGER.atInfo().log("Spawned orbital glyph '%s' at (%.1f, %.1f, %.1f) with model '%s'",
+                glyph.getGlyph().getDisplayName(), position.x, position.y, position.z, modelId);
     }
 
     /**
-     * Despawn this orbital glyph entity.
+     * Despawn this orbital glyph entity using CommandBuffer.
+     * Must be used when calling from within a system tick.
      *
      * @param commandBuffer The command buffer for deferred entity operations
      */
@@ -296,7 +316,7 @@ public class OrbitalGlyphEntity {
     /**
      * Update the entity's position in the world.
      *
-     * @param store The entity store
+     * @param store          The entity store
      * @param playerPosition The player's current position
      */
     public void updateWorldPosition(Store<EntityStore> store, Vector3d playerPosition) {

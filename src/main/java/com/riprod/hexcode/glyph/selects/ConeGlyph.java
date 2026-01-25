@@ -35,7 +35,7 @@ public class ConeGlyph extends SelectGlyph {
      * @param assetDefinition The asset definition containing glyph properties
      */
     public ConeGlyph(GlyphAssetDefinition assetDefinition) {
-        super(assetDefinition, GlyphVisual.select("cone"), false);
+        super(assetDefinition, GlyphVisual.select("Cone"), false);
     }
 
     @Override

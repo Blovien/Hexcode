@@ -23,7 +23,7 @@ public class RangeGlyph extends ModifierGlyph {
      * @param assetDefinition The asset definition containing glyph properties
      */
     public RangeGlyph(GlyphAssetDefinition assetDefinition) {
-        super(assetDefinition, GlyphVisual.modifier("range"));
+        super(assetDefinition, GlyphVisual.modifier("Range"));
     }
 
     @Override

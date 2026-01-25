@@ -20,7 +20,7 @@ public class PowerGlyph extends ModifierGlyph {
      * @param assetDefinition The asset definition containing glyph properties
      */
     public PowerGlyph(GlyphAssetDefinition assetDefinition) {
-        super(assetDefinition, GlyphVisual.modifier("power"));
+        super(assetDefinition, GlyphVisual.modifier("Power"));
     }
 
     @Override

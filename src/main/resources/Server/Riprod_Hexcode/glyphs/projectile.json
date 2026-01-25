@@ -1,0 +1,17 @@
+{
+  "id": "hexcode:projectile",
+  "displayName": "Projectile",
+  "role": "SELECT",
+  "modelPath": "Glyphs/projectile",
+  "drawingTemplatePath": "Hexcode/Drawings/projectile.png",
+  "basePower": 1.0,
+  "baseManaCost": 0,
+  "baseVariability": 0.5,
+  "properties": {
+    "speed": 20.0,
+    "range": 40.0,
+    "gravity": 0.0,
+    "delayed": true
+  },
+  "compatibleModifiers": ["hexcode:range", "hexcode:speed", "hexcode:split"]
+}

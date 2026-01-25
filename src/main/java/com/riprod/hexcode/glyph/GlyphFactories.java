@@ -59,7 +59,6 @@ public final class GlyphFactories {
 
     public static final GlyphFactory SELF = SelfGlyph::new;
     public static final GlyphFactory TOUCH = TouchGlyph::new;
-    public static final GlyphFactory GAZE = GazeGlyph::new;
     public static final GlyphFactory BEAM = BeamGlyph::new;
     public static final GlyphFactory PROJECTILE = ProjectileGlyph::new;
     public static final GlyphFactory BURST = BurstGlyph::new;
@@ -87,7 +86,6 @@ public final class GlyphFactories {
         // Register all built-in select factories
         registerFactory("hexcode:self", SELF);
         registerFactory("hexcode:touch", TOUCH);
-        registerFactory("hexcode:gaze", GAZE);
         registerFactory("hexcode:beam", BEAM);
         registerFactory("hexcode:projectile", PROJECTILE);
         registerFactory("hexcode:burst", BURST);

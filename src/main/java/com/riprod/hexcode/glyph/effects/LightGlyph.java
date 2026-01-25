@@ -40,7 +40,7 @@ public class LightGlyph extends EffectGlyph {
      * @param assetDefinition The asset definition containing glyph properties
      */
     public LightGlyph(GlyphAssetDefinition assetDefinition) {
-        super(assetDefinition, GlyphVisual.effect(GlyphVisual.COLOR_LIGHT, "light"));
+        super(assetDefinition, GlyphVisual.effect(GlyphVisual.COLOR_LIGHT, "Light"));
     }
 
     @Override

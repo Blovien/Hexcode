@@ -111,7 +111,7 @@ public class Hex {
 
     private int countNodes(HexNode node) {
         int count = 1;
-        for (HexNode child : node.children) {
+        for (HexNode child : node.getChildren()) {
             count += countNodes(child);
         }
         return count;

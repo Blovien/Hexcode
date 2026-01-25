@@ -11,10 +11,12 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.asset.GlyphAssetDefinition;
 import com.riprod.hexcode.asset.GlyphAssetLoader;
 import com.riprod.hexcode.command.HexcodeCommand;
-import com.riprod.hexcode.data.HexBookDataStore;
+import com.riprod.hexcode.data.WorldBookDataStore;
+import com.riprod.hexcode.data.WorldHexDataStore;
 import com.riprod.hexcode.drawing.DrawingTemplate;
 import com.riprod.hexcode.entity.OrbitalGlyphComponent;
 import com.riprod.hexcode.entity.OrbitalGlyphSystem;
+import com.riprod.hexcode.entity.SelectableGlyphComponent;
 import com.riprod.hexcode.event.EventHandlers;
 import com.riprod.hexcode.event.GlyphRegistrationEvent;
 import com.riprod.hexcode.glyph.GlyphFactories;
@@ -47,6 +49,7 @@ public class Hexcode extends JavaPlugin {
 
     private EventHandlers eventHandlers;
     private ComponentType<EntityStore, OrbitalGlyphComponent> orbitalGlyphComponentType;
+    private ComponentType<EntityStore, SelectableGlyphComponent> selectableGlyphComponentType;
 
     public Hexcode(JavaPluginInit init) {
         super(init);
@@ -87,6 +90,12 @@ public class Hexcode extends JavaPlugin {
      * <p>This follows the Hytale pattern (similar to BarterShopState) where
      * data managers are initialized with the plugin's data directory for
      * proper file access and persistence.
+     *
+     * <p>Storage locations:
+     * <ul>
+     *   <li>WorldBookDataStore (legacy): {@code {world_save_path}/hexcode/{player_uuid}/{book_type}.json}</li>
+     *   <li>WorldHexDataStore (new): {@code {world_save_path}/hexcode/books/{book_uuid}.json}</li>
+     * </ul>
      */
     private void initializeDataManagers() {
         LOGGER.atInfo().log("Initializing data managers...");
@@ -95,9 +104,13 @@ public class Hexcode extends JavaPlugin {
         GlyphAssetLoader.initialize(this.getDataDirectory());
         LOGGER.atInfo().log("GlyphAssetLoader initialized");
 
-        // Initialize HexBookDataStore for per-book glyph and hex data
-        HexBookDataStore.initialize(this.getDataDirectory());
-        LOGGER.atInfo().log("HexBookDataStore initialized");
+        // Initialize WorldBookDataStore for per-world, per-player book data (legacy)
+        WorldBookDataStore.initialize();
+        LOGGER.atInfo().log("WorldBookDataStore initialized (legacy per-player storage)");
+
+        // Initialize WorldHexDataStore for UUID-based book storage (new)
+        WorldHexDataStore.initialize();
+        LOGGER.atInfo().log("WorldHexDataStore initialized (UUID-based storage)");
 
         // Initialize DrawingTemplate for loading PNG templates
         DrawingTemplate.initialize(this.getDataDirectory());
@@ -161,6 +174,7 @@ public class Hexcode extends JavaPlugin {
      */
     private void registerInteractions() {
         // Register HexcodeGlyphModeToggle (Secondary action - toggle glyph mode)
+        // Type name must match "Type" field in JSON asset files
         Interaction.CODEC.register(
                 "HexcodeGlyphModeToggle",
                 HexcodeGlyphModeToggle.class,
@@ -169,6 +183,7 @@ public class Hexcode extends JavaPlugin {
         LOGGER.atInfo().log("Registered HexcodeGlyphModeToggle interaction");
 
         // Register HexcodeGlyphAction (Primary action - drag/drop/cast)
+        // Type name must match "Type" field in JSON asset files
         Interaction.CODEC.register(
                 "HexcodeGlyphAction",
                 HexcodeGlyphAction.class,
@@ -181,13 +196,24 @@ public class Hexcode extends JavaPlugin {
      * Register custom components for the Hexcode mod.
      */
     private void registerComponents() {
-        // Register OrbitalGlyphComponent
+        // Register OrbitalGlyphComponent with CODEC for proper ECS serialization
+        // Method signature: registerComponent(Class, String name, BuilderCodec)
         orbitalGlyphComponentType = this.getEntityStoreRegistry().registerComponent(
                 OrbitalGlyphComponent.class,
-                OrbitalGlyphComponent::new
+                "OrbitalGlyphComponent",
+                OrbitalGlyphComponent.CODEC
         );
         OrbitalGlyphComponent.setComponentType(orbitalGlyphComponentType);
-        LOGGER.atInfo().log("Registered OrbitalGlyphComponent");
+        LOGGER.atInfo().log("Registered OrbitalGlyphComponent with CODEC");
+
+        // Register SelectableGlyphComponent for glyph editor selection state
+        selectableGlyphComponentType = this.getEntityStoreRegistry().registerComponent(
+                SelectableGlyphComponent.class,
+                "SelectableGlyphComponent",
+                SelectableGlyphComponent.CODEC
+        );
+        SelectableGlyphComponent.setComponentType(selectableGlyphComponentType);
+        LOGGER.atInfo().log("Registered SelectableGlyphComponent with CODEC");
     }
 
     /**
@@ -195,12 +221,8 @@ public class Hexcode extends JavaPlugin {
      */
     private void registerSystems() {
         // Register OrbitalGlyphSystem for tick updates
-        ComponentType<EntityStore, TransformComponent> transformType = TransformComponent.getComponentType();
-
-        OrbitalGlyphSystem orbitalSystem = new OrbitalGlyphSystem(
-                orbitalGlyphComponentType,
-                transformType
-        );
+        // TransformComponent type is fetched lazily by the system to avoid null during setup
+        OrbitalGlyphSystem orbitalSystem = new OrbitalGlyphSystem(orbitalGlyphComponentType);
         this.getEntityStoreRegistry().registerSystem(orbitalSystem);
         LOGGER.atInfo().log("Registered OrbitalGlyphSystem");
     }

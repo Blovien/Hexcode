@@ -1,5 +1,8 @@
 package com.riprod.hexcode.entity;
 
+import com.hypixel.hytale.codec.Codec;
+import com.hypixel.hytale.codec.KeyedCodec;
+import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -13,6 +16,61 @@ import java.util.UUID;
  */
 public class OrbitalGlyphComponent implements Component<EntityStore> {
     private static ComponentType<EntityStore, OrbitalGlyphComponent> componentType;
+
+    /**
+     * CODEC for serialization - required for ECS component registration.
+     */
+    public static final BuilderCodec<OrbitalGlyphComponent> CODEC =
+        BuilderCodec.builder(OrbitalGlyphComponent.class, OrbitalGlyphComponent::new)
+            .append(
+                new KeyedCodec<>("GlyphId", Codec.STRING),
+                (c, v) -> c.glyphId = v,
+                c -> c.glyphId
+            )
+            .add()
+            .append(
+                new KeyedCodec<>("OwnerPlayerId", Codec.UUID_STRING),
+                (c, v) -> c.ownerPlayerId = v,
+                c -> c.ownerPlayerId
+            )
+            .add()
+            .append(
+                new KeyedCodec<>("OrbitAngle", Codec.FLOAT),
+                (c, v) -> c.orbitAngle = v,
+                c -> c.orbitAngle
+            )
+            .add()
+            .append(
+                new KeyedCodec<>("OrbitSpeed", Codec.FLOAT),
+                (c, v) -> c.orbitSpeed = v,
+                c -> c.orbitSpeed
+            )
+            .add()
+            .append(
+                new KeyedCodec<>("OrbitalRadius", Codec.FLOAT),
+                (c, v) -> c.orbitalRadius = v,
+                c -> c.orbitalRadius
+            )
+            .add()
+            .append(
+                new KeyedCodec<>("Height", Codec.FLOAT),
+                (c, v) -> c.height = v,
+                c -> c.height
+            )
+            .add()
+            .append(
+                new KeyedCodec<>("IsHovered", Codec.BOOLEAN),
+                (c, v) -> c.isHovered = v,
+                c -> c.isHovered
+            )
+            .add()
+            .append(
+                new KeyedCodec<>("IsDragging", Codec.BOOLEAN),
+                (c, v) -> c.isDragging = v,
+                c -> c.isDragging
+            )
+            .add()
+            .build();
 
     private String glyphId;
     private UUID ownerPlayerId;

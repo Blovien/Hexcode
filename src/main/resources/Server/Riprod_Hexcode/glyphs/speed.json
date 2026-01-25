@@ -1,0 +1,28 @@
+{
+  "id": "hexcode:speed",
+  "displayName": "Speed",
+  "role": "MODIFIER",
+  "modelPath": "Glyphs/speed",
+  "drawingTemplatePath": "Hexcode/Drawings/speed.png",
+  "basePower": 1.5,
+  "baseManaCost": 5,
+  "baseVariability": 0.5,
+  "properties": {},
+  "incompatibleGlyphs": [
+    "hexcode:fire",
+    "hexcode:ice",
+    "hexcode:lightning",
+    "hexcode:earth",
+    "hexcode:void",
+    "hexcode:light",
+    "hexcode:shield",
+    "hexcode:blink",
+    "hexcode:heal",
+    "hexcode:push",
+    "hexcode:self",
+    "hexcode:touch",
+    "hexcode:gaze",
+    "hexcode:burst",
+    "hexcode:cone"
+  ]
+}

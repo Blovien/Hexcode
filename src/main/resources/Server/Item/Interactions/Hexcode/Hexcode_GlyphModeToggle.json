@@ -1,5 +1,0 @@
-{
-  "$Comment": "Toggle Glyph Mode on/off - requires Hex Staff in main hand and Hex Book in offhand",
-  "Type": "HexcodeGlyphModeToggle",
-  "RunTime": 0.0
-}

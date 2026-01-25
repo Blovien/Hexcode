@@ -1,7 +1,6 @@
 package com.riprod.hexcode.mode;
 
 import com.riprod.hexcode.data.GlyphInstance;
-import com.riprod.hexcode.glyph.Glyph;
 import com.riprod.hexcode.hex.Hex;
 import com.riprod.hexcode.hex.HexNode;
 
@@ -54,32 +53,60 @@ public class CompositionState {
     }
 
     /**
+     * Place a glyph as the root of an empty composition.
+     *
+     * @param glyph The glyph to place as root
+     * @return true if successful, false if composition is not empty
+     */
+    public boolean placeRoot(GlyphInstance glyph) {
+        if (glyph == null) {
+            return false;
+        }
+
+        if (!isEmpty()) {
+            // Composition already has a root - use wrapNode or addSibling instead
+            return false;
+        }
+
+        HexNode rootNode = new HexNode(glyph);
+        hex.setRoot(rootNode);
+        pushAction(new CompositionAction(CompositionActionType.PLACE_ROOT, rootNode, null));
+        return true;
+    }
+
+    /**
      * Add a glyph to the composition.
      * If composition is empty, places as root.
-     * Otherwise, attempts to add based on glyph role and current state.
+     * Otherwise, wraps the root with this glyph.
      *
      * @param glyph The glyph to add
      * @return true if successful
      */
     public boolean addGlyph(GlyphInstance glyph) {
+        if (isEmpty()) {
+            return placeRoot(glyph);
+        }
         // For non-empty composition, wrap the root with this glyph
-        HexNode root = hex.getRoot();
-        return addLeaf(glyph, root);
+        return wrapNode(glyph, hex.getRoot());
     }
 
     /**
-     * Wrap an existing node with a new glyph (modifier or select).
+     * Wrap an existing node with a new glyph.
+     * The new glyph becomes the parent of the target node.
      *
-     * @param wrapper The glyph that will wrap
+     * For example: If tree is A[B[C]] and we wrap B with X:
+     * Result: A[X[B[C]]]
+     *
+     * @param glyph The glyph that will wrap the target
      * @param target The node to wrap
      * @return true if successful
      */
-    public boolean addLeaf(GlyphInstance glyph, HexNode target) {
-        if (target == null) {
+    public boolean wrapNode(GlyphInstance glyph, HexNode target) {
+        if (glyph == null || target == null) {
             return false;
         }
 
-        HexNode wrapperNode = new HexNode(wrapper);
+        HexNode wrapperNode = new HexNode(glyph);
         HexNode parent = target.getParent();
 
         if (parent == null) {
@@ -90,8 +117,8 @@ public class CompositionState {
                 return true;
             }
         } else {
-            // Replace target with wrapper in parent's children
-            if (parent.removeChild(target) && wrapperNode.addChild(target) && parent.addChild(wrapperNode)) {
+            // Insert wrapper between parent and target
+            if (parent.replaceChild(target, wrapperNode) && wrapperNode.addChild(target)) {
                 pushAction(new CompositionAction(CompositionActionType.WRAP, wrapperNode, target));
                 return true;
             }
@@ -100,20 +127,47 @@ public class CompositionState {
     }
 
     /**
-     * Add a sibling to an existing node (for linking).
+     * Add a glyph as a child of an existing node.
+     * Used when adding an EFFECT to a MODIFIER or SELECT.
+     *
+     * @param glyph The glyph to add as child
+     * @param parentNode The node that will become the parent
+     * @return true if successful
+     */
+    public boolean addChild(GlyphInstance glyph, HexNode parentNode) {
+        if (glyph == null || parentNode == null) {
+            return false;
+        }
+
+        HexNode newNode = new HexNode(glyph);
+        if (parentNode.addChild(newNode)) {
+            pushAction(new CompositionAction(CompositionActionType.ADD_SIBLING, newNode, parentNode));
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Add a glyph as a sibling to an existing node (chaining).
+     * The new glyph becomes a sibling under the same parent.
+     *
+     * For example: If tree is A[B, C] and we add sibling D to B:
+     * Result: A[B, C, D]
      *
      * @param glyph The glyph to add as sibling
      * @param existingNode The node to be a sibling of
      * @return true if successful
      */
-    public boolean addSibling(Glyph glyph, HexNode existingNode) {
+    public boolean addSibling(GlyphInstance glyph, HexNode existingNode) {
         if (existingNode == null || glyph == null) {
             return false;
         }
 
         HexNode parent = existingNode.getParent();
         if (parent == null) {
-            return false; // Can't add sibling to root without a parent
+            // Can't add sibling to root without a parent
+            // Instead, we need to wrap the root first or handle this case specially
+            return false;
         }
 
         HexNode newNode = new HexNode(glyph);
@@ -122,6 +176,14 @@ public class CompositionState {
             return true;
         }
         return false;
+    }
+
+    /**
+     * @deprecated Use wrapNode() instead. This method has incorrect parameter naming.
+     */
+    @Deprecated
+    public boolean addLeaf(GlyphInstance glyph, HexNode target) {
+        return wrapNode(glyph, target);
     }
 
     /**
@@ -175,6 +237,30 @@ public class CompositionState {
         undoStack.clear();
     }
 
+    /**
+     * Load a hex into the composition state.
+     *
+     * <p>Clears any existing composition and loads the provided hex.
+     * The undo stack is cleared since this is a fresh load operation.
+     *
+     * <p>This is used when entering glyph mode to restore a previously
+     * queued hex from the book.
+     *
+     * @param existingHex The hex to load into the composition
+     */
+    public void loadFromHex(@Nonnull Hex existingHex) {
+        clear();
+
+        if (existingHex == null || !existingHex.hasRoot()) {
+            return;
+        }
+
+        // Deep copy the hex tree to avoid modifying the original
+        HexNode copiedRoot = deepCopyNode(existingHex.getRoot());
+        hex.setRoot(copiedRoot);
+        // Don't add to undo stack - this is a load, not a user action
+    }
+
     private void pushAction(CompositionAction action) {
         if (undoStack.size() >= maxUndoSize) {
             // Remove oldest action if at capacity
@@ -199,14 +285,13 @@ public class CompositionState {
      * @param element The saved hex element to add
      * @return true if added successfully
      */
-    public boolean addSavedHex(@Nonnull SavedHexElement element) {
-        Hex expandedHex = element.getHex();
+    public boolean addSavedHex(@Nonnull Hex element) {
 
-        if (expandedHex == null || !expandedHex.hasRoot()) {
+        if (element == null || !element.hasRoot()) {
             return false;
         }
 
-        HexNode savedHexRoot = expandedHex.getRoot();
+        HexNode savedHexRoot = element.getRoot();
 
         if (isEmpty()) {
             // First element - copy the saved hex's root as our root
@@ -224,7 +309,7 @@ public class CompositionState {
 
         // Find the leaf of the copied saved hex tree
         HexNode leaf = findFirstLeaf(copiedRoot);
-        if (leaf != null && leaf.getGlyph().getRole().canHaveChildren()) {
+        if (leaf != null) {
             // Add current composition as a child of the saved hex's leaf
             leaf.addChild(currentRoot);
             hex.setRoot(copiedRoot);
@@ -245,7 +330,7 @@ public class CompositionState {
             return null;
         }
 
-        HexNode copy = new HexNode(node.getGlyph());
+        HexNode copy = new HexNode(node.getValue());
         for (HexNode child : node.getChildren()) {
             HexNode childCopy = deepCopyNode(child);
             copy.addChild(childCopy);

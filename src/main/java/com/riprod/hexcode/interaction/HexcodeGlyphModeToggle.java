@@ -10,6 +10,7 @@ import com.hypixel.hytale.server.core.entity.InteractionContext;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.inventory.Inventory;
+import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHandler;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.data.Collector;
@@ -17,6 +18,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.mode.GlyphMode;
 import com.riprod.hexcode.mode.GlyphModeManager;
 import com.riprod.hexcode.util.HexStaffUtil;
+import com.hypixel.hytale.server.core.universe.world.World;
 
 import javax.annotation.Nonnull;
 import java.util.UUID;
@@ -83,31 +85,39 @@ public class HexcodeGlyphModeToggle extends Interaction {
         }
         UUID playerId = uuidComponent.getUuid();
 
-        // Check equipment requirements
+        // Check equipment requirements and get book stack
         Inventory inventory = player.getInventory();
         boolean hasStaff = HexStaffUtil.hasHexStaffInMainHand(inventory);
-        boolean hasBook = HexStaffUtil.hasHexBookInOffhand(inventory);
+        ItemStack bookStack = HexStaffUtil.getHexBookFromOffhand(inventory);
 
-        LOGGER.atFine().log("HexcodeGlyphModeToggle: hasStaff=%b, hasBook=%b", hasStaff, hasBook);
+        LOGGER.atFine().log("HexcodeGlyphModeToggle: hasStaff=%b, hasBook=%b", hasStaff, bookStack != null);
 
-        if (!hasStaff || !hasBook) {
+        if (!hasStaff || bookStack == null) {
             // Missing required equipment - finish without action
             LOGGER.atFine().log("HexcodeGlyphModeToggle: Missing equipment");
             return;
         }
 
-        // Toggle glyph mode
+        // Get world context for per-world data storage
+        World world = context.getCommandBuffer().getExternalData().getWorld();
+        if (world == null) {
+            LOGGER.atWarning().log("HexcodeGlyphModeToggle: Could not get world context");
+            context.getState().state = InteractionState.Failed;
+            return;
+        }
+
+        // Toggle glyph mode with book context
         GlyphModeManager modeManager = GlyphModeManager.getInstance();
         GlyphMode mode = modeManager.getSession(playerId);
         boolean inGlyphMode = mode != null && mode.isActive();
 
         if (inGlyphMode) {
-            // Exit glyph mode (pass command buffer for deferred entity despawn)
-            modeManager.exitGlyphMode(playerId, context.getCommandBuffer());
+            // Exit glyph mode, saving composition to WorldHexDataStore
+            modeManager.exitGlyphMode(playerId, context.getCommandBuffer(), world);
             LOGGER.atInfo().log("Player %s exited glyph mode via Secondary", playerId);
         } else {
-            // Enter glyph mode (pass command buffer for deferred entity spawn)
-            modeManager.toggleGlyphMode(playerId, ref, context.getCommandBuffer());
+            // Enter glyph mode with book context (loads queued hex from WorldHexDataStore)
+            modeManager.enterGlyphMode(playerId, ref, context.getCommandBuffer(), world, bookStack, inventory);
             LOGGER.atInfo().log("Player %s entered glyph mode via Secondary", playerId);
         }
     }

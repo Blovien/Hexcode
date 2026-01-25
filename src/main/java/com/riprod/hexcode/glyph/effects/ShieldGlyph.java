@@ -31,7 +31,7 @@ public class ShieldGlyph extends EffectGlyph {
      * @param assetDefinition The asset definition containing glyph properties
      */
     public ShieldGlyph(GlyphAssetDefinition assetDefinition) {
-        super(assetDefinition, GlyphVisual.effect(GlyphVisual.COLOR_SHIELD, "shield"));
+        super(assetDefinition, GlyphVisual.effect(GlyphVisual.COLOR_SHIELD, "Shield"));
     }
 
     @Override

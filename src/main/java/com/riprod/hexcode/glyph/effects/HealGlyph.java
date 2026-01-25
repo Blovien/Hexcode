@@ -28,7 +28,7 @@ public class HealGlyph extends EffectGlyph {
      * @param assetDefinition The asset definition containing glyph properties
      */
     public HealGlyph(GlyphAssetDefinition assetDefinition) {
-        super(assetDefinition, GlyphVisual.effect(GlyphVisual.COLOR_HEAL, "heal"));
+        super(assetDefinition, GlyphVisual.effect(GlyphVisual.COLOR_HEAL, "Heal"));
     }
 
     @Override

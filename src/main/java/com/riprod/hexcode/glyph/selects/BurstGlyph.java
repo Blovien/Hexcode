@@ -31,7 +31,7 @@ public class BurstGlyph extends SelectGlyph {
      * @param assetDefinition The asset definition containing glyph properties
      */
     public BurstGlyph(GlyphAssetDefinition assetDefinition) {
-        super(assetDefinition, GlyphVisual.select("burst"), false);
+        super(assetDefinition, GlyphVisual.select("Burst"), false);
     }
 
     @Override

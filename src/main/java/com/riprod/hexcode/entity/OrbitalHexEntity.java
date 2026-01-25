@@ -197,9 +197,10 @@ public class OrbitalHexEntity {
     // ==================== SPAWNING ====================
 
     /**
-     * Spawn this orbital saved hex entity in the world.
+     * Spawn this orbital saved hex entity in the world using CommandBuffer.
+     * Must be used when calling from within a system tick.
      *
-     * @param commandBuffer  The command buffer for deferred entity operations
+     * @param commandBuffer The command buffer for deferred entity operations
      * @param playerPosition The player's position
      */
     public void spawn(CommandBuffer<EntityStore> commandBuffer, Vector3d playerPosition) {
@@ -207,7 +208,8 @@ public class OrbitalHexEntity {
     }
 
     /**
-     * Spawn this orbital saved hex entity in the world.
+     * Spawn this orbital saved hex entity in the world using CommandBuffer.
+     * Must be used when calling from within a system tick.
      *
      * @param commandBuffer The command buffer for deferred entity operations
      * @param playerPosition The player's position
@@ -239,7 +241,7 @@ public class OrbitalHexEntity {
         // Note: No model component - saved hexes use particle-based rendering
         // Could add OrbitalSavedHexComponent here if needed for server-side tracking
 
-        // Add entity to command buffer (deferred execution after tick completes)
+        // Add entity via CommandBuffer (deferred execution after tick completes)
         entityRef = commandBuffer.addEntity(holder, AddReason.SPAWN);
 
         LOGGER.atInfo().log("Spawned orbital saved hex '%s' at (%.1f, %.1f, %.1f)",
@@ -247,7 +249,8 @@ public class OrbitalHexEntity {
     }
 
     /**
-     * Despawn this orbital saved hex entity.
+     * Despawn this orbital saved hex entity using CommandBuffer.
+     * Must be used when calling from within a system tick.
      *
      * @param commandBuffer The command buffer for deferred entity operations
      */

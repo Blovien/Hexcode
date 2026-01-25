@@ -35,7 +35,7 @@ public class FireGlyph extends EffectGlyph {
      * @param assetDefinition The asset definition containing glyph properties
      */
     public FireGlyph(GlyphAssetDefinition assetDefinition) {
-        super(assetDefinition, GlyphVisual.effect(GlyphVisual.COLOR_FIRE, "fire"));
+        super(assetDefinition, GlyphVisual.effect(GlyphVisual.COLOR_FIRE, "Fire"));
     }
 
     @Override
