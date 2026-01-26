@@ -1,4 +1,4 @@
-package com.riprod.hexcode.entity;
+package com.riprod.hexcode.mode;
 
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
@@ -14,14 +14,14 @@ import java.util.UUID;
  *
  * Stores orbital parameters for glyph entities in the orbital ring.
  */
-public class OrbitalGlyphComponent implements Component<EntityStore> {
-    private static ComponentType<EntityStore, OrbitalGlyphComponent> componentType;
+public class GlyphModeComponent implements Component<EntityStore> {
+    private static ComponentType<EntityStore, GlyphModeComponent> componentType;
 
     /**
      * CODEC for serialization - required for ECS component registration.
      */
-    public static final BuilderCodec<OrbitalGlyphComponent> CODEC =
-        BuilderCodec.builder(OrbitalGlyphComponent.class, OrbitalGlyphComponent::new)
+    public static final BuilderCodec<GlyphModeComponent> CODEC =
+        BuilderCodec.builder(GlyphModeComponent.class, GlyphModeComponent::new)
             .append(
                 new KeyedCodec<>("GlyphId", Codec.STRING),
                 (c, v) -> c.glyphId = v,
@@ -84,7 +84,7 @@ public class OrbitalGlyphComponent implements Component<EntityStore> {
     /**
      * Default constructor required for ECS component registration.
      */
-    public OrbitalGlyphComponent() {
+    public GlyphModeComponent() {
         this.glyphId = "";
         this.ownerPlayerId = null;
         this.orbitAngle = 0;
@@ -95,7 +95,7 @@ public class OrbitalGlyphComponent implements Component<EntityStore> {
         this.isDragging = false;
     }
 
-    public OrbitalGlyphComponent(String glyphId, UUID ownerPlayerId, float initialAngle,
+    public GlyphModeComponent(String glyphId, UUID ownerPlayerId, float initialAngle,
                                   float orbitSpeed, float orbitalRadius, float height) {
         this.glyphId = glyphId;
         this.ownerPlayerId = ownerPlayerId;
@@ -193,14 +193,14 @@ public class OrbitalGlyphComponent implements Component<EntityStore> {
     /**
      * Get the component type for registration.
      */
-    public static ComponentType<EntityStore, OrbitalGlyphComponent> getComponentType() {
+    public static ComponentType<EntityStore, GlyphModeComponent> getComponentType() {
         return componentType;
     }
 
     /**
      * Set the component type (called during plugin initialization).
      */
-    public static void setComponentType(ComponentType<EntityStore, OrbitalGlyphComponent> type) {
+    public static void setComponentType(ComponentType<EntityStore, GlyphModeComponent> type) {
         componentType = type;
     }
 
@@ -209,7 +209,7 @@ public class OrbitalGlyphComponent implements Component<EntityStore> {
      */
     @Override
     public Component<EntityStore> clone() {
-        OrbitalGlyphComponent cloned = new OrbitalGlyphComponent(
+        GlyphModeComponent cloned = new GlyphModeComponent(
             glyphId, ownerPlayerId, orbitAngle, orbitSpeed, orbitalRadius, height
         );
         cloned.isHovered = this.isHovered;

@@ -187,6 +187,32 @@ public class CompositionState {
     }
 
     /**
+     * Insert a glyph as a child of a specific target node.
+     *
+     * <p>Used for tier-based drop detection where the player aims at a specific
+     * tier/shell of a hex and the glyph is inserted as a child of that node.
+     *
+     * <p>This is similar to addChild() but uses INSERT_AT_NODE action type
+     * for proper undo semantics with tier-based insertion context.
+     *
+     * @param glyph The glyph to insert
+     * @param targetNode The node that will become the parent
+     * @return true if successful
+     */
+    public boolean insertAtNode(GlyphInstance glyph, HexNode targetNode) {
+        if (glyph == null || targetNode == null) {
+            return false;
+        }
+
+        HexNode newNode = new HexNode(glyph);
+        if (targetNode.addChild(newNode)) {
+            pushAction(new CompositionAction(CompositionActionType.INSERT_AT_NODE, newNode, targetNode));
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Undo the last action.
      *
      * @return true if an action was undone
@@ -206,6 +232,7 @@ public class CompositionState {
                 unwrap(action.node, action.target);
                 break;
             case ADD_SIBLING:
+            case INSERT_AT_NODE:
                 if (action.target != null) {
                     ((HexNode) action.target).removeChild(action.node);
                 }
@@ -355,6 +382,7 @@ public class CompositionState {
         PLACE_ROOT,
         WRAP,
         ADD_SIBLING,
+        INSERT_AT_NODE,
         PLACE_SAVED_HEX,
         WRAP_WITH_SAVED_HEX
     }

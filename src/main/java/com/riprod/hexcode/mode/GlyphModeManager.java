@@ -326,4 +326,13 @@ public class GlyphModeManager {
         }
         instance = null;
     }
+
+    public void tickAll(float dt, CommandBuffer<EntityStore> commandBuffer) {
+        for (GlyphMode mode : activeSessions.values()) {
+            if (mode.isActive()) {
+                Store<EntityStore> store = commandBuffer.getStore();
+                mode.updateOrbitalGlyphs(store, dt);
+            }
+        }
+    }
 }

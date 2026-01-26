@@ -13,7 +13,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.DynamicLight;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.asset.GlyphAssetDefinition;
-import com.riprod.hexcode.execution.SpellContext;
+import com.riprod.hexcode.executing.SpellContext;
 import com.riprod.hexcode.glyph.GlyphVisual;
 
 import java.util.UUID;

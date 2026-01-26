@@ -14,7 +14,8 @@ public class HexcodeConfig {
     private float movementSpeedMultiplier = 0.5f;
     private float orbitalRadius = 2.5f;
     private float orbitSpeed = 0.05f;  // Radians per second (full rotation ~125 seconds)
-    private float craftingSpaceDistance = 2.0f;
+    private float maxCompositionRange = 10.0f;
+    private float dragDistance = 2.5f;
 
     // Composition settings
     private int maxHexDepth = 10;
@@ -82,12 +83,20 @@ public class HexcodeConfig {
         this.orbitSpeed = speed;
     }
 
-    public float getCraftingSpaceDistance() {
-        return craftingSpaceDistance;
+    public float getMaxCompositionRange() {
+        return maxCompositionRange;
     }
 
-    public void setCraftingSpaceDistance(float distance) {
-        this.craftingSpaceDistance = distance;
+    public void setMaxCompositionRange(float range) {
+        this.maxCompositionRange = range;
+    }
+
+    public float getDragDistance() {
+        return dragDistance;
+    }
+
+    public void setDragDistance(float distance) {
+        this.dragDistance = distance;
     }
 
     // ========== COMPOSITION ==========
@@ -202,7 +211,8 @@ public class HexcodeConfig {
         movementSpeedMultiplier = 0.5f;
         orbitalRadius = 2.5f;
         orbitSpeed = 0.05f;
-        craftingSpaceDistance = 2.0f;
+        maxCompositionRange = 10.0f;
+        dragDistance = 2.5f;
         maxHexDepth = 10;
         maxSiblingsPerSelect = 8;
         undoStackSize = 20;

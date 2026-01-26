@@ -1,7 +1,7 @@
 package com.riprod.hexcode.glyph.modifiers;
 
 import com.riprod.hexcode.asset.GlyphAssetDefinition;
-import com.riprod.hexcode.execution.SpellContext;
+import com.riprod.hexcode.executing.SpellContext;
 import com.riprod.hexcode.glyph.Glyph;
 import com.riprod.hexcode.glyph.GlyphRole;
 import com.riprod.hexcode.glyph.GlyphVisual;
@@ -90,6 +90,11 @@ public abstract class ModifierGlyph implements Glyph {
     @Override
     public GlyphVisual getVisual() {
         return visual;
+    }
+
+    @Override
+    public GlyphRole getRole() {
+        return GlyphRole.MODIFIER;
     }
 
     // ========== EXECUTION DATA ==========

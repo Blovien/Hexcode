@@ -3,6 +3,9 @@ package com.riprod.hexcode.hex;
 import java.util.UUID;
 
 import com.google.gson.JsonObject;
+import com.riprod.hexcode.glyph.GlyphVisual;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A complete Hex spell structure.
@@ -89,6 +92,49 @@ public class Hex {
         return root == null;
     }
 
+    /**
+     * Iterates over all glyphs using depth-first traversal and returns the styles of each glyph.
+     * Glyph size decreases with depth (top-level is largest).
+     * Neighboring glyphs are offset relative to their parent, arranged in a circle around the parent.
+     */
+    public List<GlyphVisual> getGlyphStyles() {
+        List<GlyphVisual> styles = new ArrayList<>();
+        if (root != null) {
+            int maxDepth = getMaxDepth();
+            traverse(root, 0, 0.0f, 0.0f, maxDepth, styles);
+        }
+        return styles;
+    }
+
+    private void traverse(HexNode node, int depth, float parentX, float parentY, int maxDepth, List<GlyphVisual> styles) {
+        // Size: root is largest, shrinks to 1.0 at max depth
+        float size = 1.0f + (maxDepth - depth) * 0.1f;
+        // Position is offset from parent; for simplicity, place at parent's position initially
+        float x = parentX;
+        float y = parentY;
+        GlyphVisual glyphVisual = node.getValue().getGlyph().getVisual();
+
+        glyphVisual.setOffsetX(x);
+        glyphVisual.setOffsetY(y);
+        glyphVisual.setOffsetZ(depth * 0.1f); // Slight Z offset per depth for layering
+        glyphVisual.setScale(size);
+        styles.add(glyphVisual);
+
+        List<HexNode> children = node.getChildren();
+        if (children.size() == 1) {
+            // One child: center it on the parent
+            traverse(children.get(0), depth + 1, x, y, maxDepth, styles);
+        } else if (!children.isEmpty()) {
+            // Multiple children: arrange in a circle around the parent with small radius
+            float radius = 0.2f;
+            for (int i = 0; i < children.size(); i++) {
+                float angle = 2 * (float) Math.PI * i / children.size() + (float) Math.PI / 2;
+                float childX = x + radius * (float) Math.cos(angle);
+                float childY = y + radius * (float) Math.sin(angle);
+                traverse(children.get(i), depth + 1, childX, childY, maxDepth, styles);
+            }
+        }
+    }
     /**
      * @return Maximum depth of the Hex tree
      */

@@ -8,12 +8,18 @@ package com.riprod.hexcode.glyph;
  * - A color for tinting and dynamic lighting
  * - A glow intensity for the dynamic light radius
  * - An optional rotation speed for spinning effects
+ * - A scale factor (1.0 = default, higher = larger, lower = smaller)
+ * - Position offsets relative to the parent (x=0.5, y=0.5, z=0.0 = center of parent)
  */
 public class GlyphVisual {
     private final int color;
     private final String modelId;
     private final float glowIntensity;
     private final float rotationSpeed;
+    private float scale;
+    private float offsetX;
+    private float offsetY;
+    private float offsetZ;
 
     // Default model paths
     private static final String DEFAULT_EFFECT_MODEL = "Effect_default";
@@ -27,42 +33,20 @@ public class GlyphVisual {
      * @param modelId Path to the blockymodel asset
      * @param glowIntensity Light intensity/radius for dynamic lighting
      * @param rotationSpeed Rotation speed in radians/sec (0 = static)
+     * @param scale Scale factor (1.0 = default)
+     * @param offsetX X offset relative to parent (0.5 = center)
+     * @param offsetY Y offset relative to parent (0.5 = center)
+     * @param offsetZ Z offset relative to parent (0.0 = center)
      */
-    public GlyphVisual(int color, String modelId, float glowIntensity, float rotationSpeed) {
+    public GlyphVisual(int color, String modelId, float glowIntensity, float rotationSpeed, float scale, float offsetX, float offsetY, float offsetZ) {
         this.color = color;
         this.modelId = modelId;
         this.glowIntensity = glowIntensity;
         this.rotationSpeed = rotationSpeed;
-    }
-
-    /**
-     * Create a GlyphVisual with default rotation (static).
-     *
-     * @param color RGB color as hex int
-     * @param modelId Path to the blockymodel asset
-     * @param glowIntensity Light intensity for dynamic lighting
-     */
-    public GlyphVisual(int color, String modelId, float glowIntensity) {
-        this(color, modelId, glowIntensity, 0.0f);
-    }
-
-    /**
-     * Legacy constructor for backward compatibility.
-     * @deprecated Use the new constructors instead.
-     */
-    @Deprecated
-    public GlyphVisual(int color, String modelId, String particleId, float glowIntensity) {
-        this(color, modelId, glowIntensity, 0.0f);
-    }
-
-    /**
-     * Legacy constructor for backward compatibility.
-     * @deprecated Use the new constructors instead.
-     */
-    @Deprecated
-    public GlyphVisual(int color, String modelId, String particleId, float glowIntensity,
-                       String textureId, float particleScale, float rotationSpeed) {
-        this(color, modelId, glowIntensity, rotationSpeed);
+        this.scale = scale;
+        this.offsetX = offsetX;
+        this.offsetY = offsetY;
+        this.offsetZ = offsetZ;
     }
 
     public int getColor() {
@@ -85,6 +69,66 @@ public class GlyphVisual {
      */
     public float getRotationSpeed() {
         return rotationSpeed;
+    }
+
+    /**
+     * @return Scale factor (1.0 = default)
+     */
+    public float getScale() {
+        return scale;
+    }
+
+    /**
+     * @return X offset relative to parent (0.5 = center)
+     */
+    public float getOffsetX() {
+        return offsetX;
+    }
+
+    /**
+     * @return Y offset relative to parent (0.5 = center)
+     */
+    public float getOffsetY() {
+        return offsetY;
+    }
+
+    /**
+     * @return Z offset relative to parent (0.0 = center)
+     */
+    public float getOffsetZ() {
+        return offsetZ;
+    }
+
+    /**
+     * Set the scale factor.
+     * @param scale Scale factor (1.0 = default)
+     */
+    public void setScale(float scale) {
+        this.scale = scale;
+    }
+
+    /**
+     * Set the X offset relative to parent.
+     * @param offsetX X offset (0.5 = center)
+     */
+    public void setOffsetX(float offsetX) {
+        this.offsetX = offsetX;
+    }
+
+    /**
+     * Set the Y offset relative to parent.
+     * @param offsetY Y offset (0.5 = center)
+     */
+    public void setOffsetY(float offsetY) {
+        this.offsetY = offsetY;
+    }
+
+    /**
+     * Set the Z offset relative to parent.
+     * @param offsetZ Z offset (0.0 = center)
+     */
+    public void setOffsetZ(float offsetZ) {
+        this.offsetZ = offsetZ;
     }
 
     /**
@@ -173,7 +217,11 @@ public class GlyphVisual {
                 color,
                 MODEL_BASE + modelName,
                 0.5f,
-                0.0f  // Effects don't rotate by default
+                0.0f,  // Effects don't rotate by default
+                1.0f,  // Default scale
+                0.5f,  // Center X
+                0.5f,  // Center Y
+                0.0f   // Center Z
         );
     }
 
@@ -188,7 +236,11 @@ public class GlyphVisual {
                 COLOR_MODIFIER,
                 MODEL_BASE + modelName,
                 0.5f,
-                0.5f  // Modifiers rotate slowly
+                0.5f,  // Modifiers rotate slowly
+                1.0f,  // Default scale
+                0.5f,  // Center X
+                0.5f,  // Center Y
+                0.0f   // Center Z
         );
     }
 
@@ -203,21 +255,11 @@ public class GlyphVisual {
                 COLOR_SELECT,
                 MODEL_BASE + modelName,
                 12.0f,
-                0.3f  // Selects rotate slowly
-        );
-    }
-
-    /**
-     * Create a select glyph visual with default model.
-     *
-     * @return New GlyphVisual with default select model
-     */
-    public static GlyphVisual select() {
-        return new GlyphVisual(
-                COLOR_SELECT,
-                DEFAULT_SELECT_MODEL,
-                12.0f,
-                0.3f
+                0.3f,  // Selects rotate slowly
+                1.0f,  // Default scale
+                0.5f,  // Center X
+                0.5f,  // Center Y
+                0.0f   // Center Z
         );
     }
 

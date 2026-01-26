@@ -6,6 +6,8 @@ import com.hypixel.hytale.protocol.GameMode;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
 import com.hypixel.hytale.server.core.command.system.arguments.system.DefaultArg;
+import com.hypixel.hytale.server.core.command.system.arguments.system.OptionalArg;
+import com.hypixel.hytale.server.core.command.system.arguments.system.RequiredArg;
 import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
 import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayerCommand;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
@@ -17,20 +19,17 @@ import com.riprod.hexcode.asset.GlyphAssetLoader;
 import com.riprod.hexcode.data.GlyphInstance;
 import com.riprod.hexcode.data.HexBookData;
 import com.riprod.hexcode.data.HexBookDataManager;
-import com.riprod.hexcode.entity.GlyphEntityManager;
-import com.riprod.hexcode.entity.SelectableGlyphEntity;
 import com.riprod.hexcode.glyph.Glyph;
 import com.riprod.hexcode.glyph.GlyphRegistry;
 import com.riprod.hexcode.hex.Hex;
 import com.riprod.hexcode.mode.GlyphMode;
 import com.riprod.hexcode.mode.GlyphModeManager;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
-import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
+import com.hypixel.hytale.server.core.modules.entitystats.EntityStatValue;
 import com.hypixel.hytale.server.core.modules.entitystats.asset.DefaultEntityStatTypes;
 
 import javax.annotation.Nonnull;
+
 import java.util.UUID;
 
 /**
@@ -73,8 +72,7 @@ public class HexcodeCommand extends AbstractPlayerCommand {
         addSubCommand(new SaveSubCommand());
         addSubCommand(new HexesSubCommand());
         addSubCommand(new DeleteHexSubCommand());
-        addSubCommand(new SpawnGlyphEntitySubCommand());
-        addSubCommand(new DespawnGlyphEntitiesSubCommand());
+        addSubCommand(new StatsSubCommand());
     }
 
     @Override
@@ -104,8 +102,7 @@ public class HexcodeCommand extends AbstractPlayerCommand {
         ctx.sendMessage(Message.raw("  /hexcode save <name>     - Save current hex to book"));
         ctx.sendMessage(Message.raw("  /hexcode hexes           - List saved hexes in book"));
         ctx.sendMessage(Message.raw("  /hexcode deletehex <name>- Delete saved hex from book"));
-        ctx.sendMessage(Message.raw("  /hexcode spawnglyph <id> - Spawn a selectable glyph entity"));
-        ctx.sendMessage(Message.raw("  /hexcode despawnglyphs   - Despawn all glyph entities"));
+        ctx.sendMessage(Message.raw("  /hexcode stats           - Show all player stats debug info"));
     }
 
     public static boolean isDebugEnabled() {
@@ -254,24 +251,47 @@ public class HexcodeCommand extends AbstractPlayerCommand {
     }
 
     private class ManaSubCommand extends AbstractPlayerCommand {
-        private final DefaultArg<Float> amountArg;
+        private final OptionalArg<Float> amountArg;
 
         public ManaSubCommand() {
             super("mana", "Set mana for testing");
-            this.amountArg = withDefaultArg("amount", "Mana amount to set", ArgTypes.FLOAT, 100f, "Amount of mana");
+            this.amountArg = withOptionalArg("amount", "Mana amount to set", ArgTypes.FLOAT);
         }
 
         @Override
         protected void execute(@Nonnull CommandContext ctx, Store<EntityStore> store, Ref<EntityStore> ref,
                 PlayerRef playerRef, World world) {
-            float amount = ctx.get(amountArg);
+            Float amountOpt = ctx.get(amountArg);
             EntityStatMap statMap = store.getComponent(ref, EntityStatMap.getComponentType());
             if (statMap != null) {
                 int manaIndex = DefaultEntityStatTypes.getMana();
-                statMap.setStatValue(manaIndex, amount);
-                ctx.sendMessage(Message.raw("Set mana to " + amount));
+
+                // Get current value before setting
+                EntityStatValue currentValue = statMap.get(manaIndex);
+                float before = currentValue != null ? currentValue.get() : -1f;
+
+                // Try setting the value
+                statMap.setStatValue(manaIndex, amountOpt != null ? amountOpt : 100f);
+
+                // Verify it was set
+                EntityStatValue afterValue = statMap.get(manaIndex);
+                float after = afterValue != null ? afterValue.get() : -1f;
+
+                ctx.sendMessage(Message.raw("Mana debug:"));
+                ctx.sendMessage(Message.raw("  Mana stat index: " + manaIndex));
+                ctx.sendMessage(Message.raw("  Before: " + before));
+                ctx.sendMessage(Message.raw("  Requested: " + amountOpt));
+                ctx.sendMessage(Message.raw("  After: " + after));
+
+                if (after == (amountOpt != null ? amountOpt : 100f)) {
+                    ctx.sendMessage(Message.raw("  Status: SUCCESS"));
+                } else if (after == before) {
+                    ctx.sendMessage(Message.raw("  Status: UNCHANGED (stat may not exist or be read-only)"));
+                } else {
+                    ctx.sendMessage(Message.raw("  Status: PARTIAL (value changed but not to requested)"));
+                }
             } else {
-                ctx.sendMessage(Message.raw("Could not find player stats"));
+                ctx.sendMessage(Message.raw("Could not find EntityStatMap component"));
             }
         }
     }
@@ -394,9 +414,8 @@ public class HexcodeCommand extends AbstractPlayerCommand {
             ctx.sendMessage(Message.raw("  Time in mode: " + String.format("%.1f", mode.getTimeInModeSeconds()) + "s"));
             ctx.sendMessage(Message.raw("  Stamina drain rate: " + mode.getStaminaDrainRate() + "/s"));
             ctx.sendMessage(Message.raw("  Movement speed: " + (mode.getMovementSpeedMultiplier() * 100) + "%"));
-            ctx.sendMessage(Message.raw("  Orbital radius: " + mode.getOrbitalRadius()));
-            ctx.sendMessage(Message.raw("  Orbit speed: " + mode.getOrbitSpeed()));
-            ctx.sendMessage(Message.raw("  Crafting distance: " + mode.getCraftingSpaceDistance()));
+            ctx.sendMessage(Message.raw("  Max composition range: " + mode.getMaxCompositionRange()));
+            ctx.sendMessage(Message.raw("  Drag distance: " + mode.getDragDistance()));
 
             ctx.sendMessage(Message.raw("=== Loadout ==="));
             ctx.sendMessage(Message.raw("  Glyphs: " + mode.getAvailableGlyphsFromBook().size()));
@@ -579,21 +598,17 @@ public class HexcodeCommand extends AbstractPlayerCommand {
     }
 
     private class SaveSubCommand extends AbstractPlayerCommand {
-        private final DefaultArg<String> nameArg;
+        private final RequiredArg<String> nameArg;
 
         public SaveSubCommand() {
             super("save", "Save current hex to book");
-            this.nameArg = withDefaultArg("name", "Name for the saved hex", ArgTypes.STRING, "", "Hex name");
+            this.nameArg = withRequiredArg("name", "Name for the saved hex", ArgTypes.STRING);
         }
 
         @Override
         protected void execute(@Nonnull CommandContext ctx, Store<EntityStore> store, Ref<EntityStore> ref,
                 PlayerRef playerRef, World world) {
             String hexName = ctx.get(nameArg);
-            if (hexName.isEmpty()) {
-                ctx.sendMessage(Message.raw("Usage: /hexcode save <name>"));
-                return;
-            }
 
             UUID playerId = playerRef.getUuid();
             if (playerId == null) {
@@ -699,73 +714,76 @@ public class HexcodeCommand extends AbstractPlayerCommand {
         }
     }
 
-    private class SpawnGlyphEntitySubCommand extends AbstractPlayerCommand {
-        private final DefaultArg<String> modelIdArg;
-
-        public SpawnGlyphEntitySubCommand() {
-            super("spawnglyph", "Spawn a selectable glyph entity at player position");
-            this.modelIdArg = withDefaultArg("model_id", "Model asset ID (e.g., fire, ice)", ArgTypes.STRING, "fire", "Model ID");
+    private class StatsSubCommand extends AbstractPlayerCommand {
+        public StatsSubCommand() {
+            super("stats", "Show all player stats for debugging");
         }
 
         @Override
         protected void execute(@Nonnull CommandContext ctx, Store<EntityStore> store, Ref<EntityStore> ref,
                 PlayerRef playerRef, World world) {
-            String modelId = ctx.get(modelIdArg);
+            EntityStatMap statMap = store.getComponent(ref, EntityStatMap.getComponentType());
 
-            // Get player position
-            TransformComponent transform = store.getComponent(ref, TransformComponent.getComponentType());
-            if (transform == null) {
-                ctx.sendMessage(Message.raw("Could not get player position"));
+            ctx.sendMessage(Message.raw("=== Player Stats Debug ==="));
+
+            if (statMap == null) {
+                ctx.sendMessage(Message.raw("ERROR: No EntityStatMap component found on player!"));
+                ctx.sendMessage(Message.raw("This means stat system may not be initialized for this entity."));
                 return;
             }
 
-            // Spawn 2 blocks in front of player at eye height
-            Vector3d playerPos = transform.getPosition();
-            Vector3f playerRot = transform.getRotation();
+            ctx.sendMessage(Message.raw("EntityStatMap found: YES"));
 
-            // Calculate forward direction based on yaw
-            double yaw = Math.toRadians(playerRot.y);
-            double forwardX = -Math.sin(yaw);
-            double forwardZ = Math.cos(yaw);
+            // Get known stat indices
+            int healthIndex = DefaultEntityStatTypes.getHealth();
+            int staminaIndex = DefaultEntityStatTypes.getStamina();
+            int manaIndex = DefaultEntityStatTypes.getMana();
 
-            Vector3d spawnPos = new Vector3d(
-                playerPos.x + forwardX * 2.0,
-                playerPos.y + 1.5,
-                playerPos.z + forwardZ * 2.0
-            );
+            ctx.sendMessage(Message.raw(""));
+            ctx.sendMessage(Message.raw("Known Stat Indices:"));
+            ctx.sendMessage(Message.raw("  Health: " + healthIndex));
+            ctx.sendMessage(Message.raw("  Stamina: " + staminaIndex));
+            ctx.sendMessage(Message.raw("  Mana: " + manaIndex));
 
-            // Spawn the entity
-            GlyphEntityManager manager = GlyphEntityManager.getInstance();
-            SelectableGlyphEntity entity = manager.spawnGlyph(store, modelId, modelId, spawnPos);
+            ctx.sendMessage(Message.raw(""));
+            ctx.sendMessage(Message.raw("Current Values:"));
 
-            if (entity != null) {
-                ctx.sendMessage(Message.raw("Spawned selectable glyph entity '" + modelId + "' at (" +
-                    String.format("%.1f, %.1f, %.1f", spawnPos.x, spawnPos.y, spawnPos.z) + ")"));
-                ctx.sendMessage(Message.raw("Use Glyph Wand: right-click to select, left-click to drag"));
+            // Health
+            EntityStatValue healthValue = statMap.get(healthIndex);
+            if (healthValue != null) {
+                ctx.sendMessage(Message.raw("  Health[" + healthIndex + "]: " + healthValue.get()));
             } else {
-                ctx.sendMessage(Message.raw("Failed to spawn glyph entity. Check model asset ID."));
-            }
-        }
-    }
-
-    private class DespawnGlyphEntitiesSubCommand extends AbstractPlayerCommand {
-        public DespawnGlyphEntitiesSubCommand() {
-            super("despawnglyphs", "Despawn all selectable glyph entities");
-        }
-
-        @Override
-        protected void execute(@Nonnull CommandContext ctx, Store<EntityStore> store, Ref<EntityStore> ref,
-                PlayerRef playerRef, World world) {
-            GlyphEntityManager manager = GlyphEntityManager.getInstance();
-            int count = manager.getGlyphCount();
-
-            if (count == 0) {
-                ctx.sendMessage(Message.raw("No glyph entities to despawn"));
-                return;
+                ctx.sendMessage(Message.raw("  Health[" + healthIndex + "]: NULL (stat not registered)"));
             }
 
-            manager.despawnAll(store);
-            ctx.sendMessage(Message.raw("Despawned " + count + " glyph entities"));
+            // Stamina
+            EntityStatValue staminaValue = statMap.get(staminaIndex);
+            if (staminaValue != null) {
+                ctx.sendMessage(Message.raw("  Stamina[" + staminaIndex + "]: " + staminaValue.get()));
+            } else {
+                ctx.sendMessage(Message.raw("  Stamina[" + staminaIndex + "]: NULL (stat not registered)"));
+            }
+
+            // Mana
+            EntityStatValue manaValue = statMap.get(manaIndex);
+            if (manaValue != null) {
+                ctx.sendMessage(Message.raw("  Mana[" + manaIndex + "]: " + manaValue.get()));
+            } else {
+                ctx.sendMessage(Message.raw("  Mana[" + manaIndex + "]: NULL (stat not registered)"));
+            }
+
+            // Try to enumerate all stats in the map
+            ctx.sendMessage(Message.raw(""));
+            ctx.sendMessage(Message.raw("Checking first 20 stat indices:"));
+            int foundCount = 0;
+            for (int i = 0; i < 20; i++) {
+                EntityStatValue val = statMap.get(i);
+                if (val != null) {
+                    ctx.sendMessage(Message.raw("  [" + i + "]: " + val.get()));
+                    foundCount++;
+                }
+            }
+            ctx.sendMessage(Message.raw("Found " + foundCount + " stats in first 20 indices"));
         }
     }
 }

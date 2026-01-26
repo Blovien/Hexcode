@@ -2,7 +2,7 @@ package com.riprod.hexcode.data;
 
 import com.google.gson.JsonObject;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.riprod.hexcode.execution.SpellContext;
+import com.riprod.hexcode.executing.SpellContext;
 import com.riprod.hexcode.glyph.Glyph;
 import com.riprod.hexcode.glyph.GlyphRegistry;
 

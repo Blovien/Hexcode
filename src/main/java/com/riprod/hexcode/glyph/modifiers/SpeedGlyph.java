@@ -1,7 +1,7 @@
 package com.riprod.hexcode.glyph.modifiers;
 
 import com.riprod.hexcode.asset.GlyphAssetDefinition;
-import com.riprod.hexcode.execution.SpellContext;
+import com.riprod.hexcode.executing.SpellContext;
 import com.riprod.hexcode.glyph.GlyphVisual;
 
 /**

@@ -23,6 +23,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.casting.styles.OrbitalElement;
 import com.riprod.hexcode.config.HexcodeConfig;
 import com.riprod.hexcode.data.GlyphInstance;
 import com.riprod.hexcode.glyph.GlyphVisual;
@@ -34,9 +35,9 @@ import com.riprod.hexcode.util.HexMathUtil;
  * When in glyph mode, each glyph in the player's loadout appears as
  * an OrbitalGlyphEntity that slowly orbits around the player.
  */
-public class OrbitalGlyphEntity {
+public class GlyphEntity implements OrbitalElement {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
-    private static final float BOUNDING_BOX_SIZE = 0.25f;
+    private static final float BOUNDING_BOX_SIZE = 0.5f;
 
     private final GlyphInstance glyph;
     private final Ref<EntityStore> ownerPlayer;
@@ -50,11 +51,12 @@ public class OrbitalGlyphEntity {
     private boolean isHovered;
     private boolean isDragging;
     private boolean isAvailable;
+    private boolean excludedFromOrbit;
 
     // Visual rotation for spinning effect
     private float visualRotation;
 
-    public OrbitalGlyphEntity(GlyphInstance glyph, Ref<EntityStore> ownerPlayer, float initialAngle) {
+    public GlyphEntity(GlyphInstance glyph, Ref<EntityStore> ownerPlayer, float initialAngle) {
         this.glyph = glyph;
         this.ownerPlayer = ownerPlayer;
         this.orbitAngle = initialAngle;
@@ -67,7 +69,25 @@ public class OrbitalGlyphEntity {
         this.isHovered = false;
         this.isDragging = false;
         this.isAvailable = true;
+        this.excludedFromOrbit = false;
         this.visualRotation = 0.0f;
+    }
+
+    // --- OrbitalElement Interface Methods ---
+
+    @Override
+    public String getId() {
+        return glyph.getGlyph().getId();
+    }
+
+    @Override
+    public boolean isSavedHex() {
+        return false;
+    }
+
+    @Override
+    public GlyphVisual getVisual() {
+        return glyph.getGlyph().getVisual();
     }
 
     /**
@@ -80,6 +100,7 @@ public class OrbitalGlyphEntity {
     /**
      * @return The player who owns this orbital glyph
      */
+    @Override
     public Ref<EntityStore> getOwnerPlayer() {
         return ownerPlayer;
     }
@@ -87,6 +108,7 @@ public class OrbitalGlyphEntity {
     /**
      * @return The entity reference (if spawned)
      */
+    @Override
     public Ref<EntityStore> getEntityRef() {
         return entityRef;
     }
@@ -101,13 +123,20 @@ public class OrbitalGlyphEntity {
     /**
      * @return Current orbit angle in radians
      */
+    @Override
     public float getOrbitAngle() {
         return orbitAngle;
+    }
+
+    @Override
+    public void setOrbitAngle(float angle) {
+        this.orbitAngle = angle;
     }
 
     /**
      * @return Current orbit speed
      */
+    @Override
     public float getOrbitSpeed() {
         return orbitSpeed;
     }
@@ -115,13 +144,20 @@ public class OrbitalGlyphEntity {
     /**
      * @return Orbital radius
      */
+    @Override
     public float getOrbitalRadius() {
         return orbitalRadius;
+    }
+
+    @Override
+    public float getHeight() {
+        return height;
     }
 
     /**
      * @return true if this glyph is being hovered
      */
+    @Override
     public boolean isHovered() {
         return isHovered;
     }
@@ -129,6 +165,7 @@ public class OrbitalGlyphEntity {
     /**
      * Set hover state.
      */
+    @Override
     public void setHovered(boolean hovered) {
         this.isHovered = hovered;
     }
@@ -136,6 +173,7 @@ public class OrbitalGlyphEntity {
     /**
      * @return true if this glyph is being dragged
      */
+    @Override
     public boolean isDragging() {
         return isDragging;
     }
@@ -143,6 +181,7 @@ public class OrbitalGlyphEntity {
     /**
      * Set dragging state.
      */
+    @Override
     public void setDragging(boolean dragging) {
         this.isDragging = dragging;
     }
@@ -150,6 +189,7 @@ public class OrbitalGlyphEntity {
     /**
      * @return true if this glyph is available for use
      */
+    @Override
     public boolean isAvailable() {
         return isAvailable;
     }
@@ -157,32 +197,19 @@ public class OrbitalGlyphEntity {
     /**
      * Set availability (greyed out if incompatible).
      */
+    @Override
     public void setAvailable(boolean available) {
         this.isAvailable = available;
     }
 
-    /**
-     * Update the orbital position based on delta time.
-     *
-     * @param dt Delta time in seconds
-     */
-    public void update(float dt) {
-        if (!isDragging) {
-            orbitAngle += orbitSpeed * dt;
-            if (orbitAngle > Math.PI * 2) {
-                orbitAngle -= Math.PI * 2;
-            }
-        }
+    @Override
+    public boolean isExcludedFromOrbit() {
+        return excludedFromOrbit;
+    }
 
-        // Update visual rotation for spinning effect
-        GlyphVisual visual = glyph.getGlyph().getVisual();
-        float rotationSpeed = visual.getRotationSpeed();
-        if (rotationSpeed > 0) {
-            visualRotation += rotationSpeed * dt;
-            if (visualRotation > Math.PI * 2) {
-                visualRotation -= Math.PI * 2;
-            }
-        }
+    @Override
+    public void setExcludedFromOrbit(boolean excluded) {
+        this.excludedFromOrbit = excluded;
     }
 
     /**
@@ -200,6 +227,7 @@ public class OrbitalGlyphEntity {
      * @param playerPosition The player's current position
      * @return World position of the glyph
      */
+    @Override
     public Vector3d calculatePosition(Vector3d playerPosition) {
         return HexMathUtil.calculateOrbitalPosition(playerPosition, orbitalRadius, orbitAngle, height);
     }
@@ -211,6 +239,7 @@ public class OrbitalGlyphEntity {
      * @param commandBuffer  The command buffer for deferred entity operations
      * @param playerPosition The player's position
      */
+    @Override
     public void spawn(CommandBuffer<EntityStore> commandBuffer, Vector3d playerPosition) {
         spawn(commandBuffer, playerPosition, null);
     }
@@ -281,15 +310,15 @@ public class OrbitalGlyphEntity {
         holder.addComponent(BoundingBox.getComponentType(), new BoundingBox(box));
 
         // Add orbital glyph component if component type is registered
-        if (OrbitalGlyphComponent.getComponentType() != null && ownerPlayerId != null) {
-            OrbitalGlyphComponent orbitalComp = new OrbitalGlyphComponent(
+        if (GlyphComponent.getComponentType() != null && ownerPlayerId != null) {
+            GlyphComponent orbitalComp = new GlyphComponent(
                     glyph.getGlyph().getId(),
                     ownerPlayerId,
                     orbitAngle,
                     orbitSpeed,
                     orbitalRadius,
                     height);
-            holder.addComponent(OrbitalGlyphComponent.getComponentType(), orbitalComp);
+            holder.addComponent(GlyphComponent.getComponentType(), orbitalComp);
         }
 
         // Add entity via CommandBuffer (deferred execution after tick completes)
@@ -305,6 +334,7 @@ public class OrbitalGlyphEntity {
      *
      * @param commandBuffer The command buffer for deferred entity operations
      */
+    @Override
     public void despawn(CommandBuffer<EntityStore> commandBuffer) {
         if (entityRef != null) {
             commandBuffer.removeEntity(entityRef, RemoveReason.REMOVE);
@@ -319,6 +349,7 @@ public class OrbitalGlyphEntity {
      * @param store          The entity store
      * @param playerPosition The player's current position
      */
+    @Override
     public void updateWorldPosition(Store<EntityStore> store, Vector3d playerPosition) {
         if (entityRef == null) {
             return;
@@ -332,10 +363,29 @@ public class OrbitalGlyphEntity {
     }
 
     /**
+     * Update the entity's position directly to a specific location (for dragging).
+     *
+     * @param store    The entity store
+     * @param position The target position
+     */
+    @Override
+    public void updateWorldPositionDirect(Store<EntityStore> store, Vector3d position) {
+        if (entityRef == null) {
+            return;
+        }
+
+        TransformComponent transform = store.getComponent(entityRef, TransformComponent.getComponentType());
+        if (transform != null) {
+            transform.setPosition(position);
+        }
+    }
+
+    /**
      * Update the hover highlight visual.
      *
      * @param store The entity store
      */
+    @Override
     public void updateHoverVisual(Store<EntityStore> store) {
         if (entityRef == null) {
             return;

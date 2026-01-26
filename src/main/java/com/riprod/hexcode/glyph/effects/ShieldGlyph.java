@@ -9,7 +9,7 @@ import com.hypixel.hytale.server.core.asset.type.entityeffect.config.OverlapBeha
 import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.asset.GlyphAssetDefinition;
-import com.riprod.hexcode.execution.SpellContext;
+import com.riprod.hexcode.executing.SpellContext;
 import com.riprod.hexcode.glyph.GlyphVisual;
 
 /**

@@ -3,7 +3,7 @@ package com.riprod.hexcode.glyph;
 import com.google.gson.JsonObject;
 import com.riprod.hexcode.asset.GlyphAssetDefinition;
 import com.riprod.hexcode.data.GlyphInstance;
-import com.riprod.hexcode.execution.SpellContext;
+import com.riprod.hexcode.executing.SpellContext;
 
 /**
  * Base interface for all glyphs in the Hexcode spell system.
@@ -59,6 +59,13 @@ public interface Glyph {
      * @return The display name (e.g., "Fire", "Power")
      */
     String getDisplayName();
+
+    /**
+     * Get the role of this glyph.
+     *
+     * @return The glyph role (EFFECT, MODIFIER, or SELECT)
+     */
+    GlyphRole getRole();
 
     // ========== ASSET-DRIVEN PROPERTIES ==========
 

@@ -7,7 +7,7 @@ import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.entity.OrbitalGlyphEntity;
+import com.riprod.hexcode.entity.HexEntity;
 
 import java.util.List;
 
@@ -71,8 +71,8 @@ public class RaycastUtil {
      * @param maxDistance Maximum raycast distance
      * @return The hovered orbital glyph entity, or null if none
      */
-    public static OrbitalGlyphEntity findHoveredGlyph(Store<EntityStore> store, Ref<EntityStore> playerRef,
-                                                       List<OrbitalGlyphEntity> orbitalEntities, float maxDistance) {
+    public static HexEntity findHoveredGlyph(Store<EntityStore> store, Ref<EntityStore> playerRef,
+                                                       List<HexEntity> orbitalEntities, float maxDistance) {
         if (orbitalEntities == null || orbitalEntities.isEmpty()) {
             return null;
         }
@@ -99,11 +99,11 @@ public class RaycastUtil {
         // Use HeadRotation.getDirection() for accurate look direction
         Vector3d lookDirection = headRotation.getDirection();
 
-        OrbitalGlyphEntity closest = null;
+        HexEntity closest = null;
         double closestDistance = maxDistance;
 
         for (int i = 0, size = orbitalEntities.size(); i < size; i++) {
-            OrbitalGlyphEntity orbitalEntity = orbitalEntities.get(i);
+            HexEntity orbitalEntity = orbitalEntities.get(i);
 
             if (orbitalEntity.isDragging()) {
                 continue; // Skip entities being dragged

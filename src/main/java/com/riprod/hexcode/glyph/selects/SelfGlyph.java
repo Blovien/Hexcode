@@ -2,7 +2,7 @@ package com.riprod.hexcode.glyph.selects;
 
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.riprod.hexcode.asset.GlyphAssetDefinition;
-import com.riprod.hexcode.execution.SpellContext;
+import com.riprod.hexcode.executing.SpellContext;
 import com.riprod.hexcode.glyph.GlyphVisual;
 
 /**

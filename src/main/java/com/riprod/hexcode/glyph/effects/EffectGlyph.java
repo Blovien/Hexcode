@@ -5,7 +5,7 @@ import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.asset.GlyphAssetDefinition;
 import com.riprod.hexcode.data.GlyphInstance;
-import com.riprod.hexcode.execution.SpellContext;
+import com.riprod.hexcode.executing.SpellContext;
 import com.riprod.hexcode.glyph.Glyph;
 import com.riprod.hexcode.glyph.GlyphRole;
 import com.riprod.hexcode.glyph.GlyphVisual;
@@ -90,6 +90,11 @@ public abstract class EffectGlyph implements Glyph {
     @Override
     public GlyphVisual getVisual() {
         return visual;
+    }
+
+    @Override
+    public GlyphRole getRole() {
+        return GlyphRole.EFFECT;
     }
 
     // ========== EXECUTION DATA ==========

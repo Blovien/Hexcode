@@ -1,0 +1,43 @@
+{
+  "$Comment": "Hexcode Mana stat - overrides base Mana.json which has Max=0",
+  "InitialValue": 100,
+  "Min": 0,
+  "Max": 100,
+  "Shared": true,
+  "ResetType": "MaxValue",
+  "Regenerating": [
+    {
+      "$Comment": "Mana regeneration for players",
+      "Interval": 0.5,
+      "Amount": 2,
+      "RegenType": "Additive",
+      "Conditions": [
+        {
+          "Id": "Alive"
+        },
+        {
+          "Id": "Player"
+        },
+        {
+          "Id": "NoDamageTaken",
+          "Delay": 3
+        }
+      ]
+    },
+    {
+      "$Comment": "Fast mana regen in creative mode",
+      "Interval": 0.2,
+      "Amount": 10,
+      "RegenType": "Additive",
+      "Conditions": [
+        {
+          "Id": "Alive"
+        },
+        {
+          "Id": "Player",
+          "GameMode": "Creative"
+        }
+      ]
+    }
+  ]
+}

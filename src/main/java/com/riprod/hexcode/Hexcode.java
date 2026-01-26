@@ -14,9 +14,7 @@ import com.riprod.hexcode.command.HexcodeCommand;
 import com.riprod.hexcode.data.WorldBookDataStore;
 import com.riprod.hexcode.data.WorldHexDataStore;
 import com.riprod.hexcode.drawing.DrawingTemplate;
-import com.riprod.hexcode.entity.OrbitalGlyphComponent;
-import com.riprod.hexcode.entity.OrbitalGlyphSystem;
-import com.riprod.hexcode.entity.SelectableGlyphComponent;
+import com.riprod.hexcode.entity.GlyphComponent;
 import com.riprod.hexcode.event.EventHandlers;
 import com.riprod.hexcode.event.GlyphRegistrationEvent;
 import com.riprod.hexcode.glyph.GlyphFactories;
@@ -25,6 +23,7 @@ import com.riprod.hexcode.glyph.GlyphRegistry;
 import com.riprod.hexcode.glyph.GlyphRole;
 import com.riprod.hexcode.interaction.HexcodeGlyphAction;
 import com.riprod.hexcode.interaction.HexcodeGlyphModeToggle;
+import com.riprod.hexcode.mode.GlyphModeSystem;
 
 import java.util.Map;
 
@@ -48,8 +47,7 @@ public class Hexcode extends JavaPlugin {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     private EventHandlers eventHandlers;
-    private ComponentType<EntityStore, OrbitalGlyphComponent> orbitalGlyphComponentType;
-    private ComponentType<EntityStore, SelectableGlyphComponent> selectableGlyphComponentType;
+    private ComponentType<EntityStore, GlyphComponent> glyphComponentType;
 
     public Hexcode(JavaPluginInit init) {
         super(init);
@@ -198,22 +196,13 @@ public class Hexcode extends JavaPlugin {
     private void registerComponents() {
         // Register OrbitalGlyphComponent with CODEC for proper ECS serialization
         // Method signature: registerComponent(Class, String name, BuilderCodec)
-        orbitalGlyphComponentType = this.getEntityStoreRegistry().registerComponent(
-                OrbitalGlyphComponent.class,
+        glyphComponentType = this.getEntityStoreRegistry().registerComponent(
+                GlyphComponent.class,
                 "OrbitalGlyphComponent",
-                OrbitalGlyphComponent.CODEC
+                GlyphComponent.CODEC
         );
-        OrbitalGlyphComponent.setComponentType(orbitalGlyphComponentType);
+        GlyphComponent.setComponentType(glyphComponentType);
         LOGGER.atInfo().log("Registered OrbitalGlyphComponent with CODEC");
-
-        // Register SelectableGlyphComponent for glyph editor selection state
-        selectableGlyphComponentType = this.getEntityStoreRegistry().registerComponent(
-                SelectableGlyphComponent.class,
-                "SelectableGlyphComponent",
-                SelectableGlyphComponent.CODEC
-        );
-        SelectableGlyphComponent.setComponentType(selectableGlyphComponentType);
-        LOGGER.atInfo().log("Registered SelectableGlyphComponent with CODEC");
     }
 
     /**
@@ -222,7 +211,7 @@ public class Hexcode extends JavaPlugin {
     private void registerSystems() {
         // Register OrbitalGlyphSystem for tick updates
         // TransformComponent type is fetched lazily by the system to avoid null during setup
-        OrbitalGlyphSystem orbitalSystem = new OrbitalGlyphSystem(orbitalGlyphComponentType);
+        GlyphModeSystem orbitalSystem = new GlyphModeSystem(glyphComponentType);
         this.getEntityStoreRegistry().registerSystem(orbitalSystem);
         LOGGER.atInfo().log("Registered OrbitalGlyphSystem");
     }
