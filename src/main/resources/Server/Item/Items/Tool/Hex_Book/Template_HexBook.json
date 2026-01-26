@@ -17,7 +17,7 @@
     "Compatible": true
   },
   "Interactions": {
-    "Primary": "Hexcode_Staff_Primary",
+    "Primary": "Hexcode_Staff_Cast",
     "Secondary": "Hexcode_Staff_Secondary"
   },
   "Icon": "Icons/ItemsGenerated/Hex_Book.png"

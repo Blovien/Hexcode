@@ -31,9 +31,6 @@ public class RingGlyphStyle extends BaseGlyphStyle {
     /** Default rotation speed (radians per second) */
     public static final float DEFAULT_ROTATION_SPEED = 0.3f;
 
-    /** Assumed ticks per second for dt conversion (Hytale typically runs at 20 TPS) */
-    private static final float TICKS_PER_SECOND = 20.0f;
-
     public RingGlyphStyle() {
         super();
         this.radius = DEFAULT_RADIUS;
@@ -61,10 +58,9 @@ public class RingGlyphStyle extends BaseGlyphStyle {
     public void tick(Store<EntityStore> store, float dt) {
         // Convert dt to seconds if it's raw tick count (dt=1 per tick)
         // Hytale ECS typically provides dt as tick count, not seconds
-        float dtSeconds = dt / TICKS_PER_SECOND;
 
         // Update the global rotation angle (rotationSpeed is in radians per second)
-        rotationAngle += rotationSpeed * dtSeconds;
+        rotationAngle += rotationSpeed * dt;
 
         // Keep angle in range [0, 2π)
         if (rotationAngle >= 2.0 * Math.PI) {

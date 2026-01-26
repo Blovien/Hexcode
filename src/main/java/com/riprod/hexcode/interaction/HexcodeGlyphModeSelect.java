@@ -1,5 +1,12 @@
 package com.riprod.hexcode.interaction;
 
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.annotation.Nonnull;
+
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentType;
@@ -15,17 +22,14 @@ import com.hypixel.hytale.server.core.entity.InteractionContext;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.inventory.Inventory;
-import com.hypixel.hytale.server.core.inventory.ItemStack;
+import com.hypixel.hytale.server.core.meta.DynamicMetaStore;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
-import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
-import com.hypixel.hytale.server.core.modules.entitystats.EntityStatValue;
-import com.hypixel.hytale.server.core.modules.entitystats.asset.DefaultEntityStatTypes;
 import com.hypixel.hytale.server.core.modules.interaction.IInteractionSimulationHandler;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHandler;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
+import com.hypixel.hytale.server.core.modules.interaction.interaction.config.client.ChargingInteraction;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.data.Collector;
-import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.casting.IntersectionObserver;
 import com.riprod.hexcode.casting.IntersectionObserver.DropTarget;
@@ -34,31 +38,19 @@ import com.riprod.hexcode.casting.styles.BaseGlyphStyle;
 import com.riprod.hexcode.casting.styles.OrbitalElement;
 import com.riprod.hexcode.casting.styles.RingGlyphStyle;
 import com.riprod.hexcode.data.GlyphInstance;
-import com.riprod.hexcode.data.WorldHexDataStore;
 import com.riprod.hexcode.entity.GlyphComponent;
 import com.riprod.hexcode.entity.GlyphEntity;
 import com.riprod.hexcode.entity.HexEntity;
-import com.riprod.hexcode.executing.HexExecutor;
 import com.riprod.hexcode.glyph.Glyph;
 import com.riprod.hexcode.glyph.GlyphRole;
-import com.riprod.hexcode.hex.Hex;
 import com.riprod.hexcode.hex.HexNode;
 import com.riprod.hexcode.mode.CompositionState;
 import com.riprod.hexcode.mode.GlyphMode;
 import com.riprod.hexcode.mode.GlyphModeManager;
-import com.riprod.hexcode.util.HexBookMetadata;
-import com.riprod.hexcode.util.HexMathUtil;
 import com.riprod.hexcode.util.HexStaffUtil;
 import com.riprod.hexcode.util.RaycastUtil;
 import com.riprod.hexcode.visual.GlyphRenderer;
 import com.riprod.hexcode.visual.TrailEffect;
-import com.hypixel.hytale.server.core.util.TargetUtil;
-
-import javax.annotation.Nonnull;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Handles Primary (left-click) interaction for Hex Staff.
@@ -70,13 +62,15 @@ import java.util.concurrent.ConcurrentHashMap;
  * When not in Glyph Mode:
  * - Casts the composed hex if one exists
  */
-public class HexcodeGlyphAction extends Interaction {
+public class HexcodeGlyphModeSelect extends ChargingInteraction {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     /** Selection range for raycast glyph detection */
     private static final float SELECTION_RANGE = 10.0f;
 
-    private final HexExecutor hexExecutor;
+    private static final float CHARGING_HELD = -1.0F; // Still holding
+    private static final float CHARGING_CANCELED = -2.0F; // Cancelled
+
     private final GlyphRenderer glyphRenderer;
     private final Map<UUID, TrailEffect> activeTrails;
     private final IntersectionObserver intersectionObserver;
@@ -86,21 +80,18 @@ public class HexcodeGlyphAction extends Interaction {
     private static volatile ComponentType<EntityStore, HeadRotation> headRotationComponentType;
     private static volatile ComponentType<EntityStore, GlyphComponent> orbitalGlyphComponentType;
 
-    public static final BuilderCodec<HexcodeGlyphAction> CODEC = BuilderCodec.builder(
-            HexcodeGlyphAction.class,
-            HexcodeGlyphAction::new,
+    public static final BuilderCodec<HexcodeGlyphModeSelect> CODEC = BuilderCodec.builder(
+            HexcodeGlyphModeSelect.class,
+            HexcodeGlyphModeSelect::new,
             Interaction.ABSTRACT_CODEC).build();
 
-    public HexcodeGlyphAction() {
-        this.hexExecutor = new HexExecutor();
+    public HexcodeGlyphModeSelect() {
         this.glyphRenderer = new GlyphRenderer();
         this.activeTrails = new ConcurrentHashMap<>();
         this.intersectionObserver = new IntersectionObserver();
     }
 
-    public HexcodeGlyphAction(String id) {
-        super(id);
-        this.hexExecutor = new HexExecutor();
+    public HexcodeGlyphModeSelect(String id) {
         this.glyphRenderer = new GlyphRenderer();
         this.activeTrails = new ConcurrentHashMap<>();
         this.intersectionObserver = new IntersectionObserver();
@@ -133,10 +124,7 @@ public class HexcodeGlyphAction extends Interaction {
     @Nonnull
     @Override
     public WaitForDataFrom getWaitForDataFrom() {
-        // Use Client so server waits for client to report button release
-        // When getClientState() == null, client hasn't sent data (button still held)
-        // When getClientState() != null, client sent data (button released)
-        return WaitForDataFrom.Client;
+        return WaitForDataFrom.Server;
     }
 
     @Override
@@ -146,7 +134,9 @@ public class HexcodeGlyphAction extends Interaction {
             @Nonnull InteractionType type,
             @Nonnull InteractionContext context,
             @Nonnull CooldownHandler cooldownHandler) {
+
         Ref<EntityStore> ref = context.getEntity();
+
         if (!ref.isValid()) {
             context.getState().state = InteractionState.Failed;
             LOGGER.atInfo().log("HexcodeGlyphAction: Invalid entity reference");
@@ -174,18 +164,33 @@ public class HexcodeGlyphAction extends Interaction {
 
         // Check equipment requirements
         Inventory inventory = player.getInventory();
+        GlyphModeManager modeManager = GlyphModeManager.getInstance();
+
         if (!HexStaffUtil.hasHexcodeEquipment(inventory)) {
             // Missing required equipment
             LOGGER.atInfo().log("HexcodeGlyphAction: Wrong Equipment");
-
+            context.getState().state = InteractionState.Failed;
+            // exit glyph mode
+            modeManager.removeSession(playerId);
             return;
         }
 
         // Get glyph mode state
-        GlyphModeManager modeManager = GlyphModeManager.getInstance();
         GlyphMode mode = modeManager.getSession(playerId);
         boolean inGlyphMode = mode != null && mode.isActive();
 
+        InteractionSyncData syncData = context.getClientState();
+
+        if (syncData != null) {
+
+            if (syncData.chargeValue == CHARGING_CANCELED || syncData.chargeValue != CHARGING_HELD) {
+                // Interaction was cancelled
+                handleDragEnd(playerId, ref, store, mode);
+                LOGGER.atInfo().log("HexcodeGlyphAction: Interaction cancelled");
+                context.getState().state = InteractionState.Finished;
+                return;
+            }
+        }
         if (inGlyphMode) {
             // In glyph mode: handle drag/drop
             if (firstRun) {
@@ -203,82 +208,13 @@ public class HexcodeGlyphAction extends Interaction {
                 return;
             }
 
-            // Subsequent ticks: check if client has released the button
-            // With WaitForDataFrom.Client:
-            //   getClientState() == null  → client hasn't sent data → button still held
-            //   getClientState() != null  → client sent data → button released
-            InteractionSyncData clientData = context.getClientState();
-
-            if (clientData == null) {
-                // Button still held - update drag position
-                if (mode.isDragging()) {
-                    updateDragPosition(ref, store, mode);
-                }
-                context.getState().state = InteractionState.NotFinished;
-                return;
-            }
-
-            // Client sent data - button was released
             if (mode.isDragging()) {
-                handleDragEnd(playerId, ref, store, mode);
+                updateDragPosition(ref, store, mode);
             }
-            context.getState().state = InteractionState.Finished;
-        } else {
-            LOGGER.atInfo().log("HexcodeGlyphAction: Not in glyph mode");
-            // Not in glyph mode: cast hex on first tick
-            if (firstRun) {
-                LOGGER.atInfo().log("HexcodeGlyphAction: Casting hex on first tick");
-
-                // Get world context for WorldHexDataStore
-                World world = context.getCommandBuffer().getExternalData().getWorld();
-
-                // First try to get hex from WorldHexDataStore (per-book queued spell)
-                ItemStack bookStack = HexStaffUtil.getHexBookFromOffhand(inventory);
-                if (bookStack != null && world != null) {
-                    // Get book UUID (required for world storage lookup)
-                    UUID bookUuid = HexBookMetadata.getBookUUID(bookStack);
-                    if (bookUuid != null) {
-                        // Get queued hex from world storage
-                        Hex hexFromBook = WorldHexDataStore.get().getQueuedHex(world, bookUuid);
-                        if (hexFromBook != null && !hexFromBook.isEmpty()) {
-                            castHexFromBook(playerId, ref, store, hexFromBook, world, bookUuid);
-                            LOGGER.atInfo().log("Player %s cast hex from book %s via Primary", playerId, bookUuid);
-                            return;
-                        }
-                    } else {
-                        LOGGER.atInfo().log("Book has no UUID - never used in glyph mode");
-                    }
-                }
-
-                // Fallback: try composition from active mode session
-                if (mode != null) {
-                    CompositionState composition = mode.getComposition();
-                    if (composition != null && !composition.isEmpty()) {
-                        castHex(playerId, ref, store, mode);
-                        LOGGER.atInfo().log("Player %s cast hex via Primary", playerId);
-                    } else {
-                        LOGGER.atInfo().log("No hex composed to cast");
-                    }
-                } else {
-                    LOGGER.atInfo().log("No hex queued in book and no glyph mode session");
-                }
-            }
+            context.getState().state = InteractionState.NotFinished;
+            return;
         }
     }
-
-    @Override
-    public void handle(
-            @Nonnull Ref<EntityStore> ref,
-            boolean firstRun,
-            float time,
-            @Nonnull InteractionType type,
-            @Nonnull InteractionContext context) {
-        super.handle(ref, firstRun, time, type, context);
-        // Drag end is now handled in tick0() when client state indicates release
-    }
-
-    /** Maximum drag duration before auto-release (fallback timeout) */
-    private static final float MAX_DRAG_TIME = 30.0f;
 
     @Override
     protected void simulateTick0(
@@ -287,20 +223,51 @@ public class HexcodeGlyphAction extends Interaction {
             @Nonnull InteractionType type,
             @Nonnull InteractionContext context,
             @Nonnull CooldownHandler cooldownHandler) {
-        // Client-side simulation for drag interaction
-        // The framework calls this while the button is held.
-        // When the button is released, the framework stops calling this and
-        // sends the final state to the server.
 
-        // Timeout fallback: if dragging for too long, auto-release
-        if (time > MAX_DRAG_TIME) {
+        // if the player is in Glyph Mode - Select
+        GlyphModeManager modeManager = GlyphModeManager.getInstance();
+        UUID playerId = context.getCommandBuffer().getComponent(context.getEntity(), UUIDComponent.getComponentType())
+                .getUuid();
+        GlyphMode mode = modeManager.getSession(playerId);
+        boolean inGlyphMode = mode != null && mode.isActive();
+
+        if (!inGlyphMode) {
             context.getState().state = InteractionState.Finished;
             return;
         }
 
-        // Keep state as NotFinished while button is held
-        // When player releases, framework will set state to Finished and send to server
-        context.getState().state = InteractionState.NotFinished;
+        DynamicMetaStore<InteractionContext> metaStore = context.getMetaStore();
+
+        Ref<EntityStore> target = metaStore.getMetaObject(Interaction.TARGET_ENTITY);
+
+        // target does not exist
+        if (target == null || !target.isValid()) {
+            context.getState().state = InteractionState.Failed;
+            LOGGER.atInfo().log("HexcodeGlyphAction Simulation: No valid target entity");
+            return;
+        }
+
+        // Handle targeted glyph
+        if (!target.getClass().equals(GlyphEntity.class) || !target.getClass().equals(HexEntity.class)) {
+            // Not a glyph or hex entity
+            context.getState().state = InteractionState.Failed;
+            LOGGER.atInfo().log("HexcodeGlyphAction Simulation: Target is not a glyph or hex entity");
+            return;
+        }
+
+        Player player = context.getCommandBuffer().getComponent(context.getEntity(), Player.getComponentType());
+
+        Inventory inventory = player.getInventory();
+        if (!HexStaffUtil.hasHexcodeEquipment(inventory)) {
+            // Missing required equipment
+            LOGGER.atInfo().log("HexcodeGlyphAction: Wrong Equipment");
+            context.getState().state = InteractionState.Failed;
+            // exit glyph mode
+            modeManager.removeSession(playerId);
+            return;
+        }
+
+        // Select and update drag position
     }
 
     @Override
@@ -312,7 +279,7 @@ public class HexcodeGlyphAction extends Interaction {
     @Nonnull
     @Override
     protected com.hypixel.hytale.protocol.Interaction generatePacket() {
-        return new com.hypixel.hytale.protocol.SimpleInteraction();
+        return new com.hypixel.hytale.protocol.ChargingInteraction();
     }
 
     @Override
@@ -326,19 +293,22 @@ public class HexcodeGlyphAction extends Interaction {
      * Left-click finds the orbital glyph the player is looking at,
      * selects it, and starts dragging in one action.
      *
-     * <p>Uses IntersectionObserver for ray-sphere intersection targeting,
+     * <p>
+     * Uses IntersectionObserver for ray-sphere intersection targeting,
      * which handles both single glyphs and saved hexes uniformly.
      *
-     * <p>Integrates with the orbital style system to exclude dragged elements
+     * <p>
+     * Integrates with the orbital style system to exclude dragged elements
      * from orbital rotation updates.
      *
-     * @param playerId Player's UUID
-     * @param playerRef Player entity reference
-     * @param commandBuffer Command buffer (implements ComponentAccessor for TargetUtil)
-     * @param mode Active glyph mode session
+     * @param playerId      Player's UUID
+     * @param playerRef     Player entity reference
+     * @param commandBuffer Command buffer (implements ComponentAccessor for
+     *                      TargetUtil)
+     * @param mode          Active glyph mode session
      */
     private void handleDragStart(UUID playerId, Ref<EntityStore> playerRef,
-                                  CommandBuffer<EntityStore> commandBuffer, GlyphMode mode) {
+            CommandBuffer<EntityStore> commandBuffer, GlyphMode mode) {
         // Get orbital elements from the style system
         List<OrbitalElement> orbitalElements = mode.getAllOrbitalElements();
 
@@ -347,7 +317,8 @@ public class HexcodeGlyphAction extends Interaction {
             return;
         }
 
-        LOGGER.atInfo().log("Player %s attempting to select from %d orbital elements", playerId, orbitalElements.size());
+        LOGGER.atInfo().log("Player %s attempting to select from %d orbital elements", playerId,
+                orbitalElements.size());
 
         Store<EntityStore> store = commandBuffer.getStore();
 
@@ -402,12 +373,13 @@ public class HexcodeGlyphAction extends Interaction {
     }
 
     /**
-     * Update the position of the dragged element to follow the player's look direction.
+     * Update the position of the dragged element to follow the player's look
+     * direction.
      * Called every tick while dragging to provide smooth visual feedback.
      *
      * @param playerRef Player entity reference
-     * @param store The entity store
-     * @param mode The glyph mode with drag state
+     * @param store     The entity store
+     * @param mode      The glyph mode with drag state
      */
     private void updateDragPosition(Ref<EntityStore> playerRef, Store<EntityStore> store, GlyphMode mode) {
         OrbitalElement draggedElement = mode.getDraggingElement();
@@ -455,15 +427,17 @@ public class HexcodeGlyphAction extends Interaction {
     /**
      * Handle glyph drag end with drop target detection.
      *
-     * <p>Drop behavior:
+     * <p>
+     * Drop behavior:
      * <ul>
-     *   <li>Drop on single glyph: Wrap it (dragged wraps target)</li>
-     *   <li>Drop on hex (tier-based): Insert as child of aimed tier's node</li>
-     *   <li>Drop on empty space with empty composition: Place as root</li>
-     *   <li>Drop on empty space with existing composition: Wrap the current root</li>
+     * <li>Drop on single glyph: Wrap it (dragged wraps target)</li>
+     * <li>Drop on hex (tier-based): Insert as child of aimed tier's node</li>
+     * <li>Drop on empty space with empty composition: Place as root</li>
+     * <li>Drop on empty space with existing composition: Wrap the current root</li>
      * </ul>
      *
-     * <p>Uses IntersectionObserver for tier-based drop detection on hexes.
+     * <p>
+     * Uses IntersectionObserver for tier-based drop detection on hexes.
      * The tier determines which HexNode becomes the parent of the dropped glyph.
      */
     private void handleDragEnd(UUID playerId, Ref<EntityStore> playerRef, Store<EntityStore> store, GlyphMode mode) {
@@ -589,15 +563,16 @@ public class HexcodeGlyphAction extends Interaction {
     /**
      * Check if a wrapper glyph can wrap a target glyph based on role rules.
      *
-     * <p>Wrapping rules:
+     * <p>
+     * Wrapping rules:
      * <ul>
-     *   <li>EFFECT glyphs cannot wrap anything - they are always leaves</li>
-     *   <li>MODIFIER glyphs can wrap any glyph (they modify their child)</li>
-     *   <li>SELECT glyphs can wrap any glyph (they target their children)</li>
+     * <li>EFFECT glyphs cannot wrap anything - they are always leaves</li>
+     * <li>MODIFIER glyphs can wrap any glyph (they modify their child)</li>
+     * <li>SELECT glyphs can wrap any glyph (they target their children)</li>
      * </ul>
      *
      * @param wrapper The glyph that will wrap (become outer shell)
-     * @param target The glyph that will be wrapped (become inner)
+     * @param target  The glyph that will be wrapped (become inner)
      * @return true if the wrap is valid
      */
     private boolean canWrap(Glyph wrapper, Glyph target) {
@@ -614,181 +589,6 @@ public class HexcodeGlyphAction extends Interaction {
 
         // MODIFIERs and SELECTs can wrap anything
         return true;
-    }
-
-    /**
-     * Cast the composed hex.
-     */
-    private void castHex(UUID playerId, Ref<EntityStore> playerRef, Store<EntityStore> store, GlyphMode mode) {
-        CompositionState composition = mode.getComposition();
-        Hex hex = composition.getHex();
-
-        if (hex.isEmpty()) {
-            LOGGER.atInfo().log("Failed to cast hex - empty or invalid composition");
-            return;
-        }
-
-        // Calculate mana cost by traversing the hex tree
-        float totalManaCost = calculateHexManaCost(hex);
-        float playerMana = getPlayerMana(store, playerRef);
-
-        // Validate mana before casting (75% minimum threshold)
-        float minRequiredMana = totalManaCost * 0.75f;
-        if (playerMana < minRequiredMana) {
-            LOGGER.atInfo().log("Failed to cast hex - insufficient mana (have: %.0f, need: %.0f, minimum: %.0f)",
-                    playerMana, totalManaCost, minRequiredMana);
-            return;
-        }
-
-        // Get cast origin and direction (use HeadRotation for accurate look direction)
-        TransformComponent transform = store.getComponent(playerRef, getTransformType());
-        HeadRotation headRotation = store.getComponent(playerRef, getHeadRotationType());
-        if (transform == null || headRotation == null) {
-            return;
-        }
-        Vector3d direction = RaycastUtil.getPlayerLookDirection(headRotation);
-
-        // Consume mana - use actual cost or all remaining mana if below 100%
-        float manaToConsume = Math.min(totalManaCost, playerMana);
-        consumePlayerMana(playerRef, manaToConsume);
-        LOGGER.atInfo().log("Consumed %.0f mana for hex (total cost: %.0f, had: %.0f)",
-                manaToConsume, totalManaCost, playerMana);
-
-        // Execute the hex
-        HexExecutor.ExecutionResult result = hexExecutor.execute(hex, playerRef, store, null, direction);
-        if (result.isSuccess()) {
-            LOGGER.atInfo().log("Hex cast successfully");
-        } else {
-            LOGGER.atWarning().log("Hex execution failed: %s", result.getMessage());
-        }
-
-        // Clear composition
-        composition.clear();
-    }
-
-    /**
-     * Cast a hex from WorldHexDataStore.
-     *
-     * <p>
-     * Used when player casts outside glyph mode - the hex is read from
-     * the world storage using the book's UUID.
-     *
-     * @param playerId  The player's UUID
-     * @param playerRef The player entity reference
-     * @param store     The entity store
-     * @param hex       The hex to cast (from WorldHexDataStore)
-     * @param world     The world context (for clearing after cast)
-     * @param bookUuid  The book's UUID (for clearing after cast)
-     */
-    private void castHexFromBook(UUID playerId, Ref<EntityStore> playerRef, Store<EntityStore> store,
-            Hex hex, World world, UUID bookUuid) {
-        if (hex.isEmpty()) {
-            LOGGER.atInfo().log("Failed to cast hex from book - empty or invalid hex");
-            return;
-        }
-
-        // Calculate mana cost by traversing the hex tree
-        float totalManaCost = calculateHexManaCost(hex);
-        float playerMana = getPlayerMana(store, playerRef);
-
-        // Validate mana before casting (75% minimum threshold)
-        float minRequiredMana = totalManaCost * 0.75f;
-        if (playerMana < minRequiredMana) {
-            LOGGER.atInfo().log("Failed to cast hex - insufficient mana (have: %.0f, need: %.0f, minimum: %.0f)",
-                    playerMana, totalManaCost, minRequiredMana);
-            return;
-        }
-
-        // Get cast origin and direction (use HeadRotation for accurate look direction)
-        TransformComponent transform = store.getComponent(playerRef, getTransformType());
-        HeadRotation headRotation = store.getComponent(playerRef, getHeadRotationType());
-        if (transform == null || headRotation == null) {
-            return;
-        }
-        Vector3d direction = RaycastUtil.getPlayerLookDirection(headRotation);
-
-        // Consume mana - use actual cost or all remaining mana if below 100%
-        float manaToConsume = Math.min(totalManaCost, playerMana);
-        consumePlayerMana(playerRef, manaToConsume);
-        LOGGER.atInfo().log("Consumed %.0f mana for hex from book (total cost: %.0f, had: %.0f)",
-                manaToConsume, totalManaCost, playerMana);
-
-        // Execute the hex
-        HexExecutor.ExecutionResult result = hexExecutor.execute(hex, playerRef, store, null, direction);
-        if (result.isSuccess()) {
-            LOGGER.atInfo().log("Hex from book cast successfully");
-            // Optionally clear the book's queued hex after casting
-            // Comment out if you want to keep the hex for repeated casting
-            // WorldHexDataStore.get().clearQueuedHex(world, bookUuid);
-        } else {
-            LOGGER.atWarning().log("Hex from book execution failed: %s", result.getMessage());
-        }
-    }
-
-    /**
-     * Calculate the total mana cost of a hex by traversing the tree.
-     *
-     * @param hex The hex to calculate cost for
-     * @return Total mana cost (sum of all glyph costs)
-     */
-    private float calculateHexManaCost(Hex hex) {
-        if (hex.isEmpty()) {
-            return 0f;
-        }
-        return calculateNodeManaCost(hex.getRoot());
-    }
-
-    /**
-     * Recursively calculate mana cost for a node and its children.
-     */
-    private float calculateNodeManaCost(HexNode node) {
-        float cost = 0f;
-
-        GlyphInstance glyphInstance = node.getValue();
-        if (glyphInstance != null && glyphInstance.isValid()) {
-            // Get base mana cost from glyph asset definition
-            cost += glyphInstance.getGlyph().getAssetDefinition().getBaseManaCost();
-        }
-
-        // Add children costs
-        for (HexNode child : node.getChildren()) {
-            cost += calculateNodeManaCost(child);
-        }
-
-        return cost;
-    }
-
-    /**
-     * Get player's current mana.
-     */
-    private float getPlayerMana(Store<EntityStore> store, Ref<EntityStore> playerRef) {
-        EntityStatMap playerStats = store.getComponent(playerRef, EntityStatMap.getComponentType());
-        if (playerStats == null) {
-            return 0;
-        }
-
-        int manaIndex = DefaultEntityStatTypes.getMana();
-        EntityStatValue manaValue = playerStats.get(manaIndex);
-        if (manaValue == null) {
-            return 0;
-        }
-        return manaValue.get();
-    }
-
-    /**
-     * Consume player mana.
-     */
-    private void consumePlayerMana(Ref<EntityStore> playerRef, float amount) {
-        Store<EntityStore> store = playerRef.getStore();
-
-        EntityStatMap playerStats = store.getComponent(playerRef, EntityStatMap.getComponentType());
-        if (playerStats == null) {
-            return;
-        }
-
-        int manaIndex = DefaultEntityStatTypes.getMana();
-        playerStats.addStatValue(manaIndex, -amount);
-        LOGGER.atInfo().log("Consumed %.0f mana from player", amount);
     }
 
     /**

@@ -216,7 +216,7 @@ public class GlyphVisual {
         return new GlyphVisual(
                 color,
                 MODEL_BASE + modelName,
-                0.5f,
+                0.05f,
                 0.0f,  // Effects don't rotate by default
                 1.0f,  // Default scale
                 0.5f,  // Center X
@@ -235,7 +235,7 @@ public class GlyphVisual {
         return new GlyphVisual(
                 COLOR_MODIFIER,
                 MODEL_BASE + modelName,
-                0.5f,
+                0.05f,
                 0.5f,  // Modifiers rotate slowly
                 1.0f,  // Default scale
                 0.5f,  // Center X
@@ -254,34 +254,12 @@ public class GlyphVisual {
         return new GlyphVisual(
                 COLOR_SELECT,
                 MODEL_BASE + modelName,
-                12.0f,
+                0.05f,
                 0.3f,  // Selects rotate slowly
                 1.0f,  // Default scale
                 0.5f,  // Center X
                 0.5f,  // Center Y
                 0.0f   // Center Z
         );
-    }
-
-    /**
-     * Get the default model path for a glyph role.
-     *
-     * @param role The glyph role
-     * @return The default model path
-     */
-    public static String getDefaultModelForRole(GlyphRole role) {
-        if (role == null) {
-            return DEFAULT_EFFECT_MODEL;
-        }
-        switch (role) {
-            case EFFECT:
-                return DEFAULT_EFFECT_MODEL;
-            case MODIFIER:
-                return DEFAULT_MODIFIER_MODEL;
-            case SELECT:
-                return DEFAULT_SELECT_MODEL;
-            default:
-                return DEFAULT_EFFECT_MODEL;
-        }
     }
 }

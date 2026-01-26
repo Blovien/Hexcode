@@ -576,6 +576,10 @@ public class HexEntity implements OrbitalElement {
 
     /**
      * Create a ColorLight from glyph visual properties.
+     *
+     * glowIntensity is expected to be 0.0-1.0 range:
+     * - Used to scale RGB brightness (0.05 = 5% of full color brightness)
+     * - Used to calculate radius (0.05 * 60 = 3 blocks of light reach)
      */
     private ColorLight createColorLightFromGlyph(GlyphVisual visual) {
         int color = visual.getColor();
@@ -586,9 +590,17 @@ public class HexEntity implements OrbitalElement {
         int green = (color >> 8) & 0xFF;
         int blue = color & 0xFF;
 
+        // Scale RGB by intensity to control brightness
+        // intensity of 0.05 = 5% brightness, 1.0 = full brightness
+        red = (int)(red * intensity);
+        green = (int)(green * intensity);
+        blue = (int)(blue * intensity);
+
         // Create ColorLight
         ColorLight colorLight = new ColorLight();
-        colorLight.radius = (byte) Math.min(255, (int) intensity);
+        // Radius: intensity * 60 gives reasonable range (0.05 = 3 blocks, 1.0 = 60 blocks)
+        // Minimum of 1 to avoid undefined behavior with radius=0
+        colorLight.radius = (byte) Math.max(1, Math.min(255, (int)(intensity)));
         colorLight.red = (byte) red;
         colorLight.green = (byte) green;
         colorLight.blue = (byte) blue;

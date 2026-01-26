@@ -1,0 +1,8 @@
+{
+  "$Comment": "Exits Glyph Mode when Secondary is released - chained from HexcodeGlyphModeToggle",
+  "Type": "HexcodeGlyphModeDisable",
+  "RunTime": 0.1,
+  "Effects": {
+    "ItemAnimationId": "CastLeftEnd"
+  }
+}

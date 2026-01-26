@@ -1,21 +1,16 @@
 {
-  "$Comment": "Toggle Glyph Mode on/off - requires Hex Staff in main hand and Hex Book in offhand",
+  "$Comment": "Hold to enter Glyph Mode - releases chains to Disable interaction. Primary forks to Select.",
   "Type": "HexcodeGlyphModeToggle",
   "RunTime": 0.0,
   "Effects": {
     "ItemAnimationId": "CastLeftCharging"
   },
   "AllowIndefiniteHold": true,
-  "HorizontalSpeedMultiplier": 0.75,
-  "Next": {
-    "0": {
-      "Type": "Chaining",
-      "ChainingAllowance": 1.25,
-      "Next": [
-        "Sword_Swing_Left_Fast",
-        "Sword_Swing_Right_Fast"
-      ]
-    },
-    "0.35": "Wand_Cast_Left_Charged"
+  "DisplayProgress": false,
+  "CancelOnOtherClick": false,
+  "HorizontalSpeedMultiplier": 0.5,
+  "Next": "Hexcode_Glyph_Mode_Disable",
+  "Forks": {
+    "Primary": "Hexcode_Staff_Select"
   }
 }

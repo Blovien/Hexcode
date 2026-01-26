@@ -2,7 +2,8 @@ items.Example_Block.name=Example Block
 
 # Hexcode Items
 items.Hex_Staff.name=Hex Staff
-items.Glyph_Wand.name=Glyph Wand
+items.Hex_book.name=Basic Hex Book
+items.Template_Hex_book.name=Template Hex Book
 
 # Glyph Editor Messages
 glypheditor.select=Glyph selected

@@ -21,9 +21,10 @@ import com.riprod.hexcode.glyph.GlyphFactories;
 import com.riprod.hexcode.glyph.GlyphFactory;
 import com.riprod.hexcode.glyph.GlyphRegistry;
 import com.riprod.hexcode.glyph.GlyphRole;
-import com.riprod.hexcode.interaction.HexcodeGlyphAction;
+import com.riprod.hexcode.interaction.HexcodeGlyphCast;
+import com.riprod.hexcode.interaction.HexcodeGlyphModeDisable;
+import com.riprod.hexcode.interaction.HexcodeGlyphModeSelect;
 import com.riprod.hexcode.interaction.HexcodeGlyphModeToggle;
-import com.riprod.hexcode.mode.GlyphModeSystem;
 
 import java.util.Map;
 
@@ -67,9 +68,6 @@ public class Hexcode extends JavaPlugin {
 
         // Step 4: Register custom components
         registerComponents();
-
-        // Step 5: Register systems
-        registerSystems();
 
         // Step 6: Register commands
         this.getCommandRegistry().registerCommand(new HexcodeCommand());
@@ -183,11 +181,29 @@ public class Hexcode extends JavaPlugin {
         // Register HexcodeGlyphAction (Primary action - drag/drop/cast)
         // Type name must match "Type" field in JSON asset files
         Interaction.CODEC.register(
-                "HexcodeGlyphAction",
-                HexcodeGlyphAction.class,
-                HexcodeGlyphAction.CODEC
+                "HexcodeGlyphModeSelect",
+                HexcodeGlyphModeSelect.class,
+                HexcodeGlyphModeSelect.CODEC
         );
-        LOGGER.atInfo().log("Registered HexcodeGlyphAction interaction");
+        LOGGER.atInfo().log("Registered HexcodeGlyphModeSelect interaction");
+        
+        // Register HexcodeGlyphCast (Primary action when not in glyph mode - cast hex)
+        // Type name must match "Type" field in JSON asset files
+        Interaction.CODEC.register(
+            "HexcodeGlyphCast",
+            HexcodeGlyphCast.class,
+            HexcodeGlyphCast.CODEC
+        );
+        LOGGER.atInfo().log("Registered HexcodeGlyphCast interaction");
+
+        // Register HexcodeGlyphModeDisable (Chained from Toggle on release - cleanup)
+        // Type name must match "Type" field in JSON asset files
+        Interaction.CODEC.register(
+            "HexcodeGlyphModeDisable",
+            HexcodeGlyphModeDisable.class,
+            HexcodeGlyphModeDisable.CODEC
+        );
+        LOGGER.atInfo().log("Registered HexcodeGlyphModeDisable interaction");
     }
 
     /**
@@ -203,16 +219,5 @@ public class Hexcode extends JavaPlugin {
         );
         GlyphComponent.setComponentType(glyphComponentType);
         LOGGER.atInfo().log("Registered OrbitalGlyphComponent with CODEC");
-    }
-
-    /**
-     * Register systems for the Hexcode mod.
-     */
-    private void registerSystems() {
-        // Register OrbitalGlyphSystem for tick updates
-        // TransformComponent type is fetched lazily by the system to avoid null during setup
-        GlyphModeSystem orbitalSystem = new GlyphModeSystem(glyphComponentType);
-        this.getEntityStoreRegistry().registerSystem(orbitalSystem);
-        LOGGER.atInfo().log("Registered OrbitalGlyphSystem");
     }
 }

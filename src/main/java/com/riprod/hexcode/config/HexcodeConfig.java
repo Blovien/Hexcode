@@ -27,8 +27,8 @@ public class HexcodeConfig {
     private float baseCooldown = 0.5f;
 
     // Visual settings
-    private float glyphLightRadius = 6.0f;
-    private float glyphLightIntensity = 10.0f;
+    private float glyphLightRadius = 0.2f;
+    private float glyphLightIntensity = 0.2f;
     private int dragTrailParticles = 15;
     private float dragTrailDuration = 0.3f;
 

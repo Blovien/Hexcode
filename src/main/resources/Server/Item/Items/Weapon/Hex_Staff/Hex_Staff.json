@@ -13,7 +13,7 @@
     "Compatible": true
   },
   "Interactions": {
-    "Primary": "Hexcode_Staff_Primary",
+    "Primary": "Hexcode_Staff_Cast",
     "Secondary": "Hexcode_Staff_Secondary"
   },
   "InteractionVars": {

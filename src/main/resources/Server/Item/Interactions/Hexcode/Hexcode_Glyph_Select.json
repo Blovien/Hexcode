@@ -1,0 +1,7 @@
+{
+  "$Comment": "Glyph drag/drop and hex casting - handles both glyph mode composition and spell casting",
+  "Type": "HexcodeGlyphModeSelect",
+  "RunTime": 0.0,
+  "AllowIndefiniteHold": true,
+  "DisplayProgress": false
+}
