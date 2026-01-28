@@ -29,6 +29,52 @@ public class GlyphInstance {
     private int timesUsed;
     private boolean valid;
 
+    // ========== CODEC SETTERS ==========
+    // These setters are used by BuilderCodec for deserialization.
+    // They maintain the glyph reference by looking up from GlyphRegistry.
+
+    /**
+     * Set the glyph ID (used by codec). Also resolves the Glyph reference.
+     */
+    public void setGlyphId(String glyphId) {
+        this.glyphId = glyphId;
+        if (glyphId != null && !glyphId.isEmpty()) {
+            this.glyph = GlyphRegistry.getInstance().getGlyph(glyphId);
+            this.valid = (this.glyph != null);
+            if (this.glyph != null) {
+                this.glyph.setExecutionData(this.accuracy, this.drawSpeed);
+            }
+        }
+    }
+
+    /**
+     * Set the accuracy (used by codec).
+     */
+    public void setAccuracy(float accuracy) {
+        this.accuracy = clampAccuracy(accuracy);
+    }
+
+    /**
+     * Set the draw speed (used by codec).
+     */
+    public void setDrawSpeed(float drawSpeed) {
+        this.drawSpeed = Math.max(0f, drawSpeed);
+    }
+
+    /**
+     * Set the drawn timestamp (used by codec).
+     */
+    public void setDrawnTimestamp(long drawnTimestamp) {
+        this.drawnTimestamp = drawnTimestamp;
+    }
+
+    /**
+     * Set the times used (used by codec).
+     */
+    public void setTimesUsed(int timesUsed) {
+        this.timesUsed = Math.max(0, timesUsed);
+    }
+
     /**
      * Create a new glyph instance data.
      *
@@ -68,8 +114,11 @@ public class GlyphInstance {
         this.valid = false;
     }
 
-    /** Private constructor for deserialization */
-    private GlyphInstance() {
+    /**
+     * Default constructor for codec deserialization.
+     * Creates an empty instance that will be populated by the codec.
+     */
+    public GlyphInstance() {
         this.accuracy = 0.75f;
         this.drawSpeed = 0f;
         this.drawnTimestamp = System.currentTimeMillis();

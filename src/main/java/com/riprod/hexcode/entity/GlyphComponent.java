@@ -6,13 +6,14 @@ import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.math.GlyphRotation;
 
 import java.util.UUID;
 
 /**
- * Component attached to orbital glyph entities.
+ * Component attached to glyph/hex entities.
  *
- * Stores orbital parameters for glyph entities in the orbital ring.
+ * <p>Stores rotation (pitch/yaw) for positioning elements relative to the player's eyes.
  */
 public class GlyphComponent implements Component<EntityStore> {
     private static ComponentType<EntityStore, GlyphComponent> componentType;
@@ -35,27 +36,15 @@ public class GlyphComponent implements Component<EntityStore> {
             )
             .add()
             .append(
-                new KeyedCodec<>("OrbitAngle", Codec.FLOAT),
-                (c, v) -> c.orbitAngle = v,
-                c -> c.orbitAngle
+                new KeyedCodec<>("Pitch", Codec.FLOAT),
+                (c, v) -> c.pitch = v,
+                c -> c.pitch
             )
             .add()
             .append(
-                new KeyedCodec<>("OrbitSpeed", Codec.FLOAT),
-                (c, v) -> c.orbitSpeed = v,
-                c -> c.orbitSpeed
-            )
-            .add()
-            .append(
-                new KeyedCodec<>("OrbitalRadius", Codec.FLOAT),
-                (c, v) -> c.orbitalRadius = v,
-                c -> c.orbitalRadius
-            )
-            .add()
-            .append(
-                new KeyedCodec<>("Height", Codec.FLOAT),
-                (c, v) -> c.height = v,
-                c -> c.height
+                new KeyedCodec<>("Yaw", Codec.FLOAT),
+                (c, v) -> c.yaw = v,
+                c -> c.yaw
             )
             .add()
             .append(
@@ -74,10 +63,8 @@ public class GlyphComponent implements Component<EntityStore> {
 
     private String glyphId;
     private UUID ownerPlayerId;
-    private float orbitAngle;
-    private float orbitSpeed;
-    private float orbitalRadius;
-    private float height;
+    private float pitch;
+    private float yaw;
     private boolean isHovered;
     private boolean isDragging;
 
@@ -87,37 +74,53 @@ public class GlyphComponent implements Component<EntityStore> {
     public GlyphComponent() {
         this.glyphId = "";
         this.ownerPlayerId = null;
-        this.orbitAngle = 0;
-        this.orbitSpeed = 0;
-        this.orbitalRadius = 0;
-        this.height = 0;
-        this.isHovered = false;
-        this.isDragging = false;
-    }
-
-    public GlyphComponent(String glyphId, UUID ownerPlayerId, float initialAngle,
-                                  float orbitSpeed, float orbitalRadius, float height) {
-        this.glyphId = glyphId;
-        this.ownerPlayerId = ownerPlayerId;
-        this.orbitAngle = initialAngle;
-        this.orbitSpeed = orbitSpeed;
-        this.orbitalRadius = orbitalRadius;
-        this.height = height;
+        this.pitch = 0;
+        this.yaw = 0;
         this.isHovered = false;
         this.isDragging = false;
     }
 
     /**
-     * Initialize an instance with all parameters (for use after default construction).
+     * Create a new GlyphComponent with rotation.
+     *
+     * @param glyphId       The glyph/hex ID
+     * @param ownerPlayerId The owner player's UUID
+     * @param pitch         Vertical angle in degrees (negative = up)
+     * @param yaw           Horizontal angle in degrees (0 = forward)
      */
-    public void initialize(String glyphId, UUID ownerPlayerId, float initialAngle,
-                           float orbitSpeed, float orbitalRadius, float height) {
+    public GlyphComponent(String glyphId, UUID ownerPlayerId, float pitch, float yaw) {
         this.glyphId = glyphId;
         this.ownerPlayerId = ownerPlayerId;
-        this.orbitAngle = initialAngle;
-        this.orbitSpeed = orbitSpeed;
-        this.orbitalRadius = orbitalRadius;
-        this.height = height;
+        this.pitch = pitch;
+        this.yaw = yaw;
+        this.isHovered = false;
+        this.isDragging = false;
+    }
+
+    /**
+     * Create a GlyphComponent from a GlyphRotation.
+     *
+     * @param glyphId       The glyph/hex ID
+     * @param ownerPlayerId The owner player's UUID
+     * @param rotation      The rotation to use
+     */
+    public GlyphComponent(String glyphId, UUID ownerPlayerId, GlyphRotation rotation) {
+        this.glyphId = glyphId;
+        this.ownerPlayerId = ownerPlayerId;
+        this.pitch = rotation.getPitch();
+        this.yaw = rotation.getYaw();
+        this.isHovered = false;
+        this.isDragging = false;
+    }
+
+    /**
+     * Initialize an instance with rotation (for use after default construction).
+     */
+    public void initialize(String glyphId, UUID ownerPlayerId, float pitch, float yaw) {
+        this.glyphId = glyphId;
+        this.ownerPlayerId = ownerPlayerId;
+        this.pitch = pitch;
+        this.yaw = yaw;
     }
 
     public String getGlyphId() {
@@ -128,36 +131,45 @@ public class GlyphComponent implements Component<EntityStore> {
         return ownerPlayerId;
     }
 
-    public float getOrbitAngle() {
-        return orbitAngle;
+    /**
+     * @return Vertical angle in degrees. Negative = up, positive = down.
+     */
+    public float getPitch() {
+        return pitch;
     }
 
-    public void setOrbitAngle(float angle) {
-        this.orbitAngle = angle;
+    public void setPitch(float pitch) {
+        this.pitch = pitch;
     }
 
-    public float getOrbitSpeed() {
-        return orbitSpeed;
+    /**
+     * @return Horizontal angle in degrees. 0 = forward (+Z), 90 = right (+X).
+     */
+    public float getYaw() {
+        return yaw;
     }
 
-    public void setOrbitSpeed(float speed) {
-        this.orbitSpeed = speed;
+    public void setYaw(float yaw) {
+        this.yaw = yaw;
     }
 
-    public float getOrbitalRadius() {
-        return orbitalRadius;
+    /**
+     * Get the rotation as a GlyphRotation object.
+     *
+     * @return A GlyphRotation with this component's pitch and yaw
+     */
+    public GlyphRotation getRotation() {
+        return new GlyphRotation(pitch, yaw);
     }
 
-    public void setOrbitalRadius(float radius) {
-        this.orbitalRadius = radius;
-    }
-
-    public float getHeight() {
-        return height;
-    }
-
-    public void setHeight(float height) {
-        this.height = height;
+    /**
+     * Set the rotation from a GlyphRotation object.
+     *
+     * @param rotation The rotation to set
+     */
+    public void setRotation(GlyphRotation rotation) {
+        this.pitch = rotation.getPitch();
+        this.yaw = rotation.getYaw();
     }
 
     public boolean isHovered() {
@@ -174,20 +186,6 @@ public class GlyphComponent implements Component<EntityStore> {
 
     public void setDragging(boolean dragging) {
         this.isDragging = dragging;
-    }
-
-    /**
-     * Update the orbital angle based on delta time.
-     *
-     * @param dt Delta time in seconds
-     */
-    public void updateOrbit(float dt) {
-        if (!isDragging) {
-            orbitAngle += orbitSpeed * dt;
-            if (orbitAngle > Math.PI * 2) {
-                orbitAngle -= Math.PI * 2;
-            }
-        }
     }
 
     /**
@@ -209,9 +207,7 @@ public class GlyphComponent implements Component<EntityStore> {
      */
     @Override
     public Component<EntityStore> clone() {
-        GlyphComponent cloned = new GlyphComponent(
-            glyphId, ownerPlayerId, orbitAngle, orbitSpeed, orbitalRadius, height
-        );
+        GlyphComponent cloned = new GlyphComponent(glyphId, ownerPlayerId, pitch, yaw);
         cloned.isHovered = this.isHovered;
         cloned.isDragging = this.isDragging;
         return cloned;

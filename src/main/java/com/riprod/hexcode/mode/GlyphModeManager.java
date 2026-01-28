@@ -62,61 +62,27 @@ public class GlyphModeManager {
     }
 
     /**
-     * Enter glyph mode for a player.
-     * Uses CommandBuffer for deferred entity operations during system ticks.
-     *
-     * @param playerId The player's UUID
-     * @param playerRef The player entity reference
-     * @param commandBuffer The command buffer for deferred entity operations
-     * @param world The world context for per-world data storage
-     * @return The new glyph mode session
-     */
-    public GlyphMode enterGlyphMode(@Nonnull UUID playerId, @Nullable Ref<EntityStore> playerRef,
-                                     @Nullable CommandBuffer<EntityStore> commandBuffer, @Nonnull World world) {
-        return enterGlyphMode(playerId, playerRef, commandBuffer, world, null);
-    }
-
-    /**
-     * Enter glyph mode for a player with book context.
-     * Uses CommandBuffer for deferred entity operations during system ticks.
-     *
-     * <p>When a book stack is provided, the existing queued hex from that book
-     * is loaded into the composition state, allowing players to resume composing.
-     *
-     * @param playerId The player's UUID
-     * @param playerRef The player entity reference
-     * @param commandBuffer The command buffer for deferred entity operations
-     * @param world The world context for per-world data storage
-     * @param bookStack The Hex Book item stack (for loading queued hex)
-     * @return The new glyph mode session
-     */
-    public GlyphMode enterGlyphMode(@Nonnull UUID playerId, @Nullable Ref<EntityStore> playerRef,
-                                     @Nullable CommandBuffer<EntityStore> commandBuffer, @Nonnull World world,
-                                     @Nullable ItemStack bookStack) {
-        return enterGlyphMode(playerId, playerRef, commandBuffer, world, bookStack, null);
-    }
-
-    /**
      * Enter glyph mode for a player with book context and inventory.
      * Uses CommandBuffer for deferred entity operations during system ticks.
      *
-     * <p>When a book stack and inventory are provided:
+     * <p>
+     * When a book stack and inventory are provided:
      * <ul>
-     *   <li>Book UUID is created if needed (inventory updated)</li>
-     *   <li>Existing queued hex is loaded from WorldHexDataStore</li>
+     * <li>Book UUID is created if needed (inventory updated)</li>
+     * <li>Existing queued hex is loaded from WorldHexDataStore</li>
      * </ul>
      *
-     * @param playerId The player's UUID
-     * @param playerRef The player entity reference
+     * @param playerId      The player's UUID
+     * @param playerRef     The player entity reference
      * @param commandBuffer The command buffer for deferred entity operations
-     * @param world The world context for per-world data storage
-     * @param bookStack The Hex Book item stack (for loading queued hex)
-     * @param inventory The player's inventory (for updating ItemStack if UUID created)
+     * @param bookStack     The Hex Book item stack (for loading queued hex)
+     * @param inventory     The player's inventory (for updating ItemStack if UUID
+     *                      created)
      * @return The new glyph mode session
      */
-    public GlyphMode enterGlyphMode(@Nonnull UUID playerId, @Nullable Ref<EntityStore> playerRef,
-                                     @Nullable CommandBuffer<EntityStore> commandBuffer, @Nonnull World world,
-                                     @Nullable ItemStack bookStack, @Nullable Inventory inventory) {
+    public GlyphMode enterGlyphMode(UUID playerId, Ref<EntityStore> playerRef,
+            CommandBuffer<EntityStore> commandBuffer,
+            ItemStack bookStack, Inventory inventory) {
         // If already in mode, just return existing session
         GlyphMode existing = activeSessions.get(playerId);
         if (existing != null && existing.isActive()) {
@@ -126,26 +92,13 @@ public class GlyphModeManager {
         // Get book data from held Hex Book using per-world storage
         HexBookData bookData = null;
         if (commandBuffer != null && playerRef != null) {
-            bookData = HexBookDataManager.getHeldBookData(commandBuffer.getStore(), playerRef, world);
+            bookData = HexBookDataManager.getHeldBookData(commandBuffer.getStore(), playerRef);
         }
 
         // Create new session with book data and player ID
         GlyphMode mode = new GlyphMode(playerRef, playerId, bookData);
 
-        // Enter with command buffer and book stack for composition loading
-        if (commandBuffer != null) {
-            if (bookStack != null && inventory != null) {
-                // Full context - use new enter method with WorldHexDataStore
-                mode.enter(commandBuffer, bookStack, world, inventory);
-            } else if (bookStack != null) {
-                // Legacy path - no inventory for UUID update
-                mode.enter(commandBuffer, bookStack);
-            } else {
-                mode.enter(commandBuffer);
-            }
-        } else {
-            mode.enter();
-        }
+        mode.enter(commandBuffer, bookStack, inventory);
 
         activeSessions.put(playerId, mode);
         return mode;
@@ -155,7 +108,7 @@ public class GlyphModeManager {
      * Exit glyph mode for a player.
      * Uses CommandBuffer for deferred entity operations during system ticks.
      *
-     * @param playerId The player's UUID
+     * @param playerId      The player's UUID
      * @param commandBuffer The command buffer for deferred entity operations
      * @return true if the player was in glyph mode
      */
@@ -164,55 +117,6 @@ public class GlyphModeManager {
         if (mode != null && mode.isActive()) {
             if (commandBuffer != null) {
                 mode.exit(commandBuffer);
-            } else {
-                mode.exit();
-            }
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Exit glyph mode for a player, saving composition to world storage.
-     * Uses CommandBuffer for deferred entity operations during system ticks.
-     *
-     * <p>Composition is saved to WorldHexDataStore using the book's UUID.
-     *
-     * @param playerId The player's UUID
-     * @param commandBuffer The command buffer for deferred entity operations
-     * @param world The world context for saving to WorldHexDataStore
-     * @return true if the player was in glyph mode
-     */
-    public boolean exitGlyphMode(UUID playerId, CommandBuffer<EntityStore> commandBuffer,
-                                  @Nonnull World world) {
-        GlyphMode mode = activeSessions.get(playerId);
-        if (mode != null && mode.isActive()) {
-            if (commandBuffer != null) {
-                mode.exit(commandBuffer, world);
-            } else {
-                mode.exit();
-            }
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Exit glyph mode for a player with book context (legacy).
-     *
-     * @deprecated Use {@link #exitGlyphMode(UUID, CommandBuffer, World)} instead
-     * @param playerId The player's UUID
-     * @param commandBuffer The command buffer for deferred entity operations
-     * @param bookStack The Hex Book item stack (ignored - use World instead)
-     * @return true if the player was in glyph mode
-     */
-    @Deprecated
-    public boolean exitGlyphModeWithBook(UUID playerId, CommandBuffer<EntityStore> commandBuffer,
-                                          @Nullable ItemStack bookStack) {
-        GlyphMode mode = activeSessions.get(playerId);
-        if (mode != null && mode.isActive()) {
-            if (commandBuffer != null) {
-                mode.exit(commandBuffer, bookStack);
             } else {
                 mode.exit();
             }
@@ -241,14 +145,14 @@ public class GlyphModeManager {
      * Toggle glyph mode for a player.
      * Uses CommandBuffer for deferred entity operations during system ticks.
      *
-     * @param playerId The player's UUID
-     * @param playerRef The player entity reference
+     * @param playerId      The player's UUID
+     * @param playerRef     The player entity reference
      * @param commandBuffer The command buffer for deferred entity operations
-     * @param world The world context for per-world data storage
+     * @param world         The world context for per-world data storage
      * @return true if now in glyph mode, false if exited
      */
     public boolean toggleGlyphMode(@Nonnull UUID playerId, @Nullable Ref<EntityStore> playerRef,
-                                    @Nullable CommandBuffer<EntityStore> commandBuffer, @Nonnull World world) {
+            @Nullable CommandBuffer<EntityStore> commandBuffer, @Nonnull World world) {
         return toggleGlyphMode(playerId, playerRef, commandBuffer, world, null, null);
     }
 
@@ -256,25 +160,27 @@ public class GlyphModeManager {
      * Toggle glyph mode for a player with book context.
      * Uses CommandBuffer for deferred entity operations during system ticks.
      *
-     * <p>On enter, loads any queued hex from WorldHexDataStore into composition.
+     * <p>
+     * On enter, loads any queued hex from WorldHexDataStore into composition.
      * On exit, saves the current composition to WorldHexDataStore.
      *
-     * @param playerId The player's UUID
-     * @param playerRef The player entity reference
+     * @param playerId      The player's UUID
+     * @param playerRef     The player entity reference
      * @param commandBuffer The command buffer for deferred entity operations
-     * @param world The world context for per-world data storage
-     * @param bookStack The Hex Book item stack for loading composition
-     * @param inventory The player's inventory (for updating ItemStack if UUID created)
+     * @param world         The world context for per-world data storage
+     * @param bookStack     The Hex Book item stack for loading composition
+     * @param inventory     The player's inventory (for updating ItemStack if UUID
+     *                      created)
      * @return true if now in glyph mode, false if exited
      */
     public boolean toggleGlyphMode(@Nonnull UUID playerId, @Nullable Ref<EntityStore> playerRef,
-                                    @Nullable CommandBuffer<EntityStore> commandBuffer, @Nonnull World world,
-                                    @Nullable ItemStack bookStack, @Nullable Inventory inventory) {
+            @Nullable CommandBuffer<EntityStore> commandBuffer, @Nonnull World world,
+            @Nullable ItemStack bookStack, @Nullable Inventory inventory) {
         if (isInGlyphMode(playerId)) {
-            exitGlyphMode(playerId, commandBuffer, world);
+            exitGlyphMode(playerId, commandBuffer);
             return false;
         } else {
-            enterGlyphMode(playerId, playerRef, commandBuffer, world, bookStack, inventory);
+            enterGlyphMode(playerId, playerRef, commandBuffer, bookStack, inventory);
             return true;
         }
     }

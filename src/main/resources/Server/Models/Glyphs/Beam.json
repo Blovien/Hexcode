@@ -1,5 +1,6 @@
 {
   "Model": "VFX/Glyphs/beam.blockymodel",
+  "Parent": "Base_Glyph",
   "HitBox": {
     "Min": {
       "X": -0.25,

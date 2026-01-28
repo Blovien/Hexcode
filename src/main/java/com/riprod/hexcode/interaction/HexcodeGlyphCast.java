@@ -29,7 +29,6 @@ import com.riprod.hexcode.data.WorldHexDataStore;
 import com.riprod.hexcode.executing.HexExecutor;
 import com.riprod.hexcode.hex.Hex;
 import com.riprod.hexcode.hex.HexNode;
-import com.riprod.hexcode.mode.CompositionState;
 import com.riprod.hexcode.mode.GlyphMode;
 import com.riprod.hexcode.mode.GlyphModeManager;
 import com.riprod.hexcode.util.HexBookMetadata;
@@ -175,14 +174,14 @@ public class HexcodeGlyphCast extends Interaction {
                 }
             }
 
-            // Fallback: try composition from active mode session
+            // Fallback: try active hex from mode session
             if (mode != null) {
-                CompositionState composition = mode.getComposition();
-                if (composition != null && !composition.isEmpty()) {
+                Hex activeHexData = mode.getHexToCast();
+                if (activeHexData != null && !activeHexData.isEmpty()) {
                     castHex(playerId, ref, store, mode);
                     LOGGER.atInfo().log("Player %s cast hex via Primary", playerId);
                 } else {
-                    LOGGER.atInfo().log("No hex composed to cast");
+                    LOGGER.atInfo().log("No active hex to cast");
                 }
             } else {
                 LOGGER.atInfo().log("No hex queued in book and no glyph mode session");
@@ -231,14 +230,13 @@ public class HexcodeGlyphCast extends Interaction {
     }
 
     /**
-     * Cast the composed hex.
+     * Cast the active hex from glyph mode.
      */
     private void castHex(UUID playerId, Ref<EntityStore> playerRef, Store<EntityStore> store, GlyphMode mode) {
-        CompositionState composition = mode.getComposition();
-        Hex hex = composition.getHex();
+        Hex hex = mode.getHexToCast();
 
-        if (hex.isEmpty()) {
-            LOGGER.atInfo().log("Failed to cast hex - empty or invalid composition");
+        if (hex == null || hex.isEmpty()) {
+            LOGGER.atInfo().log("Failed to cast hex - no active hex selected");
             return;
         }
 
@@ -276,8 +274,8 @@ public class HexcodeGlyphCast extends Interaction {
             LOGGER.atWarning().log("Hex execution failed: %s", result.getMessage());
         }
 
-        // Clear composition
-        composition.clear();
+        // Clear active hex after casting
+        mode.clearActiveHex();
     }
 
     /**

@@ -181,13 +181,13 @@ public class HexcodeCommand extends AbstractPlayerCommand {
             GlyphModeManager manager = GlyphModeManager.getInstance();
             GlyphMode mode = manager.getSession(playerId);
 
-            if (mode == null || mode.getComposition().isEmpty()) {
-                ctx.sendMessage(Message.raw("No hex composition in progress"));
+            Hex hex = mode != null ? mode.getHexToCast() : null;
+            if (hex == null || hex.isEmpty()) {
+                ctx.sendMessage(Message.raw("No active hex selected"));
                 return;
             }
 
-            Hex hex = mode.getComposition().getHex();
-            ctx.sendMessage(Message.raw("Current Hex Tree:"));
+            ctx.sendMessage(Message.raw("Active Hex Tree:"));
             ctx.sendMessage(Message.raw(hex.toTreeString()));
             ctx.sendMessage(Message.raw("Total Nodes: " + hex.getNodeCount()));
         }
@@ -212,8 +212,8 @@ public class HexcodeCommand extends AbstractPlayerCommand {
             GlyphMode mode = manager.getSession(playerId);
 
             if (mode != null) {
-                mode.clearComposition();
-                ctx.sendMessage(Message.raw("Composition cleared"));
+                mode.clearActiveHex();
+                ctx.sendMessage(Message.raw("Active hex cleared"));
             } else {
                 ctx.sendMessage(Message.raw("Not in glyph mode"));
             }
@@ -359,13 +359,10 @@ public class HexcodeCommand extends AbstractPlayerCommand {
                 return;
             }
 
-            // Add glyph to composition
-            boolean added = mode.getComposition().addGlyph(glyph);
-            if (added) {
-                ctx.sendMessage(Message.raw("Added " + glyph.getGlyph().getDisplayName() + " to composition"));
-            } else {
-                ctx.sendMessage(Message.raw("Could not add glyph - check composition rules"));
-            }
+            // Note: With the new hex system, glyphs are added by drag-dropping in glyph mode
+            // This command is deprecated - use the visual drag system instead
+            ctx.sendMessage(Message.raw("This command is deprecated. Drag glyphs onto each other in glyph mode to compose hexes."));
+            ctx.sendMessage(Message.raw("Glyph info: " + glyph.getGlyph().getDisplayName() + " (" + glyph.getGlyph().getRole() + ")"));
         }
     }
 
@@ -423,10 +420,11 @@ public class HexcodeCommand extends AbstractPlayerCommand {
                 ctx.sendMessage(Message.raw("    - " + g.getGlyph().getId()));
             }
 
-            ctx.sendMessage(Message.raw("=== Composition ==="));
-            ctx.sendMessage(Message.raw("  Empty: " + mode.getComposition().isEmpty()));
-            if (!mode.getComposition().isEmpty()) {
-                ctx.sendMessage(Message.raw("  Hex: " + mode.getComposition().getHex().toString()));
+            ctx.sendMessage(Message.raw("=== Active Hex ==="));
+            Hex activeHex = mode.getHexToCast();
+            ctx.sendMessage(Message.raw("  Has active hex: " + (activeHex != null && !activeHex.isEmpty())));
+            if (activeHex != null && !activeHex.isEmpty()) {
+                ctx.sendMessage(Message.raw("  Hex: " + activeHex.toString()));
             }
 
             ctx.sendMessage(Message.raw("=== Interaction ==="));
@@ -619,12 +617,11 @@ public class HexcodeCommand extends AbstractPlayerCommand {
             GlyphModeManager manager = GlyphModeManager.getInstance();
             GlyphMode mode = manager.getSession(playerId);
 
-            if (mode == null || mode.getComposition().isEmpty()) {
-                ctx.sendMessage(Message.raw("No hex composition to save. Enter glyph mode and compose a hex first."));
+            Hex composedHex = mode != null ? mode.getHexToCast() : null;
+            if (composedHex == null || composedHex.isEmpty()) {
+                ctx.sendMessage(Message.raw("No active hex to save. Enter glyph mode and compose a hex first."));
                 return;
             }
-
-            Hex composedHex = mode.getComposition().getHex();
 
             // Create hex with user-provided name as ID
             Hex hexToSave = new Hex(hexName, composedHex.getRoot());

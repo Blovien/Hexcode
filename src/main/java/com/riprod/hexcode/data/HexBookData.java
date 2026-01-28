@@ -117,6 +117,38 @@ public class HexBookData {
         this.savedHexes = new ArrayList<>(savedHexes);
     }
 
+    // ==================== FACTORY METHODS ====================
+
+    /**
+     * Create a new empty HexBookData for a specific owner.
+     * This is the preferred factory method for creating new book data
+     * to be stored in ItemStack metadata.
+     *
+     * @param ownerId The UUID of the player who owns this book
+     * @return A new HexBookData instance
+     */
+    @Nonnull
+    public static HexBookData createNew(@Nonnull UUID ownerId) {
+        HexBookData data = new HexBookData();
+        data.ownerId = ownerId;
+        return data;
+    }
+
+    /**
+     * Create a new empty HexBookData with a specific book ID and owner.
+     *
+     * @param bookId The UUID for this book
+     * @param ownerId The UUID of the player who owns this book
+     * @return A new HexBookData instance
+     */
+    @Nonnull
+    public static HexBookData createNew(@Nonnull UUID bookId, @Nonnull UUID ownerId) {
+        HexBookData data = new HexBookData();
+        data.bookId = bookId;
+        data.ownerId = ownerId;
+        return data;
+    }
+
     // ==================== BOOK IDENTITY ====================
 
     /**
@@ -169,12 +201,30 @@ public class HexBookData {
     }
 
     /**
+     * Set when this book was created (used by codec deserialization).
+     *
+     * @param createdAt Creation timestamp (epoch millis)
+     */
+    public void setCreatedAt(long createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    /**
      * Get when this book was last modified.
      *
      * @return Last modification timestamp (epoch millis)
      */
     public long getLastModifiedAt() {
         return lastModifiedAt;
+    }
+
+    /**
+     * Set when this book was last modified (used by codec deserialization).
+     *
+     * @param lastModifiedAt Last modification timestamp (epoch millis)
+     */
+    public void setLastModifiedAt(long lastModifiedAt) {
+        this.lastModifiedAt = lastModifiedAt;
     }
 
     /**
@@ -285,6 +335,21 @@ public class HexBookData {
     }
 
     /**
+     * Check if a saved hex exists by name/id.
+     *
+     * @param name The hex name/id to check
+     * @return true if a hex with this name exists
+     */
+    public boolean hasSavedHex(@Nonnull String name) {
+        for (Hex hex : savedHexes) {
+            if (hex.getId().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Get a saved hex by name.
      */
     @Nullable
@@ -375,7 +440,7 @@ public class HexBookData {
     /**
      * Set glyphs from map (used by BuilderCodec).
      */
-    void setGlyphsFromMap(Map<String, GlyphInstance> map) {
+    public void setGlyphsFromMap(Map<String, GlyphInstance> map) {
         this.glyphs.clear();
         if (map != null) {
             this.glyphs.putAll(map);
@@ -385,14 +450,14 @@ public class HexBookData {
     /**
      * Get glyphs as map (used by BuilderCodec).
      */
-    Map<String, GlyphInstance> getGlyphsAsMap() {
+    public Map<String, GlyphInstance> getGlyphsAsMap() {
         return new HashMap<>(glyphs);
     }
 
     /**
      * Set saved hexes from list (used by BuilderCodec).
      */
-    void setSavedHexesFromList(List<Hex> list) {
+    public void setSavedHexesFromList(List<Hex> list) {
         this.savedHexes.clear();
         if (list != null) {
             this.savedHexes.addAll(list);
@@ -402,7 +467,7 @@ public class HexBookData {
     /**
      * Get saved hexes as list (used by BuilderCodec).
      */
-    List<Hex> getSavedHexesAsList() {
+    public List<Hex> getSavedHexesAsList() {
         return new ArrayList<>(savedHexes);
     }
 

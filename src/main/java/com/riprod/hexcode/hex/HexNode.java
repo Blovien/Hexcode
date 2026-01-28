@@ -3,6 +3,7 @@ package com.riprod.hexcode.hex;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.riprod.hexcode.data.GlyphInstance;
+import com.riprod.hexcode.math.GlyphRotation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,27 +11,105 @@ import java.util.List;
 /**
  * A node in the Hex spell tree structure.
  *
- * A Hex is a tree-structured spell construct where:
- * - EFFECT glyphs are the innermost leaves (actions like FIRE, HEAL)
- * - MODIFIER glyphs wrap around others as inner shells (amplify/alter behavior)
- * - SELECT glyphs wrap around others as outer shells (determine targeting/delivery)
+ * <p>A Hex is a tree-structured spell construct where:
+ * <ul>
+ *   <li>EFFECT glyphs are the innermost leaves (actions like FIRE, HEAL)</li>
+ *   <li>MODIFIER glyphs wrap around others as inner shells (amplify/alter behavior)</li>
+ *   <li>SELECT glyphs wrap around others as outer shells (determine targeting/delivery)</li>
+ * </ul>
  *
- * Each node tracks its parent for tree traversal and manipulation.
- * If no SELECT wraps the Hex, an implicit SELF[] is assumed.
+ * <p>Each node tracks:
+ * <ul>
+ *   <li>Parent reference for tree traversal</li>
+ *   <li>Angular margin for selection tolerance (grows when children are added)</li>
+ * </ul>
+ *
+ * <p>If no SELECT wraps the Hex, an implicit SELF[] is assumed.
  */
 public class HexNode {
     private GlyphInstance value;
     private HexNode parent;
     private List<HexNode> children = new ArrayList<HexNode>();
 
+    /**
+     * Angular margin for selection tolerance in degrees.
+     * Single glyphs start at BASE_TOLERANCE (5 degrees).
+     * Composed nodes (with children) grow to COMPOSED_TOLERANCE (7 degrees).
+     */
+    private float angularMargin = GlyphRotation.BASE_TOLERANCE;
+
+    /**
+     * Default constructor for codec deserialization.
+     */
+    public HexNode() {
+        this.value = null;
+        this.parent = null;
+    }
+
     public HexNode(GlyphInstance value) {
         this.value = value;
         this.parent = null;
     }
 
+    // ========== CODEC SETTERS ==========
+
+    /**
+     * Set the glyph instance value (used by codec).
+     *
+     * @param value The glyph instance for this node
+     */
+    public void setValue(GlyphInstance value) {
+        this.value = value;
+    }
+
+    /**
+     * Set the children list (used by codec).
+     * Automatically sets parent references.
+     *
+     * @param children The child nodes
+     */
+    public void setChildren(List<HexNode> children) {
+        this.children.clear();
+        if (children != null) {
+            for (HexNode child : children) {
+                if (child != null) {
+                    child.parent = this;
+                    this.children.add(child);
+                }
+            }
+        }
+    }
+
+    /**
+     * Set children from an array (used by codec).
+     * Automatically sets parent references.
+     *
+     * @param children The child nodes array
+     */
+    public void setChildrenFromArray(HexNode[] children) {
+        this.children.clear();
+        if (children != null) {
+            for (HexNode child : children) {
+                if (child != null) {
+                    child.parent = this;
+                    this.children.add(child);
+                }
+            }
+        }
+    }
+
+    /**
+     * Get children as an array (used by codec).
+     *
+     * @return Array of child nodes
+     */
+    public HexNode[] getChildrenAsArray() {
+        return children.toArray(new HexNode[0]);
+    }
+
     /**
      * Add a child node to this node.
-     * Sets this node as the child's parent.
+     * Sets this node as the child's parent and grows the angular margin.
      *
      * @param child The child node to add
      * @return true if added successfully, false if child is null
@@ -41,12 +120,19 @@ public class HexNode {
         }
         child.parent = this;
         children.add(child);
+
+        // Grow angular margin when becoming a parent
+        if (children.size() == 1) {
+            // First child added - grow from BASE to COMPOSED
+            angularMargin = GlyphRotation.COMPOSED_TOLERANCE;
+        }
+
         return true;
     }
 
     /**
      * Remove a child node from this node.
-     * Clears the child's parent reference.
+     * Clears the child's parent reference and shrinks angular margin if no children remain.
      *
      * @param child The child node to remove
      * @return true if removed successfully, false if child was not found
@@ -57,6 +143,12 @@ public class HexNode {
         }
         if (children.remove(child)) {
             child.parent = null;
+
+            // Shrink angular margin if no children remain
+            if (children.isEmpty()) {
+                angularMargin = GlyphRotation.BASE_TOLERANCE;
+            }
+
             return true;
         }
         return false;
@@ -168,6 +260,51 @@ public class HexNode {
 
     public GlyphInstance getValue() {
         return value;
+    }
+
+    // ========== ANGULAR MARGIN ==========
+
+    /**
+     * Get the angular margin for this node (selection tolerance in degrees).
+     *
+     * <p>Nodes without children have BASE_TOLERANCE (5 degrees).
+     * Nodes with children have COMPOSED_TOLERANCE (7 degrees).
+     *
+     * @return Angular margin in degrees
+     */
+    public float getAngularMargin() {
+        return angularMargin;
+    }
+
+    /**
+     * Set the angular margin for this node.
+     * Typically managed automatically by addChild/removeChild.
+     *
+     * @param margin Angular margin in degrees
+     */
+    public void setAngularMargin(float margin) {
+        this.angularMargin = margin;
+    }
+
+    /**
+     * Check if this node has a composed (larger) angular margin.
+     *
+     * @return true if this node has children and uses COMPOSED_TOLERANCE
+     */
+    public boolean hasComposedMargin() {
+        return !children.isEmpty();
+    }
+
+    /**
+     * Recalculate angular margin based on children.
+     * Call after direct modification of children list.
+     */
+    public void recalculateAngularMargin() {
+        if (children.isEmpty()) {
+            angularMargin = GlyphRotation.BASE_TOLERANCE;
+        } else {
+            angularMargin = GlyphRotation.COMPOSED_TOLERANCE;
+        }
     }
 
     /**

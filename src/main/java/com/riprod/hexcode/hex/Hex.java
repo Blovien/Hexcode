@@ -20,8 +20,8 @@ import java.util.List;
  */
 public class Hex {
     private HexNode root;
-    // unique id
-    private final String id;
+    // unique id - mutable for codec deserialization
+    private String id;
     private int uses = 0;
 
     
@@ -55,8 +55,45 @@ public class Hex {
         return id;
     }
 
+    /**
+     * Set the hex ID (used by codec deserialization).
+     *
+     * @param id The unique identifier for this hex
+     */
+    public void setId(String id) {
+        this.id = id != null ? id : UUID.randomUUID().toString();
+    }
+
+    /**
+     * Get a display name for this hex.
+     * For saved hexes, this returns a user-friendly name.
+     *
+     * @return The display name (same as id for now)
+     */
+    public String getName() {
+        return id;
+    }
+
+    /**
+     * Set the name/id of this hex (alias for setId for codec compatibility).
+     *
+     * @param name The name to set
+     */
+    public void setName(String name) {
+        setId(name);
+    }
+
     public int getUses() {
         return uses;
+    }
+
+    /**
+     * Set the usage count (used by codec deserialization).
+     *
+     * @param uses The number of times this hex has been used
+     */
+    public void setUses(int uses) {
+        this.uses = Math.max(0, uses);
     }
 
     public void incrementUses() {

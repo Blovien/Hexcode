@@ -8,29 +8,26 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
-import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.component.query.Query;
-import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.inventory.Inventory;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
-import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.casting.styles.BaseGlyphStyle;
 import com.riprod.hexcode.casting.styles.OrbitalElement;
+import com.riprod.hexcode.casting.styles.OrbitalElement.ElementState;
 import com.riprod.hexcode.casting.styles.RingGlyphStyle;
+import com.riprod.hexcode.entity.GlyphComponent;
 import com.riprod.hexcode.data.GlyphInstance;
 import com.riprod.hexcode.data.HexBookData;
-import com.riprod.hexcode.data.WorldHexDataStore;
 import com.riprod.hexcode.entity.GlyphEntity;
 import com.riprod.hexcode.entity.HexEntity;
 import com.riprod.hexcode.hex.Hex;
+import com.riprod.hexcode.math.GlyphRotation;
 import com.riprod.hexcode.util.HexBookMetadata;
 import com.riprod.hexcode.util.HexBookMetadata.BookUUIDResult;
 import com.riprod.hexcode.util.HexStaffUtil;
@@ -42,16 +39,21 @@ import com.riprod.hexcode.util.InventoryUtil;
  * When a player enters glyph mode:
  * - Stamina drains continuously
  * - Movement is restricted/slowed
- * - Glyphs from loadout orbit around them
+ * - Glyphs from loadout appear around them
  * - Player can compose hexes by dragging glyphs
+ *
+ * Glyphs are positioned relative to the player and move with them.
+ * When dragged, glyphs become independent and can be repositioned.
  */
 public class GlyphMode {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     private final Ref<EntityStore> player;
     private final UUID playerId; // Player's UUID for entity component ownership
-    private final CompositionState composition;
     private HexBookData bookData; // Data from the held Hex Book
+
+    // Active hex tracking - the hex that will be cast
+    private HexEntity activeHex;
 
     // Book tracking for swap detection
     private UUID currentBookUUID; // UUID of the book that activated glyph mode
@@ -69,8 +71,12 @@ public class GlyphMode {
     // Currently hovered/dragging glyph
     private GlyphInstance hoveredGlyph;
     private GlyphInstance draggingGlyph;
-    private OrbitalElement draggingElement;  // Track any dragged element (glyph or hex)
-    private Vector3d dragPosition;
+    private OrbitalElement draggingElement; // Track any dragged element (glyph or hex)
+    private GlyphRotation dragRotation; // Current rotation during drag
+
+    // Continuous hover detection from client sync data
+    private OrbitalElement hoveredElement; // Currently hovered via client sync
+    private OrbitalElement dropTargetElement; // Drop target during drag
 
     // Orbital glyph entities
     private List<HexEntity> orbitalEntities;
@@ -80,15 +86,11 @@ public class GlyphMode {
     // Orbital style system
     private BaseGlyphStyle orbitalStyle;
 
-    public GlyphMode(Ref<EntityStore> player, @Nonnull UUID playerId) {
-        this(player, playerId, null);
-    }
-
-    public GlyphMode(Ref<EntityStore> player, @Nonnull UUID playerId, @Nullable HexBookData bookData) {
+    public GlyphMode(Ref<EntityStore> player, UUID playerId, HexBookData bookData) {
         this.player = player;
         this.playerId = playerId;
         this.bookData = bookData;
-        this.composition = new CompositionState();
+        this.activeHex = null;
         this.active = false;
         this.modeEnteredAt = 0;
 
@@ -142,21 +144,6 @@ public class GlyphMode {
     }
 
     /**
-     * Enter glyph mode with entity spawning using CommandBuffer.
-     * Must be used when calling from within a system tick.
-     *
-     * @param commandBuffer The command buffer for deferred entity operations
-     */
-    public void enter(@Nonnull CommandBuffer<EntityStore> commandBuffer) {
-        if (!active) {
-            active = true;
-            modeEnteredAt = System.currentTimeMillis();
-            spawnOrbitalGlyphs(commandBuffer);
-            LOGGER.atInfo().log("Glyph mode entered with %d orbital glyphs", orbitalEntities.size());
-        }
-    }
-
-    /**
      * Enter glyph mode with book context for composition loading.
      *
      * <p>
@@ -172,12 +159,11 @@ public class GlyphMode {
      *
      * @param commandBuffer The command buffer for deferred entity operations
      * @param bookStack     The Hex Book item stack that activated glyph mode
-     * @param world         The world context for WorldHexDataStore access
      * @param inventory     The player's inventory (for updating ItemStack if UUID
      *                      created)
      */
     public void enter(@Nonnull CommandBuffer<EntityStore> commandBuffer, @Nonnull ItemStack bookStack,
-            @Nonnull World world, @Nonnull Inventory inventory) {
+            @Nonnull Inventory inventory) {
         if (!active) {
             active = true;
             modeEnteredAt = System.currentTimeMillis();
@@ -192,42 +178,9 @@ public class GlyphMode {
             this.currentBookUUID = uuidResult.uuid();
             this.currentBookStack = uuidResult.stack();
 
-            // Load existing queued hex from world storage
-            Hex existingHex = WorldHexDataStore.get().getQueuedHex(world, currentBookUUID);
-            if (existingHex != null && !existingHex.isEmpty()) {
-                composition.loadFromHex(existingHex);
-                LOGGER.atInfo().log("Loaded queued hex from world storage: %s", existingHex.toString());
-            }
-
             spawnOrbitalGlyphs(commandBuffer);
             LOGGER.atInfo().log("Glyph mode entered with book %s, %d orbital glyphs",
-                    currentBookUUID, orbitalEntities.size());
-        }
-    }
-
-    /**
-     * Enter glyph mode with book context (legacy compatibility).
-     *
-     * @deprecated Use {@link #enter(CommandBuffer, ItemStack, World, Inventory)}
-     *             instead
-     * @param commandBuffer The command buffer for deferred entity operations
-     * @param bookStack     The Hex Book item stack that activated glyph mode
-     */
-    @Deprecated
-    public void enter(@Nonnull CommandBuffer<EntityStore> commandBuffer, @Nonnull ItemStack bookStack) {
-        if (!active) {
-            active = true;
-            modeEnteredAt = System.currentTimeMillis();
-
-            // Track which book we're using (limited without World/Inventory)
-            BookUUIDResult uuidResult = HexBookMetadata.getOrCreateBookUUID(bookStack);
-            this.currentBookUUID = uuidResult.uuid();
-            this.currentBookStack = uuidResult.stack();
-            // NOTE: Cannot update inventory or load from world storage without
-            // World/Inventory
-
-            spawnOrbitalGlyphs(commandBuffer);
-            LOGGER.atWarning().log("Glyph mode entered without World context - no hex loading");
+                    currentBookUUID, orbitalStyle.getElementCount());
         }
     }
 
@@ -239,92 +192,51 @@ public class GlyphMode {
             active = false;
             hoveredGlyph = null;
             draggingGlyph = null;
-            dragPosition = null;
+            draggingElement = null;
+            dragRotation = null;
             hoveredOrbitalEntity = null;
+            hoveredElement = null;
+            dropTargetElement = null;
+            activeHex = null;
             LOGGER.atInfo().log("Glyph mode exited");
         }
     }
 
     /**
-     * Exit glyph mode with entity cleanup using CommandBuffer.
-     * Must be used when calling from within a system tick.
+     * Exit glyph mode
      *
      * @param commandBuffer The command buffer for deferred entity operations
      */
     public void exit(@Nonnull CommandBuffer<EntityStore> commandBuffer) {
         if (active) {
-            despawnOrbitalGlyphs(commandBuffer);
-            active = false;
-            hoveredGlyph = null;
-            draggingGlyph = null;
-            dragPosition = null;
-            hoveredOrbitalEntity = null;
-            currentBookUUID = null;
-            currentBookStack = null;
-            LOGGER.atInfo().log("Glyph mode exited, despawned orbital glyphs and composed entities");
-        }
-    }
+            // Note: Hexes composed during glyph mode are temporary and discarded on exit.
+            // The activeHex is only valid for casting during the mode session.
+            // Saved hexes in the book are separate and persist.
 
-    /**
-     * Exit glyph mode with book context for composition saving.
-     *
-     * <p>
-     * When exiting glyph mode, the current composition is saved to
-     * WorldHexDataStore using the book's UUID. This allows players to cast
-     * the spell later or resume composing it.
-     *
-     * <p>
-     * <b>NOTE:</b> Composition is saved to world files, not ItemStack metadata.
-     *
-     * @param commandBuffer The command buffer for deferred entity operations
-     * @param world         The world context for WorldHexDataStore access
-     */
-    public void exit(@Nonnull CommandBuffer<EntityStore> commandBuffer, @Nonnull World world) {
-        if (active) {
-            // Save composition to world storage using book UUID
-            if (currentBookUUID != null) {
-                Hex hex = composition.getHex();
-                WorldHexDataStore.get().setQueuedHex(world, currentBookUUID, hex);
-                if (!hex.isEmpty()) {
-                    LOGGER.atInfo().log("Saved composition to world storage for book %s: %s",
-                            currentBookUUID, hex.toString());
-                }
+            Store<EntityStore> store = commandBuffer.getStore();
+
+            // End any active drag first
+            if (isDragging()) {
+                endDrag(store);
             }
 
+            // Validate and cleanup before despawning
+            validateAndCleanupElements(store);
+
+            clearHoverState(store);
             despawnOrbitalGlyphs(commandBuffer);
             active = false;
             hoveredGlyph = null;
             draggingGlyph = null;
-            dragPosition = null;
+            draggingElement = null;
+            dragRotation = null;
             hoveredOrbitalEntity = null;
+            hoveredElement = null;
+            dropTargetElement = null;
+            activeHex = null;
             currentBookUUID = null;
             currentBookStack = null;
-            LOGGER.atInfo().log("Glyph mode exited with world save, despawned all entities");
-        }
-    }
-
-    /**
-     * Exit glyph mode with book context (legacy compatibility).
-     *
-     * @deprecated Use {@link #exit(CommandBuffer, World)} instead
-     * @param commandBuffer The command buffer for deferred entity operations
-     * @param bookStack     The Hex Book item stack (ignored - use World instead)
-     */
-    @Deprecated
-    public void exit(@Nonnull CommandBuffer<EntityStore> commandBuffer, @Nullable ItemStack bookStack) {
-        if (active) {
-            // Cannot save without World context - just log warning
-            LOGGER.atWarning().log("Exiting glyph mode without World context - composition not saved");
-
-            despawnOrbitalGlyphs(commandBuffer);
-            active = false;
-            hoveredGlyph = null;
-            draggingGlyph = null;
-            dragPosition = null;
-            hoveredOrbitalEntity = null;
-            currentBookUUID = null;
-            currentBookStack = null;
-            LOGGER.atInfo().log("Glyph mode exited (no save), despawned all entities");
+            LOGGER.atInfo().log("Glyph mode exited with validation cleanup (composed hexes discarded)");
         }
     }
 
@@ -423,9 +335,8 @@ public class GlyphMode {
         orbitalSavedHexEntities.clear();
         orbitalStyle.clearElements();
 
-        // Get player position (read-only operation, safe to use commandBuffer)
+        // Get player position
         Vector3d playerPosition = getPlayerPosition(commandBuffer);
-        orbitalStyle.setCenter(playerPosition);
 
         // Get glyphs from book data if available, otherwise from loadout
         List<GlyphInstance> glyphs = getAvailableGlyphsFromBook();
@@ -433,9 +344,8 @@ public class GlyphMode {
         // Get saved hexes from book
         List<Hex> savedHexes = getSavedHexes();
 
-        // Calculate total entities for angle distribution
+        // Calculate total entities for spawn position distribution
         int totalEntities = glyphs.size() + savedHexes.size();
-        float angleStep = (float) (2 * Math.PI / Math.max(1, totalEntities));
 
         int index = 0;
 
@@ -446,22 +356,36 @@ public class GlyphMode {
                 LOGGER.atWarning().log("Skipping invalid glyph: %s", glyph.getGlyphId());
                 continue;
             }
-            float initialAngle = angleStep * index;
-            GlyphEntity orbitalEntity = new GlyphEntity(glyph, player, initialAngle);
-            orbitalEntity.spawn(commandBuffer, playerPosition, playerId);
+
+            // Get spawn rotation from style
+            GlyphRotation rotation = orbitalStyle.getSpawnRotation(index, totalEntities);
+
+            // Calculate spawn position from rotation
+            Vector3d spawnPos = rotation.toWorldPosition(playerPosition);
+
+            GlyphEntity orbitalEntity = new GlyphEntity(glyph, player, rotation);
+            orbitalEntity.spawn(commandBuffer, spawnPos, playerId);
             orbitalStyle.addElement(orbitalEntity);
             index++;
         }
 
         // Spawn saved hex orbitals (composed hexes use HexEntity)
         for (Hex savedHex : savedHexes) {
-            float initialAngle = angleStep * index;
-            HexEntity orbitalEntity = new HexEntity(savedHex, player, initialAngle);
-            orbitalEntity.spawn(commandBuffer, playerPosition, playerId);
+            // Get spawn rotation from style
+            GlyphRotation rotation = orbitalStyle.getSpawnRotation(index, totalEntities);
+
+            // Calculate spawn position from rotation
+            Vector3d spawnPos = rotation.toWorldPosition(playerPosition);
+
+            HexEntity orbitalEntity = new HexEntity(savedHex, player, rotation);
+            orbitalEntity.spawn(commandBuffer, spawnPos, playerId);
             orbitalSavedHexEntities.add(orbitalEntity);
             orbitalStyle.addElement(orbitalEntity);
             index++;
         }
+
+        // Trigger mode enter effects (magic wheel, particles, etc)
+        orbitalStyle.onModeEnter(commandBuffer, playerPosition);
 
         LOGGER.atInfo().log("Spawned %d orbital entities (%d glyphs, %d saved hexes)",
                 orbitalStyle.getElementCount(),
@@ -470,10 +394,58 @@ public class GlyphMode {
     }
 
     /**
+     * Validate all elements are in clean state before despawning.
+     * Forces cleanup of any elements stuck in invalid states.
+     *
+     * @param store The entity store for component access
+     */
+    private void validateAndCleanupElements(Store<EntityStore> store) {
+        int cleanedCount = 0;
+        for (OrbitalElement element : orbitalStyle.getElements()) {
+            ElementState state = element.getState();
+
+            // Check for stuck dragging state
+            if (state == ElementState.DRAGGING) {
+                LOGGER.atWarning().log("Element '%s' still dragging on exit - forcing cleanup",
+                        element.getId());
+                element.setDragging(false);
+                cleanedCount++;
+            }
+
+            // Check for error state
+            if (state == ElementState.ERROR) {
+                LOGGER.atWarning().log("Element '%s' in ERROR state on exit - forcing to CONSUMED",
+                        element.getId());
+                element.transitionTo(ElementState.CONSUMED);
+                cleanedCount++;
+            }
+
+            // Sync ECS component state
+            Ref<EntityStore> entityRef = element.getEntityRef();
+            if (entityRef != null && entityRef.isValid() && GlyphComponent.getComponentType() != null) {
+                GlyphComponent comp = store.getComponent(entityRef, GlyphComponent.getComponentType());
+                if (comp != null && comp.isDragging()) {
+                    comp.setDragging(false);
+                    LOGGER.atWarning().log("GlyphComponent for '%s' had stale drag state",
+                            element.getId());
+                    cleanedCount++;
+                }
+            }
+        }
+
+        if (cleanedCount > 0) {
+            LOGGER.atInfo().log("Cleaned up %d elements with invalid state during exit", cleanedCount);
+        }
+    }
+
+    /**
      * Despawn all orbital glyph entities and saved hex entities.
      * Uses CommandBuffer for deferred entity removal during system ticks.
      */
     private void despawnOrbitalGlyphs(@Nonnull CommandBuffer<EntityStore> commandBuffer) {
+        // Trigger mode exit effects first (cleanup magic wheel, particles, etc)
+        orbitalStyle.onModeExit(commandBuffer);
+
         // Despawn all elements from the style
         for (OrbitalElement element : orbitalStyle.getElements()) {
             element.despawn(commandBuffer);
@@ -511,6 +483,7 @@ public class GlyphMode {
 
     /**
      * Update all orbital glyphs and saved hexes (called each tick).
+     * Elements are positioned relative to player and face the player.
      *
      * @param store The entity store
      * @param dt    Delta time in seconds
@@ -520,17 +493,21 @@ public class GlyphMode {
             return;
         }
 
-        // Update center position to follow player
+        // Get current player position
         Vector3d playerPosition = getPlayerPosition(store);
-        orbitalStyle.setCenter(playerPosition);
 
-        // Delegate orbital updates to the style system
-        orbitalStyle.tick(store, dt);
+        // Update each element's position based on player position + their offset
+        for (OrbitalElement element : orbitalStyle.getElements()) {
+            element.updatePositionFromPlayer(store, playerPosition);
+        }
+
+        // Update visual effects (particles, etc)
+        orbitalStyle.updateEffects(store, orbitalStyle.getElements(), dt);
     }
 
     /**
      * Get the list of orbital entities.
-     * 
+     *
      * @deprecated Use {@link #getOrbitalStyle()} instead for unified element
      *             management
      */
@@ -575,7 +552,7 @@ public class GlyphMode {
 
     /**
      * Set the hovered orbital entity.
-     * 
+     *
      * @deprecated Use {@link #setHoveredOrbitalElement(OrbitalElement, Store)}
      *             instead
      */
@@ -619,12 +596,96 @@ public class GlyphMode {
 
     /**
      * Get the hovered orbital entity.
-     * 
+     *
      * @deprecated Use orbital style's element tracking instead
      */
     @Deprecated
     public HexEntity getHoveredOrbitalEntity() {
         return hoveredOrbitalEntity;
+    }
+
+    // ==================== CONTINUOUS HOVER DETECTION ====================
+
+    /**
+     * Get the currently hovered element (from client sync data).
+     *
+     * @return The hovered element, or null if nothing is hovered
+     */
+    @Nullable
+    public OrbitalElement getHoveredElement() {
+        return hoveredElement;
+    }
+
+    /**
+     * Get the current drop target element (during drag).
+     *
+     * @return The drop target element, or null if no valid drop target
+     */
+    @Nullable
+    public OrbitalElement getDropTargetElement() {
+        return dropTargetElement;
+    }
+
+    /**
+     * Update the hovered element from client sync data processing.
+     * Called from HexcodeGlyphModeToggle.tick0().
+     *
+     * @param newHovered The new hovered element, or null to clear
+     * @param store      The entity store for visual updates
+     */
+    public void updateHoveredElement(@Nullable OrbitalElement newHovered, Store<EntityStore> store) {
+        if (hoveredElement == newHovered) {
+            return;
+        }
+
+        // Clear old hover
+        if (hoveredElement != null) {
+            hoveredElement.setHovered(false);
+            hoveredElement.updateHoverVisual(store);
+        }
+
+        // Set new hover
+        hoveredElement = newHovered;
+        if (hoveredElement != null) {
+            hoveredElement.setHovered(true);
+            hoveredElement.updateHoverVisual(store);
+        }
+    }
+
+    /**
+     * Update the drop target element during drag operations.
+     * Called from HexcodeGlyphModeToggle.tick0() while dragging.
+     *
+     * @param newTarget The new drop target element, or null to clear
+     * @param store     The entity store for visual updates
+     */
+    public void updateDropTarget(@Nullable OrbitalElement newTarget, Store<EntityStore> store) {
+        if (dropTargetElement == newTarget) {
+            return;
+        }
+
+        // Clear old target highlight
+        if (dropTargetElement != null) {
+            dropTargetElement.setHovered(false);
+            dropTargetElement.updateHoverVisual(store);
+        }
+
+        // Set new target
+        dropTargetElement = newTarget;
+        if (dropTargetElement != null) {
+            dropTargetElement.setHovered(true);
+            dropTargetElement.updateHoverVisual(store);
+        }
+    }
+
+    /**
+     * Clear all hover state (called when exiting glyph mode).
+     *
+     * @param store The entity store for visual updates
+     */
+    public void clearHoverState(Store<EntityStore> store) {
+        updateHoveredElement(null, store);
+        updateDropTarget(null, store);
     }
 
     /**
@@ -713,20 +774,44 @@ public class GlyphMode {
         return bookData;
     }
 
-    // ========== COMPOSITION ==========
+    // ========== ACTIVE HEX ==========
 
     /**
-     * @return The current composition state
+     * Get the active hex that will be cast.
+     * The active hex is the most recently interacted hex during glyph mode.
+     *
+     * @return The active HexEntity, or null if none selected
      */
-    public CompositionState getComposition() {
-        return composition;
+    @Nullable
+    public HexEntity getActiveHex() {
+        return activeHex;
     }
 
     /**
-     * Clear the current composition.
+     * Set the active hex that will be cast.
+     * Called when a hex is interacted with (dragged, dropped onto, etc).
+     *
+     * @param hex The hex to set as active
      */
-    public void clearComposition() {
-        composition.clear();
+    public void setActiveHex(@Nullable HexEntity hex) {
+        this.activeHex = hex;
+    }
+
+    /**
+     * Get the Hex data structure from the active hex for casting.
+     *
+     * @return The Hex to cast, or null if no active hex
+     */
+    @Nullable
+    public Hex getHexToCast() {
+        return activeHex != null ? activeHex.getHex() : null;
+    }
+
+    /**
+     * Clear the active hex selection.
+     */
+    public void clearActiveHex() {
+        this.activeHex = null;
     }
 
     // ========== INTERACTION ==========
@@ -769,12 +854,12 @@ public class GlyphMode {
     /**
      * Start dragging an element.
      *
-     * @param element The element being dragged
-     * @param startPosition Initial drag position
+     * @param element       The element being dragged
+     * @param startRotation Initial drag rotation (player's look direction)
      */
-    public void startDragElement(OrbitalElement element, Vector3d startPosition) {
+    public void startDragElement(OrbitalElement element, GlyphRotation startRotation) {
         this.draggingElement = element;
-        this.dragPosition = startPosition;
+        this.dragRotation = startRotation;
         // Also set draggingGlyph if it's a GlyphEntity for backward compatibility
         if (element instanceof GlyphEntity) {
             this.draggingGlyph = ((GlyphEntity) element).getGlyph();
@@ -784,26 +869,109 @@ public class GlyphMode {
     }
 
     /**
-     * Update drag position.
+     * Start dragging an element (legacy compatibility).
+     *
+     * @param element       The element being dragged
+     * @param startPosition Initial drag position
+     * @deprecated Use {@link #startDragElement(OrbitalElement, GlyphRotation)}
+     *             instead
      */
-    public void updateDrag(Vector3d position) {
-        this.dragPosition = position;
+    @Deprecated
+    public void startDragElement(OrbitalElement element, Vector3d startPosition) {
+        this.draggingElement = element;
+        // Use element's existing rotation since we can't convert position without
+        // player context
+        this.dragRotation = element.getRotation();
+        if (element instanceof GlyphEntity) {
+            this.draggingGlyph = ((GlyphEntity) element).getGlyph();
+        } else {
+            this.draggingGlyph = null;
+        }
     }
 
     /**
-     * End drag.
+     * Update drag rotation.
+     *
+     * @param rotation The current look rotation
+     */
+    public void updateDrag(GlyphRotation rotation) {
+        this.dragRotation = rotation;
+    }
+
+    /**
+     * Update drag position (legacy compatibility).
+     *
+     * @deprecated Use {@link #updateDrag(GlyphRotation)} instead
+     */
+    @Deprecated
+    public void updateDrag(Vector3d position) {
+        // Cannot convert position to rotation without player position context
+        // Keep existing rotation
+    }
+
+    /**
+     * End drag with explicit element state cleanup.
+     * Ensures the dragged element's state is cleared even if the caller forgets.
      */
     public void endDrag() {
+        // CRITICAL: Clear drag state on the element itself (safety net)
+        if (draggingElement != null && draggingElement.isDragging()) {
+            draggingElement.setDragging(false);
+            LOGGER.atInfo().log("endDrag: Cleared dragging state on element '%s'",
+                    draggingElement.getId());
+        }
+
         this.draggingGlyph = null;
         this.draggingElement = null;
-        this.dragPosition = null;
+        this.dragRotation = null;
     }
 
     /**
-     * @return Current drag position
+     * End drag with Store access for ECS component synchronization.
+     *
+     * @param store The entity store for component access
      */
+    public void endDrag(Store<EntityStore> store) {
+        if (draggingElement != null && draggingElement.isDragging()) {
+            draggingElement.setDragging(false);
+
+            // Also sync to ECS component
+            Ref<EntityStore> entityRef = draggingElement.getEntityRef();
+            if (entityRef != null && entityRef.isValid() && GlyphComponent.getComponentType() != null) {
+                GlyphComponent comp = store.getComponent(entityRef, GlyphComponent.getComponentType());
+                if (comp != null) {
+                    comp.setDragging(false);
+                }
+            }
+
+            LOGGER.atInfo().log("endDrag: Cleared dragging state on element '%s' with ECS sync",
+                    draggingElement.getId());
+        }
+
+        this.draggingGlyph = null;
+        this.draggingElement = null;
+        this.dragRotation = null;
+    }
+
+    /**
+     * @return Current drag rotation
+     */
+    public GlyphRotation getDragRotation() {
+        return dragRotation;
+    }
+
+    /**
+     * @return Current drag position (calculated from rotation, approximate)
+     * @deprecated Use {@link #getDragRotation()} instead
+     */
+    @Deprecated
     public Vector3d getDragPosition() {
-        return dragPosition;
+        if (dragRotation == null) {
+            return null;
+        }
+        // Return position at default distance from origin (inaccurate without player
+        // context)
+        return dragRotation.toWorldPosition(new Vector3d(0, 0, 0));
     }
 
     // ========== CONFIGURATION ==========

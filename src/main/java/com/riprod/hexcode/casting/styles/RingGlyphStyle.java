@@ -1,224 +1,146 @@
 package com.riprod.hexcode.casting.styles;
 
+import java.util.List;
+
+import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.math.GlyphRotation;
+import com.riprod.hexcode.util.RotationMath;
 
 /**
- * Ring-style orbital positioning.
+ * Ring-style spawn positioning.
  *
- * Elements are arranged in a horizontal circle around the player,
- * rotating at a configurable speed. Elements can be excluded from
- * the rotation (e.g., when being dragged) and smoothly reintegrated.
+ * <p>Elements are spawned in a horizontal circle around the player using rotation-based
+ * positioning. All glyphs are placed at a fixed pitch (slightly below eye level) with
+ * yaw angles distributed evenly around the player.
+ *
+ * <p>This style manages:
+ * <ul>
+ *   <li>Ring spawn rotation calculation</li>
+ *   <li>Visual effects (magic wheel, particles)</li>
+ * </ul>
  */
 public class RingGlyphStyle extends BaseGlyphStyle {
 
-    /** Radius of the orbital ring from the player */
-    private float radius;
+    /** Ring pitch in degrees (slightly below eye level, negative = up) */
+    private float ringPitch;
 
-    /** Height offset above the player's position */
-    private float height;
+    /** Starting yaw offset for the first element */
+    private float startYaw;
 
-    /** Whether to maintain fixed element spacing when elements are excluded */
-    private boolean maintainSpacing;
+    /** Default ring pitch (slightly below eye level) */
+    public static final float DEFAULT_RING_PITCH = -9.0f;
 
-    /** Default radius */
-    public static final float DEFAULT_RADIUS = 2.0f;
-
-    /** Default height (chest level) */
-    public static final float DEFAULT_HEIGHT = 1.0f;
-
-    /** Default rotation speed (radians per second) */
-    public static final float DEFAULT_ROTATION_SPEED = 0.3f;
+    /** Default starting yaw (forward) */
+    public static final float DEFAULT_START_YAW = 0.0f;
 
     public RingGlyphStyle() {
         super();
-        this.radius = DEFAULT_RADIUS;
-        this.height = DEFAULT_HEIGHT;
-        this.rotationSpeed = DEFAULT_ROTATION_SPEED;
-        this.maintainSpacing = true;
+        this.ringPitch = DEFAULT_RING_PITCH;
+        this.startYaw = DEFAULT_START_YAW;
     }
 
     /**
      * Create a ring style with custom parameters.
      *
-     * @param radius        Ring radius from player
-     * @param height        Height offset above player
-     * @param rotationSpeed Rotation speed in radians per second
+     * @param ringPitch The pitch angle for the ring (degrees, negative = up)
+     * @param startYaw  The starting yaw angle (degrees)
      */
-    public RingGlyphStyle(float radius, float height, float rotationSpeed) {
+    public RingGlyphStyle(float ringPitch, float startYaw) {
         super();
-        this.radius = radius;
-        this.height = height;
-        this.rotationSpeed = rotationSpeed;
-        this.maintainSpacing = true;
+        this.ringPitch = ringPitch;
+        this.startYaw = startYaw;
     }
 
-    @Override
-    public void tick(Store<EntityStore> store, float dt) {
-        // Convert dt to seconds if it's raw tick count (dt=1 per tick)
-        // Hytale ECS typically provides dt as tick count, not seconds
+    // --- Spawn Rotation Calculation ---
 
-        // Update the global rotation angle (rotationSpeed is in radians per second)
-        rotationAngle += rotationSpeed * dt;
-
-        // Keep angle in range [0, 2π)
-        if (rotationAngle >= 2.0 * Math.PI) {
-            rotationAngle -= (float) (2.0 * Math.PI);
-        }
-
-        // Update positions for all active elements
-        int activeIndex = 0;
-        int activeCount = getActiveElementCount();
-
-        if (activeCount == 0) {
-            return;
-        }
-
-        float angleStep = (float) (2.0 * Math.PI / activeCount);
-
-        for (OrbitalElement element : elements) {
-            if (!excludedElements.contains(element)) {
-                // Calculate this element's angle
-                float elementAngle = rotationAngle + (angleStep * activeIndex);
-                element.setOrbitAngle(elementAngle);
-
-                // Calculate and set position
-                Vector3d position = calculateRingPosition(elementAngle);
-                element.updateWorldPositionDirect(store, position);
-
-                activeIndex++;
-            }
-            // Excluded elements keep their current position (dragging handles their position)
-        }
-    }
-
-    @Override
-    public Vector3d getPositionForElement(int index, int total) {
+    /**
+     * Get the spawn rotation for an element at a given index.
+     *
+     * <p>Elements are distributed evenly around the player at the ring pitch.
+     *
+     * @param index Element index (0-based)
+     * @param total Total number of elements
+     * @return GlyphRotation for this element
+     */
+    public GlyphRotation getSpawnRotation(int index, int total) {
         if (total == 0) {
-            return new Vector3d(centerPosition.x, centerPosition.y + height, centerPosition.z);
+            return new GlyphRotation(ringPitch, startYaw);
         }
 
-        float angleStep = (float) (2.0 * Math.PI / total);
-        float elementAngle = rotationAngle + (angleStep * index);
+        float yawStep = 360.0f / total;
+        float yaw = RotationMath.normalizeYaw(startYaw + yawStep * index);
 
-        return calculateRingPosition(elementAngle);
-    }
-
-    @Override
-    public void resetElement(OrbitalElement element, Store<EntityStore> store) {
-        // Include the element back in the orbit
-        includeInOrbit(element);
-
-        // Clear dragging state
-        element.setDragging(false);
-
-        // The next tick will position it correctly
+        return new GlyphRotation(ringPitch, yaw);
     }
 
     /**
-     * Calculate the world position for a given angle on the ring.
-     *
-     * @param angle The angle in radians
-     * @return The world position
+     * @deprecated Use {@link #getSpawnRotation(int, int)} instead.
+     *             Rotation-based positioning replaces world position calculation.
      */
-    private Vector3d calculateRingPosition(float angle) {
-        double x = centerPosition.x + radius * Math.cos(angle);
-        double y = centerPosition.y + height;
-        double z = centerPosition.z + radius * Math.sin(angle);
+    @Override
+    @Deprecated
+    public Vector3d getSpawnPosition(int index, int total, Vector3d playerPosition) {
+        // Convert rotation to world position for backward compatibility
+        GlyphRotation rotation = getSpawnRotation(index, total);
+        return rotation.toWorldPosition(playerPosition);
+    }
 
-        return new Vector3d(x, y, z);
+    // --- Mode Lifecycle ---
+
+    @Override
+    public void onModeEnter(CommandBuffer<EntityStore> commandBuffer, Vector3d playerPosition) {
+        // TODO: Spawn magic wheel entity around player
+        // Future: spawn particles, AOE indicators
+    }
+
+    @Override
+    public void onModeExit(CommandBuffer<EntityStore> commandBuffer) {
+        // TODO: Despawn magic wheel entity
+        // Future: cleanup particles, AOE indicators
+    }
+
+    // --- Visual Effects ---
+
+    @Override
+    public void updateEffects(Store<EntityStore> store, List<OrbitalElement> elements, float dt) {
+        // TODO: Update particle positions attached to glyphs
+        // Future: AOE effect updates
     }
 
     // --- Configuration ---
 
     /**
-     * @return The ring radius
+     * @return The ring pitch in degrees (negative = up)
      */
-    public float getRadius() {
-        return radius;
+    public float getRingPitch() {
+        return ringPitch;
     }
 
     /**
-     * Set the ring radius.
+     * Set the ring pitch.
      *
-     * @param radius New radius
+     * @param ringPitch New pitch in degrees
      */
-    public void setRadius(float radius) {
-        this.radius = radius;
+    public void setRingPitch(float ringPitch) {
+        this.ringPitch = ringPitch;
     }
 
     /**
-     * @return The height offset
+     * @return The starting yaw in degrees
      */
-    public float getHeight() {
-        return height;
+    public float getStartYaw() {
+        return startYaw;
     }
 
     /**
-     * Set the height offset.
+     * Set the starting yaw.
      *
-     * @param height New height offset
+     * @param startYaw New starting yaw in degrees
      */
-    public void setHeight(float height) {
-        this.height = height;
-    }
-
-    /**
-     * @return Whether spacing is maintained when elements are excluded
-     */
-    public boolean isMaintainSpacing() {
-        return maintainSpacing;
-    }
-
-    /**
-     * Set whether to maintain fixed spacing when elements are excluded.
-     * If true, remaining elements spread to fill gaps.
-     * If false, elements keep their absolute angles.
-     *
-     * @param maintainSpacing true to maintain even spacing
-     */
-    public void setMaintainSpacing(boolean maintainSpacing) {
-        this.maintainSpacing = maintainSpacing;
-    }
-
-    /**
-     * Start dragging an element. Removes it from orbital rotation.
-     *
-     * @param element The element being dragged
-     */
-    public void startDrag(OrbitalElement element) {
-        element.setDragging(true);
-        excludeFromOrbit(element);
-    }
-
-    /**
-     * End dragging an element. If no valid drop target, returns to orbit.
-     *
-     * @param element The element that was being dragged
-     * @param store   The entity store
-     * @param dropped true if dropped on a valid target, false to return to orbit
-     */
-    public void endDrag(OrbitalElement element, Store<EntityStore> store, boolean dropped) {
-        element.setDragging(false);
-
-        if (!dropped) {
-            // Return to orbit
-            resetElement(element, store);
-        }
-        // If dropped, the element stays excluded (it's now part of a composition)
-    }
-
-    /**
-     * Update the position of a dragged element.
-     *
-     * @param element  The element being dragged
-     * @param position The new drag position
-     * @param store    The entity store
-     */
-    public void updateDragPosition(OrbitalElement element, Vector3d position, Store<EntityStore> store) {
-        if (element.isDragging()) {
-            element.updateWorldPositionDirect(store, position);
-        }
+    public void setStartYaw(float startYaw) {
+        this.startYaw = startYaw;
     }
 }
