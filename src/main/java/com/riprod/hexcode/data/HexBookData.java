@@ -3,7 +3,7 @@ package com.riprod.hexcode.data;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.riprod.hexcode.hex.Hex;
+import com.riprod.hexcode.hex.HexNode;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -21,7 +21,7 @@ import java.util.*;
  *   <li><b>bookId</b>: Unique identifier for this physical book</li>
  *   <li><b>ownerId</b>: UUID of the player who created the book</li>
  *   <li><b>Glyphs</b>: Map of glyph ID to GlyphInstance (accuracy, speed, usage)</li>
- *   <li><b>SavedHexes</b>: List of saved Hex configurations</li>
+ *   <li><b>SavedHexes</b>: List of saved HexNode root configurations</li>
  * </ul>
  *
  * <p>Usage:
@@ -36,9 +36,8 @@ import java.util.*;
  * WorldHexDataStore.get().saveBook(world, data);
  * </pre>
  *
- * @see WorldHexDataStore
  * @see GlyphInstance
- * @see Hex
+ * @see HexNode
  */
 public class HexBookData {
 
@@ -64,7 +63,7 @@ public class HexBookData {
     private long lastModifiedAt;
 
     private final Map<String, GlyphInstance> glyphs;
-    private final List<Hex> savedHexes;
+    private final List<HexNode> savedHexes;
 
     /**
      * Create empty book data with a new UUID.
@@ -95,7 +94,7 @@ public class HexBookData {
     /**
      * Create book data with existing data.
      */
-    public HexBookData(Map<String, GlyphInstance> glyphs, List<Hex> savedHexes) {
+    public HexBookData(Map<String, GlyphInstance> glyphs, List<HexNode> savedHexes) {
         this.bookId = UUID.randomUUID();
         this.ownerId = null;
         this.createdAt = System.currentTimeMillis();
@@ -108,7 +107,7 @@ public class HexBookData {
      * Create book data with all fields specified.
      */
     public HexBookData(@Nonnull UUID bookId, @Nullable UUID ownerId,
-                       Map<String, GlyphInstance> glyphs, List<Hex> savedHexes) {
+                       Map<String, GlyphInstance> glyphs, List<HexNode> savedHexes) {
         this.bookId = bookId;
         this.ownerId = ownerId;
         this.createdAt = System.currentTimeMillis();
@@ -327,22 +326,22 @@ public class HexBookData {
     // ==================== SAVED HEX OPERATIONS ====================
 
     /**
-     * Get all saved hexes.
+     * Get all saved hexes (as HexNode roots).
      */
     @Nonnull
-    public List<Hex> getSavedHexes() {
+    public List<HexNode> getSavedHexes() {
         return Collections.unmodifiableList(savedHexes);
     }
 
     /**
-     * Check if a saved hex exists by name/id.
+     * Check if a saved hex exists by id.
      *
-     * @param name The hex name/id to check
-     * @return true if a hex with this name exists
+     * @param id The hex node id to check
+     * @return true if a hex with this id exists
      */
-    public boolean hasSavedHex(@Nonnull String name) {
-        for (Hex hex : savedHexes) {
-            if (hex.getId().equals(name)) {
+    public boolean hasSavedHex(@Nonnull String id) {
+        for (HexNode node : savedHexes) {
+            if (node.getId().equals(id)) {
                 return true;
             }
         }
@@ -350,13 +349,13 @@ public class HexBookData {
     }
 
     /**
-     * Get a saved hex by name.
+     * Get a saved hex by id.
      */
     @Nullable
-    public Hex getSavedHex(@Nonnull String name) {
-        for (Hex hex : savedHexes) {
-            if (hex.getId().equals(name)) {
-                return hex;
+    public HexNode getSavedHex(@Nonnull String id) {
+        for (HexNode node : savedHexes) {
+            if (node.getId().equals(id)) {
+                return node;
             }
         }
         return null;
@@ -366,7 +365,7 @@ public class HexBookData {
      * Get a saved hex by index.
      */
     @Nullable
-    public Hex getSavedHex(int index) {
+    public HexNode getSavedHex(int index) {
         if (index >= 0 && index < savedHexes.size()) {
             return savedHexes.get(index);
         }
@@ -374,21 +373,21 @@ public class HexBookData {
     }
 
     /**
-     * Save a hex. If name exists, replaces it. Otherwise adds new.
+     * Save a hex node. If id exists, replaces it. Otherwise adds new.
      *
-     * @param name Display name for the hex
-     * @param hexString Serialized hex string (e.g., "BEAM[POWER[FIRE[]]]")
+     * @param node The HexNode root to save
+     * @param id Optional override id (uses node.getId() if null)
      * @return true if saved successfully, false if at max capacity
      */
-    public boolean saveHex(@Nonnull Hex hex, @Nullable String id) {
+    public boolean saveHex(@Nonnull HexNode node, @Nullable String id) {
         // Check if replacing existing
         if (id == null) {
-            id = hex.getId();
+            id = node.getId();
         }
 
         for (int i = 0; i < savedHexes.size(); i++) {
             if (savedHexes.get(i).getId().equals(id)) {
-                savedHexes.set(i, hex);
+                savedHexes.set(i, node);
                 return true;
             }
         }
@@ -398,27 +397,25 @@ public class HexBookData {
             return false;
         }
 
-        savedHexes.add(hex);
+        savedHexes.add(node);
         return true;
     }
 
     /**
-     * Delete a saved hex by name.
+     * Delete a saved hex by id.
      */
     public boolean deleteSavedHex(@Nonnull String id) {
-        return savedHexes.removeIf(hex -> hex.getId().equals(id));
+        return savedHexes.removeIf(node -> node.getId().equals(id));
     }
 
     /**
      * Record that a saved hex was used.
+     * Note: Usage tracking is now handled externally or via glyph instances within the tree.
      */
-    public void recordSavedHexUsage(@Nonnull String name) {
-        for (int i = 0; i < savedHexes.size(); i++) {
-            if (savedHexes.get(i).getId().equals(name)) {
-                savedHexes.set(i, savedHexes.get(i).withIncrementedUses());
-                return;
-            }
-        }
+    public void recordSavedHexUsage(@Nonnull String id) {
+        // With unified HexNode treatment, usage tracking can be handled
+        // by incrementing usage on all GlyphInstance values in the tree.
+        // For now, this is a no-op as the usage count was on the Hex wrapper.
     }
 
     /**
@@ -457,7 +454,7 @@ public class HexBookData {
     /**
      * Set saved hexes from list (used by BuilderCodec).
      */
-    public void setSavedHexesFromList(List<Hex> list) {
+    public void setSavedHexesFromList(List<HexNode> list) {
         this.savedHexes.clear();
         if (list != null) {
             this.savedHexes.addAll(list);
@@ -467,7 +464,7 @@ public class HexBookData {
     /**
      * Get saved hexes as list (used by BuilderCodec).
      */
-    public List<Hex> getSavedHexesAsList() {
+    public List<HexNode> getSavedHexesAsList() {
         return new ArrayList<>(savedHexes);
     }
 
@@ -495,10 +492,10 @@ public class HexBookData {
         }
         json.add("glyphs", glyphsObj);
 
-        // Serialize saved hexes
+        // Serialize saved hexes (as HexNode roots)
         JsonArray hexesArray = new JsonArray();
-        for (Hex hex : savedHexes) {
-            hexesArray.add(hex.toJson());
+        for (HexNode node : savedHexes) {
+            hexesArray.add(node.toJson());
         }
         json.add("savedHexes", hexesArray);
 
@@ -548,13 +545,15 @@ public class HexBookData {
             }
         }
 
-        // Deserialize saved hexes
+        // Deserialize saved hexes (as HexNode roots)
         if (json.has("savedHexes") && json.get("savedHexes").isJsonArray()) {
             JsonArray hexesArray = json.getAsJsonArray("savedHexes");
             for (JsonElement element : hexesArray) {
                 if (element.isJsonObject()) {
-                    Hex hexData = Hex.fromJson(element.getAsJsonObject());
-                    data.savedHexes.add(hexData);
+                    HexNode node = HexNode.fromJson(element.getAsJsonObject());
+                    // Recalculate layout after deserialization
+                    node.recalculateLayout();
+                    data.savedHexes.add(node);
                 }
             }
         }

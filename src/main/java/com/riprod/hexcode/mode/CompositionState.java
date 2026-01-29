@@ -1,15 +1,19 @@
 package com.riprod.hexcode.mode;
 
 import com.riprod.hexcode.data.GlyphInstance;
-import com.riprod.hexcode.hex.Hex;
 import com.riprod.hexcode.hex.HexNode;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
 /**
  * Tracks the current hex composition state during glyph mode.
+ *
+ * <p>With the unified HexNode treatment (where a single glyph is simply a
+ * HexNode with no children), this class directly manages the root HexNode
+ * instead of a separate Hex wrapper.
  *
  * Supports:
  * - Building the hex tree structure
@@ -17,7 +21,7 @@ import java.util.Deque;
  * - Validation of composition rules
  */
 public class CompositionState {
-    private Hex hex;
+    private HexNode rootNode;
     private final Deque<CompositionAction> undoStack;
     private final int maxUndoSize;
 
@@ -26,23 +30,24 @@ public class CompositionState {
     }
 
     public CompositionState(int maxUndoSize) {
-        this.hex = new Hex();
+        this.rootNode = null;
         this.undoStack = new ArrayDeque<>();
         this.maxUndoSize = maxUndoSize;
     }
 
     /**
-     * @return The current hex being composed
+     * @return The root HexNode being composed, or null if empty
      */
-    public Hex getHex() {
-        return hex;
+    @Nullable
+    public HexNode getRoot() {
+        return rootNode;
     }
 
     /**
      * @return true if there's nothing in the composition
      */
     public boolean isEmpty() {
-        return hex.isEmpty();
+        return rootNode == null;
     }
 
     /**
@@ -68,9 +73,9 @@ public class CompositionState {
             return false;
         }
 
-        HexNode rootNode = new HexNode(glyph);
-        hex.setRoot(rootNode);
-        pushAction(new CompositionAction(CompositionActionType.PLACE_ROOT, rootNode, null));
+        HexNode newRoot = new HexNode(glyph);
+        this.rootNode = newRoot;
+        pushAction(new CompositionAction(CompositionActionType.PLACE_ROOT, newRoot, null));
         return true;
     }
 
@@ -87,7 +92,7 @@ public class CompositionState {
             return placeRoot(glyph);
         }
         // For non-empty composition, wrap the root with this glyph
-        return wrapNode(glyph, hex.getRoot());
+        return wrapNode(glyph, rootNode);
     }
 
     /**
@@ -112,7 +117,7 @@ public class CompositionState {
         if (parent == null) {
             // Target is root, wrapper becomes new root
             if (wrapperNode.addChild(target)) {
-                hex.setRoot(wrapperNode);
+                this.rootNode = wrapperNode;
                 pushAction(new CompositionAction(CompositionActionType.WRAP, wrapperNode, target));
                 return true;
             }
@@ -226,7 +231,7 @@ public class CompositionState {
         switch (action.type) {
             case PLACE_ROOT:
             case PLACE_SAVED_HEX:
-                hex.setRoot(null);
+                this.rootNode = null;
                 break;
             case WRAP:
                 unwrap(action.node, action.target);
@@ -234,12 +239,12 @@ public class CompositionState {
             case ADD_SIBLING:
             case INSERT_AT_NODE:
                 if (action.target != null) {
-                    ((HexNode) action.target).removeChild(action.node);
+                    action.target.removeChild(action.node);
                 }
                 break;
             case WRAP_WITH_SAVED_HEX:
                 // Restore the previous root (which was wrapped)
-                hex.setRoot(action.target);
+                this.rootNode = action.target;
                 break;
         }
         return true;
@@ -249,7 +254,7 @@ public class CompositionState {
         HexNode parent = wrapper.getParent();
         if (parent == null) {
             // Wrapper was root
-            hex.setRoot(wrapped);
+            this.rootNode = wrapped;
         } else {
             parent.removeChild(wrapper);
             parent.addChild(wrapped);
@@ -260,31 +265,31 @@ public class CompositionState {
      * Clear the entire composition.
      */
     public void clear() {
-        hex = new Hex();
+        this.rootNode = null;
         undoStack.clear();
     }
 
     /**
-     * Load a hex into the composition state.
+     * Load a HexNode tree into the composition state.
      *
-     * <p>Clears any existing composition and loads the provided hex.
+     * <p>Clears any existing composition and loads the provided node tree.
      * The undo stack is cleared since this is a fresh load operation.
      *
      * <p>This is used when entering glyph mode to restore a previously
      * queued hex from the book.
      *
-     * @param existingHex The hex to load into the composition
+     * @param existingRoot The HexNode root to load into the composition
      */
-    public void loadFromHex(@Nonnull Hex existingHex) {
+    public void loadFromHexNode(@Nullable HexNode existingRoot) {
         clear();
 
-        if (existingHex == null || !existingHex.hasRoot()) {
+        if (existingRoot == null) {
             return;
         }
 
         // Deep copy the hex tree to avoid modifying the original
-        HexNode copiedRoot = deepCopyNode(existingHex.getRoot());
-        hex.setRoot(copiedRoot);
+        HexNode copiedRoot = deepCopyNode(existingRoot);
+        this.rootNode = copiedRoot;
         // Don't add to undo stack - this is a load, not a user action
     }
 
@@ -306,25 +311,23 @@ public class CompositionState {
     // ==================== SAVED HEX SUPPORT ====================
 
     /**
-     * Add a saved hex to the composition.
+     * Add a saved hex (HexNode tree) to the composition.
      * The saved hex expands to its full tree structure.
      *
-     * @param element The saved hex element to add
+     * @param savedHexRoot The root of the saved hex tree to add
      * @return true if added successfully
      */
-    public boolean addSavedHex(@Nonnull Hex element) {
+    public boolean addSavedHex(@Nullable HexNode savedHexRoot) {
 
-        if (element == null || !element.hasRoot()) {
+        if (savedHexRoot == null) {
             return false;
         }
-
-        HexNode savedHexRoot = element.getRoot();
 
         if (isEmpty()) {
             // First element - copy the saved hex's root as our root
             // Create a deep copy to avoid modifying the original
             HexNode copiedRoot = deepCopyNode(savedHexRoot);
-            hex.setRoot(copiedRoot);
+            this.rootNode = copiedRoot;
             pushAction(new CompositionAction(CompositionActionType.PLACE_SAVED_HEX, copiedRoot, null));
             return true;
         }
@@ -332,14 +335,14 @@ public class CompositionState {
         // If not empty, the saved hex wraps the current composition
         // This is like adding a SELECT glyph that has pre-defined children
         HexNode copiedRoot = deepCopyNode(savedHexRoot);
-        HexNode currentRoot = hex.getRoot();
+        HexNode currentRoot = this.rootNode;
 
         // Find the leaf of the copied saved hex tree
         HexNode leaf = findFirstLeaf(copiedRoot);
         if (leaf != null) {
             // Add current composition as a child of the saved hex's leaf
             leaf.addChild(currentRoot);
-            hex.setRoot(copiedRoot);
+            this.rootNode = copiedRoot;
             pushAction(new CompositionAction(CompositionActionType.WRAP_WITH_SAVED_HEX, copiedRoot, currentRoot));
             return true;
         }

@@ -9,21 +9,17 @@ import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.casting.styles.OrbitalElement;
-import com.riprod.hexcode.entity.HexEntity;
+import com.riprod.hexcode.entity.HexNodeEntity;
+import com.riprod.hexcode.entity.OrbitalElement;
 import com.riprod.hexcode.hex.HexNode;
 import com.riprod.hexcode.math.GlyphRotation;
-import com.riprod.hexcode.util.RotationMath;
 
 /**
  * Detects drop targets for glyph/hex drag-and-drop operations using angular distance.
  *
  * <p>Uses angular distance comparison to determine what orbital element the player
- * is looking at. Selection uses a 5-degree tolerance for single glyphs, 7-degree
- * for composed hexes.
- *
- * <p>For HexEntity targets, provides tier-based detection where outer tiers (larger
- * angular margins) are matched first, allowing insertion at specific tree levels.
+ * is looking at. For HexNodeEntity targets, provides nested node detection using
+ * the HexNode's findDeepestAt() method for precise selection within composed hexes.
  *
  * <p>Uses HeadRotation component for accurate look direction
  * (not TransformComponent which only stores body rotation).
@@ -32,7 +28,6 @@ public class RotationObserver {
 
     // Cached component types for performance
     private static volatile ComponentType<EntityStore, TransformComponent> cachedTransformType;
-    private static volatile ComponentType<EntityStore, HeadRotation> cachedHeadRotationType;
 
     /**
      * Result of finding a drop target.
@@ -55,19 +50,20 @@ public class RotationObserver {
     }
 
     /**
-     * Extended result for hex targets with tier information.
+     * Result for HexNodeEntity targets with specific node information.
+     * Uses the unified HexNode system for nested selection.
      */
-    public static class HexDropTarget extends DropTarget {
-        /** The tier level that was matched (0 = outermost/root) */
-        public final int tierLevel;
+    public static class NodeDropTarget extends DropTarget {
+        /** The HexNodeEntity that was matched */
+        public final HexNodeEntity entity;
 
-        /** The HexNode corresponding to the matched tier */
+        /** The specific HexNode within the tree that was targeted (deepest match) */
         public final HexNode targetNode;
 
-        public HexDropTarget(OrbitalElement target, GlyphRotation lookRotation, float angularDistance,
-                            int tierLevel, HexNode targetNode) {
-            super(target, lookRotation, angularDistance);
-            this.tierLevel = tierLevel;
+        public NodeDropTarget(HexNodeEntity entity, HexNode targetNode,
+                              GlyphRotation lookRotation, float angularDistance) {
+            super(entity, lookRotation, angularDistance);
+            this.entity = entity;
             this.targetNode = targetNode;
         }
     }
@@ -79,46 +75,51 @@ public class RotationObserver {
         return cachedTransformType;
     }
 
-    private static ComponentType<EntityStore, HeadRotation> getHeadRotationType() {
-        if (cachedHeadRotationType == null) {
-            cachedHeadRotationType = HeadRotation.getComponentType();
-        }
-        return cachedHeadRotationType;
-    }
-
     /**
      * Find the orbital element the player is looking at.
      *
      * <p>Excludes elements that are currently being dragged.
      * Returns the closest angular match within tolerance.
      *
-     * @param store The entity store
+     * <p>For HexNodeEntity targets, returns a NodeDropTarget with the deepest
+     * matching node within the hex tree.
+     *
+     * @param store     The entity store
      * @param playerRef The player entity reference
-     * @param elements List of orbital elements to check
-     * @return DropTarget with match information, or null if nothing matched
+     * @param elements  List of orbital elements to check (accepts List of any OrbitalElement subtype)
+     * @return DropTarget (or NodeDropTarget for HexNodeEntity), or null if nothing matched
      */
     public DropTarget findDropTarget(Store<EntityStore> store, Ref<EntityStore> playerRef,
-                                     List<OrbitalElement> elements) {
+            List<? extends OrbitalElement> elements) {
         if (elements == null || elements.isEmpty()) {
             return null;
         }
 
-        ComponentType<EntityStore, HeadRotation> headRotationType = getHeadRotationType();
-        if (headRotationType == null) {
+        GlyphRotation lookRotation = getPlayerLookRotation(store, playerRef);
+        if (lookRotation == null) {
             return null;
         }
 
-        // Get player head rotation (where they're actually looking)
-        HeadRotation headRotation = store.getComponent(playerRef, headRotationType);
-        if (headRotation == null) {
+        return findDropTargetAtRotation(elements, lookRotation);
+    }
+
+    /**
+     * Find the orbital element at a specific rotation.
+     *
+     * @param elements     List of orbital elements to check (accepts List of any OrbitalElement subtype)
+     * @param lookRotation The rotation to test against
+     * @return DropTarget (or NodeDropTarget for HexNodeEntity), or null if nothing matched
+     */
+    public DropTarget findDropTargetAtRotation(List<? extends OrbitalElement> elements, GlyphRotation lookRotation) {
+        if (elements == null || elements.isEmpty() || lookRotation == null) {
             return null;
         }
 
-        // Convert look direction to GlyphRotation
-        Vector3d lookDirection = headRotation.getDirection();
-        GlyphRotation lookRotation = GlyphRotation.fromDirection(lookDirection);
+        float userYaw = lookRotation.getYaw();
+        float userPitch = lookRotation.getPitch();
 
         OrbitalElement closestElement = null;
+        HexNode deepestNode = null;
         float closestAngularDistance = Float.MAX_VALUE;
 
         for (int i = 0, size = elements.size(); i < size; i++) {
@@ -129,19 +130,41 @@ public class RotationObserver {
                 continue;
             }
 
-            GlyphRotation elementRotation = element.getRotation();
-            if (elementRotation == null) {
-                continue;
-            }
+            // For HexNodeEntity, use the nested hit testing
+            if (element instanceof HexNodeEntity) {
+                HexNodeEntity hexNodeEntity = (HexNodeEntity) element;
+                HexNode rootNode = hexNodeEntity.getNode();
 
-            // Calculate angular distance
-            float angularDistance = lookRotation.angularDistanceTo(elementRotation);
+                // Use HexNode's findDeepestAt for precise nested selection
+                HexNode hitNode = rootNode.findDeepestAt(userYaw, userPitch);
+                if (hitNode != null) {
+                    // Calculate angular distance to the hit node
+                    float angularDistance = HexNode.angularDistance(
+                            hitNode.getAbsoluteYaw(), hitNode.getAbsolutePitch(),
+                            userYaw, userPitch
+                    );
 
-            // Check if within element's selection tolerance
-            float tolerance = element.getSelectionTolerance();
-            if (angularDistance <= tolerance && angularDistance < closestAngularDistance) {
-                closestElement = element;
-                closestAngularDistance = angularDistance;
+                    if (angularDistance < closestAngularDistance) {
+                        closestElement = element;
+                        deepestNode = hitNode;
+                        closestAngularDistance = angularDistance;
+                    }
+                }
+            } else {
+                // For other OrbitalElement types, use simple rotation check
+                GlyphRotation elementRotation = element.getRotation();
+                if (elementRotation == null) {
+                    continue;
+                }
+
+                float angularDistance = lookRotation.angularDistanceTo(elementRotation);
+                float tolerance = element.getSelectionTolerance();
+
+                if (angularDistance <= tolerance && angularDistance < closestAngularDistance) {
+                    closestElement = element;
+                    deepestNode = null; // Not a HexNodeEntity
+                    closestAngularDistance = angularDistance;
+                }
             }
         }
 
@@ -149,103 +172,95 @@ public class RotationObserver {
             return null;
         }
 
-        // If it's a HexEntity, return a HexDropTarget with tier info
-        if (closestElement instanceof HexEntity) {
-            return findHexDropTarget(store, playerRef, (HexEntity) closestElement, lookRotation);
+        // Return NodeDropTarget for HexNodeEntity, regular DropTarget otherwise
+        if (closestElement instanceof HexNodeEntity && deepestNode != null) {
+            return new NodeDropTarget(
+                    (HexNodeEntity) closestElement,
+                    deepestNode,
+                    lookRotation,
+                    closestAngularDistance
+            );
         }
 
         return new DropTarget(closestElement, lookRotation, closestAngularDistance);
     }
 
     /**
-     * Find which tier of a hex the player is looking at.
+     * Find the deepest node in a HexNodeEntity at the player's look direction.
      *
-     * <p>Tests angular distance against each tier's tolerance, starting from outermost.
-     * Returns the innermost tier that matches (closest angular distance), since
-     * more precise aiming should select inner tiers.
+     * <p>This is a convenience method that extracts just the node targeting
+     * without needing to check all orbital elements.
      *
-     * <p>Tier 0 = outermost (largest tolerance, root node)
-     * Tier N = innermost (smallest tolerance, deepest leaf)
-     *
-     * @param store The entity store
-     * @param playerRef The player entity reference
-     * @param hexEntity The hex entity to test
-     * @param lookRotation The player's look rotation (if null, will be computed)
-     * @return HexDropTarget with tier and node info, or null if no match
+     * @param store         The entity store
+     * @param playerRef     The player entity reference
+     * @param hexNodeEntity The HexNodeEntity to search within
+     * @return NodeDropTarget with the deepest matching node, or null if not looking at it
      */
-    public HexDropTarget findHexDropTarget(Store<EntityStore> store, Ref<EntityStore> playerRef,
-                                           HexEntity hexEntity, GlyphRotation lookRotation) {
-        // Get look rotation if not provided
+    public NodeDropTarget findNodeDropTarget(Store<EntityStore> store, Ref<EntityStore> playerRef,
+                                              HexNodeEntity hexNodeEntity) {
+        GlyphRotation lookRotation = getPlayerLookRotation(store, playerRef);
         if (lookRotation == null) {
-            ComponentType<EntityStore, HeadRotation> headRotationType = getHeadRotationType();
-            if (headRotationType == null) {
-                return null;
-            }
-
-            HeadRotation headRotation = store.getComponent(playerRef, headRotationType);
-            if (headRotation == null) {
-                return null;
-            }
-
-            lookRotation = GlyphRotation.fromDirection(headRotation.getDirection());
-        }
-
-        // Get hex rotation
-        GlyphRotation hexRotation = hexEntity.getRotation();
-        if (hexRotation == null) {
             return null;
         }
 
-        // Calculate angular distance to hex center
-        float angularDistance = lookRotation.angularDistanceTo(hexRotation);
+        return findNodeDropTargetAtRotation(hexNodeEntity, lookRotation);
+    }
 
-        // Get tier tolerances
-        float[] tierTolerances = hexEntity.getTierTolerances();
-        if (tierTolerances == null || tierTolerances.length == 0) {
+    /**
+     * Find the deepest node in a HexNodeEntity at a specific rotation.
+     *
+     * @param hexNodeEntity The HexNodeEntity to search within
+     * @param lookRotation  The rotation to test against
+     * @return NodeDropTarget with the deepest matching node, or null if not within bounds
+     */
+    public NodeDropTarget findNodeDropTargetAtRotation(HexNodeEntity hexNodeEntity, GlyphRotation lookRotation) {
+        if (hexNodeEntity == null || lookRotation == null) {
             return null;
         }
 
-        // Find the innermost (smallest tolerance) tier that matches
-        // Check from innermost to outermost so we get the most specific match
-        int matchedTier = -1;
-        for (int tier = tierTolerances.length - 1; tier >= 0; tier--) {
-            if (angularDistance <= tierTolerances[tier]) {
-                matchedTier = tier;
-                break; // Found innermost match
-            }
+        float userYaw = lookRotation.getYaw();
+        float userPitch = lookRotation.getPitch();
+
+        HexNode rootNode = hexNodeEntity.getNode();
+        HexNode hitNode = rootNode.findDeepestAt(userYaw, userPitch);
+
+        if (hitNode == null) {
+            return null;
         }
 
-        if (matchedTier < 0) {
-            return null; // No tier matched
-        }
+        float angularDistance = HexNode.angularDistance(
+                hitNode.getAbsoluteYaw(), hitNode.getAbsolutePitch(),
+                userYaw, userPitch
+        );
 
-        // Find the corresponding HexNode
-        HexNode targetNode = hexEntity.getNodeAtTier(matchedTier);
-
-        return new HexDropTarget(hexEntity, lookRotation, angularDistance, matchedTier, targetNode);
+        return new NodeDropTarget(hexNodeEntity, hitNode, lookRotation, angularDistance);
     }
 
     /**
      * Check if the player is looking at a specific orbital element.
      *
-     * @param store The entity store
+     * @param store     The entity store
      * @param playerRef The player entity reference
-     * @param element The element to check
+     * @param element   The element to check
      * @return true if the player is looking at the element (within its tolerance)
      */
     public boolean isLookingAt(Store<EntityStore> store, Ref<EntityStore> playerRef,
-                               OrbitalElement element) {
-        ComponentType<EntityStore, HeadRotation> headRotationType = getHeadRotationType();
-        if (headRotationType == null) {
+            OrbitalElement element) {
+        GlyphRotation lookRotation = getPlayerLookRotation(store, playerRef);
+        if (lookRotation == null) {
             return false;
         }
 
-        HeadRotation headRotation = store.getComponent(playerRef, headRotationType);
-        if (headRotation == null) {
-            return false;
+        // For HexNodeEntity, use the nested hit testing
+        if (element instanceof HexNodeEntity) {
+            HexNodeEntity hexNodeEntity = (HexNodeEntity) element;
+            HexNode hitNode = hexNodeEntity.getNode().findDeepestAt(
+                    lookRotation.getYaw(), lookRotation.getPitch()
+            );
+            return hitNode != null;
         }
 
-        GlyphRotation lookRotation = GlyphRotation.fromDirection(headRotation.getDirection());
+        // For other elements, use simple rotation check
         GlyphRotation elementRotation = element.getRotation();
         if (elementRotation == null) {
             return false;
@@ -258,12 +273,12 @@ public class RotationObserver {
     /**
      * Get the player's current look rotation.
      *
-     * @param store The entity store
+     * @param store     The entity store
      * @param playerRef The player entity reference
      * @return The player's look rotation, or null if unavailable
      */
     public GlyphRotation getPlayerLookRotation(Store<EntityStore> store, Ref<EntityStore> playerRef) {
-        ComponentType<EntityStore, HeadRotation> headRotationType = getHeadRotationType();
+        ComponentType<EntityStore, HeadRotation> headRotationType = HeadRotation.getComponentType();
         if (headRotationType == null) {
             return null;
         }
@@ -283,31 +298,28 @@ public class RotationObserver {
      * the closest element regardless of distance. Useful for drop detection where
      * you want to find the "best" target even if slightly outside tolerance.
      *
-     * @param store The entity store
-     * @param playerRef The player entity reference
-     * @param elements List of orbital elements to check
+     * @param store              The entity store
+     * @param playerRef          The player entity reference
+     * @param elements           List of orbital elements to check
      * @param maxAngularDistance Maximum angular distance to consider (in degrees)
      * @return DropTarget with the closest element, or null if none within max distance
      */
     public DropTarget findClosestElement(Store<EntityStore> store, Ref<EntityStore> playerRef,
-                                         List<OrbitalElement> elements, float maxAngularDistance) {
+            List<? extends OrbitalElement> elements, float maxAngularDistance) {
         if (elements == null || elements.isEmpty()) {
             return null;
         }
 
-        ComponentType<EntityStore, HeadRotation> headRotationType = getHeadRotationType();
-        if (headRotationType == null) {
+        GlyphRotation lookRotation = getPlayerLookRotation(store, playerRef);
+        if (lookRotation == null) {
             return null;
         }
 
-        HeadRotation headRotation = store.getComponent(playerRef, headRotationType);
-        if (headRotation == null) {
-            return null;
-        }
-
-        GlyphRotation lookRotation = GlyphRotation.fromDirection(headRotation.getDirection());
+        float userYaw = lookRotation.getYaw();
+        float userPitch = lookRotation.getPitch();
 
         OrbitalElement closestElement = null;
+        HexNode deepestNode = null;
         float closestAngularDistance = maxAngularDistance;
 
         for (OrbitalElement element : elements) {
@@ -315,15 +327,36 @@ public class RotationObserver {
                 continue;
             }
 
-            GlyphRotation elementRotation = element.getRotation();
-            if (elementRotation == null) {
-                continue;
-            }
+            // For HexNodeEntity, use nested hit testing
+            if (element instanceof HexNodeEntity) {
+                HexNodeEntity hexNodeEntity = (HexNodeEntity) element;
+                HexNode rootNode = hexNodeEntity.getNode();
 
-            float angularDistance = lookRotation.angularDistanceTo(elementRotation);
-            if (angularDistance < closestAngularDistance) {
-                closestElement = element;
-                closestAngularDistance = angularDistance;
+                HexNode hitNode = rootNode.findDeepestAt(userYaw, userPitch);
+                if (hitNode != null) {
+                    float angularDistance = HexNode.angularDistance(
+                            hitNode.getAbsoluteYaw(), hitNode.getAbsolutePitch(),
+                            userYaw, userPitch
+                    );
+
+                    if (angularDistance < closestAngularDistance) {
+                        closestElement = element;
+                        deepestNode = hitNode;
+                        closestAngularDistance = angularDistance;
+                    }
+                }
+            } else {
+                GlyphRotation elementRotation = element.getRotation();
+                if (elementRotation == null) {
+                    continue;
+                }
+
+                float angularDistance = lookRotation.angularDistanceTo(elementRotation);
+                if (angularDistance < closestAngularDistance) {
+                    closestElement = element;
+                    deepestNode = null;
+                    closestAngularDistance = angularDistance;
+                }
             }
         }
 
@@ -331,8 +364,13 @@ public class RotationObserver {
             return null;
         }
 
-        if (closestElement instanceof HexEntity) {
-            return findHexDropTarget(store, playerRef, (HexEntity) closestElement, lookRotation);
+        if (closestElement instanceof HexNodeEntity && deepestNode != null) {
+            return new NodeDropTarget(
+                    (HexNodeEntity) closestElement,
+                    deepestNode,
+                    lookRotation,
+                    closestAngularDistance
+            );
         }
 
         return new DropTarget(closestElement, lookRotation, closestAngularDistance);

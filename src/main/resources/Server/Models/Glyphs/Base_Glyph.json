@@ -1,8 +1,16 @@
 {
   "Model": "VFX/Glyphs/base_glyph.blockymodel",
   "HitBox": {
-    "Min": { "X": -0.25, "Y": -0.25, "Z": -0.25 },
-    "Max": { "X": 0.25, "Y": 0.25, "Z": 0.25 }
+    "Min": {
+      "X": -0.25,
+      "Y": -0.25,
+      "Z": -0.25
+    },
+    "Max": {
+      "X": 0.25,
+      "Y": 0.25,
+      "Z": 0.25
+    }
   },
   "MinScale": 1,
   "MaxScale": 1

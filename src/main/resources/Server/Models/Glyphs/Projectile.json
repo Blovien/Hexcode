@@ -1,5 +1,5 @@
 {
-  "Model": "VFX/Glyphs/projectile.blockymodel",
+  "Model": "Models/Glyphs/projectile.blockymodel",
   "HitBox": {
     "Min": { "X": -0.25, "Y": -0.25, "Z": -0.25 },
     "Max": { "X": 0.25, "Y": 0.25, "Z": 0.25 }

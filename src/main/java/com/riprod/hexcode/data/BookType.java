@@ -11,7 +11,6 @@ import javax.annotation.Nonnull;
  *
  * <p>Storage path pattern: {@code {world_save_path}/hexcode/{player_uuid}/{book_type.fileId}.json}
  *
- * @see WorldBookDataStore
  */
 public enum BookType {
     /**

@@ -17,7 +17,6 @@ import java.util.UUID;
  * <h2>Storage Model (Hybrid Approach)</h2>
  * <ul>
  *   <li><b>Book UUID</b>: Stored in ItemStack metadata (set once on creation)</li>
- *   <li><b>Queued Hex</b>: Stored in world files via {@link com.riprod.hexcode.data.WorldHexDataStore}</li>
  * </ul>
  *
  * <p>This hybrid approach avoids frequent ItemStack mutations for queued hex data,
@@ -41,7 +40,6 @@ import java.util.UUID;
  * inventory.setUtilityItem(newStack); // Update inventory
  * </pre>
  *
- * @see com.riprod.hexcode.data.WorldHexDataStore
  */
 public class HexBookMetadata {
 

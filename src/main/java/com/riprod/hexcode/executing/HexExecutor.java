@@ -13,7 +13,6 @@ import com.riprod.hexcode.data.HexBookDataManager;
 import com.riprod.hexcode.glyph.Glyph;
 import com.riprod.hexcode.glyph.GlyphRegistry;
 import com.riprod.hexcode.glyph.GlyphRole;
-import com.riprod.hexcode.hex.Hex;
 import com.riprod.hexcode.hex.HexNode;
 import com.riprod.hexcode.util.RaycastUtil;
 import com.hypixel.hytale.math.vector.Vector3d;
@@ -62,19 +61,21 @@ public class HexExecutor {
     // ========== SPELL EXECUTION (NEW API) ==========
 
     /**
-     * Execute a spell (supports chains).
+     * Execute a spell from a HexNode root.
      *
-     * @param spell      The spell to execute
+     * <p>With unified glyph/hex treatment, all spells are HexNode trees.
+     * A single glyph is a HexNode with no children.
+     *
+     * @param root       The root HexNode to execute
      * @param caster     The entity casting the spell
      * @param store      The entity store
      * @param world      The world
      * @param direction  The cast direction
-     * @param castNumber The cast number (1 for first cast, 2 for second, etc.)
      * @return Execution result
      */
-    public ExecutionResult execute(Hex hex, Ref<EntityStore> caster, Store<EntityStore> store,
+    public ExecutionResult execute(HexNode root, Ref<EntityStore> caster, Store<EntityStore> store,
             World world, Vector3d direction) {
-        if (hex == null || hex.isEmpty()) {
+        if (root == null) {
             return ExecutionResult.failure("Spell is empty");
         }
 
@@ -85,15 +86,12 @@ public class HexExecutor {
         // Create base context
         SpellContext baseContext = SpellContext.create(caster, store, world, origin, direction, 1);
 
-        LOGGER.atInfo().log("Executing spell with %d chain element(s), castNumber=%d",
-                hex.getMaxDepth(), 1);
+        LOGGER.atInfo().log("Executing spell with depth %d, castNumber=%d",
+                root.getDepth(), 1);
 
         try {
-            // Execute the hex tree with a SELECT root (implicit SELF if needed)
-            HexNode rootToExecute = hex.getRoot();
-
             // Execute depth-first from the root
-            SpellContext resultContext = executeHexNode(rootToExecute, baseContext);
+            SpellContext resultContext = executeHexNode(root, baseContext);
 
             return ExecutionResult.success();
         } catch (Exception e) {

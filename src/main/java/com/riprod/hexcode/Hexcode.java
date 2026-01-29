@@ -3,7 +3,6 @@ package com.riprod.hexcode;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.event.EventRegistry;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
@@ -11,10 +10,9 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.asset.GlyphAssetDefinition;
 import com.riprod.hexcode.asset.GlyphAssetLoader;
 import com.riprod.hexcode.command.HexcodeCommand;
-import com.riprod.hexcode.data.WorldBookDataStore;
-import com.riprod.hexcode.data.WorldHexDataStore;
 import com.riprod.hexcode.drawing.DrawingTemplate;
-import com.riprod.hexcode.entity.GlyphComponent;
+import com.riprod.hexcode.entity.HexNodeComponent;
+import com.riprod.hexcode.entity.OrbitalPositionComponent;
 import com.riprod.hexcode.event.EventHandlers;
 import com.riprod.hexcode.event.GlyphRegistrationEvent;
 import com.riprod.hexcode.glyph.GlyphFactories;
@@ -50,7 +48,8 @@ public class Hexcode extends JavaPlugin {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     private EventHandlers eventHandlers;
-    private ComponentType<EntityStore, GlyphComponent> glyphComponentType;
+    private ComponentType<EntityStore, HexNodeComponent> hexNodeComponentType;
+    private ComponentType<EntityStore, OrbitalPositionComponent> orbitalPositionComponentType;
 
     public Hexcode(JavaPluginInit init) {
         super(init);
@@ -74,10 +73,13 @@ public class Hexcode extends JavaPlugin {
         // Step 5: Register custom components
         registerComponents();
 
-        // Step 6: Register commands
+        // Step 6: Register ECS systems
+        registerSystems();
+
+        // Step 7: Register commands
         this.getCommandRegistry().registerCommand(new HexcodeCommand());
 
-        // Step 7: Register event handlers
+        // Step 8: Register event handlers
         this.eventHandlers = new EventHandlers();
         EventRegistry eventRegistry = this.getEventRegistry();
         this.eventHandlers.register(eventRegistry);
@@ -104,14 +106,6 @@ public class Hexcode extends JavaPlugin {
         // Initialize GlyphAssetLoader for loading glyph asset definitions
         GlyphAssetLoader.initialize(this.getDataDirectory());
         LOGGER.atInfo().log("GlyphAssetLoader initialized");
-
-        // Initialize WorldBookDataStore for per-world, per-player book data (legacy)
-        WorldBookDataStore.initialize();
-        LOGGER.atInfo().log("WorldBookDataStore initialized (legacy per-player storage)");
-
-        // Initialize WorldHexDataStore for UUID-based book storage (new)
-        WorldHexDataStore.initialize();
-        LOGGER.atInfo().log("WorldHexDataStore initialized (UUID-based storage)");
 
         // Initialize DrawingTemplate for loading PNG templates
         DrawingTemplate.initialize(this.getDataDirectory());
@@ -241,14 +235,37 @@ public class Hexcode extends JavaPlugin {
      * Register custom components for the Hexcode mod.
      */
     private void registerComponents() {
-        // Register OrbitalGlyphComponent with CODEC for proper ECS serialization
-        // Method signature: registerComponent(Class, String name, BuilderCodec)
-        glyphComponentType = this.getEntityStoreRegistry().registerComponent(
-                GlyphComponent.class,
-                "OrbitalGlyphComponent",
-                GlyphComponent.CODEC
+        // Register HexNodeComponent for unified HexNode entity tracking
+        hexNodeComponentType = this.getEntityStoreRegistry().registerComponent(
+                HexNodeComponent.class,
+                "HexNodeComponent",
+                HexNodeComponent.CODEC
         );
-        GlyphComponent.setComponentType(glyphComponentType);
-        LOGGER.atInfo().log("Registered OrbitalGlyphComponent with CODEC");
+        HexNodeComponent.setComponentType(hexNodeComponentType);
+        LOGGER.atInfo().log("Registered HexNodeComponent with CODEC");
+
+        // Register OrbitalPositionComponent for player-relative positioning
+        orbitalPositionComponentType = this.getEntityStoreRegistry().registerComponent(
+                OrbitalPositionComponent.class,
+                "OrbitalPositionComponent",
+                OrbitalPositionComponent.CODEC
+        );
+        OrbitalPositionComponent.setComponentType(orbitalPositionComponentType);
+        LOGGER.atInfo().log("Registered OrbitalPositionComponent with CODEC");
+    }
+
+    /**
+     * Register ECS systems for the Hexcode mod.
+     *
+     * <p>Note: Orbital positioning is handled directly in GlyphMode.updateOrbitalGlyphs()
+     * which runs each tick while glyph mode is active. This is more performant than
+     * a global ECS system since it only processes entities when needed.
+     *
+     * <p>Child nodes still use MountedComponent for internal hierarchy.
+     */
+    private void registerSystems() {
+        // Orbital positioning handled in GlyphMode.updateOrbitalGlyphs() for performance
+        // No ECS systems needed - ticking only happens when glyph mode is active
+        LOGGER.atInfo().log("System registration complete (orbital positioning in GlyphMode)");
     }
 }

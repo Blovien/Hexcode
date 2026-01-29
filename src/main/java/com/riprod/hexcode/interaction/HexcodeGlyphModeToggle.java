@@ -23,7 +23,8 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.casting.RotationObserver;
 import com.riprod.hexcode.casting.RotationObserver.DropTarget;
-import com.riprod.hexcode.casting.styles.OrbitalElement;
+import com.riprod.hexcode.casting.RotationObserver.NodeDropTarget;
+import com.riprod.hexcode.entity.HexNodeEntity;
 import com.riprod.hexcode.mode.GlyphMode;
 import com.riprod.hexcode.mode.GlyphModeManager;
 import com.riprod.hexcode.util.HexStaffUtil;
@@ -154,7 +155,7 @@ public class HexcodeGlyphModeToggle extends ChargingInteraction {
         if (firstRun) {
             GlyphMode mode = modeManager.getSession(playerId);
             if (mode == null || !mode.isActive()) {
-                modeManager.enterGlyphMode(playerId, ref, context.getCommandBuffer(), world, bookStack, inventory);
+                modeManager.enterGlyphMode(playerId, ref, context.getCommandBuffer(), bookStack, inventory);
                 LOGGER.atInfo().log("Player %s entered glyph mode", playerId);
             }
         }
@@ -219,12 +220,15 @@ public class HexcodeGlyphModeToggle extends ChargingInteraction {
      * Process hover detection on the server side using angular distance.
      * Uses RotationObserver to find what orbital element the player is looking at.
      *
+     * <p>With unified HexNodeEntity treatment, all orbital elements are HexNodeEntity.
+     * The DropTarget is cast to NodeDropTarget to get the specific entity.
+     *
      * @param playerRef The player entity reference
      * @param store     The entity store
      * @param mode      The player's glyph mode
      */
     private void processServerSideHover(Ref<EntityStore> playerRef, Store<EntityStore> store, GlyphMode mode) {
-        List<OrbitalElement> orbitalElements = mode.getAllOrbitalElements();
+        List<HexNodeEntity> orbitalElements = mode.getAllOrbitalElements();
         if (orbitalElements == null || orbitalElements.isEmpty()) {
             return;
         }
@@ -232,7 +236,11 @@ public class HexcodeGlyphModeToggle extends ChargingInteraction {
         // Use RotationObserver to find what the player is looking at (angular distance)
         DropTarget dropTarget = rotationObserver.findDropTarget(store, playerRef, orbitalElements);
 
-        OrbitalElement targetElement = (dropTarget != null) ? dropTarget.target : null;
+        // Extract HexNodeEntity from NodeDropTarget (all elements are HexNodeEntity now)
+        HexNodeEntity targetElement = null;
+        if (dropTarget instanceof NodeDropTarget) {
+            targetElement = ((NodeDropTarget) dropTarget).entity;
+        }
 
         // Update hover or drop target based on drag state
         if (mode.isDragging()) {

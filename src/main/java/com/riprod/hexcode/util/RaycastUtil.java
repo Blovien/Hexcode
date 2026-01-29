@@ -7,9 +7,6 @@ import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.entity.HexEntity;
-
-import java.util.List;
 
 /**
  * Utility methods for raycasting and glyph hover detection.
@@ -54,83 +51,6 @@ public class RaycastUtil {
             cachedHeadRotationType = HeadRotation.getComponentType();
         }
         return cachedHeadRotationType;
-    }
-
-    /**
-     * Find the orbital glyph entity that the player is looking at.
-     *
-     * <p>Performance: O(n) where n = number of orbital entities.
-     * Uses cached component types and avoids allocations in hot path.
-     *
-     * <p>Uses HeadRotation component for accurate look direction
-     * (not TransformComponent which only stores body rotation).
-     *
-     * @param store The entity store
-     * @param playerRef The player entity reference
-     * @param orbitalEntities List of orbital glyph entities to check
-     * @param maxDistance Maximum raycast distance
-     * @return The hovered orbital glyph entity, or null if none
-     */
-    public static HexEntity findHoveredGlyph(Store<EntityStore> store, Ref<EntityStore> playerRef,
-                                                       List<HexEntity> orbitalEntities, float maxDistance) {
-        if (orbitalEntities == null || orbitalEntities.isEmpty()) {
-            return null;
-        }
-
-        ComponentType<EntityStore, TransformComponent> transformType = getTransformType();
-        ComponentType<EntityStore, HeadRotation> headRotationType = getHeadRotationType();
-        if (transformType == null || headRotationType == null) {
-            return null;
-        }
-
-        // Get player position
-        TransformComponent playerTransform = store.getComponent(playerRef, transformType);
-        if (playerTransform == null) {
-            return null;
-        }
-
-        // Get player head rotation (where they're actually looking)
-        HeadRotation headRotation = store.getComponent(playerRef, headRotationType);
-        if (headRotation == null) {
-            return null;
-        }
-
-        Vector3d eyePosition = getPlayerEyePosition(playerTransform);
-        // Use HeadRotation.getDirection() for accurate look direction
-        Vector3d lookDirection = headRotation.getDirection();
-
-        HexEntity closest = null;
-        double closestDistance = maxDistance;
-
-        for (int i = 0, size = orbitalEntities.size(); i < size; i++) {
-            HexEntity orbitalEntity = orbitalEntities.get(i);
-
-            if (orbitalEntity.isDragging()) {
-                continue; // Skip entities being dragged
-            }
-
-            Ref<EntityStore> entityRef = orbitalEntity.getEntityRef();
-            if (entityRef == null) {
-                continue;
-            }
-
-            TransformComponent glyphTransform = store.getComponent(entityRef, transformType);
-            if (glyphTransform == null) {
-                continue;
-            }
-
-            Vector3d glyphPosition = glyphTransform.getPosition();
-
-            // Check ray-sphere intersection
-            double hitDistance = rayIntersectsSphere(eyePosition, lookDirection, glyphPosition, DEFAULT_GLYPH_HIT_RADIUS);
-
-            if (hitDistance >= 0 && hitDistance < closestDistance) {
-                closest = orbitalEntity;
-                closestDistance = hitDistance;
-            }
-        }
-
-        return closest;
     }
 
     /**

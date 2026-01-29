@@ -7,29 +7,37 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.entity.HexNodeEntity;
 import com.riprod.hexcode.math.GlyphRotation;
 
 /**
  * Abstract base class for glyph styles.
  *
- * Styles define how orbital elements (glyphs and hexes) are initially spawned
- * around a player. After spawning, elements are positioned relative to the player
- * and managed by the elements themselves, not the style.
+ * <p>Styles define how HexNodeEntity elements are initially spawned around a player.
+ * After spawning, elements are positioned relative to the player and managed by
+ * the elements themselves, not the style.
  *
- * Responsibilities:
- * - Calculate spawn positions for new elements
- * - Manage visual effects (magic wheel, particles, AOE indicators)
- * - Handle mode enter/exit lifecycle events
+ * <p>With unified glyph/hex treatment, all elements are HexNodeEntity instances.
+ * A single glyph is a HexNode with no children, while a composed hex has children.
  *
- * Elements manage their own:
- * - Player-relative positioning (following the player)
- * - Facing the player
- * - Drag state and position capture
+ * <p>Responsibilities:
+ * <ul>
+ *   <li>Calculate spawn rotations for new elements</li>
+ *   <li>Manage visual effects (magic wheel, particles, AOE indicators)</li>
+ *   <li>Handle mode enter/exit lifecycle events</li>
+ * </ul>
+ *
+ * <p>Elements manage their own:
+ * <ul>
+ *   <li>Player-relative positioning (via MountedComponent)</li>
+ *   <li>Facing the player (via FacePlayerSystem)</li>
+ *   <li>Drag state and position capture</li>
+ * </ul>
  */
 public abstract class BaseGlyphStyle {
 
-    /** All orbital elements managed by this style */
-    protected final List<OrbitalElement> elements;
+    /** All HexNodeEntity elements managed by this style */
+    protected final List<HexNodeEntity> elements;
 
     public BaseGlyphStyle() {
         this.elements = new ArrayList<>();
@@ -91,19 +99,19 @@ public abstract class BaseGlyphStyle {
      * Update visual effects each tick (particles, AOE indicators).
      *
      * @param store    The entity store
-     * @param elements All orbital elements (for particle attachment)
+     * @param elements All HexNodeEntity elements (for particle attachment)
      * @param dt       Delta time since last tick
      */
-    public abstract void updateEffects(Store<EntityStore> store, List<OrbitalElement> elements, float dt);
+    public abstract void updateEffects(Store<EntityStore> store, List<HexNodeEntity> elements, float dt);
 
     // --- Element Management ---
 
     /**
      * Add an element to this style.
      *
-     * @param element The element to add
+     * @param element The HexNodeEntity to add
      */
-    public void addElement(OrbitalElement element) {
+    public void addElement(HexNodeEntity element) {
         if (!elements.contains(element)) {
             elements.add(element);
         }
@@ -112,9 +120,9 @@ public abstract class BaseGlyphStyle {
     /**
      * Remove an element from this style.
      *
-     * @param element The element to remove
+     * @param element The HexNodeEntity to remove
      */
-    public void removeElement(OrbitalElement element) {
+    public void removeElement(HexNodeEntity element) {
         elements.remove(element);
     }
 
@@ -126,9 +134,9 @@ public abstract class BaseGlyphStyle {
     }
 
     /**
-     * @return All elements in this style
+     * @return All HexNodeEntity elements in this style
      */
-    public List<OrbitalElement> getElements() {
+    public List<HexNodeEntity> getElements() {
         return elements;
     }
 

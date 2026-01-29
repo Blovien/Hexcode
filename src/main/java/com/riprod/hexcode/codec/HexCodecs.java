@@ -7,7 +7,6 @@ import com.hypixel.hytale.codec.codecs.array.ArrayCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.riprod.hexcode.data.GlyphInstance;
 import com.riprod.hexcode.data.HexBookData;
-import com.riprod.hexcode.hex.Hex;
 import com.riprod.hexcode.hex.HexNode;
 
 import java.util.ArrayList;
@@ -29,7 +28,7 @@ import java.util.List;
  *     ├── CreatedAt: Long
  *     ├── LastModifiedAt: Long
  *     ├── Glyphs: Map&lt;String, GlyphInstance&gt;
- *     └── SavedHexes: Array&lt;Hex&gt;
+ *     └── SavedHexes: Array&lt;HexNode&gt;
  * </pre>
  *
  * <h2>Usage</h2>
@@ -92,20 +91,37 @@ public final class HexCodecs {
     /**
      * Codec for {@link HexNode}.
      *
-     * <p>Recursively serializes the hex spell tree structure.
+     * <p>Recursively serializes the hex spell tree structure including children.
      * Parent references are automatically restored during deserialization
      * via the setChildrenFromArray method.
+     *
+     * <p>With unified glyph/hex treatment, HexNode is the primary storage type.
+     * A single glyph is a HexNode with no children.
      */
     public static final BuilderCodec<HexNode> HEX_NODE;
 
-    // Array codec for HexNode children - declared after HEX_NODE is initialized
-    private static final ArrayCodec<HexNode> HEX_NODE_ARRAY;
+    /**
+     * Array codec for HexNode children and saved hexes.
+     */
+    public static final ArrayCodec<HexNode> HEX_NODE_ARRAY;
 
     static {
         // Build the HexNode codec with recursive children
         // We need to use a two-phase initialization for the recursive type
         HEX_NODE = BuilderCodec
                 .builder(HexNode.class, HexNode::new)
+                .append(
+                    new KeyedCodec<>("Id", Codec.STRING),
+                    (n, v) -> n.setId(v),
+                    n -> n.getId()
+                )
+                .add()
+                .append(
+                    new KeyedCodec<>("BaseMargin", Codec.FLOAT),
+                    (n, v) -> n.setBaseMargin(v),
+                    n -> n.getBaseMargin()
+                )
+                .add()
                 .append(
                     new KeyedCodec<>("Value", GLYPH_INSTANCE),
                     (n, v) -> n.setValue(v),
@@ -116,50 +132,18 @@ public final class HexCodecs {
 
         // Initialize the array codec after HEX_NODE is built
         HEX_NODE_ARRAY = new ArrayCodec<>(HEX_NODE, HexNode[]::new);
+
+        // Note: Children are handled via JSON serialization (HexNode.toJson/fromJson)
+        // because BuilderCodec doesn't support true recursive references well.
+        // The binary codec serializes the flat fields; tree structure uses JSON.
     }
 
     /**
-     * Get the HexNode codec with children support.
-     * Due to recursive type handling, children are serialized separately.
+     * Get the HexNode codec.
      */
     public static BuilderCodec<HexNode> getHexNodeCodec() {
         return HEX_NODE;
     }
-
-    // ==================== HEX CODEC ====================
-
-    /**
-     * Codec for {@link Hex}.
-     *
-     * <p>Serializes a complete spell configuration with its tree structure
-     * and usage statistics.
-     */
-    public static final BuilderCodec<Hex> HEX = BuilderCodec
-            .builder(Hex.class, Hex::new)
-            .append(
-                new KeyedCodec<>("Id", Codec.STRING),
-                (h, v) -> h.setId(v),
-                h -> h.getId()
-            )
-            .add()
-            .append(
-                new KeyedCodec<>("Root", HEX_NODE),
-                (h, v) -> h.setRoot(v),
-                h -> h.getRoot()
-            )
-            .add()
-            .append(
-                new KeyedCodec<>("Uses", Codec.INTEGER),
-                (h, v) -> h.setUses(v),
-                h -> h.getUses()
-            )
-            .add()
-            .build();
-
-    /**
-     * Array codec for saved hexes.
-     */
-    public static final ArrayCodec<Hex> HEX_ARRAY = new ArrayCodec<>(HEX, Hex[]::new);
 
     // ==================== HEX BOOK DATA CODEC ====================
 
@@ -206,7 +190,7 @@ public final class HexCodecs {
             )
             .add()
             .append(
-                new KeyedCodec<>("SavedHexes", HEX_ARRAY),
+                new KeyedCodec<>("SavedHexes", HEX_NODE_ARRAY),
                 (d, v) -> d.setSavedHexesFromList(arrayToList(v)),
                 d -> listToArray(d.getSavedHexesAsList())
             )
@@ -235,14 +219,16 @@ public final class HexCodecs {
     /**
      * Convert array to list (for codec deserialization).
      */
-    private static List<Hex> arrayToList(Hex[] array) {
+    private static List<HexNode> arrayToList(HexNode[] array) {
         if (array == null) {
             return new ArrayList<>();
         }
-        List<Hex> list = new ArrayList<>(array.length);
-        for (Hex hex : array) {
-            if (hex != null) {
-                list.add(hex);
+        List<HexNode> list = new ArrayList<>(array.length);
+        for (HexNode node : array) {
+            if (node != null) {
+                // Recalculate layout after deserialization
+                node.recalculateLayout();
+                list.add(node);
             }
         }
         return list;
@@ -251,11 +237,11 @@ public final class HexCodecs {
     /**
      * Convert list to array (for codec serialization).
      */
-    private static Hex[] listToArray(List<Hex> list) {
+    private static HexNode[] listToArray(List<HexNode> list) {
         if (list == null) {
-            return new Hex[0];
+            return new HexNode[0];
         }
-        return list.toArray(new Hex[0]);
+        return list.toArray(new HexNode[0]);
     }
 
     // Private constructor - utility class

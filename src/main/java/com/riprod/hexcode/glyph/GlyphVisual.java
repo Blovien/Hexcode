@@ -21,11 +21,6 @@ public class GlyphVisual {
     private float offsetY;
     private float offsetZ;
 
-    // Default model paths
-    private static final String DEFAULT_EFFECT_MODEL = "Effect_default";
-    private static final String DEFAULT_MODIFIER_MODEL = "Modifier_default";
-    private static final String DEFAULT_SELECT_MODEL = "Select_default";
-
     /**
      * Create a GlyphVisual with all properties.
      *
@@ -155,38 +150,6 @@ public class GlyphVisual {
         return color & 0xFF;
     }
 
-    /**
-     * @deprecated Particle rendering is no longer used. Always returns false.
-     */
-    @Deprecated
-    public boolean usesParticleRendering() {
-        return false;
-    }
-
-    /**
-     * @deprecated Use getModelId() instead.
-     */
-    @Deprecated
-    public String getParticleId() {
-        return null;
-    }
-
-    /**
-     * @deprecated Particle rendering is no longer used. Returns 1.0.
-     */
-    @Deprecated
-    public float getParticleScale() {
-        return 1.0f;
-    }
-
-    /**
-     * @deprecated Use getModelId() instead.
-     */
-    @Deprecated
-    public String getTextureId() {
-        return null;
-    }
-
     // Common color constants
     public static final int COLOR_FIRE = 0xFF6600;      // Orange
     public static final int COLOR_ICE = 0x00FFFF;       // Cyan
@@ -216,7 +179,7 @@ public class GlyphVisual {
         return new GlyphVisual(
                 color,
                 MODEL_BASE + modelName,
-                0.05f,
+                0.04f,
                 0.0f,  // Effects don't rotate by default
                 1.0f,  // Default scale
                 0.5f,  // Center X
@@ -235,7 +198,7 @@ public class GlyphVisual {
         return new GlyphVisual(
                 COLOR_MODIFIER,
                 MODEL_BASE + modelName,
-                0.05f,
+                0.04f,
                 0.5f,  // Modifiers rotate slowly
                 1.0f,  // Default scale
                 0.5f,  // Center X
@@ -254,7 +217,7 @@ public class GlyphVisual {
         return new GlyphVisual(
                 COLOR_SELECT,
                 MODEL_BASE + modelName,
-                0.05f,
+                0.04f,
                 0.3f,  // Selects rotate slowly
                 1.0f,  // Default scale
                 0.5f,  // Center X

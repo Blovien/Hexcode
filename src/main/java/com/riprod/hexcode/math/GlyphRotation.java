@@ -1,6 +1,7 @@
 package com.riprod.hexcode.math;
 
 import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.math.vector.Vector3f;
 
 /**
  * Represents a rotation (pitch/yaw) for positioning orbital elements relative to the player's eyes.
@@ -199,6 +200,41 @@ public final class GlyphRotation {
             eyePosition.y + direction.y * distance,
             eyePosition.z + direction.z * distance
         );
+    }
+
+    // --- Mount Offset Conversion ---
+
+    /**
+     * Convert angular coordinates (yaw/pitch) to a mount offset Vector3f.
+     * This is used for entity mounting where we need a Cartesian offset from the parent.
+     *
+     * @param yaw Horizontal angle in degrees (0 = forward +Z, 90 = right +X)
+     * @param pitch Vertical angle in degrees (negative = up, positive = down)
+     * @param distance Distance from the center point
+     * @return Vector3f offset suitable for MountedComponent
+     */
+    public static Vector3f angularToMountOffset(float yaw, float pitch, float distance) {
+        double yawRad = Math.toRadians(yaw);
+        double pitchRad = Math.toRadians(pitch);
+
+        // Convert spherical to Cartesian coordinates
+        // cos(pitch) = horizontal component magnitude
+        // sin(pitch) = vertical component (negated because +pitch = down)
+        float x = (float) (Math.sin(yawRad) * Math.cos(pitchRad) * distance);
+        float y = (float) (-Math.sin(pitchRad) * distance) + EYE_HEIGHT;
+        float z = (float) (Math.cos(yawRad) * Math.cos(pitchRad) * distance);
+
+        return new Vector3f(x, y, z);
+    }
+
+    /**
+     * Convert this rotation to a mount offset Vector3f.
+     *
+     * @param distance Distance from the center point
+     * @return Vector3f offset suitable for MountedComponent
+     */
+    public Vector3f toMountOffset(float distance) {
+        return angularToMountOffset(yaw, pitch, distance);
     }
 
     // --- Angular Distance ---

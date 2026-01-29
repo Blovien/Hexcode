@@ -1,4 +1,4 @@
-package com.riprod.hexcode.casting.styles;
+package com.riprod.hexcode.entity;
 
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
@@ -165,50 +165,6 @@ public interface OrbitalElement {
      */
     void captureRotationFromLook(Store<EntityStore> store, GlyphRotation lookRotation);
 
-    // --- Deprecated Offset Methods (for migration) ---
-
-    /**
-     * @deprecated Use {@link #getRotation()} instead. Rotation-based positioning replaces offsets.
-     */
-    @Deprecated
-    default Vector3d getPlayerOffset() {
-        // Convert rotation to offset for backward compatibility
-        GlyphRotation rotation = getRotation();
-        if (rotation == null) {
-            return new Vector3d(0, 0, 0);
-        }
-        Vector3d direction = rotation.toDirection();
-        float distance = GlyphRotation.DEFAULT_DISTANCE;
-        return new Vector3d(
-            direction.x * distance,
-            GlyphRotation.EYE_HEIGHT + direction.y * distance,
-            direction.z * distance
-        );
-    }
-
-    /**
-     * @deprecated Use {@link #setRotation(GlyphRotation)} instead. Rotation-based positioning replaces offsets.
-     */
-    @Deprecated
-    default void setPlayerOffset(Vector3d offset) {
-        // Convert offset to rotation for backward compatibility
-        // Offset is relative to player feet, so we need to account for eye height
-        Vector3d direction = new Vector3d(
-            offset.x,
-            offset.y - GlyphRotation.EYE_HEIGHT,
-            offset.z
-        );
-        setRotation(GlyphRotation.fromDirection(direction));
-    }
-
-    /**
-     * @deprecated Use {@link #captureRotationFromLook(Store, GlyphRotation)} instead.
-     */
-    @Deprecated
-    default void captureOffsetFromPlayer(Store<EntityStore> store, Vector3d playerPosition) {
-        // No-op by default; implementations should use captureRotationFromLook
-    }
-
     // --- Direct Position Control ---
 
     /**
@@ -273,7 +229,7 @@ public interface OrbitalElement {
      * @param spawnPosition The world position where element should spawn
      * @param ownerPlayerId The owner player's UUID
      */
-    void spawn(CommandBuffer<EntityStore> commandBuffer, Vector3d spawnPosition, java.util.UUID ownerPlayerId);
+    void spawn(CommandBuffer<EntityStore> commandBuffer, Vector3d spawnPosition, Ref<EntityStore> playerRef);
 
     /**
      * Despawn this element from the world.

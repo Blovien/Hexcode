@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Nonnull;
 
+import com.hypixel.hytale.builtin.mounts.MountedComponent;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
@@ -16,13 +17,13 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.protocol.InteractionState;
-import com.hypixel.hytale.protocol.InteractionSyncData;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.protocol.WaitForDataFrom;
 import com.hypixel.hytale.server.core.entity.InteractionContext;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.inventory.Inventory;
+import com.hypixel.hytale.server.core.meta.MetaKey;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHandler;
@@ -32,22 +33,13 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.config.dat
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.casting.RotationObserver;
 import com.riprod.hexcode.casting.RotationObserver.DropTarget;
-import com.riprod.hexcode.casting.RotationObserver.HexDropTarget;
-import com.riprod.hexcode.casting.styles.OrbitalElement;
-import com.riprod.hexcode.casting.styles.OrbitalElement.ElementState;
-import com.riprod.hexcode.data.GlyphInstance;
-import com.riprod.hexcode.entity.GlyphComponent;
-import com.riprod.hexcode.entity.GlyphEntity;
-import com.riprod.hexcode.entity.HexEntity;
-import com.riprod.hexcode.glyph.Glyph;
-import com.riprod.hexcode.hex.Hex;
+import com.riprod.hexcode.casting.RotationObserver.NodeDropTarget;
+import com.riprod.hexcode.entity.HexNodeEntity;
 import com.riprod.hexcode.hex.HexNode;
 import com.riprod.hexcode.math.GlyphRotation;
 import com.riprod.hexcode.mode.GlyphMode;
 import com.riprod.hexcode.mode.GlyphModeManager;
 import com.riprod.hexcode.util.HexStaffUtil;
-import com.riprod.hexcode.util.RaycastUtil;
-import com.riprod.hexcode.util.RotationMath;
 import com.riprod.hexcode.visual.GlyphRenderer;
 import com.riprod.hexcode.visual.TrailEffect;
 
@@ -64,8 +56,9 @@ import com.riprod.hexcode.visual.TrailEffect;
 public class HexcodeGlyphModeSelect extends ChargingInteraction {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
-    private static final float CHARGING_HELD = -1.0F; // Still holding
-    private static final float CHARGING_CANCELED = -2.0F; // Cancelled
+    // MetaKeys to track state across ticks (same pattern as HexcodeGlyphModeToggle)
+    private static final MetaKey<Float> PREVIOUS_TIME = Interaction.META_REGISTRY.registerMetaObject(i -> 0.0f);
+    private static final MetaKey<Boolean> DRAG_STARTED = Interaction.META_REGISTRY.registerMetaObject(i -> false);
 
     private final GlyphRenderer glyphRenderer;
     private final Map<UUID, TrailEffect> activeTrails;
@@ -74,7 +67,7 @@ public class HexcodeGlyphModeSelect extends ChargingInteraction {
     // Cached component types for performance (lazy initialization)
     private static volatile ComponentType<EntityStore, TransformComponent> transformComponentType;
     private static volatile ComponentType<EntityStore, HeadRotation> headRotationComponentType;
-    private static volatile ComponentType<EntityStore, GlyphComponent> orbitalGlyphComponentType;
+    private static volatile ComponentType<EntityStore, MountedComponent> mountedComponentType;
 
     public static final BuilderCodec<HexcodeGlyphModeSelect> CODEC = BuilderCodec.builder(
             HexcodeGlyphModeSelect.class,
@@ -124,18 +117,18 @@ public class HexcodeGlyphModeSelect extends ChargingInteraction {
         return headRotationComponentType;
     }
 
-    /** Get cached OrbitalGlyphComponent type */
-    private static ComponentType<EntityStore, GlyphComponent> getOrbitalGlyphType() {
-        if (orbitalGlyphComponentType == null) {
-            orbitalGlyphComponentType = GlyphComponent.getComponentType();
+    /** Get cached MountedComponent type (for detaching during drag) */
+    private static ComponentType<EntityStore, MountedComponent> getMountedType() {
+        if (mountedComponentType == null) {
+            mountedComponentType = MountedComponent.getComponentType();
         }
-        return orbitalGlyphComponentType;
+        return mountedComponentType;
     }
 
     @Nonnull
     @Override
     public WaitForDataFrom getWaitForDataFrom() {
-        return WaitForDataFrom.Client; // Wait for client to report release
+        return WaitForDataFrom.Server; // Server controls timing (same as Toggle)
     }
 
     @Override
@@ -196,34 +189,43 @@ public class HexcodeGlyphModeSelect extends ChargingInteraction {
             return;
         }
 
+        // Check if we've already started dragging (persisted across ticks)
+        boolean dragStarted = context.getInstanceStore().getMetaObject(DRAG_STARTED);
+
         // In glyph mode: handle drag/drop
-        if (firstRun) {
+        if (firstRun && !dragStarted) {
             // First tick = press, start drag
             handleDragStart(playerId, ref, context.getCommandBuffer(), mode);
 
-            // If we started dragging, keep running
+            // Mark that we started dragging
             if (mode.isDragging()) {
-                context.getState().state = InteractionState.NotFinished;
+                context.getInstanceStore().putMetaObject(DRAG_STARTED, true);
+            } else {
+                // Nothing was selected to drag - finish immediately
+                context.getState().state = InteractionState.Finished;
                 return;
             }
-
-            // Nothing was selected to drag - finish immediately
-            context.getState().state = InteractionState.Finished;
-            return;
         }
 
-        if (syncData.chargeValue == CHARGING_CANCELED || syncData.chargeValue != CHARGING_HELD) {
-            // Interaction was released or cancelled
-            handleDragEnd(playerId, ref, context.getCommandBuffer(), mode);
-            context.getState().state = InteractionState.Finished;
-            return;
-        }
-
-        // Update drag position while holding
+        // Update drag position while dragging
         if (mode.isDragging()) {
             updateDragPosition(ref, store, mode);
         }
-        context.getState().state = InteractionState.NotFinished;
+
+        // Guard against null client state (can happen on first tick before client syncs)
+        if (context.getClientState() == null) {
+            context.getState().state = InteractionState.NotFinished;
+            return;
+        }
+
+        // Let parent handle charging state machine
+        // This reads chargeValue from client and sets Finished when released
+        super.tick0(firstRun, time, type, context, cooldownHandler);
+
+        // If parent set Finished, handle drag end
+        if (context.getState().state == InteractionState.Finished && mode.isDragging()) {
+            handleDragEnd(playerId, ref, context.getCommandBuffer(), mode);
+        }
     }
 
     @Override
@@ -263,21 +265,25 @@ public class HexcodeGlyphModeSelect extends ChargingInteraction {
      * Uses the pre-computed hovered element from sync data processing
      * in HexcodeGlyphModeToggle.
      *
-     * <p>
-     * Integrates with the orbital style system to exclude dragged elements
-     * from orbital rotation updates.
+     * <p>Unified treatment: both single glyphs and composed hexes are HexNodeEntity.
+     * On drag start:
+     * <ul>
+     *   <li>Get hovered HexNodeEntity from mode</li>
+     *   <li>Unmount from player (detach MountedComponent)</li>
+     *   <li>Set entity.setDragging(true)</li>
+     *   <li>Start tracking drag state</li>
+     * </ul>
      *
      * @param playerId      Player's UUID
      * @param playerRef     Player entity reference
-     * @param commandBuffer Command buffer (implements ComponentAccessor for
-     *                      TargetUtil)
+     * @param commandBuffer Command buffer for entity operations
      * @param mode          Active glyph mode session
      */
     private void handleDragStart(UUID playerId, Ref<EntityStore> playerRef,
             CommandBuffer<EntityStore> commandBuffer, GlyphMode mode) {
 
         // Use pre-computed hovered element from hover detection in Toggle
-        OrbitalElement targetElement = mode.getHoveredElement();
+        HexNodeEntity targetElement = mode.getHoveredElement();
 
         if (targetElement == null) {
             return;
@@ -290,7 +296,7 @@ public class HexcodeGlyphModeSelect extends ChargingInteraction {
 
         Store<EntityStore> store = commandBuffer.getStore();
 
-        // Get glyph information for logging
+        // Get element information for logging
         String elementName = targetElement.isSavedHex() ? "hex" : "glyph";
         LOGGER.atInfo().log("Player %s selected and started dragging %s '%s'",
                 playerId, elementName, targetElement.getId());
@@ -301,8 +307,8 @@ public class HexcodeGlyphModeSelect extends ChargingInteraction {
         // Mark element as dragging
         targetElement.setDragging(true);
 
-        // Synchronize with ECS component for system tick updates
-        syncDragStateToComponent(store, targetElement, true);
+        // Pause orbital tracking so element can be positioned freely during drag
+        targetElement.pauseOrbitalTracking(store);
 
         // Get drag start rotation using player head rotation
         GlyphRotation startRotation = rotationObserver.getPlayerLookRotation(store, playerRef);
@@ -324,16 +330,18 @@ public class HexcodeGlyphModeSelect extends ChargingInteraction {
     }
 
     /**
-     * Update the rotation of the dragged element to follow the player's look
-     * direction.
+     * Update the position of the dragged element to follow the player's look direction.
      * Called every tick while dragging to provide smooth visual feedback.
+     *
+     * <p>Since the element is unmounted during drag, we directly set its world position
+     * based on the player's look rotation and position.
      *
      * @param playerRef Player entity reference
      * @param store     The entity store
      * @param mode      The glyph mode with drag state
      */
     private void updateDragPosition(Ref<EntityStore> playerRef, Store<EntityStore> store, GlyphMode mode) {
-        OrbitalElement draggedElement = mode.getDraggingElement();
+        HexNodeEntity draggedElement = mode.getDraggingElement();
         if (draggedElement == null) {
             LOGGER.atWarning().log("updateDragPosition: no dragged element");
             return;
@@ -356,7 +364,7 @@ public class HexcodeGlyphModeSelect extends ChargingInteraction {
         // Calculate world position from look rotation
         Vector3d newPosition = lookRotation.toWorldPosition(playerPos);
 
-        // Update the element's world position
+        // Update the element's world position directly (unmounted during drag)
         draggedElement.updateWorldPositionDirect(store, newPosition);
 
         // Update GlyphMode's tracked drag rotation
@@ -364,49 +372,22 @@ public class HexcodeGlyphModeSelect extends ChargingInteraction {
     }
 
     /**
-     * Synchronize drag state from OrbitalElement to GlyphComponent.
-     * This ensures the ECS system knows when a glyph/hex is being dragged.
-     */
-    private void syncDragStateToComponent(Store<EntityStore> store, OrbitalElement element, boolean isDragging) {
-        if (element == null) {
-            return;
-        }
-        Ref<EntityStore> entityRef = element.getEntityRef();
-        if (entityRef == null) {
-            return;
-        }
-
-        ComponentType<EntityStore, GlyphComponent> orbitalType = getOrbitalGlyphType();
-        if (orbitalType == null) {
-            return;
-        }
-
-        GlyphComponent component = store.getComponent(entityRef, orbitalType);
-        if (component != null) {
-            component.setDragging(isDragging);
-        }
-    }
-
-    /**
-     * Handle glyph drag end with drop target detection.
+     * Handle drag end with unified drop target detection.
      *
-     * <p>
-     * Uses the pre-computed drop target from sync data processing.
-     * For HexEntity targets, queries tier info at release time.
+     * <p>Unified treatment: all elements are HexNodeEntity (single glyphs = leaf nodes).
      *
-     * <p>
-     * Drop behavior:
+     * <p>Drop behavior:
      * <ul>
-     * <li>Drop on hex (tier-based): Add glyph as child of that tier's node, consume
-     * glyph</li>
-     * <li>Drop on single glyph: Target wraps dragged (B[A]), both consumed, new hex
-     * spawned</li>
-     * <li>Drop in empty space: Convert glyph to single-glyph hex</li>
+     *   <li>Case 1 (Hex onto Hex): Insert dragged tree into target's deepest matched node</li>
+     *   <li>Case 2 (Glyph onto Hex): Same as Case 1 (glyph is just a leaf HexNode)</li>
+     *   <li>Case 3 (Glyph onto Glyph): Target becomes parent, dragged becomes child</li>
+     *   <li>Case 4 (Drop in empty space): Remount to player at current look rotation</li>
      * </ul>
      *
-     * <p>
-     * Glyphs are consumed when added to hexes. The last hex interacted with becomes
-     * the active hex that will be cast.
+     * @param playerId      Player's UUID
+     * @param playerRef     Player entity reference
+     * @param commandBuffer Command buffer for entity operations
+     * @param mode          Active glyph mode session
      */
     private void handleDragEnd(UUID playerId, Ref<EntityStore> playerRef, CommandBuffer<EntityStore> commandBuffer,
             GlyphMode mode) {
@@ -415,7 +396,12 @@ public class HexcodeGlyphModeSelect extends ChargingInteraction {
         }
 
         Store<EntityStore> store = commandBuffer.getStore();
-        OrbitalElement draggedElement = mode.getDraggingElement();
+        HexNodeEntity draggedElement = mode.getDraggingElement();
+
+        if (draggedElement == null) {
+            mode.endDrag(store);
+            return;
+        }
 
         // Get current look rotation for drop
         GlyphRotation lookRotation = rotationObserver.getPlayerLookRotation(store, playerRef);
@@ -423,194 +409,92 @@ public class HexcodeGlyphModeSelect extends ChargingInteraction {
             lookRotation = mode.getDragRotation();
         }
 
-        // Use rotation-based drop target detection
-        DropTarget dropTarget = rotationObserver.findDropTarget(store, playerRef, mode.getAllOrbitalElements());
-
         // Get player position for spawn position calculation
         TransformComponent playerTransform = commandBuffer.getComponent(playerRef, getTransformType());
         Vector3d playerPos = playerTransform != null ? playerTransform.getPosition() : new Vector3d(0, 0, 0);
 
-        // Get current drag rotation for spawning new entities
-        GlyphRotation spawnRotation = mode.getDragRotation();
-        if (spawnRotation == null) {
-            spawnRotation = lookRotation != null ? lookRotation : new GlyphRotation(-9.0f, 0);
+        // Use rotation-based drop target detection with nested node targeting
+        DropTarget rawDropTarget = rotationObserver.findDropTarget(store, playerRef,
+                mode.getAllOrbitalElements());
+
+        // Cast to NodeDropTarget if available (all elements are HexNodeEntity now)
+        NodeDropTarget dropTarget = (rawDropTarget instanceof NodeDropTarget)
+                ? (NodeDropTarget) rawDropTarget : null;
+
+        boolean success = false;
+        String actionDesc = "";
+
+        if (dropTarget != null && dropTarget.entity != draggedElement) {
+            // Dropped onto another element
+            HexNodeEntity targetEntity = dropTarget.entity;
+            HexNode targetNode = dropTarget.targetNode;
+            HexNode draggedNode = draggedElement.getNode();
+
+            if (targetNode != null && draggedNode != null) {
+                // Case 1/2/3: Drop onto another element - add dragged as child of target
+                // Detach dragged node from its parent (if any)
+                if (draggedNode.getParent() != null) {
+                    draggedNode.getParent().removeChild(draggedNode);
+                }
+
+                // Add dragged node as child of target node
+                targetNode.addChild(draggedNode);
+
+                // Despawn the dragged entity (its node is now part of target's tree)
+                draggedElement.despawn(commandBuffer);
+                mode.getOrbitalStyle().removeElement(draggedElement);
+
+                // Refresh target entity to show new structure
+                targetEntity.refreshAndRespawn(commandBuffer, mode.getPlayer());
+
+                // Set target as active hex
+                mode.setActiveHex(targetEntity);
+
+                success = true;
+                String draggedDesc = draggedElement.isSavedHex() ? "hex" : "glyph";
+                String targetDesc = targetEntity.isSavedHex() ? "hex" : "glyph";
+                actionDesc = String.format("added %s '%s' to %s '%s'",
+                        draggedDesc, draggedElement.getId(),
+                        targetDesc, targetEntity.getId());
+            }
         }
 
-        // Calculate spawn position from rotation
-        Vector3d spawnPos = spawnRotation.toWorldPosition(playerPos);
-
-        if (dropTarget != null && draggingGlyph != null && draggedElement instanceof GlyphEntity) {
-            GlyphEntity draggedGlyphEntity = (GlyphEntity) draggedElement;
-            OrbitalElement dropTargetElement = dropTarget.target;
-
-            if (dropTarget instanceof HexDropTarget) {
-                // Case A: Dropped onto a hex - add as child of targeted tier's node
-                HexDropTarget hexTarget = (HexDropTarget) dropTarget;
-                HexEntity targetHex = (HexEntity) hexTarget.target;
-                HexNode targetNode = hexTarget.targetNode;
-
-                if (targetNode != null) {
-                    // Create new HexNode for dragged glyph
-                    HexNode newNode = new HexNode(draggingGlyph);
-
-                    // Add as child of targeted tier's node
-                    targetNode.addChild(newNode);
-
-                    // Consume dragged glyph - despawn and remove from orbital style
-                    draggedGlyphEntity.despawn(commandBuffer);
-                    mode.getOrbitalStyle().removeElement(draggedGlyphEntity);
-
-                    // Refresh hex visuals to show new child
-                    targetHex.refreshVisuals(commandBuffer);
-
-                    // Set as active hex (most recent interaction)
-                    mode.setActiveHex(targetHex);
-
-                    success = true;
-                    actionDesc = String.format("inserted at tier %d of hex '%s'",
-                            hexTarget.tierLevel, targetHex.getId());
-                } else {
-                    actionDesc = "invalid hex target node";
-                }
-            } else if (dropTargetElement instanceof GlyphEntity) {
-                // Case B: Dropped onto another glyph - target wraps dragged (B[A])
-                GlyphEntity targetGlyphEntity = (GlyphEntity) dropTargetElement;
-                GlyphInstance targetGlyph = targetGlyphEntity.getGlyph();
-
-                if (canWrap(targetGlyph.getGlyph(), draggingGlyph.getGlyph())) {
-                    // Create new hex with target as root, dragged as child
-                    Hex newHex = new Hex();
-                    HexNode rootNode = new HexNode(targetGlyph); // B is root
-                    HexNode childNode = new HexNode(draggingGlyph); // A is child
-                    rootNode.addChild(childNode);
-                    newHex.setRoot(rootNode);
-
-                    // Despawn both original GlyphEntities
-                    draggedGlyphEntity.despawn(commandBuffer);
-                    targetGlyphEntity.despawn(commandBuffer);
-                    mode.getOrbitalStyle().removeElement(draggedGlyphEntity);
-                    mode.getOrbitalStyle().removeElement(targetGlyphEntity);
-
-                    // Spawn new HexEntity at the drop target's rotation
-                    GlyphRotation targetRotation = targetGlyphEntity.getRotation();
-                    HexEntity newHexEntity = new HexEntity(newHex, mode.getPlayer(), targetRotation);
-                    newHexEntity.spawn(commandBuffer, spawnPos, playerId);
-                    mode.getOrbitalStyle().addElement(newHexEntity);
-
-                    // Set as active hex
-                    mode.setActiveHex(newHexEntity);
-
-                    success = true;
-                    actionDesc = String.format("created hex %s[%s]",
-                            targetGlyph.getGlyph().getDisplayName(),
-                            draggingGlyph.getGlyph().getDisplayName());
-                } else {
-                    LOGGER.atInfo().log("Cannot wrap: %s cannot wrap %s",
-                            targetGlyph.getGlyph().getDisplayName(),
-                            draggingGlyph.getGlyph().getDisplayName());
-                    actionDesc = "incompatible wrap";
-                }
-            } else if (dropTargetElement instanceof HexEntity) {
-                // Dropped onto hex without tier info (fallback - insert at root)
-                HexEntity hexEntity = (HexEntity) dropTargetElement;
-                HexNode rootNode = hexEntity.getNodeAtTier(0);
-                if (rootNode != null) {
-                    HexNode newNode = new HexNode(draggingGlyph);
-                    rootNode.addChild(newNode);
-
-                    // Consume dragged glyph
-                    draggedGlyphEntity.despawn(commandBuffer);
-                    mode.getOrbitalStyle().removeElement(draggedGlyphEntity);
-
-                    // Refresh and set as active
-                    hexEntity.refreshVisuals(commandBuffer);
-                    mode.setActiveHex(hexEntity);
-
-                    success = true;
-                    actionDesc = "inserted at root of hex '" + hexEntity.getId() + "'";
-                }
-            }
-        } else if (draggingGlyph != null && draggedElement instanceof GlyphEntity) {
-            // Case C: Dropped in empty space - convert to single-glyph hex
-            GlyphEntity draggedGlyphEntity = (GlyphEntity) draggedElement;
-
-            // Create single-glyph hex
-            Hex newHex = new Hex();
-            newHex.setRoot(new HexNode(draggingGlyph));
-
-            // Despawn the GlyphEntity
-            draggedGlyphEntity.despawn(commandBuffer);
-            mode.getOrbitalStyle().removeElement(draggedGlyphEntity);
-
-            // Spawn new HexEntity at the current look rotation
-            HexEntity newHexEntity = new HexEntity(newHex, mode.getPlayer(), spawnRotation);
-            newHexEntity.spawn(commandBuffer, spawnPos, playerId);
-            mode.getOrbitalStyle().addElement(newHexEntity);
-
-            // Set as active hex
-            mode.setActiveHex(newHexEntity);
-
-            success = true;
-            actionDesc = "created single-glyph hex";
-        } else if (draggedElement instanceof HexEntity) {
-            // Dragging a hex (not a glyph) - update its rotation
-            HexEntity draggedHex = (HexEntity) draggedElement;
-
-            LOGGER.atInfo().log("Hex drag end - entityRef valid: %s, lookRotation: %s",
-                    draggedHex.getEntityRef() != null && draggedHex.getEntityRef().isValid(),
-                    lookRotation != null ? lookRotation.toString() : "null");
-
-            // Update the hex's world position to the current look position
-            if (spawnPos != null) {
-                draggedHex.updateWorldPositionDirect(store, spawnPos);
-            }
-
-            // Capture the new rotation from look direction
+        if (!success) {
+            // Case 4: Dropped in empty space - resume orbital tracking at current rotation
             if (lookRotation != null) {
-                draggedHex.captureRotationFromLook(store, lookRotation);
+                // Update the node's absolute position
+                HexNode node = draggedElement.getNode();
+                node.setAbsoluteYaw(lookRotation.getYaw());
+                node.setAbsolutePitch(lookRotation.getPitch());
+                node.recalculateLayout();
+
+                // Resume orbital tracking at new rotation
+                draggedElement.resumeOrbitalTracking(store, mode.getPlayer());
+
+                // Set as active hex
+                mode.setActiveHex(draggedElement);
+
+                success = true;
+                String elementDesc = draggedElement.isSavedHex() ? "hex" : "glyph";
+                actionDesc = String.format("repositioned %s '%s' at yaw=%.1f, pitch=%.1f",
+                        elementDesc, draggedElement.getId(),
+                        lookRotation.getYaw(), lookRotation.getPitch());
             }
-
-            // Set as active hex (interaction = selection)
-            mode.setActiveHex(draggedHex);
-
-            // Log the final rotation
-            GlyphRotation finalRotation = draggedHex.getRotation();
-            LOGGER.atInfo().log("Hex '%s' final rotation: %s",
-                    draggedHex.getId(), finalRotation);
-
-            success = true;
-            actionDesc = String.format("repositioned hex '%s'", draggedHex.getId());
         }
+
+        // Clear drag state
+        draggedElement.setDragging(false);
+        mode.endDrag(store);
+
+        // Stop trail effect
+        cleanupTrailEffect(playerId);
+        glyphRenderer.stopDragTrail(store, playerRef);
 
         if (success) {
             LOGGER.atInfo().log("Drag completed: %s", actionDesc);
-        } else if (!actionDesc.isEmpty()) {
-            LOGGER.atInfo().log("Drag failed: %s", actionDesc);
+        } else {
+            LOGGER.atInfo().log("Drag ended without action");
         }
-    }
-
-    /**
-     * Check if a wrapper glyph can wrap a target glyph based on role rules.
-     *
-     * <p>
-     * Wrapping rules:
-     * <ul>
-     * <li>EFFECT glyphs cannot wrap anything - they are always leaves</li>
-     * <li>MODIFIER glyphs can wrap any glyph (they modify their child)</li>
-     * <li>SELECT glyphs can wrap any glyph (they target their children)</li>
-     * </ul>
-     *
-     * @param wrapper The glyph that will wrap (become outer shell)
-     * @param target  The glyph that will be wrapped (become inner)
-     * @return true if the wrap is valid
-     */
-    private boolean canWrap(Glyph wrapper, Glyph target) {
-        if (wrapper == null || target == null) {
-            return false;
-        }
-
-        // MODIFIERs and SELECTs can wrap anything
-        return true;
     }
 
     /**

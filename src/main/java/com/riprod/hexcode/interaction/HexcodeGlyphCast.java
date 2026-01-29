@@ -25,9 +25,7 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.config.dat
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.data.GlyphInstance;
-import com.riprod.hexcode.data.WorldHexDataStore;
 import com.riprod.hexcode.executing.HexExecutor;
-import com.riprod.hexcode.hex.Hex;
 import com.riprod.hexcode.hex.HexNode;
 import com.riprod.hexcode.mode.GlyphMode;
 import com.riprod.hexcode.mode.GlyphModeManager;
@@ -159,25 +157,17 @@ public class HexcodeGlyphCast extends Interaction {
             // First try to get hex from WorldHexDataStore (per-book queued spell)
             ItemStack bookStack = HexStaffUtil.getHexBookFromOffhand(inventory);
             if (bookStack != null && world != null) {
-                // Get book UUID (required for world storage lookup)
+                // Get book UUID for logging
                 UUID bookUuid = HexBookMetadata.getBookUUID(bookStack);
-                if (bookUuid != null) {
-                    // Get queued hex from world storage
-                    Hex hexFromBook = WorldHexDataStore.get().getQueuedHex(world, bookUuid);
-                    if (hexFromBook != null && !hexFromBook.isEmpty()) {
-                        castHexFromBook(playerId, ref, store, hexFromBook, world, bookUuid);
-                        LOGGER.atInfo().log("Player %s cast hex from book %s via Primary", playerId, bookUuid);
-                        return;
-                    }
-                } else {
+                if (bookUuid == null) {
                     LOGGER.atInfo().log("Book has no UUID - never used in glyph mode");
                 }
             }
 
             // Fallback: try active hex from mode session
             if (mode != null) {
-                Hex activeHexData = mode.getHexToCast();
-                if (activeHexData != null && !activeHexData.isEmpty()) {
+                HexNode activeHexNode = mode.getHexToCast();
+                if (activeHexNode != null) {
                     castHex(playerId, ref, store, mode);
                     LOGGER.atInfo().log("Player %s cast hex via Primary", playerId);
                 } else {
@@ -231,17 +221,20 @@ public class HexcodeGlyphCast extends Interaction {
 
     /**
      * Cast the active hex from glyph mode.
+     *
+     * <p>With unified treatment, the hex to cast is a HexNode root.
+     * A single glyph is a HexNode with no children.
      */
     private void castHex(UUID playerId, Ref<EntityStore> playerRef, Store<EntityStore> store, GlyphMode mode) {
-        Hex hex = mode.getHexToCast();
+        HexNode hexRoot = mode.getHexToCast();
 
-        if (hex == null || hex.isEmpty()) {
+        if (hexRoot == null) {
             LOGGER.atInfo().log("Failed to cast hex - no active hex selected");
             return;
         }
 
         // Calculate mana cost by traversing the hex tree
-        float totalManaCost = calculateHexManaCost(hex);
+        float totalManaCost = calculateNodeManaCost(hexRoot);
         float playerMana = getPlayerMana(store, playerRef);
 
         // Validate mana before casting (75% minimum threshold)
@@ -267,7 +260,7 @@ public class HexcodeGlyphCast extends Interaction {
                 manaToConsume, totalManaCost, playerMana);
 
         // Execute the hex
-        HexExecutor.ExecutionResult result = hexExecutor.execute(hex, playerRef, store, null, direction);
+        HexExecutor.ExecutionResult result = hexExecutor.execute(hexRoot, playerRef, store, null, direction);
         if (result.isSuccess()) {
             LOGGER.atInfo().log("Hex cast successfully");
         } else {
@@ -281,26 +274,27 @@ public class HexcodeGlyphCast extends Interaction {
     /**
      * Cast a hex from WorldHexDataStore.
      *
-     * <p>
-     * Used when player casts outside glyph mode - the hex is read from
+     * <p>Used when player casts outside glyph mode - the hex is read from
      * the world storage using the book's UUID.
+     *
+     * <p>With unified treatment, the hex is stored as a HexNode root.
      *
      * @param playerId  The player's UUID
      * @param playerRef The player entity reference
      * @param store     The entity store
-     * @param hex       The hex to cast (from WorldHexDataStore)
+     * @param hexRoot   The HexNode root to cast (from WorldHexDataStore)
      * @param world     The world context (for clearing after cast)
      * @param bookUuid  The book's UUID (for clearing after cast)
      */
     private void castHexFromBook(UUID playerId, Ref<EntityStore> playerRef, Store<EntityStore> store,
-            Hex hex, World world, UUID bookUuid) {
-        if (hex.isEmpty()) {
+            HexNode hexRoot, World world, UUID bookUuid) {
+        if (hexRoot == null) {
             LOGGER.atInfo().log("Failed to cast hex from book - empty or invalid hex");
             return;
         }
 
         // Calculate mana cost by traversing the hex tree
-        float totalManaCost = calculateHexManaCost(hex);
+        float totalManaCost = calculateNodeManaCost(hexRoot);
         float playerMana = getPlayerMana(store, playerRef);
 
         // Validate mana before casting (75% minimum threshold)
@@ -326,7 +320,7 @@ public class HexcodeGlyphCast extends Interaction {
                 manaToConsume, totalManaCost, playerMana);
 
         // Execute the hex
-        HexExecutor.ExecutionResult result = hexExecutor.execute(hex, playerRef, store, null, direction);
+        HexExecutor.ExecutionResult result = hexExecutor.execute(hexRoot, playerRef, store, null, direction);
         if (result.isSuccess()) {
             LOGGER.atInfo().log("Hex from book cast successfully");
             // Optionally clear the book's queued hex after casting
@@ -338,22 +332,15 @@ public class HexcodeGlyphCast extends Interaction {
     }
 
     /**
-     * Calculate the total mana cost of a hex by traversing the tree.
-     *
-     * @param hex The hex to calculate cost for
-     * @return Total mana cost (sum of all glyph costs)
-     */
-    private float calculateHexManaCost(Hex hex) {
-        if (hex.isEmpty()) {
-            return 0f;
-        }
-        return calculateNodeManaCost(hex.getRoot());
-    }
-
-    /**
      * Recursively calculate mana cost for a node and its children.
+     *
+     * @param node The HexNode to calculate cost for
+     * @return Total mana cost (sum of all glyph costs in tree)
      */
     private float calculateNodeManaCost(HexNode node) {
+        if (node == null) {
+            return 0f;
+        }
         float cost = 0f;
 
         GlyphInstance glyphInstance = node.getValue();

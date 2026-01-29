@@ -8,7 +8,7 @@ import com.hypixel.hytale.server.core.inventory.Inventory;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.hex.Hex;
+import com.riprod.hexcode.hex.HexNode;
 import com.riprod.hexcode.util.HexBookItemData;
 import com.riprod.hexcode.util.HexStaffUtil;
 import com.riprod.hexcode.util.InventoryUtil;
@@ -30,7 +30,6 @@ import java.util.UUID;
  * <h2>Storage Model</h2>
  * <ul>
  *   <li><b>Current</b>: Data embedded in ItemStack metadata via {@link HexBookItemData}</li>
- *   <li><b>Legacy</b>: File-based per-player storage via {@link WorldBookDataStore}</li>
  * </ul>
  *
  * <h2>Migration</h2>
@@ -52,7 +51,6 @@ import java.util.UUID;
  *
  * @see HexBookData
  * @see HexBookItemData
- * @see WorldBookDataStore (legacy)
  */
 public class HexBookDataManager {
 
@@ -211,40 +209,8 @@ public class HexBookDataManager {
             return data;
         }
 
-        // Check for legacy migration
-        Inventory inventory = getPlayerInventory(store, playerRef);
-        World world = store.getExternalData().getWorld();
-
-        if (world != null && inventory != null) {
-            // Try to migrate from old file-based storage
-            BookType bookType = getBookType(hexBook);
-            HexBookData legacyData = WorldBookDataStore.get().getBookData(world, playerUuid, bookType);
-            if (legacyData != null && legacyData.getGlyphCount() > 0) {
-                // Migrate legacy data to item metadata
-                ItemStack migratedBook = HexBookItemData.migrateIfNeeded(hexBook, legacyData, playerUuid);
-                updateBookInInventory(inventory, hexBook, migratedBook);
-                return legacyData;
-            }
-        }
-
         // Create new empty data
         return HexBookItemData.getOrCreateData(hexBook, playerUuid);
-    }
-
-    /**
-     * Read HexBookData for a player in a specific world.
-     *
-     * <p><b>Legacy method</b> - prefer using {@link #getHeldBookData(Store, Ref)}
-     * which reads from ItemStack metadata.
-     *
-     * @param world The world
-     * @param playerUuid The player's UUID
-     * @param bookType The book type
-     * @return The HexBookData (existing or new empty)
-     */
-    @Nonnull
-    public static HexBookData getData(@Nonnull World world, @Nonnull UUID playerUuid, @Nonnull BookType bookType) {
-        return WorldBookDataStore.get().getBookData(world, playerUuid, bookType);
     }
 
     // ==================== DATA MODIFICATION ====================
@@ -361,16 +327,18 @@ public class HexBookDataManager {
     }
 
     /**
-     * Save a hex to the player's held Hex Book.
+     * Save a hex (HexNode root) to the player's held Hex Book.
+     *
+     * <p>With unified glyph/hex treatment, spells are stored as HexNode trees.
      *
      * @param store Entity store
      * @param playerRef Player entity reference
-     * @param hex The hex to save
+     * @param hexNode The HexNode root to save
      * @return true if saved successfully, false if no book or at capacity
      */
     public static boolean saveHex(Store<EntityStore> store,
                                    Ref<EntityStore> playerRef,
-                                   @Nonnull Hex hex) {
+                                   @Nonnull HexNode hexNode) {
         ItemStack hexBook = findHeldHexBook(store, playerRef);
         if (hexBook == null) {
             return false;
@@ -386,7 +354,7 @@ public class HexBookDataManager {
             return false;
         }
 
-        HexBookItemData.SaveResult result = HexBookItemData.saveHex(hexBook, playerUuid, hex);
+        HexBookItemData.SaveResult result = HexBookItemData.saveHex(hexBook, playerUuid, hexNode);
 
         if (result.success()) {
             updateBookInInventory(inventory, hexBook, result.book());
@@ -552,8 +520,8 @@ public class HexBookDataManager {
     public static boolean saveHex(Store<EntityStore> store,
                                    Ref<EntityStore> playerRef,
                                    @Nonnull World world,
-                                   @Nonnull Hex hex) {
-        return saveHex(store, playerRef, hex);
+                                   @Nonnull HexNode hexNode) {
+        return saveHex(store, playerRef, hexNode);
     }
 
     /**

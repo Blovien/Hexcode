@@ -21,7 +21,7 @@ import com.riprod.hexcode.data.HexBookData;
 import com.riprod.hexcode.data.HexBookDataManager;
 import com.riprod.hexcode.glyph.Glyph;
 import com.riprod.hexcode.glyph.GlyphRegistry;
-import com.riprod.hexcode.hex.Hex;
+import com.riprod.hexcode.hex.HexNode;
 import com.riprod.hexcode.mode.GlyphMode;
 import com.riprod.hexcode.mode.GlyphModeManager;
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
@@ -181,15 +181,15 @@ public class HexcodeCommand extends AbstractPlayerCommand {
             GlyphModeManager manager = GlyphModeManager.getInstance();
             GlyphMode mode = manager.getSession(playerId);
 
-            Hex hex = mode != null ? mode.getHexToCast() : null;
-            if (hex == null || hex.isEmpty()) {
+            HexNode hexRoot = mode != null ? mode.getHexToCast() : null;
+            if (hexRoot == null) {
                 ctx.sendMessage(Message.raw("No active hex selected"));
                 return;
             }
 
             ctx.sendMessage(Message.raw("Active Hex Tree:"));
-            ctx.sendMessage(Message.raw(hex.toTreeString()));
-            ctx.sendMessage(Message.raw("Total Nodes: " + hex.getNodeCount()));
+            ctx.sendMessage(Message.raw(hexRoot.toTreeString()));
+            ctx.sendMessage(Message.raw("Total Nodes: " + hexRoot.getNodeCount()));
         }
     }
 
@@ -421,9 +421,9 @@ public class HexcodeCommand extends AbstractPlayerCommand {
             }
 
             ctx.sendMessage(Message.raw("=== Active Hex ==="));
-            Hex activeHex = mode.getHexToCast();
-            ctx.sendMessage(Message.raw("  Has active hex: " + (activeHex != null && !activeHex.isEmpty())));
-            if (activeHex != null && !activeHex.isEmpty()) {
+            HexNode activeHex = mode.getHexToCast();
+            ctx.sendMessage(Message.raw("  Has active hex: " + (activeHex != null)));
+            if (activeHex != null) {
                 ctx.sendMessage(Message.raw("  Hex: " + activeHex.toString()));
             }
 
@@ -617,14 +617,15 @@ public class HexcodeCommand extends AbstractPlayerCommand {
             GlyphModeManager manager = GlyphModeManager.getInstance();
             GlyphMode mode = manager.getSession(playerId);
 
-            Hex composedHex = mode != null ? mode.getHexToCast() : null;
-            if (composedHex == null || composedHex.isEmpty()) {
+            HexNode composedHex = mode != null ? mode.getHexToCast() : null;
+            if (composedHex == null) {
                 ctx.sendMessage(Message.raw("No active hex to save. Enter glyph mode and compose a hex first."));
                 return;
             }
 
-            // Create hex with user-provided name as ID
-            Hex hexToSave = new Hex(hexName, composedHex.getRoot());
+            // Deep copy with user-provided name as ID
+            HexNode hexToSave = composedHex.deepCopy();
+            hexToSave.setId(hexName);
 
             boolean saved = HexBookDataManager.saveHex(store, ref, world, hexToSave);
             if (saved) {
@@ -668,7 +669,7 @@ public class HexcodeCommand extends AbstractPlayerCommand {
             ctx.sendMessage(Message
                     .raw("=== Saved Hexes (" + data.getSavedHexCount() + "/" + HexBookData.MAX_SAVED_HEXES + ") ==="));
             int index = 1;
-            for (Hex hex : data.getSavedHexes()) {
+            for (HexNode hex : data.getSavedHexes()) {
                 String usageInfo = hex.getUses() > 0 ? " (used " + hex.getUses() + "x)" : "";
                 ctx.sendMessage(Message.raw("  " + index + ". " + hex.getId() + usageInfo));
                 ctx.sendMessage(Message.raw("     " + hex.toString()));

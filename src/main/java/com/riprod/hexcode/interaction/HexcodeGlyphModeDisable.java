@@ -94,7 +94,7 @@ public class HexcodeGlyphModeDisable extends Interaction {
         GlyphMode mode = modeManager.getSession(playerId);
 
         if (mode != null && mode.isActive()) {
-            modeManager.exitGlyphMode(playerId, context.getCommandBuffer(), world);
+            modeManager.exitGlyphMode(playerId, context.getCommandBuffer());
             LOGGER.atInfo().log("Player %s exited glyph mode via Disable interaction", playerId);
         }
 

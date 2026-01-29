@@ -4,7 +4,7 @@ import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.riprod.hexcode.codec.HexCodecs;
 import com.riprod.hexcode.data.HexBookData;
-import com.riprod.hexcode.hex.Hex;
+import com.riprod.hexcode.hex.HexNode;
 import com.riprod.hexcode.item.HexBookItem;
 
 import javax.annotation.Nonnull;
@@ -253,38 +253,41 @@ public final class HexBookItemData {
     }
 
     /**
-     * Save a hex spell and return the updated ItemStack.
+     * Save a hex spell (HexNode root) and return the updated ItemStack.
+     *
+     * <p>With unified glyph/hex treatment, spells are stored as HexNode trees.
+     * A single glyph is a HexNode with no children.
      *
      * <p>Respects the book's MaxSavedHexes and MaxHexDepth limits.
-     * Replacing an existing hex (same name) is always allowed.
+     * Replacing an existing hex (same ID) is always allowed.
      *
      * @param book The Hex Book item stack
      * @param ownerId The player UUID (used if creating new book data)
-     * @param hex The hex to save
+     * @param hexNode The HexNode root to save
      * @return Result containing the updated book and success status
      */
     @Nonnull
     public static SaveResult saveHex(@Nonnull ItemStack book, @Nonnull UUID ownerId,
-                                      @Nonnull Hex hex) {
+                                      @Nonnull HexNode hexNode) {
         HexBookData data = getOrCreateData(book, ownerId);
         BookCapacity capacity = getCapacity(book);
 
         // Check hex depth
-        int depth = hex.getMaxDepth();
+        int depth = hexNode.getDepth();
         if (depth > capacity.maxHexDepth()) {
             return new SaveResult(book, false,
                 "Hex too complex (depth " + depth + ", max " + capacity.maxHexDepth() + ")");
         }
 
         // Check capacity (replacing existing is allowed)
-        boolean isReplacing = data.hasSavedHex(hex.getId());
+        boolean isReplacing = data.hasSavedHex(hexNode.getId());
         if (!isReplacing && data.getSavedHexCount() >= capacity.maxSavedHexes()) {
             return new SaveResult(book, false,
                 "Book is full (max " + capacity.maxSavedHexes() + " hexes)");
         }
 
-        // Save the hex
-        if (!data.saveHex(hex, hex.getId())) {
+        // Save the hex node
+        if (!data.saveHex(hexNode, hexNode.getId())) {
             return new SaveResult(book, false, "Failed to save hex");
         }
 

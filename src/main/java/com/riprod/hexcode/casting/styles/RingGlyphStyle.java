@@ -6,6 +6,7 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.entity.HexNodeEntity;
 import com.riprod.hexcode.math.GlyphRotation;
 import com.riprod.hexcode.util.RotationMath;
 
@@ -105,7 +106,7 @@ public class RingGlyphStyle extends BaseGlyphStyle {
     // --- Visual Effects ---
 
     @Override
-    public void updateEffects(Store<EntityStore> store, List<OrbitalElement> elements, float dt) {
+    public void updateEffects(Store<EntityStore> store, List<HexNodeEntity> elements, float dt) {
         // TODO: Update particle positions attached to glyphs
         // Future: AOE effect updates
     }
