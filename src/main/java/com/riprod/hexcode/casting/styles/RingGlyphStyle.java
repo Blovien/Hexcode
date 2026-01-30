@@ -13,14 +13,18 @@ import com.riprod.hexcode.util.RotationMath;
 /**
  * Ring-style spawn positioning.
  *
- * <p>Elements are spawned in a horizontal circle around the player using rotation-based
- * positioning. All glyphs are placed at a fixed pitch (slightly below eye level) with
+ * <p>
+ * Elements are spawned in a horizontal circle around the player using
+ * rotation-based
+ * positioning. All glyphs are placed at a fixed pitch (slightly below eye
+ * level) with
  * yaw angles distributed evenly around the player.
  *
- * <p>This style manages:
+ * <p>
+ * This style manages:
  * <ul>
- *   <li>Ring spawn rotation calculation</li>
- *   <li>Visual effects (magic wheel, particles)</li>
+ * <li>Ring spawn rotation calculation</li>
+ * <li>Visual effects (magic wheel, particles)</li>
  * </ul>
  */
 public class RingGlyphStyle extends BaseGlyphStyle {
@@ -60,33 +64,24 @@ public class RingGlyphStyle extends BaseGlyphStyle {
     /**
      * Get the spawn rotation for an element at a given index.
      *
-     * <p>Elements are distributed evenly around the player at the ring pitch.
+     * <p>
+     * Elements are distributed evenly around the player at the ring pitch.
      *
      * @param index Element index (0-based)
      * @param total Total number of elements
      * @return GlyphRotation for this element
      */
-    public GlyphRotation getSpawnRotation(int index, int total) {
+    public GlyphRotation getSpawnRotation(float rotation, int index, int total) {
+        float baseYaw = RotationMath.normalizeYaw(startYaw + rotation);
         if (total == 0) {
-            return new GlyphRotation(ringPitch, startYaw);
+            return new GlyphRotation(ringPitch, baseYaw);
         }
 
         float yawStep = 360.0f / total;
-        float yaw = RotationMath.normalizeYaw(startYaw + yawStep * index);
+        float yaw = RotationMath.normalizeYaw(baseYaw + yawStep * index);
 
+        LOGGER.atInfo().log("RingGlyphStyle.getSpawnRotation() called. Offset %.2f. Spawning element %d of %d at pitch %.2f, yaw %.2f", rotation, index, total, ringPitch, yaw);
         return new GlyphRotation(ringPitch, yaw);
-    }
-
-    /**
-     * @deprecated Use {@link #getSpawnRotation(int, int)} instead.
-     *             Rotation-based positioning replaces world position calculation.
-     */
-    @Override
-    @Deprecated
-    public Vector3d getSpawnPosition(int index, int total, Vector3d playerPosition) {
-        // Convert rotation to world position for backward compatibility
-        GlyphRotation rotation = getSpawnRotation(index, total);
-        return rotation.toWorldPosition(playerPosition);
     }
 
     // --- Mode Lifecycle ---

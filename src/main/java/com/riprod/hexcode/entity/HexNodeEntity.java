@@ -1,6 +1,11 @@
 package com.riprod.hexcode.entity;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+
+import javax.annotation.Nullable;
 
 import com.hypixel.hytale.builtin.mounts.MountedComponent;
 import com.hypixel.hytale.component.AddReason;
@@ -15,9 +20,12 @@ import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.ColorLight;
 import com.hypixel.hytale.protocol.MountController;
+import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
+import com.hypixel.hytale.server.core.asset.type.modelvfx.config.ModelVFX;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
+import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
 import com.hypixel.hytale.server.core.modules.entity.component.DynamicLight;
 import com.hypixel.hytale.server.core.modules.entity.component.EntityScaleComponent;
@@ -26,6 +34,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.data.GlyphInstance;
 import com.riprod.hexcode.glyph.GlyphVisual;
 import com.riprod.hexcode.hex.HexNode;
 import com.riprod.hexcode.math.GlyphRotation;
@@ -46,7 +55,7 @@ import com.riprod.hexcode.math.GlyphRotation;
  *
  * <p>
  * Entity hierarchy:
- * 
+ *
  * <pre>
  * Player
  *   └── Root HexNode entity (mounted to player via angular offset)
@@ -57,7 +66,7 @@ import com.riprod.hexcode.math.GlyphRotation;
  * <p>
  * Hit testing uses the HexNode's findDeepestAt() for precise nested selection.
  */
-public class HexNodeEntity implements OrbitalElement {
+public class HexNodeEntity {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     private static final float BOUNDING_BOX_SIZE = 0.5f;
 
@@ -67,14 +76,12 @@ public class HexNodeEntity implements OrbitalElement {
     /** Reference to the player who owns this orbital element */
     private final Ref<EntityStore> ownerPlayer;
 
-    /** Lifecycle state machine */
-    private ElementState state = ElementState.NOT_SPAWNED;
-
     /** Tracks if entity is pending spawn (entityRef set but not yet valid) */
     private boolean pendingSpawn = false;
 
     /** Hover state flag */
-    private boolean isHovered = false;
+    private HexNode hoveredNode = null;
+    private HexNode previousHoveredNode = null;
 
     /** Dragging state flag */
     private boolean isDragging = false;
@@ -91,7 +98,6 @@ public class HexNodeEntity implements OrbitalElement {
     public HexNodeEntity(HexNode node, Ref<EntityStore> ownerPlayer) {
         this.node = node;
         this.ownerPlayer = ownerPlayer;
-        this.state = ElementState.NOT_SPAWNED;
     }
 
     // ========== ACCESSORS ==========
@@ -107,18 +113,15 @@ public class HexNodeEntity implements OrbitalElement {
 
     // ========== ORBITAL ELEMENT INTERFACE ==========
 
-    @Override
     public String getId() {
         return node.getId();
     }
 
-    @Override
     public boolean isSavedHex() {
         // A "saved hex" is one with children (composed)
         return node.hasChildren();
     }
 
-    @Override
     public GlyphVisual getVisual() {
         if (node.getValue() != null && node.getValue().getGlyph() != null) {
             return node.getValue().getGlyph().getVisual();
@@ -128,121 +131,73 @@ public class HexNodeEntity implements OrbitalElement {
         return GlyphVisual.select("Base_Glyph");
     }
 
-    @Override
     public Ref<EntityStore> getEntityRef() {
         return node.getEntityRef();
     }
 
-    @Override
     public Ref<EntityStore> getOwnerPlayer() {
         return ownerPlayer;
     }
 
-    @Override
     public GlyphRotation getRotation() {
         return new GlyphRotation(node.getAbsolutePitch(), node.getAbsoluteYaw());
     }
 
-    @Override
     public void setRotation(GlyphRotation rotation) {
         node.setAbsoluteYaw(rotation.getYaw());
         node.setAbsolutePitch(rotation.getPitch());
     }
 
-    @Override
     public float getSelectionTolerance() {
         return node.getAngularRadius();
     }
 
     // ========== STATE MACHINE ==========
 
-    @Override
-    public ElementState getState() {
-        return state;
-    }
-
-    @Override
-    public boolean transitionTo(ElementState newState) {
-        if (!OrbitalElement.isValidTransition(state, newState)) {
-            LOGGER.atWarning().log("Invalid state transition: %s -> %s for node '%s'",
-                    state, newState, node.getId());
-            return false;
-        }
-        ElementState oldState = this.state;
-        this.state = newState;
-        LOGGER.atInfo().log("HexNodeEntity '%s' state: %s -> %s", node.getId(), oldState, newState);
-        return true;
-    }
-
-    @Override
     public boolean isHovered() {
-        return isHovered;
+        return hoveredNode != null;
     }
 
-    @Override
-    public void setHovered(boolean hovered) {
-        this.isHovered = hovered;
-        // Also update state machine
-        if (hovered) {
-            if (state == ElementState.IDLE) {
-                transitionTo(ElementState.HOVERING);
-            }
+    public HexNode getHoveredNode() {
+        return hoveredNode;
+    }
+
+    public void setHovered(@Nullable HexNode targetNode) {
+        if (targetNode == null) {
+            this.previousHoveredNode = this.hoveredNode;
         } else {
-            if (state == ElementState.HOVERING) {
-                transitionTo(ElementState.IDLE);
-            }
+            this.previousHoveredNode = null;
         }
+        this.hoveredNode = targetNode;
     }
 
-    @Override
     public boolean isDragging() {
         return isDragging;
     }
 
-    @Override
     public void setDragging(boolean dragging) {
         this.isDragging = dragging;
-        // Also update state machine
-        if (dragging) {
-            if (state == ElementState.IDLE || state == ElementState.HOVERING) {
-                transitionTo(ElementState.DRAGGING);
-            }
-        } else {
-            if (state == ElementState.DRAGGING) {
-                transitionTo(ElementState.IDLE);
-            }
-        }
     }
 
-    @Override
     public boolean isAvailable() {
         return isAvailable;
     }
 
-    @Override
     public void setAvailable(boolean available) {
         this.isAvailable = available;
     }
 
-    @Override
     public boolean isPendingSpawn() {
         return pendingSpawn;
     }
 
-    @Override
     public void clearPendingSpawn() {
         this.pendingSpawn = false;
     }
 
     // ========== SPAWNING ==========
 
-    @Override
     public void spawn(CommandBuffer<EntityStore> commandBuffer, Vector3d spawnPosition, Ref<EntityStore> playerRef) {
-        if (state != ElementState.NOT_SPAWNED) {
-            LOGGER.atWarning().log("HexNodeEntity '%s' cannot spawn - already in state %s",
-                    node.getId(), state);
-            return;
-        }
         if (node.getEntityRef() != null) {
             LOGGER.atWarning().log("HexNodeEntity '%s' already has entity ref", node.getId());
             return;
@@ -256,7 +211,6 @@ public class HexNodeEntity implements OrbitalElement {
         spawnNodeTree(commandBuffer, node, playerRef, true, spawnPosition);
 
         this.pendingSpawn = true;
-        transitionTo(ElementState.IDLE);
 
         int nodeCount = countNodes(node);
         LOGGER.atInfo().log("Spawned HexNodeEntity '%s' with %d nodes at (%.1f, %.1f, %.1f)",
@@ -275,11 +229,13 @@ public class HexNodeEntity implements OrbitalElement {
      * @param parentEntityRef The parent entity (player for root, parent node for
      *                        children)
      * @param isRoot          Whether this is the root node
+     * @param spawnPosition   Position near the player to spawn entities (must be in
+     *                        loaded chunk)
      */
     private void spawnNodeTree(CommandBuffer<EntityStore> commandBuffer, HexNode currentNode,
-            Ref<EntityStore> parentEntityRef, boolean isRoot) {
+            Ref<EntityStore> parentEntityRef, boolean isRoot, Vector3d spawnPosition) {
         // Create entity holder for this node
-        Holder<EntityStore> holder = createNodeHolder(commandBuffer, currentNode, isRoot);
+        Holder<EntityStore> holder = createNodeHolder(commandBuffer, currentNode, isRoot, spawnPosition);
 
         // Spawn the entity
         Ref<EntityStore> nodeEntityRef = commandBuffer.addEntity(holder, AddReason.SPAWN);
@@ -301,7 +257,7 @@ public class HexNodeEntity implements OrbitalElement {
         } else {
             // CHILD NODE: Use MountedComponent to attach to parent entity
             // This preserves the internal hex hierarchy
-            Vector3f offset = currentNode.getMountOffset(GlyphRotation.DEFAULT_DISTANCE);
+            Vector3f offset = currentNode.getMountOffset(1f);
             MountedComponent mounted = new MountedComponent(
                     parentEntityRef, // parent node's entity ref
                     offset,
@@ -320,7 +276,7 @@ public class HexNodeEntity implements OrbitalElement {
 
         // Recursively spawn children, mounting each to this node's entity
         for (HexNode child : currentNode.getChildren()) {
-            spawnNodeTree(commandBuffer, child, nodeEntityRef, false);
+            spawnNodeTree(commandBuffer, child, nodeEntityRef, false, spawnPosition);
         }
     }
 
@@ -330,17 +286,20 @@ public class HexNodeEntity implements OrbitalElement {
      * @param commandBuffer The command buffer for external data access
      * @param node          The node to create an entity for
      * @param isRoot        Whether this is the root node (gets BoundingBox)
+     * @param spawnPosition Position near the player to spawn at (must be in loaded
+     *                      chunk)
      * @return The configured entity holder
      */
     private Holder<EntityStore> createNodeHolder(CommandBuffer<EntityStore> commandBuffer,
-            HexNode node, boolean isRoot) {
+            HexNode node, boolean isRoot, Vector3d spawnPosition) {
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
 
         // Add UUID component
         holder.addComponent(UUIDComponent.getComponentType(), new UUIDComponent(UUID.randomUUID()));
 
-        // Add transform (initial postition matters a lot and should be at the player or nearby so it's loaded)
-        TransformComponent transform = new TransformComponent(new Vector3d(0, 0, 0), new Vector3f(0, 0, 0));
+        // Add transform - spawn at player position so it's in a loaded chunk
+        // The mount system or orbital tracking will reposition it immediately
+        TransformComponent transform = new TransformComponent(spawnPosition, new Vector3f(0, 0, 0));
         holder.addComponent(TransformComponent.getComponentType(), transform);
 
         // Add model from glyph visual
@@ -354,7 +313,8 @@ public class HexNodeEntity implements OrbitalElement {
             ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(modelId);
 
             if (modelAsset != null) {
-                LOGGER.atInfo().log("Loaded model '%s' for node '%s' at coordinates (%.2f, %.2f, %.2f)", modelId, node.getId(), transform.getPosition().x, transform.getPosition().y, transform.getPosition().z);
+                LOGGER.atInfo().log("Loaded model '%s' for node '%s' at coordinates (%.2f, %.2f, %.2f)", modelId,
+                        node.getId(), transform.getPosition().x, transform.getPosition().y, transform.getPosition().z);
                 Model model = Model.createUnitScaleModel(modelAsset);
                 holder.addComponent(ModelComponent.getComponentType(), new ModelComponent(model));
                 holder.addComponent(PersistentModel.getComponentType(), new PersistentModel(model.toReference()));
@@ -372,6 +332,10 @@ public class HexNodeEntity implements OrbitalElement {
             ColorLight colorLight = createColorLightFromGlyph(visual);
             holder.addComponent(DynamicLight.getComponentType(), new DynamicLight(colorLight));
         }
+
+        EffectControllerComponent effectController = new EffectControllerComponent();
+        // Add glow effect
+        holder.addComponent(EffectControllerComponent.getComponentType(), effectController);
 
         // Add network ID
         holder.addComponent(NetworkId.getComponentType(),
@@ -421,14 +385,7 @@ public class HexNodeEntity implements OrbitalElement {
 
     // ========== DESPAWNING ==========
 
-    @Override
     public void despawn(CommandBuffer<EntityStore> commandBuffer) {
-        if (state == ElementState.CONSUMED) {
-            return;
-        }
-
-        transitionTo(ElementState.CONSUMED);
-
         // Despawn entire tree recursively
         int nodeCount = despawnNodeTree(commandBuffer, node);
 
@@ -466,7 +423,6 @@ public class HexNodeEntity implements OrbitalElement {
     /** Player eye height offset */
     private static final float EYE_HEIGHT = 1.62f;
 
-    @Override
     public void updatePositionFromPlayer(Store<EntityStore> store, Vector3d playerPosition) {
         Ref<EntityStore> entityRef = node.getEntityRef();
         if (entityRef == null || !entityRef.isValid()) {
@@ -518,30 +474,44 @@ public class HexNodeEntity implements OrbitalElement {
         double worldX = playerPosition.x + offsetX;
         double worldY = playerPosition.y + EYE_HEIGHT + offsetY;
         double worldZ = playerPosition.z + offsetZ;
-
+        
+        float faceYaw = yaw + 180.0f;
+        if (faceYaw > 180.0f) {
+            faceYaw -= 360.0f;
+        }
+        float facePitch = -pitch;
         // Update entity position
         TransformComponent transform = store.getComponent(entityRef, TransformComponent.getComponentType());
         if (transform != null) {
             transform.getPosition().assign(worldX, worldY, worldZ);
 
             // Update entity rotation to face the player
-            float faceYaw = yaw + 180.0f;
-            if (faceYaw > 180.0f) {
-                faceYaw -= 360.0f;
+
+            transform.getRotation().assign((float) Math.toRadians(facePitch), (float) Math.toRadians(faceYaw), 0);
+        }
+
+        List<HexNode> hexChildren = node.getAllChildren();
+
+        for (HexNode child : hexChildren) {
+            Ref<EntityStore> childRef = child.getEntityRef();
+            if (childRef == null || !childRef.isValid()) {
+                continue;
             }
-            transform.getRotation().assign(0, (float) Math.toRadians(faceYaw), 0);
+
+            TransformComponent childTransform = store.getComponent(childRef, TransformComponent.getComponentType());
+            if (childTransform != null) {
+                childTransform.getRotation().assign((float) Math.toRadians(facePitch), (float) Math.toRadians(faceYaw), 0);
+            }
         }
     }
 
-    @Override
     public void captureRotationFromLook(Store<EntityStore> store, GlyphRotation lookRotation) {
         node.setAbsoluteYaw(lookRotation.getYaw());
         node.setAbsolutePitch(lookRotation.getPitch());
         LOGGER.atInfo().log("HexNodeEntity '%s' captured rotation: %s", node.getId(), lookRotation);
     }
 
-    @Override
-    public void updateWorldPositionDirect(Store<EntityStore> store, Vector3d position) {
+    public void updateWorldPositionDirect(Store<EntityStore> store, Vector3d position, Vector3f lookDirection) {
         Ref<EntityStore> entityRef = node.getEntityRef();
         if (entityRef == null || !entityRef.isValid()) {
             return;
@@ -550,58 +520,55 @@ public class HexNodeEntity implements OrbitalElement {
         TransformComponent transform = store.getComponent(entityRef, TransformComponent.getComponentType());
         if (transform != null) {
             transform.setPosition(position);
-
-            // Also update rotation to face toward origin (player assumed at origin
-            // relative)
-            // This makes the glyph face the player while dragging
-            float yaw = (float) Math.atan2(-position.x, -position.z);
-            transform.setRotation(new Vector3f(0, yaw, 0));
+            transform.setRotation(lookDirection);
         }
-    }
 
-    @Override
-    public void updateHoverVisual(Store<EntityStore> store) {
-        Ref<EntityStore> entityRef = node.getEntityRef();
-        if (entityRef == null || !entityRef.isValid()) {
+        List<HexNode> hexChildren = node.getAllChildren();
+
+        if (hexChildren.isEmpty()) {
             return;
         }
 
-        // Update scale: larger when hovered
-        EntityScaleComponent scaleComp = store.getComponent(entityRef, EntityScaleComponent.getComponentType());
+        for (HexNode child : hexChildren) {
+            Ref<EntityStore> childRef = child.getEntityRef();
+            if (childRef == null || !childRef.isValid()) {
+                continue;
+            }
+
+            TransformComponent childTransform = store.getComponent(childRef, TransformComponent.getComponentType());
+            if (childTransform != null) {
+                Vector3f offset = child.getMountOffset(1f);
+                Vector3d childPosition = new Vector3d(
+                        position.x + offset.x,
+                        position.y + offset.y,
+                        position.z + offset.z);
+                childTransform.setPosition(childPosition);
+                childTransform.setRotation(lookDirection);
+            }
+        }
+    }
+
+    public void updateHoverVisual(Store<EntityStore> store) {
+        boolean hasHovered = hoveredNode != null;
+        boolean hasPrevHovered = previousHoveredNode != null;
+        HexNode targetNode = hasHovered ? hoveredNode : hasPrevHovered ? previousHoveredNode : node;
+
+        Ref<EntityStore> nodeRef = targetNode.getEntityRef();
+
+        if (nodeRef == null || !nodeRef.isValid()) {
+            return;
+        }
+
+        EntityScaleComponent scaleComp = store.getComponent(nodeRef, EntityScaleComponent.getComponentType());
         if (scaleComp != null) {
-            float baseScale = node.getScale();
-            float targetScale = isHovered ? baseScale * 1.1f : baseScale;
+            float baseScale = targetNode.getScale();
+            float targetScale = hasHovered ? baseScale * 1.1f : baseScale;
             if (Math.abs(scaleComp.getScale() - targetScale) > 0.001f) {
                 scaleComp.setScale(targetScale);
             }
         }
 
-        // Update light: increase intensity when hovered
-        DynamicLight light = store.getComponent(entityRef, DynamicLight.getComponentType());
-        if (light != null && node.getValue() != null && node.getValue().getGlyph() != null) {
-            GlyphVisual visual = node.getValue().getGlyph().getVisual();
-            ColorLight colorLight = createColorLightFromGlyph(visual);
-
-            if (isHovered) {
-                colorLight.radius = (byte) Math.min(255, colorLight.radius + 4);
-            }
-
-            light.setColorLight(colorLight);
-        }
-    }
-
-    // ========== HIT TESTING ==========
-
-    /**
-     * Find the deepest node at the given look direction.
-     * Uses the HexNode's built-in hit testing from hex-positioning.
-     *
-     * @param userYaw   The user's look yaw
-     * @param userPitch The user's look pitch
-     * @return The deepest node at that position, or null if none
-     */
-    public HexNode findNodeAtLookDirection(float userYaw, float userPitch) {
-        return node.findDeepestAt(userYaw, userPitch);
+        previousHoveredNode = null;
     }
 
     // ========== REFRESH AND RESPAWN ==========
@@ -612,22 +579,21 @@ public class HexNodeEntity implements OrbitalElement {
      *
      * @param commandBuffer The command buffer for deferred operations
      * @param playerRef     The player reference for mounting
+     * @param spawnPosition Position near the player to spawn at (must be in loaded
+     *                      chunk)
      */
-    public void refreshAndRespawn(CommandBuffer<EntityStore> commandBuffer, Ref<EntityStore> playerRef) {
+    public void refreshAndRespawn(CommandBuffer<EntityStore> commandBuffer, Ref<EntityStore> playerRef,
+            Vector3d spawnPosition) {
         // Despawn all existing entities
         despawnNodeTree(commandBuffer, node);
-
-        // Reset state for respawn
-        this.state = ElementState.NOT_SPAWNED;
 
         // Recalculate layout with new structure
         node.recalculateLayout();
 
-        // Respawn with updated structure
-        spawnNodeTree(commandBuffer, node, playerRef, true);
+        // Respawn with updated structure at player position
+        spawnNodeTree(commandBuffer, node, playerRef, true, spawnPosition);
 
         this.pendingSpawn = true;
-        transitionTo(ElementState.IDLE);
 
         int nodeCount = countNodes(node);
         LOGGER.atInfo().log("Refreshed and respawned HexNodeEntity '%s' with %d nodes", node.getId(), nodeCount);
@@ -743,9 +709,8 @@ public class HexNodeEntity implements OrbitalElement {
         return colorLight;
     }
 
-    @Override
     public String toString() {
-        return String.format("HexNodeEntity[id=%s, state=%s, hasChildren=%s]",
-                node.getId(), state, node.hasChildren());
+        return String.format("HexNodeEntity[id=%s, hasChildren=%s]",
+                node.getId(), node.hasChildren());
     }
 }

@@ -8,13 +8,19 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.hypixel.hytale.builtin.hytalegenerator.fields.FastNoiseLite.Vector3;
 import com.hypixel.hytale.component.CommandBuffer;
+import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.math.Axis;
 import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.server.core.inventory.Inventory;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
+import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.casting.styles.BaseGlyphStyle;
@@ -22,8 +28,6 @@ import com.riprod.hexcode.casting.styles.RingGlyphStyle;
 import com.riprod.hexcode.data.GlyphInstance;
 import com.riprod.hexcode.data.HexBookData;
 import com.riprod.hexcode.entity.HexNodeEntity;
-import com.riprod.hexcode.entity.OrbitalElement;
-import com.riprod.hexcode.entity.OrbitalElement.ElementState;
 import com.riprod.hexcode.hex.HexNode;
 import com.riprod.hexcode.math.GlyphRotation;
 import com.riprod.hexcode.util.HexBookMetadata;
@@ -50,7 +54,8 @@ public class GlyphMode {
     private final UUID playerId; // Player's UUID for entity component ownership
     private HexBookData bookData; // Data from the held Hex Book
 
-    // Active hex tracking - the hex that will be cast (unified: glyphs are HexNodes with no children)
+    // Active hex tracking - the hex that will be cast (unified: glyphs are HexNodes
+    // with no children)
     private HexNodeEntity activeHex;
 
     // Book tracking for swap detection
@@ -66,13 +71,13 @@ public class GlyphMode {
     private float maxCompositionRange;
     private float dragDistance;
 
-    // Currently dragging element (unified: HexNodeEntity handles both glyphs and hexes)
+    // Currently dragging element (unified: HexNodeEntity handles both glyphs and
+    // hexes)
     private HexNodeEntity draggingElement;
     private GlyphRotation dragRotation; // Current rotation during drag
 
     // Continuous hover detection from client sync data
     private HexNodeEntity hoveredElement; // Currently hovered via client sync
-    private HexNodeEntity dropTargetElement; // Drop target during drag
 
     // Orbital style system
     private BaseGlyphStyle orbitalStyle;
@@ -180,8 +185,7 @@ public class GlyphMode {
             draggingElement = null;
             dragRotation = null;
             hoveredElement = null;
-            dropTargetElement = null;
-            activeHex = null;
+            hoveredElement = null;
             LOGGER.atInfo().log("Glyph mode exited");
         }
     }
@@ -204,17 +208,13 @@ public class GlyphMode {
                 endDrag(store);
             }
 
-            // Validate and cleanup before despawning
-            validateAndCleanupElements(store);
-
             clearHoverState(store);
             despawnOrbitalGlyphs(commandBuffer);
             active = false;
             draggingElement = null;
             dragRotation = null;
             hoveredElement = null;
-            dropTargetElement = null;
-            activeHex = null;
+            hoveredElement = null;
             currentBookUUID = null;
             currentBookStack = null;
             LOGGER.atInfo().log("Glyph mode exited with validation cleanup (composed hexes discarded)");
@@ -310,7 +310,8 @@ public class GlyphMode {
      * Also spawns saved hexes from the book as orbital entities.
      * Uses CommandBuffer for deferred entity creation during system ticks.
      *
-     * <p>All elements are now unified as HexNodeEntity:
+     * <p>
+     * All elements are now unified as HexNodeEntity:
      * - Single glyphs are HexNodes with no children
      * - Saved hexes are HexNodes with children (tree structures)
      */
@@ -320,6 +321,9 @@ public class GlyphMode {
 
         // Get player position
         Vector3d playerPosition = getPlayerPosition(commandBuffer);
+
+        // Get player rotation
+        GlyphRotation playerRotation = getPlayerHeadRotation(commandBuffer);
 
         // Get glyphs from book data if available, otherwise from loadout
         List<GlyphInstance> glyphs = getAvailableGlyphsFromBook();
@@ -347,7 +351,7 @@ public class GlyphMode {
             node.setBaseMargin(GlyphRotation.BASE_TOLERANCE);
 
             // Get spawn rotation from style
-            GlyphRotation rotation = orbitalStyle.getSpawnRotation(index, totalEntities);
+            GlyphRotation rotation = orbitalStyle.getSpawnRotation(playerRotation.getYaw(), index, totalEntities);
 
             // Set absolute position from rotation
             node.setAbsoluteYaw(rotation.getYaw());
@@ -371,7 +375,7 @@ public class GlyphMode {
         // Spawn saved hex HexNodes (composed hexes with children)
         for (HexNode savedHexNode : savedHexes) {
             // Get spawn rotation from style
-            GlyphRotation rotation = orbitalStyle.getSpawnRotation(index, totalEntities);
+            GlyphRotation rotation = orbitalStyle.getSpawnRotation(playerRotation.getYaw(), index, totalEntities);
 
             // Set absolute position from rotation and recalculate layout
             savedHexNode.setAbsoluteYaw(rotation.getYaw());
@@ -398,39 +402,35 @@ public class GlyphMode {
     }
 
     /**
-     * Validate all elements are in clean state before despawning.
-     * Forces cleanup of any elements stuck in invalid states.
+     * Get the player's current look rotation.
      *
-     * @param store The entity store for component access
+     * @param store     The entity store
+     * @param playerRef The player entity reference
+     * @return The player's look rotation, or null if unavailable
      */
-    private void validateAndCleanupElements(Store<EntityStore> store) {
-        int cleanedCount = 0;
-        for (HexNodeEntity element : orbitalStyle.getElements()) {
-            ElementState state = element.getState();
-
-            // Check for stuck dragging state
-            if (state == ElementState.DRAGGING) {
-                LOGGER.atWarning().log("Element '%s' still dragging on exit - forcing cleanup",
-                        element.getId());
-                element.setDragging(false);
-                cleanedCount++;
-            }
-
-            // Check for error state
-            if (state == ElementState.ERROR) {
-                LOGGER.atWarning().log("Element '%s' in ERROR state on exit - forcing to CONSUMED",
-                        element.getId());
-                element.transitionTo(ElementState.CONSUMED);
-                cleanedCount++;
-            }
-
-            // Note: HexNodeComponent doesn't track dragging state (handled by HexNodeEntity)
-            // No ECS sync needed - state is managed by the entity wrapper
+    private GlyphRotation getPlayerHeadRotation(CommandBuffer<EntityStore> commandBuffer) {
+        HeadRotation headRotation = commandBuffer.getComponent(player, HeadRotation.getComponentType());
+        if (headRotation == null) {
+            return null;
         }
 
-        if (cleanedCount > 0) {
-            LOGGER.atInfo().log("Cleaned up %d elements with invalid state during exit", cleanedCount);
+        return GlyphRotation.fromDirection(headRotation.getDirection());
+    }
+
+    /**
+     * Get the player's current look rotation.
+     *
+     * @param store     The entity store
+     * @param playerRef The player entity reference
+     * @return The player's look rotation, or null if unavailable
+     */
+    private GlyphRotation getPlayerHeadRotation(Store<EntityStore> store) {
+        HeadRotation headRotation = store.getComponent(player, HeadRotation.getComponentType());
+        if (headRotation == null) {
+            return null;
         }
+
+        return GlyphRotation.fromDirection(headRotation.getDirection());
     }
 
     /**
@@ -498,7 +498,8 @@ public class GlyphMode {
     }
 
     /**
-     * Get all orbital elements (unified: both single glyphs and saved hexes are HexNodeEntity).
+     * Get all orbital elements (unified: both single glyphs and saved hexes are
+     * HexNodeEntity).
      *
      * @return List of all HexNodeEntity elements managed by the style
      */
@@ -531,27 +532,6 @@ public class GlyphMode {
         }
     }
 
-    /**
-     * Set the hovered orbital element (unified: HexNodeEntity for both glyphs and hexes).
-     *
-     * @param element The element being hovered, or null to clear
-     * @param store   The entity store
-     */
-    public void setHoveredOrbitalElement(HexNodeEntity element, Store<EntityStore> store) {
-        // Clear previous hover
-        if (hoveredElement != null && hoveredElement != element) {
-            hoveredElement.setHovered(false);
-            hoveredElement.updateHoverVisual(store);
-        }
-
-        hoveredElement = element;
-
-        if (element != null) {
-            element.setHovered(true);
-            element.updateHoverVisual(store);
-        }
-    }
-
     // ==================== CONTINUOUS HOVER DETECTION ====================
 
     /**
@@ -565,38 +545,21 @@ public class GlyphMode {
     }
 
     /**
-     * Get the current drop target element (during drag).
-     *
-     * @return The drop target element, or null if no valid drop target
-     */
-    @Nullable
-    public HexNodeEntity getDropTargetElement() {
-        return dropTargetElement;
-    }
-
-    /**
      * Update the hovered element from client sync data processing.
      * Called from HexcodeGlyphModeToggle.tick0().
      *
-     * @param newHovered The new hovered element, or null to clear
-     * @param store      The entity store for visual updates
+     * @param store The entity store for visual updates
      */
-    public void updateHoveredElement(@Nullable HexNodeEntity newHovered, Store<EntityStore> store) {
-        if (hoveredElement == newHovered) {
+    public void updateHoveredElement(Store<EntityStore> store, @Nullable HexNode targetNode) {
+        if (hoveredElement != null) {
+            hoveredElement.setHovered(targetNode);
+            hoveredElement.updateHoverVisual(store);
+        }
+
+        if (targetNode == null) {
+            // Clear hover
+            hoveredElement = null;
             return;
-        }
-
-        // Clear old hover
-        if (hoveredElement != null) {
-            hoveredElement.setHovered(false);
-            hoveredElement.updateHoverVisual(store);
-        }
-
-        // Set new hover
-        hoveredElement = newHovered;
-        if (hoveredElement != null) {
-            hoveredElement.setHovered(true);
-            hoveredElement.updateHoverVisual(store);
         }
     }
 
@@ -607,23 +570,18 @@ public class GlyphMode {
      * @param newTarget The new drop target element, or null to clear
      * @param store     The entity store for visual updates
      */
-    public void updateDropTarget(@Nullable HexNodeEntity newTarget, Store<EntityStore> store) {
-        if (dropTargetElement == newTarget) {
+    public void updateHoveredElement(HexNodeEntity newTarget, Store<EntityStore> store, @Nullable HexNode targetNode) {
+        if (hoveredElement != null && hoveredElement.equals(newTarget)
+                && (targetNode == null || hoveredElement.getHoveredNode().equals(targetNode))) {
             return;
         }
 
         // Clear old target highlight
-        if (dropTargetElement != null) {
-            dropTargetElement.setHovered(false);
-            dropTargetElement.updateHoverVisual(store);
-        }
+        updateHoveredElement(store, null);
 
         // Set new target
-        dropTargetElement = newTarget;
-        if (dropTargetElement != null) {
-            dropTargetElement.setHovered(true);
-            dropTargetElement.updateHoverVisual(store);
-        }
+        hoveredElement = newTarget;
+        updateHoveredElement(store, targetNode);
     }
 
     /**
@@ -632,8 +590,7 @@ public class GlyphMode {
      * @param store The entity store for visual updates
      */
     public void clearHoverState(Store<EntityStore> store) {
-        updateHoveredElement(null, store);
-        updateDropTarget(null, store);
+        updateHoveredElement(store, null);
     }
 
     /**
@@ -691,7 +648,9 @@ public class GlyphMode {
     /**
      * Get saved hexes that can be cast like glyphs.
      *
-     * <p>With unified HexNode treatment (Phase 9), book data directly stores HexNode roots.
+     * <p>
+     * With unified HexNode treatment (Phase 9), book data directly stores HexNode
+     * roots.
      *
      * @return List of saved hex root nodes from book, or empty list if no book data
      */
@@ -723,7 +682,8 @@ public class GlyphMode {
      * Get the active hex that will be cast.
      * The active hex is the most recently interacted hex during glyph mode.
      *
-     * <p>Note: Unified treatment means even single glyphs are HexNodeEntity.
+     * <p>
+     * Note: Unified treatment means even single glyphs are HexNodeEntity.
      *
      * @return The active HexNodeEntity, or null if none selected
      */
@@ -802,7 +762,8 @@ public class GlyphMode {
     }
 
     /**
-     * @return The element currently being dragged (unified: HexNodeEntity for both glyphs and hexes)
+     * @return The element currently being dragged (unified: HexNodeEntity for both
+     *         glyphs and hexes)
      */
     @Nullable
     public HexNodeEntity getDraggingElement() {

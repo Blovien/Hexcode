@@ -1,0 +1,9 @@
+  {
+    "ApplicationEffects": {
+      "ModelVFXId": "GlyphGlow",
+      "EntityBottomTint": "#ffaa00",
+      "EntityTopTint": "#ffdd88"
+    },
+    "Infinite": true,
+    "OverlapBehavior": "Overwrite"
+  }

@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.entity.HexNodeEntity;
@@ -35,6 +36,7 @@ import com.riprod.hexcode.math.GlyphRotation;
  * </ul>
  */
 public abstract class BaseGlyphStyle {
+    protected HytaleLogger LOGGER = HytaleLogger.getLogger();
 
     /** All HexNodeEntity elements managed by this style */
     protected final List<HexNodeEntity> elements;
@@ -55,25 +57,14 @@ public abstract class BaseGlyphStyle {
      * @param total Total number of elements being spawned
      * @return GlyphRotation for where element should spawn
      */
-    public GlyphRotation getSpawnRotation(int index, int total) {
+    public GlyphRotation getSpawnRotation(float pitch, int index, int total) {
         // Default implementation: convert from position (requires playerPosition)
         // Subclasses should override this for proper rotation-based positioning
+        LOGGER.atInfo().log("BaseGlyphStyle.getSpawnRotation() called - subclasses should override this method");
         return new GlyphRotation(-9.0f, (360.0f / Math.max(1, total)) * index);
     }
 
-    /**
-     * Calculate the spawn position for a new element.
-     *
-     * @param index          Element index (0-based)
-     * @param total          Total number of elements being spawned
-     * @param playerPosition Player's current position
-     * @return World position where element should spawn
-     * @deprecated Use {@link #getSpawnRotation(int, int)} instead.
-     *             Rotation-based positioning replaces world position calculation.
-     */
-    @Deprecated
-    public abstract Vector3d getSpawnPosition(int index, int total, Vector3d playerPosition);
-
+  
     // --- Mode Lifecycle ---
 
     /**

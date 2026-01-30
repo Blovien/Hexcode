@@ -32,7 +32,6 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.config.cli
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.data.Collector;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.casting.RotationObserver;
-import com.riprod.hexcode.casting.RotationObserver.DropTarget;
 import com.riprod.hexcode.casting.RotationObserver.NodeDropTarget;
 import com.riprod.hexcode.entity.HexNodeEntity;
 import com.riprod.hexcode.hex.HexNode;
@@ -212,7 +211,8 @@ public class HexcodeGlyphModeSelect extends ChargingInteraction {
             updateDragPosition(ref, store, mode);
         }
 
-        // Guard against null client state (can happen on first tick before client syncs)
+        // Guard against null client state (can happen on first tick before client
+        // syncs)
         if (context.getClientState() == null) {
             context.getState().state = InteractionState.NotFinished;
             return;
@@ -265,13 +265,14 @@ public class HexcodeGlyphModeSelect extends ChargingInteraction {
      * Uses the pre-computed hovered element from sync data processing
      * in HexcodeGlyphModeToggle.
      *
-     * <p>Unified treatment: both single glyphs and composed hexes are HexNodeEntity.
+     * <p>
+     * Unified treatment: both single glyphs and composed hexes are HexNodeEntity.
      * On drag start:
      * <ul>
-     *   <li>Get hovered HexNodeEntity from mode</li>
-     *   <li>Unmount from player (detach MountedComponent)</li>
-     *   <li>Set entity.setDragging(true)</li>
-     *   <li>Start tracking drag state</li>
+     * <li>Get hovered HexNodeEntity from mode</li>
+     * <li>Unmount from player (detach MountedComponent)</li>
+     * <li>Set entity.setDragging(true)</li>
+     * <li>Start tracking drag state</li>
      * </ul>
      *
      * @param playerId      Player's UUID
@@ -301,9 +302,6 @@ public class HexcodeGlyphModeSelect extends ChargingInteraction {
         LOGGER.atInfo().log("Player %s selected and started dragging %s '%s'",
                 playerId, elementName, targetElement.getId());
 
-        // Select this element (updates hover state and visual)
-        mode.setHoveredOrbitalElement(targetElement, store);
-
         // Mark element as dragging
         targetElement.setDragging(true);
 
@@ -330,10 +328,13 @@ public class HexcodeGlyphModeSelect extends ChargingInteraction {
     }
 
     /**
-     * Update the position of the dragged element to follow the player's look direction.
+     * Update the position of the dragged element to follow the player's look
+     * direction.
      * Called every tick while dragging to provide smooth visual feedback.
      *
-     * <p>Since the element is unmounted during drag, we directly set its world position
+     * <p>
+     * Since the element is unmounted during drag, we directly set its world
+     * position
      * based on the player's look rotation and position.
      *
      * @param playerRef Player entity reference
@@ -346,6 +347,9 @@ public class HexcodeGlyphModeSelect extends ChargingInteraction {
             LOGGER.atWarning().log("updateDragPosition: no dragged element");
             return;
         }
+
+        // Get head rotation
+        HeadRotation headRotation = store.getComponent(playerRef, HeadRotation.getComponentType());
 
         // Get current look rotation
         GlyphRotation lookRotation = rotationObserver.getPlayerLookRotation(store, playerRef);
@@ -365,7 +369,7 @@ public class HexcodeGlyphModeSelect extends ChargingInteraction {
         Vector3d newPosition = lookRotation.toWorldPosition(playerPos);
 
         // Update the element's world position directly (unmounted during drag)
-        draggedElement.updateWorldPositionDirect(store, newPosition);
+        draggedElement.updateWorldPositionDirect(store, newPosition, headRotation.getRotation());
 
         // Update GlyphMode's tracked drag rotation
         mode.updateDrag(lookRotation);
@@ -374,14 +378,21 @@ public class HexcodeGlyphModeSelect extends ChargingInteraction {
     /**
      * Handle drag end with unified drop target detection.
      *
-     * <p>Unified treatment: all elements are HexNodeEntity (single glyphs = leaf nodes).
+     * <p>
+     * Unified treatment: all elements are HexNodeEntity (single glyphs = leaf
+     * nodes).
      *
-     * <p>Drop behavior:
+     * <p>
+     * Drop behavior:
      * <ul>
-     *   <li>Case 1 (Hex onto Hex): Insert dragged tree into target's deepest matched node</li>
-     *   <li>Case 2 (Glyph onto Hex): Same as Case 1 (glyph is just a leaf HexNode)</li>
-     *   <li>Case 3 (Glyph onto Glyph): Target becomes parent, dragged becomes child</li>
-     *   <li>Case 4 (Drop in empty space): Remount to player at current look rotation</li>
+     * <li>Case 1 (Hex onto Hex): Insert dragged tree into target's deepest matched
+     * node</li>
+     * <li>Case 2 (Glyph onto Hex): Same as Case 1 (glyph is just a leaf
+     * HexNode)</li>
+     * <li>Case 3 (Glyph onto Glyph): Target becomes parent, dragged becomes
+     * child</li>
+     * <li>Case 4 (Drop in empty space): Remount to player at current look
+     * rotation</li>
      * </ul>
      *
      * @param playerId      Player's UUID
@@ -414,28 +425,19 @@ public class HexcodeGlyphModeSelect extends ChargingInteraction {
         Vector3d playerPos = playerTransform != null ? playerTransform.getPosition() : new Vector3d(0, 0, 0);
 
         // Use rotation-based drop target detection with nested node targeting
-        DropTarget rawDropTarget = rotationObserver.findDropTarget(store, playerRef,
+        NodeDropTarget dropTarget = rotationObserver.findDropTarget(store, playerRef,
                 mode.getAllOrbitalElements());
-
-        // Cast to NodeDropTarget if available (all elements are HexNodeEntity now)
-        NodeDropTarget dropTarget = (rawDropTarget instanceof NodeDropTarget)
-                ? (NodeDropTarget) rawDropTarget : null;
 
         boolean success = false;
         String actionDesc = "";
 
-        if (dropTarget != null && dropTarget.entity != draggedElement) {
+        if (dropTarget != null) {
             // Dropped onto another element
             HexNodeEntity targetEntity = dropTarget.entity;
             HexNode targetNode = dropTarget.targetNode;
             HexNode draggedNode = draggedElement.getNode();
 
             if (targetNode != null && draggedNode != null) {
-                // Case 1/2/3: Drop onto another element - add dragged as child of target
-                // Detach dragged node from its parent (if any)
-                if (draggedNode.getParent() != null) {
-                    draggedNode.getParent().removeChild(draggedNode);
-                }
 
                 // Add dragged node as child of target node
                 targetNode.addChild(draggedNode);
@@ -445,7 +447,7 @@ public class HexcodeGlyphModeSelect extends ChargingInteraction {
                 mode.getOrbitalStyle().removeElement(draggedElement);
 
                 // Refresh target entity to show new structure
-                targetEntity.refreshAndRespawn(commandBuffer, mode.getPlayer());
+                targetEntity.refreshAndRespawn(commandBuffer, mode.getPlayer(), playerPos);
 
                 // Set target as active hex
                 mode.setActiveHex(targetEntity);

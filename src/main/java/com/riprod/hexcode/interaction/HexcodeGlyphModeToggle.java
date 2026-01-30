@@ -22,9 +22,10 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.config.dat
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.casting.RotationObserver;
-import com.riprod.hexcode.casting.RotationObserver.DropTarget;
 import com.riprod.hexcode.casting.RotationObserver.NodeDropTarget;
+import com.riprod.hexcode.entity.HexNodeComponent;
 import com.riprod.hexcode.entity.HexNodeEntity;
+import com.riprod.hexcode.hex.HexNode;
 import com.riprod.hexcode.mode.GlyphMode;
 import com.riprod.hexcode.mode.GlyphModeManager;
 import com.riprod.hexcode.util.HexStaffUtil;
@@ -177,7 +178,8 @@ public class HexcodeGlyphModeToggle extends ChargingInteraction {
 
         // Let parent handle charging state machine EVERY TICK
         // This reads chargeValue from client and sets Finished when released
-        // Guard against null client state (can happen on first tick before client syncs)
+        // Guard against null client state (can happen on first tick before client
+        // syncs)
         if (context.getClientState() == null) {
             context.getState().state = InteractionState.NotFinished;
             return;
@@ -220,7 +222,8 @@ public class HexcodeGlyphModeToggle extends ChargingInteraction {
      * Process hover detection on the server side using angular distance.
      * Uses RotationObserver to find what orbital element the player is looking at.
      *
-     * <p>With unified HexNodeEntity treatment, all orbital elements are HexNodeEntity.
+     * <p>
+     * With unified HexNodeEntity treatment, all orbital elements are HexNodeEntity.
      * The DropTarget is cast to NodeDropTarget to get the specific entity.
      *
      * @param playerRef The player entity reference
@@ -234,23 +237,25 @@ public class HexcodeGlyphModeToggle extends ChargingInteraction {
         }
 
         // Use RotationObserver to find what the player is looking at (angular distance)
-        DropTarget dropTarget = rotationObserver.findDropTarget(store, playerRef, orbitalElements);
+        NodeDropTarget dropTarget = rotationObserver.findDropTarget(store, playerRef, orbitalElements);
 
-        // Extract HexNodeEntity from NodeDropTarget (all elements are HexNodeEntity now)
-        HexNodeEntity targetElement = null;
-        if (dropTarget instanceof NodeDropTarget) {
-            targetElement = ((NodeDropTarget) dropTarget).entity;
+        // Extract HexNodeEntity from NodeDropTarget (all elements are HexNodeEntity
+        // now)
+
+        if (dropTarget == null) {
+            mode.updateHoveredElement(store, null);
+            return;
         }
+       
+ 
+        HexNode targetNode = dropTarget.targetNode;
+        HexNodeEntity dropTargetEntity = dropTarget.entity;
 
         // Update hover or drop target based on drag state
-        if (mode.isDragging()) {
-            // Skip self during drag
-            if (targetElement == mode.getDraggingElement()) {
-                targetElement = null;
-            }
-            mode.updateDropTarget(targetElement, store);
-        } else {
-            mode.updateHoveredElement(targetElement, store);
+        if (mode.isDragging() && dropTargetEntity == mode.getDraggingElement()) {
+            // don't update hover to the element being dragged
+            return;
         }
+        mode.updateHoveredElement(dropTargetEntity, store, targetNode);
     }
 }

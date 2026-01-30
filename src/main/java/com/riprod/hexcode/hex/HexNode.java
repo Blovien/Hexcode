@@ -3,6 +3,7 @@ package com.riprod.hexcode.hex;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.data.GlyphInstance;
@@ -15,29 +16,39 @@ import java.util.UUID;
 /**
  * A node in the Hex spell tree structure with angular positioning support.
  *
- * <p>HexNodes form a tree rendered in spherical coordinates (yaw/pitch) around
- * a central point. Parent nodes scale based on subtree depth to contain children.
- * Hit testing finds the deepest node under the user's view angle using recursive descent.
+ * <p>
+ * HexNodes form a tree rendered in spherical coordinates (yaw/pitch) around
+ * a central point. Parent nodes scale based on subtree depth to contain
+ * children.
+ * Hit testing finds the deepest node under the user's view angle using
+ * recursive descent.
  *
- * <p>A Hex is a tree-structured spell construct where:
+ * <p>
+ * A Hex is a tree-structured spell construct where:
  * <ul>
- *   <li>EFFECT glyphs are the innermost leaves (actions like FIRE, HEAL)</li>
- *   <li>MODIFIER glyphs wrap around others as inner shells (amplify/alter behavior)</li>
- *   <li>SELECT glyphs wrap around others as outer shells (determine targeting/delivery)</li>
+ * <li>EFFECT glyphs are the innermost leaves (actions like FIRE, HEAL)</li>
+ * <li>MODIFIER glyphs wrap around others as inner shells (amplify/alter
+ * behavior)</li>
+ * <li>SELECT glyphs wrap around others as outer shells (determine
+ * targeting/delivery)</li>
  * </ul>
  *
- * <p>Key concepts:
+ * <p>
+ * Key concepts:
  * <ul>
- *   <li><b>Yaw</b>: Horizontal angle (-180 to 180), like longitude</li>
- *   <li><b>Pitch</b>: Vertical angle (-90 to 90), like latitude</li>
- *   <li><b>Subtree Depth</b>: Max depth of children (0 for leaves, +1 per level)</li>
- *   <li><b>Scale</b>: 1.0 + 0.2 * subtreeDepth - larger for deeper subtrees</li>
- *   <li><b>Angular Radius</b>: baseMargin * scale - visual bounds in degrees</li>
+ * <li><b>Yaw</b>: Horizontal angle (-180 to 180), like longitude</li>
+ * <li><b>Pitch</b>: Vertical angle (-90 to 90), like latitude</li>
+ * <li><b>Subtree Depth</b>: Max depth of children (0 for leaves, +1 per
+ * level)</li>
+ * <li><b>Scale</b>: 1.0 + 0.2 * subtreeDepth - larger for deeper subtrees</li>
+ * <li><b>Angular Radius</b>: baseMargin * scale - visual bounds in degrees</li>
  * </ul>
  *
- * <p>If no SELECT wraps the Hex, an implicit SELF[] is assumed.
+ * <p>
+ * If no SELECT wraps the Hex, an implicit SELF[] is assumed.
  */
 public class HexNode {
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     // ========== TREE STRUCTURE ==========
 
@@ -59,7 +70,7 @@ public class HexNode {
     private int subtreeDepth;
 
     /** Scale factor: 1.0 + 0.2 * subtreeDepth */
-    private float scale = 1.0f;
+    private float scale = 1f;
 
     /** Angular radius in degrees: baseMargin * scale */
     private float angularRadius;
@@ -117,7 +128,7 @@ public class HexNode {
     /**
      * Create a new HexNode with the given glyph instance and custom base margin.
      *
-     * @param value The glyph instance for this node
+     * @param value      The glyph instance for this node
      * @param baseMargin The base angular radius in degrees
      */
     public HexNode(GlyphInstance value, float baseMargin) {
@@ -134,11 +145,12 @@ public class HexNode {
      * Recalculate the entire layout for this node and all descendants.
      * Call this after any tree structure changes.
      *
-     * <p>This performs a 3-pass layout:
+     * <p>
+     * This performs a 3-pass layout:
      * <ol>
-     *   <li>Calculate subtree depths (bottom-up)</li>
-     *   <li>Position children (weighted angular distribution)</li>
-     *   <li>Calculate absolute positions (top-down)</li>
+     * <li>Calculate subtree depths (bottom-up)</li>
+     * <li>Position children (weighted angular distribution)</li>
+     * <li>Calculate absolute positions (top-down)</li>
      * </ol>
      */
     public void recalculateLayout() {
@@ -167,8 +179,8 @@ public class HexNode {
         }
 
         // Calculate scale and angular radius
-        node.scale = 1.0f + 0.2f * node.subtreeDepth;
-        node.angularRadius = node.baseMargin * node.scale;
+        node.scale = 1.0f + 0.3f * node.subtreeDepth;
+        node.angularRadius = node.baseMargin * node.scale * 2;
 
         return node.subtreeDepth;
     }
@@ -191,6 +203,7 @@ public class HexNode {
             HexNode child = childList.get(0);
             child.localOffsetAngle = 0;
             child.localOffsetDistance = 0;
+            child.scale = parent.scale * 0.75f;
             positionChildren(child);
             return;
         }
@@ -198,19 +211,21 @@ public class HexNode {
         // Multiple children: weighted distribution
         float totalMass = 0;
         for (HexNode child : childList) {
-            totalMass += child.angularRadius;
+            totalMass += child.scale;
         }
 
-        float paddingPerChild = 1.0f;  // degrees between children
+        float paddingPerChild = 1.0f; // degrees between children
         float totalPadding = paddingPerChild * childList.size();
         float availableAngle = 360.0f - totalPadding;
         float currentAngle = 0;
 
         for (HexNode child : childList) {
-            float childSlice = (child.angularRadius / totalMass) * availableAngle;
+            float childSlice = (child.scale / totalMass) * availableAngle;
 
             child.localOffsetAngle = currentAngle + (childSlice / 2.0f);
-            child.localOffsetDistance = parent.angularRadius - child.angularRadius;
+            child.localOffsetDistance = (parent.angularRadius - child.angularRadius) * 2f;
+
+            child.scale = parent.scale * 0.33f; // Further scale down children when there are multiple
 
             currentAngle += childSlice + paddingPerChild;
         }
@@ -225,8 +240,8 @@ public class HexNode {
      * Pass 3: Calculate absolute positions top-down.
      * Converts local offsets to world yaw/pitch coordinates.
      *
-     * @param node The node to process
-     * @param parentYaw The parent's absolute yaw
+     * @param node        The node to process
+     * @param parentYaw   The parent's absolute yaw
      * @param parentPitch The parent's absolute pitch
      */
     private void calculateAbsolutePositions(HexNode node, float parentYaw, float parentPitch) {
@@ -255,8 +270,10 @@ public class HexNode {
             node.absolutePitch = parentPitch + deltaPitch;
 
             // Normalize yaw to [-180, 180]
-            while (node.absoluteYaw > 180) node.absoluteYaw -= 360;
-            while (node.absoluteYaw < -180) node.absoluteYaw += 360;
+            while (node.absoluteYaw > 180)
+                node.absoluteYaw -= 360;
+            while (node.absoluteYaw < -180)
+                node.absoluteYaw += 360;
 
             // Clamp pitch to [-90, 90]
             node.absolutePitch = Math.max(-90, Math.min(90, node.absolutePitch));
@@ -271,11 +288,12 @@ public class HexNode {
     // ========== HIT TESTING ==========
 
     /**
-     * Calculate angular distance between two points on a sphere (Haversine formula).
+     * Calculate angular distance between two points on a sphere (Haversine
+     * formula).
      *
-     * @param yaw1 First point yaw
+     * @param yaw1   First point yaw
      * @param pitch1 First point pitch
-     * @param yaw2 Second point yaw
+     * @param yaw2   Second point yaw
      * @param pitch2 Second point pitch
      * @return Angular distance in degrees
      */
@@ -286,8 +304,8 @@ public class HexNode {
         float deltaLon = (float) Math.toRadians(yaw2 - yaw1);
 
         float a = (float) (Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
-                          Math.cos(lat1) * Math.cos(lat2) *
-                          Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2));
+                Math.cos(lat1) * Math.cos(lat2) *
+                        Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2));
         float c = 2 * (float) Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
         return (float) Math.toDegrees(c);
@@ -296,7 +314,7 @@ public class HexNode {
     /**
      * Check if a point (yaw/pitch) is within this node's angular bounds.
      *
-     * @param userYaw The user's look yaw
+     * @param userYaw   The user's look yaw
      * @param userPitch The user's look pitch
      * @return true if the point is within this node's angular radius
      */
@@ -308,7 +326,7 @@ public class HexNode {
     /**
      * Find the deepest node at the given look direction using recursive descent.
      *
-     * @param userYaw The user's look yaw
+     * @param userYaw   The user's look yaw
      * @param userPitch The user's look pitch
      * @return The deepest node containing the point, or null if none
      */
@@ -339,13 +357,37 @@ public class HexNode {
     // ========== MOUNT OFFSET CONVERSION ==========
 
     /**
-     * Convert this node's absolute position to a mount offset Vector3f.
+     * Convert this node's position to a mount offset Vector3f.
+     * For child nodes, this returns the offset relative to the parent node.
+     * For root nodes, this returns the absolute offset (though root nodes
+     * typically use OrbitalPositionComponent instead of MountedComponent).
      *
      * @param distance Distance from the center point
      * @return Vector3f offset for mounting
      */
     public Vector3f getMountOffset(float distance) {
-        return GlyphRotation.angularToMountOffset(absoluteYaw, absolutePitch, distance);
+        if (parent == null) {
+            // Root node: use absolute position
+            return GlyphRotation.angularToMountOffset(absoluteYaw, absolutePitch, distance);
+        } else {
+            // Child node: calculate offset relative to parent
+            // localOffsetAngle: 0 = toward +pitch (down), 90 = toward +yaw (right)
+            // localOffsetDistance: angular distance in degrees
+            float offsetAngleRad = (float) Math.toRadians(localOffsetAngle);
+
+            // Convert polar (angle, distance) to local Cartesian offset
+            // In local space: +Z = parent's forward, +X = parent's right
+            float localYawOffset = localOffsetDistance * (float) Math.sin(offsetAngleRad);
+            float localPitchOffset = localOffsetDistance * (float) Math.cos(offsetAngleRad);
+
+            // Convert angular offset to linear offset at the given distance
+            // At small angles: arc length ≈ angle_radians * radius
+            float x = (float) Math.toRadians(localYawOffset) * distance;
+            float y = (float) -Math.toRadians(localPitchOffset) * distance; // -pitch = up
+            float z = 0; // Children are on the same spherical shell (same distance from player)
+
+            return new Vector3f(x, y, z);
+        }
     }
 
     // ========== CODEC SETTERS ==========
@@ -395,15 +437,6 @@ public class HexNode {
         }
     }
 
-    /**
-     * Get children as an array (used by codec).
-     *
-     * @return Array of child nodes
-     */
-    public HexNode[] getChildrenAsArray() {
-        return children.toArray(new HexNode[0]);
-    }
-
     // ========== TREE MANIPULATION ==========
 
     /**
@@ -442,7 +475,8 @@ public class HexNode {
 
     /**
      * Replace a child node with another node.
-     * Useful for wrapping operations where a node is inserted between parent and child.
+     * Useful for wrapping operations where a node is inserted between parent and
+     * child.
      *
      * @param oldChild The child to replace
      * @param newChild The replacement node
@@ -486,6 +520,17 @@ public class HexNode {
 
     public List<HexNode> getChildren() {
         return children;
+    }
+
+    public List<HexNode> getAllChildren() {
+        // iterate over all sub-children in the tree and get all of the children to return
+        List<HexNode> allChildren = new ArrayList<>();
+        for (HexNode child : children) {
+            allChildren.add(child);
+            allChildren.addAll(child.getAllChildren());
+        }
+
+        return allChildren;
     }
 
     /**
@@ -691,7 +736,7 @@ public class HexNode {
      */
     public HexNode deepCopy() {
         HexNode copy = new HexNode(this.value, this.baseMargin);
-        copy.id = UUID.randomUUID().toString();  // New ID for copy
+        copy.id = UUID.randomUUID().toString(); // New ID for copy
         copy.uses = this.uses;
         copy.absoluteYaw = this.absoluteYaw;
         copy.absolutePitch = this.absolutePitch;

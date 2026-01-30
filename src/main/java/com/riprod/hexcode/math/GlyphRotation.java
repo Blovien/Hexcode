@@ -32,7 +32,7 @@ public final class GlyphRotation {
     public static final float COMPOSED_TOLERANCE = 10.0f;
 
     /** Tolerance decay multiplier for inner tiers */
-    public static final float TOLERANCE_DECAY = 0.8f;
+    public static final float TOLERANCE_DECAY = 0.6f;
 
     private final float pitch;
     private final float yaw;
@@ -221,7 +221,7 @@ public final class GlyphRotation {
         // cos(pitch) = horizontal component magnitude
         // sin(pitch) = vertical component (negated because +pitch = down)
         float x = (float) (Math.sin(yawRad) * Math.cos(pitchRad) * distance);
-        float y = (float) (-Math.sin(pitchRad) * distance) + EYE_HEIGHT;
+        float y = (float) (-Math.sin(pitchRad) * distance);
         float z = (float) (Math.cos(yawRad) * Math.cos(pitchRad) * distance);
 
         return new Vector3f(x, y, z);
@@ -235,6 +235,16 @@ public final class GlyphRotation {
      */
     public Vector3f toMountOffset(float distance) {
         return angularToMountOffset(yaw, pitch, distance);
+    }
+
+    /**
+     * Convert this rotation to a Vector3f direction.
+     * @param other
+     * @return
+     */
+    public Vector3f toVector3f() {
+        Vector3d dir = toDirection();
+        return new Vector3f((float) dir.x, (float) dir.y, (float) dir.z);
     }
 
     // --- Angular Distance ---

@@ -24,24 +24,27 @@ import com.riprod.hexcode.interaction.HexcodeGlyphModeDisable;
 import com.riprod.hexcode.interaction.HexcodeGlyphModeSelect;
 import com.riprod.hexcode.interaction.HexcodeGlyphModeToggle;
 import com.riprod.hexcode.item.HexBookItem;
+import com.riprod.hexcode.systems.GlyphGlowSystem;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
+import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
 
 import java.util.Map;
 
 /**
  * Main plugin class for the Hexcode spell-crafting mod.
  *
- * <p>Hexcode allows players to enter Glyph Mode while wielding the Hex Staff
+ * <p>
+ * Hexcode allows players to enter Glyph Mode while wielding the Hex Staff
  * and Hex Book. Glyphs orbit around the player and can be composed into
  * Hexes (tree-structured spell constructs).
  *
  * <h2>Initialization Flow</h2>
  * <ol>
- *   <li>Load all glyph asset definitions via GlyphAssetLoader</li>
- *   <li>Fire GlyphRegistrationEvent (allows external plugins to register)</li>
- *   <li>Register built-in glyphs using factories + assets</li>
- *   <li>Freeze registry</li>
- *   <li>Register components, systems, commands, and events</li>
+ * <li>Load all glyph asset definitions via GlyphAssetLoader</li>
+ * <li>Fire GlyphRegistrationEvent (allows external plugins to register)</li>
+ * <li>Register built-in glyphs using factories + assets</li>
+ * <li>Freeze registry</li>
+ * <li>Register components, systems, commands, and events</li>
  * </ol>
  */
 public class Hexcode extends JavaPlugin {
@@ -53,7 +56,8 @@ public class Hexcode extends JavaPlugin {
 
     public Hexcode(JavaPluginInit init) {
         super(init);
-        LOGGER.atInfo().log("Hexcode spell-crafting mod v%s initializing...", this.getManifest().getVersion().toString());
+        LOGGER.atInfo().log("Hexcode spell-crafting mod v%s initializing...",
+                this.getManifest().getVersion().toString());
     }
 
     @Override
@@ -90,14 +94,18 @@ public class Hexcode extends JavaPlugin {
     /**
      * Initialize data managers with the plugin's data directory.
      *
-     * <p>This follows the Hytale pattern (similar to BarterShopState) where
+     * <p>
+     * This follows the Hytale pattern (similar to BarterShopState) where
      * data managers are initialized with the plugin's data directory for
      * proper file access and persistence.
      *
-     * <p>Storage locations:
+     * <p>
+     * Storage locations:
      * <ul>
-     *   <li>WorldBookDataStore (legacy): {@code {world_save_path}/hexcode/{player_uuid}/{book_type}.json}</li>
-     *   <li>WorldHexDataStore (new): {@code {world_save_path}/hexcode/books/{book_uuid}.json}</li>
+     * <li>WorldBookDataStore (legacy):
+     * {@code {world_save_path}/hexcode/{player_uuid}/{book_type}.json}</li>
+     * <li>WorldHexDataStore (new):
+     * {@code {world_save_path}/hexcode/books/{book_uuid}.json}</li>
      * </ul>
      */
     private void initializeDataManagers() {
@@ -115,12 +123,13 @@ public class Hexcode extends JavaPlugin {
     /**
      * Initialize the glyph system with asset-driven registration.
      *
-     * <p>This follows the new modular architecture where:
+     * <p>
+     * This follows the new modular architecture where:
      * <ol>
-     *   <li>Load asset definitions from JSON files</li>
-     *   <li>Fire registration event for external plugins</li>
-     *   <li>Create glyphs using factories + assets</li>
-     *   <li>Freeze the registry</li>
+     * <li>Load asset definitions from JSON files</li>
+     * <li>Fire registration event for external plugins</li>
+     * <li>Create glyphs using factories + assets</li>
+     * <li>Freeze the registry</li>
      * </ol>
      */
     private void initializeGlyphSystem() {
@@ -137,7 +146,8 @@ public class Hexcode extends JavaPlugin {
         // Step 2: Fire GlyphRegistrationEvent (allows external plugins to register)
         LOGGER.atInfo().log("Firing GlyphRegistrationEvent...");
         GlyphRegistrationEvent registrationEvent = new GlyphRegistrationEvent(registry);
-        // Note: In the actual implementation, this event would be fired through Hytale's event system
+        // Note: In the actual implementation, this event would be fired through
+        // Hytale's event system
         // For now, external plugins would subscribe and be called here
         // EventSystem.fire(registrationEvent);
 
@@ -165,7 +175,8 @@ public class Hexcode extends JavaPlugin {
 
     /**
      * Register custom interaction types with the interaction codec.
-     * This allows our custom Operations to be referenced from RootInteraction JSON assets.
+     * This allows our custom Operations to be referenced from RootInteraction JSON
+     * assets.
      */
     private void registerInteractions() {
         // Register HexcodeGlyphModeToggle (Secondary action - toggle glyph mode)
@@ -173,8 +184,7 @@ public class Hexcode extends JavaPlugin {
         Interaction.CODEC.register(
                 "HexcodeGlyphModeToggle",
                 HexcodeGlyphModeToggle.class,
-                HexcodeGlyphModeToggle.CODEC
-        );
+                HexcodeGlyphModeToggle.CODEC);
         LOGGER.atInfo().log("Registered HexcodeGlyphModeToggle interaction");
 
         // Register HexcodeGlyphAction (Primary action - drag/drop/cast)
@@ -182,37 +192,36 @@ public class Hexcode extends JavaPlugin {
         Interaction.CODEC.register(
                 "HexcodeGlyphModeSelect",
                 HexcodeGlyphModeSelect.class,
-                HexcodeGlyphModeSelect.CODEC
-        );
+                HexcodeGlyphModeSelect.CODEC);
         LOGGER.atInfo().log("Registered HexcodeGlyphModeSelect interaction");
-        
+
         // Register HexcodeGlyphCast (Primary action when not in glyph mode - cast hex)
         // Type name must match "Type" field in JSON asset files
         Interaction.CODEC.register(
-            "HexcodeGlyphCast",
-            HexcodeGlyphCast.class,
-            HexcodeGlyphCast.CODEC
-        );
+                "HexcodeGlyphCast",
+                HexcodeGlyphCast.class,
+                HexcodeGlyphCast.CODEC);
         LOGGER.atInfo().log("Registered HexcodeGlyphCast interaction");
 
         // Register HexcodeGlyphModeDisable (Chained from Toggle on release - cleanup)
         // Type name must match "Type" field in JSON asset files
         Interaction.CODEC.register(
-            "HexcodeGlyphModeDisable",
-            HexcodeGlyphModeDisable.class,
-            HexcodeGlyphModeDisable.CODEC
-        );
+                "HexcodeGlyphModeDisable",
+                HexcodeGlyphModeDisable.class,
+                HexcodeGlyphModeDisable.CODEC);
         LOGGER.atInfo().log("Registered HexcodeGlyphModeDisable interaction");
     }
 
     /**
      * Register custom item types for the Hexcode mod.
      *
-     * <p>Registers the HexBookItem type which allows Hex Books to store
+     * <p>
+     * Registers the HexBookItem type which allows Hex Books to store
      * glyph and spell data directly in ItemStack metadata, with configurable
      * capacity limits (MaxGlyphs, MaxSavedHexes, MaxHexDepth) per book type.
      *
-     * <p>Note: Item type registration in Hytale uses the asset system's
+     * <p>
+     * Note: Item type registration in Hytale uses the asset system's
      * polymorphic type dispatch. The "Type" field in item JSON assets
      * determines which codec is used. For HexBookItem, this is handled
      * by the asset loading system when the "Type": "HexBook" is specified.
@@ -239,8 +248,7 @@ public class Hexcode extends JavaPlugin {
         hexNodeComponentType = this.getEntityStoreRegistry().registerComponent(
                 HexNodeComponent.class,
                 "HexNodeComponent",
-                HexNodeComponent.CODEC
-        );
+                HexNodeComponent.CODEC);
         HexNodeComponent.setComponentType(hexNodeComponentType);
         LOGGER.atInfo().log("Registered HexNodeComponent with CODEC");
 
@@ -248,8 +256,7 @@ public class Hexcode extends JavaPlugin {
         orbitalPositionComponentType = this.getEntityStoreRegistry().registerComponent(
                 OrbitalPositionComponent.class,
                 "OrbitalPositionComponent",
-                OrbitalPositionComponent.CODEC
-        );
+                OrbitalPositionComponent.CODEC);
         OrbitalPositionComponent.setComponentType(orbitalPositionComponentType);
         LOGGER.atInfo().log("Registered OrbitalPositionComponent with CODEC");
     }
@@ -257,15 +264,21 @@ public class Hexcode extends JavaPlugin {
     /**
      * Register ECS systems for the Hexcode mod.
      *
-     * <p>Note: Orbital positioning is handled directly in GlyphMode.updateOrbitalGlyphs()
+     * <p>
+     * Note: Orbital positioning is handled directly in
+     * GlyphMode.updateOrbitalGlyphs()
      * which runs each tick while glyph mode is active. This is more performant than
      * a global ECS system since it only processes entities when needed.
      *
-     * <p>Child nodes still use MountedComponent for internal hierarchy.
+     * <p>
+     * Child nodes still use MountedComponent for internal hierarchy.
      */
     private void registerSystems() {
-        // Orbital positioning handled in GlyphMode.updateOrbitalGlyphs() for performance
+        // Orbital positioning handled in GlyphMode.updateOrbitalGlyphs() for
+        // performance
         // No ECS systems needed - ticking only happens when glyph mode is active
+        ComponentType<EntityStore, EffectControllerComponent> effectType = EffectControllerComponent.getComponentType();
+        GlyphGlowSystem.setEffectControllerType(effectType);
         LOGGER.atInfo().log("System registration complete (orbital positioning in GlyphMode)");
     }
 }
