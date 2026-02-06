@@ -1,10 +1,10 @@
 {
-  "Model": "Models/Glyphs/heal.blockymodel",
+  "Model": "VFX/Glyphs/Heal.blockymodel",
+  "Texture": "VFX/Glyphs/Heal.png",
   "HitBox": {
-    "Min": { "X": -0.25, "Y": -0.25, "Z": -0.25 },
-    "Max": { "X": 0.25, "Y": 0.25, "Z": 0.25 }
+    "Min": {"X": -0.25, "Y": -0.25, "Z": -0.25},
+    "Max": {"X": 0.25, "Y": 0.25, "Z": 0.25}
   },
   "MinScale": 1,
-  "MaxScale": 1,
-  "Texture": "VFX/Glyphs/Example_Block.png"
+  "MaxScale": 1
 }

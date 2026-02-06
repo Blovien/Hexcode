@@ -1,5 +1,4 @@
 {
-  "Id": "Hex_Book",
   "Parent": "Template_HexBook",
   "TranslationProperties": {
     "Name": "server.items.Hex_Book.name"

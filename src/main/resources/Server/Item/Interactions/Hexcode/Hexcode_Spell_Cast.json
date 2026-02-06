@@ -1,0 +1,8 @@
+{
+  "$Comment": "Cast the active spell stored on the hex staff",
+  "Type": "Simple",
+  "RunTime": 0.3,
+  "Effects": {
+    "ItemAnimationId": "CastRight"
+  }
+}

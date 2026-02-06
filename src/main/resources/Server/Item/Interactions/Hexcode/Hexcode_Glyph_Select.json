@@ -1,7 +1,6 @@
 {
-  "$Comment": "Glyph drag/drop and hex casting - handles both glyph mode composition and spell casting",
-  "Type": "HexcodeGlyphModeSelect",
-  "RunTime": 0.0,
-  "AllowIndefiniteHold": true,
-  "DisplayProgress": false
+  "$Comment": "Glyph selection - hold to drag a glyph. Release chains to GlyphDrop.",
+  "Type": "GlyphSelect",
+  "CancelOnOtherClick": false,
+  "Next": "Hexcode_Glyph_Drop"
 }

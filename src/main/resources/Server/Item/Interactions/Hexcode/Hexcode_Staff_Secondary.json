@@ -1,16 +1,13 @@
 {
-  "$Comment": "Hold to enter Glyph Mode - releases chains to Disable interaction. Primary forks to Select.",
-  "Type": "HexcodeGlyphModeToggle",
-  "RunTime": 0.0,
+  "$Comment": "Hold to enter Casting Mode - holds indefinitely while button pressed. Primary forks to GlyphSelect.",
+  "Type": "CastingModeEnter",
   "Effects": {
-    "ItemAnimationId": "CastLeftCharging"
+    "ItemAnimationId": "CastLeftCharging",
+    "ClearAnimationOnFinish": true
   },
-  "AllowIndefiniteHold": true,
-  "DisplayProgress": false,
   "CancelOnOtherClick": false,
-  "HorizontalSpeedMultiplier": 0.5,
-  "Next": "Hexcode_Glyph_Mode_Disable",
   "Forks": {
     "Primary": "Hexcode_Staff_Select"
-  }
+  },
+  "Next": "Hexcode_Glyph_Mode_Disable"
 }
