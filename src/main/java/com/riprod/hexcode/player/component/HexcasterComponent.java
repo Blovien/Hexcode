@@ -4,10 +4,15 @@ import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.casting.GlyphStyler;
+import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class HexcasterComponent implements Component<EntityStore> {
 
@@ -17,8 +22,9 @@ public class HexcasterComponent implements Component<EntityStore> {
     private boolean inCastingMode = false;
     private Ref<EntityStore> castingRootRef = null;
     @Nonnull
-    private List<Ref<EntityStore>> activeGlyphRefs = new ArrayList<>();
-    private Ref<EntityStore> draggingGlyphRef = null;
+    private List<GlyphComponent> activeGlyphs = new ArrayList<>();
+    private GlyphComponent draggingGlyph = null;
+    private GlyphComponent hoveredGlyph = null;
 
     public HexcasterComponent() {
     }
@@ -26,25 +32,54 @@ public class HexcasterComponent implements Component<EntityStore> {
     public static void setComponentType(ComponentType<EntityStore, HexcasterComponent> type) {
         componentType = type;
     }
-    
+
     public static ComponentType<EntityStore, HexcasterComponent> getComponentType() {
         return componentType;
     }
-    
+
     public boolean isInCastingMode() {
         return inCastingMode;
     }
-   
+
     public void setInCastingMode(boolean inCastingMode) {
         this.inCastingMode = inCastingMode;
     }
 
-    public Ref<EntityStore> getDraggingGlyphRef() {
-        return draggingGlyphRef;
+    public GlyphComponent getDraggingGlyph() {
+        return draggingGlyph;
     }
 
-    public void setDraggingGlyphRef(Ref<EntityStore> draggingGlyphRef) {
-        this.draggingGlyphRef = draggingGlyphRef;
+    @Nullable
+    public void setDraggingGlyph(GlyphComponent draggingGlyph) {
+
+        if (this.draggingGlyph != null) {
+            this.draggingGlyph.setDragState(false);
+        }
+
+        // state 1 - we were dragging a glyph and now we're not
+        if (draggingGlyph == null && this.draggingGlyph != null) {
+            this.draggingGlyph.setDragState(false);
+            this.draggingGlyph = null;
+            return;
+        }
+
+        // state 2 - passed null but not dragging
+        if (draggingGlyph == null) {
+            return;
+        }
+
+        // state 3 - we start dragging a glyph we were hovering over
+        if (this.hoveredGlyph.equals(draggingGlyph)) {
+            // if we were already dragging a glyph, put it back to normal state
+            this.draggingGlyph = draggingGlyph;
+            this.draggingGlyph.setDragState(true);
+            return;
+        }
+
+        // state 4 - we start dragging a glyph we were not hovering over (should not
+        // happen but just in case)
+        this.draggingGlyph = draggingGlyph;
+        this.draggingGlyph.setDragState(true);
     }
 
     public Ref<EntityStore> getCastingRootRef() {
@@ -55,22 +90,34 @@ public class HexcasterComponent implements Component<EntityStore> {
         this.castingRootRef = castingRootRef;
     }
 
-    public List<Ref<EntityStore>> getActiveGlyphRefs() {
-        return activeGlyphRefs;
+    public GlyphComponent getHoveredGlyph() {
+        return hoveredGlyph;
     }
 
-    public void setActiveGlyphRefs(@Nonnull List<Ref<EntityStore>> activeGlyphRefs) {
-        this.activeGlyphRefs = activeGlyphRefs;
+    @Nullable
+    public void setHoveredGlyph(GlyphComponent hoveredGlyph) {
+        this.hoveredGlyph = hoveredGlyph;
     }
 
-    public void addActiveGlyphRef(Ref<EntityStore> glyphRef) {
-        this.activeGlyphRefs.add(glyphRef);
+    public List<GlyphComponent> getActiveGlyphs() {
+        return activeGlyphs;
     }
 
-    public void removeActiveGlyphRef(Ref<EntityStore> glyphRef) {
-        this.activeGlyphRefs.remove(glyphRef);
+    public void setActiveGlyphs(@Nonnull List<GlyphComponent> activeGlyphs) {
+        this.activeGlyphs = activeGlyphs;
     }
 
+    public void addActiveGlyph(GlyphComponent glyph) {
+        this.activeGlyphs.add(glyph);
+    }
+
+    public void removeActiveGlyph(GlyphComponent glyph) {
+        this.activeGlyphs.remove(glyph);
+    }
+
+    public void removeActiveGlyph(UUID glyphId) {
+        this.activeGlyphs.removeIf(glyph -> glyph.getId().equals(glyphId));
+    }
 
     @Nonnull
     @Override
@@ -78,7 +125,9 @@ public class HexcasterComponent implements Component<EntityStore> {
         HexcasterComponent copy = new HexcasterComponent();
         copy.inCastingMode = this.inCastingMode;
         copy.castingRootRef = this.castingRootRef;
-        copy.activeGlyphRefs = new ArrayList<>(this.activeGlyphRefs);
+        copy.activeGlyphs = new ArrayList<>(this.activeGlyphs);
+        copy.draggingGlyph = this.draggingGlyph;
+        copy.hoveredGlyph = this.hoveredGlyph;
         return copy;
     }
 }

@@ -21,7 +21,7 @@
       "children": [
         {
           "id": "2",
-          "name": "Triangle2",
+          "name": "Triangle",
           "position": {"x": -0.26125, "y": 0.08491, "z": -0.03},
           "orientation": {"x": 0, "y": 0, "z": -0.796, "w": 0.60529},
           "shape": {
@@ -178,7 +178,7 @@
         },
         {
           "id": "5",
-          "name": "Life2",
+          "name": "Life",
           "position": {"x": 1.01125, "y": 1.36509, "z": 0.03},
           "orientation": {"x": 0, "y": 0, "z": 0, "w": 1},
           "shape": {
@@ -197,7 +197,7 @@
           "children": [
             {
               "id": "6",
-              "name": "Square3",
+              "name": "Square",
               "position": {"x": 0, "y": 0, "z": 0},
               "orientation": {"x": 0, "y": 0, "z": 0.70711, "w": 0.70711},
               "shape": {
@@ -406,7 +406,7 @@
             },
             {
               "id": "10",
-              "name": "Square4",
+              "name": "Square2",
               "position": {"x": 0, "y": 0, "z": 0},
               "orientation": {"x": 0, "y": 0, "z": 0.70711, "w": 0.70711},
               "shape": {

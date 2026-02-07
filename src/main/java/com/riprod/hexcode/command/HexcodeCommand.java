@@ -9,7 +9,6 @@ import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayer
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.command.test.TestCommand;
 
 import javax.annotation.Nonnull;
 
@@ -20,7 +19,6 @@ public class HexcodeCommand extends AbstractPlayerCommand {
         addAliases("hc");
 
         addSubCommand(new LearnCommand());
-        addSubCommand(new TestCommand());
     }
 
     @Override

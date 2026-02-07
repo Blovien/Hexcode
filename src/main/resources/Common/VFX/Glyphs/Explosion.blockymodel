@@ -178,9 +178,9 @@
         },
         {
           "id": "5",
-          "name": "Triangle2",
+          "name": "AntiTriangle",
           "position": {"x": 0.00922, "y": 2.23198, "z": 0},
-          "orientation": {"x": 0, "y": 0, "z": -1, "w": 0},
+          "orientation": {"x": 0, "y": 0, "z": 1, "w": 0},
           "shape": {
             "type": "box",
             "offset": {"x": -0.02767, "y": -6.79594, "z": 0},
@@ -354,7 +354,7 @@
           "children": [
             {
               "id": "9",
-              "name": "Circle2",
+              "name": "Circle",
               "position": {"x": 0, "y": 0, "z": 0},
               "orientation": {"x": 0, "y": 0, "z": -0.36244, "w": 0.93201},
               "shape": {
@@ -4099,7 +4099,7 @@
             },
             {
               "id": "81",
-              "name": "Circle3",
+              "name": "Circle2",
               "position": {"x": 0, "y": 0, "z": 0},
               "orientation": {"x": 0, "y": 0, "z": -0.36244, "w": 0.93201},
               "shape": {

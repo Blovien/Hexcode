@@ -1,15 +1,20 @@
 package com.riprod.hexcode.core.glyphs.component;
 
 import com.hypixel.hytale.codec.Codec;
+import com.hypixel.hytale.codec.ExtraInfo;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.codec.codecs.array.ArrayCodec;
+import com.hypixel.hytale.codec.schema.SchemaContext;
+import com.hypixel.hytale.codec.schema.config.Schema;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.utils.SphericalPosition;
+
+import org.bson.BsonValue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,8 +44,7 @@ public class GlyphComponent implements Component<EntityStore> {
                     (c, v) -> c.speed = v,
                     c -> c.speed)
             .add()
-            // Children due to being able to be a hex
-            .append(new KeyedCodec<>("Children", new ArrayCodec<>(GlyphComponent.CODEC, GlyphComponent[]::new)),
+            .append(new KeyedCodec<>("Children", new ArrayCodec<>(selfCodec(), GlyphComponent[]::new)),
                     (c, v) -> {
                         if (v != null) {
                             c.children = new ArrayList<>(Arrays.asList(v));
@@ -51,6 +55,25 @@ public class GlyphComponent implements Component<EntityStore> {
                     c -> c.children.toArray(GlyphComponent[]::new))
             .add()
             .build();
+
+    private static Codec<GlyphComponent> selfCodec() {
+        return new Codec<GlyphComponent>() {
+            @Override
+            public GlyphComponent decode(BsonValue bsonValue, ExtraInfo extraInfo) {
+                return CODEC.decode(bsonValue, extraInfo);
+            }
+
+            @Override
+            public BsonValue encode(GlyphComponent value, ExtraInfo extraInfo) {
+                return CODEC.encode(value, extraInfo);
+            }
+
+            @Override
+            public Schema toSchema(SchemaContext context) {
+                return CODEC.toSchema(context);
+            }
+        };
+    }
 
     private static ComponentType<EntityStore, GlyphComponent> componentType;
 
@@ -72,9 +95,10 @@ public class GlyphComponent implements Component<EntityStore> {
     private float yaw = 0f;
     private float pitch = 0f;
     private double distance = 2d;
+    private Boolean isBeingDragged = false;
     /** Used for positioning child glyphs relative to their parent */
     private Vector3f offset = new Vector3f(0, 0, 0);
-    private float scale = 1f;
+    private float scale = 2f;
 
     // for the codec - do not use
     public GlyphComponent() {
@@ -201,12 +225,24 @@ public class GlyphComponent implements Component<EntityStore> {
         this.speed = speed;
     }
 
+    public void setDragState(Boolean isBeingDragged) {
+        this.isBeingDragged = isBeingDragged;
+    }
+
+    public boolean isBeingDragged() {
+        return isBeingDragged;
+    }
+
     public Vector3f getOffset() {
         return offset;
     }
 
     public void setOffset(Vector3f offset) {
         this.offset = offset;
+    }
+
+    public void setOffset(float x, float y, float z) {
+        this.offset = new Vector3f(x, y, z);
     }
 
     public List<GlyphComponent> getChildren() {

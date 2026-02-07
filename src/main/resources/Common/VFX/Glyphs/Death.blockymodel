@@ -21,7 +21,7 @@
       "children": [
         {
           "id": "2",
-          "name": "Square4",
+          "name": "AntiSquare",
           "position": {"x": 0, "y": 0, "z": 0},
           "orientation": {"x": 0, "y": 0, "z": 0.98079, "w": 0.19509},
           "shape": {
@@ -230,7 +230,7 @@
         },
         {
           "id": "6",
-          "name": "Square3",
+          "name": "Square",
           "position": {"x": 0, "y": 0, "z": 0},
           "orientation": {"x": 0, "y": 0, "z": 0.70711, "w": 0.70711},
           "shape": {

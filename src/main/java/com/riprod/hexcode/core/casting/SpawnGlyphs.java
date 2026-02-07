@@ -4,11 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.hypixel.hytale.builtin.mounts.MountedComponent;
-import com.hypixel.hytale.component.AddReason;
-import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
@@ -24,59 +23,78 @@ import com.riprod.hexcode.utils.SphericalPosition;
 public class SpawnGlyphs {
     public static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
-    public static List<Ref<EntityStore>> spawnGlyphs(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> ownerRef,
+    public static List<GlyphComponent> spawnGlyphs(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> ownerRef,
             Ref<EntityStore> castingRootRef,
             List<GlyphComponent> glyphs,
             String styleId) {
-
-        LOGGER.atInfo().log("[spawnGlyphs] starting: %d glyphs, style='%s', accessor=%s",
-                glyphs.size(), styleId, accessor.getClass().getSimpleName());
 
         CastingStyle style = CastingStyleRegistry.getOrDefault(styleId);
         TransformComponent ownerTransform = accessor.getComponent(ownerRef, TransformComponent.getComponentType());
         Vector3d ownerPos = ownerTransform.getPosition();
         Vector3f ownerRotation = ownerTransform.getRotation();
-        LOGGER.atInfo().log("[spawnGlyphs] owner position=%s, rotation=%s", ownerPos, ownerRotation);
 
         List<SphericalPosition> positions = style.getInitialPositions(glyphs.size(), ownerRotation.getYaw(),
                 ownerRotation.getPitch());
 
-        List<Ref<EntityStore>> spawnedGlyphs = new ArrayList<>();
+        List<GlyphComponent> spawnedGlyphs = new ArrayList<>();
 
         for (int i = 0; i < glyphs.size(); i++) {
             GlyphComponent glyph = glyphs.get(i);
             SphericalPosition pos = positions.get(i);
 
             Vector3d cartesian = GlyphMath.sphericalToCartesian(pos);
-            glyph.setOffset(new Vector3f((float) cartesian.x, (float) cartesian.y + 1.8f, (float) cartesian.z));
+            glyph.setOffset(new Vector3f((float) cartesian.x, (float) cartesian.y, (float) cartesian.z));
             glyph.setYaw(pos.getYaw());
             glyph.setPitch(pos.getPitch());
             glyph.setDistance(pos.getDistance());
             glyph.setRootRef(castingRootRef);
             glyph.setOwnerRef(ownerRef);
 
-            LOGGER.atInfo().log("[spawnGlyphs] glyph[%d]='%s' spherical(yaw=%.2f, pitch=%.2f, dist=%.2f)",
-                    i, glyph.getGlyphId(), pos.getYaw(), pos.getPitch(), pos.getDistance());
-
             try {
-                Ref<EntityStore> spawnedGlyph = spawnGlyph(accessor, ownerRef, pos, glyph, ownerPos);
+                GlyphComponent spawnedGlyph = spawnGlyph(accessor, ownerRef, pos, glyph, ownerPos);
                 spawnedGlyphs.add(spawnedGlyph);
-                LOGGER.atInfo().log("[spawnGlyphs] glyph[%d] spawned, ref valid=%s", i, spawnedGlyph.isValid());
             } catch (Exception e) {
                 LOGGER.atSevere().withCause(e)
                         .log("[spawnGlyphs] failed to spawn glyph[%d] '%s'", i, glyph.getGlyphId());
             }
         }
-
-        LOGGER.atInfo().log("[spawnGlyphs] done: %d/%d glyphs spawned", spawnedGlyphs.size(), glyphs.size());
         return spawnedGlyphs;
 
     }
 
-    private static Ref<EntityStore> spawnGlyph(ComponentAccessor<EntityStore> buffer,
+    private static GlyphComponent spawnGlyph(ComponentAccessor<EntityStore> buffer,
             Ref<EntityStore> ownerRef, SphericalPosition pos, GlyphComponent glyph, Vector3d parentPos) {
 
-        List<Ref<EntityStore>> glyphRef = CreateGlyph.createGlyphEntity(buffer, glyph, parentPos);
+        List<GlyphComponent> glyphRef = CreateGlyph.createGlyphEntity(buffer, glyph, parentPos);
         return glyphRef.get(0);
+    }
+
+    public static void MergeGlyphs(ComponentAccessor<EntityStore> accessor, GlyphComponent selectedGlyph,
+            GlyphComponent droppedOnGlyph, float eyeHeight) {
+
+        selectedGlyph.setOwnerRef(droppedOnGlyph.getSelfRef());
+        selectedGlyph.setScale(droppedOnGlyph.getScale() * 0.5f); // TODO: finalize child glyph scale
+        selectedGlyph.setRootRef(droppedOnGlyph.getSelfRef());
+
+        GlyphStyler.UpdateScale(accessor, selectedGlyph, selectedGlyph.getScale());
+
+        List<GlyphComponent> children = droppedOnGlyph.getChildren();
+
+        children.add(selectedGlyph);
+
+        if (children != null) {
+            GlyphMath.distributeChildAngles(children, droppedOnGlyph.getScale());        
+
+            for (int i = 0; i < children.size(); i++) {
+                GlyphComponent child = children.get(i);
+                child.setOffset(child.getPitch(), child.getYaw(), 0);
+
+                // replace mounted component to new position
+                accessor.putComponent(child.getSelfRef(), MountedComponent.getComponentType(),
+                        new MountedComponent(child.getRootRef(),
+                                child.getOffset(),
+                                MountController.Minecart));
+            }
+        }
     }
 }

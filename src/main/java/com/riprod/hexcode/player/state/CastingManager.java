@@ -44,8 +44,7 @@ public class CastingManager {
         // Add the glyphRefs to the player's HexcasterComponent
 
         // mock glyphs for now
-        List<GlyphComponent> glyphs = List.of(
-                new GlyphComponent("Circle"),
+        List<GlyphComponent> mockGlyphs = List.of(
                 new GlyphComponent("Blink"),
                 new GlyphComponent("Cold"),
                 new GlyphComponent("Death"),
@@ -55,18 +54,32 @@ public class CastingManager {
                 new GlyphComponent("Ice"),
                 new GlyphComponent("Life"),
                 new GlyphComponent("Plasma"),
-                new GlyphComponent("Square"),
                 new GlyphComponent("Stamina"),
-                new GlyphComponent("Triangle"),
                 new GlyphComponent("Velocity"));
         TransformComponent transform = accessor.getComponent(playerRef, TransformComponent.getComponentType());
         Vector3d ownerPos = transform.getPosition();
-         Ref<EntityStore> castingRootRef = CreateGlyph.createCastingRoot(accessor, ownerPos);
+        Ref<EntityStore> castingRootRef = CreateGlyph.createCastingRoot(accessor, ownerPos);
 
         hexcaster.setCastingRootRef(castingRootRef);
 
-        List<Ref<EntityStore>> glyphRefs = SpawnGlyphs.spawnGlyphs(accessor, playerRef, castingRootRef, glyphs, "ring");
-        hexcaster.setActiveGlyphRefs(glyphRefs);
+        List<GlyphComponent> glyphs = SpawnGlyphs.spawnGlyphs(accessor, playerRef, castingRootRef, mockGlyphs, "ring");
+        hexcaster.setActiveGlyphs(glyphs);
+    }
+
+    private static void CleanupGlyphChildren(ComponentAccessor<EntityStore> accessor, GlyphComponent glyph) {
+        // recursively remove all child glyphs of the given glyph
+        try {
+            List<GlyphComponent> children = glyph.getChildren();
+            if (children != null) {
+                for (GlyphComponent child : children) {
+                    CleanupGlyphChildren(accessor, child);
+                    Holder<EntityStore> childHolder = EntityStore.REGISTRY.newHolder();
+                    accessor.removeEntity(child.getSelfRef(), childHolder, RemoveReason.REMOVE);
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.atSevere().withCause(e).log("Failed to cleanup child glyphs for glyph with ref: " + glyph.getId());
+        }
     }
 
     public static void ExitCastingMode(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> playerRef) {
@@ -76,23 +89,21 @@ public class CastingManager {
         }
 
         // Despawn all active glyphs
-        List<Ref<EntityStore>> activeGlyphRefs = hexcaster.getActiveGlyphRefs();
-        for (Ref<EntityStore> glyphRef : activeGlyphRefs) {
+        List<GlyphComponent> activeGlyphs = hexcaster.getActiveGlyphs();
+        for (GlyphComponent glyph : activeGlyphs) {
             try {
-
+                // recursively cleanup child glyphs first just in case, then remove the glyph entity itself
+                CleanupGlyphChildren(accessor, glyph);
                 Holder<EntityStore> glyphHolder = EntityStore.REGISTRY.newHolder();
-                accessor.removeEntity(glyphRef, glyphHolder, RemoveReason.REMOVE);
+                accessor.removeEntity(glyph.getSelfRef(), glyphHolder, RemoveReason.REMOVE);
 
                 GlyphComponent glyphComp = glyphHolder.getComponent(GlyphComponent.getComponentType());
-                if (glyphComp != null) {
-                    LOGGER.atInfo().log("Despawned glyph with ID: " + glyphComp.getGlyphId());
-                }
             } catch (Exception e) {
                 LOGGER.atSevere().withCause(e)
-                        .log("Failed to despawn glyph entity with ref: " + glyphRef);
+                        .log("Failed to despawn glyph entity with ref: " + glyph.getId());
             }
         }
-        activeGlyphRefs.clear();
+        activeGlyphs.clear();
 
         // remove casting root entity
         Ref<EntityStore> castingRootRef = hexcaster.getCastingRootRef();
@@ -100,7 +111,6 @@ public class CastingManager {
             try {
                 Holder<EntityStore> rootHolder = EntityStore.REGISTRY.newHolder();
                 accessor.removeEntity(castingRootRef, rootHolder, RemoveReason.REMOVE);
-                LOGGER.atInfo().log("Despawned casting root entity");
             } catch (Exception e) {
                 LOGGER.atSevere().withCause(e).log("Failed to despawn casting root entity");
             }

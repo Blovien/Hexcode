@@ -55,13 +55,13 @@ public class Hexcode extends JavaPlugin {
 
         ComponentRegistryProxy<EntityStore> entityStoreRegistry = this.getEntityStoreRegistry();
 
-        this.hexBookComponentType = entityStoreRegistry.registerComponent(HexBookComponent.class, "HexBook",
-                HexBookComponent.CODEC);
-        HexBookComponent.setComponentType(hexBookComponentType);
-
         this.glyphComponentType = entityStoreRegistry.registerComponent(GlyphComponent.class, "Glyph",
                 GlyphComponent.CODEC);
         GlyphComponent.setComponentType(glyphComponentType);
+
+        this.hexBookComponentType = entityStoreRegistry.registerComponent(HexBookComponent.class, "HexBook",
+                HexBookComponent.CODEC);
+        HexBookComponent.setComponentType(hexBookComponentType);
 
         this.hexStaffComponentType = entityStoreRegistry.registerComponent(HexStaffComponent.class, "HexStaff",
                 HexStaffComponent.CODEC);

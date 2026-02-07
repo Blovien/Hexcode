@@ -32,7 +32,6 @@ public class CastingModeExitInteraction extends SimpleInteraction {
     protected void tick0(boolean firstRun, float time, @Nonnull InteractionType type,
             @Nonnull InteractionContext ctx, @Nonnull CooldownHandler cooldown) {
 
-        LOGGER.atInfo().log("player exited casting mode");
         CommandBuffer<EntityStore> commandBuffer = ctx.getCommandBuffer();
         if (commandBuffer == null) {
             ctx.getState().state = InteractionState.Failed;

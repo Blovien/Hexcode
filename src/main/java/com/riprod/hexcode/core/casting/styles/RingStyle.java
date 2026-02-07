@@ -11,7 +11,7 @@ import java.util.List;
 public class RingStyle implements CastingStyle {
 
     public static final String ID = "ring";
-    private static final float DEFAULT_DISTANCE = 2.0f;
+    private static final float DEFAULT_DISTANCE = 3.0f;
     private static final float RING_PITCH = 0.0f; // Horizontal ring at eye level
 
     @Nonnull

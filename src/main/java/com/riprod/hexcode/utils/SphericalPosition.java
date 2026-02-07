@@ -1,5 +1,10 @@
 package com.riprod.hexcode.utils;
 
+import javax.annotation.Nullable;
+
+import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
+import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+
 public class SphericalPosition {
     public final float yaw;
     public final float pitch;
@@ -29,6 +34,14 @@ public class SphericalPosition {
 
     public SphericalPosition withDistance(double distance) {
         return new SphericalPosition(this.yaw, this.pitch, distance);
+    }
+
+    public static SphericalPosition fromTransform(TransformComponent transform) {
+        return new SphericalPosition(transform.getRotation().getYaw(), transform.getRotation().getPitch(), 0);
+    }
+
+    public static SphericalPosition fromHeadRotation(HeadRotation headRotation) {
+        return new SphericalPosition(headRotation.getRotation().getYaw(), headRotation.getRotation().getPitch(), 0);
     }
 
     public float getYaw() {

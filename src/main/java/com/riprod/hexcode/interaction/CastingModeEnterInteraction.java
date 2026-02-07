@@ -13,6 +13,7 @@ import com.hypixel.hytale.protocol.InteractionSyncData;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.protocol.WaitForDataFrom;
 import com.hypixel.hytale.server.core.entity.InteractionContext;
+import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHandler;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
@@ -22,6 +23,8 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.operation.
 import com.hypixel.hytale.server.core.modules.interaction.interaction.operation.OperationsBuilder;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.casting.GlyphPositioner;
+import com.riprod.hexcode.core.casting.GlyphSelector;
+import com.riprod.hexcode.core.casting.GlyphStyler;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.player.component.HexcasterComponent;
 import com.riprod.hexcode.player.state.CastingManager;
@@ -78,7 +81,6 @@ public class CastingModeEnterInteraction extends ChargingInteraction {
 
         if (firstRun) {
             CastingManager.EnterCastingMode(commandBuffer, playerRef);
-            LOGGER.atInfo().log("player entered casting mode");
             super.tick0(firstRun, time, type, ctx, cooldown);
             return;
         }
@@ -94,23 +96,29 @@ public class CastingModeEnterInteraction extends ChargingInteraction {
         Ref<EntityStore> castingRootRef = hexcaster.getCastingRootRef();
 
         TransformComponent transform = commandBuffer.getComponent(playerRef, TransformComponent.getComponentType());
-        if (transform == null) {
+        HeadRotation headRotation = commandBuffer.getComponent(playerRef, HeadRotation.getComponentType());
+        if (transform == null || headRotation == null) {
             ctx.getState().state = InteractionState.Failed;
             return;
         }
         Vector3d ownerPos = transform.getPosition();
 
-        List<Ref<EntityStore>> activeGlyphRefs = hexcaster.getActiveGlyphRefs();
+        List<GlyphComponent> activeGlyphs = hexcaster.getActiveGlyphs();
 
-        if (activeGlyphRefs == null || castingRootRef == null) {
+        if (activeGlyphs == null || castingRootRef == null || !castingRootRef.isValid()) {
             // This should not happen, but just in case
             LOGGER.atWarning().log("Player is in casting mode but has no active glyphs");
             ctx.getState().state = InteractionState.NotFinished;
             return;
         }
 
-        GlyphPositioner.PositionGlyphs(commandBuffer, ownerPos, activeGlyphRefs, transform,
-                castingRootRef);
+        GlyphPositioner.PositionGlyphs(commandBuffer, playerRef, ownerPos, castingRootRef);
+
+        // Glyph Hovering
+        GlyphComponent hoveredGlyph = GlyphSelector.GetHoveredGlyph(commandBuffer, headRotation, activeGlyphs, hexcaster.getDraggingGlyph() != null);
+        
+        // Update hovered glyph state
+        GlyphStyler.HoverGlyph(commandBuffer, hoveredGlyph, hexcaster);
 
         super.tick0(firstRun, time, type, ctx, cooldown);
 
