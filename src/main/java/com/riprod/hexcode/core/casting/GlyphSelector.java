@@ -67,7 +67,7 @@ public class GlyphSelector {
             if (first) {
                 // increase selection radius for the first level of glyphs to make it easier to
                 // select a glyph when there are many
-                selectionRadius *= 1.5f;
+                selectionRadius *= 3f;
             }
 
             if (angularDist <= selectionRadius) {
@@ -126,6 +126,10 @@ public class GlyphSelector {
                         TransformComponent.getComponentType());
                 childTransform.setRotation(new Vector3f(glyph.getPitch(), glyph.getYaw(), 0));
                 children.remove(i);
+
+                // Update the internal rotation of the child glyph based on the new position of the parent glyph
+                child.setPitch(glyph.getPitch());
+                child.setYaw(glyph.getYaw());
 
                 children.addAll(child.getChildren());
             }

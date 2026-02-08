@@ -5,9 +5,7 @@ import java.util.List;
 
 import com.hypixel.hytale.builtin.mounts.MountedComponent;
 import com.hypixel.hytale.component.ComponentAccessor;
-import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
@@ -83,17 +81,53 @@ public class SpawnGlyphs {
         children.add(selectedGlyph);
 
         if (children != null) {
-            GlyphMath.distributeChildAngles(children, droppedOnGlyph.getScale());        
+            // update existing children positions (location correct)
+            GlyphMath.distributeChildAngles(children, droppedOnGlyph.getScale());
 
             for (int i = 0; i < children.size(); i++) {
                 GlyphComponent child = children.get(i);
-                child.setOffset(child.getPitch(), child.getYaw(), 0);
+
+                float d = (float) droppedOnGlyph.getDistance();
+                child.setOffset(
+                        -d * (float) Math.sin(child.getYaw()),
+                        d * (float) Math.sin(child.getPitch()),
+                        0f);
 
                 // replace mounted component to new position
                 accessor.putComponent(child.getSelfRef(), MountedComponent.getComponentType(),
                         new MountedComponent(child.getRootRef(),
                                 child.getOffset(),
                                 MountController.Minecart));
+
+            }
+        }
+        // update all children inside of the glyph recursively to new position / scale
+        UpdateGlyphRender(accessor, selectedGlyph);
+    }
+
+    /**
+     * Updates the rendered positions of the child based on the new scale
+     * 
+     * @param accessor
+     * @param parentGlyph
+     */
+    private static void UpdateGlyphRender(ComponentAccessor<EntityStore> accessor, GlyphComponent parentGlyph) {
+        List<GlyphComponent> children = parentGlyph.getChildren();
+        if (children != null) {
+            GlyphMath.distributeChildAngles(children, parentGlyph.getScale());
+
+            for (int i = 0; i < children.size(); i++) {
+                GlyphComponent child = children.get(i);
+
+                child.setScale(parentGlyph.getScale() * 0.5f);
+
+                child.setOffset(child.getPitch(), child.getYaw(), 0);
+
+                GlyphStyler.UpdateScale(accessor, child, child.getScale());
+
+                // replace mounted component to new position
+                // Recursively update all children inside of the glyph
+                UpdateGlyphRender(accessor, child);
             }
         }
     }

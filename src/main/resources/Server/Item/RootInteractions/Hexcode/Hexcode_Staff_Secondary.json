@@ -7,5 +7,10 @@
   },
   "Interactions": [
     "Hexcode_Staff_Secondary"
-  ]
+  ],
+  "Rules": {
+    "Interrupting": [
+      "Primary"
+    ]
+  }
 }

@@ -23,6 +23,7 @@ public class HexcasterComponent implements Component<EntityStore> {
     private Ref<EntityStore> castingRootRef = null;
     @Nonnull
     private List<GlyphComponent> activeGlyphs = new ArrayList<>();
+    private List<GlyphComponent> hoveredChain = new ArrayList<>();
     private GlyphComponent draggingGlyph = null;
     private GlyphComponent hoveredGlyph = null;
 
@@ -117,6 +118,26 @@ public class HexcasterComponent implements Component<EntityStore> {
 
     public void removeActiveGlyph(UUID glyphId) {
         this.activeGlyphs.removeIf(glyph -> glyph.getId().equals(glyphId));
+    }
+
+    public void pushToChain(GlyphComponent glyph) {
+        this.hoveredChain.add(glyph);
+    }
+
+    public void popFromChain() {
+        if (!this.hoveredChain.isEmpty()) {
+            this.hoveredChain.remove(this.hoveredChain.size() - 1);
+        }
+    }
+
+    public void popFromCHain(UUID glyphId) {
+        if (!this.hoveredChain.isEmpty()) {
+            this.hoveredChain.removeIf(glyph -> glyph.getId().equals(glyphId));
+        }
+    }
+
+    public void isInChain(GlyphComponent glyph) {
+        this.hoveredChain.contains(glyph);
     }
 
     @Nonnull

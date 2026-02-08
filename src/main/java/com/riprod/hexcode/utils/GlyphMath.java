@@ -68,43 +68,6 @@ public class GlyphMath {
         return baseRadius * scale;
     }
 
-    public static SphericalPosition lerp(SphericalPosition a, SphericalPosition b, float t) {
-        // todo: interpolate between two spherical positions
-        float yaw = a.yaw + (b.yaw - a.yaw) * t;
-        float pitch = a.pitch + (b.pitch - a.pitch) * t;
-        double distance = a.distance + (b.distance - a.distance) * t;
-        return new SphericalPosition(yaw, pitch, distance);
-    }
-
-    public static float normalizeAngle(float angle) {
-        // todo: normalize angle to [-PI, PI]
-        while (angle > Math.PI)
-            angle -= 2 * Math.PI;
-        while (angle < -Math.PI)
-            angle += 2 * Math.PI;
-        return angle;
-    }
-
-    public static List<Vector3f> calculateChildOffsets(int childCount, float parentScale) {
-
-        if (childCount == 1) {
-            return List.of(new Vector3f(0, 0, 0));
-        }
-
-        List<Vector3f> offsets = new ArrayList<>();
-        float angleIncrement = (float) (2 * Math.PI / childCount);
-        float radius = parentScale * 0.4f;
-
-        for (int i = 0; i < childCount; i++) {
-            float radian = i * angleIncrement;
-            float x = radius * (float) Math.cos(radian);
-            float y = radius * (float) Math.sin(radian);
-            offsets.add(new Vector3f(x, y, 0));
-        }
-
-        return offsets;
-    }
-
     public static void distributeChildAngles(List<GlyphComponent> children, float parentScale) {
         if (children == null || children.isEmpty()) {
             return;
@@ -116,23 +79,13 @@ public class GlyphMath {
             return;
         }
 
-        // get the first child's scale
-        float childScale = children.get(0).getScale(); // update to find the largest child scale if multi-scaled children are supported
-
         float angleIncrement = (float) (2 * Math.PI / children.size());
-        float angularRadius = getSelectionRadius(parentScale) - getSelectionRadius(childScale);
+        float angularRadius = getSelectionRadius(parentScale) * parentScale; // scales with the parent scale
 
         for (int i = 0; i < children.size(); i++) {
             float theta = i * angleIncrement;
             children.get(i).setYaw(angularRadius * (float) Math.cos(theta));
             children.get(i).setPitch(angularRadius * (float) Math.sin(theta));
         }
-    }
-
-    public static Vector3f relativePosition(Vector3d rootPos, SphericalPosition from, SphericalPosition to) {
-        Vector3d fromCart = sphericalToCartesian(rootPos, from);
-        Vector3d toCart = sphericalToCartesian(rootPos, to);
-        return new Vector3f((float) (toCart.x - fromCart.x), (float) (toCart.y - fromCart.y),
-                (float) (toCart.z - fromCart.z));
     }
 }

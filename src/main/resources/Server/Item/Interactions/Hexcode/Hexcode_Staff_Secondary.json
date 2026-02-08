@@ -6,6 +6,8 @@
     "ClearAnimationOnFinish": true
   },
   "CancelOnOtherClick": false,
+  "HorizontalSpeedMultiplier": 0.5,
+  "VerticalSpeedMultiplier": 0.5,
   "Forks": {
     "Primary": "Hexcode_Staff_Select"
   },

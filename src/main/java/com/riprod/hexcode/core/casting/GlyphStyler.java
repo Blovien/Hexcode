@@ -48,7 +48,7 @@ public class GlyphStyler {
     public static void EnterHover(ComponentAccessor<EntityStore> accessor, GlyphComponent hoveredGlyph) {
         try {
 
-            UpdateScale(accessor, hoveredGlyph, hoveredGlyph.getScale() * 1.5f); // reset to original scale when not hovering
+            UpdateScale(accessor, hoveredGlyph, hoveredGlyph.getScale() * 1.2f); // reset to original scale when not hovering
 
         } catch (Exception e) {
             LOGGER.atWarning().withCause(e).log("Error entering hover state for glyph");

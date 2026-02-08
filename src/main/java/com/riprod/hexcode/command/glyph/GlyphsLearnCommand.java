@@ -1,4 +1,4 @@
-package com.riprod.hexcode.command;
+package com.riprod.hexcode.command.glyph;
 
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -16,14 +16,15 @@ import com.riprod.hexcode.core.glyphs.registry.GlyphAsset;
 
 import javax.annotation.Nonnull;
 
-public class LearnCommand extends AbstractPlayerCommand {
+public class GlyphsLearnCommand extends AbstractPlayerCommand {
 
     private final RequiredArg<String> glyphIdArg;
     private final OptionalArg<Float> accuracyArg;
     private final OptionalArg<Float> speedArg;
 
-    public LearnCommand() {
+    public GlyphsLearnCommand() {
         super("learn", "Learn a glyph into held hexbook");
+        addAliases("l");
 
         this.glyphIdArg = this.withRequiredArg("glyphId", "The glyph ID to learn", ArgTypes.STRING);
         this.accuracyArg = this.withOptionalArg("accuracy", "Accuracy modifier (default 1.0)", ArgTypes.FLOAT);

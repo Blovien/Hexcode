@@ -9,6 +9,7 @@ import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayer
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.command.glyph.GlyphsCommand;
 
 import javax.annotation.Nonnull;
 
@@ -18,7 +19,7 @@ public class HexcodeCommand extends AbstractPlayerCommand {
         this.setPermissionGroup(GameMode.Creative);
         addAliases("hc");
 
-        addSubCommand(new LearnCommand());
+        addSubCommand(new GlyphsCommand());
     }
 
     @Override
@@ -31,5 +32,6 @@ public class HexcodeCommand extends AbstractPlayerCommand {
         ctx.sendMessage(Message.raw("Hexcode Commands:"));
         ctx.sendMessage(Message.raw("  /hexcode learn <glyphId> [accuracy] [speed] - Learn a glyph into held hexbook"));
         ctx.sendMessage(Message.raw("  /hexcode spawnGlyph [glyph_id] [scale] [mounted] - Spawn a glyph entity for testing"));
+        ctx.sendMessage(Message.raw("  /hexcode glyphs ... - Commands for managing glyphs in hexbooks"));
     }
 }
