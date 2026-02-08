@@ -13,6 +13,8 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.glyphs.registry.GlyphAsset;
+import com.riprod.hexcode.core.hexbook.HexBookComponent;
+import com.riprod.hexcode.player.system.CasterInventory;
 
 import javax.annotation.Nonnull;
 
@@ -46,18 +48,19 @@ public class GlyphsLearnCommand extends AbstractPlayerCommand {
             speed = 1.0f;
         }
 
-        // todo: validate glyphId exists in GlyphAsset registry
         GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyphId);
         if (asset == null) {
             playerRef.sendMessage(Message.raw("Unknown glyph: " + glyphId));
             return;
         }
 
-        // todo: get hexbook from mainhand
-        // todo: validate item has HexBookComponent
-        // todo: add LearnedGlyph to book
-
         GlyphComponent glyph = new GlyphComponent(glyphId, accuracy, speed);
+        
+        HexBookComponent bookComponent = CasterInventory.getHexBookComponent(store, playerEntityRef);
+
+        bookComponent.addGlyph(glyph);
+
+        CasterInventory.saveHexBookComponent(store, playerEntityRef, bookComponent);
 
         // stub: would add to book here
         playerRef.sendMessage(Message.raw("(debug) Learned glyph '" + glyphId + "' (accuracy=" + accuracy + ", speed=" + speed + ")"));

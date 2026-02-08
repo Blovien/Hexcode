@@ -28,7 +28,6 @@ public class GlyphMath {
     }
 
     public static SphericalPosition cartesianToSpherical(Vector3d origin, Vector3d point) {
-        // todo: convert world position to spherical coords relative to origin
         double dx = point.x - origin.x;
         double dy = point.y - origin.y;
         double dz = point.z - origin.z;

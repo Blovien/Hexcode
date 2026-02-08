@@ -3,7 +3,9 @@ package com.riprod.hexcode.core.casting;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.riprod.hexcode.core.casting.styles.ArcStyle;
 import com.riprod.hexcode.core.casting.styles.RingStyle;
+import com.riprod.hexcode.core.casting.styles.SphereStyle;
 import com.riprod.hexcode.core.casting.utils.CastingStyle;
 
 import java.util.HashMap;
@@ -22,6 +24,8 @@ public class CastingStyleRegistry {
             return;
         }
         register(new RingStyle());
+        register(new SphereStyle());
+        register(new ArcStyle());
         initialized = true;
     }
 

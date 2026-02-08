@@ -21,6 +21,8 @@ import com.riprod.hexcode.core.casting.GlyphSelector;
 import com.riprod.hexcode.core.casting.GlyphStyler;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.player.component.HexcasterComponent;
+import com.riprod.hexcode.utils.GlyphMath;
+import com.riprod.hexcode.utils.SphericalPosition;
 
 import it.unimi.dsi.fastutil.floats.Float2ObjectOpenHashMap;
 

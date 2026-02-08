@@ -80,7 +80,12 @@ public class CastingModeEnterInteraction extends ChargingInteraction {
         }
 
         if (firstRun) {
-            CastingManager.EnterCastingMode(commandBuffer, playerRef);
+            Boolean result = CastingManager.EnterCastingMode(commandBuffer, playerRef);
+            if (!result) {
+
+                ctx.getState().state = InteractionState.Failed;
+            }
+
             super.tick0(firstRun, time, type, ctx, cooldown);
             return;
         }
@@ -108,7 +113,7 @@ public class CastingModeEnterInteraction extends ChargingInteraction {
         if (activeGlyphs == null || castingRootRef == null || !castingRootRef.isValid()) {
             // This should not happen, but just in case
             LOGGER.atWarning().log("Player is in casting mode but has no active glyphs");
-            ctx.getState().state = InteractionState.NotFinished;
+            ctx.getState().state = InteractionState.Failed;
             return;
         }
 

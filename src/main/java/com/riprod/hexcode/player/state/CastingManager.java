@@ -13,57 +13,50 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.casting.SpawnGlyphs;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.glyphs.utils.CreateGlyph;
+import com.riprod.hexcode.core.hexbook.HexBookComponent;
+import com.riprod.hexcode.core.hexstaff.HexStaffComponent;
 import com.riprod.hexcode.player.component.HexcasterComponent;
+import com.riprod.hexcode.player.system.CasterInventory;
 
 public class CastingManager {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
-    public static void EnterCastingMode(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> playerRef) {
+    public static Boolean EnterCastingMode(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> playerRef) {
 
         // Ensure player is not already in casting mode
         HexcasterComponent hexcaster = accessor.ensureAndGetComponent(playerRef, HexcasterComponent.getComponentType());
 
         if (hexcaster != null && hexcaster.isInCastingMode()) {
-            return;
+            return false;
         }
 
-        hexcaster.setInCastingMode(true);
+        HexStaffComponent staff = CasterInventory.getHexStaffComponent(accessor, playerRef);
+        HexBookComponent book = CasterInventory.getHexBookComponent(accessor, playerRef);
 
-        // Get the inventory of the player
+        if (staff == null || book == null) {
+            LOGGER.atSevere()
+                    .log("Player is missing required HexStaffComponent or HexBookComponent to enter casting mode");
+            return false;
+        }
 
-        // Get the book of the player
+        List<GlyphComponent> glyphs = book.getGlyphs();
+        String style = staff.getStyleId();
 
-        // Get the glyphs to spawn
-
-        // Get the staff of the player
-
-        // Get the casting style ID
-
-        // Spawn the glyphs
-
-        // Add the glyphRefs to the player's HexcasterComponent
-
-        // mock glyphs for now
-        List<GlyphComponent> mockGlyphs = List.of(
-                new GlyphComponent("Blink"),
-                new GlyphComponent("Cold"),
-                new GlyphComponent("Death"),
-                new GlyphComponent("Fire"),
-                new GlyphComponent("Grow"),
-                new GlyphComponent("Heal"),
-                new GlyphComponent("Ice"),
-                new GlyphComponent("Life"),
-                new GlyphComponent("Plasma"),
-                new GlyphComponent("Stamina"),
-                new GlyphComponent("Velocity"));
         TransformComponent transform = accessor.getComponent(playerRef, TransformComponent.getComponentType());
         Vector3d ownerPos = transform.getPosition();
         Ref<EntityStore> castingRootRef = CreateGlyph.createCastingRoot(accessor, ownerPos);
 
         hexcaster.setCastingRootRef(castingRootRef);
 
-        List<GlyphComponent> glyphs = SpawnGlyphs.spawnGlyphs(accessor, playerRef, castingRootRef, mockGlyphs, "ring");
-        hexcaster.setActiveGlyphs(glyphs);
+        LOGGER.atInfo().log("Spawning %d glyphs for player in casting mode", glyphs.size());
+
+        List<GlyphComponent> spawnedGlyphs = SpawnGlyphs.spawnGlyphs(accessor, playerRef, castingRootRef, glyphs,
+                style);
+
+        LOGGER.atInfo().log("Spawned %d glyphs for player in casting mode", spawnedGlyphs.size());
+        hexcaster.setActiveGlyphs(spawnedGlyphs);
+        hexcaster.setInCastingMode(true);
+        return true;
     }
 
     private static void CleanupGlyphChildren(ComponentAccessor<EntityStore> accessor, GlyphComponent glyph) {
@@ -92,7 +85,8 @@ public class CastingManager {
         List<GlyphComponent> activeGlyphs = hexcaster.getActiveGlyphs();
         for (GlyphComponent glyph : activeGlyphs) {
             try {
-                // recursively cleanup child glyphs first just in case, then remove the glyph entity itself
+                // recursively cleanup child glyphs first just in case, then remove the glyph
+                // entity itself
                 CleanupGlyphChildren(accessor, glyph);
                 Holder<EntityStore> glyphHolder = EntityStore.REGISTRY.newHolder();
                 accessor.removeEntity(glyph.getSelfRef(), glyphHolder, RemoveReason.REMOVE);

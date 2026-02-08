@@ -45,6 +45,10 @@ public class HexBookComponent implements Component<EntityStore> {
     public HexBookComponent() {
     }
 
+    public HexBookComponent(int maxCapacity) {
+        this.maxCapacity = maxCapacity;
+    }
+
     public static void setComponentType(ComponentType<EntityStore, HexBookComponent> type) {
         componentType = type;
     }
@@ -75,6 +79,10 @@ public class HexBookComponent implements Component<EntityStore> {
     public void removeGlyph(@Nonnull UUID id) {
         // todo: remove glyph from book by id
         glyphs.removeIf(g -> g.getId().equals(id));
+    }
+
+    public List<GlyphComponent> getGlyphs() {
+        return glyphs;
     }
 
     @Nonnull

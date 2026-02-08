@@ -13,25 +13,23 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.glyphs.registry.GlyphAsset;
+import com.riprod.hexcode.core.hexbook.HexBookComponent;
+import com.riprod.hexcode.player.system.CasterInventory;
 
 import javax.annotation.Nonnull;
 
-public class GlyphsCommand extends AbstractPlayerCommand {
+public class GlyphsListCommand extends AbstractPlayerCommand {
 
-    public GlyphsCommand() {
-        super("glyphs", "Learn a glyph into held hexbook");
-        addAliases("g");
-
-        addSubCommand(new GlyphsLearnCommand());
-        addSubCommand(new GlyphsListCommand());
-
+    public GlyphsListCommand() {
+        super("list", "Learn a glyph into held hexbook");
+        addAliases("li");
     }
 
     @Override
     protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store,
-                          @Nonnull Ref<EntityStore> playerEntityRef, @Nonnull PlayerRef playerRef, @Nonnull World world) {
+            @Nonnull Ref<EntityStore> playerEntityRef, @Nonnull PlayerRef playerRef, @Nonnull World world) {
 
-        // stub: would add to book here
-        playerRef.sendMessage(Message.raw("Runs glyph subcommands"));
+        context.sendMessage(Message.raw("Total Glyphs: " + GlyphAsset.getAssetMap()));
+
     }
 }

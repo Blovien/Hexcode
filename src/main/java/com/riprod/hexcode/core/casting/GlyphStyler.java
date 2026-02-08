@@ -69,26 +69,12 @@ public class GlyphStyler {
     public static void UpdateScale(ComponentAccessor<EntityStore> accessor, GlyphComponent glyph, float newScale) {
         try {
 
-            // remove the component
             Ref<EntityStore> selfRef = glyph.getSelfRef();
-
-            // GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
-
-            // if (asset == null) {
-            //     throw new IllegalArgumentException("Unknown glyph ID: " + glyph.getGlyphId());
-            // }
-
-            // ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(asset.getModelPath());
-            // if (modelAsset == null) {
-            //     throw new IllegalArgumentException("Unknown model asset: " + asset.getModelPath());
-            // }
 
             EntityScaleComponent scaleComponent = accessor.ensureAndGetComponent(selfRef, EntityScaleComponent.getComponentType());
 
             scaleComponent.setScale(newScale);
             
-            // accessor.putComponent(selfRef, ModelComponent.getComponentType(), new ModelComponent(model));
-
         } catch (Exception e) {
             LOGGER.atWarning().withCause(e).log("Error updating scale for glyph");
         }

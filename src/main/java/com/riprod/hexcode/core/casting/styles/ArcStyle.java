@@ -8,11 +8,12 @@ import com.riprod.hexcode.utils.SphericalPosition;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RingStyle implements CastingStyle {
+public class ArcStyle implements CastingStyle {
 
-    public static final String ID = "ring";
+    public static final String ID = "arc";
     private static final float DEFAULT_DISTANCE = 3.0f;
-    private static final float RING_PITCH = 0.0f; // Horizontal ring at eye level
+    private static final float ARC_PITCH = 0.0f;
+    private static final float ARC_SPAN = (float) (2 * Math.PI / 3); // 120 degrees
 
     @Nonnull
     @Override
@@ -29,11 +30,17 @@ public class RingStyle implements CastingStyle {
             return positions;
         }
 
-        float angleStep = (float) (2 * Math.PI / glyphCount);
+        if (glyphCount == 1) {
+            positions.add(new SphericalPosition(lookYaw, ARC_PITCH, DEFAULT_DISTANCE));
+            return positions;
+        }
+
+        float startYaw = lookYaw - ARC_SPAN / 2;
+        float angleStep = ARC_SPAN / (glyphCount - 1);
 
         for (int i = 0; i < glyphCount; i++) {
-            float yaw = angleStep * i + lookYaw; // Full 360° around the player
-            positions.add(new SphericalPosition(yaw, RING_PITCH, DEFAULT_DISTANCE));
+            float yaw = startYaw + angleStep * i;
+            positions.add(new SphericalPosition(yaw, ARC_PITCH, DEFAULT_DISTANCE));
         }
 
         return positions;

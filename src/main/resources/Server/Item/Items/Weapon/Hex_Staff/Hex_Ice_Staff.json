@@ -1,14 +1,13 @@
 {
   "Parent": "Template_HexStaff",
-  "$Comment": "Hex Staff - Main hand weapon for Hexcode spell system. Requires Hex Book in offhand.",
   "TranslationProperties": {
-    "Name": "server.items.Hex_Staff.name"
+    "Name": "server.items.Hex_Staff_Front.name"
   },
   "Categories": [
     "Items.Weapons"
   ],
-  "Quality": "Uncommon",
-  "ItemLevel": 30,
+  "Quality": "Rare",
+  "ItemLevel": 35,
   "PlayerAnimationsId": "Staff",
   "Utility": {
     "Compatible": true
@@ -19,19 +18,19 @@
   },
   "IconProperties": {
     "Scale": 0.25,
-    "Translation": [
-      -51.6,
-      -54.6
-    ],
     "Rotation": [
       45,
       90,
       0
+    ],
+    "Translation": [
+      -51.6,
+      -54.6
     ]
   },
-  "Model": "Items/Weapons/Staff/Hex_Staff.blockymodel",
-  "Texture": "Items/Weapons/Staff/Hex_Staff_Texture.png",
-  "Icon": "Icons/ItemsGenerated/Hex_Staff.png",
+  "Model": "Items/Weapons/Staff/Hex_Ice_Staff.blockymodel",
+  "Texture": "Items/Weapons/Staff/Hex_Ice_Staff.png",
+  "Icon": "Icons/ItemsGenerated/Hex_Ice_Staff.png",
   "Scale": 1.3,
   "DroppedItemAnimation": "Items/Animations/Dropped/Dropped_Diagonal_Left.blockyanim",
   "Tags": {
