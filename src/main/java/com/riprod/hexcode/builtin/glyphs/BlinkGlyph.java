@@ -1,8 +1,20 @@
 package com.riprod.hexcode.builtin.glyphs;
 
-public class BlinkGlyph {
-    public static final String ID = "blink";
+import com.riprod.hexcode.core.glyphs.component.GlyphHandler;
 
-    private BlinkGlyph() {
+public class BlinkGlyph implements GlyphHandler {
+    public static final String ID = "Blink";
+
+    public BlinkGlyph() {
+    }
+
+    @Override
+    public String getId() {
+        return ID;
+    }
+
+    @Override
+    public void execute() {
+        // Implementation for the blink glyph's behavior
     }
 }

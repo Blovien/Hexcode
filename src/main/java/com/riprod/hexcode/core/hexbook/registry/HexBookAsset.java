@@ -30,7 +30,7 @@ public class HexBookAsset implements JsonAssetWithMap<String, DefaultAssetMap<St
     }
 
     public static DefaultAssetMap<String, HexBookAsset> getAssetMap() {
-        return (DefaultAssetMap) getAssetStore().getAssetMap();
+        return (DefaultAssetMap<String, HexBookAsset>) getAssetStore().getAssetMap();
     }
 
     private HexBookAsset() {

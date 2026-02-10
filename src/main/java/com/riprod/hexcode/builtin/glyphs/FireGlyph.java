@@ -1,8 +1,20 @@
 package com.riprod.hexcode.builtin.glyphs;
 
-public class FireGlyph {
-    public static final String ID = "fire";
+import com.riprod.hexcode.core.glyphs.component.GlyphHandler;
 
-    private FireGlyph() {
+public class FireGlyph implements GlyphHandler {
+    public static final String ID = "Fire";
+
+    public FireGlyph() {
+    }
+
+    @Override
+    public String getId() {
+        return ID;
+    }
+
+    @Override
+    public void execute() {
+        // Implementation for the blink glyph's behavior
     }
 }

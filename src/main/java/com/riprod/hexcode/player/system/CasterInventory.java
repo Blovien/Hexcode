@@ -7,12 +7,11 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.entity.entities.Player;
-import com.hypixel.hytale.server.core.inventory.Inventory;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.hexbook.HexBookComponent;
+import com.riprod.hexcode.core.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.hexbook.registry.HexBookAsset;
-import com.riprod.hexcode.core.hexstaff.HexStaffComponent;
+import com.riprod.hexcode.core.hexstaff.component.HexStaffComponent;
 import com.riprod.hexcode.core.hexstaff.registry.HexStaffAsset;
 
 public class CasterInventory {

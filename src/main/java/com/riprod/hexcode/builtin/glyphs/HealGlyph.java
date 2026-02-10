@@ -1,8 +1,20 @@
 package com.riprod.hexcode.builtin.glyphs;
 
-public class HealGlyph {
-    public static final String ID = "heal";
+import com.riprod.hexcode.core.glyphs.component.GlyphHandler;
 
-    private HealGlyph() {
+public class HealGlyph implements GlyphHandler {
+    public static final String ID = "Heal";
+
+    public HealGlyph() {
+    }
+
+    @Override
+    public String getId() {
+        return ID;
+    }
+
+    @Override
+    public void execute() {
+        // Implementation for the blink glyph's behavior
     }
 }

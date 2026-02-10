@@ -1,8 +1,5 @@
 package com.riprod.hexcode.core.hexstaff.registry;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.hypixel.hytale.assetstore.AssetExtraInfo;
 import com.hypixel.hytale.assetstore.AssetKeyValidator;
 import com.hypixel.hytale.assetstore.AssetRegistry;
@@ -18,7 +15,6 @@ public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
     public static final AssetBuilderCodec<String, HexStaffAsset> CODEC;
     private static AssetStore<String, HexStaffAsset, DefaultAssetMap<String, HexStaffAsset>> ASSET_STORE;
     public static final ValidatorCache<String> VALIDATOR_CACHE;
-    private static Map<String, HexStaffAsset> itemIdIndex;
 
     protected AssetExtraInfo.Data data;
     protected String id;
@@ -34,7 +30,7 @@ public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
     }
 
     public static DefaultAssetMap<String, HexStaffAsset> getAssetMap() {
-        return (DefaultAssetMap) getAssetStore().getAssetMap();
+        return (DefaultAssetMap<String, HexStaffAsset>) getAssetStore().getAssetMap();
     }
 
     private HexStaffAsset() {

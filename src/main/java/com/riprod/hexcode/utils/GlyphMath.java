@@ -1,10 +1,8 @@
 package com.riprod.hexcode.utils;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 
 public class GlyphMath {

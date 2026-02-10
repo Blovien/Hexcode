@@ -1,3 +1,5 @@
 {
-  "Model": "VFX/Glyphs/Base_Glyph.blockymodel"
+  "ModelPath": "Base_Glyph",
+  "BasePower": 1.0,
+  "ManaConsumption": 25
 }

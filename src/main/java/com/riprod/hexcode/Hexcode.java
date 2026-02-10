@@ -10,19 +10,21 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Int
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.builtin.glyphs.GlyphRegister;
+import com.riprod.hexcode.builtin.BuiltinPlugin;
 import com.riprod.hexcode.command.HexcodeCommand;
-import com.riprod.hexcode.core.casting.CastingStyleRegistry;
+import com.riprod.hexcode.core.casting.registery.CastingStyleRegistry;
+import com.riprod.hexcode.core.drawing.registry.ShapeAsset;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
-import com.riprod.hexcode.core.hexbook.HexBookComponent;
+import com.riprod.hexcode.core.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.hexbook.registry.HexBookAsset;
-import com.riprod.hexcode.core.hexstaff.HexStaffComponent;
+import com.riprod.hexcode.core.hexstaff.component.HexStaffComponent;
 import com.riprod.hexcode.core.hexstaff.registry.HexStaffAsset;
 import com.riprod.hexcode.core.glyphs.registry.GlyphAsset;
-import com.riprod.hexcode.interaction.CastingModeEnterInteraction;
-import com.riprod.hexcode.interaction.CastingModeExitInteraction;
-import com.riprod.hexcode.interaction.GlyphDropInteraction;
-import com.riprod.hexcode.interaction.GlyphSelectInteraction;
+import com.riprod.hexcode.core.glyphs.registry.OperatorAsset;
+import com.riprod.hexcode.interaction.StaffSecondaryEnter;
+import com.riprod.hexcode.interaction.StaffSecondaryExit;
+import com.riprod.hexcode.interaction.StaffPrimaryExit;
+import com.riprod.hexcode.interaction.StaffPrimaryEnter;
 import com.riprod.hexcode.player.component.HexcasterComponent;
 
 public class Hexcode extends JavaPlugin {
@@ -47,13 +49,27 @@ public class Hexcode extends JavaPlugin {
 
         @Override
         protected void setup() {
-                // Custom glyph registery
+                // Custom asset registries
                 AssetRegistry.register(
                                 HytaleAssetStore
                                                 .builder(GlyphAsset.class, new DefaultAssetMap<String, GlyphAsset>())
                                                 .setPath("Hexcode/Glyphs")
                                                 .setCodec(GlyphAsset.CODEC)
                                                 .setKeyFunction(GlyphAsset::getId)
+                                                .build());
+                AssetRegistry.register(
+                                HytaleAssetStore
+                                                .builder(OperatorAsset.class, new DefaultAssetMap<String, OperatorAsset>())
+                                                .setPath("Hexcode/Operators")
+                                                .setCodec(OperatorAsset.CODEC)
+                                                .setKeyFunction(OperatorAsset::getId)
+                                                .build());
+                AssetRegistry.register(
+                                HytaleAssetStore
+                                                .builder(ShapeAsset.class, new DefaultAssetMap<String, ShapeAsset>())
+                                                .setPath("Hexcode/Shapes")
+                                                .setCodec(ShapeAsset.CODEC)
+                                                .setKeyFunction(ShapeAsset::getId)
                                                 .build());
                 AssetRegistry.register(
                                 HytaleAssetStore
@@ -92,21 +108,21 @@ public class Hexcode extends JavaPlugin {
                 HexcasterComponent.setComponentType(hexcasterComponentType);
 
                 // Interaction Registries
-                Interaction.CODEC.register("CastingModeEnter", CastingModeEnterInteraction.class,
-                                CastingModeEnterInteraction.CODEC);
-                Interaction.CODEC.register("CastingModeExit", CastingModeExitInteraction.class,
-                                CastingModeExitInteraction.CODEC);
-                Interaction.CODEC.register("GlyphSelect", GlyphSelectInteraction.class,
-                                GlyphSelectInteraction.CODEC);
-                Interaction.CODEC.register("GlyphDrop", GlyphDropInteraction.class,
-                                GlyphDropInteraction.CODEC);
+                Interaction.CODEC.register("CastingModeEnter", StaffSecondaryEnter.class,
+                                StaffSecondaryEnter.CODEC);
+                Interaction.CODEC.register("CastingModeExit", StaffSecondaryExit.class,
+                                StaffSecondaryExit.CODEC);
+                Interaction.CODEC.register("GlyphSelect", StaffPrimaryEnter.class,
+                                StaffPrimaryEnter.CODEC);
+                Interaction.CODEC.register("GlyphDrop", StaffPrimaryExit.class,
+                                StaffPrimaryExit.CODEC);
 
                 // Commands
                 this.getCommandRegistry().registerCommand(new HexcodeCommand());
 
                 // Startups
                 CastingStyleRegistry.init();
-                GlyphRegister.registerAll();
+                BuiltinPlugin.startup();
 
                 LOGGER.atInfo().log("Hexcode setup complete!");
         }
