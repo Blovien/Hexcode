@@ -1,13 +1,16 @@
 package com.riprod.hexcode.core.drawing.system;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.hypixel.hytale.component.AddReason;
+import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.spatial.SpatialResource;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.Color;
@@ -20,94 +23,185 @@ import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel;
 import com.hypixel.hytale.server.core.modules.entity.component.PropComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.modules.time.TimeResource;
 import com.hypixel.hytale.server.core.universe.world.ParticleUtil;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.drawing.component.DrawnShapeComponent;
 import com.riprod.hexcode.player.component.HexcasterComponent;
 import com.riprod.hexcode.utils.GlyphMath;
 
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
+
 public class InterfaceManager {
+  private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+  private static final String DRAWING_PARTICLE = "Hexcode_Drawing_Dot";
 
-    private static final String DRAWING_PARTICLE = "Hexcode_Drawing_Dot";
-    private static final Color DRAWING_COLOR = new Color((byte) 34.5, (byte) 59, (byte) 84);
+  public static void spawnTrails(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> playerRef,
+      HeadRotation head) {
+    TransformComponent transform = accessor.getComponent(playerRef, TransformComponent.getComponentType());
+    ModelComponent playerModel = accessor.getComponent(playerRef, ModelComponent.getComponentType());
+    HexcasterComponent hexcaster = accessor.getComponent(playerRef, HexcasterComponent.getComponentType());
 
-    public static void spawnTrails(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> playerRef,
-            HeadRotation head) {
-        TransformComponent transform = accessor.getComponent(playerRef, TransformComponent.getComponentType());
-        ModelComponent playerModel = accessor.getComponent(playerRef, ModelComponent.getComponentType());
-        HexcasterComponent hexcaster = accessor.getComponent(playerRef, HexcasterComponent.getComponentType());
-
-        if (hexcaster.getTrailRef() != null) {
-            return; // already spawned
-        }
-
-        if (head == null || transform == null || playerModel == null) {
-            return; // skip
-        }
-
-        float eyeHeight = playerModel.getModel().getEyeHeight();
-        Vector3d eyePos = new Vector3d(transform.getPosition()).add(0, eyeHeight, 0);
-
-        Vector3f rotation = head.getRotation();
-
-        Vector3d position = GlyphMath.sphericalToCartesian(eyePos, head.getRotation().getYaw(),
-                head.getRotation().getPitch(), 2.0);
-
-        // spawning the trail anchor entity
-        ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset("Trail_Anchor");
-        Model model = Model.createUnitScaleModel(modelAsset);
-
-        Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
-
-        holder.addComponent(TransformComponent.getComponentType(),
-                new TransformComponent(position, rotation));
-
-        holder.ensureComponent(UUIDComponent.getComponentType());
-
-        holder.addComponent(ModelComponent.getComponentType(),
-                new ModelComponent(model));
-
-        holder.addComponent(PersistentModel.getComponentType(),
-                new PersistentModel(model.toReference()));
-
-        holder.ensureComponent(PropComponent.getComponentType());
-
-        Ref<EntityStore> trailRef = accessor.addEntity(holder, AddReason.SPAWN);
-        hexcaster.setTrailRef(trailRef);
-
+    if (hexcaster.getTrailRef() != null) {
+      return; // already spawned
     }
 
-    public static void removeTrails(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> playerRef) {
-        HexcasterComponent hexcaster = accessor.getComponent(playerRef, HexcasterComponent.getComponentType());
-        if (hexcaster.getTrailRef() != null) {
-            Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
-            accessor.removeEntity(hexcaster.getTrailRef(), holder, RemoveReason.REMOVE);
-            hexcaster.setTrailRef(null);
-        }
+    if (head == null || transform == null || playerModel == null) {
+      return; // skip
     }
 
-    public static void positionTrail(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> playerRef,
-            HeadRotation head) {
-        HexcasterComponent hexcaster = accessor.getComponent(playerRef, HexcasterComponent.getComponentType());
-        Ref<EntityStore> trailRef = hexcaster.getTrailRef();
-        if (trailRef == null || trailRef.isValid() == false)
-            return;
+    float eyeHeight = playerModel.getModel().getEyeHeight();
+    Vector3d eyePos = new Vector3d(transform.getPosition()).add(0, eyeHeight, 0);
 
-        TransformComponent transform = accessor.getComponent(playerRef, TransformComponent.getComponentType());
-        ModelComponent playerModel = accessor.getComponent(playerRef, ModelComponent.getComponentType());
+    Vector3f rotation = head.getRotation();
 
-        if (head == null || transform == null || playerModel == null) {
-            return; // skip
-        }
+    Vector3d position = GlyphMath.sphericalToCartesian(eyePos, head.getRotation().getYaw(),
+        head.getRotation().getPitch(), 2.0);
 
-        float eyeHeight = playerModel.getModel().getEyeHeight();
-        Vector3d eyePos = new Vector3d(transform.getPosition()).add(0, eyeHeight, 0);
+    // spawning the trail anchor entity
+    ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset("Trail_Anchor");
+    Model model = Model.createUnitScaleModel(modelAsset);
 
-        Vector3f rotation = head.getRotation();
+    Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
 
-        Vector3d position = GlyphMath.sphericalToCartesian(eyePos, head.getRotation().getYaw(),
-                head.getRotation().getPitch(), 2.0);
+    holder.addComponent(TransformComponent.getComponentType(),
+        new TransformComponent(position, rotation));
 
-        TransformComponent trailTransform = accessor.getComponent(trailRef, TransformComponent.getComponentType());
-        trailTransform.setPosition(position);
+    holder.ensureComponent(UUIDComponent.getComponentType());
+
+    holder.addComponent(ModelComponent.getComponentType(),
+        new ModelComponent(model));
+
+    holder.addComponent(PersistentModel.getComponentType(),
+        new PersistentModel(model.toReference()));
+
+    holder.ensureComponent(PropComponent.getComponentType());
+
+    Ref<EntityStore> trailRef = accessor.addEntity(holder, AddReason.SPAWN);
+    hexcaster.setTrailRef(trailRef);
+
+  }
+
+  public static void removeTrails(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> playerRef) {
+    HexcasterComponent hexcaster = accessor.getComponent(playerRef, HexcasterComponent.getComponentType());
+    if (hexcaster.getTrailRef() != null) {
+      Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
+      accessor.removeEntity(hexcaster.getTrailRef(), holder, RemoveReason.REMOVE);
+      hexcaster.setTrailRef(null);
     }
+  }
+
+  public static void positionTrail(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> playerRef,
+      HeadRotation head) {
+    HexcasterComponent hexcaster = accessor.getComponent(playerRef, HexcasterComponent.getComponentType());
+    Ref<EntityStore> trailRef = hexcaster.getTrailRef();
+    if (trailRef == null || trailRef.isValid() == false)
+      return;
+
+    TransformComponent transform = accessor.getComponent(playerRef, TransformComponent.getComponentType());
+    ModelComponent playerModel = accessor.getComponent(playerRef, ModelComponent.getComponentType());
+
+    if (head == null || transform == null || playerModel == null) {
+      return; // skip
+    }
+
+    float eyeHeight = playerModel.getModel().getEyeHeight();
+    Vector3d eyePos = new Vector3d(transform.getPosition()).add(0, eyeHeight, 0);
+
+    Vector3d position = GlyphMath.sphericalToCartesian(eyePos, head.getRotation().getYaw(),
+        head.getRotation().getPitch(), 2.0);
+
+    TransformComponent trailTransform = accessor.getComponent(trailRef, TransformComponent.getComponentType());
+    trailTransform.setPosition(position);
+  }
+
+  public static void spawnParticles(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> playerRef,
+      HexcasterComponent hexcaster) {
+
+    TimeResource timeResource = accessor.getResource(TimeResource.getResourceType());
+
+    Long lastTime = hexcaster.getLastParticleSpawnMillis();
+
+    Long curTime = timeResource.getNow().toEpochMilli();
+
+    if (lastTime != null && curTime - lastTime < 5000) {
+      return; // limit spawn rate
+    }
+
+    if (hexcaster.getDrawnGlyphs().isEmpty()) {
+      return; // no shapes drawn, skip
+    }
+
+    hexcaster.setLastParticleSpawnMillis(curTime);
+    
+    List<DrawnShapeComponent> strokePoints = hexcaster.getDrawnGlyphs();
+    
+    // spawns all particles
+    for (DrawnShapeComponent position : strokePoints) {
+      for (Vector3d point : position.getPoints()) {
+        ParticleUtil.spawnParticleEffect(DRAWING_PARTICLE, point, 0.0f, 0.0f, 0.0f, 1.0f, position.getColor(),
+        List.of(playerRef), accessor);
+      }
+    }
+  }
+
+  public static List<Vector3d> getPositionsFromAngles(ComponentAccessor<EntityStore> accessor, FloatArrayList angles,
+      Ref<EntityStore> playerRef, float radius) {
+    TransformComponent transform = accessor.getComponent(playerRef, TransformComponent.getComponentType());
+    ModelComponent playerModel = accessor.getComponent(playerRef, ModelComponent.getComponentType());
+    List<Vector3d> outPositions = new ArrayList<>();
+
+    if (transform == null || playerModel == null) {
+      return outPositions; // skip
+    }
+
+    float eyeHeight = playerModel.getModel().getEyeHeight();
+    Vector3d eyePos = new Vector3d(transform.getPosition()).add(0, eyeHeight, 0);
+
+    int pointCount = angles.size() / 2;
+    if (pointCount < 2)
+      return outPositions;
+
+    float[] cumDist = new float[pointCount];
+    for (int i = 1; i < pointCount; i++) {
+      float dy = angles.getFloat(i * 2) - angles.getFloat((i - 1) * 2);
+      float dp = angles.getFloat(i * 2 + 1) - angles.getFloat((i - 1) * 2 + 1);
+      cumDist[i] = cumDist[i - 1] + (float) Math.sqrt(dy * dy + dp * dp);
+    }
+
+    float totalDist = cumDist[pointCount - 1];
+    int sampleCount = Math.min(pointCount, 32);
+    float stepDist = totalDist / (sampleCount - 1);
+
+    int cursor = 0;
+    for (int s = 0; s < sampleCount; s++) {
+      float target = s * stepDist;
+      while (cursor < pointCount - 1 && cumDist[cursor + 1] < target)
+        cursor++;
+      float yaw = angles.getFloat(cursor * 2);
+      float pitch = angles.getFloat(cursor * 2 + 1);
+      outPositions.add(
+          GlyphMath.sphericalToCartesian(eyePos, (float) Math.toRadians(yaw), (float) Math.toRadians(pitch), radius));
+    }
+
+    return outPositions;
+  }
+
+  public static Color getColorFromQuality(float quality) {
+    if (quality < 0.30f) {
+      return new Color((byte) 255, (byte) 50, (byte) 50); // red - Bad
+    } else if (quality < 0.40f) {
+      return new Color((byte) 255, (byte) 140, (byte) 30); // orange - Mediocre
+    } else if (quality < 0.50f) {
+      return new Color((byte) 255, (byte) 220, (byte) 30); // yellow - Decent
+    } else if (quality < 0.60f) {
+      return new Color((byte) 180, (byte) 255, (byte) 50); // yellow-green - Okay
+    } else if (quality < 0.70f) {
+      return new Color((byte) 50, (byte) 220, (byte) 50); // green - Good
+    } else if (quality < 0.85f) {
+      return new Color((byte) 50, (byte) 180, (byte) 255); // cyan - Great
+    } else {
+      return new Color((byte) 180, (byte) 80, (byte) 255); // purple - Superb
+    }
+  }
 }

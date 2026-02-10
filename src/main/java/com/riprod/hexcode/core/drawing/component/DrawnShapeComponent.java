@@ -1,5 +1,7 @@
 package com.riprod.hexcode.core.drawing.component;
 
+import java.util.List;
+
 import com.hypixel.hytale.assetstore.AssetExtraInfo;
 import com.hypixel.hytale.assetstore.AssetKeyValidator;
 import com.hypixel.hytale.assetstore.codec.AssetBuilderCodec;
@@ -8,6 +10,8 @@ import com.hypixel.hytale.assetstore.map.JsonAssetWithMap;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.validation.ValidatorCache;
+import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.protocol.Color;
 import com.riprod.hexcode.core.glyphs.registry.GlyphAsset;
 
 public class DrawnShapeComponent implements JsonAssetWithMap<String, DefaultAssetMap<String, GlyphAsset>> {
@@ -21,6 +25,8 @@ public class DrawnShapeComponent implements JsonAssetWithMap<String, DefaultAsse
     private float size;
     private float relativeSize;
     private float accuracy;
+    private List<Vector3d> points;
+    private Color color;
 
     public DrawnShapeComponent(String shapeId, float size, float relativeSize, float accuracy) {
         this.glyphId = shapeId;
@@ -34,6 +40,22 @@ public class DrawnShapeComponent implements JsonAssetWithMap<String, DefaultAsse
     }
 
     private DrawnShapeComponent() {
+    }
+
+    public List<Vector3d> getPoints() {
+        return points;
+    }
+
+    public Color getColor() {
+        return color;
+    }
+
+    public void setPoints(List<Vector3d> points) {
+        this.points = points;
+    }
+
+    public void setColor(Color color) {
+        this.color = color;
     }
 
     @Override

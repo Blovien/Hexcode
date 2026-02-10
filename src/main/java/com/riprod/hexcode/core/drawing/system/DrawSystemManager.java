@@ -18,8 +18,11 @@ public class DrawSystemManager {
     public static InteractionState ExitDrawingMode(ComponentAccessor<EntityStore> accessor,
             HexcasterComponent hexcaster,
             Ref<EntityStore> playerRef) {
+    
+        // shape detection and cleanup logic
+        hexcaster.clearDrawing();
+        hexcaster.clearTrailRef();
 
-        // Cleanup logic
         return InteractionState.Finished;
     }
 
@@ -31,6 +34,9 @@ public class DrawSystemManager {
         if (!hexcaster.isInDrawingMode()) {
             return InteractionState.Finished;
         }
+
+        // spawn the shape particles along the path
+        InterfaceManager.spawnParticles(accessor, playerRef, hexcaster);
 
         return InteractionState.NotFinished;
     }

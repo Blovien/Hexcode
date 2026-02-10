@@ -49,6 +49,8 @@ public class HexcasterComponent implements Component<EntityStore> {
     private FloatArrayList drawnStrokes = new FloatArrayList();
     private List<DrawnShapeComponent> drawnGlyphs = new ArrayList<>();
     private Ref<EntityStore> trailRef = null;
+    private long lastParticleSpawnMillis = 0;
+    private long drawStartTimeMillis = 0;
 
     // Crafting Mode
 
@@ -308,6 +310,22 @@ public class HexcasterComponent implements Component<EntityStore> {
         return trailRef;
     }
 
+    public Long getLastParticleSpawnMillis() {
+        return lastParticleSpawnMillis;
+    }
+
+    public void setLastParticleSpawnMillis(Long millis) {
+        this.lastParticleSpawnMillis = millis;
+    }
+
+    public long getDrawStartTimeMillis() {
+        return drawStartTimeMillis;
+    }
+
+    public void setDrawStartTimeMillis(long drawStartTimeMillis) {
+        this.drawStartTimeMillis = drawStartTimeMillis;
+    }
+
     @Nonnull
     @Override
     public HexcasterComponent clone() {
@@ -319,6 +337,7 @@ public class HexcasterComponent implements Component<EntityStore> {
         copy.hoveredGlyph = this.hoveredGlyph;
         copy.drawnStrokes = new FloatArrayList(this.drawnStrokes);
         copy.drawnGlyphs = new ArrayList<>(this.drawnGlyphs);
+        copy.lastParticleSpawnMillis = this.lastParticleSpawnMillis;
         return copy;
     }
 }

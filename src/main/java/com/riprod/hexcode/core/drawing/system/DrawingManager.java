@@ -5,6 +5,8 @@ import java.util.List;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.protocol.Color;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -17,6 +19,7 @@ import it.unimi.dsi.fastutil.floats.FloatArrayList;
 
 public class DrawingManager {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+
     public static InteractionState StartDrawing(ComponentAccessor<EntityStore> accessor,
             HexcasterComponent hexcaster,
             Ref<EntityStore> playerRef) {
@@ -52,19 +55,23 @@ public class DrawingManager {
             maxPitch = Math.max(maxPitch, pitch);
         }
 
-        // 2. normalize and rasterize to 32x32
         boolean[][] grid = DrawRasterizer.rasterize(points, 32,
                 minYaw, maxYaw, minPitch, maxPitch);
 
-        // 3. compare against all cached shape templates
         DrawnShapeComponent result = ShapeComparator.getShape(grid);
 
-        LOGGER.atInfo().log("Drawn shape: " + (result != null ? result.getGlyphId() : "null"));
+        // get the list of particles to spawn for the shape reference component
+        List<Vector3d> drawnGlyphs = InterfaceManager.getPositionsFromAngles(accessor, points, playerRef, 2.0f);
+        Color color = InterfaceManager.getColorFromQuality(result.getAccuracy());
+        result.setColor(color);
+        result.setPoints(drawnGlyphs);
 
-        // 4. store result and cleanup
+        LOGGER.atInfo().log("Drawn shape: %s with quality %f", (result != null ? result.getGlyphId() : "null"), result.getAccuracy());
+
         InterfaceManager.removeTrails(accessor, playerRef);
         hexcaster.addDrawnGlyph(result);
         hexcaster.clearStrokes();
+        InterfaceManager.spawnParticles(accessor, playerRef, hexcaster);
 
         return InteractionState.Finished;
     }
