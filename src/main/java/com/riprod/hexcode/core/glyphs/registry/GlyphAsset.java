@@ -2,6 +2,7 @@ package com.riprod.hexcode.core.glyphs.registry;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import com.hypixel.hytale.assetstore.AssetExtraInfo;
 import com.hypixel.hytale.assetstore.AssetKeyValidator;
@@ -60,6 +61,10 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
 
     public int getManaConsumption() {
         return this.manaConsumption;
+    }
+
+    public List<DrawnShapeComponent> getShapes() {
+        return this.shapes;
     }
 
     static {

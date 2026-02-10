@@ -134,7 +134,10 @@ public class InterfaceManager {
 
     hexcaster.setLastParticleSpawnMillis(curTime);
     
-    List<DrawnShapeComponent> strokePoints = hexcaster.getDrawnGlyphs();
+    // get the last 4 strokePoints
+    List<DrawnShapeComponent> allGlyphs = hexcaster.getDrawnGlyphs();
+    int size = allGlyphs.size();
+    List<DrawnShapeComponent> strokePoints = allGlyphs.subList(Math.max(0, size - 4), size);
     
     // spawns all particles
     for (DrawnShapeComponent position : strokePoints) {
@@ -170,7 +173,7 @@ public class InterfaceManager {
     }
 
     float totalDist = cumDist[pointCount - 1];
-    int sampleCount = Math.min(pointCount, 32);
+    int sampleCount = Math.min(pointCount, 16);
     float stepDist = totalDist / (sampleCount - 1);
 
     int cursor = 0;

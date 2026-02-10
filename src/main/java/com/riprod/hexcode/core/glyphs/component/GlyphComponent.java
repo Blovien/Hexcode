@@ -86,6 +86,7 @@ public class GlyphComponent implements Component<EntityStore> {
     private UUID id;
     private float accuracy = 1f;
     private float speed = 1f;
+    private float idealSpeed = 1f;
 
     // non-persistent
     @Nullable
@@ -112,7 +113,7 @@ public class GlyphComponent implements Component<EntityStore> {
     public GlyphComponent(@Nonnull String glyphId, float accuracy, float speed) {
         this.glyphId = glyphId;
         this.accuracy = accuracy;
-        this.speed = speed;
+        this.speed = speed / Math.max(idealSpeed, 1); // normalize speed to idealSpeed
         this.id = UUID.randomUUID();
     }
 
@@ -296,6 +297,7 @@ public class GlyphComponent implements Component<EntityStore> {
         copy.accuracy = this.accuracy;
         copy.speed = this.speed;
         copy.children = new ArrayList<>();
+        copy.idealSpeed = this.idealSpeed;
         for (GlyphComponent child : this.children) {
             copy.children.add(child.clone());
         }

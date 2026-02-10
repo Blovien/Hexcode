@@ -2,34 +2,34 @@ package com.riprod.hexcode.core.drawing.component;
 
 import java.util.List;
 
-import com.hypixel.hytale.assetstore.AssetExtraInfo;
-import com.hypixel.hytale.assetstore.AssetKeyValidator;
-import com.hypixel.hytale.assetstore.codec.AssetBuilderCodec;
-import com.hypixel.hytale.assetstore.map.DefaultAssetMap;
-import com.hypixel.hytale.assetstore.map.JsonAssetWithMap;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
-import com.hypixel.hytale.codec.validation.ValidatorCache;
+import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.protocol.Color;
-import com.riprod.hexcode.core.glyphs.registry.GlyphAsset;
 
-public class DrawnShapeComponent implements JsonAssetWithMap<String, DefaultAssetMap<String, GlyphAsset>> {
+public class DrawnShapeComponent {
 
-    public static final AssetBuilderCodec<String, DrawnShapeComponent> CODEC;
-    public static final ValidatorCache<String> VALIDATOR_CACHE;
+    public static final BuilderCodec<DrawnShapeComponent> CODEC = BuilderCodec
+                .builder(DrawnShapeComponent.class, DrawnShapeComponent::new)
+                .append(new KeyedCodec<>("ShapeId", Codec.STRING),
+                        (a, v) -> a.shapeId = v, a -> a.shapeId)
+                .add()
+                .append(new KeyedCodec<>("Size", Codec.FLOAT),
+                        (a, v) -> a.relativeSize = v, a -> a.relativeSize)
+                .add()
+                .build();
 
-    protected AssetExtraInfo.Data data;
-    protected String id;
-    private String glyphId;
+    private String shapeId;
     private float size;
     private float relativeSize;
     private float accuracy;
+    private long speed;
     private List<Vector3d> points;
     private Color color;
 
     public DrawnShapeComponent(String shapeId, float size, float relativeSize, float accuracy) {
-        this.glyphId = shapeId;
+        this.shapeId = shapeId;
         this.size = size;
         this.relativeSize = relativeSize;
         this.accuracy = accuracy;
@@ -58,13 +58,8 @@ public class DrawnShapeComponent implements JsonAssetWithMap<String, DefaultAsse
         this.color = color;
     }
 
-    @Override
-    public String getId() {
-        return this.id;
-    }
-
-    public String getGlyphId() {
-        return glyphId;
+    public String getShapeId() {
+        return shapeId;
     }
 
     public float getSize() {
@@ -79,8 +74,8 @@ public class DrawnShapeComponent implements JsonAssetWithMap<String, DefaultAsse
         return relativeSize;
     }
 
-    public void setGlyphId(String glyphId) {
-        this.glyphId = glyphId;
+    public void setShapeId(String glyphId) {
+        this.shapeId = glyphId;
     }
 
     public void setSize(float size) {
@@ -95,24 +90,11 @@ public class DrawnShapeComponent implements JsonAssetWithMap<String, DefaultAsse
         this.relativeSize = relativeSize;
     }
 
-    static {
-        CODEC = AssetBuilderCodec
-                .builder(DrawnShapeComponent.class, DrawnShapeComponent::new, Codec.STRING, (glyphAsset, s) -> {
-                    glyphAsset.id = s;
-                }, (glyphAsset) -> {
-                    return glyphAsset.id;
-                }, (asset, data) -> {
-                    asset.data = data;
-                }, (asset) -> {
-                    return asset.data;
-                })
-                .append(new KeyedCodec<>("GlyphID", Codec.STRING),
-                        (a, v) -> a.glyphId = v, a -> a.glyphId)
-                .add()
-                .append(new KeyedCodec<>("Size", Codec.FLOAT),
-                        (a, v) -> a.size = v, a -> a.size)
-                .add()
-                .build();
-        VALIDATOR_CACHE = new ValidatorCache<>(new AssetKeyValidator<>(GlyphAsset::getAssetStore));
+    public long getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(long speed) {
+        this.speed = speed;
     }
 }

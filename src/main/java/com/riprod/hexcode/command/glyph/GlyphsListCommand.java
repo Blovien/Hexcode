@@ -14,7 +14,7 @@ import javax.annotation.Nonnull;
 public class GlyphsListCommand extends AbstractPlayerCommand {
 
     public GlyphsListCommand() {
-        super("list", "Learn a glyph into held hexbook");
+        super("list", "List all available glyphs");
         addAliases("li");
     }
 

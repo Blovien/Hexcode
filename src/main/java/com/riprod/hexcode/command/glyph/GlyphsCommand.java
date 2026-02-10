@@ -18,6 +18,7 @@ public class GlyphsCommand extends AbstractPlayerCommand {
 
         addSubCommand(new GlyphsLearnCommand());
         addSubCommand(new GlyphsListCommand());
+        addSubCommand(new GlyphsForgetCommand());
 
     }
 

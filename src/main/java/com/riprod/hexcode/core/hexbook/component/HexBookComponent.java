@@ -81,6 +81,10 @@ public class HexBookComponent implements Component<EntityStore> {
         glyphs.removeIf(g -> g.getId().equals(id));
     }
 
+    public void removeGlyph(@Nonnull String id) { // removes ALL glyphs with a specific ID
+        glyphs.removeIf(g -> g.getGlyphId().equals(id));
+    }
+
     public List<GlyphComponent> getGlyphs() {
         return glyphs;
     }

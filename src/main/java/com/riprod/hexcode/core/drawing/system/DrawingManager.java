@@ -9,6 +9,7 @@ import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.protocol.Color;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
+import com.hypixel.hytale.server.core.modules.time.TimeResource;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.drawing.component.DrawnShapeComponent;
 import com.riprod.hexcode.core.drawing.utils.DrawRasterizer;
@@ -28,6 +29,12 @@ public class DrawingManager {
         HeadRotation head = accessor.getComponent(playerRef, HeadRotation.getComponentType());
         if (head == null)
             return InteractionState.Failed;
+
+        TimeResource timeResource = accessor.getResource(TimeResource.getResourceType());
+
+        Long curTime = timeResource.getNow().toEpochMilli();
+
+        hexcaster.setDrawStartTimeMillis(curTime);
 
         InterfaceManager.spawnTrails(accessor, playerRef, head);
         return InteractionState.NotFinished;
@@ -66,11 +73,24 @@ public class DrawingManager {
         result.setColor(color);
         result.setPoints(drawnGlyphs);
 
-        LOGGER.atInfo().log("Drawn shape: %s with quality %f", (result != null ? result.getGlyphId() : "null"), result.getAccuracy());
+        // time calculations
+        long drawDuration = System.currentTimeMillis() - hexcaster.getDrawStartTimeMillis();
+        result.setSpeed(drawDuration);
+
+        LOGGER.atInfo().log("Drawn shape: %s with quality %f and took %d ms",
+                (result != null ? result.getShapeId() : "null"),
+                result.getAccuracy(), drawDuration);
+
+        // scale calculations
+        // get the largest dimension of the shape to use for normalization in shape
+        // detection
+        float maxSize = Math.max(Math.abs(maxYaw - minYaw), Math.abs(maxPitch - minPitch));
+        result.setSize(maxSize);
 
         InterfaceManager.removeTrails(accessor, playerRef);
         hexcaster.addDrawnGlyph(result);
         hexcaster.clearStrokes();
+        hexcaster.setLastParticleSpawnMillis(0L);
         InterfaceManager.spawnParticles(accessor, playerRef, hexcaster);
 
         return InteractionState.Finished;
