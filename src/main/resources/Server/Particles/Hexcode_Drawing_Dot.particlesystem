@@ -1,0 +1,9 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "Hexcode_Drawing_Dot"
+    }
+  ],
+  "LifeSpan": 0.05,
+  "CullDistance": 50
+}

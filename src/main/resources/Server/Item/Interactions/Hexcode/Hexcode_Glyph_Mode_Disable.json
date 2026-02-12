@@ -1,6 +1,6 @@
 {
-  "$Comment": "Exits Glyph Mode when Secondary is released - chained from HexcodeGlyphModeToggle",
-  "Type": "HexcodeGlyphModeDisable",
+  "$Comment": "Exits Casting Mode when Secondary is released - finalizes spell, despawns glyphs",
+  "Type": "CastingModeExit",
   "RunTime": 0.1,
   "Effects": {
     "ItemAnimationId": "CastLeftEnd"

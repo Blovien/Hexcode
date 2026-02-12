@@ -1,284 +1,165 @@
 package com.riprod.hexcode;
 
+import com.riprod.hexcode.builtin.BuiltinPlugin;
+import com.riprod.hexcode.command.HexcodeCommand;
+import com.riprod.hexcode.core.casting.registery.CastingStyleRegistry;
+import com.riprod.hexcode.core.drawing.registry.ShapeAsset;
+import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.glyphs.registry.GlyphAsset;
+import com.riprod.hexcode.core.glyphs.registry.OperatorAsset;
+import com.riprod.hexcode.core.glyphs.variables.BlockVar;
+import com.riprod.hexcode.core.glyphs.variables.EntityVar;
+import com.riprod.hexcode.core.glyphs.variables.PositionVar;
+import com.riprod.hexcode.core.glyphs.variables.SpellVar;
+import com.riprod.hexcode.core.hexbook.component.HexBookComponent;
+import com.riprod.hexcode.core.hexbook.registry.HexBookAsset;
+import com.riprod.hexcode.core.hexstaff.component.HexStaffComponent;
+import com.riprod.hexcode.core.hexstaff.registry.HexStaffAsset;
+import com.riprod.hexcode.interaction.StaffSecondaryEnter;
+import com.riprod.hexcode.interaction.StaffSecondaryExit;
+import com.riprod.hexcode.interaction.StaffPrimaryExit;
+import com.riprod.hexcode.interaction.StaffPrimaryEnter;
+import com.riprod.hexcode.player.component.HexcasterComponent;
+import com.hypixel.hytale.assetstore.AssetRegistry;
+import com.hypixel.hytale.assetstore.map.DefaultAssetMap;
+import com.hypixel.hytale.component.ComponentRegistryProxy;
 import com.hypixel.hytale.component.ComponentType;
-import com.hypixel.hytale.event.EventRegistry;
+import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.server.core.asset.HytaleAssetStore;
+import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.asset.GlyphAssetDefinition;
-import com.riprod.hexcode.asset.GlyphAssetLoader;
-import com.riprod.hexcode.command.HexcodeCommand;
-import com.riprod.hexcode.drawing.DrawingTemplate;
-import com.riprod.hexcode.entity.HexNodeComponent;
-import com.riprod.hexcode.entity.OrbitalPositionComponent;
-import com.riprod.hexcode.event.EventHandlers;
-import com.riprod.hexcode.event.GlyphRegistrationEvent;
-import com.riprod.hexcode.glyph.GlyphFactories;
-import com.riprod.hexcode.glyph.GlyphFactory;
-import com.riprod.hexcode.glyph.GlyphRegistry;
-import com.riprod.hexcode.glyph.GlyphRole;
-import com.riprod.hexcode.interaction.HexcodeGlyphCast;
-import com.riprod.hexcode.interaction.HexcodeGlyphModeDisable;
-import com.riprod.hexcode.interaction.HexcodeGlyphModeSelect;
-import com.riprod.hexcode.interaction.HexcodeGlyphModeToggle;
-import com.riprod.hexcode.item.HexBookItem;
-import com.riprod.hexcode.systems.GlyphGlowSystem;
-import com.hypixel.hytale.server.core.asset.type.item.config.Item;
-import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
 
-import java.util.Map;
-
-/**
- * Main plugin class for the Hexcode spell-crafting mod.
- *
- * <p>
- * Hexcode allows players to enter Glyph Mode while wielding the Hex Staff
- * and Hex Book. Glyphs orbit around the player and can be composed into
- * Hexes (tree-structured spell constructs).
- *
- * <h2>Initialization Flow</h2>
- * <ol>
- * <li>Load all glyph asset definitions via GlyphAssetLoader</li>
- * <li>Fire GlyphRegistrationEvent (allows external plugins to register)</li>
- * <li>Register built-in glyphs using factories + assets</li>
- * <li>Freeze registry</li>
- * <li>Register components, systems, commands, and events</li>
- * </ol>
- */
 public class Hexcode extends JavaPlugin {
-    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+  private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+  private static Hexcode instance;
 
-    private EventHandlers eventHandlers;
-    private ComponentType<EntityStore, HexNodeComponent> hexNodeComponentType;
-    private ComponentType<EntityStore, OrbitalPositionComponent> orbitalPositionComponentType;
+  public Hexcode(JavaPluginInit init) {
+    super(init);
+    LOGGER.atInfo().log("Hexcode spell-crafting mod v%s initializing...",
+        this.getManifest().getVersion().toString());
+    instance = this;
+  }
 
-    public Hexcode(JavaPluginInit init) {
-        super(init);
-        LOGGER.atInfo().log("Hexcode spell-crafting mod v%s initializing...",
-                this.getManifest().getVersion().toString());
-    }
+  public static Hexcode get() {
+    return instance;
+  }
 
-    @Override
-    protected void setup() {
-        // Step 1: Initialize data managers with plugin data directory
-        initializeDataManagers();
+  private ComponentType<EntityStore, HexBookComponent> hexBookComponentType;
+  private ComponentType<EntityStore, GlyphComponent> glyphComponentType;
+  private ComponentType<EntityStore, HexStaffComponent> hexStaffComponentType;
+  private ComponentType<EntityStore, HexcasterComponent> hexcasterComponentType;
 
-        // Step 2: Initialize glyph system (asset-driven)
-        initializeGlyphSystem();
+  @Override
+  protected void setup() {
+    // Custom asset registries
+    AssetRegistry.register(
+        HytaleAssetStore
+            .builder(GlyphAsset.class, new DefaultAssetMap<String, GlyphAsset>())
+            .setPath("Hexcode/Glyphs")
+            .setCodec(GlyphAsset.CODEC)
+            .setKeyFunction(GlyphAsset::getId)
+            .build());
+    AssetRegistry.register(
+        HytaleAssetStore
+            .builder(OperatorAsset.class,
+                new DefaultAssetMap<String, OperatorAsset>())
+            .setPath("Hexcode/Operators")
+            .setCodec(OperatorAsset.CODEC)
+            .setKeyFunction(OperatorAsset::getId)
+            .build());
+    AssetRegistry.register(
+        HytaleAssetStore
+            .builder(ShapeAsset.class, new DefaultAssetMap<String, ShapeAsset>())
+            .setPath("Hexcode/Shapes")
+            .setCodec(ShapeAsset.CODEC)
+            .setKeyFunction(ShapeAsset::getId)
+            .build());
+    AssetRegistry.register(
+        HytaleAssetStore
+            .builder(HexBookAsset.class,
+                new DefaultAssetMap<String, HexBookAsset>())
+            .setPath("Hexcode/HexBooks")
+            .setCodec(HexBookAsset.CODEC)
+            .setKeyFunction(HexBookAsset::getId)
+            .build());
+    AssetRegistry.register(
+        HytaleAssetStore
+            .builder(HexStaffAsset.class,
+                new DefaultAssetMap<String, HexStaffAsset>())
+            .setPath("Hexcode/HexStaffs")
+            .setCodec(HexStaffAsset.CODEC)
+            .setKeyFunction(HexStaffAsset::getId)
+            .build());
 
-        // Step 3: Register custom interactions (must be done before assets load)
-        registerInteractions();
+    // Entity Component Registries
+    ComponentRegistryProxy<EntityStore> entityStoreRegistry = this.getEntityStoreRegistry();
 
-        // Step 4: Register custom item types
-        registerItemTypes();
+    this.glyphComponentType = entityStoreRegistry.registerComponent(GlyphComponent.class, "Glyph",
+        GlyphComponent.CODEC);
+    GlyphComponent.setComponentType(glyphComponentType);
 
-        // Step 5: Register custom components
-        registerComponents();
+    this.hexBookComponentType = entityStoreRegistry.registerComponent(HexBookComponent.class, "HexBook",
+        HexBookComponent.CODEC);
+    HexBookComponent.setComponentType(hexBookComponentType);
 
-        // Step 6: Register ECS systems
-        registerSystems();
+    this.hexStaffComponentType = entityStoreRegistry.registerComponent(HexStaffComponent.class, "HexStaff",
+        HexStaffComponent.CODEC);
+    HexStaffComponent.setComponentType(hexStaffComponentType);
 
-        // Step 7: Register commands
-        this.getCommandRegistry().registerCommand(new HexcodeCommand());
+    this.hexcasterComponentType = entityStoreRegistry.registerComponent(HexcasterComponent.class,
+        HexcasterComponent::new);
+    HexcasterComponent.setComponentType(hexcasterComponentType);
 
-        // Step 8: Register event handlers
-        this.eventHandlers = new EventHandlers();
-        EventRegistry eventRegistry = this.getEventRegistry();
-        this.eventHandlers.register(eventRegistry);
+    // Glyph Var Variables
+    SpellVar.CODEC.register("Entity", EntityVar.class, EntityVar.CODEC);
+    SpellVar.CODEC.register("Block", BlockVar.class, BlockVar.CODEC);
+    SpellVar.CODEC.register("Position", PositionVar.class, PositionVar.CODEC);
 
-        LOGGER.atInfo().log("Hexcode setup complete!");
-    }
+    // Interaction Registries
+    Interaction.CODEC.register("CastingModeEnter", StaffSecondaryEnter.class,
+        StaffSecondaryEnter.CODEC);
+    Interaction.CODEC.register("CastingModeExit", StaffSecondaryExit.class,
+        StaffSecondaryExit.CODEC);
+    Interaction.CODEC.register("GlyphSelect", StaffPrimaryEnter.class,
+        StaffPrimaryEnter.CODEC);
+    Interaction.CODEC.register("GlyphDrop", StaffPrimaryExit.class,
+        StaffPrimaryExit.CODEC);
 
-    /**
-     * Initialize data managers with the plugin's data directory.
-     *
-     * <p>
-     * This follows the Hytale pattern (similar to BarterShopState) where
-     * data managers are initialized with the plugin's data directory for
-     * proper file access and persistence.
-     *
-     * <p>
-     * Storage locations:
-     * <ul>
-     * <li>WorldBookDataStore (legacy):
-     * {@code {world_save_path}/hexcode/{player_uuid}/{book_type}.json}</li>
-     * <li>WorldHexDataStore (new):
-     * {@code {world_save_path}/hexcode/books/{book_uuid}.json}</li>
-     * </ul>
-     */
-    private void initializeDataManagers() {
-        LOGGER.atInfo().log("Initializing data managers...");
+    // Events
+    this.getEventRegistry().registerGlobal(PlayerConnectEvent.class, Hexcode::onPlayerConnect);
 
-        // Initialize GlyphAssetLoader for loading glyph asset definitions
-        GlyphAssetLoader.initialize(this.getDataDirectory());
-        LOGGER.atInfo().log("GlyphAssetLoader initialized");
+    // Commands
+    this.getCommandRegistry().registerCommand(new HexcodeCommand());
 
-        // Initialize DrawingTemplate for loading PNG templates
-        DrawingTemplate.initialize(this.getDataDirectory());
-        LOGGER.atInfo().log("DrawingTemplate system initialized");
-    }
+    // Startups
+    CastingStyleRegistry.init();
+    BuiltinPlugin.startup();
 
-    /**
-     * Initialize the glyph system with asset-driven registration.
-     *
-     * <p>
-     * This follows the new modular architecture where:
-     * <ol>
-     * <li>Load asset definitions from JSON files</li>
-     * <li>Fire registration event for external plugins</li>
-     * <li>Create glyphs using factories + assets</li>
-     * <li>Freeze the registry</li>
-     * </ol>
-     */
-    private void initializeGlyphSystem() {
-        LOGGER.atInfo().log("Initializing glyph system...");
+    LOGGER.atInfo().log("Hexcode setup complete!");
+  }
 
-        // Get registry instance
-        GlyphRegistry registry = GlyphRegistry.getInstance();
+  public ComponentType<EntityStore, HexBookComponent> getHexBookComponentType() {
+    return this.hexBookComponentType;
+  }
 
-        // Step 1: Load all glyph asset definitions using static methods
-        LOGGER.atInfo().log("Loading glyph assets...");
-        Map<String, GlyphAssetDefinition> assets = GlyphAssetLoader.loadAll();
-        LOGGER.atInfo().log("Loaded %d glyph asset definitions", assets.size());
+  public ComponentType<EntityStore, GlyphComponent> getGlyphComponentType() {
+    return this.glyphComponentType;
+  }
 
-        // Step 2: Fire GlyphRegistrationEvent (allows external plugins to register)
-        LOGGER.atInfo().log("Firing GlyphRegistrationEvent...");
-        GlyphRegistrationEvent registrationEvent = new GlyphRegistrationEvent(registry);
-        // Note: In the actual implementation, this event would be fired through
-        // Hytale's event system
-        // For now, external plugins would subscribe and be called here
-        // EventSystem.fire(registrationEvent);
+  public ComponentType<EntityStore, HexStaffComponent> getHexStaffComponentType() {
+    return this.hexStaffComponentType;
+  }
 
-        // Step 3: Register built-in glyphs using factories + assets
-        LOGGER.atInfo().log("Registering built-in glyphs...");
+  public ComponentType<EntityStore, HexcasterComponent> getHexcasterComponentType() {
+    return this.hexcasterComponentType;
+  }
 
-        for (GlyphAssetDefinition asset : assets.values()) {
-            String glyphId = asset.getId();
-            GlyphFactory factory = GlyphFactories.getFactory(glyphId);
-
-            if (factory != null) {
-                try {
-                    registry.registerGlyphFromAsset(asset, factory);
-                } catch (Exception e) {
-                    LOGGER.atSevere().log("Failed to register glyph %s: %s", glyphId, e.getMessage());
-                }
-            } else {
-                LOGGER.atWarning().log("No factory found for glyph: %s", glyphId);
-            }
-        }
-
-        // Step 4: Freeze registry
-        registry.freeze();
-    }
-
-    /**
-     * Register custom interaction types with the interaction codec.
-     * This allows our custom Operations to be referenced from RootInteraction JSON
-     * assets.
-     */
-    private void registerInteractions() {
-        // Register HexcodeGlyphModeToggle (Secondary action - toggle glyph mode)
-        // Type name must match "Type" field in JSON asset files
-        Interaction.CODEC.register(
-                "HexcodeGlyphModeToggle",
-                HexcodeGlyphModeToggle.class,
-                HexcodeGlyphModeToggle.CODEC);
-        LOGGER.atInfo().log("Registered HexcodeGlyphModeToggle interaction");
-
-        // Register HexcodeGlyphAction (Primary action - drag/drop/cast)
-        // Type name must match "Type" field in JSON asset files
-        Interaction.CODEC.register(
-                "HexcodeGlyphModeSelect",
-                HexcodeGlyphModeSelect.class,
-                HexcodeGlyphModeSelect.CODEC);
-        LOGGER.atInfo().log("Registered HexcodeGlyphModeSelect interaction");
-
-        // Register HexcodeGlyphCast (Primary action when not in glyph mode - cast hex)
-        // Type name must match "Type" field in JSON asset files
-        Interaction.CODEC.register(
-                "HexcodeGlyphCast",
-                HexcodeGlyphCast.class,
-                HexcodeGlyphCast.CODEC);
-        LOGGER.atInfo().log("Registered HexcodeGlyphCast interaction");
-
-        // Register HexcodeGlyphModeDisable (Chained from Toggle on release - cleanup)
-        // Type name must match "Type" field in JSON asset files
-        Interaction.CODEC.register(
-                "HexcodeGlyphModeDisable",
-                HexcodeGlyphModeDisable.class,
-                HexcodeGlyphModeDisable.CODEC);
-        LOGGER.atInfo().log("Registered HexcodeGlyphModeDisable interaction");
-    }
-
-    /**
-     * Register custom item types for the Hexcode mod.
-     *
-     * <p>
-     * Registers the HexBookItem type which allows Hex Books to store
-     * glyph and spell data directly in ItemStack metadata, with configurable
-     * capacity limits (MaxGlyphs, MaxSavedHexes, MaxHexDepth) per book type.
-     *
-     * <p>
-     * Note: Item type registration in Hytale uses the asset system's
-     * polymorphic type dispatch. The "Type" field in item JSON assets
-     * determines which codec is used. For HexBookItem, this is handled
-     * by the asset loading system when the "Type": "HexBook" is specified.
-     */
-    private void registerItemTypes() {
-        // HexBookItem type is registered via asset system polymorphism
-        // The HexBookItem.CODEC is used when assets specify "Type": "HexBook"
-        // This follows the same pattern as Interaction types
-
-        // Note: If the Item codec registry follows the same pattern as Interaction,
-        // registration would be done like:
-        // Item.CODEC.register("HexBook", HexBookItem.class, HexBookItem.CODEC);
-        // However, the actual registration may vary based on Hytale's API.
-        // For now, we log that the type is available.
-
-        LOGGER.atInfo().log("HexBookItem type available for asset loading (codec defined in HexBookItem.CODEC)");
-    }
-
-    /**
-     * Register custom components for the Hexcode mod.
-     */
-    private void registerComponents() {
-        // Register HexNodeComponent for unified HexNode entity tracking
-        hexNodeComponentType = this.getEntityStoreRegistry().registerComponent(
-                HexNodeComponent.class,
-                "HexNodeComponent",
-                HexNodeComponent.CODEC);
-        HexNodeComponent.setComponentType(hexNodeComponentType);
-        LOGGER.atInfo().log("Registered HexNodeComponent with CODEC");
-
-        // Register OrbitalPositionComponent for player-relative positioning
-        orbitalPositionComponentType = this.getEntityStoreRegistry().registerComponent(
-                OrbitalPositionComponent.class,
-                "OrbitalPositionComponent",
-                OrbitalPositionComponent.CODEC);
-        OrbitalPositionComponent.setComponentType(orbitalPositionComponentType);
-        LOGGER.atInfo().log("Registered OrbitalPositionComponent with CODEC");
-    }
-
-    /**
-     * Register ECS systems for the Hexcode mod.
-     *
-     * <p>
-     * Note: Orbital positioning is handled directly in
-     * GlyphMode.updateOrbitalGlyphs()
-     * which runs each tick while glyph mode is active. This is more performant than
-     * a global ECS system since it only processes entities when needed.
-     *
-     * <p>
-     * Child nodes still use MountedComponent for internal hierarchy.
-     */
-    private void registerSystems() {
-        // Orbital positioning handled in GlyphMode.updateOrbitalGlyphs() for
-        // performance
-        // No ECS systems needed - ticking only happens when glyph mode is active
-        ComponentType<EntityStore, EffectControllerComponent> effectType = EffectControllerComponent.getComponentType();
-        GlyphGlowSystem.setEffectControllerType(effectType);
-        LOGGER.atInfo().log("System registration complete (orbital positioning in GlyphMode)");
-    }
+  private static void onPlayerConnect(PlayerConnectEvent event) {
+    Holder<EntityStore> holder = event.getHolder();
+    holder.ensureAndGetComponent(HexcasterComponent.getComponentType());
+  }
 }

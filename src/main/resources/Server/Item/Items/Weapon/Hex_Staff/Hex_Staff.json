@@ -1,4 +1,5 @@
 {
+  "Parent": "Template_HexStaff",
   "$Comment": "Hex Staff - Main hand weapon for Hexcode spell system. Requires Hex Book in offhand.",
   "TranslationProperties": {
     "Name": "server.items.Hex_Staff.name"
@@ -15,42 +16,6 @@
   "Interactions": {
     "Primary": "Hexcode_Staff_Cast",
     "Secondary": "Hexcode_Staff_Secondary"
-  },
-  "InteractionVars": {
-    "Staff_Cast_Summon_Charged": {
-      "Interactions": [
-        {
-          "Parent": "Staff_Cast_Summon_Charged",
-          "Costs": {
-            "Mana": 50
-          }
-        }
-      ]
-    },
-    "Staff_Cast_Summon_Cost": {
-      "Interactions": [
-        {
-          "Parent": "Staff_Cast_Cost",
-          "StatModifiers": {
-            "Mana": -50
-          }
-        }
-      ]
-    },
-    "Staff_Cast_Summon_Launch": {
-      "Interactions": [
-        {
-          "Parent": "Staff_Cast_Launch",
-          "ProjectileId": "Fireball"
-        }
-      ]
-    },
-    "Staff_Cast_Summon_Effect": "Staff_Cast_Effect",
-    "Staff_Cast_Summon_Fail": "Staff_Cast_Fail",
-    "Spear_Swing_Left_Damage": "Spear_Swing_Left_Damage",
-    "Spear_Swing_Right_Damage": "Spear_Swing_Right_Damage",
-    "Spear_Swing_Left_Effect": "Spear_Swing_Left_Effect",
-    "Spear_Swing_Right_Effect": "Spear_Swing_Right_Effect"
   },
   "IconProperties": {
     "Scale": 0.25,

@@ -1,10 +1,9 @@
 {
-  "$Comment": "Primary (left-click) interaction for Hex Staff - drag glyphs or cast hex",
+  "$Comment": "Primary (left-click) while in Casting Mode - select and drag glyphs",
   "RequireNewClick": false,
   "ClickQueuingTimeout": 0.0,
   "Cooldown": {
-    "CooldownId": "hexcode_glyph_action",
-    "Cooldown": 0.1
+    "Cooldown": 0.05
   },
   "Interactions": [
     "Hexcode_Glyph_Select"

@@ -1,5 +1,4 @@
 {
-  "Id": "Hex_Book",
   "Parent": "Template_HexBook",
   "TranslationProperties": {
     "Name": "server.items.Hex_Book.name"
@@ -13,6 +12,10 @@
   "Texture": "Items/Tools/Book/Hex_Book_Texture.png",
   "Icon": "Icons/ItemsGenerated/Hex_Book.png",
   "DroppedItemAnimation": "Items/Animations/Dropped/Dropped_Diagonal_Left.blockyanim",
+  "Interactions": {
+    "Primary": "Hexcode_Staff_Cast",
+    "Secondary": "Hexcode_Staff_Secondary"
+  },
   "IconProperties": {
     "Scale": 0.745,
     "Translation": [
@@ -32,5 +35,9 @@
   },
   "Scale": 1.1,
   "ItemSoundSetId": "ISS_Weapons_Books",
-  "MaxStack": 1
+  "MaxStack": 1,
+  "Utility": {
+    "Usable": true,
+    "Compatible": true
+  }
 }

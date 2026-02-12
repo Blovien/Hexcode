@@ -1,0 +1,19 @@
+{
+  "ModelPath": "Plasma",
+  "BasePower": 1.5,
+  "ManaConsumption": 20,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Circle",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Circle",
+      "Size": 0.85
+    },
+    {
+      "ShapeId": "Circle",
+      "Size": 0.75
+    }
+  ]
+}

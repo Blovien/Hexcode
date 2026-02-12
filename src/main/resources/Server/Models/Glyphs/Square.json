@@ -1,0 +1,21 @@
+{
+  "Model": "VFX/Glyphs/Square.blockymodel",
+  "Texture": "VFX/Glyphs/Square.png",
+  "HitBox": {
+    "Min": {"X": -0.25, "Y": -0.25, "Z": -0.25},
+    "Max": {"X": 0.25, "Y": 0.25, "Z": 0.25}
+  },
+  "MinScale": 1,
+  "MaxScale": 1,
+  "AnimationSets": {
+    "Idle": {
+      "Animations": [
+        {
+          "Looping": true,
+          "Speed": 0.25,
+          "Animation": "VFX/Glyphs/Animations/Glyph_Idle.blockyanim"
+        }
+      ]
+    }
+  }
+}

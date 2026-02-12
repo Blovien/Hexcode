@@ -1,0 +1,9 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "Hexcode_Grow_Effect"
+    }
+  ],
+  "LifeSpan": 2.0,
+  "CullDistance": 50
+}

@@ -1,0 +1,9 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "Hexcode_Ice_Effect"
+    }
+  ],
+  "LifeSpan": 1.5,
+  "CullDistance": 50
+}

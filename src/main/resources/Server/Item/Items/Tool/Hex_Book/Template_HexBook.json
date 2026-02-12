@@ -1,6 +1,4 @@
 {
-  "Id": "Template_HexBook",
-  "ItemCategory": "Spellbook",
   "Tags": {
     "Family": [
       "HexBook"
@@ -10,15 +8,9 @@
     ]
   },
   "MaxStack": 1,
-  "Quality": "Rare",
-  "PlayerAnimationsId": "Spellbook",
+  "MaxCapacity": 8,
   "Utility": {
     "Usable": true,
     "Compatible": true
-  },
-  "Interactions": {
-    "Primary": "Hexcode_Staff_Cast",
-    "Secondary": "Hexcode_Staff_Secondary"
-  },
-  "Icon": "Icons/ItemsGenerated/Hex_Book.png"
+  }
 }

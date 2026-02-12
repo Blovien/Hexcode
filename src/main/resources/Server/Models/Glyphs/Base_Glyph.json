@@ -1,6 +1,6 @@
 {
-  "Model": "VFX/Glyphs/base_glyph.blockymodel",
-  "ModelVFX": "ModelVFX/GlyphGlow.json",
+  "Model": "VFX/Glyphs/Base_Glyph.blockymodel",
+  "Texture": "VFX/Glyphs/Base_Glyph.png",
   "HitBox": {
     "Min": {
       "X": -0.25,
@@ -14,5 +14,16 @@
     }
   },
   "MinScale": 1,
-  "MaxScale": 1
+  "MaxScale": 1,
+  "AnimationSets": {
+    "Idle": {
+      "Animations": [
+        {
+          "Looping": true,
+          "Speed": 0.25,
+          "Animation": "VFX/Glyphs/Animations/Glyph_Idle.blockyanim"
+        }
+      ]
+    }
+  }
 }

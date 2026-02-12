@@ -1,12 +1,16 @@
 {
-  "$Comment": "Secondary (right-click) interaction for Hex Staff - toggles Glyph Mode",
+  "$Comment": "Secondary (right-click) interaction for Hex Staff - hold to enter Casting Mode",
   "RequireNewClick": true,
   "ClickQueuingTimeout": 0.1,
   "Cooldown": {
-    "CooldownId": "hexcode_glyph_mode_toggle",
     "Cooldown": 0.3
   },
   "Interactions": [
     "Hexcode_Staff_Secondary"
-  ]
+  ],
+  "Rules": {
+    "Interrupting": [
+      "Primary"
+    ]
+  }
 }
