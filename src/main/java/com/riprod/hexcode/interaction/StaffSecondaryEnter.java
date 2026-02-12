@@ -63,7 +63,7 @@ public class StaffSecondaryEnter extends ChargingInteraction {
             return;
         }
 
-        HexcasterComponent hexcaster = commandBuffer.ensureAndGetComponent(playerRef,
+        HexcasterComponent hexcaster = commandBuffer.getComponent(playerRef,
                 HexcasterComponent.getComponentType());
 
         if (hexcaster == null) {

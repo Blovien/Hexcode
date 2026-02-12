@@ -20,12 +20,25 @@ import com.riprod.hexcode.player.component.HexcasterComponent;
 import com.riprod.hexcode.player.system.CasterInventory;
 
 public class ExecutionManager {
+  private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+
   public static InteractionState BeginExecution(ComponentAccessor<EntityStore> accessor,
       HexcasterComponent hexcaster,
       Ref<EntityStore> playerRef) {
 
     HexStaffComponent hexStaff = CasterInventory.getHexStaffComponent(accessor, playerRef);
+    if (hexStaff == null) {
+      LOGGER.atWarning().log("no hex staff component found, cannot execute spell");
+      return InteractionState.Failed;
+    }
+
     HexGraph activeHex = hexStaff.getActiveSpell();
+    if (activeHex == null) {
+      LOGGER.atWarning().log("no active spell on staff, nothing to execute");
+      return InteractionState.Finished;
+    }
+
+    LOGGER.atInfo().log("Beginning execution of spell with root glyph id: %s", activeHex.toString());
 
     Executor.beginExecution(activeHex, playerRef, accessor);
 

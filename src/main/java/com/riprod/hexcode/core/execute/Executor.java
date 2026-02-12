@@ -27,56 +27,58 @@ public class Executor {
 
     public static void beginExecution(@Nonnull HexGraph spell, @Nonnull Ref<EntityStore> casterRef,
             @Nonnull ComponentAccessor<EntityStore> accessor) {
-        // get the hex context ready
         HexContext hexContext = new HexContext(casterRef, accessor, spell);
-        // execute the root glyph
         ExecutionContext executionContext = new ExecutionContext();
 
         UUIDComponent uuidComponent = accessor.getComponent(casterRef, UUIDComponent.getComponentType());
-
         EntityVar casterVar = new EntityVar(uuidComponent.getUuid(), casterRef);
-
-        List<SpellVar> rootVars = List.of(casterVar);
-
-        // set the first var as the player ref
-        executionContext.setVariable(0, rootVars);
-
-        // setup the first glyph
+        executionContext.setVariable(0, List.of(casterVar));
         executionContext.setCurrentNode(hexContext.spellGraph.rootId);
 
-        continueExecution(hexContext, executionContext);
-    }
-
-    public static void continueExecution(HexContext hexContext, ExecutionContext executionContext) {
-        UUID rootNode = hexContext.spellGraph.rootId;
-
-        Glyph node = hexContext.spellGraph.nodes.get(rootNode);
-
-        GlyphHandler handler = GlyphRegistry.get(node.getGlyphId());
-
+        Glyph rootNode = hexContext.spellGraph.nodes.get(hexContext.spellGraph.rootId);
+        GlyphHandler handler = GlyphRegistry.get(rootNode.getGlyphId());
         if (handler == null) {
-            LOGGER.atSevere().log("No handler found for glyph id %s, skipping execution of this node", node.getGlyphId());
+            LOGGER.atSevere().log("no handler found for root glyph %s", rootNode.getGlyphId());
             return;
         }
 
-        List<UUID> nextNodes = node.getNext();
+        handler.execute(hexContext, executionContext);
+    }
+
+    public static void continueExecution(HexContext hexContext, ExecutionContext executionContext) {
+        UUID currentNodeId = executionContext.getCurrentNode();
+        Glyph currentNode = hexContext.spellGraph.nodes.get(currentNodeId);
+        List<UUID> nextNodes = currentNode.getNext();
+
+        LOGGER.atInfo().log("Continuing execution from node %s with %d next nodes", currentNodeId, nextNodes.size());
 
         if (nextNodes.isEmpty()) {
-            LOGGER.atInfo().log("No next nodes to execute after node %s", rootNode);
             return;
         }
 
         if (nextNodes.size() == 1) {
-            // send to child without cloning context since no branching will occur
-            executionContext.setCurrentNode(nextNodes.get(0));
-            handler.execute(hexContext, executionContext);
+            UUID nextId = nextNodes.get(0);
+            Glyph nextNode = hexContext.spellGraph.nodes.get(nextId);
+            GlyphHandler nextHandler = GlyphRegistry.get(nextNode.getGlyphId());
+            if (nextHandler == null) {
+                LOGGER.atSevere().log("no handler found for glyph %s, skipping", nextNode.getGlyphId());
+                return;
+            }
+            executionContext.setCurrentNode(nextId);
+            nextHandler.execute(hexContext, executionContext);
+            return;
         }
 
         for (UUID nextNodeId : nextNodes) {
-            // clone for neighbors
-            ExecutionContext newContext = executionContext.copy();
-            newContext.setCurrentNode(nextNodeId);
-            handler.execute(hexContext, newContext);
+            Glyph nextNode = hexContext.spellGraph.nodes.get(nextNodeId);
+            GlyphHandler nextHandler = GlyphRegistry.get(nextNode.getGlyphId());
+            if (nextHandler == null) {
+                LOGGER.atSevere().log("no handler found for glyph %s, skipping", nextNode.getGlyphId());
+                continue;
+            }
+            ExecutionContext branchedContext = executionContext.copy();
+            branchedContext.setCurrentNode(nextNodeId);
+            nextHandler.execute(hexContext, branchedContext);
         }
     }
 }

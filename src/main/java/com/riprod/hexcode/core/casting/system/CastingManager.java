@@ -123,10 +123,10 @@ public class CastingManager {
         HexGraph compiledGlyph = Compiler.compile(rootGlyph);
 
         staff.setActiveSpell(compiledGlyph);
+        CasterInventory.saveHexStaffComponent(accessor, playerRef, staff);
 
-        LOGGER.atInfo().log("Compiled spell with root glyph id: %s", rootGlyph.toString());
+        LOGGER.atInfo().log("Compiled spell with root glyph id: %s", compiledGlyph.toString());
 
-        // Set casting mode to false
         return InteractionState.Finished;
     }
 

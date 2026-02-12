@@ -30,7 +30,7 @@ public class HexStaffComponent implements Component<EntityStore> {
     @Nonnull
     private String styleId = "ring";
     @Nullable
-    private transient HexGraph activeSpell;
+    private HexGraph activeSpell;
 
     public HexStaffComponent() {
     }

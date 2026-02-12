@@ -70,6 +70,15 @@ public class CasterInventory {
         player.getInventory().getUtility().setItemStackForSlot(activeSlot, newStack);
     }
 
+    public static void saveHexStaffComponent(ComponentAccessor<EntityStore> store,
+            Ref<EntityStore> playerRef, HexStaffComponent component) {
+        Player player = store.getComponent(playerRef, Player.getComponentType());
+        ItemStack mainHandItem = player.getInventory().getItemInHand();
+        ItemStack newStack = mainHandItem.withMetadata(METADATA_KEY_HEX_STAFF, HexStaffComponent.CODEC, component);
+        short activeSlot = player.getInventory().getActiveHotbarSlot();
+        player.getInventory().getHotbar().setItemStackForSlot(activeSlot, newStack);
+    }
+
     @Nullable
     public static HexStaffComponent getHexStaffComponent(ComponentAccessor<EntityStore> store,
             Ref<EntityStore> playerRef) {

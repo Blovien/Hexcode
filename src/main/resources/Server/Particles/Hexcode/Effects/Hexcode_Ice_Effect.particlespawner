@@ -1,0 +1,44 @@
+{
+  "RenderMode": "BlendAdd",
+  "EmitOffset": {
+    "X": { "Min": -0.3, "Max": 0.3 },
+    "Y": { "Min": 0, "Max": 0.3 },
+    "Z": { "Min": -0.3, "Max": 0.3 }
+  },
+  "ParticleRotationInfluence": "Billboard",
+  "LinearFiltering": true,
+  "LightInfluence": 0,
+  "MaxConcurrentParticles": 25,
+  "ParticleLifeSpan": { "Min": 0.8, "Max": 1.5 },
+  "ParticleRotateWithSpawner": false,
+  "SpawnRate": { "Min": 10, "Max": 15 },
+  "InitialVelocity": {
+    "Yaw": { "Min": 0, "Max": 360 },
+    "Pitch": { "Min": 60, "Max": 120 },
+    "Speed": { "Min": 0.2, "Max": 0.5 }
+  },
+  "Particle": {
+    "Texture": "Particles/Hexcode/Glyphs/glyph_ice.png",
+    "FrameSize": { "Width": 32, "Height": 32 },
+    "ScaleRatioConstraint": "OneToOne",
+    "Color": { "R": 120, "G": 180, "B": 255, "A": 255 },
+    "Animation": {
+      "0": {
+        "Scale": {
+          "X": { "Min": 0.06, "Max": 0.1 },
+          "Y": { "Min": 0.06, "Max": 0.1 }
+        },
+        "Opacity": 0
+      },
+      "10": { "Opacity": 0.9 },
+      "60": { "Opacity": 0.6 },
+      "100": {
+        "Opacity": 0,
+        "Scale": {
+          "X": { "Min": 0.03, "Max": 0.05 },
+          "Y": { "Min": 0.03, "Max": 0.05 }
+        }
+      }
+    }
+  }
+}

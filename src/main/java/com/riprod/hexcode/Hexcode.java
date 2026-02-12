@@ -24,8 +24,10 @@ import com.hypixel.hytale.assetstore.AssetRegistry;
 import com.hypixel.hytale.assetstore.map.DefaultAssetMap;
 import com.hypixel.hytale.component.ComponentRegistryProxy;
 import com.hypixel.hytale.component.ComponentType;
+import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.asset.HytaleAssetStore;
+import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
@@ -127,6 +129,9 @@ public class Hexcode extends JavaPlugin {
     Interaction.CODEC.register("GlyphDrop", StaffPrimaryExit.class,
         StaffPrimaryExit.CODEC);
 
+    // Events
+    this.getEventRegistry().registerGlobal(PlayerConnectEvent.class, Hexcode::onPlayerConnect);
+
     // Commands
     this.getCommandRegistry().registerCommand(new HexcodeCommand());
 
@@ -151,5 +156,10 @@ public class Hexcode extends JavaPlugin {
 
   public ComponentType<EntityStore, HexcasterComponent> getHexcasterComponentType() {
     return this.hexcasterComponentType;
+  }
+
+  private static void onPlayerConnect(PlayerConnectEvent event) {
+    Holder<EntityStore> holder = event.getHolder();
+    holder.ensureAndGetComponent(HexcasterComponent.getComponentType());
   }
 }

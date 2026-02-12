@@ -4,6 +4,7 @@ import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.protocol.WaitForDataFrom;
@@ -19,11 +20,14 @@ import com.riprod.hexcode.core.casting.system.DraggingManager;
 import com.riprod.hexcode.core.drawing.system.DrawingManager;
 import com.riprod.hexcode.core.execute.system.ExecutionManager;
 import com.riprod.hexcode.player.component.HexcasterComponent;
+import com.riprod.hexcode.player.component.HexcasterComponent.HexcasterMode;
+
 import it.unimi.dsi.fastutil.floats.Float2ObjectOpenHashMap;
 
 import javax.annotation.Nonnull;
 
 public class StaffPrimaryEnter extends ChargingInteraction {
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     @Nonnull
     public static final BuilderCodec<StaffPrimaryEnter> CODEC = BuilderCodec
@@ -70,10 +74,13 @@ public class StaffPrimaryEnter extends ChargingInteraction {
             return;
         }
 
+        HexcasterMode currentMode = hexcaster.getCurrentMode();
+
         // First run logic
 
         if (firstRun) {
-            switch (hexcaster.getCurrentMode()) {
+            LOGGER.atInfo().log("Player entered staff primary interaction with current mode: %s", currentMode);
+            switch (currentMode) {
                 case CASTING: {
                     ctx.getState().state = DraggingManager.EnterDraggingMode(commandBuffer, hexcaster, playerRef);
                     break;
@@ -96,7 +103,7 @@ public class StaffPrimaryEnter extends ChargingInteraction {
 
         // Every tick logic
 
-        switch (hexcaster.getCurrentMode()) {
+        switch (currentMode) {
             case CASTING: {
                 ctx.getState().state = DraggingManager.DraggingModeTick(commandBuffer, hexcaster, playerRef);
                 break;
