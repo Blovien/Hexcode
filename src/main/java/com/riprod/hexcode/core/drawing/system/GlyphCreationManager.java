@@ -5,11 +5,14 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.riprod.hexcode.core.drawing.component.DrawnShapeComponent;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.glyphs.registry.GlyphAsset;
 
 public class GlyphCreationManager {
+    public static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+
     public static void NormalizeShapeSizes(List<DrawnShapeComponent> drawn) {
         float maxSize = 0f;
         for (DrawnShapeComponent shape : drawn) {
@@ -58,6 +61,7 @@ public class GlyphCreationManager {
                 bestScore = score;
                 bestMatch = asset;
             }
+            LOGGER.atInfo().log("Scored glyph '%s' with %.2f accuracy", asset.getId(), score);
         }
 
         return bestMatch; // null if nothing matched

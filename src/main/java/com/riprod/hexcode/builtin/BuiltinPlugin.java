@@ -2,7 +2,6 @@ package com.riprod.hexcode.builtin;
 
 import com.riprod.hexcode.builtin.glyphs.BlinkGlyph;
 import com.riprod.hexcode.builtin.glyphs.FireGlyph;
-import com.riprod.hexcode.builtin.glyphs.HealGlyph;
 import com.riprod.hexcode.builtin.glyphs.IceGlyph;
 import com.riprod.hexcode.builtin.glyphs.PlasmaGlyph;
 import com.riprod.hexcode.builtin.styles.ArcStyle;
@@ -32,7 +31,6 @@ public class BuiltinPlugin {
         GlyphRegistry.register(new BlinkGlyph());
         GlyphRegistry.register(new IceGlyph());
         GlyphRegistry.register(new PlasmaGlyph());
-        GlyphRegistry.register(new HealGlyph());
         GlyphRegistry.register(new FireGlyph());
     }
 

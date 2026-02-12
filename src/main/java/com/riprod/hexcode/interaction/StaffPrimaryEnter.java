@@ -17,6 +17,7 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.operation.
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.casting.system.DraggingManager;
 import com.riprod.hexcode.core.drawing.system.DrawingManager;
+import com.riprod.hexcode.core.execute.system.ExecutionManager;
 import com.riprod.hexcode.player.component.HexcasterComponent;
 import it.unimi.dsi.fastutil.floats.Float2ObjectOpenHashMap;
 
@@ -79,6 +80,10 @@ public class StaffPrimaryEnter extends ChargingInteraction {
                 }
                 case DRAWING: {
                     ctx.getState().state = DrawingManager.StartDrawing(commandBuffer, hexcaster, playerRef);
+                    break;
+                }
+                case IDLE: {// execute spell if in idle
+                    ctx.getState().state = ExecutionManager.BeginExecution(commandBuffer, hexcaster, playerRef);
                     break;
                 }
                 default:

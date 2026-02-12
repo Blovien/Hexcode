@@ -101,6 +101,10 @@ public class GlyphComponent implements Component<EntityStore> {
     private Vector3f offset = new Vector3f(0, 0, 0);
     private float scale = 2f;
 
+    /** Execution Context items */
+    private List<Integer> numbers = new ArrayList<>();
+    private List<Integer> variables = new ArrayList<>();
+
     // for the codec - do not use
     public GlyphComponent() {
     }
@@ -125,6 +129,17 @@ public class GlyphComponent implements Component<EntityStore> {
         return componentType;
     }
 
+    @Nonnull
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(@Nonnull UUID id) {
+        this.id = id;
+    }
+
+    /** Casting Context Items */
+
     public boolean isChild() {
         return rootRef != null;
     }
@@ -136,15 +151,6 @@ public class GlyphComponent implements Component<EntityStore> {
 
     public void setGlyphId(@Nonnull String glyphId) {
         this.glyphId = glyphId;
-    }
-
-    @Nonnull
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(@Nonnull UUID id) {
-        this.id = id;
     }
 
     @Nullable
@@ -172,78 +178,6 @@ public class GlyphComponent implements Component<EntityStore> {
 
     public void setRootRef(@Nullable Ref<EntityStore> hexRootRef) {
         this.rootRef = hexRootRef;
-    }
-
-    public float getYaw() {
-        return yaw;
-    }
-
-    public void setYaw(float yaw) {
-        this.yaw = yaw;
-    }
-
-    public float getPitch() {
-        return pitch;
-    }
-
-    public void setPitch(float pitch) {
-        this.pitch = pitch;
-    }
-
-    public double getDistance() {
-        return distance;
-    }
-
-    public void setDistance(double distance) {
-        this.distance = distance;
-    }
-
-    public SphericalPosition getSphericalPosition() {
-        return new SphericalPosition(yaw, pitch, distance);
-    }
-
-    public float getScale() {
-        return scale;
-    }
-
-    public void setScale(float scale) {
-        this.scale = scale;
-    }
-
-    public float getAccuracy() {
-        return accuracy;
-    }
-
-    public void setAccuracy(float accuracy) {
-        this.accuracy = accuracy;
-    }
-
-    public float getSpeed() {
-        return speed;
-    }
-
-    public void setSpeed(float speed) {
-        this.speed = speed;
-    }
-
-    public void setDragState(Boolean isBeingDragged) {
-        this.isBeingDragged = isBeingDragged;
-    }
-
-    public boolean isBeingDragged() {
-        return isBeingDragged;
-    }
-
-    public Vector3f getOffset() {
-        return offset;
-    }
-
-    public void setOffset(Vector3f offset) {
-        this.offset = offset;
-    }
-
-    public void setOffset(float x, float y, float z) {
-        this.offset = new Vector3f(x, y, z);
     }
 
     public List<GlyphComponent> getChildren() {
@@ -281,6 +215,99 @@ public class GlyphComponent implements Component<EntityStore> {
 
     public boolean isLeaf() {
         return children.isEmpty();
+    }
+
+    /** Positioning */
+
+    public float getYaw() {
+        return yaw;
+    }
+
+    public void setYaw(float yaw) {
+        this.yaw = yaw;
+    }
+
+    public float getPitch() {
+        return pitch;
+    }
+
+    public void setPitch(float pitch) {
+        this.pitch = pitch;
+    }
+
+    public double getDistance() {
+        return distance;
+    }
+
+    public void setDistance(double distance) {
+        this.distance = distance;
+    }
+
+    public SphericalPosition getSphericalPosition() {
+        return new SphericalPosition(yaw, pitch, distance);
+    }
+
+    public float getScale() {
+        return scale;
+    }
+
+    public void setScale(float scale) {
+        this.scale = scale;
+    }
+
+    public void setDragState(Boolean isBeingDragged) {
+        this.isBeingDragged = isBeingDragged;
+    }
+
+    public boolean isBeingDragged() {
+        return isBeingDragged;
+    }
+
+    public Vector3f getOffset() {
+        return offset;
+    }
+
+    public void setOffset(Vector3f offset) {
+        this.offset = offset;
+    }
+
+    public void setOffset(float x, float y, float z) {
+        this.offset = new Vector3f(x, y, z);
+    }
+
+    /** Attributes */
+
+    public float getAccuracy() {
+        return accuracy;
+    }
+
+    public void setAccuracy(float accuracy) {
+        this.accuracy = accuracy;
+    }
+
+    public float getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(float speed) {
+        this.speed = speed;
+    }
+
+    /** Casting Context Items */
+    public List<Integer> getNumbers() {
+        return numbers;
+    }
+
+    public void setNumbers(List<Integer> numbers) {
+        this.numbers = numbers;
+    }
+
+    public List<Integer> getVariables() {
+        return variables;
+    }
+
+    public void setVariables(List<Integer> variables) {
+        this.variables = variables;
     }
 
     @Nonnull

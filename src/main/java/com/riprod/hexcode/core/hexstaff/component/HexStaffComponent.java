@@ -6,7 +6,7 @@ import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.execute.component.HexGraph;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -19,6 +19,10 @@ public class HexStaffComponent implements Component<EntityStore> {
                     (c, v) -> c.styleId = v,
                     c -> c.styleId)
             .add()
+            .append(new KeyedCodec<>("SpellGraph", HexGraph.CODEC),
+                    (c, v) -> c.activeSpell = v,
+                    c -> c.activeSpell)
+            .add()
             .build();
 
     private static ComponentType<EntityStore, HexStaffComponent> componentType;
@@ -26,7 +30,7 @@ public class HexStaffComponent implements Component<EntityStore> {
     @Nonnull
     private String styleId = "ring";
     @Nullable
-    private transient GlyphComponent activeSpell;
+    private transient HexGraph activeSpell;
 
     public HexStaffComponent() {
     }
@@ -53,11 +57,11 @@ public class HexStaffComponent implements Component<EntityStore> {
     }
 
     @Nullable
-    public GlyphComponent getActiveSpell() {
+    public HexGraph getActiveSpell() {
         return activeSpell;
     }
 
-    public void setActiveSpell(@Nullable GlyphComponent activeSpell) {
+    public void setActiveSpell(@Nullable HexGraph activeSpell) {
         this.activeSpell = activeSpell;
     }
 

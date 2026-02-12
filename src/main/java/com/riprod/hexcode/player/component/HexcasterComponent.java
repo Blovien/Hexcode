@@ -44,6 +44,7 @@ public class HexcasterComponent implements Component<EntityStore> {
     private List<GlyphComponent> hoveredChain = new ArrayList<>();
     private GlyphComponent draggingGlyph = null;
     private GlyphComponent hoveredGlyph = null;
+    private GlyphComponent lastSelectedGlyph = null;
 
     // Drawing Mode
     private FloatArrayList drawnStrokes = new FloatArrayList();
@@ -148,10 +149,16 @@ public class HexcasterComponent implements Component<EntityStore> {
         this.hoveredChain.clear();
         this.draggingGlyph = null;
         this.hoveredGlyph = null;
+        this.lastSelectedGlyph = null;
     }
 
     @Nullable
     public void setDraggingGlyph(GlyphComponent draggingGlyph) {
+
+        if (draggingGlyph != null) {
+            // update last selected glyph if we're starting to drag a new glyph
+            setLastSelectedGlyph(draggingGlyph);
+        }
 
         if (this.draggingGlyph != null) {
             this.draggingGlyph.setDragState(false);
@@ -229,6 +236,14 @@ public class HexcasterComponent implements Component<EntityStore> {
 
     public void isInChain(GlyphComponent glyph) {
         this.hoveredChain.contains(glyph);
+    }
+
+    public void setLastSelectedGlyph(GlyphComponent glyph) {
+        this.lastSelectedGlyph = glyph;
+    }
+
+    public GlyphComponent getLastSelectedGlyph() {
+        return this.lastSelectedGlyph;
     }
 
     /**

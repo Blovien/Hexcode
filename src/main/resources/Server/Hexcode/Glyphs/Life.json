@@ -1,5 +1,15 @@
 {
   "ModelPath": "Life",
   "BasePower": 1.5,
-  "ManaConsumption": 20
+  "ManaConsumption": 20,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Square",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Square",
+      "Size": 0.85
+    }
+  ]
 }

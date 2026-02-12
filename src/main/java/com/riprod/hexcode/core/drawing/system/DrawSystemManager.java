@@ -78,7 +78,7 @@ public class DrawSystemManager {
         }
 
         // spawn the shape particles along the path
-        InterfaceManager.spawnParticles(accessor, playerRef, hexcaster);
+        InterfaceManager.createIndicator(accessor, playerRef, hexcaster);
 
         return InteractionState.NotFinished;
     }

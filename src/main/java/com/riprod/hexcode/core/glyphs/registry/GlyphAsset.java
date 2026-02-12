@@ -16,7 +16,6 @@ import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.codecs.array.ArrayCodec;
 import com.hypixel.hytale.codec.validation.ValidatorCache;
 import com.riprod.hexcode.core.drawing.component.DrawnShapeComponent;
-import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 
 public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<String, GlyphAsset>> {
     public static final AssetBuilderCodec<String, GlyphAsset> CODEC;

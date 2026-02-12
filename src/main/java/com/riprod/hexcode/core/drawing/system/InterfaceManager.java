@@ -14,6 +14,7 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.Color;
+import com.hypixel.hytale.protocol.packets.buildertools.BuilderToolLaserPointer;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
@@ -23,8 +24,10 @@ import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel;
 import com.hypixel.hytale.server.core.modules.entity.component.PropComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.modules.time.TimeResource;
 import com.hypixel.hytale.server.core.universe.world.ParticleUtil;
+import com.hypixel.hytale.server.core.universe.world.PlayerUtil;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.drawing.component.DrawnShapeComponent;
 import com.riprod.hexcode.player.component.HexcasterComponent;
@@ -115,7 +118,7 @@ public class InterfaceManager {
     trailTransform.setPosition(position);
   }
 
-  public static void spawnParticles(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> playerRef,
+  public static void createIndicator(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> playerRef,
       HexcasterComponent hexcaster) {
 
     TimeResource timeResource = accessor.getResource(TimeResource.getResourceType());
@@ -133,18 +136,51 @@ public class InterfaceManager {
     }
 
     hexcaster.setLastParticleSpawnMillis(curTime);
-    
+
     // get the last 4 strokePoints
     List<DrawnShapeComponent> allGlyphs = hexcaster.getDrawnGlyphs();
     int size = allGlyphs.size();
     List<DrawnShapeComponent> strokePoints = allGlyphs.subList(Math.max(0, size - 4), size);
-    
+
     // spawns all particles
     for (DrawnShapeComponent position : strokePoints) {
-      for (Vector3d point : position.getPoints()) {
-        ParticleUtil.spawnParticleEffect(DRAWING_PARTICLE, point, 0.0f, 0.0f, 0.0f, 1.0f, position.getColor(),
-        List.of(playerRef), accessor);
-      }
+      // spawnParticleAtShape(accessor, playerRef, position); skip particle spawning for now, just spawn lasers
+      spawnLaserAtShape(accessor, playerRef, position);
+    }
+  }
+
+  private static void spawnParticleAtShape(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> playerRef,
+      DrawnShapeComponent position) {
+    for (Vector3d point : position.getPoints()) {
+      ParticleUtil.spawnParticleEffect(DRAWING_PARTICLE, point, 0.0f, 0.0f, 0.0f, 1.0f, position.getColor(),
+          List.of(playerRef), accessor);
+    }
+  }
+
+  private static void spawnLaserAtShape(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> playerRef,
+      DrawnShapeComponent shape) {
+    List<Vector3d> points = shape.getPoints();
+    if (points == null || points.size() < 2) {
+      return;
+    }
+
+    Color color = shape.getColor();
+    int packedColor = ((color.red & 0xFF) << 16)
+        | ((color.green & 0xFF) << 8)
+        | (color.blue & 0xFF);
+
+    for (int i = 0; i < points.size() - 1; i++) {
+      Vector3d a = points.get(i);
+      Vector3d b = points.get(i + 1);
+
+      BuilderToolLaserPointer packet = new BuilderToolLaserPointer(
+          0,
+          (float) a.x, (float) a.y, (float) a.z,
+          (float) b.x, (float) b.y, (float) b.z,
+          packedColor,
+          5000);
+
+      PlayerUtil.broadcastPacketToPlayers(accessor, packet);
     }
   }
 
@@ -173,7 +209,7 @@ public class InterfaceManager {
     }
 
     float totalDist = cumDist[pointCount - 1];
-    int sampleCount = Math.min(pointCount, 16);
+    int sampleCount = Math.min(pointCount, 12); // cap at 12 due to laser limit
     float stepDist = totalDist / (sampleCount - 1);
 
     int cursor = 0;

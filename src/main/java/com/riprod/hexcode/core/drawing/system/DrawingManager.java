@@ -68,7 +68,7 @@ public class DrawingManager {
         DrawnShapeComponent result = ShapeComparator.getShape(grid);
 
         // get the list of particles to spawn for the shape reference component
-        List<Vector3d> drawnGlyphs = InterfaceManager.getPositionsFromAngles(accessor, points, playerRef, 2.0f);
+        List<Vector3d> drawnGlyphs = InterfaceManager.getPositionsFromAngles(accessor, points, playerRef, 4.0f);
         Color color = InterfaceManager.getColorFromQuality(result.getAccuracy());
         result.setColor(color);
         result.setPoints(drawnGlyphs);
@@ -91,7 +91,7 @@ public class DrawingManager {
         hexcaster.addDrawnGlyph(result);
         hexcaster.clearStrokes();
         hexcaster.setLastParticleSpawnMillis(0L);
-        InterfaceManager.spawnParticles(accessor, playerRef, hexcaster);
+        InterfaceManager.createIndicator(accessor, playerRef, hexcaster);
 
         return InteractionState.Finished;
     }

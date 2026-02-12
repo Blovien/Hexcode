@@ -9,6 +9,7 @@ import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.protocol.InteractionState;
+import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -16,8 +17,11 @@ import com.riprod.hexcode.core.casting.GlyphPositioner;
 import com.riprod.hexcode.core.casting.GlyphSelector;
 import com.riprod.hexcode.core.casting.GlyphSpawner;
 import com.riprod.hexcode.core.casting.GlyphStyler;
+import com.riprod.hexcode.core.execute.Compiler;
+import com.riprod.hexcode.core.execute.component.HexGraph;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.glyphs.utils.CreateGlyph;
+import com.riprod.hexcode.core.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.hexstaff.component.HexStaffComponent;
 import com.riprod.hexcode.player.component.HexcasterComponent;
@@ -101,6 +105,26 @@ public class CastingManager {
                 LOGGER.atSevere().withCause(e).log("Failed to despawn casting root entity");
             }
         }
+
+        // Compile the last selected spell
+        HexStaffComponent staff = CasterInventory.getHexStaffComponent(accessor, playerRef);
+        GlyphComponent rootGlyph = hexcaster.getLastSelectedGlyph();
+
+        if (rootGlyph == null) {
+            LOGGER.atWarning().log("No root glyph found for compilation, skipping");
+            return InteractionState.Finished;
+        }
+
+        if (staff == null) {
+            LOGGER.atSevere().log("Player is missing HexStaffComponent, cannot compile spell!");
+            return InteractionState.Failed;
+        }
+
+        HexGraph compiledGlyph = Compiler.compile(rootGlyph);
+
+        staff.setActiveSpell(compiledGlyph);
+
+        LOGGER.atInfo().log("Compiled spell with root glyph id: %s", rootGlyph.toString());
 
         // Set casting mode to false
         return InteractionState.Finished;

@@ -1,5 +1,15 @@
 {
   "ModelPath": "Stamina",
   "BasePower": 1.0,
-  "ManaConsumption": 10
+  "ManaConsumption": 10,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Square",
+      "Size": 0.75
+    },
+    {
+      "ShapeId": "Circle",
+      "Size": 1.0
+    }
+  ]
 }

@@ -41,7 +41,7 @@ public class GlyphsForgetCommand extends AbstractPlayerCommand {
 
         HexBookComponent bookComponent = CasterInventory.getHexBookComponent(store, playerEntityRef);
 
-        bookComponent.removeGlyph(glyphId);
+        bookComponent.removeGlyph(asset.getId());
 
         CasterInventory.saveHexBookComponent(store, playerEntityRef, bookComponent);
 

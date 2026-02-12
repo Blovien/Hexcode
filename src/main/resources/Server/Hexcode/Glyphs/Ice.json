@@ -1,5 +1,19 @@
 {
   "ModelPath": "Ice",
   "BasePower": 1.0,
-  "ManaConsumption": 15
+  "ManaConsumption": 15,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Circle",
+      "Size": 0.85
+    },
+    {
+      "ShapeId": "Anticircle",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Anticircle",
+      "Size": 1.0
+    }
+  ]
 }

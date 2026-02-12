@@ -1,5 +1,15 @@
 {
   "ModelPath": "Death",
   "BasePower": 2.0,
-  "ManaConsumption": 25
+  "ManaConsumption": 25,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Square",
+      "Size": 0.85
+    },
+    {
+      "ShapeId": "Antisquare",
+      "Size": 1.0
+    }
+  ]
 }
