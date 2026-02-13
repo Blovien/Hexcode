@@ -2,7 +2,7 @@ package com.riprod.hexcode.builtin.glyphs.delay;
 
 import com.riprod.hexcode.components.ExecutionContext;
 import com.riprod.hexcode.components.HexContext;
-import com.riprod.hexcode.core.execute.Executor;
+import com.riprod.hexcode.core.execution.Executor;
 import com.riprod.hexcode.core.glyphs.component.GlyphHandler;
 
 public class Delay implements GlyphHandler {

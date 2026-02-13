@@ -8,13 +8,13 @@
   ],
   "Quality": "Rare",
   "ItemLevel": 35,
-  "PlayerAnimationsId": "Staff",
+  "PlayerAnimationsId": "HexStaff",
   "Utility": {
     "Compatible": true
   },
   "Interactions": {
-    "Primary": "Hexcode_Staff_Cast",
-    "Secondary": "Hexcode_Staff_Secondary"
+    "Primary": "Hexcode_Staff_Primary",
+    "Secondary": "Hexcode_Book_Secondary"
   },
   "IconProperties": {
     "Scale": 0.25,

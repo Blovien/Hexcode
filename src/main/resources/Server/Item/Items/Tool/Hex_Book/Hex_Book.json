@@ -13,8 +13,8 @@
   "Icon": "Icons/ItemsGenerated/Hex_Book.png",
   "DroppedItemAnimation": "Items/Animations/Dropped/Dropped_Diagonal_Left.blockyanim",
   "Interactions": {
-    "Primary": "Hexcode_Staff_Cast",
-    "Secondary": "Hexcode_Staff_Secondary"
+    "Primary": "Hexcode_Staff_Primary",
+    "Secondary": "Hexcode_Book_Secondary"
   },
   "IconProperties": {
     "Scale": 0.745,

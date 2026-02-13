@@ -16,11 +16,9 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.config.dat
 import com.hypixel.hytale.server.core.modules.interaction.interaction.operation.Label;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.operation.OperationsBuilder;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.casting.system.DraggingManager;
-import com.riprod.hexcode.core.drawing.system.DrawingManager;
-import com.riprod.hexcode.core.execute.system.ExecutionManager;
-import com.riprod.hexcode.player.component.HexcasterComponent;
-import com.riprod.hexcode.player.component.HexcasterComponent.HexcasterMode;
+import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
+import com.riprod.hexcode.state.HexcodeManager;
+import com.riprod.hexcode.state.StateRouter;
 
 import it.unimi.dsi.fastutil.floats.Float2ObjectOpenHashMap;
 
@@ -74,58 +72,26 @@ public class StaffPrimaryEnter extends ChargingInteraction {
             return;
         }
 
-        HexcasterMode currentMode = hexcaster.getCurrentMode();
-
-        // First run logic
-
-        if (firstRun) {
-            LOGGER.atInfo().log("Player entered staff primary interaction with current mode: %s", currentMode);
-            switch (currentMode) {
-                case CASTING: {
-                    ctx.getState().state = DraggingManager.EnterDraggingMode(commandBuffer, hexcaster, playerRef);
-                    break;
-                }
-                case DRAWING: {
-                    ctx.getState().state = DrawingManager.StartDrawing(commandBuffer, hexcaster, playerRef);
-                    break;
-                }
-                case IDLE: {// execute spell if in idle
-                    ctx.getState().state = ExecutionManager.BeginExecution(commandBuffer, hexcaster, playerRef);
-                    break;
-                }
-                default:
-                    break;
-            }
-
+        HexcodeManager manager = StateRouter.route(hexcaster.getState());
+        if (manager == null) {
+            ctx.getState().state = InteractionState.Finished;
             super.tick0(firstRun, time, type, ctx, cooldown);
             return;
         }
 
-        // Every tick logic
-
-        switch (currentMode) {
-            case CASTING: {
-                ctx.getState().state = DraggingManager.DraggingModeTick(commandBuffer, hexcaster, playerRef);
-                break;
-            }
-            case DRAWING: {
-                ctx.getState().state = DrawingManager.DrawTick(commandBuffer, hexcaster, playerRef);
-                break;
-            }
-            default:
-                ctx.getState().state = InteractionState.Finished;
-                break;
+        if (firstRun) {
+            ctx.getState().state = manager.onPrimaryEnter(playerRef, hexcaster, commandBuffer);
+            super.tick0(firstRun, time, type, ctx, cooldown);
+            return;
         }
 
+        ctx.getState().state = manager.onPrimaryTick(playerRef, hexcaster, commandBuffer);
         super.tick0(firstRun, time, type, ctx, cooldown);
-        return;
     }
 
     @Override
     protected void simulateTick0(boolean firstRun, float time, @Nonnull InteractionType type,
             @Nonnull InteractionContext ctx, @Nonnull CooldownHandler cooldown) {
-        // todo: update dragged glyph position to follow look direction (client
-        // prediction)
         super.simulateTick0(firstRun, time, type, ctx, cooldown);
     }
 

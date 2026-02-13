@@ -14,7 +14,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.hexbook.component.HexBookComponent;
-import com.riprod.hexcode.player.system.CasterInventory;
+import com.riprod.hexcode.core.hexcaster.utils.CasterInventory;
 
 import javax.annotation.Nonnull;
 

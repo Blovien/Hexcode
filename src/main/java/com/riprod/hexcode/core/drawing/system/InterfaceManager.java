@@ -30,7 +30,7 @@ import com.hypixel.hytale.server.core.universe.world.ParticleUtil;
 import com.hypixel.hytale.server.core.universe.world.PlayerUtil;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.drawing.component.DrawnShapeComponent;
-import com.riprod.hexcode.player.component.HexcasterComponent;
+import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.utils.GlyphMath;
 
 import it.unimi.dsi.fastutil.floats.FloatArrayList;

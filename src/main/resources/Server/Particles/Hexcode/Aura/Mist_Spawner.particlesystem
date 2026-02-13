@@ -1,0 +1,9 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "Mist_Spawner"
+    }
+  ],
+  "LifeSpan": 999,
+  "CullDistance": 50
+}

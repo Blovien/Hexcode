@@ -1,0 +1,9 @@
+{
+  "$Comment": "Exits Casting Mode when Secondary is released - finalizes spell, despawns glyphs",
+  "Type": "BookSecondaryExit",
+  "RunTime": 0.1,
+  "Effects": {
+    "ItemAnimationId": "HexExit",
+    "WorldSoundEventId": "SFX_Hexcode_Casting_Exit"
+  }
+}

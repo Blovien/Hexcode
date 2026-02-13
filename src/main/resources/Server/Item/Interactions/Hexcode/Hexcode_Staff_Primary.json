@@ -1,0 +1,10 @@
+{
+  "$Comment": "Glyph selection - hold to drag a glyph. Release chains to GlyphDrop.",
+  "Type": "StaffPrimaryEnter",
+  "CancelOnOtherClick": false,
+  "RunTime": 0.3,
+  "Effects": {
+    "ItemAnimationId": "HexCast"
+  },
+  "Next": "Hexcode_Staff_Primary_Exit"
+}

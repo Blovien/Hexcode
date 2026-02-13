@@ -1,0 +1,9 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "Room_Spawner"
+    }
+  ],
+  "LifeSpan": 0.05,
+  "CullDistance": 50
+}

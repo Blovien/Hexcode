@@ -1,0 +1,12 @@
+{
+  "Layers": [
+    {
+      "Files": [
+        "Sounds/Hexcode/Casting/Casting_Loop.ogg"
+      ],
+      "Looping": true
+    }
+  ],
+  "Volume": -3.0,
+  "Parent": "SFX_Attn_Moderate"
+}

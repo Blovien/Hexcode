@@ -11,10 +11,8 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHa
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.SimpleInteraction;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.data.Collector;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.casting.system.CastingManager;
-import com.riprod.hexcode.core.drawing.system.DrawSystemManager;
-import com.riprod.hexcode.player.component.HexcasterComponent;
-import com.riprod.hexcode.player.component.HexcasterComponent.HexcasterMode;
+import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
+import com.riprod.hexcode.state.HexState;
 
 import javax.annotation.Nonnull;
 
@@ -51,20 +49,16 @@ public class StaffSecondaryExit extends SimpleInteraction {
             return;
         }
 
-        // First run logic
-
         if (firstRun) {
-            switch (hexcaster.getCurrentMode()) {
+            switch (hexcaster.getState()) {
                 case CASTING: {
-                    // CASTING -> IDLE
-                    ctx.getState().state = CastingManager.ExitCastingMode(commandBuffer, hexcaster, playerRef);
-                    hexcaster.setState(HexcasterMode.IDLE);
+                    hexcaster.requestStateChange(HexState.IDLE);
+                    ctx.getState().state = InteractionState.Finished;
                     break;
                 }
                 case DRAWING: {
-                    // DRAWING -> CRAFTING
-                    ctx.getState().state = DrawSystemManager.ExitDrawingMode(commandBuffer, hexcaster, playerRef);
-                    hexcaster.setState(HexcasterMode.CRAFTING);
+                    hexcaster.requestStateChange(HexState.CRAFTING);
+                    ctx.getState().state = InteractionState.Finished;
                     break;
                 }
                 default:
@@ -76,23 +70,13 @@ public class StaffSecondaryExit extends SimpleInteraction {
             return;
         }
 
-        // Tick logic
-
-        switch (hexcaster.getCurrentMode()) {
-            case CASTING:
-            case DRAWING:
-            default:
-                ctx.getState().state = InteractionState.Finished;
-                break;
-        }
-
+        ctx.getState().state = InteractionState.Finished;
         super.tick0(firstRun, time, type, ctx, cooldown);
     }
 
     @Override
     protected void simulateTick0(boolean firstRun, float time, @Nonnull InteractionType type,
             @Nonnull InteractionContext ctx, @Nonnull CooldownHandler cooldown) {
-        // client waits for server
     }
 
     @Nonnull

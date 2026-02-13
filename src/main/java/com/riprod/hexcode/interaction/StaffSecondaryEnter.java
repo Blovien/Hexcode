@@ -15,10 +15,8 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.config.dat
 import com.hypixel.hytale.server.core.modules.interaction.interaction.operation.Label;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.operation.OperationsBuilder;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.casting.system.CastingManager;
-import com.riprod.hexcode.core.drawing.system.DrawSystemManager;
-import com.riprod.hexcode.player.component.HexcasterComponent;
-import com.riprod.hexcode.player.component.HexcasterComponent.HexcasterMode;
+import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
+import com.riprod.hexcode.state.HexState;
 
 import it.unimi.dsi.fastutil.floats.Float2ObjectOpenHashMap;
 
@@ -71,19 +69,16 @@ public class StaffSecondaryEnter extends ChargingInteraction {
             return;
         }
 
-        // First run logic
         if (firstRun) {
-            switch (hexcaster.getCurrentMode()) {
+            switch (hexcaster.getState()) {
                 case IDLE: {
-                    // IDLE -> CASTING
-                    ctx.getState().state = CastingManager.EnterCastingMode(commandBuffer, hexcaster, playerRef);
-                    hexcaster.setState(HexcasterMode.CASTING);
+                    hexcaster.requestStateChange(HexState.CASTING);
+                    ctx.getState().state = InteractionState.NotFinished;
                     break;
                 }
                 case CRAFTING: {
-                    // CRAFTING -> DRAWING
-                    ctx.getState().state = DrawSystemManager.EnterDrawingMode(commandBuffer, hexcaster, playerRef);
-                    hexcaster.setState(HexcasterMode.DRAWING);
+                    hexcaster.requestStateChange(HexState.DRAWING);
+                    ctx.getState().state = InteractionState.NotFinished;
                     break;
                 }
                 default:
@@ -95,24 +90,8 @@ public class StaffSecondaryEnter extends ChargingInteraction {
             return;
         }
 
-        // Every tick logic
-
-        switch (hexcaster.getCurrentMode()) {
-            case CASTING: {
-                ctx.getState().state = CastingManager.CastingModeTick(commandBuffer, hexcaster, playerRef);
-                break;
-            }
-            case DRAWING: {
-                ctx.getState().state = DrawSystemManager.DrawingTick(commandBuffer, hexcaster, playerRef);
-                break;
-            }
-            default:
-                ctx.getState().state = InteractionState.Finished;
-                break;
-        }
-
+        ctx.getState().state = InteractionState.NotFinished;
         super.tick0(firstRun, time, type, ctx, cooldown);
-        return;
     }
 
     @Override

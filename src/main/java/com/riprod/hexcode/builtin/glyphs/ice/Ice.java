@@ -8,7 +8,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.riprod.hexcode.components.ExecutionContext;
 import com.riprod.hexcode.components.Glyph;
 import com.riprod.hexcode.components.HexContext;
-import com.riprod.hexcode.core.execute.Executor;
+import com.riprod.hexcode.core.execution.Executor;
 import com.riprod.hexcode.core.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.glyphs.variables.EntityVar;

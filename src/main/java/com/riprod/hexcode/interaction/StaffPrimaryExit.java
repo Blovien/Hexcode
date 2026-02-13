@@ -13,9 +13,9 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHa
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.SimpleInteraction;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.data.Collector;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.casting.system.DraggingManager;
-import com.riprod.hexcode.core.drawing.system.DrawingManager;
-import com.riprod.hexcode.player.component.HexcasterComponent;
+import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
+import com.riprod.hexcode.state.HexcodeManager;
+import com.riprod.hexcode.state.StateRouter;
 
 public class StaffPrimaryExit extends SimpleInteraction {
 
@@ -49,43 +49,23 @@ public class StaffPrimaryExit extends SimpleInteraction {
             return;
         }
 
-        // First run logic
-
         if (firstRun) {
-            switch (hexcaster.getCurrentMode()) {
-                case CASTING: {
-                    ctx.getState().state = DraggingManager.ExitDraggingMode(commandBuffer, hexcaster, playerRef);
-                    break;
-                }
-                case DRAWING: {
-                    ctx.getState().state = DrawingManager.StopDrawing(commandBuffer, hexcaster, playerRef);
-                    break;
-                }
-                default:
-                    ctx.getState().state = InteractionState.Finished;
-                    break;
+            HexcodeManager manager = StateRouter.route(hexcaster.getState());
+            if (manager != null) {
+                ctx.getState().state = manager.onPrimaryExit(playerRef, hexcaster, commandBuffer);
+            } else {
+                ctx.getState().state = InteractionState.Finished;
             }
-
             super.tick0(firstRun, time, type, ctx, cooldown);
             return;
         }
 
-        // Tick logic
-
-        switch (hexcaster.getCurrentMode()) {
-            case CASTING:
-            case DRAWING:
-            default:
-                ctx.getState().state = InteractionState.Finished;
-                break;
-        }
-        return;
+        ctx.getState().state = InteractionState.Finished;
     }
 
     @Override
     protected void simulateTick0(boolean firstRun, float time, @Nonnull InteractionType type,
             @Nonnull InteractionContext ctx, @Nonnull CooldownHandler cooldown) {
-        // client waits for server confirmation on merges
     }
 
     @Nonnull

@@ -1,0 +1,11 @@
+{
+  "$Comment": "Secondary (right-click) interaction for Hex Staff - hold to enter Casting Mode",
+  "RequireNewClick": true,
+  "ClickQueuingTimeout": 0.1,
+  "Cooldown": {
+    "Cooldown": 0.3
+  },
+  "Interactions": [
+    "Hexcode_Staff_Primary_Interact"
+  ]
+}

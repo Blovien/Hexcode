@@ -1,0 +1,8 @@
+{
+  "$Comment": "Glyph drop - check for merge with another glyph or lock position",
+  "Type": "StaffPrimaryExit",
+  "RunTime": 0.05,
+  "Effects": {
+    "ItemAnimationId": "HexExit"
+  }
+}

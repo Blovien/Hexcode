@@ -7,5 +7,8 @@
       "Weapon"
     ]
   },
+  "Model": "Items/Weapons/Staff/Hex_Staff.blockymodel",
+  "Texture": "Items/Weapons/Staff/Hex_Staff_Texture.png",
+  "Icon": "Icons/ItemsGenerated/Hex_Staff.png",
   "StyleId": "ring"
 }

@@ -3,7 +3,7 @@ package com.riprod.hexcode.components;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.execute.component.HexGraph;
+import com.riprod.hexcode.core.execution.component.HexGraph;
 
 /**
  * Holds all of the information relating to the current hex execution

@@ -1,0 +1,18 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "Ring_Spawner",
+      "PositionOffset": {
+        "Y": -1.5
+      }
+    },
+    {
+      "SpawnerId": "Burst_Spawner",
+      "PositionOffset": {
+        "Y": -2
+      }
+    }
+  ],
+  "LifeSpan": 999,
+  "CullDistance": 50
+}

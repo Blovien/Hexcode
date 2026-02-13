@@ -3,7 +3,7 @@ package com.riprod.hexcode.components;
 import java.util.List;
 import java.util.UUID;
 
-import com.riprod.hexcode.core.execute.component.VariableMap;
+import com.riprod.hexcode.core.execution.component.VariableMap;
 import com.riprod.hexcode.core.glyphs.variables.SpellVar;
 
 /**

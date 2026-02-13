@@ -38,6 +38,17 @@ public class CreateGlyph {
         holder.addComponent(UUIDComponent.getComponentType(),
                 new UUIDComponent(UUID.randomUUID()));
 
+        // add the Casting Anchor model to the root entitiy for particles and side
+        // effects to be tied to
+        ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset("Casting_Anchor");
+        Model model = Model.createUnitScaleModel(modelAsset);
+
+        holder.addComponent(ModelComponent.getComponentType(),
+                new ModelComponent(model));
+
+        holder.addComponent(PersistentModel.getComponentType(),
+                new PersistentModel(model.toReference()));
+
         int networkId = accessor.getExternalData().takeNextNetworkId();
         holder.addComponent(NetworkId.getComponentType(), new NetworkId(networkId));
 

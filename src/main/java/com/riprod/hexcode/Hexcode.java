@@ -13,13 +13,22 @@ import com.riprod.hexcode.core.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.glyphs.variables.SpellVar;
 import com.riprod.hexcode.core.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.hexbook.registry.HexBookAsset;
+import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.hexstaff.component.HexStaffComponent;
 import com.riprod.hexcode.core.hexstaff.registry.HexStaffAsset;
 import com.riprod.hexcode.interaction.StaffSecondaryEnter;
 import com.riprod.hexcode.interaction.StaffSecondaryExit;
+import com.riprod.hexcode.state.HexState;
+import com.riprod.hexcode.state.HexTick;
+import com.riprod.hexcode.state.HexcodeManager;
+import com.riprod.hexcode.state.StateRouter;
+import com.riprod.hexcode.core.idle.IdleSystem;
+import com.riprod.hexcode.core.casting.CastingSystem;
+import com.riprod.hexcode.core.drawing.DrawingSystem;
+import com.riprod.hexcode.core.crafting.CraftingSystem;
+import com.riprod.hexcode.core.execution.ExecutionSystem;
 import com.riprod.hexcode.interaction.StaffPrimaryExit;
 import com.riprod.hexcode.interaction.StaffPrimaryEnter;
-import com.riprod.hexcode.player.component.HexcasterComponent;
 import com.hypixel.hytale.assetstore.AssetRegistry;
 import com.hypixel.hytale.assetstore.map.DefaultAssetMap;
 import com.hypixel.hytale.component.ComponentRegistryProxy;
@@ -28,9 +37,11 @@ import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.asset.HytaleAssetStore;
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
+import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class Hexcode extends JavaPlugin {
@@ -120,17 +131,28 @@ public class Hexcode extends JavaPlugin {
     SpellVar.CODEC.register("Position", PositionVar.class, PositionVar.CODEC);
 
     // Interaction Registries
-    Interaction.CODEC.register("CastingModeEnter", StaffSecondaryEnter.class,
+    Interaction.CODEC.register("BookSecondaryEnter", StaffSecondaryEnter.class,
         StaffSecondaryEnter.CODEC);
-    Interaction.CODEC.register("CastingModeExit", StaffSecondaryExit.class,
+    Interaction.CODEC.register("BookSecondaryExit", StaffSecondaryExit.class,
         StaffSecondaryExit.CODEC);
-    Interaction.CODEC.register("GlyphSelect", StaffPrimaryEnter.class,
+    Interaction.CODEC.register("StaffPrimaryEnter", StaffPrimaryEnter.class,
         StaffPrimaryEnter.CODEC);
-    Interaction.CODEC.register("GlyphDrop", StaffPrimaryExit.class,
+    Interaction.CODEC.register("StaffPrimaryExit", StaffPrimaryExit.class,
         StaffPrimaryExit.CODEC);
+
+    // State Managers
+    StateRouter.registerState(HexState.IDLE, new IdleSystem());
+    StateRouter.registerState(HexState.CASTING, new CastingSystem());
+    StateRouter.registerState(HexState.DRAWING, new DrawingSystem());
+    StateRouter.registerState(HexState.CRAFTING, new CraftingSystem());
+    StateRouter.registerState(HexState.EXECUTION, new ExecutionSystem());
+
+    // Ticking Systems
+    entityStoreRegistry.registerSystem(new HexTick());
 
     // Events
     this.getEventRegistry().registerGlobal(PlayerConnectEvent.class, Hexcode::onPlayerConnect);
+    this.getEventRegistry().registerGlobal(PlayerDisconnectEvent.class, Hexcode::onPlayerDisconnect);
 
     // Commands
     this.getCommandRegistry().registerCommand(new HexcodeCommand());
@@ -160,6 +182,17 @@ public class Hexcode extends JavaPlugin {
 
   private static void onPlayerConnect(PlayerConnectEvent event) {
     Holder<EntityStore> holder = event.getHolder();
-    holder.ensureAndGetComponent(HexcasterComponent.getComponentType());
+    HexcasterComponent comp = holder.ensureAndGetComponent(HexcasterComponent.getComponentType());
+
+    for (HexcodeManager manager : StateRouter.allManagers()) {
+      manager.onPlayerJoin(holder, comp);
+    }
+  }
+
+  private static void onPlayerDisconnect(PlayerDisconnectEvent event) {
+    PlayerRef playerRef = event.getPlayerRef();
+    for (HexcodeManager manager : StateRouter.allManagers()) {
+      manager.onPlayerLeave(playerRef);
+    }
   }
 }
