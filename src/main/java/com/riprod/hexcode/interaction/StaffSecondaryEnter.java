@@ -71,7 +71,8 @@ public class StaffSecondaryEnter extends ChargingInteraction {
 
         if (firstRun) {
             switch (hexcaster.getState()) {
-                case IDLE: {
+                case IDLE:
+                case EXECUTION: {
                     hexcaster.requestStateChange(HexState.CASTING);
                     ctx.getState().state = InteractionState.NotFinished;
                     break;

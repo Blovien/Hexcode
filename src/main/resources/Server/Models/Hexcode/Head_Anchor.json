@@ -1,0 +1,45 @@
+{
+  "Model": "VFX/Trails/Trail_Anchor.blockymodel",
+  "Texture": "VFX/Trails/Trail_Anchor.png",
+  "MinScale": 1,
+  "MaxScale": 1,
+  "HitBox": {
+    "Min": {
+      "X": -0.1,
+      "Y": -0.1,
+      "Z": -0.1
+    },
+    "Max": {
+      "X": 0.1,
+      "Y": 0.1,
+      "Z": 0.1
+    }
+  },
+  "Particles": [
+    {
+      "SystemId": "Glyph_Spawner",
+      "DetachedFromModel": false,
+      "PositionOffset": {
+        "X": 0,
+        "Z": 2
+      }
+    }
+  ],
+  "Trails": [
+    {
+      "TrailId": "Hexcode_Dragging_Trail",
+      "TargetEntityPart": "Self",
+      "RotationOffset": {
+        "Yaw": 0,
+        "Pitch": 0,
+        "Roll": 0
+      },
+      "PositionOffset": {
+        "X": 0,
+        "Y": 0,
+        "Z": 2
+      },
+      "FixedRotation": true
+    }
+  ]
+}

@@ -31,6 +31,7 @@ import com.riprod.hexcode.interaction.StaffPrimaryExit;
 import com.riprod.hexcode.interaction.StaffPrimaryEnter;
 import com.hypixel.hytale.assetstore.AssetRegistry;
 import com.hypixel.hytale.assetstore.map.DefaultAssetMap;
+import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.ComponentRegistryProxy;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Holder;

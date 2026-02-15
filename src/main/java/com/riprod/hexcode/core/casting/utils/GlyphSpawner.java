@@ -10,6 +10,7 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.MountController;
+import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.casting.component.CastingStyle;
@@ -30,7 +31,8 @@ public class GlyphSpawner {
         CastingStyle style = CastingStyleRegistry.getOrDefault(styleId);
         TransformComponent ownerTransform = accessor.getComponent(ownerRef, TransformComponent.getComponentType());
         Vector3d ownerPos = ownerTransform.getPosition();
-        Vector3f ownerRotation = ownerTransform.getRotation();
+        HeadRotation headRotation = accessor.getComponent(ownerRef, HeadRotation.getComponentType());
+        Vector3f ownerRotation = headRotation.getRotation();
 
         List<SphericalPosition> positions = style.getInitialPositions(glyphs.size(), ownerRotation.getYaw(),
                 ownerRotation.getPitch());

@@ -2,60 +2,28 @@
   "nodes": [
     {
       "id": "1",
-      "name": "Triangle",
+      "name": "Antitriangle",
       "position": {"x": 0, "y": 0, "z": 0},
       "orientation": {"x": 0, "y": 0, "z": 0, "w": 1},
       "shape": {
-        "type": "box",
-        "offset": {"x": 0, "y": -17.22, "z": 0},
-        "stretch": {"x": 1, "y": 1, "z": 1},
+        "type": "none",
+        "offset": {"x": 0, "y": 0, "z": 0},
+        "stretch": {"x": 0, "y": 0, "z": 0},
         "settings": {
-          "isPiece": false,
-          "size": {"x": 61, "y": 3, "z": 3}
+          "isPiece": false
         },
-        "textureLayout": {
-          "back": {
-            "offset": {"x": 0, "y": 8},
-            "mirror": {"x": false, "y": false},
-            "angle": 0
-          },
-          "right": {
-            "offset": {"x": 1, "y": 16},
-            "mirror": {"x": false, "y": false},
-            "angle": 0
-          },
-          "front": {
-            "offset": {"x": 0, "y": 9},
-            "mirror": {"x": false, "y": false},
-            "angle": 0
-          },
-          "left": {
-            "offset": {"x": 3, "y": 16},
-            "mirror": {"x": false, "y": false},
-            "angle": 0
-          },
-          "top": {
-            "offset": {"x": 24, "y": 7},
-            "mirror": {"x": true, "y": true},
-            "angle": 0
-          },
-          "bottom": {
-            "offset": {"x": 0, "y": 0},
-            "mirror": {"x": false, "y": false},
-            "angle": 0
-          }
-        },
+        "textureLayout": {},
         "unwrapMode": "custom",
         "visible": true,
         "doubleSided": false,
-        "shadingMode": "fullbright"
+        "shadingMode": "flat"
       },
       "children": [
         {
           "id": "2",
-          "name": "Triangle--C1",
-          "position": {"x": 0, "y": 17.22, "z": 0},
-          "orientation": {"x": 0, "y": 0, "z": -0.86603, "w": 0.5},
+          "name": "Antitriangle--C1",
+          "position": {"x": 0, "y": 0, "z": 0},
+          "orientation": {"x": 0, "y": 0, "z": 1, "w": 0},
           "shape": {
             "type": "box",
             "offset": {"x": 0, "y": -17.22, "z": 0},
@@ -92,8 +60,8 @@
                 "angle": 0
               },
               "bottom": {
-                "offset": {"x": 0, "y": 0},
-                "mirror": {"x": false, "y": false},
+                "offset": {"x": 24, "y": 6},
+                "mirror": {"x": true, "y": false},
                 "angle": 0
               }
             },
@@ -105,9 +73,61 @@
         },
         {
           "id": "3",
-          "name": "Triangle--C2",
-          "position": {"x": 0, "y": 17.22, "z": 0},
-          "orientation": {"x": 0, "y": 0, "z": 0.86603, "w": 0.5},
+          "name": "Antitriangle--C2",
+          "position": {"x": 0, "y": 0, "z": 0},
+          "orientation": {"x": 0, "y": 0, "z": 0.5, "w": 0.86603},
+          "shape": {
+            "type": "box",
+            "offset": {"x": 0, "y": -17.22, "z": 0},
+            "stretch": {"x": 1, "y": 1, "z": 1},
+            "settings": {
+              "isPiece": false,
+              "size": {"x": 61, "y": 3, "z": 3},
+              "isStaticBox": true
+            },
+            "textureLayout": {
+              "back": {
+                "offset": {"x": 0, "y": 8},
+                "mirror": {"x": false, "y": false},
+                "angle": 0
+              },
+              "right": {
+                "offset": {"x": 1, "y": 16},
+                "mirror": {"x": false, "y": false},
+                "angle": 0
+              },
+              "front": {
+                "offset": {"x": 0, "y": 9},
+                "mirror": {"x": false, "y": false},
+                "angle": 0
+              },
+              "left": {
+                "offset": {"x": 3, "y": 16},
+                "mirror": {"x": false, "y": false},
+                "angle": 0
+              },
+              "top": {
+                "offset": {"x": 24, "y": 7},
+                "mirror": {"x": true, "y": true},
+                "angle": 0
+              },
+              "bottom": {
+                "offset": {"x": 24, "y": 6},
+                "mirror": {"x": true, "y": false},
+                "angle": 0
+              }
+            },
+            "unwrapMode": "custom",
+            "visible": true,
+            "doubleSided": false,
+            "shadingMode": "fullbright"
+          }
+        },
+        {
+          "id": "4",
+          "name": "Antitriangle--C3",
+          "position": {"x": 0, "y": 0, "z": 0},
+          "orientation": {"x": 0, "y": 0, "z": -0.5, "w": 0.86603},
           "shape": {
             "type": "box",
             "offset": {"x": 0, "y": -17.22, "z": 0},

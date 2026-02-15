@@ -3,7 +3,7 @@
   "RequireNewClick": true,
   "ClickQueuingTimeout": 0.1,
   "Cooldown": {
-    "Cooldown": 0.3
+    "Cooldown": 0.5
   },
   "Interactions": [
     "Hexcode_Book_Secondary"

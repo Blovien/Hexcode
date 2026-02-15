@@ -50,6 +50,7 @@ public class HexcasterComponent implements Component<EntityStore> {
 
     // Casting Mode
     private Ref<EntityStore> castingRootRef = null;
+    private Ref<EntityStore> headAnchorRef = null;
     @Nonnull
     private List<GlyphComponent> activeGlyphs = new ArrayList<>();
     private List<GlyphComponent> hoveredChain = new ArrayList<>();
@@ -115,6 +116,14 @@ public class HexcasterComponent implements Component<EntityStore> {
         this.castingRootRef = castingRootRef;
     }
 
+    public Ref<EntityStore> getHeadAnchorRef() {
+        return headAnchorRef;
+    }
+
+    public void setHeadAnchorRef(Ref<EntityStore> headAnchorRef) {
+        this.headAnchorRef = headAnchorRef;
+    }
+
     public List<GlyphComponent> getActiveGlyphs() {
         return activeGlyphs;
     }
@@ -155,6 +164,7 @@ public class HexcasterComponent implements Component<EntityStore> {
 
     public void clearCastingState() {
         this.castingRootRef = null;
+        this.headAnchorRef = null;
         this.activeGlyphs.clear();
         this.hoveredChain.clear();
         this.draggingGlyph = null;
@@ -235,6 +245,7 @@ public class HexcasterComponent implements Component<EntityStore> {
         HexcasterComponent copy = new HexcasterComponent();
         copy.currentState = this.currentState;
         copy.castingRootRef = this.castingRootRef;
+        copy.headAnchorRef = this.headAnchorRef;
         copy.activeGlyphs = new ArrayList<>(this.activeGlyphs);
         copy.hoveredChain = new ArrayList<>(this.hoveredChain);
         copy.draggingGlyph = this.draggingGlyph;

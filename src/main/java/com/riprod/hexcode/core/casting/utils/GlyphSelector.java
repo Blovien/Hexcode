@@ -98,19 +98,19 @@ public class GlyphSelector {
         TransformComponent glyphPos = accessor.getComponent(glyph.getSelfRef(), TransformComponent.getComponentType());
 
         Vector3f playerRotation = headRotation.getRotation();
-        Vector3d playerPos = playerTransform.getPosition();
+        // Vector3d playerPos = playerTransform.getPosition();
 
-        float eyeHeight = 0f;
-        ModelComponent modelComp = accessor.getComponent(playerRef, ModelComponent.getComponentType());
-        if (modelComp != null && modelComp.getModel() != null) {
-            eyeHeight = modelComp.getModel().getEyeHeight(playerRef, accessor);
-        }
+        // float eyeHeight = 0f;
+        // ModelComponent modelComp = accessor.getComponent(playerRef, ModelComponent.getComponentType());
+        // if (modelComp != null && modelComp.getModel() != null) {
+        //     eyeHeight = modelComp.getModel().getEyeHeight(playerRef, accessor);
+        // }
 
-        Vector3d eyePos = new Vector3d(playerPos.x, playerPos.y + eyeHeight, playerPos.z);
-        Vector3d updatedPos = GlyphMath.sphericalToCartesian(eyePos, playerRotation.getYaw(),
-                playerRotation.getPitch(), glyph.getDistance());
+        // Vector3d eyePos = new Vector3d(playerPos.x, playerPos.y + eyeHeight, playerPos.z);
+        // Vector3d updatedPos = GlyphMath.sphericalToCartesian(eyePos, playerRotation.getYaw(),
+        //         playerRotation.getPitch(), glyph.getDistance());
 
-        glyphPos.setPosition(updatedPos);
+        // glyphPos.setPosition(updatedPos); do not update the position
         glyph.setYaw(playerRotation.getYaw());
         glyph.setPitch(playerRotation.getPitch());
         glyphPos.setRotation(new Vector3f(glyph.getPitch(), glyph.getYaw(), 0));

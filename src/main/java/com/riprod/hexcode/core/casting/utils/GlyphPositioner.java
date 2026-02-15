@@ -4,7 +4,6 @@ import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
@@ -25,12 +24,9 @@ public class GlyphPositioner {
             return;
         }
 
-        float eyeHeight = 0f;
-        ModelComponent modelComp = accessor.getComponent(ownerRef, ModelComponent.getComponentType());
-        if (modelComp != null && modelComp.getModel() != null) {
-            eyeHeight = modelComp.getModel().getEyeHeight(ownerRef, accessor);
-        }
+        rootTransform.getRotation().assign(0, 0, 0);
 
-        rootTransform.getPosition().assign(ownerPos.x, ownerPos.y + eyeHeight, ownerPos.z);
+        // rootTransform.getPosition().assign(ownerPos.x, ownerPos.y + eyeHeight,
+        // ownerPos.z);
     }
 }

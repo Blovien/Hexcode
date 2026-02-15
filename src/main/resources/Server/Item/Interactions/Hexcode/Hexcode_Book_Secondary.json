@@ -1,7 +1,7 @@
 {
   "$Comment": "intro animation before entering casting mode",
   "Type": "Charging",
-  "RunTime": 0.5,
+  "RunTime": 0.2,
   "CancelOnOtherClick": false,
   "Effects": {
     "ItemAnimationId": "HexCastingEnter",
@@ -9,6 +9,7 @@
     "ItemPlayerAnimationsId": "HexStaff"
   },
   "Next": {
-    "0.0": "Hexcode_Book_Secondary_Hold"
+    "0.0": "Hexcode_Book_Secondary_Exit",
+    "0.2": "Hexcode_Book_Secondary_Hold"
   }
 }

@@ -31,6 +31,7 @@ import com.riprod.hexcode.core.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.hexcaster.utils.CasterInventory;
 import com.riprod.hexcode.core.hexstaff.component.HexStaffComponent;
+import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
 import com.riprod.hexcode.utils.GlyphMath;
 
@@ -53,9 +54,16 @@ public class CastingSystem extends HexcodeManager {
         List<GlyphComponent> glyphs = book.getGlyphs();
         String style = staff.getStyleId();
 
-        TransformComponent transform = buffer.getComponent(ref, TransformComponent.getComponentType());
-        Vector3d ownerPos = transform.getPosition();
-        Ref<EntityStore> castingRootRef = CreateGlyph.createCastingRoot(buffer, ownerPos);
+        // TransformComponent transform = buffer.getComponent(ref,
+        // TransformComponent.getComponentType());
+        // Vector3d ownerPos = transform.getPosition();
+
+        float eyeHeight = 0f;
+        ModelComponent modelComp = buffer.getComponent(ref, ModelComponent.getComponentType());
+        if (modelComp != null && modelComp.getModel() != null) {
+            eyeHeight = modelComp.getModel().getEyeHeight(ref, buffer);
+        }
+        Ref<EntityStore> castingRootRef = CreateGlyph.createCastingRoot(buffer, ref, eyeHeight);
 
         comp.setCastingRootRef(castingRootRef);
 
@@ -67,27 +75,7 @@ public class CastingSystem extends HexcodeManager {
     public void lastTick(Ref<EntityStore> ref, HexcasterComponent comp,
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
 
-        List<GlyphComponent> activeGlyphs = comp.getActiveGlyphs();
-        for (GlyphComponent glyph : activeGlyphs) {
-            try {
-                cleanupGlyphChildren(buffer, glyph);
-                Holder<EntityStore> glyphHolder = EntityStore.REGISTRY.newHolder();
-                buffer.removeEntity(glyph.getSelfRef(), glyphHolder, RemoveReason.REMOVE);
-            } catch (Exception e) {
-                LOGGER.atSevere().withCause(e)
-                        .log("Failed to despawn glyph entity with ref: " + glyph.getId());
-            }
-        }
-
-        Ref<EntityStore> castingRootRef = comp.getCastingRootRef();
-        if (castingRootRef != null) {
-            try {
-                Holder<EntityStore> rootHolder = EntityStore.REGISTRY.newHolder();
-                buffer.removeEntity(castingRootRef, rootHolder, RemoveReason.REMOVE);
-            } catch (Exception e) {
-                LOGGER.atSevere().withCause(e).log("Failed to despawn casting root entity");
-            }
-        }
+        cleanupEntities(buffer, comp);
 
         HexStaffComponent staff = CasterInventory.getHexStaffComponent(buffer, ref);
         GlyphComponent rootGlyph = comp.getLastSelectedGlyph();
@@ -96,6 +84,7 @@ public class CastingSystem extends HexcodeManager {
             HexGraph compiledGlyph = Compiler.compile(rootGlyph);
             staff.setActiveSpell(compiledGlyph);
             CasterInventory.saveHexStaffComponent(buffer, ref, staff);
+            comp.requestStateChange(HexState.EXECUTION);
         }
 
         comp.clearCastingState();
@@ -118,6 +107,14 @@ public class CastingSystem extends HexcodeManager {
 
         if (activeGlyphs == null || castingRootRef == null || !castingRootRef.isValid()) {
             return;
+        }
+
+        // Despawn head anchor if not dragging a glyph
+        Ref<EntityStore> headAnchor = comp.getHeadAnchorRef();
+        if (comp.getDraggingGlyph() == null && headAnchor != null && headAnchor.isValid()) {
+            Holder<EntityStore> headHolder = EntityStore.REGISTRY.newHolder();
+            buffer.removeEntity(headAnchor, headHolder, RemoveReason.REMOVE);
+            comp.setHeadAnchorRef(null);
         }
 
         GlyphPositioner.PositionGlyphs(buffer, ref, ownerPos, castingRootRef);
@@ -145,6 +142,16 @@ public class CastingSystem extends HexcodeManager {
             return InteractionState.Failed;
         }
 
+        float eyeHeight = 0f;
+        ModelComponent modelComp = accessor.getComponent(ref, ModelComponent.getComponentType());
+        if (modelComp != null && modelComp.getModel() != null) {
+            eyeHeight = modelComp.getModel().getEyeHeight(ref, accessor);
+        }
+
+        Ref<EntityStore> headRootRef = CreateGlyph.createHeadAnchor(accessor, ref, eyeHeight);
+
+        comp.setHeadAnchorRef(headRootRef);
+
         GlyphStyler.ExitHover(accessor, hoveredGlyph);
 
         Ref<EntityStore> glyphRef = hoveredGlyph.getSelfRef();
@@ -153,6 +160,10 @@ public class CastingSystem extends HexcodeManager {
         }
 
         comp.setDraggingGlyph(hoveredGlyph);
+
+        float distance = (float) hoveredGlyph.getDistance();
+        accessor.addComponent(glyphRef, MountedComponent.getComponentType(),
+                new MountedComponent(headRootRef, new Vector3f(0, 0, -distance), MountController.Minecart));
 
         return InteractionState.NotFinished;
     }
@@ -163,6 +174,18 @@ public class CastingSystem extends HexcodeManager {
 
         if (comp.getDraggingGlyph() == null) {
             return InteractionState.Finished;
+        }
+
+        // Update on prim tick
+        Ref<EntityStore> headAnchor = comp.getHeadAnchorRef();
+        // head anchor: match head look direction
+        if (headAnchor != null && headAnchor.isValid()) {
+            HeadRotation headRot = accessor.getComponent(ref, HeadRotation.getComponentType());
+            if (headRot != null) {
+                TransformComponent headTransform = accessor.getComponent(headAnchor,
+                        TransformComponent.getComponentType());
+                headTransform.getRotation().assign(headRot.getRotation().getPitch(), headRot.getRotation().getYaw(), 0);
+            }
         }
 
         GlyphSelector.DragGlyph(accessor, ref, comp.getDraggingGlyph());
@@ -195,6 +218,7 @@ public class CastingSystem extends HexcodeManager {
                 GlyphSpawner.MergeGlyphs(accessor, draggedGlyph, hoveredGlyph, eyeHeight);
                 comp.setDraggingGlyph(null);
                 comp.removeActiveGlyph(draggedGlyph.getId());
+
                 return InteractionState.Finished;
             } catch (Exception e) {
                 LOGGER.atWarning().withCause(e).log("Error merging glyphs, dropping on ground instead");
@@ -228,6 +252,40 @@ public class CastingSystem extends HexcodeManager {
             }
         } catch (Exception e) {
             LOGGER.atSevere().withCause(e).log("Failed to cleanup child glyphs for glyph with ref: " + glyph.getId());
+        }
+    }
+
+    private void cleanupEntities(ComponentAccessor<EntityStore> accessor, HexcasterComponent comp) {
+        List<GlyphComponent> activeGlyphs = comp.getActiveGlyphs();
+        for (GlyphComponent glyph : activeGlyphs) {
+            try {
+                cleanupGlyphChildren(accessor, glyph);
+                Holder<EntityStore> glyphHolder = EntityStore.REGISTRY.newHolder();
+                accessor.removeEntity(glyph.getSelfRef(), glyphHolder, RemoveReason.REMOVE);
+            } catch (Exception e) {
+                LOGGER.atSevere().withCause(e)
+                        .log("Failed to despawn glyph entity with ref: " + glyph.getId());
+            }
+        }
+
+        Ref<EntityStore> castingRootRef = comp.getCastingRootRef();
+        if (castingRootRef != null) {
+            try {
+                Holder<EntityStore> rootHolder = EntityStore.REGISTRY.newHolder();
+                accessor.removeEntity(castingRootRef, rootHolder, RemoveReason.REMOVE);
+            } catch (Exception e) {
+                LOGGER.atSevere().withCause(e).log("Failed to despawn casting root entity");
+            }
+        }
+
+        Ref<EntityStore> headAnchor = comp.getHeadAnchorRef();
+        if (headAnchor != null && headAnchor.isValid()) {
+            try {
+                Holder<EntityStore> headHolder = EntityStore.REGISTRY.newHolder();
+                accessor.removeEntity(headAnchor, headHolder, RemoveReason.REMOVE);
+            } catch (Exception e) {
+                LOGGER.atSevere().withCause(e).log("Failed to despawn head anchor entity");
+            }
         }
     }
 }
