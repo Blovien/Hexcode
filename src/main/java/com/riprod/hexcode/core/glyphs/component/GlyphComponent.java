@@ -99,7 +99,7 @@ public class GlyphComponent implements Component<EntityStore> {
     private Boolean isBeingDragged = false;
     /** Used for positioning child glyphs relative to their parent */
     private Vector3f offset = new Vector3f(0, 0, 0);
-    private float scale = 2f;
+    private float scale = 1f;
 
     /** Execution Context items */
     private List<Integer> numbers = new ArrayList<>();

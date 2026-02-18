@@ -1,4 +1,10 @@
 {
+  "Parent": "Base_Staff",
   "ItemId": "Hex_Staff",
-  "CastStyleId": "ring"
+  "CastStyleId": "ring",
+  "CastingAuraParticles": [
+    {
+      "SystemId": "Rune_System"
+    }
+  ]
 }

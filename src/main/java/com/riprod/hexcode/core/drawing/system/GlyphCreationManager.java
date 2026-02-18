@@ -61,8 +61,12 @@ public class GlyphCreationManager {
                 bestScore = score;
                 bestMatch = asset;
             }
-            LOGGER.atInfo().log("Scored glyph '%s' with %.2f accuracy", asset.getId(), score);
+            if (score > 0f) {
+                LOGGER.atInfo().log("Scored glyph '%s' with %.2f accuracy", asset.getId(), score);
+            }
         }
+
+        LOGGER.atInfo().log("Best glyph match: " + (bestMatch != null ? bestMatch.getId() : "none") + " with score " + bestScore);
 
         return bestMatch; // null if nothing matched
     }

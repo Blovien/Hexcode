@@ -1,0 +1,11 @@
+{
+  "ItemId": "Arcane_Hexbook",
+  "MaxGlyphs": 8,
+  "CastingAuraParticles": [
+    {
+      "SystemId": "Shock_Spawner",
+      "TargetEntityPart": "Self",
+      "TargetNodeName": ""
+    }
+  ]
+}

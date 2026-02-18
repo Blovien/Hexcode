@@ -15,6 +15,8 @@ import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.MountController;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
+import com.hypixel.hytale.server.core.asset.type.model.config.ModelParticle;
+import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
@@ -28,9 +30,11 @@ import com.riprod.hexcode.core.execution.component.HexGraph;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.glyphs.utils.CreateGlyph;
 import com.riprod.hexcode.core.hexbook.component.HexBookComponent;
+import com.riprod.hexcode.core.hexbook.registry.HexBookAsset;
 import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.hexcaster.utils.CasterInventory;
 import com.riprod.hexcode.core.hexstaff.component.HexStaffComponent;
+import com.riprod.hexcode.core.hexstaff.registry.HexStaffAsset;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
 import com.riprod.hexcode.utils.GlyphMath;
@@ -54,16 +58,19 @@ public class CastingSystem extends HexcodeManager {
         List<GlyphComponent> glyphs = book.getGlyphs();
         String style = staff.getStyleId();
 
-        // TransformComponent transform = buffer.getComponent(ref,
-        // TransformComponent.getComponentType());
-        // Vector3d ownerPos = transform.getPosition();
+        Player player = buffer.getComponent(ref, Player.getComponentType());
+        HexStaffAsset staffAsset = CasterInventory.getHexStaffAsset(player.getInventory().getItemInHand());
+        HexBookAsset bookAsset = CasterInventory.getHexBookAsset(player.getInventory().getUtilityItem());
+        ModelParticle[] staffParticles = staffAsset != null ? staffAsset.getCastingAuraParticles() : null;
+        ModelParticle[] bookParticles = bookAsset != null ? bookAsset.getCastingAuraParticles() : null;
+        ModelParticle[] particles = mergeParticles(staffParticles, bookParticles);
 
         float eyeHeight = 0f;
         ModelComponent modelComp = buffer.getComponent(ref, ModelComponent.getComponentType());
         if (modelComp != null && modelComp.getModel() != null) {
             eyeHeight = modelComp.getModel().getEyeHeight(ref, buffer);
         }
-        Ref<EntityStore> castingRootRef = CreateGlyph.createCastingRoot(buffer, ref, eyeHeight);
+        Ref<EntityStore> castingRootRef = CreateGlyph.createCastingRoot(buffer, ref, eyeHeight, particles);
 
         comp.setCastingRootRef(castingRootRef);
 
@@ -253,6 +260,15 @@ public class CastingSystem extends HexcodeManager {
         } catch (Exception e) {
             LOGGER.atSevere().withCause(e).log("Failed to cleanup child glyphs for glyph with ref: " + glyph.getId());
         }
+    }
+
+    private static ModelParticle[] mergeParticles(ModelParticle[] a, ModelParticle[] b) {
+        if (a == null || a.length == 0) return b;
+        if (b == null || b.length == 0) return a;
+        ModelParticle[] merged = new ModelParticle[a.length + b.length];
+        System.arraycopy(a, 0, merged, 0, a.length);
+        System.arraycopy(b, 0, merged, a.length, b.length);
+        return merged;
     }
 
     private void cleanupEntities(ComponentAccessor<EntityStore> accessor, HexcasterComponent comp) {

@@ -1,0 +1,65 @@
+{
+  "RenderMode": "Erosion",
+  "ParticleRotationInfluence": "None",
+  "LinearFiltering": true,
+  "LightInfluence": 0,
+  "ParticleRotateWithSpawner": false,
+  "ParticleLifeSpan": {
+    "Min": 0.5,
+    "Max": 1
+  },
+  "SpawnRate": {
+    "Min": 20,
+    "Max": 50
+  },
+  "TotalParticles": {
+    "Min": -1,
+    "Max": -1
+  },
+  "MaxConcurrentParticles": 2,
+  "EmitOffset": {
+    "Y": {
+      "Min": 0,
+      "Max": 0.3
+    },
+    "Z": {
+      "Min": 0
+    }
+  },
+  "TrailSpawnerPositionMultiplier": 0,
+  "TrailSpawnerRotationMultiplier": 0,
+  "Particle": {
+    "Animation": {
+      "0": {
+        "Opacity": 0
+      },
+      "50": {
+        "Color": "#abe5ff",
+        "Opacity": 1
+      },
+      "100": {
+        "Opacity": 0,
+        "Color": "#2d0055",
+        "Rotation": {
+          "Y": {
+            "Max": 20
+          }
+        }
+      }
+    },
+    "Texture": "Particles/Textures/Impacts/Runes1.png",
+    "FrameSize": {
+      "Width": 256,
+      "Height": 256
+    },
+    "InitialAnimationFrame": {
+      "Rotation": {
+        "X": {
+          "Min": 90,
+          "Max": 90
+        }
+      },
+      "Opacity": 0.516
+    }
+  }
+}

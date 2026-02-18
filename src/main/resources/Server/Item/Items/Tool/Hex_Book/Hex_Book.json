@@ -35,9 +35,5 @@
   },
   "Scale": 1.1,
   "ItemSoundSetId": "ISS_Weapons_Books",
-  "MaxStack": 1,
-  "Utility": {
-    "Usable": true,
-    "Compatible": true
-  }
+  "MaxStack": 1
 }

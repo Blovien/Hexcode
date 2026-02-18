@@ -1,18 +1,6 @@
 {
   "Model": "VFX/Trails/Trail_Anchor.blockymodel",
   "Texture": "VFX/Trails/Trail_Anchor.png",
-  "Particles": [
-    {
-      "SystemId": "Mist_Spawner",
-      "DetachedFromModel": false,
-      "PositionOffset": {
-        "Y": -1.5
-      }
-    },
-    {
-      "SystemId": "Ring_Spawner"
-    }
-  ],
   "MinScale": 1,
   "MaxScale": 1,
   "HitBox": {

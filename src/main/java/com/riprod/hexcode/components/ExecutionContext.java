@@ -6,16 +6,14 @@ import java.util.UUID;
 import com.riprod.hexcode.core.execution.component.VariableMap;
 import com.riprod.hexcode.core.glyphs.variables.SpellVar;
 
-/**
- * Holds all of the information relating to the current hex execution
- * 
- * Will have all the various mutators and extensions that will dynamically change throughout the casting of the spell
- */
 public class ExecutionContext {
     private VariableMap variableMap;
     private UUID currentNode;
+    private int depth;
+
     public ExecutionContext() {
         this.variableMap = new VariableMap();
+        this.depth = 0;
     }
 
     public VariableMap getVariableMap() {
@@ -41,10 +39,15 @@ public class ExecutionContext {
         this.currentNode = currentNode;
     }
 
+    public int incrementDepth() {
+        return ++depth;
+    }
+
     public ExecutionContext copy() {
         ExecutionContext copy = new ExecutionContext();
         copy.setVariableMap(this.variableMap.copy());
         copy.setCurrentNode(this.currentNode);
+        copy.depth = this.depth;
         return copy;
     }
 }

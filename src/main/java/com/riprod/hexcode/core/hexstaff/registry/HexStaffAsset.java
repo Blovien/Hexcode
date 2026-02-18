@@ -10,6 +10,8 @@ import com.hypixel.hytale.assetstore.map.JsonAssetWithMap;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.validation.ValidatorCache;
+import com.hypixel.hytale.server.core.asset.type.item.config.Item;
+import com.hypixel.hytale.server.core.asset.type.model.config.ModelParticle;
 
 public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<String, HexStaffAsset>> {
     public static final AssetBuilderCodec<String, HexStaffAsset> CODEC;
@@ -20,6 +22,8 @@ public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
     protected String id;
     protected String itemId;
     protected String castStyleId;
+    protected ModelParticle[] castingAuraParticles;
+    protected ModelParticle[] craftingAuraParticles;
 
     public static AssetStore<String, HexStaffAsset, DefaultAssetMap<String, HexStaffAsset>> getAssetStore() {
         if (ASSET_STORE == null) {
@@ -49,6 +53,14 @@ public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
         return this.castStyleId;
     }
 
+    public ModelParticle[] getCastingAuraParticles() {
+        return this.castingAuraParticles;
+    }
+
+    public ModelParticle[] getCraftingAuraParticles() {
+        return this.craftingAuraParticles;
+    }
+
     static {
         CODEC = AssetBuilderCodec
                 .builder(HexStaffAsset.class, HexStaffAsset::new, Codec.STRING, (glyphAsset, s) -> {
@@ -60,11 +72,22 @@ public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
                 }, (asset) -> {
                     return asset.data;
                 })
-                .append(new KeyedCodec<>("ItemId", Codec.STRING),
-                        (a, v) -> a.itemId = v, a -> a.itemId)
+                .<String>appendInherited(new KeyedCodec<>("ItemId", Codec.STRING),
+                        (a, v) -> a.itemId = v, a -> a.itemId,
+                        (a, p) -> a.itemId = p.itemId)
+                .addValidator(Item.VALIDATOR_CACHE.getValidator())
                 .add()
-                .append(new KeyedCodec<>("CastStyleId", Codec.STRING),
-                        (a, v) -> a.castStyleId = v, a -> a.castStyleId)
+                .<String>appendInherited(new KeyedCodec<>("CastStyleId", Codec.STRING),
+                        (a, v) -> a.castStyleId = v, a -> a.castStyleId,
+                        (a, p) -> a.castStyleId = p.castStyleId)
+                .add()
+                .<ModelParticle[]>appendInherited(new KeyedCodec<>("CastingAuraParticles", ModelParticle.ARRAY_CODEC),
+                        (a, v) -> a.castingAuraParticles = v, a -> a.castingAuraParticles,
+                        (a, p) -> a.castingAuraParticles = p.castingAuraParticles)
+                .add()
+                .<ModelParticle[]>appendInherited(new KeyedCodec<>("CraftingAuraParticles", ModelParticle.ARRAY_CODEC),
+                        (a, v) -> a.craftingAuraParticles = v, a -> a.craftingAuraParticles,
+                        (a, p) -> a.craftingAuraParticles = p.craftingAuraParticles)
                 .add()
                 .build();
         VALIDATOR_CACHE = new ValidatorCache<>(new AssetKeyValidator<>(HexStaffAsset::getAssetStore));

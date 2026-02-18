@@ -1,0 +1,46 @@
+{
+  "TranslationProperties": {
+    "Name": "server.items.Weapon_Staff_Cobalt.name"
+  },
+  "Categories": [
+    "Items.Weapons"
+  ],
+  "Quality": "Rare",
+  "ItemLevel": 35,
+  "Model": "Items/Weapons/Staff/Blue_Staff.blockymodel",
+  "Texture": "Items/Weapons/Staff/Blue_Staff.png",
+  "PlayerAnimationsId": "Staff",
+  "Interactions": {
+    "Primary": "Hexcode_Staff_Primary",
+    "Secondary": "Hexcode_Book_Secondary"
+  },
+  "IconProperties": {
+    "Scale": 0.3,
+    "Rotation": [
+      45,
+      90,
+      0
+    ],
+    "Translation": [
+      -51,
+      -51
+    ]
+  },
+  "Particles": [],
+  "DroppedItemAnimation": "Items/Animations/Dropped/Dropped_Diagonal_Left.blockyanim",
+  "Icon": "Icons/ItemsGenerated/Arcane_Hexstaff.png",
+  "Tags": {
+    "Type": [
+      "Weapon"
+    ],
+    "Family": [
+      "Staff"
+    ]
+  },
+  "Weapon": {},
+  "ItemSoundSetId": "ISS_Weapons_Wood",
+  "Parent": "Template_HexStaff",
+  "Utility": {
+    "Compatible": true
+  }
+}

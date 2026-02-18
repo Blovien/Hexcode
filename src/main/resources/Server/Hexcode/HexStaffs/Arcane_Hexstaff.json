@@ -1,0 +1,28 @@
+{
+  "Parent": "Base_Staff",
+  "ItemId": "Arcane_Hexstaff",
+  "CastStyleId": "ring",
+  "CastingAuraParticles": [
+    {
+      "SystemId": "Alternative_Rune_System",
+      "PositionOffset": {
+        "Y": 2.5
+      }
+    },
+    {
+      "SystemId": "Mist_Spawner",
+      "PositionOffset": {
+        "Y": -1.5
+      }
+    },
+    {
+      "SystemId": "Ring_Spawner"
+    },
+    {
+      "SystemId": "Alternative_Simple_Ring_System",
+      "PositionOffset": {
+        "Y": -1.5
+      }
+    }
+  ]
+}

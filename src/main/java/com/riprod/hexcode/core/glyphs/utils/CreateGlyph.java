@@ -2,6 +2,7 @@ package com.riprod.hexcode.core.glyphs.utils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import com.hypixel.hytale.builtin.mounts.MountedComponent;
@@ -15,6 +16,7 @@ import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.MountController;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
+import com.hypixel.hytale.server.core.asset.type.model.config.ModelParticle;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
@@ -30,7 +32,7 @@ public class CreateGlyph {
   private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
   public static Ref<EntityStore> createCastingRoot(ComponentAccessor<EntityStore> accessor,
-      Ref<EntityStore> playerRef, float eyeHeight) {
+      Ref<EntityStore> playerRef, float eyeHeight, ModelParticle[] particles) {
 
     Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
     Vector3d playerPos = accessor.getComponent(playerRef, TransformComponent.getComponentType())
@@ -45,10 +47,16 @@ public class CreateGlyph {
         new UUIDComponent(UUID.randomUUID()));
     holder.ensureComponent(EntityStore.REGISTRY.getNonSerializedComponentType());
 
-    // add the Casting Anchor model to the root entitiy for particles and side
-    // effects to be tied to
     ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset("Casting_Anchor");
-    Model model = Model.createUnitScaleModel(modelAsset);
+    Model model = new Model(
+        modelAsset.getId(), 1.0f, (Map<String, String>) null, modelAsset.getAttachments(null),
+        modelAsset.getBoundingBox(), modelAsset.getModel(), modelAsset.getTexture(),
+        modelAsset.getGradientSet(), modelAsset.getGradientId(), modelAsset.getEyeHeight(),
+        modelAsset.getCrouchOffset(), modelAsset.getSittingOffset(), modelAsset.getSleepingOffset(),
+        modelAsset.getAnimationSetMap(), modelAsset.getCamera(),
+        modelAsset.getLight(), particles, modelAsset.getTrails(), modelAsset.getPhysicsValues(),
+        modelAsset.getDetailBoxes(), modelAsset.getPhobia(), modelAsset.getPhobiaModelAssetId()
+    );
 
     holder.addComponent(ModelComponent.getComponentType(),
         new ModelComponent(model));

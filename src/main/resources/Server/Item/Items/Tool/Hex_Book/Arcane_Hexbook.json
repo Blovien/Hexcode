@@ -1,0 +1,41 @@
+{
+  "Parent": "Template_HexBook",
+  "TranslationProperties": {
+    "Name": "server.items.Weapon_Spellbook_Grimoire_Brown.name"
+  },
+  "Categories": [
+    "Items.Weapons"
+  ],
+  "Icon": "Icons/ItemsGenerated/Arcane_Hexbook.png",
+  "Quality": "Common",
+  "ItemLevel": 40,
+  "Model": "Items/Tools/Book/Blue_Grimoire.blockymodel",
+  "Texture": "Items/Tools/Book/Blue_Grimoire.png",
+  "PlayerAnimationsId": "Spellbook",
+  "IconProperties": {
+    "Scale": 0.745,
+    "Rotation": [
+      45,
+      90,
+      0
+    ],
+    "Translation": [
+      -7.8,
+      -7.8
+    ]
+  },
+  "Interactions": {
+    "Primary": "Hexcode_Staff_Primary",
+    "Secondary": "Hexcode_Book_Secondary"
+  },
+  "DroppedItemAnimation": "Items/Animations/Dropped/Dropped_Diagonal_Left.blockyanim",
+  "MaxStack": 25,
+  "Scale": 1.2,
+  "Tags": {
+    "Type": [
+      "ArcaneHexBook"
+    ]
+  },
+  "Weapon": {},
+  "ItemSoundSetId": "ISS_Weapons_Books"
+}

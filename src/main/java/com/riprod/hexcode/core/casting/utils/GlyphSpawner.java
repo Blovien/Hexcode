@@ -119,10 +119,15 @@ public class GlyphSpawner {
         if (children != null) {
             GlyphMath.distributeChildAngles(children, parentGlyph.getScale());
 
+            float scaleAmount = parentGlyph.getScale() * 0.5f;
+            if (children.size() == 1) {
+                scaleAmount = parentGlyph.getScale() * 0.45f;
+            }
+
             for (int i = 0; i < children.size(); i++) {
                 GlyphComponent child = children.get(i);
 
-                child.setScale(parentGlyph.getScale() * 0.5f);
+                child.setScale(scaleAmount);
 
                 child.setOffset(child.getPitch(), child.getYaw(), 0);
 

@@ -1,0 +1,25 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "Alternative_Circle_Inner_Spawner",
+      "PositionOffset": {
+        "Y": 0
+      },
+      "RotationOffset": {
+        "Pitch": 0
+      }
+    },
+    {
+      "SpawnerId": "Alternative_Circle_Outer_Spawner"
+    },
+    {
+      "SpawnerId": "Alternative_Glyphs_Spawner"
+    },
+    {
+      "SpawnerId": "Alternative_Circle_Ceiling_Spawner",
+      "PositionOffset": {
+        "Y": 0.2
+      }
+    }
+  ]
+}

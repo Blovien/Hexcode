@@ -108,7 +108,7 @@ public class CasterInventory {
         }
 
         // Create and initialize new component
-        HexStaffComponent newComponent = new HexStaffComponent(staffAsset.getCastStyleId());
+        HexStaffComponent newComponent = new HexStaffComponent(staffAsset);
         ItemStack newStack = mainHandItem.withMetadata(METADATA_KEY_HEX_STAFF, HexStaffComponent.CODEC, newComponent);
 
         // replace item

@@ -32,8 +32,12 @@ public class ShapeComparator {
                 bestAccuracy = accuracy;
                 bestMatch = asset;
             }
-            LOGGER.atInfo().log("Compared against shape " + asset.getId() + " with accuracy " + accuracy);
+            if (accuracy > 0f) {
+                LOGGER.atInfo().log("Compared against shape " + asset.getId() + " with accuracy " + accuracy);
+            }
         }
+
+        LOGGER.atInfo().log("Best shape match: " + (bestMatch != null ? bestMatch.getId() : "none") + " with accuracy " + bestAccuracy);
 
         return bestMatch != null ? new DrawnShapeComponent(bestMatch.getId(), bestAccuracy) : null;
     }

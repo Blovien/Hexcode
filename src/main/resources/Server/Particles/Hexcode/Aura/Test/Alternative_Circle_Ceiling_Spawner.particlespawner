@@ -1,0 +1,79 @@
+{
+  "RenderMode": "BlendAdd",
+  "ParticleRotationInfluence": "None",
+  "LinearFiltering": true,
+  "LightInfluence": 0,
+  "ParticleRotateWithSpawner": false,
+  "ParticleLifeSpan": {
+    "Min": 0.5,
+    "Max": 2
+  },
+  "SpawnRate": {
+    "Min": 20,
+    "Max": 50
+  },
+  "Particle": {
+    "Texture": "Particles/Textures/Circles/Portal_Inside_Contrast.png",
+    "FrameSize": {
+      "Width": 256,
+      "Height": 256
+    },
+    "ScaleRatioConstraint": "None",
+    "UVOption": "RandomFlipU",
+    "Animation": {
+      "0": {
+        "Opacity": 0,
+        "Color": "#dafaff",
+        "Rotation": {
+          "X": {
+            "Min": 90,
+            "Max": 90
+          }
+        }
+      },
+      "50": {
+        "Opacity": 1,
+        "Color": "#b7d9ff"
+      },
+      "100": {
+        "Opacity": 0,
+        "Color": "#290053"
+      }
+    },
+    "InitialAnimationFrame": {
+      "Scale": {
+        "X": {
+          "Min": 5,
+          "Max": 5
+        },
+        "Y": {
+          "Min": 5,
+          "Max": 5
+        }
+      },
+      "Opacity": 0.596,
+      "FrameIndex": {
+        "Min": 0,
+        "Max": 0
+      }
+    }
+  },
+  "TotalParticles": {
+    "Min": -1,
+    "Max": -1
+  },
+  "MaxConcurrentParticles": 2,
+  "EmitOffset": {
+    "X": {
+      "Min": 0.5
+    },
+    "Y": {
+      "Min": 0
+    },
+    "Z": {
+      "Min": 0
+    }
+  },
+  "TrailSpawnerPositionMultiplier": 0,
+  "TrailSpawnerRotationMultiplier": 0
+}
