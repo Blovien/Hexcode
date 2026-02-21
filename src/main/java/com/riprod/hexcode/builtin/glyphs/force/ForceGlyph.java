@@ -15,12 +15,13 @@ import com.riprod.hexcode.core.glyphs.utils.SpellVarUtil;
 import com.riprod.hexcode.core.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.glyphs.variables.NumberVar;
 import com.riprod.hexcode.core.glyphs.variables.PositionVar;
+import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.riprod.hexcode.core.glyphs.variables.SpellVar;
 
 public class ForceGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     public static final String ID = "Glyph_Force";
-    private static final double DEFAULT_FORCE = 50.0;
+    private static final double DEFAULT_FORCE = 20.0;
 
     @Override
     public String getId() {
@@ -93,6 +94,10 @@ public class ForceGlyph implements GlyphHandler {
                 try {
                     Velocity vel = hexContext.accessor.getComponent(entityVar.ref, Velocity.getComponentType());
                     vel.addInstruction(force, null, ChangeVelocityType.Add);
+                    TransformComponent tc = hexContext.accessor.getComponent(entityVar.ref, TransformComponent.getComponentType());
+                    if (tc != null) {
+                        ForceGlyphStyle.render(tc.getPosition(), force, hexContext.accessor);
+                    }
                     LOGGER.atInfo().log("Force glyph: applied (" + force.getX() + ", " + force.getY() + ", " + force.getZ() + ") to entity " + entityVar.entityId);
                 } catch (Exception e) {
                     LOGGER.atWarning().log("Force glyph: could not apply force to entity " + entityVar.entityId + ": " + e.getMessage());

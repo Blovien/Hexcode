@@ -4,12 +4,14 @@ import java.util.Iterator;
 
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
+import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
+import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.components.HexContext;
 import com.riprod.hexcode.core.execution.Executor;
@@ -35,12 +37,14 @@ public class ExecutionTickSystem extends EntityTickingSystem<EntityStore> {
             return;
         }
 
+        ComponentAccessor<ChunkStore> chunkAccessor = buffer.getExternalData().getWorld().getChunkStore().getStore();
+
         if (execComp.needsInitialExecution()) {
             execComp.setNeedsInitialExecution(false);
-            HexContext hexContext = new HexContext(root, buffer, execComp.getSpellGraph());
+            HexContext hexContext = new HexContext(root, buffer, chunkAccessor, execComp.getSpellGraph());
             Executor.beginExecution(hexContext);
 
-            if (!execComp.hasPendingContinues()) {
+            if (!execComp.hasPendingContinues() && execComp.getExternalWaiters() <= 0) {
                 Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
                 buffer.removeEntity(ref, holder, RemoveReason.REMOVE);
             }
@@ -54,12 +58,12 @@ public class ExecutionTickSystem extends EntityTickingSystem<EntityStore> {
 
             if (pending.isReady()) {
                 it.remove();
-                HexContext hexContext = new HexContext(root, buffer, execComp.getSpellGraph());
+                HexContext hexContext = new HexContext(root, buffer, chunkAccessor, execComp.getSpellGraph());
                 Executor.continueExecution(hexContext, pending.getExecutionContext());
             }
         }
 
-        if (!execComp.hasPendingContinues()) {
+        if (!execComp.hasPendingContinues() && execComp.getExternalWaiters() <= 0) {
             Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
             buffer.removeEntity(ref, holder, RemoveReason.REMOVE);
         }

@@ -1,4 +1,4 @@
-package com.riprod.hexcode.builtin.utils;
+package com.riprod.hexcode.utils;
 
 import java.util.List;
 

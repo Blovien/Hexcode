@@ -2,37 +2,18 @@ package com.riprod.hexcode.builtin.glyphs.warp;
 
 import java.util.List;
 
-import javax.annotation.Nullable;
-
-import com.hypixel.hytale.builtin.hytalegenerator.fields.FastNoiseLite.Vector3;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3i;
-import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
-import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.chunk.BlockChunk;
-import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
-import com.hypixel.hytale.server.core.universe.world.chunk.section.BlockSection;
-import com.riprod.hexcode.builtin.utils.BlockUtils;
 import com.riprod.hexcode.components.ExecutionContext;
 import com.riprod.hexcode.components.Glyph;
 import com.riprod.hexcode.components.HexContext;
 import com.riprod.hexcode.core.execution.Executor;
 import com.riprod.hexcode.core.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.glyphs.utils.SpellVarUtil;
-import com.riprod.hexcode.core.glyphs.variables.BlockVar;
-import com.riprod.hexcode.core.glyphs.variables.EntityVar;
-import com.riprod.hexcode.core.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.glyphs.variables.SpellVar;
+import com.riprod.hexcode.utils.BlockUtils;
 
-/**
- * First number = target
- * Second number = position
- * 3rd, 4th number present = x, y, z coordinates
- * 
- */
 public class WarpGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     public static final String ID = "Glyph_Warp";
@@ -84,7 +65,11 @@ public class WarpGlyph implements GlyphHandler {
 
         for (SpellVar target : targets) {
             LOGGER.atInfo().log("Warping target to " + destination);
+            Vector3d departurePos = SpellVarUtil.resolvePosition(List.of(target), hexContext.accessor);
             BlockUtils.moveToDestination(target, destination, world, hexContext);
+            if (departurePos != null) {
+                WarpGlyphStyle.render(departurePos, destination, hexContext.accessor);
+            }
         }
 
         Executor.continueExecution(hexContext, executionContext);

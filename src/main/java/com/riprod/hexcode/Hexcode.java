@@ -31,13 +31,15 @@ import com.riprod.hexcode.core.crafting.CraftingSystem;
 import com.riprod.hexcode.core.execution.ExecutionSystem;
 import com.riprod.hexcode.core.execution.component.ExecutionComponent;
 import com.riprod.hexcode.core.execution.system.ExecutionTickSystem;
+import com.riprod.hexcode.builtin.glyphs.propel.PropelComponent;
+import com.riprod.hexcode.builtin.glyphs.propel.PropelTickSystem;
 import com.riprod.hexcode.interaction.StaffPrimaryExit;
+import com.riprod.hexcode.interaction.HexStateBranch;
 import com.riprod.hexcode.interaction.StaffPrimaryEnter;
 import com.hypixel.hytale.assetstore.AssetRegistry;
 import com.hypixel.hytale.assetstore.map.DefaultAssetMap;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.asset.type.particle.config.ParticleSystem;
-import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.ComponentRegistryProxy;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Holder;
@@ -141,6 +143,10 @@ public class Hexcode extends JavaPlugin {
         ExecutionComponent::new);
     ExecutionComponent.setComponentType(executionComponentType);
 
+    ComponentType<EntityStore, PropelComponent> propelComponentType =
+        entityStoreRegistry.registerComponent(PropelComponent.class, PropelComponent::new);
+    PropelComponent.setComponentType(propelComponentType);
+
     // Glyph Var Variables
     SpellVar.CODEC.register("Entity", EntityVar.class, EntityVar.CODEC);
     SpellVar.CODEC.register("Block", BlockVar.class, BlockVar.CODEC);
@@ -157,6 +163,7 @@ public class Hexcode extends JavaPlugin {
         StaffPrimaryEnter.CODEC);
     Interaction.CODEC.register("StaffPrimaryExit", StaffPrimaryExit.class,
         StaffPrimaryExit.CODEC);
+    Interaction.CODEC.register("HexStateBranch", HexStateBranch.class, HexStateBranch.CODEC);
 
     // State Managers
     StateRouter.registerState(HexState.IDLE, new IdleSystem());
@@ -168,6 +175,7 @@ public class Hexcode extends JavaPlugin {
     // Ticking Systems
     entityStoreRegistry.registerSystem(new HexTick());
     entityStoreRegistry.registerSystem(new ExecutionTickSystem());
+    entityStoreRegistry.registerSystem(new PropelTickSystem());
 
     // Events
     this.getEventRegistry().registerGlobal(PlayerConnectEvent.class, Hexcode::onPlayerConnect);

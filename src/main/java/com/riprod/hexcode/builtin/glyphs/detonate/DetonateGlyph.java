@@ -10,21 +10,14 @@ import com.riprod.hexcode.core.glyphs.variables.SpellVar;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.protocol.ChangeVelocityType;
-import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
-import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
-import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.hypixel.hytale.server.core.util.TargetUtil;
+import com.hypixel.hytale.server.core.entity.ExplosionConfig;
+import com.hypixel.hytale.server.core.entity.ExplosionUtils;
+import com.hypixel.hytale.server.core.modules.entity.damage.Damage;
+import com.hypixel.hytale.server.core.modules.interaction.interaction.config.server.combat.PointKnockback;
 import com.riprod.hexcode.components.Glyph;
 
-/**
- * number 1 = targets
- * number 2 = radius
- * number 3 = magnitude
- */
 public class DetonateGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     public static final String ID = "Glyph_Detonate";
@@ -60,40 +53,28 @@ public class DetonateGlyph implements GlyphHandler {
         }
 
         for (Vector3d center : centers) {
-            List<Ref<EntityStore>> entities = TargetUtil.getAllEntitiesInSphere(
-                    center, radius, hexContext.accessor);
+            ExplosionConfig config = new ExplosionConfig() {{
+                damageEntities = true;
+                damageBlocks = false;
+                entityDamageRadius = (float) radius;
+                entityDamage = (float) mag;
+                entityDamageFalloff = 1.0f;
+                knockback = new PointKnockback() {{
+                    force = (float) mag;
+                    velocityY = (float) (mag * 0.3);
+                }};
+            }};
 
-            for (Ref<EntityStore> entityRef : entities) {
-                TransformComponent transform = hexContext.accessor.getComponent(
-                        entityRef, TransformComponent.getComponentType());
-                if (transform == null)
-                    continue;
+            ExplosionUtils.performExplosion(
+                    new Damage.EnvironmentSource("hex_detonate"),
+                    center,
+                    config,
+                    null,
+                    hexContext.accessor,
+                    hexContext.chunkAccessor
+            );
 
-                Vector3d direction = new Vector3d(transform.getPosition());
-                direction.subtract(center);
-                double distance = direction.length();
-
-                if (distance < 0.01) {
-                    direction.setX(0);
-                    direction.setY(1);
-                    direction.setZ(0);
-                } else {
-                    direction.normalize();
-                }
-
-                double falloff = 1.0 - (distance / radius);
-                if (falloff <= 0)
-                    continue;
-
-                direction.scale(mag * falloff);
-
-                Velocity vel = hexContext.accessor.getComponent(
-                        entityRef, Velocity.getComponentType());
-                if (vel == null)
-                    continue;
-
-                vel.addInstruction(direction, null, ChangeVelocityType.Add);
-            }
+            DetonateGlyphStyle.render(center, radius, hexContext.accessor);
         }
 
         Executor.continueExecution(hexContext, executionContext);

@@ -17,6 +17,7 @@ public class ExecutionComponent implements Component<EntityStore> {
     private HexGraph spellGraph;
     private final List<PendingContinue> pendingContinues = new ArrayList<>();
     private boolean needsInitialExecution;
+    private int externalWaiters;
 
     public ExecutionComponent() {
     }
@@ -63,6 +64,18 @@ public class ExecutionComponent implements Component<EntityStore> {
 
     public void setNeedsInitialExecution(boolean needsInitialExecution) {
         this.needsInitialExecution = needsInitialExecution;
+    }
+
+    public int getExternalWaiters() {
+        return externalWaiters;
+    }
+
+    public void incrementExternalWaiters() {
+        externalWaiters++;
+    }
+
+    public void decrementExternalWaiters() {
+        externalWaiters--;
     }
 
     @Nonnull

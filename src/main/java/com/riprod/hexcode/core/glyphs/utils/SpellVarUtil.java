@@ -1,6 +1,7 @@
 package com.riprod.hexcode.core.glyphs.utils;
 
 import java.util.List;
+import java.util.Vector;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -85,5 +86,12 @@ public class SpellVarUtil {
             }
         }
         return null;
+    }
+
+    @Nullable
+    public static Vector3f resolveRotation(@Nonnull List<SpellVar> vars,
+            @Nonnull ComponentAccessor<EntityStore> accessor) {
+        Vector3d dir = resolveDirection(vars, null, accessor);
+        return dir != null ? Vector3f.lookAt(dir) : null;
     }
 }

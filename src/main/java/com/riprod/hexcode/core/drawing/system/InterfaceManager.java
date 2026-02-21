@@ -11,11 +11,12 @@ import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.Color;
-import com.hypixel.hytale.protocol.packets.buildertools.BuilderToolLaserPointer;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
+import com.hypixel.hytale.server.core.modules.debug.DebugUtils;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel;
@@ -23,11 +24,12 @@ import com.hypixel.hytale.server.core.modules.entity.component.PropComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.time.TimeResource;
 import com.hypixel.hytale.server.core.universe.world.ParticleUtil;
-import com.hypixel.hytale.server.core.universe.world.PlayerUtil;
+import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.drawing.component.DrawnShapeComponent;
 import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.utils.GlyphMath;
+import com.riprod.hexcode.utils.VfxUtil;
 
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 
@@ -161,22 +163,16 @@ public class InterfaceManager {
     }
 
     Color color = shape.getColor();
-    int packedColor = ((color.red & 0xFF) << 16)
-        | ((color.green & 0xFF) << 8)
-        | (color.blue & 0xFF);
+    Vector3f lineColor = new Vector3f(
+        (color.red & 0xFF) / 255.0f,
+        (color.green & 0xFF) / 255.0f,
+        (color.blue & 0xFF) / 255.0f);
 
+    World world = accessor.getExternalData().getWorld();
     for (int i = 0; i < points.size() - 1; i++) {
       Vector3d a = points.get(i);
       Vector3d b = points.get(i + 1);
-
-      BuilderToolLaserPointer packet = new BuilderToolLaserPointer(
-          0,
-          (float) a.x, (float) a.y, (float) a.z,
-          (float) b.x, (float) b.y, (float) b.z,
-          packedColor,
-          5000);
-
-      PlayerUtil.broadcastPacketToPlayers(accessor, packet);
+      VfxUtil.line(world, a, b, lineColor, 0.1, 5.0f, true);
     }
   }
 

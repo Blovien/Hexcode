@@ -11,6 +11,7 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.command.draw.DrawCommand;
 import com.riprod.hexcode.command.glyph.GlyphsCommand;
+import com.riprod.hexcode.command.test.TestCommand;
 
 import javax.annotation.Nonnull;
 
@@ -22,6 +23,7 @@ public class HexcodeCommand extends AbstractPlayerCommand {
 
         addSubCommand(new GlyphsCommand());
         addSubCommand(new DrawCommand());
+        addSubCommand(new TestCommand());
     }
 
     @Override

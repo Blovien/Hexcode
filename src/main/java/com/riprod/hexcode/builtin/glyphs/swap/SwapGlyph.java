@@ -1,13 +1,16 @@
 package com.riprod.hexcode.builtin.glyphs.swap;
 
-import com.riprod.hexcode.builtin.utils.BlockUtils;
 import com.riprod.hexcode.components.ExecutionContext;
 import com.riprod.hexcode.components.HexContext;
 import com.riprod.hexcode.core.execution.Executor;
 import com.riprod.hexcode.core.glyphs.component.GlyphHandler;
+import com.riprod.hexcode.core.glyphs.utils.SpellVarUtil;
 import com.riprod.hexcode.core.glyphs.variables.SpellVar;
+import com.riprod.hexcode.utils.BlockUtils;
 
 import java.util.List;
+
+import com.hypixel.hytale.math.vector.Vector3d;
 
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.universe.world.World;
@@ -36,8 +39,13 @@ public class SwapGlyph implements GlyphHandler {
         for (int i = 0; i < pairCount; i++) {
             SpellVar varA = varsA.get(i);
             SpellVar varB = varsB.get(i);
+            Vector3d posA = SpellVarUtil.resolvePosition(List.of(varA), hexContext.accessor);
+            Vector3d posB = SpellVarUtil.resolvePosition(List.of(varB), hexContext.accessor);
+            if (posA != null && posB != null) {
+                SwapGlyphStyle.render(posA, posB, hexContext.accessor);
+            }
             BlockUtils.swapPair(varA, varB, world, hexContext);
-         }
+        }
 
         Executor.continueExecution(hexContext, executionContext);
     }
