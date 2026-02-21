@@ -141,8 +141,8 @@ public class CastingSystem extends HexcodeManager {
     }
 
     @Override
-    public InteractionState onPrimaryEnter(Ref<EntityStore> ref, HexcasterComponent comp,
-            ComponentAccessor<EntityStore> accessor) {
+    public InteractionState enterInteraction(Ref<EntityStore> ref, HexcasterComponent comp,
+            CommandBuffer<EntityStore> accessor) {
 
         GlyphComponent hoveredGlyph = comp.getHoveredGlyph();
         if (hoveredGlyph == null) {
@@ -176,8 +176,8 @@ public class CastingSystem extends HexcodeManager {
     }
 
     @Override
-    public InteractionState onPrimaryTick(Ref<EntityStore> ref, HexcasterComponent comp,
-            ComponentAccessor<EntityStore> accessor) {
+    public InteractionState tickInteraction(Ref<EntityStore> ref, HexcasterComponent comp,
+            CommandBuffer<EntityStore> accessor) {
 
         if (comp.getDraggingGlyph() == null) {
             return InteractionState.Finished;
@@ -201,8 +201,8 @@ public class CastingSystem extends HexcodeManager {
     }
 
     @Override
-    public InteractionState onPrimaryExit(Ref<EntityStore> ref, HexcasterComponent comp,
-            ComponentAccessor<EntityStore> accessor) {
+    public InteractionState exitInteraction(Ref<EntityStore> ref, HexcasterComponent comp,
+            CommandBuffer<EntityStore> accessor) {
 
         GlyphComponent draggedGlyph = comp.getDraggingGlyph();
         if (draggedGlyph == null) {

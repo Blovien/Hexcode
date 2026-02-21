@@ -18,8 +18,10 @@ import com.riprod.hexcode.core.hexbook.registry.HexBookAsset;
 import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.hexstaff.component.HexStaffComponent;
 import com.riprod.hexcode.core.hexstaff.registry.HexStaffAsset;
-import com.riprod.hexcode.interaction.StaffSecondaryEnter;
-import com.riprod.hexcode.interaction.StaffSecondaryExit;
+import com.riprod.hexcode.interaction.HexStateChange;
+import com.riprod.hexcode.interaction.HexHold;
+import com.riprod.hexcode.interaction.HexMode;
+import com.riprod.hexcode.interaction.HexModeExit;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexTick;
 import com.riprod.hexcode.state.HexcodeManager;
@@ -33,9 +35,7 @@ import com.riprod.hexcode.core.execution.component.ExecutionComponent;
 import com.riprod.hexcode.core.execution.system.ExecutionTickSystem;
 import com.riprod.hexcode.builtin.glyphs.propel.PropelComponent;
 import com.riprod.hexcode.builtin.glyphs.propel.PropelTickSystem;
-import com.riprod.hexcode.interaction.StaffPrimaryExit;
 import com.riprod.hexcode.interaction.HexStateBranch;
-import com.riprod.hexcode.interaction.StaffPrimaryEnter;
 import com.hypixel.hytale.assetstore.AssetRegistry;
 import com.hypixel.hytale.assetstore.map.DefaultAssetMap;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
@@ -155,15 +155,11 @@ public class Hexcode extends JavaPlugin {
     SpellVar.CODEC.register("Number", NumberVar.class, NumberVar.CODEC);
 
     // Interaction Registries
-    Interaction.CODEC.register("BookSecondaryEnter", StaffSecondaryEnter.class,
-        StaffSecondaryEnter.CODEC);
-    Interaction.CODEC.register("BookSecondaryExit", StaffSecondaryExit.class,
-        StaffSecondaryExit.CODEC);
-    Interaction.CODEC.register("StaffPrimaryEnter", StaffPrimaryEnter.class,
-        StaffPrimaryEnter.CODEC);
-    Interaction.CODEC.register("StaffPrimaryExit", StaffPrimaryExit.class,
-        StaffPrimaryExit.CODEC);
     Interaction.CODEC.register("HexStateBranch", HexStateBranch.class, HexStateBranch.CODEC);
+    Interaction.CODEC.register("HexStateChange", HexStateChange.class, HexStateChange.CODEC);
+    Interaction.CODEC.register("HexHold", HexHold.class, HexHold.CODEC);
+    Interaction.CODEC.register("HexMode", HexMode.class, HexMode.CODEC);
+    Interaction.CODEC.register("HexModeExit", HexModeExit.class, HexModeExit.CODEC);
 
     // State Managers
     StateRouter.registerState(HexState.IDLE, new IdleSystem());

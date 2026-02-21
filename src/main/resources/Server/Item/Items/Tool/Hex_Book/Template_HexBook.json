@@ -12,5 +12,10 @@
   "Utility": {
     "Usable": true,
     "Compatible": true
+  },
+  "PlayerAnimationsId": "HexStaff",
+  "Interactions": {
+    "Primary": "Hexbook_Primary",
+    "Secondary": "Hexbook_Secondary"
   }
 }

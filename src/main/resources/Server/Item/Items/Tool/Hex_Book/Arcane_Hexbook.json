@@ -11,7 +11,6 @@
   "ItemLevel": 40,
   "Model": "Items/Tools/Book/Blue_Grimoire.blockymodel",
   "Texture": "Items/Tools/Book/Blue_Grimoire.png",
-  "PlayerAnimationsId": "Spellbook",
   "IconProperties": {
     "Scale": 0.745,
     "Rotation": [
@@ -23,10 +22,6 @@
       -7.8,
       -7.8
     ]
-  },
-  "Interactions": {
-    "Primary": "Hexcode_Staff_Primary",
-    "Secondary": "Hexcode_Book_Secondary"
   },
   "DroppedItemAnimation": "Items/Animations/Dropped/Dropped_Diagonal_Left.blockyanim",
   "MaxStack": 25,

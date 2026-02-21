@@ -1,7 +1,6 @@
 package com.riprod.hexcode.core.idle;
 
 import com.hypixel.hytale.component.CommandBuffer;
-import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -13,47 +12,49 @@ import com.riprod.hexcode.state.HexcodeManager;
 
 public class IdleSystem extends HexcodeManager {
 
-    @Override
-    public void firstTick(Ref<EntityStore> ref, HexcasterComponent comp,
-            Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
-        comp.clearCastingState();
-        comp.clearDrawingState();
-        comp.clearCraftingState();
-    }
+        @Override
+        public void firstTick(Ref<EntityStore> ref, HexcasterComponent comp,
+                        Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
+                comp.clearCastingState();
+                comp.clearDrawingState();
+                comp.clearCraftingState();
+        }
 
-    @Override
-    public void lastTick(Ref<EntityStore> ref, HexcasterComponent comp,
-            Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
-    }
+        @Override
+        public void lastTick(Ref<EntityStore> ref, HexcasterComponent comp,
+                        Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
+        }
 
-    @Override
-    public void tick0(Ref<EntityStore> ref, HexcasterComponent comp, float dt,
-            Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
-    }
+        @Override
+        public void tick0(Ref<EntityStore> ref, HexcasterComponent comp, float dt,
+                        Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
+        }
 
-    @Override
-    public void onPlayerJoin(Holder<EntityStore> holder, HexcasterComponent comp) {
-    }
+        @Override
+        public void onPlayerJoin(Holder<EntityStore> holder, HexcasterComponent comp) {
+        }
 
-    @Override
-    public void onPlayerLeave(PlayerRef playerRef) {
-    }
+        @Override
+        public void onPlayerLeave(PlayerRef playerRef) {
+        }
 
-    @Override
-    public InteractionState onPrimaryEnter(Ref<EntityStore> ref, HexcasterComponent comp,
-            ComponentAccessor<EntityStore> accessor) {
-        return InteractionState.Finished;
-    }
+        @Override
+        public InteractionState exitInteraction(Ref<EntityStore> ref, HexcasterComponent comp,
+                        CommandBuffer<EntityStore> buffer) {
+                return InteractionState.NotFinished;
+        }
 
-    @Override
-    public InteractionState onPrimaryTick(Ref<EntityStore> ref, HexcasterComponent comp,
-            ComponentAccessor<EntityStore> accessor) {
-        return InteractionState.Finished;
-    }
+        @Override
+        public InteractionState enterInteraction(Ref<EntityStore> ref, HexcasterComponent comp,
+                        CommandBuffer<EntityStore> buffer) {
 
-    @Override
-    public InteractionState onPrimaryExit(Ref<EntityStore> ref, HexcasterComponent comp,
-            ComponentAccessor<EntityStore> accessor) {
-        return InteractionState.Finished;
-    }
+                return InteractionState.NotFinished;
+        }
+
+        @Override
+        public InteractionState tickInteraction(Ref<EntityStore> ref, HexcasterComponent comp,
+                        CommandBuffer<EntityStore> buffer) {
+
+                return InteractionState.NotFinished;
+        }
 }

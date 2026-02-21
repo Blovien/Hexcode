@@ -12,10 +12,6 @@
   "Texture": "Items/Tools/Book/Hex_Book_Texture.png",
   "Icon": "Icons/ItemsGenerated/Hex_Book.png",
   "DroppedItemAnimation": "Items/Animations/Dropped/Dropped_Diagonal_Left.blockyanim",
-  "Interactions": {
-    "Primary": "Hexcode_Staff_Primary",
-    "Secondary": "Hexcode_Book_Secondary"
-  },
   "IconProperties": {
     "Scale": 0.745,
     "Translation": [

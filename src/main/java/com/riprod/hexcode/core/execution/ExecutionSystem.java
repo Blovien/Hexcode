@@ -51,8 +51,21 @@ public class ExecutionSystem extends HexcodeManager {
     }
 
     @Override
-    public InteractionState onPrimaryEnter(Ref<EntityStore> ref, HexcasterComponent comp,
-            ComponentAccessor<EntityStore> accessor) {
+    public InteractionState exitInteraction(Ref<EntityStore> ref, HexcasterComponent comp,
+            CommandBuffer<EntityStore> buffer) {
+        return InteractionState.NotFinished;
+    }
+
+    @Override
+    public InteractionState tickInteraction(Ref<EntityStore> ref, HexcasterComponent comp,
+            CommandBuffer<EntityStore> buffer) {
+
+        return InteractionState.NotFinished;
+    }
+
+    @Override
+    public InteractionState enterInteraction(Ref<EntityStore> ref, HexcasterComponent comp,
+            CommandBuffer<EntityStore> accessor) {
 
         HexStaffComponent hexStaff = CasterInventory.getHexStaffComponent(accessor, ref);
         if (hexStaff == null) {
@@ -78,18 +91,6 @@ public class ExecutionSystem extends HexcodeManager {
         PlayerHexRoot root = new PlayerHexRoot(ref, hexEntityRef);
         execComp.setRoot(root);
 
-        return InteractionState.Finished;
-    }
-
-    @Override
-    public InteractionState onPrimaryTick(Ref<EntityStore> ref, HexcasterComponent comp,
-            ComponentAccessor<EntityStore> accessor) {
-        return InteractionState.Finished;
-    }
-
-    @Override
-    public InteractionState onPrimaryExit(Ref<EntityStore> ref, HexcasterComponent comp,
-            ComponentAccessor<EntityStore> accessor) {
         return InteractionState.Finished;
     }
 

@@ -1,0 +1,48 @@
+{
+  "Interactions": [
+    {
+      "Type": "Serial",
+      "Interactions": [
+        {
+          "Type": "Simple",
+          "RunTime": 0.2,
+          "Effects": {
+            "ItemAnimationId": "HexDrawing_Enter",
+            "WorldSoundEventId": "SFX_Hexcode_Casting_Enter",
+            "ItemPlayerAnimationsId": "HexStaff"
+          }
+        },
+        {
+          "Type": "HexStateChange",
+          "TargetState": "DRAWING"
+        },
+        {
+          "Type": "HexHold",
+          "CancelOnOtherClick": false,
+          "HorizontalSpeedMultiplier": 0,
+          "Effects": {
+            "ItemAnimationId": "HexDrawing_Active",
+            "ClearAnimationOnFinish": true,
+            "WorldSoundEventId": "SFX_Hexcode_Casting_Loop",
+            "ClearSoundEventOnFinish": true
+          },
+          "Forks": {
+            "Primary": "Hexcode_Staff_Primary"
+          },
+          "Next": {
+            "Type": "Simple",
+            "RunTime": 0.1,
+            "Effects": {
+              "ItemAnimationId": "HexDrawing_Exit",
+              "WorldSoundEventId": "SFX_Hexcode_Casting_Exit"
+            }
+          }
+        },
+        {
+          "Type": "HexStateChange",
+          "TargetState": "CRAFTING"
+        }
+      ]
+    }
+  ]
+}

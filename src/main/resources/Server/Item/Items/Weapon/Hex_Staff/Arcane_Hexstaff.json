@@ -1,4 +1,5 @@
 {
+  "Parent": "Template_HexStaff",
   "TranslationProperties": {
     "Name": "server.items.Weapon_Staff_Cobalt.name"
   },
@@ -9,11 +10,7 @@
   "ItemLevel": 35,
   "Model": "Items/Weapons/Staff/Blue_Staff.blockymodel",
   "Texture": "Items/Weapons/Staff/Blue_Staff.png",
-  "PlayerAnimationsId": "Staff",
-  "Interactions": {
-    "Primary": "Hexcode_Staff_Primary",
-    "Secondary": "Hexcode_Book_Secondary"
-  },
+  "PlayerAnimationsId": "HexStaff",
   "IconProperties": {
     "Scale": 0.3,
     "Rotation": [
@@ -39,7 +36,6 @@
   },
   "Weapon": {},
   "ItemSoundSetId": "ISS_Weapons_Wood",
-  "Parent": "Template_HexStaff",
   "Utility": {
     "Compatible": true
   }

@@ -1,5 +1,9 @@
 package com.riprod.hexcode.interaction;
 
+import javax.annotation.Nonnull;
+
+import com.hypixel.hytale.codec.Codec;
+import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
@@ -13,22 +17,35 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.config.dat
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.state.HexState;
+import com.riprod.hexcode.state.HexcodeManager;
+import com.riprod.hexcode.state.StateRouter;
 
-import javax.annotation.Nonnull;
-
-public class StaffSecondaryExit extends SimpleInteraction {
+public class HexModeExit extends SimpleInteraction {
 
     @Nonnull
-    public static final BuilderCodec<StaffSecondaryExit> CODEC = BuilderCodec
-            .builder(StaffSecondaryExit.class, StaffSecondaryExit::new, SimpleInteraction.CODEC)
+    public static final BuilderCodec<HexModeExit> CODEC = BuilderCodec
+            .builder(HexModeExit.class, HexModeExit::new, SimpleInteraction.CODEC)
+            .<String>appendInherited(
+                    new KeyedCodec<>("TargetState", Codec.STRING),
+                    (i, s) -> i.targetState = HexState.valueOf(s),
+                    i -> i.targetState != null ? i.targetState.name() : null,
+                    (i, p) -> i.targetState = p.targetState)
+            .add()
             .build();
 
-    public StaffSecondaryExit() {
+    private HexState targetState;
+
+    public HexModeExit() {
     }
 
     @Override
     protected void tick0(boolean firstRun, float time, @Nonnull InteractionType type,
             @Nonnull InteractionContext ctx, @Nonnull CooldownHandler cooldown) {
+
+        if (targetState == null) {
+            ctx.getState().state = InteractionState.Failed;
+            return;
+        }
 
         CommandBuffer<EntityStore> commandBuffer = ctx.getCommandBuffer();
         if (commandBuffer == null) {
@@ -43,34 +60,26 @@ public class StaffSecondaryExit extends SimpleInteraction {
         }
 
         HexcasterComponent hexcaster = commandBuffer.getComponent(playerRef, HexcasterComponent.getComponentType());
-
         if (hexcaster == null) {
             ctx.getState().state = InteractionState.Failed;
             return;
         }
 
-        if (firstRun) {
-            switch (hexcaster.getState()) {
-                case CASTING: {
-                    hexcaster.requestStateChange(HexState.IDLE);
-                    ctx.getState().state = InteractionState.Finished;
-                    break;
-                }
-                case DRAWING: {
-                    hexcaster.requestStateChange(HexState.CRAFTING);
-                    ctx.getState().state = InteractionState.Finished;
-                    break;
-                }
-                default:
-                    ctx.getState().state = InteractionState.Finished;
-                    break;
-            }
-
-            super.tick0(firstRun, time, type, ctx, cooldown);
+        if (hexcaster.getState() != targetState) {
+            ctx.getState().state = InteractionState.Finished;
             return;
         }
 
-        ctx.getState().state = InteractionState.Finished;
+        HexcodeManager manager = StateRouter.route(targetState);
+        if (manager == null) {
+            ctx.getState().state = InteractionState.Finished;
+            return;
+        }
+
+        if (firstRun) {
+            ctx.getState().state = manager.exitInteraction(playerRef, hexcaster, commandBuffer);
+        }
+
         super.tick0(firstRun, time, type, ctx, cooldown);
     }
 

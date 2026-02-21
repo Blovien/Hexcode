@@ -12,10 +12,6 @@
   "Utility": {
     "Compatible": true
   },
-  "Interactions": {
-    "Primary": "Hexcode_Staff_Primary",
-    "Secondary": "Hexcode_Book_Secondary"
-  },
   "IconProperties": {
     "Scale": 0.25,
     "Rotation": [

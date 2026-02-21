@@ -1,0 +1,22 @@
+{
+  "RequireNewClick": true,
+  "ClickQueuingTimeout": 0.1,
+  "Cooldown": {
+    "Cooldown": 0.3
+  },
+  "Interactions": [
+    {
+      "Type": "HexStateBranch",
+      "Branches": {
+        "Idle": "Root_Hexcode_Secondary_CastingFlow",
+        "Execution": "Root_Hexcode_Secondary_CastingFlow",
+        "Crafting": "Root_Hexcode_Secondary_DrawingFlow"
+      }
+    }
+  ],
+  "Rules": {
+    "Interrupting": [
+      "Primary"
+    ]
+  }
+}

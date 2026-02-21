@@ -1,0 +1,20 @@
+{
+  "Interactions": [
+    {
+      "Type": "HexMode",
+      "TargetState": "DRAWING",
+      "CancelOnOtherClick": false,
+      "Effects": {
+        "ItemAnimationId": "HexDrawing_Primary"
+      },
+      "Next": {
+        "Type": "HexModeExit",
+        "TargetState": "DRAWING",
+        "RunTime": 0.05,
+        "Effects": {
+          "ItemAnimationId": "HexDrawing_Active"
+        }
+      }
+    }
+  ]
+}

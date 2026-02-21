@@ -1,0 +1,18 @@
+{
+  "RequireNewClick": true,
+  "ClickQueuingTimeout": 0.1,
+  "Cooldown": {
+    "Cooldown": 0.5
+  },
+  "Interactions": [
+    {
+      "Type": "HexStateBranch",
+      "Branches": {
+        "Casting": "Root_Hexcode_Mode_Casting",
+        "Drawing": "Root_Hexcode_Mode_Drawing",
+        "Crafting": "Root_Hexcode_Mode_Crafting",
+        "Execution": "Root_Hexcode_Mode_Execution"
+      }
+    }
+  ]
+}
