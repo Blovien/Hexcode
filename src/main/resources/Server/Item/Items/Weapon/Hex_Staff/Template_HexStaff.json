@@ -7,5 +7,16 @@
       "Weapon"
     ]
   },
-  "StyleId": "ring"
+  "Model": "Items/Weapons/Staff/Hex_Staff.blockymodel",
+  "Texture": "Items/Weapons/Staff/Hex_Staff_Texture.png",
+  "Icon": "Icons/ItemsGenerated/Hex_Staff.png",
+  "StyleId": "ring",
+  "PlayerAnimationsId": "HexStaff",
+  "Utility": {
+    "Compatible": true
+  },
+  "Interactions": {
+    "Primary": "Hexbook_Primary",
+    "Secondary": "Hexbook_Secondary"
+  }
 }

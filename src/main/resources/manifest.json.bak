@@ -1,0 +1,18 @@
+{
+  "Group": "Riprod",
+  "Name": "Hexcode",
+  "Version": "0.1.0",
+  "Description": "Bring the true power of magic to Hytale",
+  "Authors": [
+    {
+      "Name": "Riprod"
+    }
+  ],
+  "Website": "",
+  "ServerVersion": "2026.02.19-1AB11A592",
+  "Dependencies": {},
+  "OptionalDependencies": {},
+  "DisabledByDefault": false,
+  "IncludesAssetPack": true,
+  "Main": "com.riprod.hexcode.Hexcode"
+}

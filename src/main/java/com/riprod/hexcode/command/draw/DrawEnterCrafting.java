@@ -8,7 +8,9 @@ import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayer
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.player.component.HexcasterComponent;
+import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
+import com.riprod.hexcode.state.HexState;
+
 import javax.annotation.Nonnull;
 
 public class DrawEnterCrafting extends AbstractPlayerCommand {
@@ -24,11 +26,11 @@ public class DrawEnterCrafting extends AbstractPlayerCommand {
 
         HexcasterComponent casterComponent = store.getComponent(playerEntityRef, HexcasterComponent.getComponentType());
 
-        if (casterComponent.getCurrentMode() == HexcasterComponent.HexcasterMode.CRAFTING) {
-            casterComponent.setCurrentMode(HexcasterComponent.HexcasterMode.IDLE);
+        if (casterComponent.getState() == HexState.CRAFTING) {
+            casterComponent.requestStateChange(HexState.IDLE);
             playerRef.sendMessage(Message.raw("Exited crafting mode"));
         } else {
-            casterComponent.setCurrentMode(HexcasterComponent.HexcasterMode.CRAFTING);
+            casterComponent.requestStateChange(HexState.CRAFTING);
             playerRef.sendMessage(Message.raw("Entered crafting mode"));
         }
 

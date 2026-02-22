@@ -1,23 +1,26 @@
 package com.riprod.hexcode.components;
 
+import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.execute.component.HexGraph;
+import com.riprod.hexcode.core.execution.component.HexGraph;
+import com.riprod.hexcode.core.execution.component.HexRoot;
 
-/**
- * Holds all of the information relating to the current hex execution
- * 
- * Will have all the various mutators and extensions that will dynamically change throughout the casting of the spell
- */
 public class HexContext {
+    public final HexRoot root;
     public final Ref<EntityStore> casterRef;
-    public final ComponentAccessor<EntityStore> accessor;
+    public final CommandBuffer<EntityStore> accessor;
+    public final ComponentAccessor<ChunkStore> chunkAccessor;
     public final HexGraph spellGraph;
 
-    public HexContext(Ref<EntityStore> casterRef, ComponentAccessor<EntityStore> accessor, HexGraph spellGraph) {
-        this.casterRef = casterRef;
+    public HexContext(HexRoot root, CommandBuffer<EntityStore> accessor,
+            ComponentAccessor<ChunkStore> chunkAccessor, HexGraph spellGraph) {
+        this.root = root;
+        this.casterRef = root.getSourceRef();
         this.accessor = accessor;
+        this.chunkAccessor = chunkAccessor;
         this.spellGraph = spellGraph;
     }
 }

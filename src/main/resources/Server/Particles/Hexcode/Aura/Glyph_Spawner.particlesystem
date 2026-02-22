@@ -1,0 +1,9 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "Glyph_Spawner"
+    }
+  ],
+  "LifeSpan": 9999,
+  "CullDistance": 50
+}

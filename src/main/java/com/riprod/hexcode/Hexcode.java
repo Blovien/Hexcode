@@ -9,28 +9,48 @@ import com.riprod.hexcode.core.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.glyphs.registry.OperatorAsset;
 import com.riprod.hexcode.core.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.glyphs.variables.EntityVar;
+import com.riprod.hexcode.core.glyphs.variables.NumberVar;
 import com.riprod.hexcode.core.glyphs.variables.PositionVar;
+import com.riprod.hexcode.core.glyphs.variables.RotationVar;
 import com.riprod.hexcode.core.glyphs.variables.SpellVar;
 import com.riprod.hexcode.core.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.hexbook.registry.HexBookAsset;
+import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.hexstaff.component.HexStaffComponent;
 import com.riprod.hexcode.core.hexstaff.registry.HexStaffAsset;
-import com.riprod.hexcode.interaction.StaffSecondaryEnter;
-import com.riprod.hexcode.interaction.StaffSecondaryExit;
-import com.riprod.hexcode.interaction.StaffPrimaryExit;
-import com.riprod.hexcode.interaction.StaffPrimaryEnter;
-import com.riprod.hexcode.player.component.HexcasterComponent;
+import com.riprod.hexcode.interaction.HexStateChange;
+import com.riprod.hexcode.interaction.HexHold;
+import com.riprod.hexcode.interaction.HexMode;
+import com.riprod.hexcode.interaction.HexModeExit;
+import com.riprod.hexcode.state.HexState;
+import com.riprod.hexcode.state.HexTick;
+import com.riprod.hexcode.state.HexcodeManager;
+import com.riprod.hexcode.state.StateRouter;
+import com.riprod.hexcode.core.idle.IdleSystem;
+import com.riprod.hexcode.core.casting.CastingSystem;
+import com.riprod.hexcode.core.drawing.DrawingSystem;
+import com.riprod.hexcode.core.crafting.CraftingSystem;
+import com.riprod.hexcode.core.execution.ExecutionSystem;
+import com.riprod.hexcode.core.execution.component.ExecutionComponent;
+import com.riprod.hexcode.core.execution.system.ExecutionTickSystem;
+import com.riprod.hexcode.builtin.glyphs.propel.PropelComponent;
+import com.riprod.hexcode.builtin.glyphs.propel.PropelTickSystem;
+import com.riprod.hexcode.interaction.HexStateBranch;
 import com.hypixel.hytale.assetstore.AssetRegistry;
 import com.hypixel.hytale.assetstore.map.DefaultAssetMap;
+import com.hypixel.hytale.server.core.asset.type.item.config.Item;
+import com.hypixel.hytale.server.core.asset.type.particle.config.ParticleSystem;
 import com.hypixel.hytale.component.ComponentRegistryProxy;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.asset.HytaleAssetStore;
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
+import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class Hexcode extends JavaPlugin {
@@ -52,6 +72,7 @@ public class Hexcode extends JavaPlugin {
   private ComponentType<EntityStore, GlyphComponent> glyphComponentType;
   private ComponentType<EntityStore, HexStaffComponent> hexStaffComponentType;
   private ComponentType<EntityStore, HexcasterComponent> hexcasterComponentType;
+  private ComponentType<EntityStore, ExecutionComponent> executionComponentType;
 
   @Override
   protected void setup() {
@@ -85,6 +106,8 @@ public class Hexcode extends JavaPlugin {
             .setPath("Hexcode/HexBooks")
             .setCodec(HexBookAsset.CODEC)
             .setKeyFunction(HexBookAsset::getId)
+            .loadsAfter(ParticleSystem.class)
+            .loadsAfter(Item.class)
             .build());
     AssetRegistry.register(
         HytaleAssetStore
@@ -93,6 +116,8 @@ public class Hexcode extends JavaPlugin {
             .setPath("Hexcode/HexStaffs")
             .setCodec(HexStaffAsset.CODEC)
             .setKeyFunction(HexStaffAsset::getId)
+            .loadsAfter(ParticleSystem.class)
+            .loadsAfter(Item.class)
             .build());
 
     // Entity Component Registries
@@ -114,23 +139,43 @@ public class Hexcode extends JavaPlugin {
         HexcasterComponent::new);
     HexcasterComponent.setComponentType(hexcasterComponentType);
 
+    this.executionComponentType = entityStoreRegistry.registerComponent(ExecutionComponent.class,
+        ExecutionComponent::new);
+    ExecutionComponent.setComponentType(executionComponentType);
+
+    ComponentType<EntityStore, PropelComponent> propelComponentType =
+        entityStoreRegistry.registerComponent(PropelComponent.class, PropelComponent::new);
+    PropelComponent.setComponentType(propelComponentType);
+
     // Glyph Var Variables
     SpellVar.CODEC.register("Entity", EntityVar.class, EntityVar.CODEC);
     SpellVar.CODEC.register("Block", BlockVar.class, BlockVar.CODEC);
+    SpellVar.CODEC.register("Rotation", RotationVar.class, RotationVar.CODEC);
     SpellVar.CODEC.register("Position", PositionVar.class, PositionVar.CODEC);
+    SpellVar.CODEC.register("Number", NumberVar.class, NumberVar.CODEC);
 
     // Interaction Registries
-    Interaction.CODEC.register("CastingModeEnter", StaffSecondaryEnter.class,
-        StaffSecondaryEnter.CODEC);
-    Interaction.CODEC.register("CastingModeExit", StaffSecondaryExit.class,
-        StaffSecondaryExit.CODEC);
-    Interaction.CODEC.register("GlyphSelect", StaffPrimaryEnter.class,
-        StaffPrimaryEnter.CODEC);
-    Interaction.CODEC.register("GlyphDrop", StaffPrimaryExit.class,
-        StaffPrimaryExit.CODEC);
+    Interaction.CODEC.register("HexStateBranch", HexStateBranch.class, HexStateBranch.CODEC);
+    Interaction.CODEC.register("HexStateChange", HexStateChange.class, HexStateChange.CODEC);
+    Interaction.CODEC.register("HexHold", HexHold.class, HexHold.CODEC);
+    Interaction.CODEC.register("HexMode", HexMode.class, HexMode.CODEC);
+    Interaction.CODEC.register("HexModeExit", HexModeExit.class, HexModeExit.CODEC);
+
+    // State Managers
+    StateRouter.registerState(HexState.IDLE, new IdleSystem());
+    StateRouter.registerState(HexState.CASTING, new CastingSystem());
+    StateRouter.registerState(HexState.DRAWING, new DrawingSystem());
+    StateRouter.registerState(HexState.CRAFTING, new CraftingSystem());
+    StateRouter.registerState(HexState.EXECUTION, new ExecutionSystem());
+
+    // Ticking Systems
+    entityStoreRegistry.registerSystem(new HexTick());
+    entityStoreRegistry.registerSystem(new ExecutionTickSystem());
+    entityStoreRegistry.registerSystem(new PropelTickSystem());
 
     // Events
     this.getEventRegistry().registerGlobal(PlayerConnectEvent.class, Hexcode::onPlayerConnect);
+    this.getEventRegistry().registerGlobal(PlayerDisconnectEvent.class, Hexcode::onPlayerDisconnect);
 
     // Commands
     this.getCommandRegistry().registerCommand(new HexcodeCommand());
@@ -160,6 +205,17 @@ public class Hexcode extends JavaPlugin {
 
   private static void onPlayerConnect(PlayerConnectEvent event) {
     Holder<EntityStore> holder = event.getHolder();
-    holder.ensureAndGetComponent(HexcasterComponent.getComponentType());
+    HexcasterComponent comp = holder.ensureAndGetComponent(HexcasterComponent.getComponentType());
+
+    for (HexcodeManager manager : StateRouter.allManagers()) {
+      manager.onPlayerJoin(holder, comp);
+    }
+  }
+
+  private static void onPlayerDisconnect(PlayerDisconnectEvent event) {
+    PlayerRef playerRef = event.getPlayerRef();
+    for (HexcodeManager manager : StateRouter.allManagers()) {
+      manager.onPlayerLeave(playerRef);
+    }
   }
 }

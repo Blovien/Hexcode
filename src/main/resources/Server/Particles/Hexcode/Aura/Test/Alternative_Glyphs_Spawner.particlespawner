@@ -1,0 +1,127 @@
+{
+  "RenderMode": "Erosion",
+  "ParticleRotationInfluence": "Billboard",
+  "LinearFiltering": true,
+  "LightInfluence": 0,
+  "ParticleRotateWithSpawner": false,
+  "ParticleLifeSpan": {
+    "Min": 0.5,
+    "Max": 1
+  },
+  "SpawnRate": {
+    "Min": 45,
+    "Max": 50
+  },
+  "EmitOffset": {
+    "X": {
+      "Min": 4,
+      "Max": 6
+    },
+    "Z": {
+      "Min": 4,
+      "Max": 6
+    },
+    "Y": {
+      "Min": 0,
+      "Max": 0
+    }
+  },
+  "Particle": {
+    "Texture": "Particles/Textures/Shapes/Spiral.png",
+    "FrameSize": {
+      "Width": 128,
+      "Height": 128
+    },
+    "ScaleRatioConstraint": "None",
+    "UVOption": "RandomFlipU",
+    "Animation": {
+      "0": {
+        "Opacity": 0,
+        "Color": "#ffffff",
+        "Scale": {
+          "X": {
+            "Min": 1.2,
+            "Max": 1.4
+          },
+          "Y": {
+            "Min": 1.2,
+            "Max": 1.4
+          }
+        }
+      },
+      "50": {
+        "Opacity": 1,
+        "Color": "#5570ff"
+      },
+      "100": {
+        "Scale": {
+          "X": {
+            "Min": 0.2,
+            "Max": 0.2
+          },
+          "Y": {
+            "Min": 0.2,
+            "Max": 0.2
+          }
+        },
+        "Opacity": 0,
+        "Color": "#290053",
+        "Rotation": {
+          "Y": {
+            "Max": 0
+          },
+          "X": {
+            "Max": 0
+          }
+        }
+      }
+    },
+    "InitialAnimationFrame": {
+      "Rotation": {
+        "Y": {
+          "Min": 0,
+          "Max": 0
+        },
+        "Z": {
+          "Min": 0,
+          "Max": 0
+        }
+      },
+      "Scale": {
+        "X": {
+          "Min": 1,
+          "Max": 1
+        },
+        "Y": {
+          "Min": 1,
+          "Max": 1
+        }
+      },
+      "Opacity": 0.536,
+      "FrameIndex": {
+        "Min": 0,
+        "Max": 0
+      }
+    }
+  },
+  "UVMotion": {
+    "Texture": "Particles/Textures/UVMotion/FlowMapSmoke.png",
+    "Scale": 1,
+    "Strength": 4.0,
+    "StrengthCurveType": "IncreaseQuartInOut",
+    "SpeedY": 1
+  },
+  "TotalParticles": {
+    "Min": -1,
+    "Max": -1
+  },
+  "MaxConcurrentParticles": 50,
+  "Attractors": [
+    {
+      "RadialAcceleration": 1,
+      "RadialTangentAcceleration": 1
+    }
+  ],
+  "TrailSpawnerPositionMultiplier": 0,
+  "TrailSpawnerRotationMultiplier": 1
+}

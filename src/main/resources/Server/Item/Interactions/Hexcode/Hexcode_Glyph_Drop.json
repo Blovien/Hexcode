@@ -1,5 +1,0 @@
-{
-  "$Comment": "Glyph drop - check for merge with another glyph or lock position",
-  "Type": "GlyphDrop",
-  "RunTime": 0.05
-}

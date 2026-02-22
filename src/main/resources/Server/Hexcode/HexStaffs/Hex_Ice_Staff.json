@@ -1,4 +1,5 @@
 {
+  "Parent": "Base_Staff",
   "ItemId": "Hex_Ice_Staff",
   "CastStyleId": "arc"
 }

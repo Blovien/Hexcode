@@ -1,0 +1,20 @@
+{
+  "Interactions": [
+    {
+      "Type": "HexMode",
+      "TargetState": "CRAFTING",
+      "CancelOnOtherClick": false,
+      "Effects": {
+        "ItemAnimationId": "HexCrafting_Primary"
+      },
+      "Next": {
+        "Type": "HexModeExit",
+        "TargetState": "CRAFTING",
+        "RunTime": 0.05,
+        "Effects": {
+          "ItemAnimationId": "HexCrafting_Active"
+        }
+      }
+    }
+  ]
+}

@@ -1,6 +1,0 @@
-{
-  "$Comment": "Glyph selection - hold to drag a glyph. Release chains to GlyphDrop.",
-  "Type": "GlyphSelect",
-  "CancelOnOtherClick": false,
-  "Next": "Hexcode_Glyph_Drop"
-}

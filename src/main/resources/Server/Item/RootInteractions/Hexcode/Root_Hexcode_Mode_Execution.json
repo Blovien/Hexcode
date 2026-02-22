@@ -1,0 +1,11 @@
+{
+  "Interactions": [
+    {
+      "Type": "HexMode",
+      "TargetState": "EXECUTION",
+      "Effects": {
+        "ItemAnimationId": "HexExecution_Primary"
+      }
+    }
+  ]
+}

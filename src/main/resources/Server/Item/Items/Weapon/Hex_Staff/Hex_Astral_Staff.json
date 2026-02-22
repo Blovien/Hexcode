@@ -8,13 +8,9 @@
   ],
   "Quality": "Epic",
   "ItemLevel": 40,
-  "PlayerAnimationsId": "Staff",
+  "PlayerAnimationsId": "HexStaff",
   "Utility": {
     "Compatible": true
-  },
-  "Interactions": {
-    "Primary": "Hexcode_Staff_Cast",
-    "Secondary": "Hexcode_Staff_Secondary"
   },
   "IconProperties": {
     "Scale": 0.25,

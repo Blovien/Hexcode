@@ -6,7 +6,8 @@ import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.execute.component.HexGraph;
+import com.riprod.hexcode.core.execution.component.HexGraph;
+import com.riprod.hexcode.core.hexstaff.registry.HexStaffAsset;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -35,8 +36,8 @@ public class HexStaffComponent implements Component<EntityStore> {
     public HexStaffComponent() {
     }
 
-    public HexStaffComponent(@Nonnull String styleId) {
-        this.styleId = styleId;
+    public HexStaffComponent(@Nonnull HexStaffAsset staffAsset) {
+        this.styleId = staffAsset.getCastStyleId();
     }
 
     public static void setComponentType(ComponentType<EntityStore, HexStaffComponent> type) {

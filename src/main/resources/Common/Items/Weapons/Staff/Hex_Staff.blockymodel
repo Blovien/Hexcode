@@ -3,14 +3,14 @@
     {
       "id": "1",
       "name": "R-Attachment",
-      "position": {"x": 0, "y": 39, "z": 0},
-      "orientation": {"x": 0, "y": 0, "z": 0, "w": 1},
+      "position": {"x": 0, "y": 0, "z": 0},
+      "orientation": {"x": 0.70711, "y": 0, "z": 0, "w": 0.70711},
       "shape": {
         "type": "none",
         "offset": {"x": 0, "y": 0, "z": 0},
         "stretch": {"x": 0, "y": 0, "z": 0},
         "settings": {
-          "isPiece": false
+          "isPiece": true
         },
         "textureLayout": {},
         "unwrapMode": "custom",
@@ -759,7 +759,7 @@
                                     "stretch": {"x": 1, "y": 1, "z": 1},
                                     "settings": {
                                       "isPiece": false,
-                                      "size": {"x": 5, "y": 8, "z": 0},
+                                      "size": {"x": 5, "y": 8},
                                       "normal": "+Z"
                                     },
                                     "textureLayout": {
@@ -892,7 +892,7 @@
                                 "stretch": {"x": 1, "y": 1, "z": 1},
                                 "settings": {
                                   "isPiece": false,
-                                  "size": {"x": 5, "y": 8, "z": 0},
+                                  "size": {"x": 5, "y": 8},
                                   "normal": "+Z"
                                 },
                                 "textureLayout": {
@@ -1175,5 +1175,6 @@
       ]
     }
   ],
+  "format": "character",
   "lod": "auto"
 }

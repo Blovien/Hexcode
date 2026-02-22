@@ -77,19 +77,23 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
                 }, (asset) -> {
                     return asset.data;
                 })
-                .append(new KeyedCodec<>("ModelPath", Codec.STRING),
-                        (a, v) -> a.modelPath = v, a -> a.modelPath)
+                .<String>appendInherited(new KeyedCodec<>("ModelPath", Codec.STRING),
+                        (a, v) -> a.modelPath = v, a -> a.modelPath,
+                        (a, p) -> a.modelPath = p.modelPath)
                 .add()
-                .append(new KeyedCodec<>("BasePower", Codec.FLOAT),
-                        (a, v) -> a.basePower = v, a -> a.basePower)
+                .<Float>appendInherited(new KeyedCodec<>("BasePower", Codec.FLOAT),
+                        (a, v) -> a.basePower = v, a -> a.basePower,
+                        (a, p) -> a.basePower = p.basePower)
                 .add()
-                .append(new KeyedCodec<>("ImagePath", Codec.STRING),
-                        (a, v) -> a.imagePath = v, a -> a.imagePath)
+                .<String>appendInherited(new KeyedCodec<>("ImagePath", Codec.STRING),
+                        (a, v) -> a.imagePath = v, a -> a.imagePath,
+                        (a, p) -> a.imagePath = p.imagePath)
                 .add()
-                .append(new KeyedCodec<>("ManaConsumption", Codec.INTEGER),
-                        (a, v) -> a.manaConsumption = v, a -> a.manaConsumption)
+                .<Integer>appendInherited(new KeyedCodec<>("ManaConsumption", Codec.INTEGER),
+                        (a, v) -> a.manaConsumption = v, a -> a.manaConsumption,
+                        (a, p) -> a.manaConsumption = p.manaConsumption)
                 .add()
-                .append(new KeyedCodec<>("ShapeStructure", new ArrayCodec<>(DrawnShapeComponent.CODEC, DrawnShapeComponent[]::new)),
+                .<DrawnShapeComponent[]>appendInherited(new KeyedCodec<>("ShapeStructure", new ArrayCodec<>(DrawnShapeComponent.CODEC, DrawnShapeComponent[]::new)),
                         (c, v) -> {
                             if (v != null) {
                                 c.shapes = new ArrayList<>(Arrays.asList(v));
@@ -97,7 +101,8 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
                                 c.shapes = new ArrayList<>();
                             }
                         },
-                        c -> c.shapes.toArray(DrawnShapeComponent[]::new))
+                        c -> c.shapes.toArray(DrawnShapeComponent[]::new),
+                        (a, p) -> a.shapes = new ArrayList<>(p.shapes))
                 .add()
                 .build();
         VALIDATOR_CACHE = new ValidatorCache<>(new AssetKeyValidator<>(GlyphAsset::getAssetStore));

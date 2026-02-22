@@ -1,0 +1,12 @@
+{
+  "Parent": "Base_Glyph",
+  "ModelPath": "Glyph_Self",
+  "BasePower": 1.0,
+  "ManaConsumption": 0,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Square",
+      "Size": 1.0
+    }
+  ]
+}

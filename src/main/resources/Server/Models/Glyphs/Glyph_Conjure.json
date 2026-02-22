@@ -1,0 +1,5 @@
+{
+  "Parent": "Base_Glyph",
+  "Model": "VFX/Glyphs/Conjure.blockymodel",
+  "Texture": "VFX/Glyphs/Conjure.png"
+}

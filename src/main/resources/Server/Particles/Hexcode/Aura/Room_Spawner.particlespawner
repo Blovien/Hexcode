@@ -1,0 +1,116 @@
+{
+  "RenderMode": "Erosion",
+  "ParticleRotationInfluence": "BillboardVelocity",
+  "LinearFiltering": true,
+  "LightInfluence": 0,
+  "ParticleRotateWithSpawner": true,
+  "TrailSpawnerPositionMultiplier": 1,
+  "TrailSpawnerRotationMultiplier": 1,
+  "MaxConcurrentParticles": 200,
+  "ParticleLifeSpan": {
+    "Min": 0.5,
+    "Max": 10
+  },
+  "SpawnRate": {
+    "Min": 50,
+    "Max": 60
+  },
+  "Particle": {
+    "Texture": "Particles/Textures/Basic/Ball.png",
+    "FrameSize": {
+      "Width": 64,
+      "Height": 64
+    },
+    "ScaleRatioConstraint": "OneToOne",
+    "Animation": {
+      "0": {
+        "FrameIndex": {
+          "Min": 0,
+          "Max": 0
+        },
+        "Scale": {
+          "X": {
+            "Min": 0.2,
+            "Max": 0.2
+          }
+        },
+        "Rotation": {
+          "X": {
+            "Min": 0,
+            "Max": 0
+          },
+          "Y": {
+            "Min": 0,
+            "Max": 0
+          },
+          "Z": {
+            "Min": 0,
+            "Max": 0
+          }
+        },
+        "Opacity": 1,
+        "Color": "#bad9ff"
+      },
+      "100": {
+        "Opacity": 0.14,
+        "Scale": {
+          "X": {
+            "Min": 0.1,
+            "Max": 0.1
+          }
+        },
+        "Color": "#0e1f8d"
+      }
+    },
+    "InitialAnimationFrame": {
+      "Rotation": {
+        "X": {
+          "Min": 0,
+          "Max": 360
+        },
+        "Y": {
+          "Min": 0,
+          "Max": 360
+        },
+        "Z": {
+          "Min": 0,
+          "Max": 360
+        }
+      },
+      "Scale": {
+        "X": {
+          "Min": 0.15,
+          "Max": 0.15
+        }
+      },
+      "Opacity": 0.7,
+      "Color": "#008dff",
+      "FrameIndex": {
+        "Min": 0,
+        "Max": 0
+      }
+    }
+  },
+  "SpawnBurst": false,
+  "EmitOffset": {
+    "X": {
+      "Min": 0,
+      "Max": 6
+    },
+    "Z": {
+      "Min": 0,
+      "Max": 6
+    },
+    "Y": {
+      "Max": 6
+    }
+  },
+  "Shape": "Cube",
+  "Attractors": [
+    {
+      "LinearAcceleration": {
+        "Y": 0.1
+      }
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "Layers": [
+    {
+      "Files": [
+        "Sounds/Hexcode/Casting/Casting_Exit.ogg"
+      ]
+    }
+  ],
+  "Volume": -2.0,
+  "Parent": "SFX_Attn_Moderate"
+}

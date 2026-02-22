@@ -77,7 +77,7 @@ public class GlyphMath {
         }
 
         float angleIncrement = (float) (2 * Math.PI / children.size());
-        float angularRadius = getSelectionRadius(parentScale) * parentScale; // scales with the parent scale
+        float angularRadius = getSelectionRadius(parentScale) * parentScale * 3; // scales with the parent scale
 
         for (int i = 0; i < children.size(); i++) {
             float theta = i * angleIncrement;
