@@ -11,7 +11,7 @@
         "stretch": {"x": 1, "y": 1, "z": 1},
         "settings": {
           "isPiece": false,
-          "size": {"x": 3, "y": 13, "z": 3}
+          "size": {"x": 3, "y": 13, "z": 0}
         },
         "textureLayout": {
           "back": {
@@ -62,7 +62,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 2, "z": 3},
+              "size": {"x": 3, "y": 2, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -114,7 +114,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 3, "z": 3},
+              "size": {"x": 3, "y": 3, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -166,7 +166,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 3, "z": 3},
+              "size": {"x": 3, "y": 3, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -218,7 +218,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 3, "z": 3},
+              "size": {"x": 3, "y": 3, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -270,7 +270,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 4, "z": 3},
+              "size": {"x": 3, "y": 4, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -322,7 +322,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 6, "z": 3},
+              "size": {"x": 3, "y": 6, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -374,7 +374,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 7, "z": 3},
+              "size": {"x": 3, "y": 7, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -426,7 +426,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 6, "z": 3},
+              "size": {"x": 3, "y": 6, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -478,7 +478,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 3, "z": 3},
+              "size": {"x": 3, "y": 3, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -530,7 +530,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 3, "z": 3},
+              "size": {"x": 3, "y": 3, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -582,7 +582,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 3, "z": 3},
+              "size": {"x": 3, "y": 3, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -634,7 +634,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 13, "z": 3},
+              "size": {"x": 3, "y": 13, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -686,7 +686,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 3, "z": 3},
+              "size": {"x": 3, "y": 3, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -738,7 +738,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 3, "z": 3},
+              "size": {"x": 3, "y": 3, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -790,7 +790,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 3, "z": 3},
+              "size": {"x": 3, "y": 3, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -842,7 +842,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 6, "z": 3},
+              "size": {"x": 3, "y": 6, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -894,7 +894,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 7, "z": 3},
+              "size": {"x": 3, "y": 7, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -946,7 +946,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 6, "z": 3},
+              "size": {"x": 3, "y": 6, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -998,7 +998,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 4, "z": 3},
+              "size": {"x": 3, "y": 4, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -1050,7 +1050,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 3, "z": 3},
+              "size": {"x": 3, "y": 3, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -1102,7 +1102,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 3, "z": 3},
+              "size": {"x": 3, "y": 3, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -1154,7 +1154,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 3, "z": 3},
+              "size": {"x": 3, "y": 3, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -1206,7 +1206,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 2, "z": 3},
+              "size": {"x": 3, "y": 2, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -1258,7 +1258,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 3, "z": 3},
+              "size": {"x": 3, "y": 3, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -1310,7 +1310,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 3, "z": 3},
+              "size": {"x": 3, "y": 3, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -1362,7 +1362,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 3, "z": 3},
+              "size": {"x": 3, "y": 3, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -1414,7 +1414,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 4, "z": 3},
+              "size": {"x": 3, "y": 4, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -1466,7 +1466,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 6, "z": 3},
+              "size": {"x": 3, "y": 6, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -1518,7 +1518,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 7, "z": 3},
+              "size": {"x": 3, "y": 7, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -1570,7 +1570,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 6, "z": 3},
+              "size": {"x": 3, "y": 6, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -1622,7 +1622,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 3, "z": 3},
+              "size": {"x": 3, "y": 3, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -1674,7 +1674,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 3, "z": 3},
+              "size": {"x": 3, "y": 3, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -1726,7 +1726,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 3, "z": 3},
+              "size": {"x": 3, "y": 3, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -1778,7 +1778,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 3, "z": 3},
+              "size": {"x": 3, "y": 3, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -1823,14 +1823,14 @@
           "id": "36",
           "name": "cube--C35",
           "position": {"x": -19.6, "y": 0.1, "z": 0},
-          "orientation": {"x": -0.44229, "y": 0.89687, "z": 0, "w": 0},
+          "orientation": {"x": 0.44229, "y": -0.89687, "z": 0, "w": 0},
           "shape": {
             "type": "box",
             "offset": {"x": 29.43867, "y": -12.14544, "z": 0},
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 3, "z": 3},
+              "size": {"x": 3, "y": 3, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -1875,14 +1875,14 @@
           "id": "37",
           "name": "cube--C36",
           "position": {"x": -19.6, "y": 0.1, "z": 0},
-          "orientation": {"x": -0.32144, "y": 0.94693, "z": 0, "w": 0},
+          "orientation": {"x": 0.32144, "y": -0.94693, "z": 0, "w": 0},
           "shape": {
             "type": "box",
             "offset": {"x": 25.98015, "y": -13.8709, "z": 0},
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 3, "z": 3},
+              "size": {"x": 3, "y": 3, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -1927,14 +1927,14 @@
           "id": "38",
           "name": "cube--C37",
           "position": {"x": -19.6, "y": 0.1, "z": 0},
-          "orientation": {"x": -0.19509, "y": 0.98079, "z": 0, "w": 0},
+          "orientation": {"x": 0.19509, "y": -0.98079, "z": 0, "w": 0},
           "shape": {
             "type": "box",
             "offset": {"x": 22.41399, "y": -12.20157, "z": 0},
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 6, "z": 3},
+              "size": {"x": 3, "y": 6, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -1979,14 +1979,14 @@
           "id": "39",
           "name": "cube--C38",
           "position": {"x": -19.6, "y": 0.1, "z": 0},
-          "orientation": {"x": -0.0654, "y": 0.99786, "z": 0, "w": 0},
+          "orientation": {"x": 0.0654, "y": -0.99786, "z": 0, "w": 0},
           "shape": {
             "type": "box",
             "offset": {"x": 19.94029, "y": -6.14324, "z": 0},
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 7, "z": 3},
+              "size": {"x": 3, "y": 7, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -2031,14 +2031,14 @@
           "id": "40",
           "name": "cube--C39",
           "position": {"x": -19.6, "y": 0.1, "z": 0},
-          "orientation": {"x": -0.13053, "y": 0.99144, "z": 0, "w": 0},
+          "orientation": {"x": 0.13053, "y": -0.99144, "z": 0, "w": 0},
           "shape": {
             "type": "box",
             "offset": {"x": 20.96904, "y": -9.39342, "z": 0},
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 6, "z": 3},
+              "size": {"x": 3, "y": 6, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -2090,7 +2090,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 4, "z": 3},
+              "size": {"x": 3, "y": 4, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -2142,7 +2142,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 3, "z": 3},
+              "size": {"x": 3, "y": 3, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -2194,7 +2194,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 3, "z": 3},
+              "size": {"x": 3, "y": 3, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -2246,7 +2246,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 3, "z": 3},
+              "size": {"x": 3, "y": 3, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -2298,7 +2298,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 2, "z": 3},
+              "size": {"x": 3, "y": 2, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -2350,7 +2350,7 @@
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 2, "z": 3},
+              "size": {"x": 3, "y": 2, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {

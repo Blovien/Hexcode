@@ -7,11 +7,11 @@
       "orientation": {"x": 0, "y": 0, "z": 0, "w": 1},
       "shape": {
         "type": "box",
-        "offset": {"x": 30.5, "y": -1.5, "z": 0},
+        "offset": {"x": 30.5, "y": -1.5, "z": 0.5},
         "stretch": {"x": 1, "y": 1, "z": 1},
         "settings": {
           "isPiece": false,
-          "size": {"x": 3, "y": 61, "z": 3}
+          "size": {"x": 3, "y": 61, "z": 0}
         },
         "textureLayout": {
           "back": {
@@ -36,7 +36,7 @@
           },
           "top": {
             "offset": {"x": 11, "y": 14},
-            "mirror": {"x": true, "y": true},
+            "mirror": {"x": true, "y": false},
             "angle": 0
           },
           "bottom": {
@@ -54,15 +54,15 @@
         {
           "id": "2",
           "name": "Square--C1",
-          "position": {"x": -29.5, "y": 1.5, "z": 0},
+          "position": {"x": -29.5, "y": 1.5, "z": -0.5},
           "orientation": {"x": 0, "y": 0, "z": 0.70711, "w": 0.70711},
           "shape": {
             "type": "box",
-            "offset": {"x": 30.5, "y": -0.5, "z": 0},
+            "offset": {"x": 30.5, "y": -0.5, "z": 0.5},
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 61, "z": 3},
+              "size": {"x": 3, "y": 61, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -88,7 +88,7 @@
               },
               "top": {
                 "offset": {"x": 11, "y": 14},
-                "mirror": {"x": true, "y": true},
+                "mirror": {"x": true, "y": false},
                 "angle": 0
               },
               "bottom": {
@@ -106,15 +106,15 @@
         {
           "id": "3",
           "name": "Square--C2",
-          "position": {"x": -31.5, "y": 1.5, "z": 0},
+          "position": {"x": -31.5, "y": 1.5, "z": -0.5},
           "orientation": {"x": 0, "y": 0, "z": -0.70711, "w": 0.70711},
           "shape": {
             "type": "box",
-            "offset": {"x": 30.5, "y": -0.5, "z": 0},
+            "offset": {"x": 30.5, "y": -0.5, "z": 0.5},
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 61, "z": 3},
+              "size": {"x": 3, "y": 61, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -140,7 +140,7 @@
               },
               "top": {
                 "offset": {"x": 11, "y": 14},
-                "mirror": {"x": true, "y": true},
+                "mirror": {"x": true, "y": false},
                 "angle": 0
               },
               "bottom": {
@@ -158,15 +158,15 @@
         {
           "id": "4",
           "name": "Square--C3",
-          "position": {"x": -30.5, "y": 2.5, "z": 0},
+          "position": {"x": -30.5, "y": 2.5, "z": -0.5},
           "orientation": {"x": 0, "y": 0, "z": 1, "w": 0},
           "shape": {
             "type": "box",
-            "offset": {"x": 30.5, "y": -0.5, "z": 0},
+            "offset": {"x": 30.5, "y": -0.5, "z": 0.5},
             "stretch": {"x": 1, "y": 1, "z": 1},
             "settings": {
               "isPiece": false,
-              "size": {"x": 3, "y": 61, "z": 3},
+              "size": {"x": 3, "y": 61, "z": 0},
               "isStaticBox": true
             },
             "textureLayout": {
@@ -192,7 +192,7 @@
               },
               "top": {
                 "offset": {"x": 11, "y": 14},
-                "mirror": {"x": true, "y": true},
+                "mirror": {"x": true, "y": false},
                 "angle": 0
               },
               "bottom": {
