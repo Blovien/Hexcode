@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.riprod.hexcode.core.execution.component.VariableMap;
-import com.riprod.hexcode.core.glyphs.variables.SpellVar;
+import com.riprod.hexcode.core.glyphs.variables.HexVar;
 
 public class ExecutionContext {
     private VariableMap variableMap;
@@ -20,10 +20,10 @@ public class ExecutionContext {
         return variableMap;
     }
 
-    public List<SpellVar> getVariable(int index) {
+    public HexVar getVariable(int index) {
         return variableMap.get(index);
     }
-    public void setVariable(int index, List<SpellVar> variables) {
+    public void setVariable(int index, HexVar variables) {
         variableMap.set(index, variables);
     }
 

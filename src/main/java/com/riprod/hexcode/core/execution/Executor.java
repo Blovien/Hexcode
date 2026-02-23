@@ -27,8 +27,8 @@ public class Executor {
 
         UUIDComponent uuidComponent = hexContext.accessor.getComponent(
                 hexContext.casterRef, UUIDComponent.getComponentType());
-        EntityVar casterVar = new EntityVar(uuidComponent.getUuid(), hexContext.casterRef);
-        executionContext.setVariable(1, List.of(casterVar));
+        EntityVar casterVar = new EntityVar(EntityVar.createRef(uuidComponent.getUuid(), hexContext.casterRef));
+        executionContext.setVariable(1, casterVar);
         executionContext.setCurrentNode(hexContext.spellGraph.rootId);
 
         Glyph rootNode = hexContext.spellGraph.nodes.get(hexContext.spellGraph.rootId);

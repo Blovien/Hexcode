@@ -9,6 +9,7 @@ import java.util.UUID;
 import com.riprod.hexcode.components.Glyph;
 import com.riprod.hexcode.core.execution.component.HexGraph;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.glyphs.values.HexVal;
 
 public class Compiler {
 
@@ -29,12 +30,10 @@ public class Compiler {
     node.setGlyphId(glyph.getGlyphId());
     node.setAccuracy(glyph.getAccuracy());
     node.setSpeed(glyph.getSpeed());
-    List<Integer> nums = glyph.getNumbers();
-    for (int i = 0; i < nums.size(); i++)
-      node.setNumber(i, nums.get(i));
-    List<Integer> vars = glyph.getVariables();
-    for (int i = 0; i < vars.size(); i++)
-      node.setVariable(i, vars.get(i));
+    List<HexVal> nums = glyph.getInputs();
+    node.setInputs(nums);
+    List<Integer> vars = glyph.getOutputs();
+    node.setOutputs(vars);
 
     List<UUID> next = new ArrayList<>();
     for (GlyphComponent child : glyph.getChildren()) {

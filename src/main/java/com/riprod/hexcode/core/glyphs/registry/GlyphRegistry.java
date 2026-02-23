@@ -21,8 +21,8 @@ public class GlyphRegistry {
         initialized = true;
     }
 
-    public static void register(@Nonnull GlyphHandler glyph) {
-        glyphs.put(glyph.getId(), glyph);
+    public static void register(String glyphId, @Nonnull GlyphHandler glyph) {
+        glyphs.put(glyphId, glyph);
     }
 
     @Nullable

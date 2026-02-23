@@ -66,6 +66,7 @@ public class HexcasterComponent implements Component<EntityStore> {
     private long drawStartTimeMillis = 0;
 
     // Crafting Mode
+    private Ref<EntityStore> pedestalRef = null;
 
     public HexcasterComponent() {
     }
@@ -181,7 +182,16 @@ public class HexcasterComponent implements Component<EntityStore> {
         this.drawStartTimeMillis = 0;
     }
 
+    public Ref<EntityStore> getPedestalRef() {
+        return pedestalRef;
+    }
+
+    public void setPedestalRef(@Nullable Ref<EntityStore> pedestalRef) {
+        this.pedestalRef = pedestalRef;
+    }
+
     public void clearCraftingState() {
+        this.pedestalRef = null;
         this.hoveredChain.clear();
     }
 
@@ -256,6 +266,7 @@ public class HexcasterComponent implements Component<EntityStore> {
         copy.trailRef = this.trailRef;
         copy.lastParticleSpawnMillis = this.lastParticleSpawnMillis;
         copy.drawStartTimeMillis = this.drawStartTimeMillis;
+        copy.pedestalRef = this.pedestalRef;
         return copy;
     }
 }

@@ -29,6 +29,8 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
     protected float basePower = 1.0f;
     protected int manaConsumption = 10;
     protected ArrayList<DrawnShapeComponent> shapes = new ArrayList<>();
+    protected int inputCount = 0;
+    protected int outputCount = 0;
 
     public static AssetStore<String, GlyphAsset, DefaultAssetMap<String, GlyphAsset>> getAssetStore() {
         if (ASSET_STORE == null) {
@@ -64,6 +66,14 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
 
     public List<DrawnShapeComponent> getShapes() {
         return this.shapes;
+    }
+
+    public int getInputCount() {
+        return this.inputCount;
+    }
+
+    public int getOutputCount() {
+        return this.outputCount;
     }
 
     static {
@@ -103,6 +113,14 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
                         },
                         c -> c.shapes.toArray(DrawnShapeComponent[]::new),
                         (a, p) -> a.shapes = new ArrayList<>(p.shapes))
+                .add()
+                .<Integer>appendInherited(new KeyedCodec<>("InputCount", Codec.INTEGER),
+                        (a, v) -> a.inputCount = v, a -> a.inputCount,
+                        (a, p) -> a.inputCount = p.inputCount)
+                .add()
+                .<Integer>appendInherited(new KeyedCodec<>("OutputCount", Codec.INTEGER),
+                        (a, v) -> a.outputCount = v, a -> a.outputCount,
+                        (a, p) -> a.outputCount = p.outputCount)
                 .add()
                 .build();
         VALIDATOR_CACHE = new ValidatorCache<>(new AssetKeyValidator<>(GlyphAsset::getAssetStore));

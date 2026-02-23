@@ -5,7 +5,5 @@ import com.riprod.hexcode.components.Glyph;
 import com.riprod.hexcode.components.HexContext;
 
 public abstract interface GlyphHandler {
-    public abstract String getId();
-
     public abstract void execute(Glyph glyph, HexContext hexContext, ExecutionContext executionContext);
 }

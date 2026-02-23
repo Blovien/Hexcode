@@ -1,0 +1,14 @@
+{
+  "Parent": "Base_Glyph",
+  "ModelPath": "Number_1",
+  "ShapeStructure": [
+    {
+      "ShapeId": "Slash",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Slash",
+      "Size": 1.0
+    }
+  ]
+}

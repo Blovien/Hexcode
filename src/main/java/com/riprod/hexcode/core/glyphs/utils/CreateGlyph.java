@@ -216,7 +216,7 @@ public class CreateGlyph {
     GlyphMath.distributeChildAngles(children, glyphComp.getScale());
     for (int i = 0; i < children.size(); i++) {
       GlyphComponent childGlyph = children.get(i);
-      childGlyph.setOwnerRef(ref);
+      childGlyph.setParentRef(ref);
       childGlyph.setScale(glyphComp.getScale() * 0.75f); // TODO: finalize child glyph scale
       childGlyph.setOffset(childGlyph.getPitch(), childGlyph.getYaw(), 0);
       float d = (float) glyphComp.getDistance();

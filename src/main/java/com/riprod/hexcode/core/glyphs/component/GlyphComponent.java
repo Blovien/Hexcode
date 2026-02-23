@@ -10,8 +10,10 @@ import com.hypixel.hytale.codec.schema.config.Schema;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.glyphs.values.HexVal;
 import com.riprod.hexcode.utils.SphericalPosition;
 
 import org.bson.BsonValue;
@@ -44,6 +46,10 @@ public class GlyphComponent implements Component<EntityStore> {
                     (c, v) -> c.speed = v,
                     c -> c.speed)
             .add()
+            .append(new KeyedCodec<>("RelativePosition", Codec.DOUBLE_ARRAY),
+                    (c, v) -> c.relPosition = new Vector3d(v[0], v[1], v[2]),
+                    c -> new double[] { c.relPosition.x, c.relPosition.y, c.relPosition.z })
+            .add()
             .append(new KeyedCodec<>("Children", new ArrayCodec<>(selfCodec(), GlyphComponent[]::new)),
                     (c, v) -> {
                         if (v != null) {
@@ -53,6 +59,24 @@ public class GlyphComponent implements Component<EntityStore> {
                         }
                     },
                     c -> c.children.toArray(GlyphComponent[]::new))
+            .add()
+            .append(new KeyedCodec<>("Inputs", new ArrayCodec<>(HexVal.CODEC, HexVal[]::new)),
+                    (n, v) -> n.inputs = v != null ? new ArrayList<>(Arrays.asList(v)) : new ArrayList<>(),
+                    n -> n.inputs.toArray(HexVal[]::new))
+            .add()
+            .append(new KeyedCodec<>("Outputs", Codec.INT_ARRAY),
+                    (n, v) -> n.outputs = v != null
+                            ? new ArrayList<>(Arrays.asList(Arrays.stream(v).boxed().toArray(Integer[]::new)))
+                            : new ArrayList<>(),
+                    n -> n.outputs.stream().mapToInt(Number::intValue).toArray())
+            .add()
+            .append(new KeyedCodec<>("InputCount", Codec.INTEGER),
+                    (c, v) -> c.inputCount = v,
+                    c -> c.inputCount)
+            .add()
+            .append(new KeyedCodec<>("OutputCount", Codec.INTEGER),
+                    (c, v) -> c.outputCount = v,
+                    c -> c.outputCount)
             .add()
             .build();
 
@@ -81,16 +105,23 @@ public class GlyphComponent implements Component<EntityStore> {
 
     // persistent
     @Nonnull
-    private String glyphId;;
+    private String glyphId;
     @Nonnull
     private UUID id;
     private float accuracy = 1f;
     private float speed = 1f;
     private float idealSpeed = 1f;
+    private Vector3d relPosition;
+
+    /** Execution Context items */
+    private List<HexVal> inputs = new ArrayList<>();
+    private List<Integer> outputs = new ArrayList<>();
+    private int inputCount = 0;
+    private int outputCount = 0;
 
     // non-persistent
     @Nullable
-    private Ref<EntityStore> ownerRef;
+    private Ref<EntityStore> parentRef;
     private Ref<EntityStore> rootRef;
     private Ref<EntityStore> selfRef;
     private float yaw = 0f;
@@ -101,9 +132,9 @@ public class GlyphComponent implements Component<EntityStore> {
     private Vector3f offset = new Vector3f(0, 0, 0);
     private float scale = 1f;
 
-    /** Execution Context items */
-    private List<Integer> numbers = new ArrayList<>();
-    private List<Integer> variables = new ArrayList<>();
+    /** Crafting Mode items */
+    private boolean isHovered = false;
+    private float hoverProgress = 0f;
 
     // for the codec - do not use
     public GlyphComponent() {
@@ -154,12 +185,12 @@ public class GlyphComponent implements Component<EntityStore> {
     }
 
     @Nullable
-    public Ref<EntityStore> getOwnerRef() {
-        return ownerRef;
+    public Ref<EntityStore> getParentRef() {
+        return parentRef;
     }
 
-    public void setOwnerRef(@Nullable Ref<EntityStore> ownerRef) {
-        this.ownerRef = ownerRef;
+    public void setParentRef(@Nullable Ref<EntityStore> parentRef) {
+        this.parentRef = parentRef;
     }
 
     @Nullable
@@ -294,20 +325,36 @@ public class GlyphComponent implements Component<EntityStore> {
     }
 
     /** Casting Context Items */
-    public List<Integer> getNumbers() {
-        return numbers;
+    public List<HexVal> getInputs() {
+        return inputs;
     }
 
-    public void setNumbers(List<Integer> numbers) {
-        this.numbers = numbers;
+    public void setInputs(List<HexVal> inputs) {
+        this.inputs = inputs;
     }
 
-    public List<Integer> getVariables() {
-        return variables;
+    public List<Integer> getOutputs() {
+        return outputs;
     }
 
-    public void setVariables(List<Integer> variables) {
-        this.variables = variables;
+    public void setOutputs(List<Integer> outputs) {
+        this.outputs = outputs;
+    }
+
+    public int getInputCount() {
+        return inputCount;
+    }
+
+    public void setInputCount(int inputCount) {
+        this.inputCount = inputCount;
+    }
+
+    public int getOutputCount() {
+        return outputCount;
+    }
+
+    public void setOutputCount(int outputCount) {
+        this.outputCount = outputCount;
     }
 
     @Nonnull
@@ -315,7 +362,7 @@ public class GlyphComponent implements Component<EntityStore> {
     public GlyphComponent clone() {
         GlyphComponent copy = new GlyphComponent();
         copy.glyphId = this.glyphId;
-        copy.ownerRef = this.ownerRef;
+        copy.parentRef = this.parentRef;
         copy.id = this.id;
         copy.yaw = this.yaw;
         copy.pitch = this.pitch;
@@ -325,6 +372,11 @@ public class GlyphComponent implements Component<EntityStore> {
         copy.speed = this.speed;
         copy.children = new ArrayList<>();
         copy.idealSpeed = this.idealSpeed;
+        copy.relPosition = this.relPosition != null ? new Vector3d(this.relPosition) : null;
+        copy.outputs = new ArrayList<>(this.outputs);
+        copy.inputs = new ArrayList<>(this.inputs);
+        copy.inputCount = this.inputCount;
+        copy.outputCount = this.outputCount;
         for (GlyphComponent child : this.children) {
             copy.children.add(child.clone());
         }

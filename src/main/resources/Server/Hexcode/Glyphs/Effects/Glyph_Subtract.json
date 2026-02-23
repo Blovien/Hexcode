@@ -1,0 +1,12 @@
+{
+  "Parent": "Base_Glyph",
+  "ModelPath": "Glyph_Subtract",
+  "InputCount": -1,
+  "OutputCount": 1,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Antiline",
+      "Size": 1.0
+    }
+  ]
+}

@@ -49,7 +49,7 @@ public class GlyphSpawner {
             glyph.setPitch(pos.getPitch());
             glyph.setDistance(pos.getDistance());
             glyph.setRootRef(castingRootRef);
-            glyph.setOwnerRef(ownerRef);
+            glyph.setParentRef(ownerRef);
 
             try {
                 GlyphComponent spawnedGlyph = spawnGlyph(accessor, ownerRef, pos, glyph, ownerPos);
@@ -73,7 +73,7 @@ public class GlyphSpawner {
     public static void MergeGlyphs(ComponentAccessor<EntityStore> accessor, GlyphComponent selectedGlyph,
             GlyphComponent droppedOnGlyph, float eyeHeight) {
 
-        selectedGlyph.setOwnerRef(droppedOnGlyph.getSelfRef());
+        selectedGlyph.setParentRef(droppedOnGlyph.getSelfRef());
         selectedGlyph.setScale(droppedOnGlyph.getScale() * 0.5f); // TODO: finalize child glyph scale
         selectedGlyph.setRootRef(droppedOnGlyph.getSelfRef());
 

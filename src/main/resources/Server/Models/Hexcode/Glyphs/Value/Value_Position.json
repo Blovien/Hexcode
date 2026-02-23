@@ -1,0 +1,5 @@
+{
+  "Parent": "Base_Glyph",
+  "Model": "VFX/Glyphs/Value/Value_Position.blockymodel",
+  "Texture": "VFX/Glyphs/Value/Value_Position.png"
+}

@@ -1,0 +1,14 @@
+{
+  "Parent": "Base_Glyph",
+  "ModelPath": "Glyph_Rotation",
+  "ShapeStructure": [
+    {
+      "ShapeId": "Up",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Down",
+      "Size": 1.0
+    }
+  ]
+}

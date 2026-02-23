@@ -2,28 +2,30 @@ package com.riprod.hexcode.components;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
+
+import javax.annotation.Nullable;
 
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.codec.codecs.array.ArrayCodec;
-import com.hypixel.hytale.codec.codecs.map.MapCodec;
+import com.riprod.hexcode.core.glyphs.values.HexVal;
+import com.riprod.hexcode.core.glyphs.variables.HexVar;
 
 public class Glyph {
     private String glyphId;
     private float accuracy;
     private float speed;
-    private HashMap<Integer, Integer> numbers = new HashMap<>();
-    private HashMap<Integer, Integer> variables = new HashMap<>();
+    private List<HexVal> inputs = new ArrayList<>();
+    private List<Integer> outputs = new ArrayList<>();
     private List<UUID> next = new ArrayList<>();
 
     public Glyph() {
     }
 
+    @Nullable
     public String getGlyphId() {
         return glyphId;
     }
@@ -48,16 +50,32 @@ public class Glyph {
         this.speed = speed;
     }
 
-    public int getNumber(int key) {
-        return numbers.getOrDefault(key, key);
+    @Nullable
+    public HexVar getInput(int key, ExecutionContext executionContext, HexContext hexContext) {
+        if (key < 0 || key >= inputs.size()) {
+            return null;
+        }
+        HexVal val = inputs.get(key);
+        return val != null ? val.getValue(executionContext, hexContext) : null;
     }
 
-    public void setNumber(int key, int value) {
-        numbers.put(key, value);
+    public void setInputs(List<HexVal> inputs) {
+        this.inputs = inputs;
     }
 
-    public HashMap<Integer, Integer> getNumbers() {
-        return numbers;
+    public void setOutputs(List<Integer> outputs) {
+        this.outputs = outputs;
+    }
+
+    public void setInput(int key, HexVal value) {
+        if (key < 0 || key >= inputs.size()) {
+            return;
+        }
+        inputs.set(key, value);
+    }
+
+    public List<HexVal> getInputs() {
+        return inputs;
     }
 
     /**
@@ -67,16 +85,35 @@ public class Glyph {
      * @param key
      * @return
      */
-    public int getVariable(int key) {
-        return variables.getOrDefault(key, key);
+    @Nullable
+    public Integer getOutput(int key) {
+        if (key < 0 || key >= outputs.size()) {
+            return null;
+        }
+        return outputs.get(key);
     }
 
-    public void setVariable(int key, int value) {
-        variables.put(key, value);
+    @Nullable
+    public Integer getOutputOrNumber(int key) {
+        if (key < 0 || key >= outputs.size()) {
+            return key;
+        }
+        return outputs.get(key);
     }
 
-    public HashMap<Integer, Integer> getVariables() {
-        return variables;
+    public void setOutput(int key, int value) {
+        if (key < 0 || key >= outputs.size()) {
+            return;
+        }
+        outputs.set(key, value);
+    }
+
+    public void addOutput(int value) {
+        outputs.add(value);
+    }
+
+    public List<Integer> getOutputs() {
+        return new ArrayList<>(outputs.stream().map(Integer::intValue).toList());
     }
 
     public List<UUID> getNext() {
@@ -89,9 +126,6 @@ public class Glyph {
 
     private static final ArrayCodec<UUID> UUID_ARRAY_CODEC = new ArrayCodec<>(Codec.UUID_STRING, UUID[]::new);
 
-    private static final MapCodec<Integer, Map<String, Integer>> INT_MAP_CODEC = new MapCodec<>(Codec.INTEGER,
-            HashMap::new, false);
-
     public static final BuilderCodec<Glyph> CODEC = BuilderCodec
             .builder(Glyph.class, Glyph::new)
             .append(new KeyedCodec<>("GlyphId", Codec.STRING),
@@ -103,31 +137,15 @@ public class Glyph {
             .append(new KeyedCodec<>("Speed", Codec.FLOAT),
                     (n, v) -> n.speed = v, n -> n.speed)
             .add()
-            .append(new KeyedCodec<>("Numbers", INT_MAP_CODEC),
-                    (n, v) -> {
-                        n.numbers = new HashMap<>();
-                        for (Map.Entry<String, Integer> e : v.entrySet())
-                            n.numbers.put(Integer.parseInt(e.getKey()), e.getValue());
-                    },
-                    n -> {
-                        Map<String, Integer> map = new HashMap<>();
-                        for (Map.Entry<Integer, Integer> e : n.numbers.entrySet())
-                            map.put(e.getKey().toString(), e.getValue());
-                        return map;
-                    })
+            .append(new KeyedCodec<>("Inputs", new ArrayCodec<>(HexVal.CODEC, HexVal[]::new)),
+                    (n, v) -> n.inputs = v != null ? new ArrayList<>(Arrays.asList(v)) : new ArrayList<>(),
+                    n -> n.inputs.toArray(HexVal[]::new))
             .add()
-            .append(new KeyedCodec<>("Variables", INT_MAP_CODEC),
-                    (n, v) -> {
-                        n.variables = new HashMap<>();
-                        for (Map.Entry<String, Integer> e : v.entrySet())
-                            n.variables.put(Integer.parseInt(e.getKey()), e.getValue());
-                    },
-                    n -> {
-                        Map<String, Integer> map = new HashMap<>();
-                        for (Map.Entry<Integer, Integer> e : n.variables.entrySet())
-                            map.put(e.getKey().toString(), e.getValue());
-                        return map;
-                    })
+            .append(new KeyedCodec<>("Outputs", Codec.INT_ARRAY),
+                    (n, v) -> n.outputs = v != null
+                            ? new ArrayList<>(Arrays.asList(Arrays.stream(v).boxed().toArray(Integer[]::new)))
+                            : new ArrayList<>(),
+                    n -> n.outputs.stream().mapToInt(Number::intValue).toArray())
             .add()
             .append(new KeyedCodec<>("Next", UUID_ARRAY_CODEC),
                     (n, v) -> n.next = v != null

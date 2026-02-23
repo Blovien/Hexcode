@@ -1,0 +1,14 @@
+{
+  "Parent": "Base_Glyph",
+  "ModelPath": "Glyph_Position",
+  "ShapeStructure": [
+    {
+      "ShapeId": "Less",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Greater",
+      "Size": 1.0
+    }
+  ]
+}

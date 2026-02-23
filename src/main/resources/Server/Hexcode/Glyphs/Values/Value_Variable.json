@@ -1,0 +1,10 @@
+{
+  "Parent": "Base_Glyph",
+  "ModelPath": "Glyph_Variable",
+  "ShapeStructure": [
+    {
+      "ShapeId": "Down",
+      "Size": 1.0
+    }
+  ]
+}

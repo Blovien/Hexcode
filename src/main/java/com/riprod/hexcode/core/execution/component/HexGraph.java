@@ -63,8 +63,8 @@ public class HexGraph {
       clonedNode.setGlyphId(node.getGlyphId());
       clonedNode.setAccuracy(node.getAccuracy());
       clonedNode.setSpeed(node.getSpeed());
-      node.getNumbers().forEach(clonedNode::setNumber);
-      node.getVariables().forEach(clonedNode::setVariable);
+      clonedNode.setInputs(new ArrayList<>(node.getInputs()));
+      clonedNode.setOutputs(new ArrayList<>(node.getOutputs()));
       clonedNode.setNext(new ArrayList<>(node.getNext()));
       clonedNodes.put(entry.getKey(), clonedNode);
     }
@@ -94,8 +94,8 @@ public class HexGraph {
         .append(" (").append(shortId).append(")")
         .append(" acc=").append(String.format("%.2f", node.getAccuracy()))
         .append(" spd=").append(String.format("%.2f", node.getSpeed()));
-    if (!node.getNumbers().isEmpty()) sb.append(" nums=").append(node.getNumbers());
-    if (!node.getVariables().isEmpty()) sb.append(" vars=").append(node.getVariables());
+    if (!node.getInputs().isEmpty()) sb.append(" nums=").append(node.getInputs());
+    if (!node.getOutputs().isEmpty()) sb.append(" vars=").append(node.getOutputs());
 
     if (!visited.add(id)) {
       sb.append(" [cycle]\n");

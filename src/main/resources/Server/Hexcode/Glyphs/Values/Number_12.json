@@ -1,0 +1,14 @@
+{
+  "Parent": "Base_Glyph",
+  "ModelPath": "Number_12",
+  "ShapeStructure": [
+    {
+      "ShapeId": "Line",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Circle",
+      "Size": 1.0
+    }
+  ]
+}
