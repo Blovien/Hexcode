@@ -219,7 +219,7 @@ public class CreateGlyph {
       childGlyph.setParentRef(ref);
       childGlyph.setScale(glyphComp.getScale() * 0.75f); // TODO: finalize child glyph scale
       childGlyph.setOffset(childGlyph.getPitch(), childGlyph.getYaw(), 0);
-      float d = (float) glyphComp.getDistance();
+      float d = glyphComp.getDistance();
       childGlyph.setOffset(
           -d * (float) Math.sin(childGlyph.getYaw()),
           d * (float) Math.sin(childGlyph.getPitch()),

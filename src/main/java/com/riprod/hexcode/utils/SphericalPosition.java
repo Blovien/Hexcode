@@ -6,9 +6,9 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 public class SphericalPosition {
     public final float yaw;
     public final float pitch;
-    public final double distance;
+    public final float distance;
 
-    public SphericalPosition(float yaw, float pitch, double distance) {
+    public SphericalPosition(float yaw, float pitch, float distance) {
         this.yaw = yaw;
         this.pitch = pitch;
         this.distance = distance;
@@ -30,7 +30,7 @@ public class SphericalPosition {
         return new SphericalPosition(this.yaw, pitch, this.distance);
     }
 
-    public SphericalPosition withDistance(double distance) {
+    public SphericalPosition withDistance(float distance) {
         return new SphericalPosition(this.yaw, this.pitch, distance);
     }
 
@@ -50,7 +50,7 @@ public class SphericalPosition {
         return pitch;
     }
 
-    public double getDistance() {
+    public float getDistance() {
         return distance;
     }
 }

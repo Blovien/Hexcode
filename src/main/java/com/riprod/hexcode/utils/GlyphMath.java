@@ -10,7 +10,7 @@ public class GlyphMath {
     private GlyphMath() {
     }
 
-    public static Vector3d sphericalToCartesian(Vector3d origin, float yaw, float pitch, double distance) {
+    public static Vector3d sphericalToCartesian(Vector3d origin, float yaw, float pitch, float distance) {
         double x = origin.x + distance * (Math.cos(pitch) * -Math.sin(yaw));
         double y = origin.y + distance * Math.sin(pitch);
         double z = origin.z + distance * (Math.cos(pitch) * -Math.cos(yaw));
@@ -30,7 +30,7 @@ public class GlyphMath {
         double dy = point.y - origin.y;
         double dz = point.z - origin.z;
 
-        double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        float distance = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
         if (distance < 0.0001) {
             return SphericalPosition.zero();
         }

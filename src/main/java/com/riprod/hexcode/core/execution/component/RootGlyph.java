@@ -8,25 +8,26 @@ import javax.annotation.Nonnull;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 
-public class ExecutionComponent implements Component<EntityStore> {
+public class RootGlyph implements Component<EntityStore> {
 
-    private static ComponentType<EntityStore, ExecutionComponent> componentType;
+    private static ComponentType<EntityStore, RootGlyph> componentType;
 
     private HexRoot root;
-    private HexGraph spellGraph;
+    private GlyphComponent glyphComponent;
     private final List<PendingContinue> pendingContinues = new ArrayList<>();
     private boolean needsInitialExecution;
     private int externalWaiters;
 
-    public ExecutionComponent() {
+    public RootGlyph() {
     }
 
-    public static void setComponentType(ComponentType<EntityStore, ExecutionComponent> type) {
+    public static void setComponentType(ComponentType<EntityStore, RootGlyph> type) {
         componentType = type;
     }
 
-    public static ComponentType<EntityStore, ExecutionComponent> getComponentType() {
+    public static ComponentType<EntityStore, RootGlyph> getComponentType() {
         return componentType;
     }
 
@@ -38,16 +39,16 @@ public class ExecutionComponent implements Component<EntityStore> {
         this.root = root;
     }
 
-    public HexGraph getSpellGraph() {
-        return spellGraph;
-    }
-
-    public void setSpellGraph(HexGraph spellGraph) {
-        this.spellGraph = spellGraph;
-    }
-
     public List<PendingContinue> getPendingContinues() {
         return pendingContinues;
+    }
+
+    public GlyphComponent getGlyphComponent() {
+        return glyphComponent;
+    }
+
+    public void setGlyphComponent(GlyphComponent glyphComponent) {
+        this.glyphComponent = glyphComponent;
     }
 
     public void addPendingContinue(PendingContinue pending) {
@@ -80,10 +81,13 @@ public class ExecutionComponent implements Component<EntityStore> {
 
     @Nonnull
     @Override
-    public ExecutionComponent clone() {
-        ExecutionComponent copy = new ExecutionComponent();
+    public RootGlyph clone() {
+        RootGlyph copy = new RootGlyph();
         copy.root = this.root;
-        copy.spellGraph = this.spellGraph != null ? this.spellGraph.clone() : null;
+        copy.glyphComponent = this.glyphComponent;
+        copy.pendingContinues.addAll(this.pendingContinues);
+        copy.needsInitialExecution = this.needsInitialExecution;
+        copy.externalWaiters = this.externalWaiters;
         return copy;
     }
 }

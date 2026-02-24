@@ -3,10 +3,9 @@ package com.riprod.hexcode.builtin.glyphs.effect.warp;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.riprod.hexcode.components.ExecutionContext;
-import com.riprod.hexcode.components.Glyph;
-import com.riprod.hexcode.components.HexContext;
+import com.riprod.hexcode.core.glyphs.component.Glyph;
 import com.riprod.hexcode.core.execution.Executor;
+import com.riprod.hexcode.core.execution.component.HexContext;
 import com.riprod.hexcode.core.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.glyphs.variables.PositionVar;
@@ -18,20 +17,20 @@ public class WarpGlyph implements GlyphHandler {
     public static final String ID = "Glyph_Warp";
 
     @Override
-    public void execute(Glyph glyph, HexContext hexContext, ExecutionContext executionContext) {
-        HexVar targets = glyph.getInput(0, executionContext, hexContext);
-        HexVar destInput = glyph.getInput(1, executionContext, hexContext);
+    public void execute(Glyph glyph, HexContext hexContext) {
+        HexVar targets = glyph.getInput(0, hexContext);
+        HexVar destInput = glyph.getInput(1, hexContext);
 
         Vector3d destination = null;
 
         if (destInput != null) {
-            destination = SpellVarUtil.resolvePosition(destInput, hexContext.accessor);
+            destination = SpellVarUtil.resolvePosition(destInput, hexContext.getAccessor());
         }
 
         if (destination == null) {
-            HexVar xInput = glyph.getInput(2, executionContext, hexContext);
-            HexVar yInput = glyph.getInput(3, executionContext, hexContext);
-            HexVar zInput = glyph.getInput(4, executionContext, hexContext);
+            HexVar xInput = glyph.getInput(2, hexContext);
+            HexVar yInput = glyph.getInput(3, hexContext);
+            HexVar zInput = glyph.getInput(4, hexContext);
             Double x = SpellVarUtil.resolveNumber(xInput);
             Double y = SpellVarUtil.resolveNumber(yInput);
             Double z = SpellVarUtil.resolveNumber(zInput);
@@ -43,26 +42,26 @@ public class WarpGlyph implements GlyphHandler {
 
         if (destination == null) {
             LOGGER.atWarning().log("warp glyph: could not resolve destination");
-            Executor.continueExecution(hexContext, executionContext);
+            Executor.continueExecution(glyph.getNext(), hexContext);
             return;
         }
 
         if (targets == null || targets.size() == 0) {
             LOGGER.atWarning().log("warp glyph: no targets to warp");
-            Executor.continueExecution(hexContext, executionContext);
+            Executor.continueExecution(glyph.getNext(), hexContext);
             return;
         }
 
-        World world = hexContext.accessor.getExternalData().getWorld();
+        World world = hexContext.getAccessor().getExternalData().getWorld();
 
         for (int i = 0; i < targets.size(); i++) {
-            Vector3d departurePos = SpellVarUtil.resolvePositionAt(targets, i, hexContext.accessor);
+            Vector3d departurePos = SpellVarUtil.resolvePositionAt(targets, i, hexContext.getAccessor());
             BlockUtils.moveToDestination(targets, i, destination, world, hexContext);
             if (departurePos != null) {
-                WarpGlyphStyle.render(departurePos, destination, hexContext.accessor);
+                WarpGlyphStyle.render(departurePos, destination, hexContext.getAccessor());
             }
         }
 
-        Executor.continueExecution(hexContext, executionContext);
+        Executor.continueExecution(glyph.getNext(), hexContext);
     }
 }

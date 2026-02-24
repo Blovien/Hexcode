@@ -3,8 +3,7 @@ package com.riprod.hexcode.builtin.glyphs.value;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
-import com.riprod.hexcode.components.ExecutionContext;
-import com.riprod.hexcode.components.HexContext;
+import com.riprod.hexcode.core.execution.component.HexContext;
 import com.riprod.hexcode.core.glyphs.values.HexVal;
 import com.riprod.hexcode.core.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.glyphs.variables.NumberVar;
@@ -22,7 +21,7 @@ public class NumberGlyph implements HexVal {
     }
 
     @Override
-    public HexVar getValue(ExecutionContext context, HexContext hexContext) {
+    public HexVar getValue(HexContext hexContext) {
         return new NumberVar(this.number);
     }
 

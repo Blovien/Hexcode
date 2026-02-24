@@ -7,26 +7,29 @@ import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.components.ExecutionContext;
+import com.riprod.hexcode.core.execution.component.HexContext;
+import com.riprod.hexcode.core.glyphs.component.Glyph;
 
 public class PropelComponent implements Component<EntityStore> {
 
     private static ComponentType<EntityStore, PropelComponent> componentType;
 
     private Ref<EntityStore> hexEntityRef;
-    private ExecutionContext executionContext;
+    private HexContext hexContext;
     private int outputSlot;
     private Ref<EntityStore> casterRef;
     private double maxDistance;
     private Vector3d spawnPosition;
+    private Glyph sourceGlyph;
 
     public PropelComponent() {
     }
 
-    public PropelComponent(Ref<EntityStore> hexEntityRef, ExecutionContext executionContext,
+    public PropelComponent(Glyph sourceGlyph, Ref<EntityStore> hexEntityRef, HexContext hexContext,
             int outputSlot, Ref<EntityStore> casterRef, double maxDistance, Vector3d spawnPosition) {
+        this.sourceGlyph = sourceGlyph;
         this.hexEntityRef = hexEntityRef;
-        this.executionContext = executionContext;
+        this.hexContext = hexContext;
         this.outputSlot = outputSlot;
         this.casterRef = casterRef;
         this.maxDistance = maxDistance;
@@ -45,8 +48,8 @@ public class PropelComponent implements Component<EntityStore> {
         return hexEntityRef;
     }
 
-    public ExecutionContext getExecutionContext() {
-        return executionContext;
+    public HexContext getHexContext() {
+        return hexContext;
     }
 
     public int getOutputSlot() {
@@ -65,12 +68,17 @@ public class PropelComponent implements Component<EntityStore> {
         return spawnPosition;
     }
 
+    public Glyph getSourceGlyph() {
+        return sourceGlyph;
+    }
+
     @Nonnull
     @Override
     public PropelComponent clone() {
         PropelComponent copy = new PropelComponent();
+        copy.sourceGlyph = this.sourceGlyph;
         copy.hexEntityRef = this.hexEntityRef;
-        copy.executionContext = this.executionContext != null ? this.executionContext.copy() : null;
+        copy.hexContext = this.hexContext != null ? this.hexContext.copy() : null;
         copy.outputSlot = this.outputSlot;
         copy.casterRef = this.casterRef;
         copy.maxDistance = this.maxDistance;

@@ -1,6 +1,7 @@
 package com.riprod.hexcode.core.drawing.utils;
 
 import java.util.ArrayDeque;
+import java.util.List;
 
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.riprod.hexcode.core.drawing.component.DrawnShapeComponent;
@@ -37,9 +38,10 @@ public class ShapeComparator {
             }
         }
 
-        LOGGER.atInfo().log("Best shape match: " + (bestMatch != null ? bestMatch.getId() : "none") + " with accuracy " + bestAccuracy);
+        LOGGER.atInfo().log("Best shape match: " + (bestMatch != null ? bestMatch.getId() : "none") + " with accuracy "
+                + bestAccuracy);
 
-        return bestMatch != null ? new DrawnShapeComponent(bestMatch.getId(), bestAccuracy) : null;
+        return bestMatch != null ? new DrawnShapeComponent(bestMatch.getId(), bestAccuracy, bestMatch) : null;
     }
 
     static boolean centerCheck(boolean[][] drawn, ShapeAsset shapeAsset) {
@@ -140,4 +142,23 @@ public class ShapeComparator {
                 out[x][GRID - 1 - y] = grid[y][x];
         return out;
     }
+
+    public static Float calculateVolatility(List<DrawnShapeComponent> shapes) {
+        Float cumulative = 0.0f;
+        for (DrawnShapeComponent shape : shapes) {
+            cumulative += shape.getVolatility();
+        }
+        // average for all shapes - discard total structure volatility
+        return cumulative / shapes.size();
+    }
+
+    public static Float calculateEfficiency(List<DrawnShapeComponent> shapes) {
+	Float totalSpeed = 0.0f;
+	
+	for (DrawnShapeComponent shape : shapes) {
+		totalSpeed += shape.getEfficiency();
+	}
+	// Average speed across all shapes
+	return totalSpeed / shapes.size();
+}
 }

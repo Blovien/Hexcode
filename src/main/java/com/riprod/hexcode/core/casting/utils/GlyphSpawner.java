@@ -90,7 +90,7 @@ public class GlyphSpawner {
             for (int i = 0; i < children.size(); i++) {
                 GlyphComponent child = children.get(i);
 
-                float d = (float) droppedOnGlyph.getDistance();
+                float d = droppedOnGlyph.getDistance();
                 child.setOffset(
                         -d * (float) Math.sin(child.getYaw()),
                         d * (float) Math.sin(child.getPitch()),

@@ -1,5 +1,6 @@
 {
   "Parent": "Base_Glyph",
+  "GlyphType": "Effect",
   "ModelPath": "Glyph_Smelt",
   "BasePower": 1.0,
   "ManaConsumption": 15,

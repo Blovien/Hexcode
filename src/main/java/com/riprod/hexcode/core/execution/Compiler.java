@@ -1,50 +1,34 @@
 package com.riprod.hexcode.core.execution;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import com.riprod.hexcode.components.Glyph;
-import com.riprod.hexcode.core.execution.component.HexGraph;
+import com.riprod.hexcode.core.glyphs.component.Glyph;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
-import com.riprod.hexcode.core.glyphs.values.HexVal;
 
 public class Compiler {
 
   private Compiler() {
   }
 
-  public static HexGraph compile(GlyphComponent root) {
-    Map<UUID, Glyph> nodes = new HashMap<>();
-    flatten(root, nodes);
-    return new HexGraph(root.getId(), nodes);
+  public static Map<UUID, Glyph> compile(GlyphComponent root) {
+    Map<UUID, Glyph> graph = new HashMap<>();
+    
+    compileNode(root, graph);
+    return graph;
   }
 
-  private static void flatten(GlyphComponent glyph, Map<UUID, Glyph> out) {
-    if (out.containsKey(glyph.getId()))
-      return;
+  private static Glyph compileNode(GlyphComponent glyphComp, Map<UUID, Glyph> graph) {
 
-    Glyph node = new Glyph();
-    node.setGlyphId(glyph.getGlyphId());
-    node.setAccuracy(glyph.getAccuracy());
-    node.setSpeed(glyph.getSpeed());
-    List<HexVal> nums = glyph.getInputs();
-    node.setInputs(nums);
-    List<Integer> vars = glyph.getOutputs();
-    node.setOutputs(vars);
+    Glyph glyph = new Glyph(glyphComp);
+    graph.put(glyph.getId(), glyph);
 
-    List<UUID> next = new ArrayList<>();
-    for (GlyphComponent child : glyph.getChildren()) {
-      next.add(child.getId());
+    for (GlyphComponent input : glyphComp.getChildren()) {
+      Glyph child = compileNode(input, graph);
+      glyph.addNext(child.getId());
     }
-    node.setNext(next);
 
-    out.put(glyph.getId(), node);
-
-    for (GlyphComponent child : glyph.getChildren()) {
-      flatten(child, out);
-    }
+    return glyph;
   }
 }

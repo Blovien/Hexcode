@@ -13,9 +13,12 @@ import com.hypixel.hytale.assetstore.map.DefaultAssetMap;
 import com.hypixel.hytale.assetstore.map.JsonAssetWithMap;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
+import com.hypixel.hytale.codec.codecs.EnumCodec;
 import com.hypixel.hytale.codec.codecs.array.ArrayCodec;
 import com.hypixel.hytale.codec.validation.ValidatorCache;
+import com.hypixel.hytale.codec.validation.Validators;
 import com.riprod.hexcode.core.drawing.component.DrawnShapeComponent;
+import com.riprod.hexcode.core.glyphs.utils.GlyphType;
 
 public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<String, GlyphAsset>> {
     public static final AssetBuilderCodec<String, GlyphAsset> CODEC;
@@ -29,6 +32,7 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
     protected float basePower = 1.0f;
     protected int manaConsumption = 10;
     protected ArrayList<DrawnShapeComponent> shapes = new ArrayList<>();
+    protected GlyphType glyphType;
     protected int inputCount = 0;
     protected int outputCount = 0;
 
@@ -68,6 +72,10 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
         return this.shapes;
     }
 
+    public GlyphType getGlyphType() {
+        return this.glyphType;
+    }
+
     public int getInputCount() {
         return this.inputCount;
     }
@@ -102,6 +110,11 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
                 .<Integer>appendInherited(new KeyedCodec<>("ManaConsumption", Codec.INTEGER),
                         (a, v) -> a.manaConsumption = v, a -> a.manaConsumption,
                         (a, p) -> a.manaConsumption = p.manaConsumption)
+                .add()
+                .<GlyphType>appendInherited(new KeyedCodec<>("GlyphType", new EnumCodec<>(GlyphType.class)),
+                        (a, v) -> a.glyphType = v, a -> a.glyphType,
+                        (a, p) -> a.glyphType = p.glyphType)
+                .addValidator(Validators.nonNull())
                 .add()
                 .<DrawnShapeComponent[]>appendInherited(new KeyedCodec<>("ShapeStructure", new ArrayCodec<>(DrawnShapeComponent.CODEC, DrawnShapeComponent[]::new)),
                         (c, v) -> {

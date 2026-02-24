@@ -1,9 +1,8 @@
 package com.riprod.hexcode.builtin.glyphs.effect.bolt;
 
-import com.riprod.hexcode.components.ExecutionContext;
-import com.riprod.hexcode.components.HexContext;
 import com.riprod.hexcode.core.execution.Executor;
-import com.riprod.hexcode.components.Glyph;
+import com.riprod.hexcode.core.execution.component.HexContext;
+import com.riprod.hexcode.core.glyphs.component.Glyph;
 
 import com.riprod.hexcode.core.glyphs.component.GlyphHandler;
 import com.hypixel.hytale.logger.HytaleLogger;
@@ -15,8 +14,8 @@ public class BoltGlyph implements GlyphHandler {
     
 
     @Override
-    public void execute(Glyph glyph, HexContext hexContext, ExecutionContext executionContext) {
+    public void execute(Glyph glyph, HexContext hexContext) {
         LOGGER.atInfo().log("Casted Bolt");
-        Executor.continueExecution(hexContext, executionContext);
+        Executor.continueExecution(glyph.getNext(), hexContext);
     }
 }

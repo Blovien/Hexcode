@@ -13,7 +13,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.components.HexContext;
+import com.riprod.hexcode.core.execution.component.HexContext;
 import com.riprod.hexcode.core.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.glyphs.variables.PositionVar;
@@ -86,10 +86,10 @@ public class BlockUtils {
         if (index < 0 || index >= var.size()) return;
 
         if (var instanceof EntityVar entityVar) {
-            Ref<EntityStore> entityRef = entityVar.getRef(index, hexContext.accessor);
+            Ref<EntityStore> entityRef = entityVar.getRef(index, hexContext.getAccessor());
             if (entityRef == null || !entityRef.isValid()) return;
 
-            TransformComponent tc = hexContext.accessor.getComponent(entityRef,
+            TransformComponent tc = hexContext.getAccessor().getComponent(entityRef,
                     TransformComponent.getComponentType());
             if (tc != null) {
                 tc.setPosition(new Vector3d(dest.getX(), dest.getY(), dest.getZ()));
@@ -106,8 +106,8 @@ public class BlockUtils {
     }
 
     public static void swapPair(HexVar a, HexVar b, int index, World world, HexContext hexContext) {
-        Vector3d posA = SpellVarUtil.resolvePositionAt(a, index, hexContext.accessor);
-        Vector3d posB = SpellVarUtil.resolvePositionAt(b, index, hexContext.accessor);
+        Vector3d posA = SpellVarUtil.resolvePositionAt(a, index, hexContext.getAccessor());
+        Vector3d posB = SpellVarUtil.resolvePositionAt(b, index, hexContext.getAccessor());
 
         if (posA != null && posB != null) {
             moveToDestination(a, index, posB, world, hexContext);

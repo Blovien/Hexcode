@@ -54,7 +54,7 @@ public class GlyphsLearnCommand extends AbstractPlayerCommand {
             return;
         }
 
-        GlyphComponent glyph = new GlyphComponent(glyphId, accuracy, speed);
+        GlyphComponent glyph = new GlyphComponent(asset, accuracy, speed);
         
         HexBookComponent bookComponent = CasterInventory.getHexBookComponent(store, playerEntityRef);
 

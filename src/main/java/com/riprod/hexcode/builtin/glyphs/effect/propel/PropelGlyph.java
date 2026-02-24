@@ -19,10 +19,9 @@ import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
 import com.hypixel.hytale.server.core.modules.projectile.ProjectileModule;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.components.ExecutionContext;
-import com.riprod.hexcode.components.Glyph;
-import com.riprod.hexcode.components.HexContext;
-import com.riprod.hexcode.core.execution.component.ExecutionComponent;
+import com.riprod.hexcode.core.glyphs.component.Glyph;
+import com.riprod.hexcode.core.execution.component.RootGlyph;
+import com.riprod.hexcode.core.execution.component.HexContext;
 import com.riprod.hexcode.core.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.glyphs.variables.HexVar;
 import com.riprod.hexcode.utils.SpellVarUtil;
@@ -37,24 +36,24 @@ public class PropelGlyph implements GlyphHandler {
     private static final float PROJECTILE_SCALE = 0.5f;
 
     @Override
-    public void execute(Glyph glyph, HexContext hexContext, ExecutionContext executionContext) {
-        int outputSlot = glyph.getOutput(0);
+    public void execute(Glyph glyph, HexContext hexContext) {
+        int outputSlot = glyph.getOutput(0, hexContext);
 
-        HexVar sourceVar = glyph.getInput(0, executionContext, hexContext);
-        Vector3d spawnPos = SpellVarUtil.resolveEyePosition(sourceVar, hexContext.accessor);
+        HexVar sourceVar = glyph.getInput(0, hexContext);
+        Vector3d spawnPos = SpellVarUtil.resolveEyePosition(sourceVar, hexContext.getAccessor());
         if (spawnPos == null) {
             spawnPos = SpellVarUtil.resolveEyePosition(
-                    executionContext.getVariable(1), hexContext.accessor);
+                    hexContext.getVariable(1), hexContext.getAccessor());
         }
         if (spawnPos == null) {
             LOGGER.atWarning().log("propel: could not resolve spawn position");
             return;
         }
 
-        Vector3d direction = SpellVarUtil.resolveDirection(sourceVar, spawnPos, hexContext.accessor);
+        Vector3d direction = SpellVarUtil.resolveDirection(sourceVar, spawnPos, hexContext.getAccessor());
         if (direction == null) {
             direction = SpellVarUtil.resolveDirection(
-                    executionContext.getVariable(1), spawnPos, hexContext.accessor);
+                    hexContext.getVariable(1), spawnPos, hexContext.getAccessor());
         }
         if (direction == null) {
             LOGGER.atWarning().log("propel: could not resolve direction");
@@ -62,7 +61,7 @@ public class PropelGlyph implements GlyphHandler {
         }
 
         double speed = SpellVarUtil.resolveNumberOrDefault(
-                glyph.getInput(1, executionContext, hexContext), DEFAULT_SPEED);
+                glyph.getInput(1, hexContext), DEFAULT_SPEED);
         if (speed <= 0) speed = DEFAULT_SPEED;
 
         Vector3f rotation = new Vector3f();
@@ -83,33 +82,34 @@ public class PropelGlyph implements GlyphHandler {
         holder.addComponent(BoundingBox.getComponentType(),
                 new BoundingBox(model.getBoundingBox()));
         holder.addComponent(NetworkId.getComponentType(),
-                new NetworkId(hexContext.accessor.getExternalData().takeNextNetworkId()));
+                new NetworkId(hexContext.getAccessor().getExternalData().takeNextNetworkId()));
         holder.ensureComponent(PropComponent.getComponentType());
         holder.ensureComponent(ProjectileModule.get().getProjectileComponentType());
         holder.addComponent(Velocity.getComponentType(), new Velocity());
 
         Vector3d launchVelocity = new Vector3d(direction).scale(speed);
-        PropelPhysicsConfig.INSTANCE.apply(holder, hexContext.casterRef, launchVelocity,
-                hexContext.accessor, false);
+        PropelPhysicsConfig.INSTANCE.apply(holder, hexContext.getCasterRef(), launchVelocity,
+                hexContext.getAccessor(), false);
 
         holder.addComponent(PropelComponent.getComponentType(),
                 new PropelComponent(
-                        hexContext.root.getRootEntityRef(),
-                        executionContext.copy(),
+                        glyph,
+                        hexContext.getRoot().getRootEntityRef(),
+                        hexContext.copy(),
                         outputSlot,
-                        hexContext.casterRef,
+                        hexContext.getCasterRef(),
                         MAX_DISTANCE,
                         new Vector3d(spawnPos)));
 
-        Ref<EntityStore> projectileRef = hexContext.accessor.addEntity(holder, AddReason.SPAWN);
+        Ref<EntityStore> projectileRef = hexContext.getAccessor().addEntity(holder, AddReason.SPAWN);
 
-        ExecutionComponent execComp = hexContext.accessor.getComponent(
-                hexContext.root.getRootEntityRef(), ExecutionComponent.getComponentType());
+        RootGlyph execComp = hexContext.getAccessor().getComponent(
+                hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
         if (execComp != null) {
             execComp.incrementExternalWaiters();
         }
 
-        PropelGlyphStyle.renderLaunch(spawnPos, direction, hexContext.accessor);
+        PropelGlyphStyle.renderLaunch(spawnPos, direction, hexContext.getAccessor());
         LOGGER.atInfo().log("propel: launched projectile at speed %.1f", speed);
     }
 }

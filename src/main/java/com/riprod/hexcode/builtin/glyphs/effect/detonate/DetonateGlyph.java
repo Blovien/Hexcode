@@ -9,10 +9,9 @@ import com.hypixel.hytale.server.core.entity.ExplosionConfig;
 import com.hypixel.hytale.server.core.entity.ExplosionUtils;
 import com.hypixel.hytale.server.core.modules.entity.damage.Damage;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.server.combat.PointKnockback;
-import com.riprod.hexcode.components.ExecutionContext;
-import com.riprod.hexcode.components.Glyph;
-import com.riprod.hexcode.components.HexContext;
+import com.riprod.hexcode.core.glyphs.component.Glyph;
 import com.riprod.hexcode.core.execution.Executor;
+import com.riprod.hexcode.core.execution.component.HexContext;
 import com.riprod.hexcode.core.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.glyphs.variables.HexVar;
 import com.riprod.hexcode.utils.SpellVarUtil;
@@ -25,20 +24,20 @@ public class DetonateGlyph implements GlyphHandler {
     private static final double MAG = 10.0;
 
     @Override
-    public void execute(Glyph glyph, HexContext hexContext, ExecutionContext executionContext) {
-        HexVar centerVar = glyph.getInput(0, executionContext, hexContext);
-        double radius = SpellVarUtil.resolveNumberOrDefault(glyph.getInput(1, executionContext, hexContext), RADIUS);
-        double mag = SpellVarUtil.resolveNumberOrDefault(glyph.getInput(2, executionContext, hexContext), MAG);
+    public void execute(Glyph glyph, HexContext hexContext) {
+        HexVar centerVar = glyph.getInput(0, hexContext);
+        double radius = SpellVarUtil.resolveNumberOrDefault(glyph.getInput(1, hexContext), RADIUS);
+        double mag = SpellVarUtil.resolveNumberOrDefault(glyph.getInput(2, hexContext), MAG);
 
         List<Vector3d> centers = new ArrayList<>();
         for (int i = 0; i < centerVar.size(); i++) {
-            Vector3d pos = SpellVarUtil.resolvePositionAt(centerVar, i, hexContext.accessor);
+            Vector3d pos = SpellVarUtil.resolvePositionAt(centerVar, i, hexContext.getAccessor());
             if (pos != null) centers.add(pos);
         }
 
         if (centers.isEmpty()) {
             Vector3d casterPos = SpellVarUtil.resolvePosition(
-                    executionContext.getVariable(1), hexContext.accessor);
+                    hexContext.getVariable(1), hexContext.getAccessor());
             if (casterPos != null) centers.add(casterPos);
         }
 
@@ -60,13 +59,13 @@ public class DetonateGlyph implements GlyphHandler {
                     center,
                     config,
                     null,
-                    hexContext.accessor,
-                    hexContext.chunkAccessor
+                    hexContext.getAccessor(),
+                    hexContext.getChunkAccessor()
             );
 
-            DetonateGlyphStyle.render(center, radius, hexContext.accessor);
+            DetonateGlyphStyle.render(center, radius, hexContext.getAccessor());
         }
 
-        Executor.continueExecution(hexContext, executionContext);
+        Executor.continueExecution(glyph.getNext(), hexContext);
     }
 }

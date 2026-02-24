@@ -26,7 +26,6 @@ import com.riprod.hexcode.core.casting.utils.GlyphSelector;
 import com.riprod.hexcode.core.casting.utils.GlyphSpawner;
 import com.riprod.hexcode.core.casting.utils.GlyphStyler;
 import com.riprod.hexcode.core.execution.Compiler;
-import com.riprod.hexcode.core.execution.component.HexGraph;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.glyphs.utils.CreateGlyph;
 import com.riprod.hexcode.core.hexbook.component.HexBookComponent;
@@ -88,8 +87,7 @@ public class CastingSystem extends HexcodeManager {
         GlyphComponent rootGlyph = comp.getLastSelectedGlyph();
 
         if (rootGlyph != null && staff != null) {
-            HexGraph compiledGlyph = Compiler.compile(rootGlyph);
-            staff.setActiveSpell(compiledGlyph);
+            staff.setActiveSpell(rootGlyph);
             CasterInventory.saveHexStaffComponent(buffer, ref, staff);
             comp.requestStateChange(HexState.EXECUTION);
         }
@@ -168,7 +166,7 @@ public class CastingSystem extends HexcodeManager {
 
         comp.setDraggingGlyph(hoveredGlyph);
 
-        float distance = (float) hoveredGlyph.getDistance();
+        float distance = hoveredGlyph.getDistance();
         accessor.addComponent(glyphRef, MountedComponent.getComponentType(),
                 new MountedComponent(headRootRef, new Vector3f(0, 0, -distance), MountController.Minecart));
 
@@ -236,7 +234,7 @@ public class CastingSystem extends HexcodeManager {
 
         float pitch = draggedGlyph.getPitch();
         float yaw = draggedGlyph.getYaw();
-        double distance = draggedGlyph.getDistance();
+        float distance = draggedGlyph.getDistance();
         Vector3d pos = GlyphMath.sphericalToCartesian(new Vector3d(0, 0, 0), yaw, pitch, distance);
 
         accessor.putComponent(draggedGlyph.getSelfRef(), MountedComponent.getComponentType(),

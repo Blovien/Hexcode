@@ -1,5 +1,6 @@
 {
   "Parent": "Base_Glyph",
+  "GlyphType": "Effect",
   "ModelPath": "Glyph_Arc",
   "BasePower": 1.0,
   "ManaConsumption": 20,

@@ -34,9 +34,9 @@ public class DrawingSystem extends HexcodeManager {
   private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
   @Override
-  public void firstTick(Ref<EntityStore> ref, HexcasterComponent comp,
+  public void firstTick(Ref<EntityStore> ref, HexcasterComponent hexcaster,
       Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
-    comp.setDrawStartTimeMillis(System.currentTimeMillis());
+        // first tick stuffs
   }
 
   @Override
@@ -48,7 +48,11 @@ public class DrawingSystem extends HexcodeManager {
       GlyphCreationManager.NormalizeShapeSizes(drawnShapes);
 
       GlyphAsset matchedGlyph = GlyphCreationManager.MatchGlyph(drawnShapes);
-      GlyphComponent glyphComponent = GlyphCreationManager.CreateGlyphComponent(matchedGlyph, 1.0f, 1l);
+
+      Float efficiency = ShapeComparator.calculateEfficiency(drawnShapes);
+      Float volatility = ShapeComparator.calculateVolatility(drawnShapes);
+
+      GlyphComponent glyphComponent = GlyphCreationManager.CreateGlyphComponent(matchedGlyph, volatility, efficiency);
 
       if (glyphComponent != null) {
         HexBookComponent bookComponent = CasterInventory.getHexBookComponent(buffer, ref);
@@ -113,9 +117,12 @@ public class DrawingSystem extends HexcodeManager {
     if (!points.isEmpty()) {
       float lastYaw = points.getFloat(points.size() - 2);
       float lastPitch = points.getFloat(points.size() - 1);
-      float dist = Math.abs(yaw - lastYaw) + Math.abs(pitch - lastPitch);
-      if (dist < 0.5f)
+      float dy = yaw - lastYaw;
+      float dp = pitch - lastPitch;
+      float dist = dy * dy + dp * dp;
+      if (dist < (0.5f * 0.5f)) {
         return InteractionState.NotFinished;
+      }
     }
 
     points.add(yaw);
@@ -151,15 +158,18 @@ public class DrawingSystem extends HexcodeManager {
     DrawnShapeComponent result = ShapeComparator.getShape(grid);
 
     List<Vector3d> drawnGlyphs = InterfaceManager.getPositionsFromAngles(accessor, points, ref, 4.0f);
-    Color color = InterfaceManager.getColorFromQuality(result.getAccuracy());
+    Color color = InterfaceManager.getColorFromQuality(result.getVolatility());
     result.setColor(color);
     result.setPoints(drawnGlyphs);
 
-    long drawDuration = System.currentTimeMillis() - comp.getDrawStartTimeMillis();
-    result.setSpeed(drawDuration);
+    // time calculations
+    long drawSpeed = System.currentTimeMillis() - comp.getDrawStartTimeMillis();
+    result.setSpeed(drawSpeed);
 
     float maxSize = Math.max(Math.abs(maxYaw - minYaw), Math.abs(maxPitch - minPitch));
     result.setSize(maxSize);
+
+    LOGGER.atInfo().log("Drawn shape with speed: %d ms (%d score), size: %f, volatility: %f", drawSpeed, result.getEfficiency(), maxSize, result.getVolatility());
 
     InterfaceManager.removeTrails(accessor, ref);
     comp.addDrawnGlyph(result);

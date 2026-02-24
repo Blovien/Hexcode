@@ -71,11 +71,11 @@ public class GlyphCreationManager {
         return bestMatch; // null if nothing matched
     }
 
-    public static GlyphComponent CreateGlyphComponent(GlyphAsset asset, float accuracy, long drawTimeMillis) {
+    public static GlyphComponent CreateGlyphComponent(GlyphAsset asset, float volatility, float efficiency) {
         if (asset == null)
             return null;
 
-        GlyphComponent component = new GlyphComponent(asset.getId(), accuracy, drawTimeMillis);
+        GlyphComponent component = new GlyphComponent(asset, volatility, efficiency);
         // set the rest of the glyph component data
         return component;
     }

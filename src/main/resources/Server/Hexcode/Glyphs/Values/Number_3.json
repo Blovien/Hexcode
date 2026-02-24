@@ -1,5 +1,6 @@
 {
   "Parent": "Base_Glyph",
+  "GlyphType": "Value",
   "ModelPath": "Number_3",
   "ShapeStructure": [
     {

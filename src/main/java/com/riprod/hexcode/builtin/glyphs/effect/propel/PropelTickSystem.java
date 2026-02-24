@@ -19,10 +19,9 @@ import com.hypixel.hytale.server.core.modules.projectile.config.StandardPhysicsP
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.TargetUtil;
-import com.riprod.hexcode.components.ExecutionContext;
-import com.riprod.hexcode.components.HexContext;
 import com.riprod.hexcode.core.execution.Executor;
-import com.riprod.hexcode.core.execution.component.ExecutionComponent;
+import com.riprod.hexcode.core.execution.component.RootGlyph;
+import com.riprod.hexcode.core.execution.component.HexContext;
 import com.riprod.hexcode.core.execution.component.HexRoot;
 import com.riprod.hexcode.core.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.glyphs.variables.EntityVar;
@@ -70,7 +69,7 @@ public class PropelTickSystem extends EntityTickingSystem<EntityStore> {
                 UUIDComponent uuidComp = buffer.getComponent(hitEntity, UUIDComponent.getComponentType());
                 if (uuidComp != null) {
                     EntityVar resultVar = new EntityVar(uuidComp.getUuid(), hitEntity);
-                    propel.getExecutionContext().setVariable(propel.getOutputSlot(), resultVar);
+                    propel.getHexContext().setVariable(propel.getOutputSlot(), resultVar);
                 }
 
                 TransformComponent hitTransform = buffer.getComponent(hitEntity,
@@ -90,7 +89,7 @@ public class PropelTickSystem extends EntityTickingSystem<EntityStore> {
             // block/ground collision detected by physics system
             Vector3d contactPos = physics.getContactPosition();
             BlockVar resultVar = new BlockVar(contactPos.toVector3i());
-            propel.getExecutionContext().setVariable(propel.getOutputSlot(), resultVar);
+            propel.getHexContext().setVariable(propel.getOutputSlot(), resultVar);
 
             PropelGlyphStyle.renderBlockHit(contactPos, buffer);
             continuePropelExecution(propel, buffer);
@@ -143,8 +142,8 @@ public class PropelTickSystem extends EntityTickingSystem<EntityStore> {
         if (hexEntityRef == null || !hexEntityRef.isValid())
             return;
 
-        ExecutionComponent execComp = buffer.getComponent(hexEntityRef,
-                ExecutionComponent.getComponentType());
+        RootGlyph execComp = buffer.getComponent(hexEntityRef,
+                RootGlyph.getComponentType());
         if (execComp == null)
             return;
 
@@ -154,8 +153,13 @@ public class PropelTickSystem extends EntityTickingSystem<EntityStore> {
 
         ComponentAccessor<ChunkStore> chunkAccessor = buffer.getExternalData().getWorld()
                 .getChunkStore().getStore();
-        HexContext hexContext = new HexContext(root, buffer, chunkAccessor, execComp.getSpellGraph());
-        Executor.continueExecution(hexContext, propel.getExecutionContext());
+
+        HexContext hexContext = propel.getHexContext();
+
+        hexContext.UpdateAccessor(buffer);
+        hexContext.UpdateChunkAccessor(chunkAccessor);
+
+        Executor.continueExecution(propel.getSourceGlyph().getNext(), hexContext);
 
         execComp.decrementExternalWaiters();
     }

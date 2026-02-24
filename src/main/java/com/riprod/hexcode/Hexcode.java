@@ -7,6 +7,7 @@ import com.riprod.hexcode.command.HexcodeCommand;
 import com.riprod.hexcode.core.casting.registery.CastingStyleRegistry;
 import com.riprod.hexcode.core.drawing.registry.ShapeAsset;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.glyphs.component.SlotComponent;
 import com.riprod.hexcode.core.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.glyphs.variables.EntityVar;
@@ -32,7 +33,7 @@ import com.riprod.hexcode.core.casting.CastingSystem;
 import com.riprod.hexcode.core.drawing.DrawingSystem;
 import com.riprod.hexcode.core.crafting.CraftingSystem;
 import com.riprod.hexcode.core.execution.ExecutionSystem;
-import com.riprod.hexcode.core.execution.component.ExecutionComponent;
+import com.riprod.hexcode.core.execution.component.RootGlyph;
 import com.riprod.hexcode.core.execution.system.ExecutionTickSystem;
 import com.riprod.hexcode.interaction.HexStateBranch;
 import com.riprod.hexcode.interaction.PedestalInteraction;
@@ -78,7 +79,12 @@ public class Hexcode extends JavaPlugin {
   private ComponentType<EntityStore, GlyphComponent> glyphComponentType;
   private ComponentType<EntityStore, HexStaffComponent> hexStaffComponentType;
   private ComponentType<EntityStore, HexcasterComponent> hexcasterComponentType;
-  private ComponentType<EntityStore, ExecutionComponent> executionComponentType;
+  private ComponentType<EntityStore, RootGlyph> executionComponentType;
+  private ComponentType<EntityStore, PropelComponent> propelComponentType;
+  private ComponentType<EntityStore, PedestalComponent> pedestalComponentType;
+  private ComponentType<ChunkStore, PedestalBlockState> pedestalBlockStateType;
+  private ComponentType<ChunkStore, ObeliskBlockState> obeliskBlockStateType;
+  private ComponentType<EntityStore, SlotComponent> slotComponentType;
 
   @Override
   protected void setup() {
@@ -137,29 +143,29 @@ public class Hexcode extends JavaPlugin {
         HexcasterComponent::new);
     HexcasterComponent.setComponentType(hexcasterComponentType);
 
-    this.executionComponentType = entityStoreRegistry.registerComponent(ExecutionComponent.class,
-        ExecutionComponent::new);
-    ExecutionComponent.setComponentType(executionComponentType);
+    this.executionComponentType = entityStoreRegistry.registerComponent(RootGlyph.class,
+        RootGlyph::new);
+    RootGlyph.setComponentType(executionComponentType);
 
-    ComponentType<EntityStore, PropelComponent> propelComponentType =
-        entityStoreRegistry.registerComponent(PropelComponent.class, PropelComponent::new);
+    this.propelComponentType = entityStoreRegistry.registerComponent(PropelComponent.class, PropelComponent::new);
     PropelComponent.setComponentType(propelComponentType);
 
-    ComponentType<EntityStore, PedestalComponent> pedestalComponentType =
-        entityStoreRegistry.registerComponent(PedestalComponent.class, PedestalComponent::new);
+    this.slotComponentType = entityStoreRegistry.registerComponent(SlotComponent.class, SlotComponent::new);
+    SlotComponent.setComponentType(slotComponentType);
+
+    this.pedestalComponentType = entityStoreRegistry.registerComponent(PedestalComponent.class, PedestalComponent::new);
     PedestalComponent.setComponentType(pedestalComponentType);
 
     // Block Component Registries
     ComponentRegistryProxy<ChunkStore> chunkStoreRegistry = this.getChunkStoreRegistry();
 
-    ComponentType<ChunkStore, PedestalBlockState> pedestalBlockStateType =
-        chunkStoreRegistry.registerComponent(PedestalBlockState.class, "Hexcode_PedestalBlock",
-            PedestalBlockState.CODEC);
+    this.pedestalBlockStateType = chunkStoreRegistry.registerComponent(PedestalBlockState.class,
+        "Hexcode_PedestalBlock",
+        PedestalBlockState.CODEC);
     PedestalBlockState.setComponentType(pedestalBlockStateType);
 
-    ComponentType<ChunkStore, ObeliskBlockState> obeliskBlockStateType =
-        chunkStoreRegistry.registerComponent(ObeliskBlockState.class, "Hexcode_ObeliskBlock",
-            ObeliskBlockState.CODEC);
+    this.obeliskBlockStateType = chunkStoreRegistry.registerComponent(ObeliskBlockState.class, "Hexcode_ObeliskBlock",
+        ObeliskBlockState.CODEC);
     ObeliskBlockState.setComponentType(obeliskBlockStateType);
 
     // Glyph Var Variables
@@ -219,6 +225,10 @@ public class Hexcode extends JavaPlugin {
 
   public ComponentType<EntityStore, HexcasterComponent> getHexcasterComponentType() {
     return this.hexcasterComponentType;
+  }
+
+  public ComponentType<EntityStore, SlotComponent> getSlotComponentType() {
+    return this.slotComponentType;
   }
 
   private static void onPlayerConnect(PlayerConnectEvent event) {
