@@ -9,24 +9,25 @@ import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 
 import javax.annotation.Nonnull;
 
-public class ObeliskBlockState implements Component<ChunkStore> {
+public class ObeliskBlockComponent implements Component<ChunkStore> {
 
-    public static final BuilderCodec<ObeliskBlockState> CODEC =
-        BuilderCodec.builder(ObeliskBlockState.class, ObeliskBlockState::new)
-            .addField(
+    public static final BuilderCodec<ObeliskBlockComponent> CODEC =
+        BuilderCodec.builder(ObeliskBlockComponent.class, ObeliskBlockComponent::new)
+            .append(
                 new KeyedCodec<>("Power", Codec.INTEGER),
                 (state, power) -> state.power = power,
                 state -> state.power
             )
+            .add()
             .build();
 
-    private static ComponentType<ChunkStore, ObeliskBlockState> componentType;
+    private static ComponentType<ChunkStore, ObeliskBlockComponent> componentType;
 
-    public static void setComponentType(ComponentType<ChunkStore, ObeliskBlockState> type) {
+    public static void setComponentType(ComponentType<ChunkStore, ObeliskBlockComponent> type) {
         componentType = type;
     }
 
-    public static ComponentType<ChunkStore, ObeliskBlockState> getComponentType() {
+    public static ComponentType<ChunkStore, ObeliskBlockComponent> getComponentType() {
         return componentType;
     }
 
@@ -39,7 +40,7 @@ public class ObeliskBlockState implements Component<ChunkStore> {
     @Nonnull
     @Override
     public Component<ChunkStore> clone() {
-        ObeliskBlockState copy = new ObeliskBlockState();
+        ObeliskBlockComponent copy = new ObeliskBlockComponent();
         copy.power = this.power;
         return copy;
     }

@@ -20,6 +20,12 @@ public class SwapGlyph implements GlyphHandler {
         HexVar varsA = glyph.getInput(0, hexContext);
         HexVar varsB = glyph.getInput(1, hexContext);
 
+        if (varsA == null || varsB == null) {
+            LOGGER.atWarning().log("swap glyph: missing input variables");
+            Executor.continueExecution(glyph.getNext(), hexContext);
+            return;
+        }
+
         World world = hexContext.getAccessor().getExternalData().getWorld();
 
         int pairCount = Math.min(varsA.size(), varsB.size());

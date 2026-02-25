@@ -16,16 +16,17 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.casting.component.CastingStyle;
 import com.riprod.hexcode.core.casting.registery.CastingStyleRegistry;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
-import com.riprod.hexcode.core.glyphs.utils.CreateGlyph;
+import com.riprod.hexcode.core.glyphs.utils.CreateHex;
+import com.riprod.hexcode.core.hexes.component.Hex;
+import com.riprod.hexcode.core.hexes.component.HexComponent;
 import com.riprod.hexcode.utils.GlyphMath;
-import com.riprod.hexcode.utils.SphericalPosition;
 
-public class GlyphSpawner {
+public class HexSpawner {
     public static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
-    public static List<GlyphComponent> spawnGlyphs(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> ownerRef,
+    public static List<HexComponent> spawnHexes(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> ownerRef,
             Ref<EntityStore> castingRootRef,
-            List<GlyphComponent> glyphs,
+            List<Hex> hexes,
             String styleId) {
 
         CastingStyle style = CastingStyleRegistry.getOrDefault(styleId);
@@ -34,40 +35,39 @@ public class GlyphSpawner {
         HeadRotation headRotation = accessor.getComponent(ownerRef, HeadRotation.getComponentType());
         Vector3f ownerRotation = headRotation.getRotation();
 
-        List<SphericalPosition> positions = style.getInitialPositions(glyphs.size(), ownerRotation.getYaw(),
+        List<Vector3f> positions = style.getInitialPositions(hexes.size(), ownerRotation.getYaw(),
                 ownerRotation.getPitch());
 
-        List<GlyphComponent> spawnedGlyphs = new ArrayList<>();
+        List<HexComponent> spawnedHexes = new ArrayList<>();
 
-        for (int i = 0; i < glyphs.size(); i++) {
-            GlyphComponent glyph = glyphs.get(i);
-            SphericalPosition pos = positions.get(i);
+        for (int i = 0; i < hexes.size(); i++) {
+            Hex hex = hexes.get(i);
+            HexComponent hexComponent = new HexComponent(hex);
+            Vector3f pos = positions.get(i);
 
             Vector3d cartesian = GlyphMath.sphericalToCartesian(pos);
-            glyph.setOffset(new Vector3f((float) cartesian.x, (float) cartesian.y, (float) cartesian.z));
-            glyph.setYaw(pos.getYaw());
-            glyph.setPitch(pos.getPitch());
-            glyph.setDistance(pos.getDistance());
-            glyph.setRootRef(castingRootRef);
-            glyph.setParentRef(ownerRef);
+            hexComponent.setOffset(new Vector3f((float) cartesian.x, (float) cartesian.y, (float) cartesian.z));
+            hexComponent.setRotation(pos);
+            hexComponent.setRootRef(castingRootRef);
+            hexComponent.setParentRef(ownerRef);
 
             try {
-                GlyphComponent spawnedGlyph = spawnGlyph(accessor, ownerRef, pos, glyph, ownerPos);
-                spawnedGlyphs.add(spawnedGlyph);
+                spawnHexes(accessor, ownerRef, hexComponent, ownerPos);
+                spawnedHexes.add(hexComponent);
             } catch (Exception e) {
                 LOGGER.atSevere().withCause(e)
-                        .log("[spawnGlyphs] failed to spawn glyph[%d] '%s'", i, glyph.getGlyphId());
+                        .log("[spawnHexes] failed to spawn hex[%d] '%s'", i, hexComponent.getHex());
             }
         }
-        return spawnedGlyphs;
+        return spawnedHexes;
 
     }
 
-    private static GlyphComponent spawnGlyph(ComponentAccessor<EntityStore> buffer,
-            Ref<EntityStore> ownerRef, SphericalPosition pos, GlyphComponent glyph, Vector3d parentPos) {
+    private static void spawnHexes(ComponentAccessor<EntityStore> buffer,
+            Ref<EntityStore> ownerRef, HexComponent hex, Vector3d parentPos) {
 
-        List<GlyphComponent> glyphRef = CreateGlyph.createGlyphEntity(buffer, glyph, parentPos);
-        return glyphRef.get(0);
+        List<Ref<EntityStore>> hexRef = CreateHex.createHexEntity(buffer, hex, parentPos);
+        hex.setChildHexRefs(hexRef);
     }
 
     public static void MergeGlyphs(ComponentAccessor<EntityStore> accessor, GlyphComponent selectedGlyph,
@@ -77,7 +77,7 @@ public class GlyphSpawner {
         selectedGlyph.setScale(droppedOnGlyph.getScale() * 0.5f); // TODO: finalize child glyph scale
         selectedGlyph.setRootRef(droppedOnGlyph.getSelfRef());
 
-        GlyphStyler.UpdateScale(accessor, selectedGlyph, selectedGlyph.getScale());
+        GlyphStyler.updateScale(accessor, selectedGlyph, selectedGlyph.getScale());
 
         List<GlyphComponent> children = droppedOnGlyph.getChildren();
 
@@ -131,7 +131,7 @@ public class GlyphSpawner {
 
                 child.setOffset(child.getPitch(), child.getYaw(), 0);
 
-                GlyphStyler.UpdateScale(accessor, child, child.getScale());
+                GlyphStyler.updateScale(accessor, child, child.getScale());
 
                 // replace mounted component to new position
                 // Recursively update all children inside of the glyph

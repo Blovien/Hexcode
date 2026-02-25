@@ -62,6 +62,15 @@
         }
       }
     },
+    "HexPedestal": {
+      "MaxRadius": 30,
+      "PerPlayer": false,
+      "HexBook": {},
+      "EssenceId": {},
+      "ActiveHexes": [],
+      "MaxObelisks": 4,
+      "ObeliskRange": 30
+    },
     "Gathering": {
       "Breaking": {
         "GatherType": "SoftBlocks"

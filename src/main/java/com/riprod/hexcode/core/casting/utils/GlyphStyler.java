@@ -9,46 +9,49 @@ import com.hypixel.hytale.server.core.modules.entity.component.EntityScaleCompon
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
+import com.riprod.hexcode.core.hexes.component.HexComponent;
 
 public class GlyphStyler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
-    public static void HoverGlyph(ComponentAccessor<EntityStore> accessor, GlyphComponent hoveredGlyph,
+    public static void hoverGlyph(ComponentAccessor<EntityStore> accessor, HexComponent hoveredHex,
             HexcasterComponent hexcaster) {
-        GlyphComponent currentlyHovered = hexcaster.getHoveredGlyph();
+
+        HexComponent currentlyHovered = hexcaster.getHoveredHex();
 
         // state 1 - doing nothing (return)
-        if (hoveredGlyph == null && currentlyHovered == null) {
+        if (hoveredHex == null && currentlyHovered == null) {
             return;
         }
 
         // state 2 - stop hovering
-        if (hoveredGlyph == null && currentlyHovered != null) {
-            ExitHover(accessor, currentlyHovered);
-            hexcaster.setHoveredGlyph(null);
+        if (hoveredHex == null && currentlyHovered != null) {
+            exitHover(accessor, currentlyHovered);
+            hexcaster.setHoveredHex(null);
             return;
         }
 
         // state 3 - start hovering
-        if (hoveredGlyph != null && currentlyHovered == null) {
-            hexcaster.setHoveredGlyph(hoveredGlyph);
-            EnterHover(accessor, hoveredGlyph);
+        if (hoveredHex != null && currentlyHovered == null) {
+            hexcaster.setHoveredHex(hoveredHex);
+            enterHover(accessor, hoveredHex);
             return;
         }
 
         // state 4 - switch hovered glyph
-        if (hoveredGlyph != null && currentlyHovered != null && !hoveredGlyph.equals(currentlyHovered)) {
-            ExitHover(accessor, currentlyHovered);
-            hexcaster.setHoveredGlyph(hoveredGlyph);
-            EnterHover(accessor, hoveredGlyph);
+        if (hoveredHex != null && currentlyHovered != null && !hoveredHex.equals(currentlyHovered)) {
+            exitHover(accessor, currentlyHovered);
+            hexcaster.setHoveredHex(hoveredHex);
+            enterHover(accessor, hoveredHex);
             return;
         }
     }
 
-    public static void EnterHover(ComponentAccessor<EntityStore> accessor, GlyphComponent hoveredGlyph) {
+    public static void enterHover(ComponentAccessor<EntityStore> accessor, HexComponent hoveredGlyph) {
         try {
 
-            UpdateScale(accessor, hoveredGlyph, hoveredGlyph.getScale() * 1.2f); // reset to original scale when not hovering
+            updateScale(accessor, hoveredGlyph, hoveredGlyph.getScale() * 1.2f); // reset to original scale when not
+                                                                                 // hovering
 
         } catch (Exception e) {
             LOGGER.atWarning().withCause(e).log("Error entering hover state for glyph");
@@ -56,42 +59,59 @@ public class GlyphStyler {
 
     }
 
-    public static void ExitHover(ComponentAccessor<EntityStore> accessor, GlyphComponent hoveredGlyph) {
+    public static void exitHover(ComponentAccessor<EntityStore> accessor, HexComponent hoveredGlyph) {
         try {
 
-            UpdateScale(accessor, hoveredGlyph, hoveredGlyph.getScale()); // reset to original scale when not
+            updateScale(accessor, hoveredGlyph, hoveredGlyph.getScale()); // reset to original scale when not
 
         } catch (Exception e) {
             LOGGER.atWarning().withCause(e).log("Error exiting hover state for glyph");
         }
     }
 
-    public static void UpdateScale(ComponentAccessor<EntityStore> accessor, GlyphComponent glyph, float newScale) {
+    public static void updateScale(ComponentAccessor<EntityStore> accessor, GlyphComponent glyph, float newScale) {
         try {
 
             Ref<EntityStore> selfRef = glyph.getSelfRef();
 
-            EntityScaleComponent scaleComponent = accessor.ensureAndGetComponent(selfRef, EntityScaleComponent.getComponentType());
+            EntityScaleComponent scaleComponent = accessor.ensureAndGetComponent(selfRef,
+                    EntityScaleComponent.getComponentType());
 
             scaleComponent.setScale(newScale);
-            
+
         } catch (Exception e) {
             LOGGER.atWarning().withCause(e).log("Error updating scale for glyph");
         }
     }
 
-    public static void UpdateRecursiveScale(ComponentAccessor<EntityStore> accessor, GlyphComponent glyph, float newScale) {
-        UpdateScale(accessor, glyph, newScale);
+    public static void updateScale(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> selfRef, float newScale) {
+        try {
 
-        List<GlyphComponent> children = glyph.getChildren();
+            EntityScaleComponent scaleComponent = accessor.ensureAndGetComponent(selfRef,
+                    EntityScaleComponent.getComponentType());
+
+            scaleComponent.setScale(newScale);
+
+        } catch (Exception e) {
+            LOGGER.atWarning().withCause(e).log("Error updating scale for glyph");
+        }
+    }
+
+    public static void updateRecursiveScale(ComponentAccessor<EntityStore> accessor, HexComponent hex,
+            float newScale) {
+        updateScale(accessor, hex.getSelfRef(), newScale);
+        
+        List<Ref<EntityStore>> children = hex.getChildHexRefs();
+        
+        // Update all of the children to the new scale as well
         if (children != null) {
-            for (GlyphComponent child : children) {
-                UpdateRecursiveScale(accessor, child, newScale);
+            for (Ref<EntityStore> childRef : children) {
+                updateScale(accessor, childRef, newScale);
             }
         }
     }
 
-    public static void EnterIdleAnim(ComponentAccessor<EntityStore> accessor, GlyphComponent glyph) {
+    public static void enterIdleAnim(ComponentAccessor<EntityStore> accessor, HexComponent glyph) {
         try {
 
             // add Idle animation component

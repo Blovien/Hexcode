@@ -1,5 +1,5 @@
 {
   "Parent": "Base_Glyph",
-  "Model": "VFX/Glyphs/Effects/Glyph_Add.blockymodel",
-  "Texture": "VFX/Glyphs/Effects/Glyph_Add.png"
+  "Model": "VFX/Glyphs/Effects/Add.blockymodel",
+  "Texture": "VFX/Glyphs/Effects/Add.png"
 }

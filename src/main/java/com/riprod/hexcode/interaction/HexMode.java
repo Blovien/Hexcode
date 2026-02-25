@@ -9,6 +9,7 @@ import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.entity.InteractionContext;
@@ -24,6 +25,7 @@ import com.riprod.hexcode.state.StateRouter;
 import it.unimi.dsi.fastutil.floats.Float2ObjectOpenHashMap;
 
 public class HexMode extends ChargingInteraction {
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     @Nonnull
     public static final BuilderCodec<HexMode> CODEC = BuilderCodec
@@ -96,8 +98,9 @@ public class HexMode extends ChargingInteraction {
             return;
         }
 
-        // todo: uncomment when HexcodeManager implements enterInteraction/tickInteraction
+
         if (firstRun) {
+            LOGGER.atInfo().log("Entering Hex Mode: " + targetState);
             ctx.getState().state = manager.enterInteraction(playerRef, hexcaster, commandBuffer);
         } else {
             ctx.getState().state = manager.tickInteraction(playerRef, hexcaster, commandBuffer);

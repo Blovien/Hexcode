@@ -10,7 +10,7 @@ import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.codec.codecs.array.ArrayCodec;
 
 public class NumberVar extends HexVar {
-    private List<Double> numbers;
+    private List<Double> numbers = new ArrayList<>();
 
     public NumberVar() {
     }

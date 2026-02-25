@@ -121,13 +121,11 @@ public class SpellVarUtil {
 
     @Nullable
     public static Double resolveNumber(@Nonnull HexVar var) {
-        if (var.size() == 0)
+        if (var == null || var.size() == 0)
             return null;
 
         if (var instanceof NumberVar numberVar) {
-            if (numberVar.size() > 0) {
-                return numberVar.getAt(0);
-            }
+            return numberVar.getAt(0);
         }
 
         // if entity or block vars - return length

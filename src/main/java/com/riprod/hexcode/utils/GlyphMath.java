@@ -3,6 +3,7 @@ package com.riprod.hexcode.utils;
 import java.util.List;
 
 import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.math.vector.Vector3f;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 
 public class GlyphMath {
@@ -17,31 +18,31 @@ public class GlyphMath {
         return new Vector3d(x, y, z);
     }
 
-    public static Vector3d sphericalToCartesian(SphericalPosition pos) {
-        return sphericalToCartesian(new Vector3d(0, 0, 0), pos.yaw, pos.pitch, pos.distance);
+    public static Vector3d sphericalToCartesian(Vector3f pos) {
+        return sphericalToCartesian(new Vector3d(0, 0, 0), pos.getYaw(), pos.getPitch(), pos.getZ());
     }
 
-    public static Vector3d sphericalToCartesian(Vector3d origin, SphericalPosition pos) {
-        return sphericalToCartesian(origin, pos.yaw, pos.pitch, pos.distance);
+    public static Vector3d sphericalToCartesian(Vector3d origin, Vector3f pos) {
+        return sphericalToCartesian(origin, pos.getYaw(), pos.getPitch(), pos.getZ());
     }
 
-    public static SphericalPosition cartesianToSpherical(Vector3d origin, Vector3d point) {
+    public static Vector3f cartesianToSpherical(Vector3d origin, Vector3d point) {
         double dx = point.x - origin.x;
         double dy = point.y - origin.y;
         double dz = point.z - origin.z;
 
         float distance = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
         if (distance < 0.0001) {
-            return SphericalPosition.zero();
+            return Vector3f.ZERO;
         }
 
         float yaw = (float) Math.atan2(dx, dz);
         float pitch = (float) Math.asin(dy / distance);
 
-        return new SphericalPosition(yaw, pitch, distance);
+        return new Vector3f(yaw, pitch, distance);
     }
 
-    public static boolean isPointInGlyphArea(SphericalPosition glyphPos, SphericalPosition lookPos, float scale) {
+    public static boolean isPointInGlyphArea(Vector3f glyphPos, Vector3f lookPos, float scale) {
         // todo: check if look direction hits glyph selection area
         // area scales with glyph scale (nested glyphs are smaller)
         float angularDistance = calculateAngularDistance(glyphPos, lookPos);
@@ -49,11 +50,11 @@ public class GlyphMath {
         return angularDistance <= selectionRadius;
     }
 
-    public static float calculateAngularDistance(SphericalPosition a, SphericalPosition b) {
+    public static float calculateAngularDistance(Vector3f a, Vector3f b) {
         // todo: calculate angular distance between two spherical positions
         // uses spherical law of cosines
-        double cosAngle = Math.sin(a.pitch) * Math.sin(b.pitch) +
-                Math.cos(a.pitch) * Math.cos(b.pitch) * Math.cos(a.yaw - b.yaw);
+        double cosAngle = Math.sin(a.getPitch()) * Math.sin(b.getPitch()) +
+                Math.cos(a.getPitch()) * Math.cos(b.getPitch()) * Math.cos(a.getYaw() - b.getYaw());
         cosAngle = Math.max(-1.0, Math.min(1.0, cosAngle));
         return (float) Math.acos(cosAngle);
     }

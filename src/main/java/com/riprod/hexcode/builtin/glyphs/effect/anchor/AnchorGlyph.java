@@ -20,7 +20,10 @@ public class AnchorGlyph implements GlyphHandler {
         HexVar inputVar = glyph.getInput(0, hexContext);
         int outputSlot = glyph.getOutputOrNumber(0, hexContext);
 
-        hexContext.setVariable(outputSlot, inputVar);
+        if (inputVar != null) {
+            hexContext.setVariable(outputSlot, inputVar);
+        }
+
         Executor.continueExecution(glyph.getNext(), hexContext);
     }
 }

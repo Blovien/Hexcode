@@ -16,9 +16,10 @@ import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHandler;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.SimpleInteraction;
 import com.hypixel.hytale.server.core.modules.block.BlockModule;
+import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.crafting.component.PedestalBlockState;
+import com.riprod.hexcode.core.crafting.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.crafting.component.PedestalComponent;
 import com.riprod.hexcode.core.crafting.component.PedestalState;
 import com.riprod.hexcode.core.crafting.system.PedestalTickSystem;
@@ -73,7 +74,7 @@ public class PedestalInteraction extends SimpleInteraction {
         }
 
         ItemStack itemInHand = player.getInventory().getItemInHand();
-        Ref<EntityStore> existingAnchor = PedestalTickSystem.getAnchorAt(blockPos);
+        Ref<EntityStore> existingAnchor = null;
 
         if (PedestalItemUtil.isEssence(itemInHand)) {
             handleEssencePlacement(buffer, player, itemInHand, blockPos, existingAnchor, world);
@@ -117,13 +118,15 @@ public class PedestalInteraction extends SimpleInteraction {
                 buffer.removeEntity(oldEssenceRef, RemoveReason.REMOVE);
             }
 
+            TransformComponent transform = buffer.getComponent(existingAnchor,
+                    TransformComponent.getComponentType());
             Ref<EntityStore> newEssenceRef = PedestalSpawner.spawnEssenceDisplay(
-                    buffer, existingAnchor, essenceItemId);
+                    buffer, existingAnchor, transform.getPosition(), essenceItemId);
             pedestal.setEssenceDisplayRef(newEssenceRef);
             pedestal.setEssenceItemId(essenceItemId);
         } else {
-            PedestalBlockState blockComp = BlockModule.getComponent(
-                    PedestalBlockState.getComponentType(), world,
+            PedestalBlockComponent blockComp = BlockModule.getComponent(
+                    PedestalBlockComponent.getComponentType(), world,
                     blockPos.x, blockPos.y, blockPos.z);
             if (blockComp != null) {
                 blockComp.setEssenceItemId(essenceItemId);
@@ -139,8 +142,8 @@ public class PedestalInteraction extends SimpleInteraction {
         String bookItemId = bookItem.getItem().getId();
         String essenceItemId = null;
 
-        PedestalBlockState blockComp = BlockModule.getComponent(
-                PedestalBlockState.getComponentType(), world,
+        PedestalBlockComponent blockComp = BlockModule.getComponent(
+                PedestalBlockComponent.getComponentType(), world,
                 blockPos.x, blockPos.y, blockPos.z);
         if (blockComp != null) {
             essenceItemId = blockComp.getEssenceItemId();
@@ -165,8 +168,8 @@ public class PedestalInteraction extends SimpleInteraction {
 
         String essenceItemId = pedestal.getEssenceItemId();
         if (essenceItemId != null) {
-            PedestalBlockState blockComp = BlockModule.getComponent(
-                    PedestalBlockState.getComponentType(), world,
+            PedestalBlockComponent blockComp = BlockModule.getComponent(
+                    PedestalBlockComponent.getComponentType(), world,
                     blockPos.x, blockPos.y, blockPos.z);
             if (blockComp != null) {
                 blockComp.setEssenceItemId(essenceItemId);

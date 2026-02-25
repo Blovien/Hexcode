@@ -15,11 +15,11 @@ import com.riprod.hexcode.core.glyphs.variables.NumberVar;
 import com.riprod.hexcode.core.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.glyphs.variables.RotationVar;
 import com.riprod.hexcode.core.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.hexbook.component.HexBookAsset;
 import com.riprod.hexcode.core.hexbook.component.HexBookComponent;
-import com.riprod.hexcode.core.hexbook.registry.HexBookAsset;
 import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
+import com.riprod.hexcode.core.hexstaff.component.HexStaffAsset;
 import com.riprod.hexcode.core.hexstaff.component.HexStaffComponent;
-import com.riprod.hexcode.core.hexstaff.registry.HexStaffAsset;
 import com.riprod.hexcode.interaction.HexStateChange;
 import com.riprod.hexcode.interaction.HexHold;
 import com.riprod.hexcode.interaction.HexMode;
@@ -37,13 +37,15 @@ import com.riprod.hexcode.core.execution.component.RootGlyph;
 import com.riprod.hexcode.core.execution.system.ExecutionTickSystem;
 import com.riprod.hexcode.interaction.HexStateBranch;
 import com.riprod.hexcode.interaction.PedestalInteraction;
-import com.riprod.hexcode.core.crafting.component.ObeliskBlockState;
+import com.riprod.hexcode.core.crafting.component.ObeliskBlockComponent;
 import com.riprod.hexcode.core.crafting.component.PedestalComponent;
-import com.riprod.hexcode.core.crafting.component.PedestalBlockState;
+import com.riprod.hexcode.core.crafting.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.crafting.system.ObeliskProtectionSystem;
 import com.riprod.hexcode.core.crafting.system.PedestalTickSystem;
 import com.hypixel.hytale.assetstore.AssetRegistry;
+import com.hypixel.hytale.assetstore.codec.ContainedAssetCodec;
 import com.hypixel.hytale.assetstore.map.DefaultAssetMap;
+import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.asset.type.particle.config.ParticleSystem;
 import com.hypixel.hytale.component.ComponentRegistryProxy;
@@ -82,8 +84,8 @@ public class Hexcode extends JavaPlugin {
   private ComponentType<EntityStore, RootGlyph> executionComponentType;
   private ComponentType<EntityStore, PropelComponent> propelComponentType;
   private ComponentType<EntityStore, PedestalComponent> pedestalComponentType;
-  private ComponentType<ChunkStore, PedestalBlockState> pedestalBlockStateType;
-  private ComponentType<ChunkStore, ObeliskBlockState> obeliskBlockStateType;
+  private ComponentType<ChunkStore, PedestalBlockComponent> pedestalBlockComponentType;
+  private ComponentType<ChunkStore, ObeliskBlockComponent> obeliskBlockComponentType;
   private ComponentType<EntityStore, SlotComponent> slotComponentType;
 
   @Override
@@ -159,14 +161,15 @@ public class Hexcode extends JavaPlugin {
     // Block Component Registries
     ComponentRegistryProxy<ChunkStore> chunkStoreRegistry = this.getChunkStoreRegistry();
 
-    this.pedestalBlockStateType = chunkStoreRegistry.registerComponent(PedestalBlockState.class,
+    this.pedestalBlockComponentType = chunkStoreRegistry.registerComponent(PedestalBlockComponent.class,
         "Hexcode_PedestalBlock",
-        PedestalBlockState.CODEC);
-    PedestalBlockState.setComponentType(pedestalBlockStateType);
+        PedestalBlockComponent.CODEC);
+    PedestalBlockComponent.setComponentType(pedestalBlockComponentType);
 
-    this.obeliskBlockStateType = chunkStoreRegistry.registerComponent(ObeliskBlockState.class, "Hexcode_ObeliskBlock",
-        ObeliskBlockState.CODEC);
-    ObeliskBlockState.setComponentType(obeliskBlockStateType);
+    this.obeliskBlockComponentType = chunkStoreRegistry.registerComponent(ObeliskBlockComponent.class,
+        "Hexcode_ObeliskBlock",
+        ObeliskBlockComponent.CODEC);
+    ObeliskBlockComponent.setComponentType(obeliskBlockComponentType);
 
     // Glyph Var Variables
     HexVar.CODEC.register("Entity", EntityVar.class, EntityVar.CODEC);
@@ -235,8 +238,6 @@ public class Hexcode extends JavaPlugin {
     Holder<EntityStore> holder = event.getHolder();
     HexcasterComponent comp = holder.ensureAndGetComponent(HexcasterComponent.getComponentType());
 
-    PedestalTickSystem.addPlayer(event.getPlayerRef());
-
     for (HexcodeManager manager : StateRouter.allManagers()) {
       manager.onPlayerJoin(holder, comp);
     }
@@ -244,8 +245,6 @@ public class Hexcode extends JavaPlugin {
 
   private static void onPlayerDisconnect(PlayerDisconnectEvent event) {
     PlayerRef playerRef = event.getPlayerRef();
-
-    PedestalTickSystem.removePlayer(playerRef);
 
     for (HexcodeManager manager : StateRouter.allManagers()) {
       manager.onPlayerLeave(playerRef);

@@ -1,6 +1,6 @@
 {
   "Parent": "Base_Glyph",
-  "GlyphType": "Value",
+  "GlyphType": "Effect",
   "ModelPath": "Glyph_Variable",
   "ShapeStructure": [
     {

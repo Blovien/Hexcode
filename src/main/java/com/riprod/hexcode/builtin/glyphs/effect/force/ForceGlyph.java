@@ -3,6 +3,7 @@ package com.riprod.hexcode.builtin.glyphs.effect.force;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.ChangeVelocityType;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
@@ -13,12 +14,12 @@ import com.riprod.hexcode.core.execution.component.HexContext;
 import com.riprod.hexcode.core.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.glyphs.variables.NumberVar;
 import com.riprod.hexcode.core.glyphs.variables.PositionVar;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
 public class ForceGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
-    public static final String ID = "Glyph_Force";
     private static final double DEFAULT_FORCE = 20.0;
 
     @Override
@@ -31,13 +32,14 @@ public class ForceGlyph implements GlyphHandler {
             return;
         }
 
-        HexVar dirInput = glyph.getInput(1, hexContext);
-        HexVar magInput = glyph.getInput(2, hexContext);
+        HexVar dirInput = glyph.getInputOrDefault(1, hexContext, new PositionVar(new Vector3d(0, 1, 0)));
+        HexVar magInput = glyph.getInputOrDefault(2, hexContext, new NumberVar(DEFAULT_FORCE));
 
         Vector3d force;
+        double magnitude = SpellVarUtil.resolveNumberOrDefault(magInput, DEFAULT_FORCE);
 
         if (dirInput instanceof PositionVar posVar && posVar.size() > 0) {
-            force = posVar.getAt(0);
+            force = posVar.getAt(0).scale(magnitude);
         } else {
             Vector3d direction = null;
             if (dirInput != null) {
@@ -47,7 +49,6 @@ public class ForceGlyph implements GlyphHandler {
                 direction = new Vector3d(0, 1, 0);
             }
 
-            double magnitude = SpellVarUtil.resolveNumberOrDefault(magInput, DEFAULT_FORCE);
             force = new Vector3d(direction).scale(magnitude);
         }
 

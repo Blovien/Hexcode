@@ -22,6 +22,12 @@ public class HaltGlyph implements GlyphHandler {
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targets = glyph.getInput(0, hexContext);
 
+        if (targets == null || targets.size() == 0) {
+            LOGGER.atInfo().log("halt glyph: no targets, skipping");
+            Executor.continueExecution(glyph.getNext(), hexContext);
+            return;
+        }
+
         if (targets instanceof EntityVar entityVar) {
             for (int i = 0; i < entityVar.size(); i++) {
                 Ref<EntityStore> ref = entityVar.getRef(i, hexContext.getAccessor());

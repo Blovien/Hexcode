@@ -56,7 +56,7 @@ public class DrawingSystem extends HexcodeManager {
 
       if (glyphComponent != null) {
         HexBookComponent bookComponent = CasterInventory.getHexBookComponent(buffer, ref);
-        bookComponent.addGlyph(glyphComponent);
+        bookComponent.addHex(glyphComponent);
         CasterInventory.saveHexBookComponent(buffer, ref, bookComponent);
       }
     }

@@ -6,6 +6,7 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.drawing.component.DrawnShapeComponent;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.hexes.component.HexComponent;
 import com.riprod.hexcode.state.HexState;
 
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
@@ -15,7 +16,6 @@ import javax.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class HexcasterComponent implements Component<EntityStore> {
 
@@ -52,11 +52,11 @@ public class HexcasterComponent implements Component<EntityStore> {
     private Ref<EntityStore> castingRootRef = null;
     private Ref<EntityStore> headAnchorRef = null;
     @Nonnull
-    private List<GlyphComponent> activeGlyphs = new ArrayList<>();
-    private List<GlyphComponent> hoveredChain = new ArrayList<>();
-    private GlyphComponent draggingGlyph = null;
-    private GlyphComponent hoveredGlyph = null;
-    private GlyphComponent lastSelectedGlyph = null;
+    private List<HexComponent> activeHexes = new ArrayList<>();
+    private List<HexComponent> hoveredChain = new ArrayList<>();
+    private HexComponent draggingHex = null;
+    private HexComponent hoveredHex = null;
+    private HexComponent lastSelectedHex = null;
 
     // Drawing Mode
     private FloatArrayList drawnStrokes = new FloatArrayList();
@@ -79,34 +79,34 @@ public class HexcasterComponent implements Component<EntityStore> {
         return componentType;
     }
 
-    public GlyphComponent getHoveredGlyph() {
-        return hoveredGlyph;
+    public HexComponent getHoveredHex() {
+        return hoveredHex;
     }
 
-    public void setHoveredGlyph(@Nullable GlyphComponent hoveredGlyph) {
-        this.hoveredGlyph = hoveredGlyph;
+    public void setHoveredHex(@Nullable HexComponent hoveredHex) {
+        this.hoveredHex = hoveredHex;
     }
 
-    public GlyphComponent getDraggingGlyph() {
-        return draggingGlyph;
+    public HexComponent getDraggingHex() {
+        return draggingHex;
     }
 
-    public void setDraggingGlyph(@Nullable GlyphComponent draggingGlyph) {
-        if (draggingGlyph != null) {
-            setLastSelectedGlyph(draggingGlyph);
+    public void setDraggingHex(@Nullable HexComponent draggingHex) {
+        if (draggingHex != null) {
+            setLastSelectedHex(draggingHex);
         }
 
-        if (this.draggingGlyph != null) {
-            this.draggingGlyph.setDragState(false);
+        if (this.draggingHex != null) {
+            this.draggingHex.setDragState(false);
         }
 
-        if (draggingGlyph == null) {
-            this.draggingGlyph = null;
+        if (draggingHex == null) {
+            this.draggingHex = null;
             return;
         }
 
-        this.draggingGlyph = draggingGlyph;
-        this.draggingGlyph.setDragState(true);
+        this.draggingHex = draggingHex;
+        this.draggingHex.setDragState(true);
     }
 
     public Ref<EntityStore> getCastingRootRef() {
@@ -125,52 +125,34 @@ public class HexcasterComponent implements Component<EntityStore> {
         this.headAnchorRef = headAnchorRef;
     }
 
-    public List<GlyphComponent> getActiveGlyphs() {
-        return activeGlyphs;
+    public List<HexComponent> getActiveHexes() {
+        return activeHexes;
     }
 
-    public void setActiveGlyphs(@Nonnull List<GlyphComponent> activeGlyphs) {
-        this.activeGlyphs = activeGlyphs;
+    public void setActiveHexes(@Nonnull List<HexComponent> activeHexes) {
+        this.activeHexes = activeHexes;
     }
 
-    public void addActiveGlyph(GlyphComponent glyph) {
-        this.activeGlyphs.add(glyph);
+    public void removeActiveHex(String hexId) {
+        this.activeHexes.removeIf(hex -> hex.getId().equals(hexId));
     }
 
-    public void removeActiveGlyph(GlyphComponent glyph) {
-        this.activeGlyphs.remove(glyph);
+    public void setLastSelectedHex(HexComponent hex) {
+        this.lastSelectedHex = hex;
     }
 
-    public void removeActiveGlyph(UUID glyphId) {
-        this.activeGlyphs.removeIf(glyph -> glyph.getId().equals(glyphId));
-    }
-
-    public void pushToChain(GlyphComponent glyph) {
-        this.hoveredChain.add(glyph);
-    }
-
-    public void popFromChain() {
-        if (!this.hoveredChain.isEmpty()) {
-            this.hoveredChain.remove(this.hoveredChain.size() - 1);
-        }
-    }
-
-    public void setLastSelectedGlyph(GlyphComponent glyph) {
-        this.lastSelectedGlyph = glyph;
-    }
-
-    public GlyphComponent getLastSelectedGlyph() {
-        return this.lastSelectedGlyph;
+    public HexComponent getLastSelectedHex() {
+        return this.lastSelectedHex;
     }
 
     public void clearCastingState() {
         this.castingRootRef = null;
         this.headAnchorRef = null;
-        this.activeGlyphs.clear();
+        this.activeHexes.clear();
         this.hoveredChain.clear();
-        this.draggingGlyph = null;
-        this.hoveredGlyph = null;
-        this.lastSelectedGlyph = null;
+        this.draggingHex = null;
+        this.hoveredHex = null;
+        this.lastSelectedHex = null;
     }
 
     public void clearDrawingState() {
@@ -256,11 +238,11 @@ public class HexcasterComponent implements Component<EntityStore> {
         copy.currentState = this.currentState;
         copy.castingRootRef = this.castingRootRef;
         copy.headAnchorRef = this.headAnchorRef;
-        copy.activeGlyphs = new ArrayList<>(this.activeGlyphs);
+        copy.activeHexes = new ArrayList<>(this.activeHexes);
         copy.hoveredChain = new ArrayList<>(this.hoveredChain);
-        copy.draggingGlyph = this.draggingGlyph;
-        copy.hoveredGlyph = this.hoveredGlyph;
-        copy.lastSelectedGlyph = this.lastSelectedGlyph;
+        copy.draggingHex = this.draggingHex;
+        copy.hoveredHex = this.hoveredHex;
+        copy.lastSelectedHex = this.lastSelectedHex;
         copy.drawnStrokes = new FloatArrayList(this.drawnStrokes);
         copy.drawnGlyphs = new ArrayList<>(this.drawnGlyphs);
         copy.trailRef = this.trailRef;

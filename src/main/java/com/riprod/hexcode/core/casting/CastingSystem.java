@@ -22,18 +22,19 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.casting.utils.GlyphPositioner;
-import com.riprod.hexcode.core.casting.utils.GlyphSelector;
-import com.riprod.hexcode.core.casting.utils.GlyphSpawner;
+import com.riprod.hexcode.core.casting.utils.HexSelector;
+import com.riprod.hexcode.core.casting.utils.HexSpawner;
 import com.riprod.hexcode.core.casting.utils.GlyphStyler;
-import com.riprod.hexcode.core.execution.Compiler;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
-import com.riprod.hexcode.core.glyphs.utils.CreateGlyph;
+import com.riprod.hexcode.core.glyphs.utils.CreateHex;
+import com.riprod.hexcode.core.hexbook.component.HexBookAsset;
 import com.riprod.hexcode.core.hexbook.component.HexBookComponent;
-import com.riprod.hexcode.core.hexbook.registry.HexBookAsset;
 import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.hexcaster.utils.CasterInventory;
+import com.riprod.hexcode.core.hexes.component.Hex;
+import com.riprod.hexcode.core.hexes.component.HexComponent;
+import com.riprod.hexcode.core.hexstaff.component.HexStaffAsset;
 import com.riprod.hexcode.core.hexstaff.component.HexStaffComponent;
-import com.riprod.hexcode.core.hexstaff.registry.HexStaffAsset;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
 import com.riprod.hexcode.utils.GlyphMath;
@@ -54,7 +55,7 @@ public class CastingSystem extends HexcodeManager {
             return;
         }
 
-        List<GlyphComponent> glyphs = book.getGlyphs();
+        List<Hex> hexes = book.getHexes();
         String style = staff.getStyleId();
 
         Player player = buffer.getComponent(ref, Player.getComponentType());
@@ -69,12 +70,12 @@ public class CastingSystem extends HexcodeManager {
         if (modelComp != null && modelComp.getModel() != null) {
             eyeHeight = modelComp.getModel().getEyeHeight(ref, buffer);
         }
-        Ref<EntityStore> castingRootRef = CreateGlyph.createCastingRoot(buffer, ref, eyeHeight, particles);
+        Ref<EntityStore> castingRootRef = CreateHex.createCastingRoot(buffer, ref, eyeHeight, particles);
 
         comp.setCastingRootRef(castingRootRef);
 
-        List<GlyphComponent> spawnedGlyphs = GlyphSpawner.spawnGlyphs(buffer, ref, castingRootRef, glyphs, style);
-        comp.setActiveGlyphs(spawnedGlyphs);
+        List<HexComponent> spawnedHexes = HexSpawner.spawnHexes(buffer, ref, castingRootRef, hexes, style);
+        comp.setActiveHexes(spawnedHexes);
     }
 
     @Override
@@ -84,10 +85,10 @@ public class CastingSystem extends HexcodeManager {
         cleanupEntities(buffer, comp);
 
         HexStaffComponent staff = CasterInventory.getHexStaffComponent(buffer, ref);
-        GlyphComponent rootGlyph = comp.getLastSelectedGlyph();
+        HexComponent rootGlyph = comp.getLastSelectedHex();
 
         if (rootGlyph != null && staff != null) {
-            staff.setActiveSpell(rootGlyph);
+            staff.setActiveHex(rootGlyph.getHex());
             CasterInventory.saveHexStaffComponent(buffer, ref, staff);
             comp.requestStateChange(HexState.EXECUTION);
         }
@@ -108,15 +109,15 @@ public class CastingSystem extends HexcodeManager {
         }
         Vector3d ownerPos = transform.getPosition();
 
-        List<GlyphComponent> activeGlyphs = comp.getActiveGlyphs();
+        List<HexComponent> activeHexes = comp.getActiveHexes();
 
-        if (activeGlyphs == null || castingRootRef == null || !castingRootRef.isValid()) {
+        if (activeHexes == null || castingRootRef == null || !castingRootRef.isValid()) {
             return;
         }
 
-        // Despawn head anchor if not dragging a glyph
+        // Despawn head anchor if not dragging a hex
         Ref<EntityStore> headAnchor = comp.getHeadAnchorRef();
-        if (comp.getDraggingGlyph() == null && headAnchor != null && headAnchor.isValid()) {
+        if (comp.getDraggingHex() == null && headAnchor != null && headAnchor.isValid()) {
             Holder<EntityStore> headHolder = EntityStore.REGISTRY.newHolder();
             buffer.removeEntity(headAnchor, headHolder, RemoveReason.REMOVE);
             comp.setHeadAnchorRef(null);
@@ -124,10 +125,9 @@ public class CastingSystem extends HexcodeManager {
 
         GlyphPositioner.PositionGlyphs(buffer, ref, ownerPos, castingRootRef);
 
-        GlyphComponent hoveredGlyph = GlyphSelector.GetHoveredGlyph(buffer, headRotation, activeGlyphs,
-                comp.getDraggingGlyph() != null);
+        HexComponent hoveredGlyph = HexSelector.GetHoveredHex(buffer, headRotation, activeHexes);
 
-        GlyphStyler.HoverGlyph(buffer, hoveredGlyph, comp);
+        GlyphStyler.hoverGlyph(buffer, hoveredGlyph, comp);
     }
 
     @Override
@@ -142,7 +142,7 @@ public class CastingSystem extends HexcodeManager {
     public InteractionState enterInteraction(Ref<EntityStore> ref, HexcasterComponent comp,
             CommandBuffer<EntityStore> accessor) {
 
-        GlyphComponent hoveredGlyph = comp.getHoveredGlyph();
+        GlyphComponent hoveredGlyph = comp.getHoveredHex();
         if (hoveredGlyph == null) {
             return InteractionState.Failed;
         }
@@ -153,18 +153,18 @@ public class CastingSystem extends HexcodeManager {
             eyeHeight = modelComp.getModel().getEyeHeight(ref, accessor);
         }
 
-        Ref<EntityStore> headRootRef = CreateGlyph.createHeadAnchor(accessor, ref, eyeHeight);
+        Ref<EntityStore> headRootRef = CreateHex.createHeadAnchor(accessor, ref, eyeHeight);
 
         comp.setHeadAnchorRef(headRootRef);
 
-        GlyphStyler.ExitHover(accessor, hoveredGlyph);
+        GlyphStyler.exitHover(accessor, hoveredGlyph);
 
         Ref<EntityStore> glyphRef = hoveredGlyph.getSelfRef();
         if (glyphRef != null && glyphRef.isValid()) {
             accessor.removeComponent(glyphRef, MountedComponent.getComponentType());
         }
 
-        comp.setDraggingGlyph(hoveredGlyph);
+        comp.setDraggingHex(hoveredGlyph);
 
         float distance = hoveredGlyph.getDistance();
         accessor.addComponent(glyphRef, MountedComponent.getComponentType(),
@@ -177,7 +177,7 @@ public class CastingSystem extends HexcodeManager {
     public InteractionState tickInteraction(Ref<EntityStore> ref, HexcasterComponent comp,
             CommandBuffer<EntityStore> accessor) {
 
-        if (comp.getDraggingGlyph() == null) {
+        if (comp.getDraggingHex() == null) {
             return InteractionState.Finished;
         }
 
@@ -193,7 +193,7 @@ public class CastingSystem extends HexcodeManager {
             }
         }
 
-        GlyphSelector.DragGlyph(accessor, ref, comp.getDraggingGlyph());
+        HexSelector.DragGlyph(accessor, ref, comp.getDraggingHex());
 
         return InteractionState.NotFinished;
     }
@@ -202,7 +202,7 @@ public class CastingSystem extends HexcodeManager {
     public InteractionState exitInteraction(Ref<EntityStore> ref, HexcasterComponent comp,
             CommandBuffer<EntityStore> accessor) {
 
-        GlyphComponent draggedGlyph = comp.getDraggingGlyph();
+        GlyphComponent draggedGlyph = comp.getDraggingHex();
         if (draggedGlyph == null) {
             return InteractionState.Finished;
         }
@@ -212,17 +212,17 @@ public class CastingSystem extends HexcodeManager {
             return InteractionState.Failed;
         }
 
-        GlyphComponent hoveredGlyph = GlyphSelector.GetHoveredGlyph(accessor, headRotation,
-                comp.getActiveGlyphs(), true);
+        GlyphComponent hoveredGlyph = HexSelector.GetHoveredHex(accessor, headRotation,
+                comp.getActiveHexes(), true);
 
         if (hoveredGlyph != null) {
             try {
                 float eyeHeight = 0f;
                 ModelComponent modelComp = accessor.getComponent(ref, ModelComponent.getComponentType());
                 eyeHeight = modelComp.getModel().getEyeHeight(ref, accessor);
-                GlyphSpawner.MergeGlyphs(accessor, draggedGlyph, hoveredGlyph, eyeHeight);
-                comp.setDraggingGlyph(null);
-                comp.removeActiveGlyph(draggedGlyph.getId());
+                HexSpawner.MergeGlyphs(accessor, draggedGlyph, hoveredGlyph, eyeHeight);
+                comp.setDraggingHex(null);
+                comp.removeActiveHex(draggedGlyph.getId());
 
                 return InteractionState.Finished;
             } catch (Exception e) {
@@ -230,7 +230,7 @@ public class CastingSystem extends HexcodeManager {
             }
         }
 
-        comp.setDraggingGlyph(null);
+        comp.setDraggingHex(null);
 
         float pitch = draggedGlyph.getPitch();
         float yaw = draggedGlyph.getYaw();
@@ -270,7 +270,7 @@ public class CastingSystem extends HexcodeManager {
     }
 
     private void cleanupEntities(ComponentAccessor<EntityStore> accessor, HexcasterComponent comp) {
-        List<GlyphComponent> activeGlyphs = comp.getActiveGlyphs();
+        List<GlyphComponent> activeGlyphs = comp.getActiveHexes();
         for (GlyphComponent glyph : activeGlyphs) {
             try {
                 cleanupGlyphChildren(accessor, glyph);

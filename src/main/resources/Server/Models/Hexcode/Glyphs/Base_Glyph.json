@@ -21,7 +21,7 @@
         {
           "Looping": true,
           "Speed": 0.25,
-          "Animation": "VFX/Glyphs/Effects/Animations/Glyph_Idle.blockyanim"
+          "Animation": "VFX/Glyphs/Animations/Glyph_Idle.blockyanim"
         }
       ]
     }

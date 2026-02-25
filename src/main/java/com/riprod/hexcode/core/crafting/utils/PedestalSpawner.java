@@ -52,25 +52,21 @@ public class PedestalSpawner {
         Ref<EntityStore> anchorRef = accessor.addEntity(holder, AddReason.SPAWN);
 
         if (essenceItemId != null) {
-            Ref<EntityStore> essenceRef = spawnEssenceDisplay(accessor, anchorRef, essenceItemId);
-            PedestalComponent comp = accessor.getComponent(anchorRef, PedestalComponent.getComponentType());
-            comp.setEssenceDisplayRef(essenceRef);
+            Ref<EntityStore> essenceRef = spawnEssenceDisplay(accessor, anchorRef, anchorPos, essenceItemId);
+            pedestal.setEssenceDisplayRef(essenceRef);
         }
 
-        Ref<EntityStore> bookRef = spawnBookDisplay(accessor, anchorRef, bookItemId);
-        PedestalComponent comp = accessor.getComponent(anchorRef, PedestalComponent.getComponentType());
-        comp.setBookDisplayRef(bookRef);
+        Ref<EntityStore> bookRef = spawnBookDisplay(accessor, anchorRef, anchorPos, bookItemId);
+        pedestal.setBookDisplayRef(bookRef);
 
         return anchorRef;
     }
 
     public static Ref<EntityStore> spawnEssenceDisplay(ComponentAccessor<EntityStore> accessor,
-            Ref<EntityStore> anchorRef, String essenceItemId) {
+            Ref<EntityStore> anchorRef, Vector3d anchorPos, String essenceItemId) {
 
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
 
-        Vector3d anchorPos = accessor.getComponent(anchorRef, TransformComponent.getComponentType())
-                .getPosition();
         holder.addComponent(TransformComponent.getComponentType(),
                 new TransformComponent(anchorPos, new Vector3f(0, 0, 0)));
 
@@ -89,12 +85,10 @@ public class PedestalSpawner {
     }
 
     public static Ref<EntityStore> spawnBookDisplay(ComponentAccessor<EntityStore> accessor,
-            Ref<EntityStore> anchorRef, String bookItemId) {
+            Ref<EntityStore> anchorRef, Vector3d anchorPos, String bookItemId) {
 
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
 
-        Vector3d anchorPos = accessor.getComponent(anchorRef, TransformComponent.getComponentType())
-                .getPosition();
         holder.addComponent(TransformComponent.getComponentType(),
                 new TransformComponent(anchorPos, new Vector3f(0, 0, 0)));
 
@@ -112,8 +106,7 @@ public class PedestalSpawner {
         return accessor.addEntity(holder, AddReason.SPAWN);
     }
 
-    public static void despawnAnchor(ComponentAccessor<EntityStore> accessor,
-            Ref<EntityStore> anchorRef, PedestalComponent comp,
+    public static void despawnAnchor(Ref<EntityStore> anchorRef, PedestalComponent comp,
             CommandBuffer<EntityStore> buffer) {
 
         Ref<EntityStore> essenceRef = comp.getEssenceDisplayRef();

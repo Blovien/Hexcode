@@ -48,7 +48,7 @@ public class ExecutionTickSystem extends EntityTickingSystem<EntityStore> {
             rootGlyph.setNeedsInitialExecution(false);
 
             // Compile the glyphComponent
-            Map<UUID, Glyph> compiledHex = Compiler.compile(rootGlyph.getGlyphComponent());
+            Map<String, Glyph> compiledHex = Compiler.compile(rootGlyph.getGlyphComponent());
 
             HexContext hexContext = new HexContext(root, buffer, chunkAccessor, compiledHex);
             Executor.beginExecution(List.of(rootGlyph.getGlyphComponent().getId()), hexContext);

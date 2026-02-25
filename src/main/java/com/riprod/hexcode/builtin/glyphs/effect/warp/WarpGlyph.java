@@ -8,7 +8,6 @@ import com.riprod.hexcode.core.execution.Executor;
 import com.riprod.hexcode.core.execution.component.HexContext;
 import com.riprod.hexcode.core.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.glyphs.variables.HexVar;
-import com.riprod.hexcode.core.glyphs.variables.PositionVar;
 import com.riprod.hexcode.utils.BlockUtils;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
@@ -20,6 +19,12 @@ public class WarpGlyph implements GlyphHandler {
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targets = glyph.getInput(0, hexContext);
         HexVar destInput = glyph.getInput(1, hexContext);
+
+        if (destInput == null || destInput.size() == 0) {
+            LOGGER.atWarning().log("warp glyph: no destination provided");
+            Executor.continueExecution(glyph.getNext(), hexContext);
+            return;
+        }
 
         Vector3d destination = null;
 

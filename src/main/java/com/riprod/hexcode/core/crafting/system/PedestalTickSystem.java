@@ -23,8 +23,9 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.crafting.component.ObeliskBlockState;
-import com.riprod.hexcode.core.crafting.component.PedestalBlockState;
+import com.hypixel.hytale.server.core.util.TargetUtil;
+import com.riprod.hexcode.core.crafting.component.ObeliskBlockComponent;
+import com.riprod.hexcode.core.crafting.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.crafting.component.PedestalComponent;
 import com.riprod.hexcode.core.crafting.component.PedestalState;
 import com.riprod.hexcode.core.crafting.utils.PedestalBlockUtil;
@@ -33,29 +34,6 @@ import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.state.HexState;
 
 public class PedestalTickSystem extends EntityTickingSystem<EntityStore> {
-
-    private static final Map<Vector3i, Ref<EntityStore>> activePedestals = new HashMap<>();
-    private static final Set<PlayerRef> connectedPlayers = new HashSet<>();
-
-    public static void addPlayer(PlayerRef playerRef) {
-        connectedPlayers.add(playerRef);
-    }
-
-    public static void removePlayer(PlayerRef playerRef) {
-        connectedPlayers.remove(playerRef);
-    }
-
-    public static void registerPedestal(Vector3i pos, Ref<EntityStore> ref) {
-        activePedestals.put(pos, ref);
-    }
-
-    public static void unregisterPedestal(Vector3i pos) {
-        activePedestals.remove(pos);
-    }
-
-    public static Ref<EntityStore> getAnchorAt(Vector3i pos) {
-        return activePedestals.get(pos);
-    }
 
     @Override
     public Query<EntityStore> getQuery() {
@@ -100,7 +78,6 @@ public class PedestalTickSystem extends EntityTickingSystem<EntityStore> {
         if (timer <= 0) {
             pedestal.setPedestalState(PedestalState.ON);
             PedestalBlockUtil.changeBlockState(world, pedestal.getBlockPosition(), "On");
-            registerPedestal(pedestal.getBlockPosition(), anchorRef);
             activateObelisks(pedestal, world);
         }
     }
@@ -115,8 +92,7 @@ public class PedestalTickSystem extends EntityTickingSystem<EntityStore> {
             deactivateObelisks(pedestal, world);
             ejectAllPlayers(pedestal, buffer);
             PedestalBlockUtil.changeBlockState(world, pedestal.getBlockPosition(), "default");
-            unregisterPedestal(pedestal.getBlockPosition());
-            PedestalSpawner.despawnAnchor(buffer, anchorRef, pedestal, buffer);
+            PedestalSpawner.despawnAnchor(anchorRef, pedestal, buffer);
         }
     }
 
@@ -153,8 +129,8 @@ public class PedestalTickSystem extends EntityTickingSystem<EntityStore> {
             ObeliskProtectionSystem.protect(pos);
             PedestalBlockUtil.changeBlockState(world, pos, "Active");
 
-            ObeliskBlockState obelisk = BlockModule.getComponent(
-                    ObeliskBlockState.getComponentType(), world, pos.x, pos.y, pos.z);
+            ObeliskBlockComponent obelisk = BlockModule.getComponent(
+                    ObeliskBlockComponent.getComponentType(), world, pos.x, pos.y, pos.z);
             if (obelisk != null) {
                 totalPower += obelisk.getPower();
             }
@@ -173,8 +149,8 @@ public class PedestalTickSystem extends EntityTickingSystem<EntityStore> {
     }
 
     private int getMaxObelisks(World world, Vector3i pedestalPos) {
-        PedestalBlockState blockState = BlockModule.getComponent(
-                PedestalBlockState.getComponentType(), world,
+        PedestalBlockComponent blockState = BlockModule.getComponent(
+                PedestalBlockComponent.getComponentType(), world,
                 pedestalPos.x, pedestalPos.y, pedestalPos.z);
         if (blockState != null) {
             return blockState.getMaxObelisks();
@@ -186,71 +162,7 @@ public class PedestalTickSystem extends EntityTickingSystem<EntityStore> {
             Ref<EntityStore> anchorRef, Store<EntityStore> store,
             CommandBuffer<EntityStore> buffer) {
 
-        TransformComponent anchorTransform = buffer.getComponent(anchorRef,
-                TransformComponent.getComponentType());
-        if (anchorTransform == null) {
-            return;
-        }
-
-        Vector3d anchorPos = anchorTransform.getPosition();
-        double radiusSq = pedestal.getDetectionRadius() * pedestal.getDetectionRadius();
-
-        for (PlayerRef player : connectedPlayers) {
-            Ref<EntityStore> playerRef = player.getReference();
-            if (playerRef == null || !playerRef.isValid()) {
-                continue;
-            }
-
-            if (pedestal.getPlayersInRange().contains(playerRef)) {
-                continue;
-            }
-
-            HexcasterComponent hexcaster = buffer.getComponent(playerRef,
-                    HexcasterComponent.getComponentType());
-            if (hexcaster == null || hexcaster.getState() != HexState.IDLE) {
-                continue;
-            }
-
-            TransformComponent playerTransform = buffer.getComponent(playerRef,
-                    TransformComponent.getComponentType());
-            if (playerTransform == null) {
-                continue;
-            }
-
-            double distSq = new Vector3d(anchorPos).subtract(playerTransform.getPosition()).squaredLength();
-            if (distSq <= radiusSq) {
-                pedestal.getPlayersInRange().add(playerRef);
-                hexcaster.setPedestalRef(anchorRef);
-                hexcaster.requestStateChange(HexState.CRAFTING);
-            }
-        }
-
-        Iterator<Ref<EntityStore>> it = pedestal.getPlayersInRange().iterator();
-        while (it.hasNext()) {
-            Ref<EntityStore> playerRef = it.next();
-
-            if (!playerRef.isValid()) {
-                it.remove();
-                continue;
-            }
-
-            TransformComponent playerTransform = buffer.getComponent(playerRef,
-                    TransformComponent.getComponentType());
-            if (playerTransform == null) {
-                it.remove();
-                continue;
-            }
-
-            double distSq = new Vector3d(anchorPos).subtract(playerTransform.getPosition()).squaredLength();
-            if (distSq > radiusSq) {
-                it.remove();
-                HexcasterComponent hexcaster = buffer.getComponent(playerRef,
-                        HexcasterComponent.getComponentType());
-                if (hexcaster != null && hexcaster.getState() == HexState.CRAFTING) {
-                    hexcaster.requestStateChange(HexState.IDLE);
-                }
-            }
-        }
+       TargetUtil.getAllEntitiesInCylinder(null, 0, 0, buffer);
     }
 
     private void ejectAllPlayers(PedestalComponent pedestal, CommandBuffer<EntityStore> buffer) {

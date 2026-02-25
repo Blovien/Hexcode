@@ -10,29 +10,31 @@ import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class PedestalBlockState implements Component<ChunkStore> {
+public class PedestalBlockComponent implements Component<ChunkStore> {
 
-    public static final BuilderCodec<PedestalBlockState> CODEC =
-        BuilderCodec.builder(PedestalBlockState.class, PedestalBlockState::new)
-            .addField(
+    public static final BuilderCodec<PedestalBlockComponent> CODEC =
+        BuilderCodec.builder(PedestalBlockComponent.class, PedestalBlockComponent::new)
+            .append(
                 new KeyedCodec<>("EssenceItemId", Codec.STRING),
                 (state, id) -> state.essenceItemId = id,
                 state -> state.essenceItemId
             )
-            .addField(
+            .add()
+            .append(
                 new KeyedCodec<>("MaxObelisks", Codec.INTEGER),
                 (state, v) -> state.maxObelisks = v,
                 state -> state.maxObelisks
             )
+            .add()
             .build();
 
-    private static ComponentType<ChunkStore, PedestalBlockState> componentType;
+    private static ComponentType<ChunkStore, PedestalBlockComponent> componentType;
 
-    public static void setComponentType(ComponentType<ChunkStore, PedestalBlockState> type) {
+    public static void setComponentType(ComponentType<ChunkStore, PedestalBlockComponent> type) {
         componentType = type;
     }
 
-    public static ComponentType<ChunkStore, PedestalBlockState> getComponentType() {
+    public static ComponentType<ChunkStore, PedestalBlockComponent> getComponentType() {
         return componentType;
     }
 
@@ -55,7 +57,7 @@ public class PedestalBlockState implements Component<ChunkStore> {
     @Nonnull
     @Override
     public Component<ChunkStore> clone() {
-        PedestalBlockState copy = new PedestalBlockState();
+        PedestalBlockComponent copy = new PedestalBlockComponent();
         copy.essenceItemId = this.essenceItemId;
         copy.maxObelisks = this.maxObelisks;
         return copy;

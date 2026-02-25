@@ -20,7 +20,7 @@ public class Executor {
     private Executor() {
     }
 
-    public static void beginExecution(List<UUID> nextGlyphs, @Nonnull HexContext hexContext) {
+    public static void beginExecution(List<String> nextGlyphs, @Nonnull HexContext hexContext) {
 
         UUIDComponent uuidComponent = hexContext.getAccessor().getComponent(
                 hexContext.getCasterRef(), UUIDComponent.getComponentType());
@@ -31,25 +31,29 @@ public class Executor {
         continueExecution(nextGlyphs, hexContext);
     }
 
-    public static void continueExecution(List<UUID> nextGlyphs, HexContext hexContext) {
+    public static void continueExecution(List<String> nextGlyphs, HexContext hexContext) {
 
         if (nextGlyphs.isEmpty()) {
             return;
         }
 
         if (nextGlyphs.size() == 1) {
-            UUID nextId = nextGlyphs.get(0);
+            String nextId = nextGlyphs.get(0);
             Glyph nextNode = hexContext.getGlyph(nextId);
             GlyphHandler nextHandler = GlyphRegistry.get(nextNode.getGlyphId());
             if (nextHandler == null) {
                 LOGGER.atSevere().log("no handler found for glyph %s, skipping", nextNode.getGlyphId());
                 return;
             }
-            nextHandler.execute(nextNode, hexContext);
+            try {
+                nextHandler.execute(nextNode, hexContext);
+            } catch (Exception e) {
+                LOGGER.atSevere().log("error executing glyph %s: %s", nextNode.getGlyphId(), e.getMessage());
+            }
             return;
         }
 
-        for (UUID nextNodeId : nextGlyphs) {
+        for (String nextNodeId : nextGlyphs) {
             Glyph nextNode = hexContext.getGlyph(nextNodeId);
             GlyphHandler nextHandler = GlyphRegistry.get(nextNode.getGlyphId());
             if (nextHandler == null) {
@@ -57,11 +61,15 @@ public class Executor {
                 continue;
             }
             HexContext copiedBranch = hexContext.copy();
-            nextHandler.execute(nextNode, copiedBranch);
+            try {
+                nextHandler.execute(nextNode, copiedBranch);
+            } catch (Exception e) {
+                LOGGER.atSevere().log("error executing glyph %s: %s", nextNode.getGlyphId(), e.getMessage());
+            }
         }
     }
 
-    public static void delayContinuation(List<UUID> nextGlyphs, HexContext hexContext, int delayTicks) {
+    public static void delayContinuation(List<String> nextGlyphs, HexContext hexContext, int delayTicks) {
         RootGlyph rootGlyph = hexContext.getAccessor().getComponent(
                 hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
 

@@ -1,5 +1,6 @@
 package com.riprod.hexcode.builtin;
 
+import com.riprod.hexcode.builtin.glyphs.effect.add.AddGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.anchor.AnchorGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.arc.ArcGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.bolt.BoltGlyph;
@@ -8,6 +9,7 @@ import com.riprod.hexcode.builtin.glyphs.effect.combust.CombustGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.conjure.ConjureGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.delay.DelayGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.detonate.DetonateGlyph;
+import com.riprod.hexcode.builtin.glyphs.effect.divide.DivideGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.drain.DrainGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.erode.ErodeGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.excavate.ExcavateGlyph;
@@ -22,12 +24,15 @@ import com.riprod.hexcode.builtin.glyphs.effect.ignite.IgniteGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.levitate.LevitateGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.multiply.MultiplyGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.nullify.NullifyGlyph;
+import com.riprod.hexcode.builtin.glyphs.effect.position.PositionGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.propel.PropelGlyph;
+import com.riprod.hexcode.builtin.glyphs.effect.rotation.RotationGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.rupture.RuptureGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.seek.SeekGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.self.SelfGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.shatter.ShatterGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.smelt.SmeltGlyph;
+import com.riprod.hexcode.builtin.glyphs.effect.subtract.SubtractGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.swap.SwapGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.terraform.TerraformGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.warp.WarpGlyph;
@@ -95,6 +100,11 @@ public class BuiltinPlugin {
         GlyphRegistry.register("Glyph_Warp", new WarpGlyph());
         GlyphRegistry.register("Glyph_Swap", new SwapGlyph());
         GlyphRegistry.register("Glyph_Multiply", new MultiplyGlyph());
+        GlyphRegistry.register("Glyph_Add", new AddGlyph());
+        GlyphRegistry.register("Glyph_Subtract", new SubtractGlyph());
+        GlyphRegistry.register("Glyph_Divide", new DivideGlyph());
+        GlyphRegistry.register("Glyph_Rotation", new RotationGlyph());
+        GlyphRegistry.register("Glyph_Position", new PositionGlyph());
         
         // Values
         HexValueRegistry.register("Number_1", new NumberGlyph(1));

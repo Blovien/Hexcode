@@ -73,7 +73,7 @@ public class ExecutionSystem extends HexcodeManager {
             return InteractionState.Failed;
         }
 
-        GlyphComponent activeHex = hexStaff.getActiveSpell();
+        GlyphComponent activeHex = hexStaff.getActiveHex();
         if (activeHex == null) {
             LOGGER.atWarning().log("no active spell on staff, nothing to execute");
             return InteractionState.Finished;

@@ -7,6 +7,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.hypixel.hytale.codec.Codec;
+import com.hypixel.hytale.codec.KeyedCodec;
+import com.hypixel.hytale.codec.builder.BuilderCodec;
+import com.hypixel.hytale.codec.codecs.map.MapCodec;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Ref;
@@ -14,32 +18,38 @@ import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.glyphs.component.Glyph;
 import com.riprod.hexcode.core.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.hexes.component.Hex;
 
 public class HexContext {
     private HexRoot root;
     private Ref<EntityStore> casterRef;
     private CommandBuffer<EntityStore> accessor;
     private ComponentAccessor<ChunkStore> chunkAccessor;
-    private Map<UUID, Glyph> spellGraph;
+    private Hex hex;
     private Map<Integer, HexVar> variables;
 
     /** Initial HexContext object before initialization */
-    public HexContext(HexRoot root, Map<UUID, Glyph> spellGraph) {
+    public HexContext(HexRoot root, Hex hex) {
         this.root = root;
         this.casterRef = root.getSourceRef();
         this.accessor = null;
         this.chunkAccessor = null;
-        this.spellGraph = spellGraph;
+        this.hex = hex;
+        this.variables = new HashMap<>();
+    }
+
+    // For the codec
+    public HexContext() {
         this.variables = new HashMap<>();
     }
 
     public HexContext(HexRoot root, CommandBuffer<EntityStore> accessor,
-            ComponentAccessor<ChunkStore> chunkAccessor, Map<UUID, Glyph> spellGraph) {
+            ComponentAccessor<ChunkStore> chunkAccessor, Hex hex) {
         this.root = root;
         this.casterRef = root.getSourceRef();
         this.accessor = accessor;
         this.chunkAccessor = chunkAccessor;
-        this.spellGraph = spellGraph;
+        this.hex = hex;
         this.variables = new HashMap<>();
     }
 
@@ -68,12 +78,12 @@ public class HexContext {
         this.chunkAccessor = newChunkAccessor;
     }
 
-    public Map<UUID, Glyph> getSpellGraph() {
-        return spellGraph;
+    public Hex gethex() {
+        return hex;
     }
 
-    public Glyph getGlyph(UUID id) {
-        return spellGraph.get(id);
+    public Glyph getGlyph(String id) {
+        return hex.get(id);
     }
 
     public Map<Integer, HexVar> getVariables() {
@@ -96,13 +106,13 @@ public class HexContext {
 
     public HexContext copy() {
         // shallow copy everything except the variables map, which should be a deep copy
-        HexContext copy = new HexContext(this.root, this.accessor, this.chunkAccessor, this.spellGraph);
+        HexContext copy = new HexContext(this.root, this.accessor, this.chunkAccessor, this.hex);
         copy.variables = new HashMap<>(this.variables);
         return copy;
     }
 
-    public void toStringWalk(UUID id, StringBuilder sb, String prefix, boolean last, Set<UUID> visited) {
-        Glyph node = spellGraph.get(id);
+    public void toStringWalk(String id, StringBuilder sb, String prefix, boolean last, Set<String> visited) {
+        Glyph node = hex.get(id);
         String connector = last ? "└── " : "├── ";
         String shortId = id.toString().substring(0, 8);
 
@@ -132,5 +142,43 @@ public class HexContext {
         }
 
         visited.remove(id);
+    }
+
+    public static final BuilderCodec<HexContext> CODEC = BuilderCodec
+            .builder(HexContext.class, HexContext::new)
+            .append(new KeyedCodec<>("HexGraph", Hex.CODEC),
+                    (c, v) -> c.hex = v,
+                    c -> c.hex)
+            .add()
+            .append(new KeyedCodec<>("Variables", new MapCodec<>(HexVar.CODEC, HashMap::new)),
+                    // Deserialize: Map<String, HexVar> -> Map<Integer, HexVar>
+                    (c, v) -> {
+                        Map<Integer, HexVar> intKeyed = new HashMap<>();
+                        for (Map.Entry<String, HexVar> entry : v.entrySet()) {
+                            try {
+                                intKeyed.put(Integer.parseInt(entry.getKey()), entry.getValue());
+                            } catch (NumberFormatException e) {
+                                // Optionally handle invalid keys
+                            }
+                        }
+                        c.variables = intKeyed;
+                    },
+                    // Serialize: Map<Integer, HexVar> -> Map<String, HexVar>
+                    c -> {
+                        Map<String, HexVar> strKeyed = new HashMap<>();
+                        for (Map.Entry<Integer, HexVar> entry : c.variables.entrySet()) {
+                            strKeyed.put(entry.getKey().toString(), entry.getValue());
+                        }
+                        return strKeyed;
+                    })
+            .add()
+            .build();
+
+    public HexContext clone() {
+
+        HexContext copy = new HexContext(this.root, this.accessor, this.chunkAccessor, this.hex.clone());
+        copy.variables = new HashMap<>(this.variables);
+
+        return copy;
     }
 }

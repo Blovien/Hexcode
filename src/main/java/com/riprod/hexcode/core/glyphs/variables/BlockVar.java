@@ -10,7 +10,7 @@ import com.hypixel.hytale.codec.codecs.array.ArrayCodec;
 import com.hypixel.hytale.math.vector.Vector3i;
 
 public class BlockVar extends HexVar {
-    private List<Vector3i> positions;
+    private List<Vector3i> positions = new ArrayList<>();
 
     public BlockVar() {
     }

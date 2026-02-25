@@ -8,6 +8,7 @@ import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.hexes.component.Hex;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -19,34 +20,41 @@ public class HexBookComponent implements Component<EntityStore> {
 
     public static final BuilderCodec<HexBookComponent> CODEC = BuilderCodec
             .builder(HexBookComponent.class, HexBookComponent::new)
-            .append(new KeyedCodec<>("GlyphData", new ArrayCodec<>(GlyphComponent.CODEC, GlyphComponent[]::new)),
+            .append(new KeyedCodec<>("Hexes", new ArrayCodec<>(Hex.CODEC, Hex[]::new)),
                     (c, v) -> {
                         if (v != null) {
-                            c.glyphs = new ArrayList<>(Arrays.asList(v));
+                            c.hexes = new ArrayList<>(Arrays.asList(v));
                         } else {
-                            c.glyphs = new ArrayList<>();
+                            c.hexes = new ArrayList<>();
                         }
                     },
-                    c -> c.glyphs.toArray(GlyphComponent[]::new))
+                    c -> c.hexes.toArray(Hex[]::new))
             .add()
             .append(new KeyedCodec<>("MaxCapacity", Codec.INTEGER),
                     (c, v) -> c.maxCapacity = v,
                     c -> c.maxCapacity)
+            .add()
+            .append(new KeyedCodec<>("BookId", Codec.STRING),
+                    (c, v) -> c.bookId = v,
+                    c -> c.bookId)
             .add()
             .build();
 
     private static ComponentType<EntityStore, HexBookComponent> componentType;
 
     @Nonnull
-    private List<GlyphComponent> glyphs = new ArrayList<>();
+    private List<Hex> hexes = new ArrayList<>();
     @Nonnull
     private int maxCapacity = 10;
+    @Nonnull
+    private String bookId = "";
 
     public HexBookComponent() {
     }
 
-    public HexBookComponent(int maxCapacity) {
-        this.maxCapacity = maxCapacity;
+    public HexBookComponent(HexBookAsset hexbook) {
+        this.maxCapacity = hexbook.getMaxGlyphs();
+        this.bookId = hexbook.getId();
     }
 
     public static void setComponentType(ComponentType<EntityStore, HexBookComponent> type) {
@@ -65,38 +73,31 @@ public class HexBookComponent implements Component<EntityStore> {
         this.maxCapacity = maxCapacity;
     }
 
-    public boolean canAddGlyph() {
-        return glyphs.size() < maxCapacity;
+    public boolean canAddHex() {
+        return hexes.size() < maxCapacity;
     }
 
-    public void addGlyph(@Nonnull GlyphComponent glyph) {
-        // todo: add glyph to book
-        if (canAddGlyph()) {
-            glyphs.add(glyph);
+    public void addHex(@Nonnull Hex hex) {
+        if (canAddHex()) {
+            hexes.add(hex);
         }
     }
 
-    public void removeGlyph(@Nonnull UUID id) {
-        // todo: remove glyph from book by id
-        glyphs.removeIf(g -> g.getId().equals(id));
+    public boolean removeHex(@Nonnull String id) {
+        return hexes.removeIf(g -> g.get().equals(id));
     }
 
-    public boolean removeGlyph(@Nonnull String id) { // removes ALL glyphs with a specific ID
-        int before = glyphs.size();
-        glyphs.removeIf(g -> g.getGlyphId().equals(id));
-        return glyphs.size() < before;
-    }
-
-    public List<GlyphComponent> getGlyphs() {
-        return glyphs;
+    public List<Hex> getHexes() {
+        return hexes;
     }
 
     @Nonnull
     @Override
     public HexBookComponent clone() {
         HexBookComponent copy = new HexBookComponent();
-        copy.glyphs = new ArrayList<>(this.glyphs);
+        copy.hexes = new ArrayList<>(this.hexes);
         copy.maxCapacity = this.maxCapacity;
+        copy.bookId = this.bookId;
         return copy;
     }
 }

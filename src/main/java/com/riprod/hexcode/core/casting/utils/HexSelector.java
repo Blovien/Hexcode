@@ -11,21 +11,17 @@ import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.hexes.component.HexComponent;
 import com.riprod.hexcode.utils.GlyphMath;
 import com.riprod.hexcode.utils.SphericalPosition;
 
-public class GlyphSelector {
+public class HexSelector {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
-    public static GlyphComponent GetHoveredGlyph(ComponentAccessor<EntityStore> accessor,
-            HeadRotation headRotation, List<GlyphComponent> activeGlyphs) {
-        return GetHoveredGlyph(accessor, headRotation, activeGlyphs, false);
-    }
+    public static HexComponent GetHoveredHex(ComponentAccessor<EntityStore> accessor,
+            HeadRotation headRotation, List<HexComponent> activeGlyphs) {
 
-    public static GlyphComponent GetHoveredGlyph(ComponentAccessor<EntityStore> accessor,
-            HeadRotation headRotation, List<GlyphComponent> activeGlyphs, Boolean recursive) {
-
-        for (GlyphComponent glyphComp : activeGlyphs) {
+        for (HexComponent glyphComp : activeGlyphs) {
             if (glyphComp.isBeingDragged()) {
                 continue; // don't hover dragged glyphs
             }
@@ -34,7 +30,7 @@ public class GlyphSelector {
                 float playerYaw = headRotation.getRotation().getYaw();
                 float playerPitch = headRotation.getRotation().getPitch();
 
-                return findHoveredGlyph(playerYaw, playerPitch, activeGlyphs, 0f, 0f, recursive, true);
+                return findHoveredHex(playerYaw, playerPitch, activeGlyphs, 0f, 0f, true);
             } catch (Exception e) {
                 // Just in case, don't want to crash the server if something goes wrong with one
                 // glyph
@@ -44,11 +40,11 @@ public class GlyphSelector {
         return null;
     }
 
-    public static GlyphComponent findHoveredGlyph(float playerYaw, float playerPitch,
-            List<GlyphComponent> glyphs, float parentYaw, float parentPitch, Boolean recursive, Boolean first) {
+    public static HexComponent findHoveredHex(float playerYaw, float playerPitch,
+            List<HexComponent> glyphs, float parentYaw, float parentPitch, Boolean first) {
 
         for (int i = 0; i < glyphs.size(); i++) {
-            GlyphComponent glyph = glyphs.get(i);
+            HexComponent glyph = glyphs.get(i);
             if (glyph.isBeingDragged()) {
                 continue;
             }
@@ -57,8 +53,39 @@ public class GlyphSelector {
             float absolutePitch = parentPitch + glyph.getPitch();
 
             float angularDist = GlyphMath.calculateAngularDistance(
-                    new SphericalPosition(playerYaw, playerPitch, 0),
-                    new SphericalPosition(absoluteYaw, absolutePitch, 0));
+                    new Vector3f(playerYaw, playerPitch, 0),
+                    new Vector3f(absoluteYaw, absolutePitch, 0));
+
+            float selectionRadius = GlyphMath.getSelectionRadius(glyph.getScale());
+
+            if (first) {
+                // increase selection radius for the first level of glyphs to make it easier to
+                // select a glyph when there are many
+                selectionRadius *= 3f;
+            }
+
+            if (angularDist <= selectionRadius) {
+                return glyph;
+            }
+        }
+        return null;
+    }
+
+    public static GlyphComponent findHoveredGlyph(float playerYaw, float playerPitch,
+            List<HexComponent> glyphs, float parentYaw, float parentPitch, Boolean recursive, Boolean first) {
+
+        for (int i = 0; i < glyphs.size(); i++) {
+            HexComponent glyph = glyphs.get(i);
+            if (glyph.isBeingDragged()) {
+                continue;
+            }
+
+            float absoluteYaw = parentYaw + glyph.getYaw();
+            float absolutePitch = parentPitch + glyph.getPitch();
+
+            float angularDist = GlyphMath.calculateAngularDistance(
+                    new Vector3f(playerYaw, playerPitch, 0),
+                    new Vector3f(absoluteYaw, absolutePitch, 0));
 
             float selectionRadius = GlyphMath.getSelectionRadius(glyph.getScale());
 
@@ -70,13 +97,13 @@ public class GlyphSelector {
 
             if (angularDist <= selectionRadius) {
                 if (!glyph.getChildren().isEmpty() && recursive) {
-                    GlyphComponent child = findHoveredGlyph(playerYaw, playerPitch,
+                    GlyphComponent child = findHoveredHex(playerYaw, playerPitch,
                             glyph.getChildren(), absoluteYaw, absolutePitch, recursive, false);
                     if (child != null) {
                         return child;
                     }
                 }
-                return glyph;
+                return null;
             }
         }
         return null;
@@ -99,14 +126,17 @@ public class GlyphSelector {
         // Vector3d playerPos = playerTransform.getPosition();
 
         // float eyeHeight = 0f;
-        // ModelComponent modelComp = accessor.getComponent(playerRef, ModelComponent.getComponentType());
+        // ModelComponent modelComp = accessor.getComponent(playerRef,
+        // ModelComponent.getComponentType());
         // if (modelComp != null && modelComp.getModel() != null) {
-        //     eyeHeight = modelComp.getModel().getEyeHeight(playerRef, accessor);
+        // eyeHeight = modelComp.getModel().getEyeHeight(playerRef, accessor);
         // }
 
-        // Vector3d eyePos = new Vector3d(playerPos.x, playerPos.y + eyeHeight, playerPos.z);
-        // Vector3d updatedPos = GlyphMath.sphericalToCartesian(eyePos, playerRotation.getYaw(),
-        //         playerRotation.getPitch(), glyph.getDistance());
+        // Vector3d eyePos = new Vector3d(playerPos.x, playerPos.y + eyeHeight,
+        // playerPos.z);
+        // Vector3d updatedPos = GlyphMath.sphericalToCartesian(eyePos,
+        // playerRotation.getYaw(),
+        // playerRotation.getPitch(), glyph.getDistance());
 
         // glyphPos.setPosition(updatedPos); do not update the position
         glyph.setYaw(playerRotation.getYaw());
@@ -125,7 +155,8 @@ public class GlyphSelector {
                 childTransform.setRotation(new Vector3f(glyph.getPitch(), glyph.getYaw(), 0));
                 children.remove(i);
 
-                // Update the internal rotation of the child glyph based on the new position of the parent glyph
+                // Update the internal rotation of the child glyph based on the new position of
+                // the parent glyph
                 child.setPitch(glyph.getPitch());
                 child.setYaw(glyph.getYaw());
 

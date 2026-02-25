@@ -16,7 +16,7 @@ import com.hypixel.hytale.server.core.entity.reference.PersistentRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class EntityVar extends HexVar {
-    private List<PersistentRef> entities;
+    private List<PersistentRef> entities = new ArrayList<>();
 
     public EntityVar() {
     }

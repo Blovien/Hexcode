@@ -28,7 +28,7 @@ import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.utils.GlyphMath;
 
-public class CreateGlyph {
+public class CreateHex {
   private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
   public static Ref<EntityStore> createCastingRoot(ComponentAccessor<EntityStore> accessor,
@@ -99,35 +99,6 @@ public class CreateGlyph {
     return accessor.addEntity(holder, AddReason.SPAWN);
   }
 
-  /** @deprecated - use overflow instead. This one is for regression only */
-  public static Ref<EntityStore> createCastingRoot(ComponentAccessor<EntityStore> accessor,
-      Vector3d playerPos) {
-    Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
-    Vector3d eyePos = new Vector3d(playerPos.x, playerPos.y + 1.8, playerPos.z);
-    holder.addComponent(TransformComponent.getComponentType(),
-        new TransformComponent(eyePos, new Vector3f(0, 0, 0)));
-    holder.addComponent(UUIDComponent.getComponentType(),
-        new UUIDComponent(UUID.randomUUID()));
-
-    // add the Casting Anchor model to the root entitiy for particles and side
-    // effects to be tied to
-    ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset("Casting_Anchor");
-    Model model = Model.createUnitScaleModel(modelAsset);
-
-    holder.addComponent(ModelComponent.getComponentType(),
-        new ModelComponent(model));
-
-    holder.addComponent(PersistentModel.getComponentType(),
-        new PersistentModel(model.toReference()));
-
-    int networkId = accessor.getExternalData().takeNextNetworkId();
-    holder.addComponent(NetworkId.getComponentType(), new NetworkId(networkId));
-
-    Ref<EntityStore> ref = accessor.addEntity(holder, AddReason.SPAWN);
-
-    return ref;
-  }
-
   public static Holder<EntityStore> createGlyphHolder(GlyphComponent glyph, Vector3d parentPos) {
     Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
 
@@ -180,7 +151,7 @@ public class CreateGlyph {
    * 
    * @throws
    */
-  public static List<GlyphComponent> createGlyphEntity(ComponentAccessor<EntityStore> accessor,
+  public static List<Ref<EntityStore>> createGlyphEntity(ComponentAccessor<EntityStore> accessor,
       GlyphComponent glyph, Vector3d parentPos) {
     Holder<EntityStore> holder = createGlyphHolder(glyph, parentPos);
 
@@ -196,10 +167,10 @@ public class CreateGlyph {
    * @param holder
    * @return
    */
-  public static List<GlyphComponent> createGlyphEntity(ComponentAccessor<EntityStore> buffer,
+  public static List<Ref<EntityStore>> createGlyphEntity(ComponentAccessor<EntityStore> buffer,
       Holder<EntityStore> holder, Vector3d parentPos) {
 
-    List<GlyphComponent> glyphs = new ArrayList<>();
+    List<Ref<EntityStore>> glyphs = new ArrayList<>();
     Ref<EntityStore> ref = createEntity(buffer, holder);
 
     // add any children glyphs
@@ -207,7 +178,7 @@ public class CreateGlyph {
     List<GlyphComponent> children = glyphComp.getChildren();
 
     glyphComp.setSelfRef(ref); // backwards reference
-    glyphs.add(glyphComp);
+    glyphs.add(ref);
 
     if (children == null) {
       return glyphs;
@@ -227,7 +198,57 @@ public class CreateGlyph {
       childGlyph.setRootRef(ref);
 
       try {
-        List<GlyphComponent> childGlyphs = createGlyphEntity(buffer, childGlyph, parentPos);
+        List<Ref<EntityStore>>  childGlyphs = createGlyphEntity(buffer, childGlyph, parentPos);
+        glyphs.addAll(childGlyphs);
+      } catch (Exception e) {
+        // just log
+        LOGGER.atSevere().withCause(e)
+            .log("Failed to create child glyph entity for glyph ID: "
+                + childGlyph.getGlyphId());
+      }
+    }
+
+    return glyphs;
+  }
+
+  /**
+   * @throws
+   * @param accessor
+   * @param holder
+   * @return
+   */
+  public static List<Ref<EntityStore>> createHexEntity(ComponentAccessor<EntityStore> buffer,
+      Holder<EntityStore> holder, Vector3d parentPos) {
+
+    List<Ref<EntityStore>> glyphs = new ArrayList<>();
+    Ref<EntityStore> ref = createEntity(buffer, holder);
+
+    // add any children glyphs
+    GlyphComponent glyphComp = holder.getComponent(GlyphComponent.getComponentType());
+    List<GlyphComponent> children = glyphComp.getChildren();
+
+    glyphComp.setSelfRef(ref); // backwards reference
+    glyphs.add(ref);
+
+    if (children == null) {
+      return List.of(ref);
+    }
+
+    GlyphMath.distributeChildAngles(children, glyphComp.getScale());
+    for (int i = 0; i < children.size(); i++) {
+      GlyphComponent childGlyph = children.get(i);
+      childGlyph.setParentRef(ref);
+      childGlyph.setScale(glyphComp.getScale() * 0.75f); // TODO: finalize child glyph scale
+      childGlyph.setOffset(childGlyph.getPitch(), childGlyph.getYaw(), 0);
+      float d = glyphComp.getDistance();
+      childGlyph.setOffset(
+          -d * (float) Math.sin(childGlyph.getYaw()),
+          d * (float) Math.sin(childGlyph.getPitch()),
+          0f);
+      childGlyph.setRootRef(ref);
+
+      try {
+        List<Ref<EntityStore>> childGlyphs = createGlyphEntity(buffer, childGlyph, parentPos);
         glyphs.addAll(childGlyphs);
       } catch (Exception e) {
         // just log

@@ -1,4 +1,4 @@
-package com.riprod.hexcode.core.hexbook.registry;
+package com.riprod.hexcode.core.hexbook.component;
 
 import com.hypixel.hytale.assetstore.AssetExtraInfo;
 import com.hypixel.hytale.assetstore.AssetKeyValidator;
@@ -10,7 +10,6 @@ import com.hypixel.hytale.assetstore.map.JsonAssetWithMap;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.validation.ValidatorCache;
-import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelParticle;
 
 public class HexBookAsset implements JsonAssetWithMap<String, DefaultAssetMap<String, HexBookAsset>> {
@@ -63,30 +62,24 @@ public class HexBookAsset implements JsonAssetWithMap<String, DefaultAssetMap<St
 
     static {
         CODEC = AssetBuilderCodec
-                .builder(HexBookAsset.class, HexBookAsset::new, Codec.STRING, (glyphAsset, s) -> {
-                    glyphAsset.id = s;
-                }, (glyphAsset) -> {
-                    return glyphAsset.id;
-                }, (asset, data) -> {
-                    asset.data = data;
-                }, (asset) -> {
-                    return asset.data;
-                })
-                .<String>appendInherited(new KeyedCodec<>("ItemId", Codec.STRING),
-                        (a, v) -> a.itemId = v, a -> a.itemId,
-                        (a, p) -> a.itemId = p.itemId)
-                .addValidator(Item.VALIDATOR_CACHE.getValidator())
-                .add()
-                .<Integer>appendInherited(new KeyedCodec<>("MaxGlyphs", Codec.INTEGER),
-                        (a, v) -> a.maxGlyphs = v, a -> a.maxGlyphs,
+                .builder(HexBookAsset.class, HexBookAsset::new, Codec.STRING,
+                        (glyphAsset, s) -> glyphAsset.id = s,
+                        (glyphAsset) -> glyphAsset.id,
+                        (asset, data) -> asset.data = data,
+                        (asset) -> asset.data)
+                .appendInherited(new KeyedCodec<>("MaxGlyphs", Codec.INTEGER),
+                        (a, v) -> a.maxGlyphs = v,
+                        a -> a.maxGlyphs,
                         (a, p) -> a.maxGlyphs = p.maxGlyphs)
                 .add()
-                .<ModelParticle[]>appendInherited(new KeyedCodec<>("CastingAuraParticles", ModelParticle.ARRAY_CODEC),
-                        (a, v) -> a.castingAuraParticles = v, a -> a.castingAuraParticles,
+                .appendInherited(new KeyedCodec<>("CastingAuraParticles", ModelParticle.ARRAY_CODEC),
+                        (a, v) -> a.castingAuraParticles = v,
+                        a -> a.castingAuraParticles,
                         (a, p) -> a.castingAuraParticles = p.castingAuraParticles)
                 .add()
-                .<ModelParticle[]>appendInherited(new KeyedCodec<>("CraftingAuraParticles", ModelParticle.ARRAY_CODEC),
-                        (a, v) -> a.craftingAuraParticles = v, a -> a.craftingAuraParticles,
+                .appendInherited(new KeyedCodec<>("CraftingAuraParticles", ModelParticle.ARRAY_CODEC),
+                        (a, v) -> a.craftingAuraParticles = v,
+                        a -> a.craftingAuraParticles,
                         (a, p) -> a.craftingAuraParticles = p.craftingAuraParticles)
                 .add()
                 .build();

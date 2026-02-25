@@ -10,13 +10,18 @@ import com.hypixel.hytale.codec.codecs.array.ArrayCodec;
 import com.hypixel.hytale.math.vector.Vector3f;
 
 public class RotationVar extends HexVar {
-    private List<Vector3f> rotations;
+    private List<Vector3f> rotations = new ArrayList<>();
 
     public RotationVar() {
     }
 
     public RotationVar(List<Vector3f> rotations) {
         this.rotations = rotations;
+    }
+
+    public RotationVar(Vector3f singleRotation) {
+        this.rotations = new ArrayList<>();
+        this.rotations.add(singleRotation);
     }
 
     public List<Vector3f> getValues() {

@@ -4,19 +4,19 @@ import java.util.List;
 import java.util.UUID;
 
 public class PendingContinue {
-    private final List<UUID> glyphIds;
+    private final List<String> glyphIds;
     private final HexContext executionContext;
     private final int delayTicks;
     private int elapsedTicks;
 
-    public PendingContinue(List<UUID> glyphIds, HexContext executionContext, int delayTicks) {
+    public PendingContinue(List<String> glyphIds, HexContext executionContext, int delayTicks) {
         this.glyphIds = glyphIds;
         this.executionContext = executionContext;
         this.delayTicks = delayTicks;
         this.elapsedTicks = 0;
     }
 
-    public List<UUID> getGlyphIds() {
+    public List<String> getGlyphIds() {
         return glyphIds;
     }
 

@@ -24,14 +24,17 @@ import com.riprod.hexcode.utils.SpellVarUtil;
 public class SeekGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     public static final String ID = "Glyph_Seek";
-    private static final int DEFAULT_BEAM_LENGTH = 32;
+    private static final double DEFAULT_BEAM_LENGTH = 32;
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar posVar = glyph.getInput(0, hexContext);
-        HexVar rotVar = glyph.getInput(1, hexContext);
-        if (rotVar == null || rotVar.size() == 0) {
-            rotVar = posVar;
+        HexVar rotVar = glyph.getInputOrDefault(1, hexContext, posVar);
+
+        if (posVar == null) {
+            LOGGER.atWarning().log("seek glyph: no source provided");
+            Executor.continueExecution(glyph.getNext(), hexContext);
+            return;
         }
 
         Vector3d origin = SpellVarUtil.resolveEyePosition(posVar, hexContext.getAccessor());
@@ -49,7 +52,9 @@ public class SeekGlyph implements GlyphHandler {
         }
 
         int beamLength = (int) SpellVarUtil.resolveNumberOrDefault(
-                glyph.getInput(2, hexContext), (double) DEFAULT_BEAM_LENGTH).doubleValue();
+                glyph.getInput(2,
+                        hexContext),
+                DEFAULT_BEAM_LENGTH).doubleValue();
 
         Vector3f rotation = Vector3f.lookAt(direction);
         Transform transform = new Transform(origin, rotation);
@@ -77,7 +82,7 @@ public class SeekGlyph implements GlyphHandler {
             }
         }
 
-        int outputSlot = glyph.getOutput(0, hexContext);
+        int outputSlot = glyph.getOutputOrNumber(0, hexContext);
         Vector3d endPoint;
         SeekGlyphStyle.HitType hitType;
 

@@ -10,13 +10,18 @@ import com.hypixel.hytale.codec.codecs.array.ArrayCodec;
 import com.hypixel.hytale.math.vector.Vector3d;
 
 public class PositionVar extends HexVar {
-    private List<Vector3d> positions;
+    private List<Vector3d> positions = new ArrayList<>();
 
     public PositionVar() {
     }
 
     public PositionVar(List<Vector3d> positions) {
         this.positions = positions;
+    }
+
+    public PositionVar(Vector3d position) {
+        this.positions = new ArrayList<>();
+        this.positions.add(position);
     }
 
     public List<Vector3d> getValues() {
