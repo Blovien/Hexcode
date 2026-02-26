@@ -19,6 +19,7 @@ import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.execution.component.PlayerHexRoot;
 import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.hexcaster.utils.CasterInventory;
+import com.riprod.hexcode.core.hexes.component.Hex;
 import com.riprod.hexcode.core.hexstaff.component.HexStaffComponent;
 import com.riprod.hexcode.state.HexcodeManager;
 
@@ -73,16 +74,16 @@ public class ExecutionSystem extends HexcodeManager {
             return InteractionState.Failed;
         }
 
-        GlyphComponent activeHex = hexStaff.getActiveHex();
+        Hex activeHex = hexStaff.getActiveHex();
         if (activeHex == null) {
             LOGGER.atWarning().log("no active spell on staff, nothing to execute");
             return InteractionState.Finished;
         }
 
-        GlyphComponent hexClone = activeHex.clone();
+        Hex hexClone = activeHex.clone();
 
         RootGlyph execComp = new RootGlyph();
-        execComp.setGlyphComponent(hexClone);
+        execComp.setHex(hexClone);
         execComp.setNeedsInitialExecution(true);
 
         Holder<EntityStore> holder = buildHexEntityHolder(accessor, ref, execComp);

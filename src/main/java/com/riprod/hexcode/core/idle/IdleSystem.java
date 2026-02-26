@@ -15,7 +15,6 @@ public class IdleSystem extends HexcodeManager {
         @Override
         public void firstTick(Ref<EntityStore> ref, HexcasterComponent comp,
                         Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
-                comp.clearCastingState();
                 comp.clearDrawingState();
                 comp.clearCraftingState();
         }

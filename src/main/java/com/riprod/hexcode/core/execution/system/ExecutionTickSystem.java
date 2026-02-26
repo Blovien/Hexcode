@@ -16,7 +16,6 @@ import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.execution.Compiler;
 import com.riprod.hexcode.core.execution.Executor;
 import com.riprod.hexcode.core.execution.component.RootGlyph;
 import com.riprod.hexcode.core.glyphs.component.Glyph;
@@ -47,11 +46,8 @@ public class ExecutionTickSystem extends EntityTickingSystem<EntityStore> {
         if (rootGlyph.needsInitialExecution()) {
             rootGlyph.setNeedsInitialExecution(false);
 
-            // Compile the glyphComponent
-            Map<String, Glyph> compiledHex = Compiler.compile(rootGlyph.getGlyphComponent());
-
-            HexContext hexContext = new HexContext(root, buffer, chunkAccessor, compiledHex);
-            Executor.beginExecution(List.of(rootGlyph.getGlyphComponent().getId()), hexContext);
+            HexContext hexContext = new HexContext(root, buffer, chunkAccessor, rootGlyph.getHex());
+            Executor.beginExecution(List.of(rootGlyph.getHex().getFirstGlyphId()), hexContext);
 
             if (!rootGlyph.hasPendingContinues() && rootGlyph.getExternalWaiters() <= 0) {
                 Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();

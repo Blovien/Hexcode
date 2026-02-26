@@ -2,6 +2,7 @@ package com.riprod.hexcode.state;
 
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
+import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
@@ -32,6 +33,10 @@ public class HexTick extends EntityTickingSystem<EntityStore> {
       HexcodeManager old = StateRouter.route(comp.getState());
       if (old != null) {
         old.lastTick(ref, comp, store, buffer);
+        ComponentType<EntityStore, ?> oldCompType = StateRouter.getStateComponent(comp.getState());
+        if (oldCompType != null) {
+          buffer.tryRemoveComponent(ref, oldCompType);
+        }
       }
 
       comp.applyState(pending);
@@ -39,6 +44,7 @@ public class HexTick extends EntityTickingSystem<EntityStore> {
       HexcodeManager next = StateRouter.route(pending);
       if (next != null) {
         next.firstTick(ref, comp, store, buffer);
+        return;
       }
     }
 

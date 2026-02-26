@@ -2,7 +2,9 @@ package com.riprod.hexcode.core.hexes.component;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -14,6 +16,7 @@ import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.glyphs.component.Glyph;
 
 public class HexComponent implements Component<EntityStore> {
 
@@ -42,7 +45,7 @@ public class HexComponent implements Component<EntityStore> {
     private Vector3f offset = new Vector3f(); // offset from parent
     private Vector3f rotation = new Vector3f(); // x = yaw, y = pitch, z = distance
     private float scale = 1f;
-    private List<Ref<EntityStore>> childHexRefs = new ArrayList<>();
+    private Map<String, Ref<EntityStore>> childGlyphRefs = new HashMap<>();
     private Ref<EntityStore> parentRef;
     private Ref<EntityStore> selfRef;
     private Ref<EntityStore> rootRef;
@@ -95,8 +98,16 @@ public class HexComponent implements Component<EntityStore> {
         return hex;
     }
 
+    public List<Glyph> getGlyphs() {
+        return hex.getGlyphs();
+    }
+
+    public List<Glyph> getGlyphs(List<String> glyphIds) {
+        return hex.getGlyphs(glyphIds);
+    }
+
     public String getId() {
-        return this.hex.get();
+        return this.hex.getHexId();
     }
 
     public float getScale() {
@@ -107,20 +118,40 @@ public class HexComponent implements Component<EntityStore> {
         this.scale = scale;
     }
 
-    public List<Ref<EntityStore>> getChildHexRefs() {
-        return childHexRefs;
+    public Map<String, Ref<EntityStore>> getChildGlyphRefs() {
+        return childGlyphRefs;
     }
 
-    public void addChildHexRef(Ref<EntityStore> childRef) {
-        this.childHexRefs.add(childRef);
+    public Ref<EntityStore> getChildGlyphRef(String glyphId) {
+        return childGlyphRefs.get(glyphId);
     }
 
-    public void setChildHexRefs(List<Ref<EntityStore>> childHexRefs) {
-        this.childHexRefs = childHexRefs;
+    public List<Ref<EntityStore>> getChildGlyphRefs(List<String> glyphIds) {
+        List<Ref<EntityStore>> refs = new ArrayList<>();
+        for (String glyphId : glyphIds) {
+            refs.add(childGlyphRefs.get(glyphId));
+        }
+        return refs;
     }
 
-    public void removeChildHexRef(Ref<EntityStore> childRef) {
-        this.childHexRefs.remove(childRef);
+    public List<Ref<EntityStore>> getChildGlyphRefsList() {
+        return new ArrayList<>(childGlyphRefs.values());
+    }
+
+    public void addChildGlyphRef(String glyphId, Ref<EntityStore> childRef) {
+        this.childGlyphRefs.put(glyphId, childRef);
+    }
+
+    public void addChildGlyphRefs(Map<String, Ref<EntityStore>> childGlyphRefs) {
+        this.childGlyphRefs.putAll(childGlyphRefs);
+    }
+
+    public void setChildGlyphRefs(Map<String, Ref<EntityStore>> childGlyphRefs) {
+        this.childGlyphRefs = childGlyphRefs;
+    }
+
+    public void removeChildGlyph(String glyphId) {
+        this.childGlyphRefs.remove(glyphId);
     }
 
     /** Positioning */
@@ -135,6 +166,10 @@ public class HexComponent implements Component<EntityStore> {
 
     public float getPitch() {
         return this.rotation.getPitch();
+    }
+
+    public Vector3f getRotation() {
+        return this.rotation;
     }
 
     public void setPitch(float pitch) {
@@ -186,9 +221,12 @@ public class HexComponent implements Component<EntityStore> {
         copy.hex = this.hex.clone();
         copy.offset = new Vector3f(this.offset.getX(), this.offset.getY(), this.offset.getZ());
         copy.rotation = new Vector3f(this.rotation.getX(), this.rotation.getY(), this.rotation.getZ());
+        copy.scale = this.scale;
         copy.parentRef = this.parentRef;
         copy.selfRef = this.selfRef;
-        copy.flags = EnumSet.copyOf(this.flags);
+        copy.rootRef = this.rootRef;
+        copy.childGlyphRefs = new HashMap<>(this.childGlyphRefs);
+        copy.flags = this.flags.isEmpty() ? EnumSet.noneOf(HexFlags.class) : EnumSet.copyOf(this.flags);
         return copy;
     }
 }

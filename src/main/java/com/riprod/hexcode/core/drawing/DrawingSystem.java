@@ -21,11 +21,13 @@ import com.riprod.hexcode.core.drawing.system.GlyphCreationManager;
 import com.riprod.hexcode.core.drawing.system.InterfaceManager;
 import com.riprod.hexcode.core.drawing.utils.DrawRasterizer;
 import com.riprod.hexcode.core.drawing.utils.ShapeComparator;
+import com.riprod.hexcode.core.glyphs.component.Glyph;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.hexcaster.utils.CasterInventory;
+import com.riprod.hexcode.core.hexes.component.Hex;
 import com.riprod.hexcode.state.HexcodeManager;
 
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
@@ -36,7 +38,7 @@ public class DrawingSystem extends HexcodeManager {
   @Override
   public void firstTick(Ref<EntityStore> ref, HexcasterComponent hexcaster,
       Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
-        // first tick stuffs
+    // first tick stuffs
   }
 
   @Override
@@ -49,15 +51,24 @@ public class DrawingSystem extends HexcodeManager {
 
       GlyphAsset matchedGlyph = GlyphCreationManager.MatchGlyph(drawnShapes);
 
-      Float efficiency = ShapeComparator.calculateEfficiency(drawnShapes);
-      Float volatility = ShapeComparator.calculateVolatility(drawnShapes);
+      if (matchedGlyph == null) {
+        LOGGER.atInfo().log("No matching glyph found for drawn shape");
 
-      GlyphComponent glyphComponent = GlyphCreationManager.CreateGlyphComponent(matchedGlyph, volatility, efficiency);
+      } else {
 
-      if (glyphComponent != null) {
-        HexBookComponent bookComponent = CasterInventory.getHexBookComponent(buffer, ref);
-        bookComponent.addHex(glyphComponent);
-        CasterInventory.saveHexBookComponent(buffer, ref, bookComponent);
+        Float efficiency = ShapeComparator.calculateEfficiency(drawnShapes);
+        Float volatility = ShapeComparator.calculateVolatility(drawnShapes);
+
+        Glyph glyph = new Glyph(matchedGlyph, volatility, efficiency);
+
+        // Wrap it in a hex and add to inventory
+        Hex hex = new Hex(glyph);
+
+        if (glyph != null) {
+          HexBookComponent bookComponent = CasterInventory.getHexBookComponent(buffer, ref);
+          bookComponent.addHex(hex);
+          CasterInventory.saveHexBookComponent(buffer, ref, bookComponent);
+        }
       }
     }
 
@@ -169,7 +180,8 @@ public class DrawingSystem extends HexcodeManager {
     float maxSize = Math.max(Math.abs(maxYaw - minYaw), Math.abs(maxPitch - minPitch));
     result.setSize(maxSize);
 
-    LOGGER.atInfo().log("Drawn shape with speed: %d ms (%d score), size: %f, volatility: %f", drawSpeed, result.getEfficiency(), maxSize, result.getVolatility());
+    LOGGER.atInfo().log("Drawn shape with speed: %d ms (%d score), size: %f, volatility: %f", drawSpeed,
+        result.getEfficiency(), maxSize, result.getVolatility());
 
     InterfaceManager.removeTrails(accessor, ref);
     comp.addDrawnGlyph(result);

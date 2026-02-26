@@ -46,8 +46,8 @@ public class Glyph {
         this.totalOutputs = 0;
         this.next = new ArrayList<>();
         this.previous = new ArrayList<>();
-        this.relPosition = Vector3f.ZERO;
-        this.relRotation = Vector3f.ZERO;
+        this.relPosition = new Vector3f(0, 0, 0);
+        this.relRotation = new Vector3f(0, 0, 0);
         this.type = GlyphType.Effect;
     }
 
@@ -56,14 +56,14 @@ public class Glyph {
         this.id = UUID.randomUUID().toString();
         this.volatility = volatility;
         this.efficiency = efficiency;
-        this.inputs = new ArrayList<>(this.totalInputs);
-        this.outputs = new ArrayList<>(this.totalOutputs);
         this.totalInputs = glyphAsset.getInputCount();
         this.totalOutputs = glyphAsset.getOutputCount();
+        this.inputs = new ArrayList<>(this.totalInputs);
+        this.outputs = new ArrayList<>(this.totalOutputs);
         this.next = new ArrayList<>();
         this.previous = new ArrayList<>();
-        this.relPosition = Vector3f.ZERO;
-        this.relRotation = Vector3f.ZERO;
+        this.relPosition = new Vector3f(0, 0, 0);
+        this.relRotation = new Vector3f(0, 0, 0);
         this.type = glyphAsset.getGlyphType();
     }
 
@@ -227,10 +227,10 @@ public class Glyph {
                     (n, v) -> n.outputs = v != null ? new ArrayList<>(Arrays.asList(v)) : new ArrayList<>(),
                     n -> n.outputs.toArray(HexVal[]::new))
             .add()
-            .append(new KeyedCodec<>("totalInputs", Codec.INTEGER),
+            .append(new KeyedCodec<>("TotalInputs", Codec.INTEGER),
                     (n, v) -> n.totalInputs = v, n -> n.totalInputs)
             .add()
-            .append(new KeyedCodec<>("totalOutputs", Codec.INTEGER),
+            .append(new KeyedCodec<>("TotalOutputs", Codec.INTEGER),
                     (n, v) -> n.totalOutputs = v, n -> n.totalOutputs)
             .add()
             .append(new KeyedCodec<>("Next", Codec.STRING_ARRAY),
@@ -271,8 +271,8 @@ public class Glyph {
         clone.totalOutputs = this.totalOutputs;
         clone.next = new ArrayList<>(this.next);
         clone.previous = new ArrayList<>(this.previous);
-        clone.relPosition = this.relPosition;
-        clone.relRotation = this.relRotation;
+        clone.relPosition = new Vector3f(this.relPosition.x, this.relPosition.y, this.relPosition.z);
+        clone.relRotation = new Vector3f(this.relRotation.x, this.relRotation.y, this.relRotation.z);
         clone.type = this.type;
         return clone;
     }

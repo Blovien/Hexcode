@@ -18,6 +18,7 @@ import com.riprod.hexcode.core.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.hexbook.component.HexBookAsset;
 import com.riprod.hexcode.core.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
+import com.riprod.hexcode.core.hexes.component.HexComponent;
 import com.riprod.hexcode.core.hexstaff.component.HexStaffAsset;
 import com.riprod.hexcode.core.hexstaff.component.HexStaffComponent;
 import com.riprod.hexcode.interaction.HexStateChange;
@@ -30,6 +31,7 @@ import com.riprod.hexcode.state.HexcodeManager;
 import com.riprod.hexcode.state.StateRouter;
 import com.riprod.hexcode.core.idle.IdleSystem;
 import com.riprod.hexcode.core.casting.CastingSystem;
+import com.riprod.hexcode.core.casting.component.HexcasterCastingComponent;
 import com.riprod.hexcode.core.drawing.DrawingSystem;
 import com.riprod.hexcode.core.crafting.CraftingSystem;
 import com.riprod.hexcode.core.execution.ExecutionSystem;
@@ -43,9 +45,7 @@ import com.riprod.hexcode.core.crafting.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.crafting.system.ObeliskProtectionSystem;
 import com.riprod.hexcode.core.crafting.system.PedestalTickSystem;
 import com.hypixel.hytale.assetstore.AssetRegistry;
-import com.hypixel.hytale.assetstore.codec.ContainedAssetCodec;
 import com.hypixel.hytale.assetstore.map.DefaultAssetMap;
-import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.asset.type.particle.config.ParticleSystem;
 import com.hypixel.hytale.component.ComponentRegistryProxy;
@@ -76,17 +76,6 @@ public class Hexcode extends JavaPlugin {
   public static Hexcode get() {
     return instance;
   }
-
-  private ComponentType<EntityStore, HexBookComponent> hexBookComponentType;
-  private ComponentType<EntityStore, GlyphComponent> glyphComponentType;
-  private ComponentType<EntityStore, HexStaffComponent> hexStaffComponentType;
-  private ComponentType<EntityStore, HexcasterComponent> hexcasterComponentType;
-  private ComponentType<EntityStore, RootGlyph> executionComponentType;
-  private ComponentType<EntityStore, PropelComponent> propelComponentType;
-  private ComponentType<EntityStore, PedestalComponent> pedestalComponentType;
-  private ComponentType<ChunkStore, PedestalBlockComponent> pedestalBlockComponentType;
-  private ComponentType<ChunkStore, ObeliskBlockComponent> obeliskBlockComponentType;
-  private ComponentType<EntityStore, SlotComponent> slotComponentType;
 
   @Override
   protected void setup() {
@@ -129,44 +118,52 @@ public class Hexcode extends JavaPlugin {
     // Entity Component Registries
     ComponentRegistryProxy<EntityStore> entityStoreRegistry = this.getEntityStoreRegistry();
 
-    this.glyphComponentType = entityStoreRegistry.registerComponent(GlyphComponent.class, "Glyph",
+    ComponentType<EntityStore, GlyphComponent> glyphComponentType = entityStoreRegistry.registerComponent(GlyphComponent.class, "Glyph",
         GlyphComponent.CODEC);
     GlyphComponent.setComponentType(glyphComponentType);
 
-    this.hexBookComponentType = entityStoreRegistry.registerComponent(HexBookComponent.class, "HexBook",
+    ComponentType<EntityStore, HexComponent> hexComponentType = entityStoreRegistry.registerComponent(HexComponent.class, "Hex",
+        HexComponent.CODEC);
+    HexComponent.setComponentType(hexComponentType);
+
+    ComponentType<EntityStore, HexBookComponent> hexBookComponentType = entityStoreRegistry.registerComponent(HexBookComponent.class, "HexBook",
         HexBookComponent.CODEC);
     HexBookComponent.setComponentType(hexBookComponentType);
 
-    this.hexStaffComponentType = entityStoreRegistry.registerComponent(HexStaffComponent.class, "HexStaff",
+    ComponentType<EntityStore, HexStaffComponent> hexStaffComponentType = entityStoreRegistry.registerComponent(HexStaffComponent.class, "HexStaff",
         HexStaffComponent.CODEC);
     HexStaffComponent.setComponentType(hexStaffComponentType);
 
-    this.hexcasterComponentType = entityStoreRegistry.registerComponent(HexcasterComponent.class,
+    ComponentType<EntityStore, HexcasterComponent> hexcasterComponentType = entityStoreRegistry.registerComponent(HexcasterComponent.class,
         HexcasterComponent::new);
     HexcasterComponent.setComponentType(hexcasterComponentType);
 
-    this.executionComponentType = entityStoreRegistry.registerComponent(RootGlyph.class,
+    ComponentType<EntityStore, HexcasterCastingComponent> castingRootComponentType = entityStoreRegistry.registerComponent(HexcasterCastingComponent.class,
+        HexcasterCastingComponent::new);
+    HexcasterCastingComponent.setComponentType(castingRootComponentType);
+
+    ComponentType<EntityStore, RootGlyph> executionComponentType = entityStoreRegistry.registerComponent(RootGlyph.class,
         RootGlyph::new);
     RootGlyph.setComponentType(executionComponentType);
 
-    this.propelComponentType = entityStoreRegistry.registerComponent(PropelComponent.class, PropelComponent::new);
+    ComponentType<EntityStore, PropelComponent> propelComponentType = entityStoreRegistry.registerComponent(PropelComponent.class, PropelComponent::new);
     PropelComponent.setComponentType(propelComponentType);
 
-    this.slotComponentType = entityStoreRegistry.registerComponent(SlotComponent.class, SlotComponent::new);
+    ComponentType<EntityStore, SlotComponent> slotComponentType = entityStoreRegistry.registerComponent(SlotComponent.class, SlotComponent::new);
     SlotComponent.setComponentType(slotComponentType);
 
-    this.pedestalComponentType = entityStoreRegistry.registerComponent(PedestalComponent.class, PedestalComponent::new);
+    ComponentType<EntityStore, PedestalComponent> pedestalComponentType = entityStoreRegistry.registerComponent(PedestalComponent.class, PedestalComponent::new);
     PedestalComponent.setComponentType(pedestalComponentType);
 
     // Block Component Registries
     ComponentRegistryProxy<ChunkStore> chunkStoreRegistry = this.getChunkStoreRegistry();
 
-    this.pedestalBlockComponentType = chunkStoreRegistry.registerComponent(PedestalBlockComponent.class,
+    ComponentType<ChunkStore, PedestalBlockComponent> pedestalBlockComponentType = chunkStoreRegistry.registerComponent(PedestalBlockComponent.class,
         "Hexcode_PedestalBlock",
         PedestalBlockComponent.CODEC);
     PedestalBlockComponent.setComponentType(pedestalBlockComponentType);
 
-    this.obeliskBlockComponentType = chunkStoreRegistry.registerComponent(ObeliskBlockComponent.class,
+    ComponentType<ChunkStore, ObeliskBlockComponent>   obeliskBlockComponentType = chunkStoreRegistry.registerComponent(ObeliskBlockComponent.class,
         "Hexcode_ObeliskBlock",
         ObeliskBlockComponent.CODEC);
     ObeliskBlockComponent.setComponentType(obeliskBlockComponentType);
@@ -189,6 +186,7 @@ public class Hexcode extends JavaPlugin {
     // State Managers
     StateRouter.registerState(HexState.IDLE, new IdleSystem());
     StateRouter.registerState(HexState.CASTING, new CastingSystem());
+    StateRouter.registerState(HexState.CASTING, HexcasterCastingComponent.getComponentType());
     StateRouter.registerState(HexState.DRAWING, new DrawingSystem());
     StateRouter.registerState(HexState.CRAFTING, new CraftingSystem());
     StateRouter.registerState(HexState.EXECUTION, new ExecutionSystem());
@@ -212,26 +210,6 @@ public class Hexcode extends JavaPlugin {
     BuiltinPlugin.startup();
 
     LOGGER.atInfo().log("Hexcode setup complete!");
-  }
-
-  public ComponentType<EntityStore, HexBookComponent> getHexBookComponentType() {
-    return this.hexBookComponentType;
-  }
-
-  public ComponentType<EntityStore, GlyphComponent> getGlyphComponentType() {
-    return this.glyphComponentType;
-  }
-
-  public ComponentType<EntityStore, HexStaffComponent> getHexStaffComponentType() {
-    return this.hexStaffComponentType;
-  }
-
-  public ComponentType<EntityStore, HexcasterComponent> getHexcasterComponentType() {
-    return this.hexcasterComponentType;
-  }
-
-  public ComponentType<EntityStore, SlotComponent> getSlotComponentType() {
-    return this.slotComponentType;
   }
 
   private static void onPlayerConnect(PlayerConnectEvent event) {

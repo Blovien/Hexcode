@@ -8,6 +8,7 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -33,7 +34,7 @@ public class GlyphComponent implements Component<EntityStore> {
 
     // persistent - from asset
     @Nonnull
-    private Glyph glyph;
+    private Glyph glyph = new Glyph(); // default value to avoid null issues during codec construction
 
     // transient
     private Ref<EntityStore> parentRef;
@@ -61,6 +62,12 @@ public class GlyphComponent implements Component<EntityStore> {
     @Nonnull
     public String getId() {
         return this.glyph.getId();
+    }
+
+    /** Abstraction from Glyph */
+
+    public List<String> getNext() {
+        return this.glyph.getNext();
     }
 
     /** Getters and Setters */
@@ -116,11 +123,19 @@ public class GlyphComponent implements Component<EntityStore> {
     }
 
     public float getDistance() {
-        return this.glyph.getRotation().getRoll();
+        return this.glyph.getRotation().getZ();
     }
 
     public void setDistance(float distance) {
-        this.glyph.getRotation().setRoll(distance);
+        this.glyph.getRotation().setZ(distance);
+    }
+
+    public Vector3f getRotation() {
+        return this.glyph.getRotation();
+    }
+
+    public void setRotation(Vector3f rotation) {
+        this.glyph.setRotation(rotation);
     }
 
     public float getScale() {
@@ -141,6 +156,10 @@ public class GlyphComponent implements Component<EntityStore> {
 
     public void setOffset(float x, float y, float z) {
         this.glyph.setPosition(new Vector3f(x, y, z));
+    }
+
+    public void addNext(String nextId) {
+        this.glyph.addNext(nextId);
     }
 
     /** Flags */
@@ -166,7 +185,7 @@ public class GlyphComponent implements Component<EntityStore> {
         copy.parentRef = this.parentRef;
         copy.selfRef = this.selfRef;
         copy.hexRef = this.hexRef;
-        copy.flags = this.flags;
+        copy.flags = this.flags.isEmpty() ? EnumSet.noneOf(GlyphFlags.class) : EnumSet.copyOf(this.flags);
         return copy;
     }
 }

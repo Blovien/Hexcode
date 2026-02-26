@@ -7,14 +7,12 @@ import com.hypixel.hytale.codec.codecs.array.ArrayCodec;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.hexes.component.Hex;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 public class HexBookComponent implements Component<EntityStore> {
 
@@ -84,7 +82,7 @@ public class HexBookComponent implements Component<EntityStore> {
     }
 
     public boolean removeHex(@Nonnull String id) {
-        return hexes.removeIf(g -> g.get().equals(id));
+        return hexes.removeIf(g -> g.getHexId().equals(id));
     }
 
     public List<Hex> getHexes() {

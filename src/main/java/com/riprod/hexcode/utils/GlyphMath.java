@@ -1,10 +1,10 @@
 package com.riprod.hexcode.utils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
-import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 
 public class GlyphMath {
 
@@ -33,13 +33,13 @@ public class GlyphMath {
 
         float distance = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
         if (distance < 0.0001) {
-            return Vector3f.ZERO;
+            return new Vector3f(0, 0, 0);
         }
 
         float yaw = (float) Math.atan2(dx, dz);
         float pitch = (float) Math.asin(dy / distance);
 
-        return new Vector3f(yaw, pitch, distance);
+        return new Vector3f(pitch, yaw, distance);
     }
 
     public static boolean isPointInGlyphArea(Vector3f glyphPos, Vector3f lookPos, float scale) {
@@ -66,24 +66,40 @@ public class GlyphMath {
         return baseRadius * scale;
     }
 
-    public static void distributeChildAngles(List<GlyphComponent> children, float parentScale) {
-        if (children == null || children.isEmpty()) {
-            return;
-        }
-        
-        if (children.size() == 1) {
-            children.get(0).setYaw(0f);
-            children.get(0).setPitch(0f);
-            return;
+    public static List<Vector3f> getChildRotations(int childrenCount,
+            float parentScale) {
+        if (childrenCount <= 0) {
+            return null;
         }
 
-        float angleIncrement = (float) (2 * Math.PI / children.size());
+        if (childrenCount == 1) {
+            return List.of(new Vector3f(0, 0, 0));
+        }
+
+        float angleIncrement = (float) (2 * Math.PI / childrenCount);
         float angularRadius = getSelectionRadius(parentScale) * parentScale * 3; // scales with the parent scale
 
-        for (int i = 0; i < children.size(); i++) {
+        float distance = angularRadius; // distance from parent rotation, can be adjusted for different visual spacing
+
+        List<Vector3f> childAngles = new ArrayList<>();
+        for (int i = 0; i < childrenCount; i++) {
             float theta = i * angleIncrement;
-            children.get(i).setYaw(angularRadius * (float) Math.cos(theta));
-            children.get(i).setPitch(angularRadius * (float) Math.sin(theta));
+            Vector3f childPos = new Vector3f(
+                    angularRadius * (float) Math.cos(theta),
+                    angularRadius * (float) Math.sin(theta),
+                    distance);
+            childAngles.add(childPos);
         }
+        return childAngles;
+    }
+
+    public static Vector3f toMountOffset(Vector3f childRotation, Vector3f parentRotation) {
+        Vector3d parentCart = sphericalToCartesian(Vector3d.ZERO, parentRotation.getYaw(), parentRotation.getPitch(), childRotation.getZ());
+        Vector3d childCart = sphericalToCartesian(Vector3d.ZERO, parentRotation.getYaw() + childRotation.getYaw(),
+                parentRotation.getPitch() + childRotation.getPitch(), childRotation.getZ());
+        return new Vector3f(
+                (float) (childCart.x - parentCart.x),
+                (float) (childCart.y - parentCart.y),
+                (float) (childCart.z - parentCart.z));
     }
 }

@@ -162,7 +162,6 @@ public class PedestalTickSystem extends EntityTickingSystem<EntityStore> {
             Ref<EntityStore> anchorRef, Store<EntityStore> store,
             CommandBuffer<EntityStore> buffer) {
 
-       TargetUtil.getAllEntitiesInCylinder(null, 0, 0, buffer);
     }
 
     private void ejectAllPlayers(PedestalComponent pedestal, CommandBuffer<EntityStore> buffer) {

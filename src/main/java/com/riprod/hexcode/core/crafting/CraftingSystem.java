@@ -23,7 +23,7 @@ public class CraftingSystem extends HexcodeManager {
 
         Ref<EntityStore> pedestalRef = comp.getPedestalRef();
         if (pedestalRef == null || !pedestalRef.isValid()) {
-            comp.requestStateChange(HexState.IDLE);
+            // comp.requestStateChange(HexState.IDLE);
         }
     }
 
@@ -39,14 +39,14 @@ public class CraftingSystem extends HexcodeManager {
 
         Ref<EntityStore> pedestalRef = comp.getPedestalRef();
         if (pedestalRef == null || !pedestalRef.isValid()) {
-            comp.requestStateChange(HexState.IDLE);
+            // comp.requestStateChange(HexState.IDLE);
             return;
         }
 
         PedestalComponent pedestal = buffer.getComponent(pedestalRef,
                 PedestalComponent.getComponentType());
         if (pedestal == null || pedestal.getPedestalState() != PedestalState.ON) {
-            comp.requestStateChange(HexState.IDLE);
+            // comp.requestStateChange(HexState.IDLE);
             return;
         }
 
@@ -56,7 +56,7 @@ public class CraftingSystem extends HexcodeManager {
                 TransformComponent.getComponentType());
 
         if (playerTransform == null || pedestalTransform == null) {
-            comp.requestStateChange(HexState.IDLE);
+            // comp.requestStateChange(HexState.IDLE);
             return;
         }
 
@@ -65,7 +65,7 @@ public class CraftingSystem extends HexcodeManager {
         double radiusSq = pedestal.getDetectionRadius() * pedestal.getDetectionRadius();
 
         if (distSq > radiusSq) {
-            comp.requestStateChange(HexState.IDLE);
+            // comp.requestStateChange(HexState.IDLE);
         }
     }
 

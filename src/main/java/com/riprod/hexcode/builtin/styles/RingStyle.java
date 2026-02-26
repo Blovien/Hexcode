@@ -2,8 +2,8 @@ package com.riprod.hexcode.builtin.styles;
 
 import javax.annotation.Nonnull;
 
+import com.hypixel.hytale.math.vector.Vector3f;
 import com.riprod.hexcode.core.casting.component.CastingStyle;
-import com.riprod.hexcode.utils.SphericalPosition;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,8 +22,8 @@ public class RingStyle implements CastingStyle {
 
     @Nonnull
     @Override
-    public List<SphericalPosition> getInitialPositions(int glyphCount, float lookYaw, float lookPitch) {
-        List<SphericalPosition> positions = new ArrayList<>();
+    public List<Vector3f> getInitialPositions(int glyphCount, float lookYaw, float lookPitch) {
+        List<Vector3f> positions = new ArrayList<>();
 
         if (glyphCount <= 0) {
             return positions;
@@ -33,7 +33,7 @@ public class RingStyle implements CastingStyle {
 
         for (int i = 0; i < glyphCount; i++) {
             float yaw = angleStep * i + lookYaw; // Full 360° around the player
-            positions.add(new SphericalPosition(yaw, RING_PITCH, DEFAULT_DISTANCE));
+            positions.add(new Vector3f(RING_PITCH, yaw, DEFAULT_DISTANCE));
         }
 
         return positions;

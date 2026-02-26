@@ -21,12 +21,14 @@ import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.casting.component.HexcasterCastingComponent;
 import com.riprod.hexcode.core.casting.utils.GlyphPositioner;
 import com.riprod.hexcode.core.casting.utils.HexSelector;
 import com.riprod.hexcode.core.casting.utils.HexSpawner;
+import com.riprod.hexcode.core.casting.utils.RootSpawner;
 import com.riprod.hexcode.core.casting.utils.GlyphStyler;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
-import com.riprod.hexcode.core.glyphs.utils.CreateHex;
+import com.riprod.hexcode.core.glyphs.utils.CreateGlyph;
 import com.riprod.hexcode.core.hexbook.component.HexBookAsset;
 import com.riprod.hexcode.core.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
@@ -45,6 +47,8 @@ public class CastingSystem extends HexcodeManager {
     @Override
     public void firstTick(Ref<EntityStore> ref, HexcasterComponent comp,
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
+        HexcasterCastingComponent castingComp = new HexcasterCastingComponent();
+        buffer.addComponent(ref, HexcasterCastingComponent.getComponentType(), castingComp);
 
         HexStaffComponent staff = CasterInventory.getHexStaffComponent(buffer, ref);
         HexBookComponent book = CasterInventory.getHexBookComponent(buffer, ref);
@@ -70,22 +74,22 @@ public class CastingSystem extends HexcodeManager {
         if (modelComp != null && modelComp.getModel() != null) {
             eyeHeight = modelComp.getModel().getEyeHeight(ref, buffer);
         }
-        Ref<EntityStore> castingRootRef = CreateHex.createCastingRoot(buffer, ref, eyeHeight, particles);
+        Ref<EntityStore> castingRootRef = RootSpawner.createCastingRoot(buffer, ref, eyeHeight, particles);
+        castingComp.setCastingRootRef(castingRootRef);
 
-        comp.setCastingRootRef(castingRootRef);
-
-        List<HexComponent> spawnedHexes = HexSpawner.spawnHexes(buffer, ref, castingRootRef, hexes, style);
-        comp.setActiveHexes(spawnedHexes);
+        List<Ref<EntityStore>> spawnedHexes = HexSpawner.spawnHexes(buffer, ref, castingRootRef, hexes, style);
+        castingComp.setActiveHexes(spawnedHexes);
     }
 
     @Override
     public void lastTick(Ref<EntityStore> ref, HexcasterComponent comp,
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
+        HexcasterCastingComponent castingComp = buffer.getComponent(ref, HexcasterCastingComponent.getComponentType());
 
-        cleanupEntities(buffer, comp);
+        cleanupEntities(buffer, castingComp);
 
         HexStaffComponent staff = CasterInventory.getHexStaffComponent(buffer, ref);
-        HexComponent rootGlyph = comp.getLastSelectedHex();
+        HexComponent rootGlyph = castingComp.getLastSelectedHex();
 
         if (rootGlyph != null && staff != null) {
             staff.setActiveHex(rootGlyph.getHex());
@@ -93,14 +97,15 @@ public class CastingSystem extends HexcodeManager {
             comp.requestStateChange(HexState.EXECUTION);
         }
 
-        comp.clearCastingState();
+        castingComp.clearCastingState();
     }
 
     @Override
     public void tick0(Ref<EntityStore> ref, HexcasterComponent comp, float dt,
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
 
-        Ref<EntityStore> castingRootRef = comp.getCastingRootRef();
+        HexcasterCastingComponent castingComp = buffer.getComponent(ref, HexcasterCastingComponent.getComponentType());
+        Ref<EntityStore> castingRootRef = castingComp.getCastingRootRef();
 
         TransformComponent transform = buffer.getComponent(ref, TransformComponent.getComponentType());
         HeadRotation headRotation = buffer.getComponent(ref, HeadRotation.getComponentType());
@@ -109,25 +114,25 @@ public class CastingSystem extends HexcodeManager {
         }
         Vector3d ownerPos = transform.getPosition();
 
-        List<HexComponent> activeHexes = comp.getActiveHexes();
+        List<Ref<EntityStore>> activeHexes = castingComp.getActiveHexes();
 
         if (activeHexes == null || castingRootRef == null || !castingRootRef.isValid()) {
             return;
         }
 
         // Despawn head anchor if not dragging a hex
-        Ref<EntityStore> headAnchor = comp.getHeadAnchorRef();
-        if (comp.getDraggingHex() == null && headAnchor != null && headAnchor.isValid()) {
+        Ref<EntityStore> headAnchor = castingComp.getHeadAnchorRef();
+        if (castingComp.getDraggingHex() == null && headAnchor != null && headAnchor.isValid()) {
             Holder<EntityStore> headHolder = EntityStore.REGISTRY.newHolder();
             buffer.removeEntity(headAnchor, headHolder, RemoveReason.REMOVE);
-            comp.setHeadAnchorRef(null);
+            castingComp.setHeadAnchorRef(null);
         }
 
         GlyphPositioner.PositionGlyphs(buffer, ref, ownerPos, castingRootRef);
 
-        HexComponent hoveredGlyph = HexSelector.GetHoveredHex(buffer, headRotation, activeHexes);
+        HexComponent hoveredGlyph = HexSelector.findHoveredHex(buffer, headRotation.getRotation(), activeHexes);
 
-        GlyphStyler.hoverGlyph(buffer, hoveredGlyph, comp);
+        GlyphStyler.hoverGlyph(buffer, hoveredGlyph, castingComp);
     }
 
     @Override
@@ -142,8 +147,11 @@ public class CastingSystem extends HexcodeManager {
     public InteractionState enterInteraction(Ref<EntityStore> ref, HexcasterComponent comp,
             CommandBuffer<EntityStore> accessor) {
 
-        GlyphComponent hoveredGlyph = comp.getHoveredHex();
-        if (hoveredGlyph == null) {
+        HexcasterCastingComponent castingComp = accessor.getComponent(ref,
+                HexcasterCastingComponent.getComponentType());
+
+        HexComponent hoveredHex = castingComp.getHoveredHex();
+        if (hoveredHex == null) {
             return InteractionState.Failed;
         }
 
@@ -153,22 +161,22 @@ public class CastingSystem extends HexcodeManager {
             eyeHeight = modelComp.getModel().getEyeHeight(ref, accessor);
         }
 
-        Ref<EntityStore> headRootRef = CreateHex.createHeadAnchor(accessor, ref, eyeHeight);
+        Ref<EntityStore> headRootRef = CreateGlyph.createHeadAnchor(accessor, ref, eyeHeight);
 
-        comp.setHeadAnchorRef(headRootRef);
+        castingComp.setHeadAnchorRef(headRootRef);
 
-        GlyphStyler.exitHover(accessor, hoveredGlyph);
+        GlyphStyler.enterHover(accessor, hoveredHex);
 
-        Ref<EntityStore> glyphRef = hoveredGlyph.getSelfRef();
+        Ref<EntityStore> glyphRef = hoveredHex.getSelfRef();
         if (glyphRef != null && glyphRef.isValid()) {
-            accessor.removeComponent(glyphRef, MountedComponent.getComponentType());
+            accessor.tryRemoveComponent(glyphRef, MountedComponent.getComponentType());
+
+            float distance = hoveredHex.getDistance();
+            accessor.addComponent(glyphRef, MountedComponent.getComponentType(),
+                    new MountedComponent(headRootRef, new Vector3f(0, 0, -distance), MountController.Minecart));
         }
 
-        comp.setDraggingHex(hoveredGlyph);
-
-        float distance = hoveredGlyph.getDistance();
-        accessor.addComponent(glyphRef, MountedComponent.getComponentType(),
-                new MountedComponent(headRootRef, new Vector3f(0, 0, -distance), MountController.Minecart));
+        castingComp.setDraggingHex(hoveredHex);
 
         return InteractionState.NotFinished;
     }
@@ -177,12 +185,15 @@ public class CastingSystem extends HexcodeManager {
     public InteractionState tickInteraction(Ref<EntityStore> ref, HexcasterComponent comp,
             CommandBuffer<EntityStore> accessor) {
 
-        if (comp.getDraggingHex() == null) {
+        HexcasterCastingComponent castingComp = accessor.getComponent(ref,
+                HexcasterCastingComponent.getComponentType());
+
+        if (castingComp.getDraggingHex() == null) {
             return InteractionState.Finished;
         }
 
         // Update on prim tick
-        Ref<EntityStore> headAnchor = comp.getHeadAnchorRef();
+        Ref<EntityStore> headAnchor = castingComp.getHeadAnchorRef();
         // head anchor: match head look direction
         if (headAnchor != null && headAnchor.isValid()) {
             HeadRotation headRot = accessor.getComponent(ref, HeadRotation.getComponentType());
@@ -193,7 +204,7 @@ public class CastingSystem extends HexcodeManager {
             }
         }
 
-        HexSelector.DragGlyph(accessor, ref, comp.getDraggingHex());
+        HexSelector.DragGlyph(accessor, ref, castingComp.getDraggingHex());
 
         return InteractionState.NotFinished;
     }
@@ -202,8 +213,11 @@ public class CastingSystem extends HexcodeManager {
     public InteractionState exitInteraction(Ref<EntityStore> ref, HexcasterComponent comp,
             CommandBuffer<EntityStore> accessor) {
 
-        GlyphComponent draggedGlyph = comp.getDraggingHex();
-        if (draggedGlyph == null) {
+        HexcasterCastingComponent castingComp = accessor.getComponent(ref,
+                HexcasterCastingComponent.getComponentType());
+
+        HexComponent draggedHex = castingComp.getDraggingHex();
+        if (draggedHex == null) {
             return InteractionState.Finished;
         }
 
@@ -212,81 +226,81 @@ public class CastingSystem extends HexcodeManager {
             return InteractionState.Failed;
         }
 
-        GlyphComponent hoveredGlyph = HexSelector.GetHoveredHex(accessor, headRotation,
-                comp.getActiveHexes(), true);
+        HexComponent hoveredHex = HexSelector.findHoveredHex(accessor, headRotation.getRotation(),
+                castingComp.getActiveHexes());
 
-        if (hoveredGlyph != null) {
-            try {
-                float eyeHeight = 0f;
-                ModelComponent modelComp = accessor.getComponent(ref, ModelComponent.getComponentType());
-                eyeHeight = modelComp.getModel().getEyeHeight(ref, accessor);
-                HexSpawner.MergeGlyphs(accessor, draggedGlyph, hoveredGlyph, eyeHeight);
-                comp.setDraggingHex(null);
-                comp.removeActiveHex(draggedGlyph.getId());
-
-                return InteractionState.Finished;
-            } catch (Exception e) {
-                LOGGER.atWarning().withCause(e).log("Error merging glyphs, dropping on ground instead");
+        if (hoveredHex != null) {
+            GlyphComponent hoveredGlyph = HexSelector.findHoveredGlyph(accessor, headRotation.getRotation(),
+                    hoveredHex);
+            if (hoveredGlyph != null) {
+                try {
+                    float eyeHeight = 0f;
+                    ModelComponent modelComp = accessor.getComponent(ref, ModelComponent.getComponentType());
+                    eyeHeight = modelComp.getModel().getEyeHeight(ref, accessor);
+                    HexSpawner.MergeGlyphs(accessor, hoveredGlyph, draggedHex, eyeHeight);
+                    castingComp.getActiveHexes().remove(draggedHex.getSelfRef());
+                    castingComp.setDraggingHex(null);
+                    return InteractionState.Finished;
+                } catch (Exception e) {
+                    LOGGER.atWarning().withCause(e).log("Error merging glyphs, dropping on ground instead");
+                }
             }
         }
 
-        comp.setDraggingHex(null);
+        // Drop the glyph
+        castingComp.setDraggingHex(null);
 
-        float pitch = draggedGlyph.getPitch();
-        float yaw = draggedGlyph.getYaw();
-        float distance = draggedGlyph.getDistance();
-        Vector3d pos = GlyphMath.sphericalToCartesian(new Vector3d(0, 0, 0), yaw, pitch, distance);
+        GlyphStyler.exitHover(accessor, draggedHex);
 
-        accessor.putComponent(draggedGlyph.getSelfRef(), MountedComponent.getComponentType(),
-                new MountedComponent(draggedGlyph.getRootRef(),
-                        new Vector3f((float) pos.x, (float) pos.y, (float) pos.z),
+        Vector3d dropPos = GlyphMath.sphericalToCartesian(draggedHex.getRotation());
+        Vector3f dropOffset = dropPos.toVector3f();
+        draggedHex.setOffset(dropOffset);
+
+        accessor.putComponent(draggedHex.getSelfRef(), MountedComponent.getComponentType(),
+                new MountedComponent(draggedHex.getRootRef(),
+                        new Vector3f(draggedHex.getOffset()),
                         MountController.Minecart));
 
         return InteractionState.Finished;
     }
 
-    private void cleanupGlyphChildren(ComponentAccessor<EntityStore> accessor, GlyphComponent glyph) {
-        try {
-            List<GlyphComponent> children = glyph.getChildren();
-            if (children != null) {
-                for (GlyphComponent child : children) {
-                    cleanupGlyphChildren(accessor, child);
-                    Holder<EntityStore> childHolder = EntityStore.REGISTRY.newHolder();
-                    accessor.removeEntity(child.getSelfRef(), childHolder, RemoveReason.REMOVE);
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.atSevere().withCause(e).log("Failed to cleanup child glyphs for glyph with ref: " + glyph.getId());
-        }
-    }
-
     private static ModelParticle[] mergeParticles(ModelParticle[] a, ModelParticle[] b) {
-        if (a == null || a.length == 0) return b;
-        if (b == null || b.length == 0) return a;
+        if (a == null || a.length == 0)
+            return b;
+        if (b == null || b.length == 0)
+            return a;
         ModelParticle[] merged = new ModelParticle[a.length + b.length];
         System.arraycopy(a, 0, merged, 0, a.length);
         System.arraycopy(b, 0, merged, a.length, b.length);
         return merged;
     }
 
-    private void cleanupEntities(ComponentAccessor<EntityStore> accessor, HexcasterComponent comp) {
-        List<GlyphComponent> activeGlyphs = comp.getActiveHexes();
-        for (GlyphComponent glyph : activeGlyphs) {
+    private void cleanupEntities(CommandBuffer<EntityStore> accessor, HexcasterCastingComponent comp) {
+        List<Ref<EntityStore>> activeGlyphs = comp.getActiveHexes();
+        for (Ref<EntityStore> hex : activeGlyphs) {
             try {
-                cleanupGlyphChildren(accessor, glyph);
-                Holder<EntityStore> glyphHolder = EntityStore.REGISTRY.newHolder();
-                accessor.removeEntity(glyph.getSelfRef(), glyphHolder, RemoveReason.REMOVE);
+                HexComponent hexComp = accessor.getComponent(hex, HexComponent.getComponentType());
+                List<Ref<EntityStore>> childGlyphRefs = hexComp.getChildGlyphRefsList();
+
+                for (Ref<EntityStore> childGlyphRef : childGlyphRefs) {
+                    try {
+                        accessor.tryRemoveEntity(childGlyphRef, RemoveReason.REMOVE);
+                    } catch (Exception e) {
+                        LOGGER.atSevere().withCause(e)
+                                .log("Failed to despawn child glyph entity with ref: " + childGlyphRef);
+                    }
+                }
+                accessor.tryRemoveEntity(hex, RemoveReason.REMOVE);
             } catch (Exception e) {
                 LOGGER.atSevere().withCause(e)
-                        .log("Failed to despawn glyph entity with ref: " + glyph.getId());
+                        .log("Failed to despawn hex entity");
             }
         }
 
         Ref<EntityStore> castingRootRef = comp.getCastingRootRef();
         if (castingRootRef != null) {
             try {
-                Holder<EntityStore> rootHolder = EntityStore.REGISTRY.newHolder();
-                accessor.removeEntity(castingRootRef, rootHolder, RemoveReason.REMOVE);
+                accessor.tryRemoveEntity(castingRootRef, RemoveReason.REMOVE);
             } catch (Exception e) {
                 LOGGER.atSevere().withCause(e).log("Failed to despawn casting root entity");
             }
@@ -295,8 +309,7 @@ public class CastingSystem extends HexcodeManager {
         Ref<EntityStore> headAnchor = comp.getHeadAnchorRef();
         if (headAnchor != null && headAnchor.isValid()) {
             try {
-                Holder<EntityStore> headHolder = EntityStore.REGISTRY.newHolder();
-                accessor.removeEntity(headAnchor, headHolder, RemoveReason.REMOVE);
+                accessor.tryRemoveEntity(headAnchor, RemoveReason.REMOVE);
             } catch (Exception e) {
                 LOGGER.atSevere().withCause(e).log("Failed to despawn head anchor entity");
             }

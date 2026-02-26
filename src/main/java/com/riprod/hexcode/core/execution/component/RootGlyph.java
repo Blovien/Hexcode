@@ -8,14 +8,14 @@ import javax.annotation.Nonnull;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.hexes.component.Hex;
 
 public class RootGlyph implements Component<EntityStore> {
 
     private static ComponentType<EntityStore, RootGlyph> componentType;
 
     private HexRoot root;
-    private GlyphComponent glyphComponent;
+    private Hex hex;
     private final List<PendingContinue> pendingContinues = new ArrayList<>();
     private boolean needsInitialExecution;
     private int externalWaiters;
@@ -43,12 +43,12 @@ public class RootGlyph implements Component<EntityStore> {
         return pendingContinues;
     }
 
-    public GlyphComponent getGlyphComponent() {
-        return glyphComponent;
+    public Hex getHex() {
+        return hex;
     }
 
-    public void setGlyphComponent(GlyphComponent glyphComponent) {
-        this.glyphComponent = glyphComponent;
+    public void setHex(Hex hex) {
+        this.hex = hex;
     }
 
     public void addPendingContinue(PendingContinue pending) {
@@ -84,7 +84,7 @@ public class RootGlyph implements Component<EntityStore> {
     public RootGlyph clone() {
         RootGlyph copy = new RootGlyph();
         copy.root = this.root;
-        copy.glyphComponent = this.glyphComponent;
+        copy.hex = this.hex;
         copy.pendingContinues.addAll(this.pendingContinues);
         copy.needsInitialExecution = this.needsInitialExecution;
         copy.externalWaiters = this.externalWaiters;
