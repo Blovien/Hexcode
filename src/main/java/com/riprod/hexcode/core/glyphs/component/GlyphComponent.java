@@ -164,7 +164,19 @@ public class GlyphComponent implements Component<EntityStore> {
 
     /** Flags */
 
-    public void setDragState(Boolean isBeingDragged) {
+    public void setHoverState(boolean isHovered) {
+        if (isHovered) {
+            this.flags.add(GlyphFlags.Hovering);
+        } else {
+            this.flags.remove(GlyphFlags.Hovering);
+        }
+    }
+
+    public boolean isHovered() {
+        return this.flags.contains(GlyphFlags.Hovering);
+    }
+
+    public void setDragState(boolean isBeingDragged) {
         if (isBeingDragged) {
             this.flags.add(GlyphFlags.Dragging);
         } else {

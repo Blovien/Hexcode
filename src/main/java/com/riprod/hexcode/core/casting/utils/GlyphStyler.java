@@ -17,83 +17,91 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.casting.component.HexcasterCastingComponent;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
-import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.hexes.component.HexComponent;
 import com.riprod.hexcode.utils.GlyphMath;
 
 public class GlyphStyler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
-    public static final float SCALE_PER_GLYPH = 0.05f; // increase scale by 5% per glyph
+    public static final float SCALE_PER_GLYPH = 0.20f; // increase scale by 5% per glyph
     public static final float SCALE_SINGLE_GLYPH = 0.45f; // if only 1 glyph, make it slightly smaller to avoid clipping
     public static final float SCALE_MULTIPLIER = 0.5f;
 
-    public static void hoverGlyph(ComponentAccessor<EntityStore> accessor, HexComponent hoveredHex,
-            HexcasterCastingComponent hexcasterCasting) {
+    private static final float HOVER_SCALE = 1.2f;
 
-        HexComponent currentlyHovered = hexcasterCasting.getHoveredHex();
+    public static void hoverHex(ComponentAccessor<EntityStore> accessor, HexComponent hoveredHex,
+            HexcasterCastingComponent castingComp) {
 
-        // state 1 - doing nothing (return)
-        if (hoveredHex == null && currentlyHovered == null) {
-            return;
+        HexComponent previous = castingComp.getHoveredHex();
+
+        if (previous == hoveredHex) return;
+
+        if (previous != null) {
+            exitHexHover(accessor, previous);
         }
 
-        // state 2 - stop hovering
-        if (hoveredHex == null && currentlyHovered != null) {
-            exitHover(accessor, currentlyHovered);
-            hexcasterCasting.setHoveredHex(null);
-            return;
-        }
+        castingComp.setHoveredHex(hoveredHex);
 
-        // state 3 - start hovering
-        if (hoveredHex != null && currentlyHovered == null) {
-            hexcasterCasting.setHoveredHex(hoveredHex);
-            enterHover(accessor, hoveredHex);
-            return;
-        }
-
-        // state 4 - switch hovered glyph
-        if (hoveredHex != null && currentlyHovered != null && !hoveredHex.equals(currentlyHovered)) {
-            exitHover(accessor, currentlyHovered);
-            hexcasterCasting.setHoveredHex(hoveredHex);
-            enterHover(accessor, hoveredHex);
-            return;
+        if (hoveredHex != null) {
+            enterHexHover(accessor, hoveredHex);
         }
     }
 
-    public static void enterHover(ComponentAccessor<EntityStore> accessor, HexComponent hoveredGlyph) {
-        try {
+    public static void hoverGlyph(ComponentAccessor<EntityStore> accessor, GlyphComponent hoveredGlyph,
+            HexcasterCastingComponent castingComp) {
 
-            updateScale(accessor, hoveredGlyph.getSelfRef(), hoveredGlyph.getScale() * 1.2f); // reset to original scale
-                                                                                              // when not
-            // hovering
+        GlyphComponent previous = castingComp.getHoveredGlyph();
 
-        } catch (Exception e) {
-            LOGGER.atWarning().withCause(e).log("Error entering hover state for glyph");
+        if (previous == hoveredGlyph) return;
+
+        if (previous != null) {
+            exitGlyphHover(accessor, previous);
         }
 
-    }
+        castingComp.setHoveredGlyph(hoveredGlyph);
 
-    public static void exitHover(ComponentAccessor<EntityStore> accessor, HexComponent hoveredGlyph) {
-        try {
-
-            updateScale(accessor, hoveredGlyph.getSelfRef(), hoveredGlyph.getScale()); // reset to original scale when
-                                                                                       // not
-
-        } catch (Exception e) {
-            LOGGER.atWarning().withCause(e).log("Error exiting hover state for glyph");
+        if (hoveredGlyph != null) {
+            enterGlyphHover(accessor, hoveredGlyph);
         }
     }
 
-    public static void updateScale(ComponentAccessor<EntityStore> accessor, GlyphComponent glyph, float newScale) {
+    private static void enterHexHover(ComponentAccessor<EntityStore> accessor, HexComponent hex) {
         try {
-
-            Ref<EntityStore> selfRef = glyph.getSelfRef();
-
-            updateScale(accessor, selfRef, newScale);
-
+            hex.setHoverState(true);
+            String firstGlyphId = hex.getHex().getFirstGlyphId();
+            Ref<EntityStore> firstGlyphRef = hex.getChildGlyphRef(firstGlyphId);
+            updateScale(accessor, firstGlyphRef, hex.getScale() * HOVER_SCALE);
         } catch (Exception e) {
-            LOGGER.atWarning().withCause(e).log("Error updating scale for glyph");
+            LOGGER.atWarning().withCause(e).log("Error entering hex hover state");
+        }
+    }
+
+    private static void exitHexHover(ComponentAccessor<EntityStore> accessor, HexComponent hex) {
+        try {
+            hex.setHoverState(false);
+            String firstGlyphId = hex.getHex().getFirstGlyphId();
+            Ref<EntityStore> firstGlyphRef = hex.getChildGlyphRef(firstGlyphId);
+            updateScale(accessor, firstGlyphRef, hex.getScale());
+        } catch (Exception e) {
+            LOGGER.atWarning().withCause(e).log("Error exiting hex hover state");
+        }
+    }
+
+    private static void enterGlyphHover(ComponentAccessor<EntityStore> accessor, GlyphComponent glyph) {
+        try {
+            glyph.setHoverState(true);
+            updateScale(accessor, glyph.getSelfRef(), glyph.getScale() * HOVER_SCALE);
+        } catch (Exception e) {
+            LOGGER.atWarning().withCause(e).log("Error entering glyph hover state");
+        }
+    }
+
+    private static void exitGlyphHover(ComponentAccessor<EntityStore> accessor, GlyphComponent glyph) {
+        try {
+            glyph.setHoverState(false);
+            updateScale(accessor, glyph.getSelfRef(), glyph.getScale());
+        } catch (Exception e) {
+            LOGGER.atWarning().withCause(e).log("Error exiting glyph hover state");
         }
     }
 

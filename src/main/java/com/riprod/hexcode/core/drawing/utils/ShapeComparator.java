@@ -17,18 +17,19 @@ public class ShapeComparator {
     private static final float RECALL_WEIGHT = 0.3f;
 
     // for center check
-    private static final int CENTER_MIN = 14;
-    private static final int CENTER_MAX = 18;
+    private static final int CENTER_MIN = 13;
+    private static final int CENTER_MAX = 19;
 
     public static DrawnShapeComponent getShape(boolean[][] grid) {
         int[][] drawnDT = distanceTransform(grid);
+        float[] drawnRadialSig = ShapeCacheManager.computeRadialSignature(grid);
 
         float bestAccuracy = -1f;
         ShapeAsset bestMatch = null;
 
         for (var entry : ShapeAsset.getAssetMap().getAssetMap().entrySet()) {
             ShapeAsset asset = entry.getValue();
-            float accuracy = compareShapes(grid, drawnDT, asset);
+            float accuracy = compareShapes(grid, drawnDT, drawnRadialSig, asset);
             if (accuracy > bestAccuracy) {
                 bestAccuracy = accuracy;
                 bestMatch = asset;
@@ -56,24 +57,59 @@ public class ShapeComparator {
         return hasCenter == shapeAsset.getCenterFilled();
     }
 
-    public static float compareShapes(boolean[][] drawn, int[][] drawnDT, ShapeAsset shapeAsset) {
+    public static float compareShapes(boolean[][] drawn, int[][] drawnDT, float[] drawnRadialSig,
+            ShapeAsset shapeAsset) {
         if (!centerCheck(drawn, shapeAsset))
             return 0f;
 
-        int[][] templateDT = ShapeCacheManager.getDistanceTransform(shapeAsset.getId());
-        boolean[][] template = ShapeCacheManager.getImageData(shapeAsset.getId());
-        if (templateDT == null || template == null)
-            return 0f;
+        if (Boolean.TRUE.equals(shapeAsset.getCenterFilled())) {
+            int[][] templateDT = ShapeCacheManager.getDistanceTransform(shapeAsset.getId());
+            boolean[][] template = ShapeCacheManager.getImageData(shapeAsset.getId());
+            if (templateDT == null || template == null)
+                return 0f;
 
-        float score = score(drawn, drawnDT, template, templateDT);
+            float score = score(drawn, drawnDT, template, templateDT);
 
-        if (Boolean.TRUE.equals(shapeAsset.getCanRotate())) {
-            boolean[][] rotated = rotate90(drawn);
-            int[][] rotatedDT = distanceTransform(rotated);
-            score = Math.max(score, score(rotated, rotatedDT, template, templateDT));
+            if (Boolean.TRUE.equals(shapeAsset.getCanRotate())) {
+                boolean[][] rotated = rotate90(drawn);
+                int[][] rotatedDT = distanceTransform(rotated);
+                score = Math.max(score, score(rotated, rotatedDT, template, templateDT));
+            }
+
+            return score;
+        } else {
+            float[] templateSig = ShapeCacheManager.getRadialSignature(shapeAsset.getId());
+            if (templateSig == null)
+                return 0f;
+
+            if (Boolean.TRUE.equals(shapeAsset.getCanRotate())) {
+                return bestRotatedRadialScore(drawnRadialSig, templateSig);
+            }
+            return radialScore(drawnRadialSig, templateSig);
         }
+    }
 
-        return score;
+    static float radialScore(float[] drawn, float[] template) {
+        float error = 0f;
+        for (int i = 0; i < drawn.length; i++) {
+            error += Math.abs(drawn[i] - template[i]);
+        }
+        error /= drawn.length;
+        return 1.0f - error;
+    }
+
+    static float bestRotatedRadialScore(float[] drawn, float[] template) {
+        float best = radialScore(drawn, template);
+        int quarter = drawn.length / 4;
+        for (int rot = 1; rot < 4; rot++) {
+            int shift = quarter * rot;
+            float[] shifted = new float[drawn.length];
+            for (int i = 0; i < drawn.length; i++) {
+                shifted[i] = drawn[(i + shift) % drawn.length];
+            }
+            best = Math.max(best, radialScore(shifted, template));
+        }
+        return best;
     }
 
     static float score(boolean[][] drawn, int[][] drawnDT,

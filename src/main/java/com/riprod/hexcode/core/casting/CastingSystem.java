@@ -130,9 +130,9 @@ public class CastingSystem extends HexcodeManager {
 
         GlyphPositioner.PositionGlyphs(buffer, ref, ownerPos, castingRootRef);
 
-        HexComponent hoveredGlyph = HexSelector.findHoveredHex(buffer, headRotation.getRotation(), activeHexes);
+        HexComponent hoveredHex = HexSelector.findHoveredHex(buffer, headRotation.getRotation(), activeHexes);
 
-        GlyphStyler.hoverGlyph(buffer, hoveredGlyph, castingComp);
+        GlyphStyler.hoverHex(buffer, hoveredHex, castingComp);
     }
 
     @Override
@@ -165,7 +165,7 @@ public class CastingSystem extends HexcodeManager {
 
         castingComp.setHeadAnchorRef(headRootRef);
 
-        GlyphStyler.enterHover(accessor, hoveredHex);
+        GlyphStyler.hoverHex(accessor, hoveredHex, castingComp);
 
         Ref<EntityStore> glyphRef = hoveredHex.getSelfRef();
         if (glyphRef != null && glyphRef.isValid()) {
@@ -206,6 +206,17 @@ public class CastingSystem extends HexcodeManager {
 
         HexSelector.DragGlyph(accessor, ref, castingComp.getDraggingHex());
 
+        HeadRotation headRot2 = accessor.getComponent(ref, HeadRotation.getComponentType());
+        if (headRot2 != null) {
+            HexComponent targetHex = HexSelector.findHoveredHex(accessor, headRot2.getRotation(),
+                    castingComp.getActiveHexes());
+            GlyphComponent targetGlyph = null;
+            if (targetHex != null && targetHex != castingComp.getDraggingHex()) {
+                targetGlyph = HexSelector.findHoveredGlyph(accessor, headRot2.getRotation(), targetHex);
+            }
+            GlyphStyler.hoverGlyph(accessor, targetGlyph, castingComp);
+        }
+
         return InteractionState.NotFinished;
     }
 
@@ -240,6 +251,7 @@ public class CastingSystem extends HexcodeManager {
                     HexSpawner.MergeGlyphs(accessor, hoveredGlyph, draggedHex, eyeHeight);
                     castingComp.getActiveHexes().remove(draggedHex.getSelfRef());
                     castingComp.setDraggingHex(null);
+                    GlyphStyler.hoverGlyph(accessor, null, castingComp);
                     return InteractionState.Finished;
                 } catch (Exception e) {
                     LOGGER.atWarning().withCause(e).log("Error merging glyphs, dropping on ground instead");
@@ -250,7 +262,8 @@ public class CastingSystem extends HexcodeManager {
         // Drop the glyph
         castingComp.setDraggingHex(null);
 
-        GlyphStyler.exitHover(accessor, draggedHex);
+        GlyphStyler.hoverHex(accessor, null, castingComp);
+        GlyphStyler.hoverGlyph(accessor, null, castingComp);
 
         Vector3d dropPos = GlyphMath.sphericalToCartesian(draggedHex.getRotation());
         Vector3f dropOffset = dropPos.toVector3f();

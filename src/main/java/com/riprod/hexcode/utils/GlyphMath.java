@@ -62,7 +62,7 @@ public class GlyphMath {
     public static float getSelectionRadius(float scale) {
         // todo: return selection radius in radians based on glyph scale
         // base radius ~15 degrees = ~0.26 radians, scaled by visual size
-        float baseRadius = 0.0624f;
+        float baseRadius = 0.12f;
         return baseRadius * scale;
     }
 

@@ -202,7 +202,19 @@ public class HexComponent implements Component<EntityStore> {
 
     /** Flags */
 
-    public void setDragState(Boolean isBeingDragged) {
+    public void setHoverState(boolean isHovered) {
+        if (isHovered) {
+            this.flags.add(HexFlags.Hovering);
+        } else {
+            this.flags.remove(HexFlags.Hovering);
+        }
+    }
+
+    public boolean isHovered() {
+        return this.flags.contains(HexFlags.Hovering);
+    }
+
+    public void setDragState(boolean isBeingDragged) {
         if (isBeingDragged) {
             this.flags.add(HexFlags.Dragging);
         } else {

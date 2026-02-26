@@ -15,8 +15,10 @@ import com.riprod.hexcode.core.drawing.registry.ShapeAsset;
 
 public class ShapeCacheManager {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+    private static final int NUM_RAYS = 96;
     private static final Map<String, boolean[][]> imageData = new ConcurrentHashMap<>();
     private static final Map<String, int[][]> distanceTransformData = new ConcurrentHashMap<>();
+    private static final Map<String, float[]> radialSignatureData = new ConcurrentHashMap<>();
     private static boolean initialized = false;
 
     public static void ensureLoaded() {
@@ -34,6 +36,11 @@ public class ShapeCacheManager {
 
                     imageData.put(key, imgData);
                     distanceTransformData.put(key, distData);
+
+                    if (!Boolean.TRUE.equals(asset.getCenterFilled())) {
+                        float[] radialSig = computeRadialSignature(imgData);
+                        radialSignatureData.put(key, radialSig);
+                    }
                 }
             } catch (Exception e) {
                 LOGGER.atSevere().withCause(e).log("Failed to load shape asset: " + key);
@@ -69,6 +76,34 @@ public class ShapeCacheManager {
         } catch (Exception e) {
             throw new RuntimeException("Failed to load shape image: " + jsonPath, e);
         }
+    }
+
+    public static float[] computeRadialSignature(boolean[][] grid) {
+        float[] signature = new float[NUM_RAYS];
+        int h = grid.length;
+        int w = grid[0].length;
+        float cx = w / 2f;
+        float cy = h / 2f;
+        float maxPossibleDist = (float) Math.sqrt(cx * cx + cy * cy);
+
+        for (int i = 0; i < NUM_RAYS; i++) {
+            double angle = 2.0 * Math.PI * i / NUM_RAYS;
+            float dx = (float) Math.cos(angle);
+            float dy = (float) Math.sin(angle);
+
+            float maxDist = 0f;
+            for (float t = 0f; ; t += 0.5f) {
+                int px = (int) (cx + dx * t);
+                int py = (int) (cy + dy * t);
+                if (px < 0 || px >= w || py < 0 || py >= h) break;
+                if (grid[py][px]) {
+                    maxDist = t;
+                }
+            }
+            signature[i] = maxDist / maxPossibleDist;
+        }
+
+        return signature;
     }
 
     public static int[][] computeDistanceTransform(boolean[][] grid) {
@@ -143,6 +178,23 @@ public class ShapeCacheManager {
         return distanceTransformData.get(key);
     }
 
+    public static float[] getRadialSignature(String key) {
+        ensureLoaded();
+        float[] data = radialSignatureData.get(key);
+        if (data != null) {
+            return data;
+        }
+        boolean[][] imgData = getImageData(key);
+        if (imgData != null) {
+            data = computeRadialSignature(imgData);
+            radialSignatureData.put(key, data);
+        } else {
+            LOGGER.atSevere().log("Cannot compute radial signature, image data missing for key: " + key);
+            return null;
+        }
+        return radialSignatureData.get(key);
+    }
+
     public static boolean hasImageData(String key) {
         ensureLoaded();
         return imageData.containsKey(key);
@@ -151,6 +203,7 @@ public class ShapeCacheManager {
     public static void clearCache() {
         imageData.clear();
         distanceTransformData.clear();
+        radialSignatureData.clear();
         initialized = false;
     }
 }

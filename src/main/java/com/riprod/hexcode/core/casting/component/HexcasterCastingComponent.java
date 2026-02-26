@@ -10,6 +10,7 @@ import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.hexes.component.HexComponent;
 
 
@@ -26,6 +27,7 @@ public class HexcasterCastingComponent implements Component<EntityStore> {
     private Ref<EntityStore> hoveredChain = null;
     private HexComponent draggingHex = null;
     private HexComponent hoveredHex = null;
+    private GlyphComponent hoveredGlyph = null;
     private HexComponent lastSelectedHex = null;
 
     public HexcasterCastingComponent() {
@@ -45,6 +47,14 @@ public class HexcasterCastingComponent implements Component<EntityStore> {
 
     public void setHoveredHex(@Nullable HexComponent hoveredHex) {
         this.hoveredHex = hoveredHex;
+    }
+
+    public GlyphComponent getHoveredGlyph() {
+        return hoveredGlyph;
+    }
+
+    public void setHoveredGlyph(@Nullable GlyphComponent hoveredGlyph) {
+        this.hoveredGlyph = hoveredGlyph;
     }
 
     public HexComponent getDraggingHex() {
@@ -108,6 +118,7 @@ public class HexcasterCastingComponent implements Component<EntityStore> {
         this.hoveredChain = null;
         this.draggingHex = null;
         this.hoveredHex = null;
+        this.hoveredGlyph = null;
         this.lastSelectedHex = null;
     }
 
@@ -121,6 +132,7 @@ public class HexcasterCastingComponent implements Component<EntityStore> {
         copy.hoveredChain = this.hoveredChain;
         copy.draggingHex = this.draggingHex;
         copy.hoveredHex = this.hoveredHex;
+        copy.hoveredGlyph = this.hoveredGlyph;
         copy.lastSelectedHex = this.lastSelectedHex;
         return copy;
     }
