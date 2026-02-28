@@ -15,8 +15,8 @@ import com.hypixel.hytale.server.core.event.events.ecs.BreakBlockEvent;
 import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.crafting.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.crafting.component.PedestalState;
+import com.riprod.hexcode.core.crafting.registry.PedestalBlockComponent;
 import com.riprod.hexcode.core.crafting.spawners.AnchorSpawner;
 import com.riprod.hexcode.core.crafting.utils.PedestalBlockUtil;
 

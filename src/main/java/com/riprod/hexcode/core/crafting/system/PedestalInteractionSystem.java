@@ -14,8 +14,8 @@ import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.crafting.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.crafting.component.PedestalState;
+import com.riprod.hexcode.core.crafting.registry.PedestalBlockComponent;
 import com.riprod.hexcode.core.crafting.spawners.AnchorSpawner;
 import com.riprod.hexcode.core.crafting.spawners.PedestalSpawner;
 import com.riprod.hexcode.core.crafting.utils.PedestalBlockUtil;
@@ -64,12 +64,12 @@ public class PedestalInteractionSystem {
         ItemStack itemInHand = player.getInventory().getItemInHand();
 
         if (PedestalItemUtil.isEssence(itemInHand) && pedestalComponent.getEssenceItemId() == null) {
-            handleEssencePlacement(buffer, player, itemInHand, pedestalComponent, anchorRef, blockPos);
+            handleEssencePlacement(buffer, player, itemInHand, pedestalComponent, blockPos);
             return;
         }
 
         if (PedestalItemUtil.isHexBook(itemInHand) && pedestalComponent.getStoredBook().isEmpty()) {
-            handleBookPlacement(buffer, player, itemInHand, pedestalComponent, anchorRef, blockPos);
+            handleBookPlacement(buffer, player, itemInHand, pedestalComponent, blockPos);
             return;
         }
 
@@ -80,8 +80,7 @@ public class PedestalInteractionSystem {
     }
 
     private static void handleEssencePlacement(CommandBuffer<EntityStore> buffer,
-            Player player, ItemStack essenceItem, PedestalBlockComponent pedestalComponent,
-            Ref<EntityStore> anchorRef, Vector3i blockPos) {
+            Player player, ItemStack essenceItem, PedestalBlockComponent pedestalComponent, Vector3i blockPos) {
 
         Vector3d anchorPos = PedestalSpawner.getAnchorPosition(blockPos);
 
@@ -91,19 +90,18 @@ public class PedestalInteractionSystem {
         }
 
         Ref<EntityStore> newEssenceRef = PedestalSpawner.spawnEssenceDisplay(
-                buffer, anchorRef, anchorPos, essenceItem.getItem(), pedestalComponent.getReferenceHolder());
+                buffer, pedestalComponent, anchorPos, essenceItem.getItem(), pedestalComponent.getReferenceHolder());
         pedestalComponent.setEssenceDisplayRef(newEssenceRef);
         pedestalComponent.setEssenceItemId(essenceItem.getItem().getId());
 
-        logger.atInfo().log("pedestal: spawned essence display=%s for item=%s, anchor=%s",
-                newEssenceRef, essenceItem.getItem().getId(), anchorRef);
+        logger.atInfo().log("pedestal: spawned essence display=%s for item=%s",
+                newEssenceRef, essenceItem.getItem().getId());
 
         consumeOneFromHand(player);
     }
 
     private static void handleBookPlacement(CommandBuffer<EntityStore> buffer,
-            Player player, ItemStack bookItem, PedestalBlockComponent pedestalComponent,
-            Ref<EntityStore> anchorRef, Vector3i blockPos) {
+            Player player, ItemStack bookItem, PedestalBlockComponent pedestalComponent, Vector3i blockPos) {
 
         Vector3d anchorPos = PedestalSpawner.getAnchorPosition(blockPos);
 
@@ -115,11 +113,11 @@ public class PedestalInteractionSystem {
         }
 
         Ref<EntityStore> newBookDisplayRef = PedestalSpawner.spawnBookDisplay(
-                buffer, anchorRef, anchorPos, bookItem.getItem(), pedestalComponent.getReferenceHolder());
+                buffer, pedestalComponent, anchorPos, bookItem.getItem(), pedestalComponent.getReferenceHolder());
         pedestalComponent.setBookDisplayRef(newBookDisplayRef);
 
         logger.atInfo().log("pedestal: spawned book display=%s for item=%s, anchor=%s",
-                newBookDisplayRef, bookItem.getItem().getId(), anchorRef);
+                newBookDisplayRef, bookItem.getItem().getId(), pedestalComponent);
 
         consumeOneFromHand(player);
     }

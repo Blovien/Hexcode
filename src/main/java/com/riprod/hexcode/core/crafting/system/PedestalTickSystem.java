@@ -18,9 +18,9 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.TargetUtil;
-import com.riprod.hexcode.core.crafting.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.crafting.component.PedestalAnchorComponent;
 import com.riprod.hexcode.core.crafting.component.PedestalState;
+import com.riprod.hexcode.core.crafting.registry.PedestalBlockComponent;
 import com.riprod.hexcode.core.crafting.spawners.PedestalSpawner;
 import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.state.HexState;

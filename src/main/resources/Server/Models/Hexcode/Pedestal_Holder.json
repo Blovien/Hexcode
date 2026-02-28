@@ -3,34 +3,6 @@
   "Texture": "VFX/Pedestal_Holder.png",
   "MinScale": 1,
   "MaxScale": 1,
-  "AnimationSets": {
-    "Pedestal_Enter": {
-      "Animations": [
-        {
-          "Animation": "VFX/Animations/Pedestal_Idle.blockyanim"
-        }
-      ]
-    },
-    "Idle": {
-      "Animations": [
-        {
-          "Animation": "VFX/Animations/Pedestal_Idle.blockyanim",
-          "Speed": 0.8,
-          "Looping": true
-        }
-      ]
-    },
-    "Pedestal_Active": {
-      "Animations": [
-        {
-          "Animation": "VFX/Animations/Pedestal_Active.blockyanim",
-          "Speed": 0.8,
-          "Looping": true,
-          "BlendingDuration": 0.5
-        }
-      ]
-    }
-  },
   "HitBox": {
     "Min": {
       "X": -0.1,

@@ -27,8 +27,8 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.riprod.hexcode.core.crafting.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.crafting.component.PedestalAnchorComponent;
+import com.riprod.hexcode.core.crafting.registry.PedestalBlockComponent;
 
 public class PedestalSpawner {
 
@@ -46,7 +46,8 @@ public class PedestalSpawner {
         Vector3d anchorPos = getAnchorPosition(blockPos);
 
         if (anchorPos == null) {
-            logger.atWarning().log("pedestal spawnAnchorEntity: could not calculate anchor position for blockPos=%s", blockPos);
+            logger.atWarning().log("pedestal spawnAnchorEntity: could not calculate anchor position for blockPos=%s",
+                    blockPos);
             return null;
         }
 
@@ -65,7 +66,7 @@ public class PedestalSpawner {
         anchorComp.setPedestalLoc(blockPos);
         holder.addComponent(PedestalAnchorComponent.getComponentType(), anchorComp);
 
-        ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset("Pedestal_Holder"); 
+        ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset("Pedestal_Holder");
 
         if (modelAsset == null) {
             logger.atWarning().log("pedestal spawnAnchorEntity: no ModelAsset for id=Pedestal_Holder");
@@ -84,7 +85,8 @@ public class PedestalSpawner {
     }
 
     public static Ref<EntityStore> spawnEssenceDisplay(ComponentAccessor<EntityStore> accessor,
-            Ref<EntityStore> anchorRef, Vector3d anchorPos, Item item,
+            PedestalBlockComponent pedestal,
+            Vector3d anchorPos, Item item,
             String anchorId) {
 
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
@@ -99,17 +101,18 @@ public class PedestalSpawner {
         int networkId = accessor.getExternalData().takeNextNetworkId();
         holder.addComponent(NetworkId.getComponentType(), new NetworkId(networkId));
 
-        addDisplayModel(holder, item, anchorId, 0.5f);
+        addDisplayModel(pedestal, holder, item, anchorId, 0.5f);
 
         holder.addComponent(MountedComponent.getComponentType(),
-                new MountedComponent(anchorRef, new Vector3f(0, -0.5f, 0),
+                new MountedComponent(pedestal.getAnchorRef(), new Vector3f(0, -0.5f, 0),
                         MountController.Minecart));
 
         return accessor.addEntity(holder, AddReason.SPAWN);
     }
 
     public static Ref<EntityStore> spawnBookDisplay(ComponentAccessor<EntityStore> accessor,
-            Ref<EntityStore> anchorRef, Vector3d anchorPos, Item item,
+            PedestalBlockComponent pedestal,
+            Vector3d anchorPos, Item item,
             String anchorId) {
 
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
@@ -124,19 +127,17 @@ public class PedestalSpawner {
         int networkId = accessor.getExternalData().takeNextNetworkId();
         holder.addComponent(NetworkId.getComponentType(), new NetworkId(networkId));
 
-        addDisplayModel(holder, item, anchorId, 1.0f);
+        addDisplayModel(pedestal, holder, item, anchorId, 1.0f);
 
         holder.addComponent(MountedComponent.getComponentType(),
-                new MountedComponent(anchorRef, new Vector3f(0, 0.3f, 0),
+                new MountedComponent(pedestal.getAnchorRef(), new Vector3f(0, 0.3f, 0),
                         MountController.Minecart));
 
         return accessor.addEntity(holder, AddReason.SPAWN);
     }
 
-    private static void addDisplayModel(Holder<EntityStore> holder, Item item,
+    private static void addDisplayModel(PedestalBlockComponent pedestal, Holder<EntityStore> holder, Item item,
             String anchorId, float scale) {
-
-        
 
         ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(anchorId != null ? anchorId : "Pedestal_Holder");
         if (modelAsset == null) {
@@ -151,7 +152,7 @@ public class PedestalSpawner {
                 modelAsset.getGradientSet(), modelAsset.getGradientId(), modelAsset.getEyeHeight(),
                 modelAsset.getCrouchOffset(), modelAsset.getSittingOffset(),
                 modelAsset.getSleepingOffset(),
-                modelAsset.getAnimationSetMap(), modelAsset.getCamera(),
+                pedestal.getAnimationSetMap(), modelAsset.getCamera(),
                 modelAsset.getLight(), modelAsset.getParticles(), modelAsset.getTrails(),
                 modelAsset.getPhysicsValues(),
                 modelAsset.getDetailBoxes(), modelAsset.getPhobia(),
@@ -170,7 +171,7 @@ public class PedestalSpawner {
         return modelAsset.getAnimationSetMap();
     }
 
-    public static void despawnAnchor(Ref<EntityStore> anchorRef, PedestalBlockComponent comp,
+    public static void despawnAnchor(PedestalBlockComponent comp,
             CommandBuffer<EntityStore> buffer) {
 
         Ref<EntityStore> essenceRef = comp.getEssenceDisplayRef();
@@ -182,7 +183,10 @@ public class PedestalSpawner {
         if (bookRef != null && bookRef.isValid()) {
             buffer.removeEntity(bookRef, RemoveReason.REMOVE);
         }
-
-        buffer.removeEntity(anchorRef, RemoveReason.REMOVE);
+        
+        Ref<EntityStore> anchorRef = comp.getAnchorRef();
+        if (anchorRef != null && anchorRef.isValid()) {
+            buffer.removeEntity(anchorRef, RemoveReason.REMOVE);
+        }
     }
 }

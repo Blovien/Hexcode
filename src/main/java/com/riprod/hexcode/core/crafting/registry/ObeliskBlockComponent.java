@@ -1,4 +1,4 @@
-package com.riprod.hexcode.core.crafting.component;
+package com.riprod.hexcode.core.crafting.registry;
 
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;

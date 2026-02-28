@@ -26,7 +26,7 @@ import com.riprod.hexcode.core.casting.utils.GlyphSpawner;
 import com.riprod.hexcode.core.casting.utils.GlyphStyler;
 import com.riprod.hexcode.core.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.crafting.component.PedestalAnchorComponent;
-import com.riprod.hexcode.core.crafting.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.crafting.registry.PedestalBlockComponent;
 import com.riprod.hexcode.core.crafting.spawners.PedestalSpawner;
 import com.riprod.hexcode.core.debug.DebugComponent;
 import com.riprod.hexcode.core.drawing.component.DrawnShapeComponent;

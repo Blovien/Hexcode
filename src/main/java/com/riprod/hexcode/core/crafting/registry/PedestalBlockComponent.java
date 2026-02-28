@@ -1,24 +1,34 @@
-package com.riprod.hexcode.core.crafting.component;
+package com.riprod.hexcode.core.crafting.registry;
 
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
+import com.hypixel.hytale.codec.codecs.map.MapCodec;
+import com.hypixel.hytale.codec.schema.metadata.ui.UIDefaultCollapsedState;
+import com.hypixel.hytale.codec.schema.metadata.ui.UIEditorSectionStart;
+import com.hypixel.hytale.common.util.MapUtil;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelParticle;
+import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset.AnimationSet;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.crafting.component.PedestalState;
 import com.riprod.hexcode.core.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.hexcaster.utils.CasterInventory;
 import com.riprod.hexcode.core.hexes.component.Hex;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -51,43 +61,41 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
                     state -> state.maxRadius)
             .documentation("The radius in which players are detected")
             .add()
-            .appendInherited(new KeyedCodec<>("EssenceOffset", Codec.FLOAT),
+            .appendInherited(new KeyedCodec<>("EssenceOffsetVector", Vector3f.CODEC),
                     (a, v) -> a.essenceOffset = v,
                     a -> a.essenceOffset,
                     (a, p) -> a.essenceOffset = p.essenceOffset)
             .documentation("Particles that spawn while the pedestal is ready for activation")
             .add()
-            .appendInherited(new KeyedCodec<>("BookOffset", Codec.FLOAT),
+            .appendInherited(new KeyedCodec<>("BookOffsetVector", Vector3f.CODEC),
                     (a, v) -> a.bookOffset = v,
                     a -> a.bookOffset,
                     (a, p) -> a.bookOffset = p.bookOffset)
             .documentation("Particles that spawn when the pedestal is active")
             .add()
-            .append(new KeyedCodec<>("StoredBook", ItemStack.CODEC),
-                    (c, v) -> c.storedBook = v,
-                    c -> c.storedBook)
+            .<Map<String, ModelAsset.AnimationSet>>appendInherited(new KeyedCodec<>("AnimationSets", new MapCodec<>(ModelAsset.AnimationSet.CODEC, HashMap::new)),
+                    (model, m) -> model.animationSetMap = MapUtil.combineUnmodifiable(model.animationSetMap, m),
+                    (model) -> model.animationSetMap,
+                    (model, parent) -> model.animationSetMap = parent.animationSetMap)
+            .metadata(new UIEditorSectionStart("Animations"))
+            .metadata(UIDefaultCollapsedState.UNCOLLAPSED)
+            .add()
+            .append(new KeyedCodec<>("StoredBook", ItemStack.CODEC), (c, v) -> c.storedBook = v, c -> c.storedBook)
             .documentation(
                     "The book currently stored in the pedestal. Set at runtime when a player places a book on the pedestal")
             .add()
-            .append(new KeyedCodec<>("EssenceItemId", Codec.STRING),
-                    (c, v) -> c.essenceItemId = v,
+            .append(new KeyedCodec<>("EssenceItemId", Codec.STRING), (c, v) -> c.essenceItemId = v,
                     c -> c.essenceItemId)
             .documentation(
                     "The essence item ID currently stored in the pedestal. Set at runtime when a player places a book on the pedestal")
             .add()
-            .append(new KeyedCodec<>("HolderReference", Codec.STRING),
-                    (c, v) -> c.referenceHolder = v,
+            .append(new KeyedCodec<>("HolderReference", Codec.STRING), (c, v) -> c.referenceHolder = v,
                     c -> c.referenceHolder)
             .addValidatorLate(() -> ModelAsset.VALIDATOR_CACHE.getValidator().late())
             .documentation(
                     "A model that has the animations for the items (book/essence). Used for customizing the animation displays.")
-            .add()
-            .append(new KeyedCodec<>("Location", Vector3i.CODEC),
-                    (c, v) -> c.location = v,
-                    c -> c.location)
-            .documentation("The location of the pedestal in the world.")
-            .add()
-            .build();
+            .add().append(new KeyedCodec<>("Location", Vector3i.CODEC), (c, v) -> c.location = v, c -> c.location)
+            .documentation("The location of the pedestal in the world.").add().build();
 
     private static ComponentType<ChunkStore, PedestalBlockComponent> componentType;
 
@@ -106,6 +114,9 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
     private boolean perPlayer = false;
     private int obeliskRange = 30;
     private String referenceHolder = null;
+    private Map<String, AnimationSet> animationSetMap = Collections.emptyMap();
+    protected Vector3f essenceOffset;
+    protected Vector3f bookOffset;
     // transient
     private PedestalState blockState = PedestalState.OFF;
     private Hex activeHex = null;
@@ -116,10 +127,6 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
     private List<Ref<EntityStore>> activePlayerRefs = new ArrayList<>();
     private List<Ref<EntityStore>> hexPreviewRefs = new ArrayList<>();
     private Vector3i location = null;
-
-    // style
-    protected float essenceOffset;
-    protected float bookOffset;
 
     public void setLocation(Vector3i location) {
         this.location = location;
@@ -289,12 +296,16 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
     }
 
     // style
-    public float getBlockOffset() {
+    public Vector3f getBlockOffset() {
         return this.bookOffset;
     }
 
-    public float getEssenceOffset() {
+    public Vector3f getEssenceOffset() {
         return this.essenceOffset;
+    }
+
+    public Map<String, AnimationSet> getAnimationSetMap() {
+        return animationSetMap;
     }
 
     @Nonnull
