@@ -117,7 +117,8 @@
         }
       ]
     },
-    "CustomModelScale": 0.6
+    "CustomModelScale": 0.6,
+    "VariantRotation": "NESW"
   },
   "Tags": {
     "Type": [

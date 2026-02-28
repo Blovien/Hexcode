@@ -114,7 +114,8 @@
           "FaceType": "Full"
         }
       ]
-    }
+    },
+    "VariantRotation": "NESW"
   },
   "Tags": {
     "Type": [
