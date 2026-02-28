@@ -1,0 +1,113 @@
+{
+  "TranslationProperties": {
+    "Name": "Hexcode Pedestal"
+  },
+  "Icon": "Icons/ItemsGenerated/Hexcode_Pedestal.png",
+  "Categories": [
+    "Blocks.Deco"
+  ],
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "DrawType": "Model",
+    "Material": "Solid",
+    "Opacity": "Transparent",
+    "CustomModel": "Blocks/Hexcode/Pedestals/Pedestal_Arcane.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "Blocks/Hexcode/Pedestals/Pedestal_Arcane.png",
+        "Weight": 1
+      }
+    ],
+    "HitboxType": "Full",
+    "BlockSoundSetId": "Stone",
+    "BlockParticleSetId": "Stone",
+    "Flags": {
+      "IsUsable": true
+    },
+    "Interactions": {
+      "Use": {
+        "RequireNewClick": true,
+        "Cooldown": {
+          "Id": "PedestalInteractionCooldown",
+          "Cooldown": 0.3,
+          "ClickBypass": true
+        },
+        "Interactions": [
+          "Pedestal_Interact"
+        ]
+      }
+    },
+    "State": {
+      "Definitions": {
+        "Active": {
+          "CustomModel": "Blocks/Hexcode/Pedestals/Pedestal_Arcane.blockymodel",
+          "Light": {
+            "Color": "#88aabb",
+            "Intensity": 10
+          }
+        },
+        "Inactive": {
+          "CustomModel": "Blocks/Hexcode/Pedestals/Pedestal_Arcane.blockymodel",
+          "Light": {
+            "Color": "#446677",
+            "Intensity": 3
+          }
+        }
+      }
+    },
+    "HexPedestal": {
+      "MaxRadius": 30,
+      "PerPlayer": false,
+      "HexBook": {},
+      "EssenceId": {},
+      "ActiveHexes": [],
+      "MaxObelisks": 4,
+      "ObeliskRange": 30
+    },
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "SoftBlocks"
+      }
+    },
+    "BlockEntity": {
+      "Components": {
+        "Hexcode_PedestalBlock": {
+          "MaxObelisks": 5,
+          "HolderReference": "Pedestal_Holder",
+          "ObeliskRange": 25,
+          "PerPlayer": false,
+          "MaxRadius": 30
+        }
+      }
+    },
+    "Support": {
+      "Down": [
+        {
+          "FaceType": "Full"
+        }
+      ]
+    },
+    "CustomModelScale": 0.6
+  },
+  "Tags": {
+    "Type": [
+      "Deco"
+    ],
+    "Family": [
+      "Hexcode"
+    ]
+  },
+  "ItemSoundSetId": "ISS_Blocks_Stone",
+  "IconProperties": {
+    "Scale": 0.4,
+    "Rotation": [
+      22.5,
+      47,
+      24
+    ],
+    "Translation": [
+      0,
+      -30
+    ]
+  }
+}

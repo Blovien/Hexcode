@@ -11,10 +11,10 @@
     "DrawType": "Model",
     "Material": "Solid",
     "Opacity": "Transparent",
-    "CustomModel": "Blocks/Hexcode/Pedestal_Off.blockymodel",
+    "CustomModel": "Blocks/Hexcode/Pedestals/Pedestal_Old.blockymodel",
     "CustomModelTexture": [
       {
-        "Texture": "Blocks/Hexcode/Pedestal_Texture.png",
+        "Texture": "Blocks/Hexcode/Pedestals/Pedestal_Old.png",
         "Weight": 1
       }
     ],
@@ -37,19 +37,19 @@
         ]
       }
     },
-    "CustomModelAnimation": "Blocks/Hexcode/Animations/Pedestal_Idle.blockyanim",
+    "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Old_Idle.blockyanim",
     "State": {
       "Definitions": {
         "Active": {
-          "CustomModel": "Blocks/Hexcode/Pedestal_On.blockymodel",
+          "CustomModel": "Blocks/Hexcode/Pedestals/Pedestal_Old.blockymodel",
           "Light": {
             "Color": "#88aabb",
             "Intensity": 10
           },
-          "CustomModelAnimation": "Blocks/Hexcode/Animations/Pedestal_Active.blockyanim"
+          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Old_Active.blockyanim"
         },
         "Inactive": {
-          "CustomModel": "Blocks/Hexcode/Pedestal_Deactivating.blockymodel",
+          "CustomModel": "Blocks/Hexcode/Pedestals/Pedestal_Old.blockymodel",
           "Light": {
             "Color": "#446677",
             "Intensity": 3

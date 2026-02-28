@@ -4,6 +4,7 @@ import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
+import com.hypixel.hytale.server.core.asset.type.model.config.ModelParticle;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
@@ -49,6 +50,18 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
                     (state, v) -> state.maxRadius = v,
                     state -> state.maxRadius)
             .documentation("The radius in which players are detected")
+            .add()
+            .appendInherited(new KeyedCodec<>("EssenceOffset", Codec.FLOAT),
+                    (a, v) -> a.essenceOffset = v,
+                    a -> a.essenceOffset,
+                    (a, p) -> a.essenceOffset = p.essenceOffset)
+            .documentation("Particles that spawn while the pedestal is ready for activation")
+            .add()
+            .appendInherited(new KeyedCodec<>("BookOffset", Codec.FLOAT),
+                    (a, v) -> a.bookOffset = v,
+                    a -> a.bookOffset,
+                    (a, p) -> a.bookOffset = p.bookOffset)
+            .documentation("Particles that spawn when the pedestal is active")
             .add()
             .append(new KeyedCodec<>("StoredBook", ItemStack.CODEC),
                     (c, v) -> c.storedBook = v,
@@ -103,6 +116,10 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
     private List<Ref<EntityStore>> activePlayerRefs = new ArrayList<>();
     private List<Ref<EntityStore>> hexPreviewRefs = new ArrayList<>();
     private Vector3i location = null;
+
+    // style
+    protected float essenceOffset;
+    protected float bookOffset;
 
     public void setLocation(Vector3i location) {
         this.location = location;
@@ -271,6 +288,15 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
         return 0; // implement
     }
 
+    // style
+    public float getBlockOffset() {
+        return this.bookOffset;
+    }
+
+    public float getEssenceOffset() {
+        return this.essenceOffset;
+    }
+
     @Nonnull
     @Override
     public Component<ChunkStore> clone() {
@@ -290,6 +316,8 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
         copy.essenceDisplayRef = this.essenceDisplayRef;
         copy.activePlayerRefs = new ArrayList<>(this.activePlayerRefs);
         copy.hexPreviewRefs = new ArrayList<>(this.hexPreviewRefs);
+        copy.bookOffset = this.bookOffset;
+        copy.essenceOffset = this.essenceOffset;
         copy.location = this.location != null ? this.location.clone() : null;
         return copy;
     }

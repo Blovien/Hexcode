@@ -11,10 +11,10 @@
     "DrawType": "Model",
     "Material": "Solid",
     "Opacity": "Transparent",
-    "CustomModel": "Blocks/Hexcode/Obelisk.blockymodel",
+    "CustomModel": "Blocks/Hexcode/Obelisks/Obelisk.blockymodel",
     "CustomModelTexture": [
       {
-        "Texture": "Blocks/Hexcode/Obelisk_Texture.png",
+        "Texture": "Blocks/Hexcode/Obelisks/Obelisk_Texture.png",
         "Weight": 1
       }
     ],
@@ -35,7 +35,7 @@
     "State": {
       "Definitions": {
         "Active": {
-          "CustomModel": "Blocks/Hexcode/Obelisk_Active.blockymodel",
+          "CustomModel": "Blocks/Hexcode/Obelisks/Obelisk_Active.blockymodel",
           "Light": {
             "Color": "#88aabb",
             "Intensity": 5
