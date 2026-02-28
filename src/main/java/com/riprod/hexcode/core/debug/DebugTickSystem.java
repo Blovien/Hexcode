@@ -66,16 +66,16 @@ public class DebugTickSystem extends EntityTickingSystem<EntityStore> {
 
         switch (debug.getShape()) {
             case Cube:
-                DebugUtils.addCube(world, pos, debug.getColor(), debug.getScale(), debug.getRespawnInterval());
+                DebugUtils.addCube(world, pos, debug.getColor(), debug.getScale(), debug.getRespawnInterval() * debug.getIntervalMultiplier());
                 break;
             case Sphere:
-                DebugUtils.addSphere(world, pos, debug.getColor(), debug.getScale(), debug.getRespawnInterval());
+                DebugUtils.addSphere(world, pos, debug.getColor(), debug.getScale(), debug.getRespawnInterval() * debug.getIntervalMultiplier());
                 break;
             case Cylinder:
-                DebugUtils.addCylinder(world, pos, debug.getColor(), debug.getScale(), debug.getRespawnInterval());
+                DebugUtils.addCylinder(world, pos, debug.getColor(), debug.getScale(), debug.getRespawnInterval() * debug.getIntervalMultiplier());
                 break;
             case Cone:
-                DebugUtils.addCone(world, pos, debug.getColor(), debug.getScale(), debug.getRespawnInterval());
+                DebugUtils.addCone(world, pos, debug.getColor(), debug.getScale(), debug.getRespawnInterval() * debug.getIntervalMultiplier());
                 break;
             default:
                 break;

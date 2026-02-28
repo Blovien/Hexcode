@@ -1,4 +1,4 @@
-package com.riprod.hexcode.core.crafting.utils;
+package com.riprod.hexcode.core.crafting.spawners;
 
 import java.util.Map;
 import java.util.UUID;
@@ -65,7 +65,7 @@ public class PedestalSpawner {
         anchorComp.setPedestalLoc(blockPos);
         holder.addComponent(PedestalAnchorComponent.getComponentType(), anchorComp);
 
-        ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset("Pedestal_Holder");
+        ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset("Pedestal_Holder"); 
 
         if (modelAsset == null) {
             logger.atWarning().log("pedestal spawnAnchorEntity: no ModelAsset for id=Pedestal_Holder");
@@ -99,10 +99,10 @@ public class PedestalSpawner {
         int networkId = accessor.getExternalData().takeNextNetworkId();
         holder.addComponent(NetworkId.getComponentType(), new NetworkId(networkId));
 
-        addDisplayModel(holder, item, anchorId);
+        addDisplayModel(holder, item, anchorId, 0.5f);
 
         holder.addComponent(MountedComponent.getComponentType(),
-                new MountedComponent(anchorRef, new Vector3f(0, 0f, 0),
+                new MountedComponent(anchorRef, new Vector3f(0, -0.5f, 0),
                         MountController.Minecart));
 
         return accessor.addEntity(holder, AddReason.SPAWN);
@@ -124,17 +124,17 @@ public class PedestalSpawner {
         int networkId = accessor.getExternalData().takeNextNetworkId();
         holder.addComponent(NetworkId.getComponentType(), new NetworkId(networkId));
 
-        addDisplayModel(holder, item, anchorId);
+        addDisplayModel(holder, item, anchorId, 1.0f);
 
         holder.addComponent(MountedComponent.getComponentType(),
-                new MountedComponent(anchorRef, new Vector3f(0, 0, 0),
+                new MountedComponent(anchorRef, new Vector3f(0, 0.3f, 0),
                         MountController.Minecart));
 
         return accessor.addEntity(holder, AddReason.SPAWN);
     }
 
     private static void addDisplayModel(Holder<EntityStore> holder, Item item,
-            String anchorId) {
+            String anchorId, float scale) {
 
         
 
@@ -146,7 +146,7 @@ public class PedestalSpawner {
 
         Model model;
         model = new Model(
-                modelAsset.getId(), 1.0f, (Map<String, String>) null, modelAsset.getAttachments(null),
+                modelAsset.getId(), scale, (Map<String, String>) null, modelAsset.getAttachments(null),
                 modelAsset.getBoundingBox(), item.getModel(), item.getTexture(),
                 modelAsset.getGradientSet(), modelAsset.getGradientId(), modelAsset.getEyeHeight(),
                 modelAsset.getCrouchOffset(), modelAsset.getSittingOffset(),

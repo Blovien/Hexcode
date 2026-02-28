@@ -37,23 +37,18 @@
         ]
       }
     },
+    "CustomModelAnimation": "Blocks/Hexcode/Animations/Pedestal_Idle.blockyanim",
     "State": {
       "Definitions": {
-        "Activating": {
-          "CustomModel": "Blocks/Hexcode/Pedestal_Activating.blockymodel",
-          "Light": {
-            "Color": "#6688aa",
-            "Intensity": 5
-          }
-        },
-        "On": {
+        "Active": {
           "CustomModel": "Blocks/Hexcode/Pedestal_On.blockymodel",
           "Light": {
             "Color": "#88aabb",
             "Intensity": 10
-          }
+          },
+          "CustomModelAnimation": "Blocks/Hexcode/Animations/Pedestal_Active.blockyanim"
         },
-        "Deactivating": {
+        "Inactive": {
           "CustomModel": "Blocks/Hexcode/Pedestal_Deactivating.blockymodel",
           "Light": {
             "Color": "#446677",
@@ -93,7 +88,8 @@
           "FaceType": "Full"
         }
       ]
-    }
+    },
+    "CustomModelScale": 0.6
   },
   "Tags": {
     "Type": [

@@ -21,6 +21,7 @@ import com.riprod.hexcode.core.crafting.component.PedestalAnchorComponent;
 import com.riprod.hexcode.core.crafting.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.crafting.component.PedestalState;
 import com.riprod.hexcode.core.crafting.system.PedestalSystem;
+import com.riprod.hexcode.core.crafting.utils.SelectionUtils;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.hexes.component.HexComponent;
@@ -29,7 +30,7 @@ import com.riprod.hexcode.state.HexcodeManager;
 public class CraftingSystem extends HexcodeManager {
 
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
-    private static final float DETECTION_RANGE = 8.0f;
+    private static final float DETECTION_RANGE = 10.0f;
     private static final String HOVER_PARTICLE = "Glyph_Ambient";
 
     @Override
@@ -80,8 +81,20 @@ public class CraftingSystem extends HexcodeManager {
         if (pedestal.getState() != PedestalState.ACTIVE) {
             return;
         }
+        switch (pedestal.getState()) {
+            case ACTIVE:
+                tickActive(buffer, ref, pedestal);
+                break;
+            case CRAFTING:
+                tickCrafting(buffer, ref, pedestal);
+                break;
+        }
+    }
 
+    private static void tickActive(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref,
+            PedestalBlockComponent pedestal) {
         List<Ref<EntityStore>> previewRefs = pedestal.getHexPreviewRefs();
+
         if (previewRefs == null || previewRefs.isEmpty()) {
             return;
         }
@@ -92,7 +105,52 @@ public class CraftingSystem extends HexcodeManager {
             return;
         }
 
-        Ref<EntityStore> targetRef = TargetUtil.getTargetEntity(ref, DETECTION_RANGE, buffer);
+        List<Ref<EntityStore>> hexGlyphs = pedestal.getHexPreviewRefs();
+
+        if (hexGlyphs.isEmpty())
+            return;
+
+        Ref<EntityStore> targetRef = SelectionUtils.getSmallestTarget(buffer, ref, hexGlyphs);
+        Ref<EntityStore> hoveredRef = resolveHoveredPreview(targetRef, previewRefs, buffer);
+
+        Ref<EntityStore> previousHovered = craftingComp.getHoveredHexRef();
+        boolean changed = (hoveredRef == null) != (previousHovered == null)
+                || (hoveredRef != null && !hoveredRef.equals(previousHovered));
+        if (changed) {
+            LOGGER.atInfo().log("crafting: hover changed from %s to %s", previousHovered, hoveredRef);
+        }
+
+        craftingComp.setHoveredHexRef(hoveredRef);
+
+        if (hoveredRef != null && hoveredRef.isValid()) {
+            TransformComponent transform = buffer.getComponent(hoveredRef, TransformComponent.getComponentType());
+            if (transform != null) {
+                Vector3d pos = transform.getPosition();
+                ParticleUtil.spawnParticleEffect(HOVER_PARTICLE, pos, hoveredRef, List.of(ref), buffer);
+            }
+        }
+    }
+
+    private static void tickCrafting(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref,
+            PedestalBlockComponent pedestal) {
+        List<Ref<EntityStore>> previewRefs = pedestal.getHexPreviewRefs();
+
+        if (previewRefs == null || previewRefs.isEmpty()) {
+            return;
+        }
+
+        HexcasterCraftingComponent craftingComp = buffer.getComponent(ref,
+                HexcasterCraftingComponent.getComponentType());
+        if (craftingComp == null) {
+            return;
+        }
+
+        List<Ref<EntityStore>> hexGlyphs = pedestal.getHexPreviewRefs();
+
+        if (hexGlyphs.isEmpty())
+            return;
+
+        Ref<EntityStore> targetRef = SelectionUtils.getSmallestTarget(buffer, ref, hexGlyphs);
         Ref<EntityStore> hoveredRef = resolveHoveredPreview(targetRef, previewRefs, buffer);
 
         Ref<EntityStore> previousHovered = craftingComp.getHoveredHexRef();

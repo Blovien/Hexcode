@@ -25,6 +25,7 @@ public class DebugComponent implements Component<EntityStore> {
     private double scale;
     private float respawnInterval;
     private float timer;
+    private float intervalMultiplier;
 
     public DebugComponent() {
         this(DebugShape.Cube, new Vector3f(0f, 1f, 0f), 0.5, 2.0f);
@@ -35,6 +36,17 @@ public class DebugComponent implements Component<EntityStore> {
         this.color = color;
         this.scale = scale;
         this.respawnInterval = respawnInterval;
+        this.intervalMultiplier = 2.0f;
+        this.timer = 0;
+    }
+
+    public DebugComponent(DebugShape shape, Vector3f color, double scale, float respawnInterval,
+            float intervalMultiplier) {
+        this.shape = shape;
+        this.color = color;
+        this.scale = scale;
+        this.respawnInterval = respawnInterval;
+        this.intervalMultiplier = intervalMultiplier;
         this.timer = 0;
     }
 
@@ -76,6 +88,14 @@ public class DebugComponent implements Component<EntityStore> {
 
     public void setTimer(float timer) {
         this.timer = timer;
+    }
+
+    public float getIntervalMultiplier() {
+        return this.intervalMultiplier;
+    }
+
+    public void setIntervalMultiplier(float multiplier) {
+        this.intervalMultiplier = multiplier;
     }
 
     @Nonnull

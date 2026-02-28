@@ -17,6 +17,7 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.crafting.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.crafting.component.PedestalState;
+import com.riprod.hexcode.core.crafting.spawners.AnchorSpawner;
 import com.riprod.hexcode.core.crafting.utils.PedestalBlockUtil;
 
 public class PedestalBlockEventSystem extends EntityEventSystem<EntityStore, BreakBlockEvent> {
@@ -53,7 +54,7 @@ public class PedestalBlockEventSystem extends EntityEventSystem<EntityStore, Bre
             return;
         }
 
-        PedestalSystem.DespawnHexPreviews(buffer, pedestal);
+        AnchorSpawner.DespawnHexPreviews(buffer, pedestal);
 
         ObeliskProtectionSystem.unprotect(pos);
 

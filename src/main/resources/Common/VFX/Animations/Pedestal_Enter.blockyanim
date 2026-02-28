@@ -180,7 +180,7 @@
       "position": [
         {
           "time": 0,
-          "delta": {"x": 0, "y": 91, "z": 0},
+          "delta": {"x": 0, "y": 0, "z": 0},
           "interpolationType": "smooth"
         }
       ],

@@ -21,7 +21,7 @@ import com.hypixel.hytale.server.core.util.TargetUtil;
 import com.riprod.hexcode.core.crafting.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.crafting.component.PedestalAnchorComponent;
 import com.riprod.hexcode.core.crafting.component.PedestalState;
-import com.riprod.hexcode.core.crafting.utils.PedestalSpawner;
+import com.riprod.hexcode.core.crafting.spawners.PedestalSpawner;
 import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.state.HexState;
 
@@ -97,7 +97,7 @@ public class PedestalTickSystem extends EntityTickingSystem<EntityStore> {
                 continue;
             }
 
-            if (hexcaster.getState() == HexState.IDLE) {
+            if (hexcaster.getState() == HexState.IDLE || hexcaster.getState() == HexState.EXECUTION) {
                 hexcaster.setPendingPedestalRef(anchorRef);
                 hexcaster.requestStateChange(HexState.CRAFTING);
                 pedestal.addDetectedPlayer(entityRef);

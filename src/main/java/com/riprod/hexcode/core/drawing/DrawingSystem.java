@@ -10,6 +10,7 @@ import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.shape.Box;
+import com.hypixel.hytale.math.vector.Transform;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.Color;
@@ -26,7 +27,7 @@ import com.riprod.hexcode.core.casting.utils.GlyphStyler;
 import com.riprod.hexcode.core.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.crafting.component.PedestalAnchorComponent;
 import com.riprod.hexcode.core.crafting.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.crafting.utils.PedestalSpawner;
+import com.riprod.hexcode.core.crafting.spawners.PedestalSpawner;
 import com.riprod.hexcode.core.debug.DebugComponent;
 import com.riprod.hexcode.core.drawing.component.DrawnShapeComponent;
 import com.riprod.hexcode.core.drawing.component.HexcasterDrawingComponent;
@@ -79,8 +80,10 @@ public class DrawingSystem extends HexcodeManager {
         Hex hex = new Hex(glyph);
 
         Ref<EntityStore> anchorRef = resolveAnchorRef(ref, buffer);
+        HeadRotation hRotation = buffer.getComponent(ref, HeadRotation.getComponentType());
         PedestalBlockComponent pedestal = resolvePedestal(anchorRef, buffer);
         Vector3d spawnPos = calculateDrawCenter(drawnShapes);
+        Transform transform = new Transform(spawnPos, hRotation.getRotation());
 
         if (pedestal == null || anchorRef == null || spawnPos == null) {
           LOGGER.atInfo().log("cannot spawn drawn hex: missing pedestal or draw position");
@@ -92,7 +95,7 @@ public class DrawingSystem extends HexcodeManager {
           if (distSq > maxRadius * maxRadius) {
             LOGGER.atInfo().log("drawn hex outside pedestal radius");
           } else {
-            spawnDrawnHex(buffer, hex, glyph, anchorRef, pedestal, spawnPos);
+            spawnDrawnHex(buffer, hex, glyph, anchorRef, pedestal, transform);
           }
         }
       }
@@ -269,16 +272,16 @@ public class DrawingSystem extends HexcodeManager {
   }
 
   private static void spawnDrawnHex(CommandBuffer<EntityStore> buffer, Hex hex, Glyph glyph,
-      Ref<EntityStore> anchorRef, PedestalBlockComponent pedestal, Vector3d spawnPos) {
+      Ref<EntityStore> anchorRef, PedestalBlockComponent pedestal, Transform spawnPos) {
 
     HexComponent hexComponent = new HexComponent(hex);
     hexComponent.setRootRef(anchorRef);
     hexComponent.setParentRef(null);
 
-    Holder<EntityStore> holder = CreateHex.createHexHolder(buffer, hexComponent, spawnPos);
+    Holder<EntityStore> holder = CreateHex.createHexHolder(buffer, hexComponent, spawnPos.getPosition());
     holder.addComponent(BoundingBox.getComponentType(), new BoundingBox(PREVIEW_BOUNDING_BOX));
     holder.addComponent(DebugComponent.getComponentType(),
-        new DebugComponent(DebugShape.Cube, new Vector3f(0f, 1f, 0f), 0.5, 2.0f));
+        new DebugComponent(DebugShape.Sphere, new Vector3f(0f, 1f, 0f), 0.15, 2.0f, 1));
 
     Ref<EntityStore> hexRef = CreateHex.createEntity(buffer, holder);
     hexComponent.setSelfRef(hexRef);
@@ -293,15 +296,15 @@ public class DrawingSystem extends HexcodeManager {
     firstGlyphComponent.setHexRef(hexRef);
     firstGlyphComponent.setParentRef(hexRef);
     firstGlyphComponent.setOffset(Vector3f.ZERO);
-    firstGlyphComponent.setRotation(new Vector3f(PEDESTAL_GLYPH_PITCH, 0, GLYPH_DISPLAY_DISTANCE));
+    firstGlyphComponent.setRotation(spawnPos.getRotation());
     firstGlyphComponent.setScale(scaleMultiplier);
     hexComponent.setScale(scaleMultiplier);
 
-    GlyphSpawner.spawnGlyphs(buffer, hexComponent, firstGlyphComponent, spawnPos);
+    GlyphSpawner.spawnGlyphs(buffer, hexComponent, firstGlyphComponent, spawnPos.getPosition());
 
     List<Ref<EntityStore>> refs = new ArrayList<>(pedestal.getHexPreviewRefs());
     refs.add(hexRef);
     pedestal.setHexPreviewRefs(refs);
-    LOGGER.atInfo().log("spawned drawn hex at %.1f, %.1f, %.1f", spawnPos.x, spawnPos.y, spawnPos.z);
+    LOGGER.atInfo().log("spawned drawn hex at %.1f", spawnPos);
   }
 }

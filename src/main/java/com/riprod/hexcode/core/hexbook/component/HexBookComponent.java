@@ -42,7 +42,6 @@ public class HexBookComponent implements Component<EntityStore> {
 
     @Nonnull
     private List<Hex> hexes = new ArrayList<>();
-    @Nonnull
     private int maxCapacity = 10;
     @Nonnull
     private String bookId = "";

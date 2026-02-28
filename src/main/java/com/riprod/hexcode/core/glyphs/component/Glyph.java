@@ -58,8 +58,8 @@ public class Glyph {
         this.efficiency = efficiency;
         this.totalInputs = glyphAsset.getInputCount();
         this.totalOutputs = glyphAsset.getOutputCount();
-        this.inputs = new ArrayList<>(this.totalInputs);
-        this.outputs = new ArrayList<>(this.totalOutputs);
+        this.inputs = this.totalInputs > 0 ? new ArrayList<>(this.totalInputs) : new ArrayList<>();
+        this.outputs = this.totalOutputs > 0 ? new ArrayList<>(this.totalOutputs) : new ArrayList<>();
         this.next = new ArrayList<>();
         this.previous = new ArrayList<>();
         this.relPosition = new Vector3f(0, 0, 0);

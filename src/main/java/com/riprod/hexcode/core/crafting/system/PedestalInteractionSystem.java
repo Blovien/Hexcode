@@ -16,9 +16,10 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.crafting.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.crafting.component.PedestalState;
+import com.riprod.hexcode.core.crafting.spawners.AnchorSpawner;
+import com.riprod.hexcode.core.crafting.spawners.PedestalSpawner;
 import com.riprod.hexcode.core.crafting.utils.PedestalBlockUtil;
 import com.riprod.hexcode.core.crafting.utils.PedestalItemUtil;
-import com.riprod.hexcode.core.crafting.utils.PedestalSpawner;
 import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.state.HexState;
 
@@ -161,7 +162,7 @@ public class PedestalInteractionSystem {
                 pedestalComponent.getStoredBook() != null ? pedestalComponent.getStoredBook().getItem().getId() : "null");
 
         Vector3i blockPos = pedestalComponent.getLocation();
-        PedestalBlockUtil.changeBlockState(world, blockPos, "Activating");
+        PedestalBlockUtil.changeBlockState(world, blockPos, "Active");
         pedestalComponent.setState(PedestalState.ACTIVE);
 
         Integer bookSlots = pedestalComponent.getBookSlots();
@@ -175,7 +176,7 @@ public class PedestalInteractionSystem {
             Player player, PedestalBlockComponent pedestalComponent,
             World world) {
 
-        PedestalSystem.DespawnHexPreviews(buffer, pedestalComponent);
+        AnchorSpawner.DespawnHexPreviews(buffer, pedestalComponent);
 
         List<Ref<EntityStore>> activePlayers = pedestalComponent.getActivePlayerRefs();
         for (int i = 0; i < activePlayers.size(); i++) {
@@ -214,7 +215,7 @@ public class PedestalInteractionSystem {
         }
 
         pedestalComponent.setState(PedestalState.OFF);
-        PedestalBlockUtil.changeBlockState(world, blockPos, "Deactivating");
+        PedestalBlockUtil.changeBlockState(world, blockPos, "Inactive");
         pedestalComponent.setEssenceItemId(null);
     }
 
