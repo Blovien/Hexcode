@@ -2,7 +2,7 @@
   "TranslationProperties": {
     "Name": "Hexcode Pedestal"
   },
-  "Icon": "Icons/ItemsGenerated/Hexcode_Pedestal.png",
+  "Icon": "Icons/ItemsGenerated/Hexcode_Pedestal_Fire.png",
   "Categories": [
     "Blocks.Deco"
   ],
@@ -87,7 +87,7 @@
         }
       ]
     },
-    "CustomModelScale": 0.6
+    "CustomModelScale": 1
   },
   "Tags": {
     "Type": [
