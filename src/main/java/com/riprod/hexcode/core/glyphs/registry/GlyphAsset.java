@@ -17,6 +17,7 @@ import com.hypixel.hytale.codec.codecs.EnumCodec;
 import com.hypixel.hytale.codec.codecs.array.ArrayCodec;
 import com.hypixel.hytale.codec.validation.ValidatorCache;
 import com.hypixel.hytale.codec.validation.Validators;
+import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.riprod.hexcode.core.drawing.component.DrawnShapeComponent;
 import com.riprod.hexcode.core.glyphs.utils.GlyphType;
 
@@ -98,6 +99,7 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
                 .<String>appendInherited(new KeyedCodec<>("ModelPath", Codec.STRING),
                         (a, v) -> a.modelPath = v, a -> a.modelPath,
                         (a, p) -> a.modelPath = p.modelPath)
+                .addValidatorLate(() -> ModelAsset.VALIDATOR_CACHE.getValidator().late())
                 .add()
                 .<Float>appendInherited(new KeyedCodec<>("BasePower", Codec.FLOAT),
                         (a, v) -> a.basePower = v, a -> a.basePower,
@@ -116,7 +118,9 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
                         (a, p) -> a.glyphType = p.glyphType)
                 .addValidator(Validators.nonNull())
                 .add()
-                .<DrawnShapeComponent[]>appendInherited(new KeyedCodec<>("ShapeStructure", new ArrayCodec<>(DrawnShapeComponent.CODEC, DrawnShapeComponent[]::new)),
+                .<DrawnShapeComponent[]>appendInherited(
+                        new KeyedCodec<>("ShapeStructure",
+                                new ArrayCodec<>(DrawnShapeComponent.CODEC, DrawnShapeComponent[]::new)),
                         (c, v) -> {
                             if (v != null) {
                                 c.shapes = new ArrayList<>(Arrays.asList(v));

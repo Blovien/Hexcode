@@ -5,8 +5,6 @@ import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.drawing.component.DrawnShapeComponent;
-import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
-import com.riprod.hexcode.core.hexes.component.HexComponent;
 import com.riprod.hexcode.state.HexState;
 
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
@@ -56,7 +54,7 @@ public class HexcasterComponent implements Component<EntityStore> {
     private long drawStartTimeMillis = 0;
 
     // Crafting Mode
-    private Ref<EntityStore> pedestalRef = null;
+    private Ref<EntityStore> pendingPedestalRef = null;
 
     public HexcasterComponent() {
     }
@@ -77,16 +75,22 @@ public class HexcasterComponent implements Component<EntityStore> {
         this.drawStartTimeMillis = 0;
     }
 
-    public Ref<EntityStore> getPedestalRef() {
-        return pedestalRef;
+    public Ref<EntityStore> getPendingPedestalRef() {
+        return pendingPedestalRef;
     }
 
-    public void setPedestalRef(@Nullable Ref<EntityStore> pedestalRef) {
-        this.pedestalRef = pedestalRef;
+    public void setPendingPedestalRef(@Nullable Ref<EntityStore> ref) {
+        this.pendingPedestalRef = ref;
+    }
+
+    public Ref<EntityStore> consumePendingPedestalRef() {
+        Ref<EntityStore> ref = this.pendingPedestalRef;
+        this.pendingPedestalRef = null;
+        return ref;
     }
 
     public void clearCraftingState() {
-        this.pedestalRef = null;
+        this.pendingPedestalRef = null;
     }
 
     public FloatArrayList getDrawnStrokes() {
@@ -153,7 +157,7 @@ public class HexcasterComponent implements Component<EntityStore> {
         copy.trailRef = this.trailRef;
         copy.lastParticleSpawnMillis = this.lastParticleSpawnMillis;
         copy.drawStartTimeMillis = this.drawStartTimeMillis;
-        copy.pedestalRef = this.pedestalRef;
+        copy.pendingPedestalRef = this.pendingPedestalRef;
         return copy;
     }
 }

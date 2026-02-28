@@ -79,6 +79,12 @@
     "BlockEntity": {
       "Hexcode_PedestalBlock": {
         "MaxObelisks": 4
+      },
+      "Components": {
+        "Hexcode_PedestalBlock": {
+          "MaxObelisks": 5,
+          "HolderReference": "Pedestal_Holder"
+        }
       }
     },
     "Support": {

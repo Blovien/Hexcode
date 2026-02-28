@@ -1,22 +1,35 @@
 package com.riprod.hexcode.core.drawing;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.hypixel.hytale.component.CommandBuffer;
-import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.math.shape.Box;
 import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.Color;
+import com.hypixel.hytale.protocol.DebugShape;
 import com.hypixel.hytale.protocol.InteractionState;
+import com.hypixel.hytale.server.core.modules.block.BlockModule;
+import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.time.TimeResource;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.casting.utils.GlyphSpawner;
+import com.riprod.hexcode.core.casting.utils.GlyphStyler;
+import com.riprod.hexcode.core.crafting.component.HexcasterCraftingComponent;
+import com.riprod.hexcode.core.crafting.component.PedestalAnchorComponent;
+import com.riprod.hexcode.core.crafting.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.crafting.utils.PedestalSpawner;
+import com.riprod.hexcode.core.debug.DebugComponent;
 import com.riprod.hexcode.core.drawing.component.DrawnShapeComponent;
+import com.riprod.hexcode.core.drawing.component.HexcasterDrawingComponent;
 import com.riprod.hexcode.core.drawing.system.GlyphCreationManager;
 import com.riprod.hexcode.core.drawing.system.InterfaceManager;
 import com.riprod.hexcode.core.drawing.utils.DrawRasterizer;
@@ -24,21 +37,26 @@ import com.riprod.hexcode.core.drawing.utils.ShapeComparator;
 import com.riprod.hexcode.core.glyphs.component.Glyph;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.glyphs.registry.GlyphAsset;
-import com.riprod.hexcode.core.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
-import com.riprod.hexcode.core.hexcaster.utils.CasterInventory;
 import com.riprod.hexcode.core.hexes.component.Hex;
+import com.riprod.hexcode.core.hexes.component.HexComponent;
+import com.riprod.hexcode.core.hexes.utils.CreateHex;
 import com.riprod.hexcode.state.HexcodeManager;
 
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 
 public class DrawingSystem extends HexcodeManager {
   private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+  private static final Box PREVIEW_BOUNDING_BOX = new Box(-0.25, -0.25, -0.25, 0.25, 0.25, 0.25);
+  private static final float GLYPH_DISPLAY_DISTANCE = 1.0f;
+  private static final float PEDESTAL_GLYPH_PITCH = (float) (-Math.PI / 2);
 
   @Override
   public void firstTick(Ref<EntityStore> ref, HexcasterComponent hexcaster,
       Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
     // first tick stuffs
+    HexcasterDrawingComponent drawingComponent = new HexcasterDrawingComponent();
+    buffer.putComponent(ref, HexcasterDrawingComponent.getComponentType(), drawingComponent);
   }
 
   @Override
@@ -52,22 +70,30 @@ public class DrawingSystem extends HexcodeManager {
       GlyphAsset matchedGlyph = GlyphCreationManager.MatchGlyph(drawnShapes);
 
       if (matchedGlyph == null) {
-        LOGGER.atInfo().log("No matching glyph found for drawn shape");
-
+        LOGGER.atInfo().log("no matching glyph found for drawn shape");
       } else {
-
         Float efficiency = ShapeComparator.calculateEfficiency(drawnShapes);
         Float volatility = ShapeComparator.calculateVolatility(drawnShapes);
 
         Glyph glyph = new Glyph(matchedGlyph, volatility, efficiency);
-
-        // Wrap it in a hex and add to inventory
         Hex hex = new Hex(glyph);
 
-        if (glyph != null) {
-          HexBookComponent bookComponent = CasterInventory.getHexBookComponent(buffer, ref);
-          bookComponent.addHex(hex);
-          CasterInventory.saveHexBookComponent(buffer, ref, bookComponent);
+        Ref<EntityStore> anchorRef = resolveAnchorRef(ref, buffer);
+        PedestalBlockComponent pedestal = resolvePedestal(anchorRef, buffer);
+        Vector3d spawnPos = calculateDrawCenter(drawnShapes);
+
+        if (pedestal == null || anchorRef == null || spawnPos == null) {
+          LOGGER.atInfo().log("cannot spawn drawn hex: missing pedestal or draw position");
+        } else {
+          Vector3d anchorPos = PedestalSpawner.getAnchorPosition(pedestal.getLocation());
+          double maxRadius = pedestal.getMaxRadius();
+          double distSq = spawnPos.distanceSquaredTo(anchorPos);
+
+          if (distSq > maxRadius * maxRadius) {
+            LOGGER.atInfo().log("drawn hex outside pedestal radius");
+          } else {
+            spawnDrawnHex(buffer, hex, glyph, anchorRef, pedestal, spawnPos);
+          }
         }
       }
     }
@@ -77,6 +103,7 @@ public class DrawingSystem extends HexcodeManager {
       buffer.removeEntity(trailRef, RemoveReason.REMOVE);
     }
 
+    buffer.removeComponent(ref, HexcasterDrawingComponent.getComponentType());
     comp.clearDrawingState();
   }
 
@@ -190,5 +217,91 @@ public class DrawingSystem extends HexcodeManager {
     InterfaceManager.createIndicator(accessor, ref, comp);
 
     return InteractionState.Finished;
+  }
+
+  private static Ref<EntityStore> resolveAnchorRef(Ref<EntityStore> playerRef,
+      CommandBuffer<EntityStore> buffer) {
+    HexcasterCraftingComponent craftingComp = buffer.getComponent(playerRef,
+        HexcasterCraftingComponent.getComponentType());
+    if (craftingComp == null) {
+      return null;
+    }
+    return craftingComp.getPedestalRef();
+  }
+
+  private static PedestalBlockComponent resolvePedestal(Ref<EntityStore> anchorRef,
+      CommandBuffer<EntityStore> buffer) {
+    if (anchorRef == null || !anchorRef.isValid()) {
+      return null;
+    }
+    PedestalAnchorComponent anchor = buffer.getComponent(anchorRef,
+        PedestalAnchorComponent.getComponentType());
+    if (anchor == null || anchor.getPedestalLoc() == null) {
+      return null;
+    }
+    return BlockModule.getComponent(
+        PedestalBlockComponent.getComponentType(),
+        buffer.getExternalData().getWorld(),
+        anchor.getPedestalLoc().getX(),
+        anchor.getPedestalLoc().getY(),
+        anchor.getPedestalLoc().getZ());
+  }
+
+  private static Vector3d calculateDrawCenter(List<DrawnShapeComponent> drawnShapes) {
+    double x = 0, y = 0, z = 0;
+    int count = 0;
+    for (DrawnShapeComponent shape : drawnShapes) {
+      List<Vector3d> points = shape.getPoints();
+      if (points == null) {
+        continue;
+      }
+      for (Vector3d p : points) {
+        x += p.x;
+        y += p.y;
+        z += p.z;
+        count++;
+      }
+    }
+    if (count == 0) {
+      return null;
+    }
+    return new Vector3d(x / count, y / count, z / count);
+  }
+
+  private static void spawnDrawnHex(CommandBuffer<EntityStore> buffer, Hex hex, Glyph glyph,
+      Ref<EntityStore> anchorRef, PedestalBlockComponent pedestal, Vector3d spawnPos) {
+
+    HexComponent hexComponent = new HexComponent(hex);
+    hexComponent.setRootRef(anchorRef);
+    hexComponent.setParentRef(null);
+
+    Holder<EntityStore> holder = CreateHex.createHexHolder(buffer, hexComponent, spawnPos);
+    holder.addComponent(BoundingBox.getComponentType(), new BoundingBox(PREVIEW_BOUNDING_BOX));
+    holder.addComponent(DebugComponent.getComponentType(),
+        new DebugComponent(DebugShape.Cube, new Vector3f(0f, 1f, 0f), 0.5, 2.0f));
+
+    Ref<EntityStore> hexRef = CreateHex.createEntity(buffer, holder);
+    hexComponent.setSelfRef(hexRef);
+
+    int numGlyphs = hex.getGlyphs().size();
+    float scaleMultiplier = 1 + (numGlyphs * GlyphStyler.SCALE_PER_GLYPH);
+
+    String firstGlyphId = hex.getFirstGlyphId();
+    Glyph firstGlyph = hex.get(firstGlyphId);
+    GlyphComponent firstGlyphComponent = new GlyphComponent(firstGlyph);
+
+    firstGlyphComponent.setHexRef(hexRef);
+    firstGlyphComponent.setParentRef(hexRef);
+    firstGlyphComponent.setOffset(Vector3f.ZERO);
+    firstGlyphComponent.setRotation(new Vector3f(PEDESTAL_GLYPH_PITCH, 0, GLYPH_DISPLAY_DISTANCE));
+    firstGlyphComponent.setScale(scaleMultiplier);
+    hexComponent.setScale(scaleMultiplier);
+
+    GlyphSpawner.spawnGlyphs(buffer, hexComponent, firstGlyphComponent, spawnPos);
+
+    List<Ref<EntityStore>> refs = new ArrayList<>(pedestal.getHexPreviewRefs());
+    refs.add(hexRef);
+    pedestal.setHexPreviewRefs(refs);
+    LOGGER.atInfo().log("spawned drawn hex at %.1f, %.1f, %.1f", spawnPos.x, spawnPos.y, spawnPos.z);
   }
 }

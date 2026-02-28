@@ -85,6 +85,10 @@ public class HexBookComponent implements Component<EntityStore> {
         return hexes.removeIf(g -> g.getHexId().equals(id));
     }
 
+    public boolean removeGlyph(@Nonnull String id) {
+        return hexes.removeIf(g -> g.getGlyphs().stream().anyMatch(glyph -> glyph.getGlyphId().equals(id)));
+    }
+
     public List<Hex> getHexes() {
         return hexes;
     }

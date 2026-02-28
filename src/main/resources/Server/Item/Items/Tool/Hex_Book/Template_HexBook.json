@@ -10,12 +10,10 @@
   "MaxStack": 1,
   "MaxCapacity": 8,
   "Utility": {
-    "Usable": true,
-    "Compatible": true
+    "Usable": true
   },
-  "PlayerAnimationsId": "HexStaff",
+  "PlayerAnimationsId": "HexBook",
   "Interactions": {
-    "Primary": "Hexbook_Primary",
     "Secondary": "Hexbook_Secondary"
   }
 }

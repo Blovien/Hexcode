@@ -68,6 +68,8 @@ public class PropelGlyph implements GlyphHandler {
       return;
     }
 
+    spawnPos.add(new Vector3d(direction).scale(1.5)); // spawn a bit in front of the caster to avoid collisions
+
     double speed = SpellVarUtil.resolveNumberOrDefault(
         glyph.getInput(1, hexContext), DEFAULT_SPEED);
     if (speed <= 0)

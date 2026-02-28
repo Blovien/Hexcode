@@ -7,6 +7,7 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.state.HexcodeManager;
 
@@ -17,6 +18,13 @@ public class IdleSystem extends HexcodeManager {
                         Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
                 comp.clearDrawingState();
                 comp.clearCraftingState();
+
+                HexcasterCraftingComponent craftingComp = buffer.getComponent(ref,
+                                HexcasterCraftingComponent.getComponentType());
+                if (craftingComp != null) {
+                        craftingComp.clearCraftingState();
+                        buffer.removeComponent(ref, HexcasterCraftingComponent.getComponentType());
+                }
         }
 
         @Override

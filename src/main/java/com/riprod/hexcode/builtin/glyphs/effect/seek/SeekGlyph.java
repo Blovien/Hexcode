@@ -51,6 +51,8 @@ public class SeekGlyph implements GlyphHandler {
             return;
         }
 
+        origin.add(new Vector3d(direction).scale(1.5)); // start a bit in front of the caster to avoid collisions
+
         int beamLength = (int) SpellVarUtil.resolveNumberOrDefault(
                 glyph.getInput(2,
                         hexContext),

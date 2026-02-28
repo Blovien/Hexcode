@@ -5,6 +5,7 @@ import java.util.List;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
+import com.hypixel.hytale.codec.validation.Validators;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.protocol.Color;
 import com.riprod.hexcode.core.drawing.registry.ShapeAsset;
@@ -12,21 +13,23 @@ import com.riprod.hexcode.core.drawing.registry.ShapeAsset;
 public class DrawnShapeComponent {
 
     public static final BuilderCodec<DrawnShapeComponent> CODEC = BuilderCodec
-                .builder(DrawnShapeComponent.class, DrawnShapeComponent::new)
-                .append(new KeyedCodec<>("ShapeId", Codec.STRING),
-                        (a, v) -> a.shapeId = v, a -> a.shapeId)
-                .add()
-                .append(new KeyedCodec<>("Size", Codec.FLOAT),
-                        (a, v) -> a.relativeSize = v, a -> a.relativeSize)
-                .add()
-                .build();
+            .builder(DrawnShapeComponent.class, DrawnShapeComponent::new)
+            .append(new KeyedCodec<>("ShapeId", Codec.STRING),
+                    (a, v) -> a.shapeId = v, a -> a.shapeId)
+            .addValidatorLate(() -> ShapeAsset.VALIDATOR_CACHE.getValidator().late())
+            .add()
+            .append(new KeyedCodec<>("Size", Codec.FLOAT),
+                    (a, v) -> a.relativeSize = v, a -> a.relativeSize)
+            .addValidator(Validators.range(0.0f, 1.0f))
+            .add()
+            .build();
 
     private String shapeId;
-    
+
     // scoring
     private float volatility;
     private long efficiency;
-    
+
     // shape calc
     private float size;
     private float relativeSize;

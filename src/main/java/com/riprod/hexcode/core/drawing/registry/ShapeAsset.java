@@ -10,6 +10,7 @@ import com.hypixel.hytale.assetstore.map.JsonAssetWithMap;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.validation.ValidatorCache;
+import com.hypixel.hytale.codec.validation.Validators;
 
 public class ShapeAsset implements JsonAssetWithMap<String, DefaultAssetMap<String, ShapeAsset>> {
     public static final AssetBuilderCodec<String, ShapeAsset> CODEC;
@@ -78,6 +79,7 @@ public class ShapeAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
                 .add()
                 .append(new KeyedCodec<>("ImagePath", Codec.STRING),
                         (a, v) -> a.imagePath = v, a -> a.imagePath)
+                .addValidator(Validators.nonEmptyString())
                 .add()
                 .append(new KeyedCodec<>("ExpectedSpeed", Codec.LONG),
                         (a, v) -> a.expectedSpeed = v, a -> a.expectedSpeed)

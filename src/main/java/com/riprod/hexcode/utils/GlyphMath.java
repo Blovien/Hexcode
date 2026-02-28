@@ -67,7 +67,7 @@ public class GlyphMath {
     }
 
     public static List<Vector3f> getChildRotations(int childrenCount,
-            float parentScale) {
+            float parentScale, float distance) {
         if (childrenCount <= 0) {
             return null;
         }
@@ -77,9 +77,7 @@ public class GlyphMath {
         }
 
         float angleIncrement = (float) (2 * Math.PI / childrenCount);
-        float angularRadius = getSelectionRadius(parentScale) * parentScale * 3; // scales with the parent scale
-
-        float distance = angularRadius; // distance from parent rotation, can be adjusted for different visual spacing
+        float angularRadius = getSelectionRadius(parentScale) * 1.2f; // scales with the parent scale
 
         List<Vector3f> childAngles = new ArrayList<>();
         for (int i = 0; i < childrenCount; i++) {
@@ -94,12 +92,11 @@ public class GlyphMath {
     }
 
     public static Vector3f toMountOffset(Vector3f childRotation, Vector3f parentRotation) {
-        Vector3d parentCart = sphericalToCartesian(Vector3d.ZERO, parentRotation.getYaw(), parentRotation.getPitch(), childRotation.getZ());
-        Vector3d childCart = sphericalToCartesian(Vector3d.ZERO, parentRotation.getYaw() + childRotation.getYaw(),
-                parentRotation.getPitch() + childRotation.getPitch(), childRotation.getZ());
+        float dpitch = childRotation.getPitch();
+        float dyaw = childRotation.getYaw();
         return new Vector3f(
-                (float) (childCart.x - parentCart.x),
-                (float) (childCart.y - parentCart.y),
-                (float) (childCart.z - parentCart.z));
+                -dyaw * parentRotation.getZ(),
+                dpitch * parentRotation.getZ(),
+                0);
     }
 }

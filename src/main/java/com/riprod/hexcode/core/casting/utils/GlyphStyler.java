@@ -34,6 +34,13 @@ public class GlyphStyler {
 
         HexComponent previous = castingComp.getHoveredHex();
 
+        GlyphComponent hoveredGlyph = castingComp.getHoveredGlyph();
+
+        if (hoveredGlyph != null) {
+            // do nothing while hovering a specific glyph
+            return;
+        }
+
         if (previous == hoveredHex) return;
 
         if (previous != null) {
@@ -164,13 +171,14 @@ public class GlyphStyler {
     public static void UpdateHexTree(CommandBuffer<EntityStore> accessor, HexComponent hexComponent,
             GlyphComponent parentGlyph) {
 
-        int numGlyphs = hexComponent.getChildGlyphRefs().size();
+        int numGlyphs = hexComponent.getHex().getGlyphs().size();
 
         float scaleMultiplier = 1 + (numGlyphs * SCALE_PER_GLYPH); // increase scale by 5% per glyph
 
         // set the initial glyph's scale based on the number of children it has and the
         // depth there is
         parentGlyph.setScale(scaleMultiplier);
+        hexComponent.setScale(scaleMultiplier);
         UpdateGlyphTree(accessor, hexComponent, parentGlyph, new HashSet<>());
     }
 
@@ -189,7 +197,7 @@ public class GlyphStyler {
 
         if (children != null && !children.isEmpty()) {
 
-            List<Vector3f> childRotations = GlyphMath.getChildRotations(children.size(), parentGlyph.getScale());
+            List<Vector3f> childRotations = GlyphMath.getChildRotations(children.size(), parentGlyph.getScale(), parentGlyph.getRotation().getZ());
 
             float scaleAmount = parentGlyph.getScale() * SCALE_MULTIPLIER;
             if (children.size() == 1) {

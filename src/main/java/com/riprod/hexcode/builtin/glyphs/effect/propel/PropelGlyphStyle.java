@@ -14,7 +14,6 @@ public class PropelGlyphStyle {
     private static final String LAUNCH_PARTICLE_2 = "Rings";
     private static final String LAUNCH_SOUND = "SFX_Staff_Fire_Shoot";
 
-    private static final String ENTITY_HIT_PARTICLE_1 = "Shock_Spawner";
     private static final String ENTITY_HIT_PARTICLE_2 = "Explosion_Small";
     private static final String ENTITY_HIT_SOUND = "SFX_Staff_Flame_Fireball_Impact";
     private static final Vector3f ENTITY_HIT_COLOR = new Vector3f(0.8f, 0.2f, 1.0f);

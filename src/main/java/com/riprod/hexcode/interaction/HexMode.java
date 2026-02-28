@@ -88,6 +88,7 @@ public class HexMode extends ChargingInteraction {
         }
 
         if (hexcaster.getState() != targetState) {
+            LOGGER.atInfo().log("hexmode: state mismatch, current=%s target=%s", hexcaster.getState(), targetState);
             ctx.getState().state = InteractionState.Finished;
             return;
         }
@@ -98,9 +99,8 @@ public class HexMode extends ChargingInteraction {
             return;
         }
 
-
         if (firstRun) {
-            LOGGER.atInfo().log("Entering Hex Mode: " + targetState);
+            LOGGER.atInfo().log("hexmode: entering %s", targetState);
             ctx.getState().state = manager.enterInteraction(playerRef, hexcaster, commandBuffer);
         } else {
             ctx.getState().state = manager.tickInteraction(playerRef, hexcaster, commandBuffer);

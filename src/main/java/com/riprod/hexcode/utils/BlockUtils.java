@@ -55,7 +55,7 @@ public class BlockUtils {
         return findAirBlock(world, x, y, z, 5);
     }
 
-    public static Vector3i findAirBlock(World world, int x, int y, int z, @Nullable int maxSearchRadius) {
+    public static Vector3i findAirBlock(World world, int x, int y, int z, int maxSearchRadius) {
         if (world.getBlock(x, y, z) == 0)
             return new Vector3i(x, y, z);
 

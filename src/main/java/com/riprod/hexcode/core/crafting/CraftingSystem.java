@@ -1,35 +1,70 @@
 package com.riprod.hexcode.core.crafting;
 
+import java.util.List;
+
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.protocol.InteractionState;
+import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.world.ParticleUtil;
+import com.hypixel.hytale.server.core.util.TargetUtil;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.crafting.component.PedestalComponent;
+import com.riprod.hexcode.core.crafting.component.HexcasterCraftingComponent;
+import com.riprod.hexcode.core.crafting.component.PedestalAnchorComponent;
+import com.riprod.hexcode.core.crafting.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.crafting.component.PedestalState;
+import com.riprod.hexcode.core.crafting.system.PedestalSystem;
+import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
-import com.riprod.hexcode.state.HexState;
+import com.riprod.hexcode.core.hexes.component.HexComponent;
 import com.riprod.hexcode.state.HexcodeManager;
 
 public class CraftingSystem extends HexcodeManager {
+
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+    private static final float DETECTION_RANGE = 8.0f;
+    private static final String HOVER_PARTICLE = "Glyph_Ambient";
 
     @Override
     public void firstTick(Ref<EntityStore> ref, HexcasterComponent comp,
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
 
-        Ref<EntityStore> pedestalRef = comp.getPedestalRef();
-        if (pedestalRef == null || !pedestalRef.isValid()) {
-            // comp.requestStateChange(HexState.IDLE);
+        Ref<EntityStore> anchorRef = comp.consumePendingPedestalRef();
+
+        HexcasterCraftingComponent craftingComp = buffer.getComponent(ref,
+                HexcasterCraftingComponent.getComponentType());
+
+        if (anchorRef != null && anchorRef.isValid()) {
+            if (craftingComp == null) {
+                craftingComp = new HexcasterCraftingComponent();
+                buffer.putComponent(ref, HexcasterCraftingComponent.getComponentType(), craftingComp);
+            }
+            craftingComp.setPedestalRef(anchorRef);
+            LOGGER.atInfo().log("crafting firstTick: set pedestalRef=%s", anchorRef);
+        } else if (craftingComp != null && craftingComp.getPedestalRef() != null) {
+            LOGGER.atInfo().log("crafting firstTick: reusing existing pedestalRef=%s", craftingComp.getPedestalRef());
+        } else {
+            LOGGER.atInfo().log("crafting firstTick: no pedestal ref available");
         }
     }
 
     @Override
     public void lastTick(Ref<EntityStore> ref, HexcasterComponent comp,
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
+
+        HexcasterCraftingComponent craftingComp = buffer.getComponent(ref,
+                HexcasterCraftingComponent.getComponentType());
+        if (craftingComp != null) {
+            craftingComp.setHoveredHexRef(null);
+        }
+
         comp.clearCraftingState();
     }
 
@@ -37,36 +72,94 @@ public class CraftingSystem extends HexcodeManager {
     public void tick0(Ref<EntityStore> ref, HexcasterComponent comp, float dt,
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
 
-        Ref<EntityStore> pedestalRef = comp.getPedestalRef();
-        if (pedestalRef == null || !pedestalRef.isValid()) {
-            // comp.requestStateChange(HexState.IDLE);
+        PedestalBlockComponent pedestal = resolvePedestal(ref, buffer);
+        if (pedestal == null) {
             return;
         }
 
-        PedestalComponent pedestal = buffer.getComponent(pedestalRef,
-                PedestalComponent.getComponentType());
-        if (pedestal == null || pedestal.getPedestalState() != PedestalState.ON) {
-            // comp.requestStateChange(HexState.IDLE);
+        if (pedestal.getState() != PedestalState.ACTIVE) {
             return;
         }
 
-        TransformComponent playerTransform = buffer.getComponent(ref,
-                TransformComponent.getComponentType());
-        TransformComponent pedestalTransform = buffer.getComponent(pedestalRef,
-                TransformComponent.getComponentType());
-
-        if (playerTransform == null || pedestalTransform == null) {
-            // comp.requestStateChange(HexState.IDLE);
+        List<Ref<EntityStore>> previewRefs = pedestal.getHexPreviewRefs();
+        if (previewRefs == null || previewRefs.isEmpty()) {
             return;
         }
 
-        double distSq = new Vector3d(playerTransform.getPosition())
-                .subtract(pedestalTransform.getPosition()).squaredLength();
-        double radiusSq = pedestal.getDetectionRadius() * pedestal.getDetectionRadius();
-
-        if (distSq > radiusSq) {
-            // comp.requestStateChange(HexState.IDLE);
+        HexcasterCraftingComponent craftingComp = buffer.getComponent(ref,
+                HexcasterCraftingComponent.getComponentType());
+        if (craftingComp == null) {
+            return;
         }
+
+        Ref<EntityStore> targetRef = TargetUtil.getTargetEntity(ref, DETECTION_RANGE, buffer);
+        Ref<EntityStore> hoveredRef = resolveHoveredPreview(targetRef, previewRefs, buffer);
+
+        Ref<EntityStore> previousHovered = craftingComp.getHoveredHexRef();
+        boolean changed = (hoveredRef == null) != (previousHovered == null)
+                || (hoveredRef != null && !hoveredRef.equals(previousHovered));
+        if (changed) {
+            LOGGER.atInfo().log("crafting: hover changed from %s to %s", previousHovered, hoveredRef);
+        }
+
+        craftingComp.setHoveredHexRef(hoveredRef);
+
+        if (hoveredRef != null && hoveredRef.isValid()) {
+            TransformComponent transform = buffer.getComponent(hoveredRef, TransformComponent.getComponentType());
+            if (transform != null) {
+                Vector3d pos = transform.getPosition();
+                ParticleUtil.spawnParticleEffect(HOVER_PARTICLE, pos, hoveredRef, List.of(ref), buffer);
+            }
+        }
+    }
+
+    @Override
+    public InteractionState enterInteraction(Ref<EntityStore> ref, HexcasterComponent comp,
+            CommandBuffer<EntityStore> buffer) {
+
+        PedestalBlockComponent pedestal = resolvePedestal(ref, buffer);
+        if (pedestal == null) {
+            return InteractionState.Failed;
+        }
+
+        if (pedestal.getState() != PedestalState.ACTIVE) {
+            return InteractionState.NotFinished;
+        }
+
+        HexcasterCraftingComponent craftingComp = buffer.getComponent(ref,
+                HexcasterCraftingComponent.getComponentType());
+        if (craftingComp == null) {
+            return InteractionState.Failed;
+        }
+
+        Ref<EntityStore> hoveredRef = craftingComp.getHoveredHexRef();
+        LOGGER.atInfo().log("crafting enterInteraction: hoveredRef=%s", hoveredRef);
+        if (hoveredRef == null || !hoveredRef.isValid()) {
+            return InteractionState.NotFinished;
+        }
+
+        HexComponent hexComp = buffer.getComponent(hoveredRef, HexComponent.getComponentType());
+        if (hexComp == null || hexComp.getHex() == null) {
+            return InteractionState.NotFinished;
+        }
+
+        pedestal.setActiveHex(hexComp.getHex());
+        PedestalSystem.ActivateHexSelection(buffer, pedestal, hoveredRef);
+        craftingComp.setHoveredHexRef(null);
+
+        return InteractionState.Finished;
+    }
+
+    @Override
+    public InteractionState tickInteraction(Ref<EntityStore> ref, HexcasterComponent comp,
+            CommandBuffer<EntityStore> buffer) {
+        return InteractionState.NotFinished;
+    }
+
+    @Override
+    public InteractionState exitInteraction(Ref<EntityStore> ref, HexcasterComponent comp,
+            CommandBuffer<EntityStore> buffer) {
+        return InteractionState.NotFinished;
     }
 
     @Override
@@ -77,21 +170,57 @@ public class CraftingSystem extends HexcodeManager {
     public void onPlayerLeave(PlayerRef playerRef) {
     }
 
-    @Override
-    public InteractionState exitInteraction(Ref<EntityStore> ref, HexcasterComponent comp,
-            CommandBuffer<EntityStore> buffer) {
-        return InteractionState.NotFinished;
+    private static Ref<EntityStore> resolveHoveredPreview(Ref<EntityStore> targetRef,
+            List<Ref<EntityStore>> previewRefs, CommandBuffer<EntityStore> buffer) {
+        if (targetRef == null || !targetRef.isValid()) {
+            return null;
+        }
+
+        for (Ref<EntityStore> previewRef : previewRefs) {
+            if (previewRef != null && previewRef.equals(targetRef)) {
+                return targetRef;
+            }
+        }
+
+        GlyphComponent glyphComp = buffer.getComponent(targetRef, GlyphComponent.getComponentType());
+        if (glyphComp != null) {
+            Ref<EntityStore> hexRef = glyphComp.getHexRef();
+            if (hexRef != null && hexRef.isValid()) {
+                for (Ref<EntityStore> previewRef : previewRefs) {
+                    if (previewRef != null && previewRef.equals(hexRef)) {
+                        return hexRef;
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 
-    @Override
-    public InteractionState enterInteraction(Ref<EntityStore> ref, HexcasterComponent comp,
+    private PedestalBlockComponent resolvePedestal(Ref<EntityStore> playerRef,
             CommandBuffer<EntityStore> buffer) {
-        return InteractionState.NotFinished;
-    }
 
-    @Override
-    public InteractionState tickInteraction(Ref<EntityStore> ref, HexcasterComponent comp,
-            CommandBuffer<EntityStore> buffer) {
-        return InteractionState.NotFinished;
+        HexcasterCraftingComponent craftingComp = buffer.getComponent(playerRef,
+                HexcasterCraftingComponent.getComponentType());
+        if (craftingComp == null) {
+            return null;
+        }
+
+        Ref<EntityStore> anchorRef = craftingComp.getPedestalRef();
+        if (anchorRef == null || !anchorRef.isValid()) {
+            return null;
+        }
+
+        PedestalAnchorComponent anchor = buffer.getComponent(anchorRef,
+                PedestalAnchorComponent.getComponentType());
+        if (anchor == null || anchor.getPedestalLoc() == null) {
+            return null;
+        }
+
+        Vector3i pos = anchor.getPedestalLoc();
+        return BlockModule.getComponent(
+                PedestalBlockComponent.getComponentType(),
+                buffer.getExternalData().getWorld(),
+                pos.getX(), pos.getY(), pos.getZ());
     }
 }

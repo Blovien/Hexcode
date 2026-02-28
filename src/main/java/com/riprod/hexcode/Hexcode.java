@@ -33,16 +33,22 @@ import com.riprod.hexcode.core.idle.IdleSystem;
 import com.riprod.hexcode.core.casting.CastingSystem;
 import com.riprod.hexcode.core.casting.component.HexcasterCastingComponent;
 import com.riprod.hexcode.core.drawing.DrawingSystem;
+import com.riprod.hexcode.core.drawing.component.HexcasterDrawingComponent;
 import com.riprod.hexcode.core.crafting.CraftingSystem;
+import com.riprod.hexcode.core.debug.DebugComponent;
+import com.riprod.hexcode.core.debug.DebugTickSystem;
 import com.riprod.hexcode.core.execution.ExecutionSystem;
 import com.riprod.hexcode.core.execution.component.RootGlyph;
 import com.riprod.hexcode.core.execution.system.ExecutionTickSystem;
 import com.riprod.hexcode.interaction.HexStateBranch;
+import com.riprod.hexcode.interaction.HexItemCondition;
 import com.riprod.hexcode.interaction.PedestalInteraction;
+import com.riprod.hexcode.core.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.crafting.component.ObeliskBlockComponent;
-import com.riprod.hexcode.core.crafting.component.PedestalComponent;
+import com.riprod.hexcode.core.crafting.component.PedestalAnchorComponent;
 import com.riprod.hexcode.core.crafting.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.crafting.system.ObeliskProtectionSystem;
+import com.riprod.hexcode.core.crafting.system.PedestalBlockEventSystem;
 import com.riprod.hexcode.core.crafting.system.PedestalTickSystem;
 import com.hypixel.hytale.assetstore.AssetRegistry;
 import com.hypixel.hytale.assetstore.map.DefaultAssetMap;
@@ -142,6 +148,14 @@ public class Hexcode extends JavaPlugin {
         HexcasterCastingComponent::new);
     HexcasterCastingComponent.setComponentType(castingRootComponentType);
 
+    ComponentType<EntityStore, HexcasterCraftingComponent> craftingRootComponentType = entityStoreRegistry.registerComponent(HexcasterCraftingComponent.class,
+        HexcasterCraftingComponent::new);
+    HexcasterCraftingComponent.setComponentType(craftingRootComponentType);
+
+    ComponentType<EntityStore, HexcasterDrawingComponent> drawingRootComponentType = entityStoreRegistry.registerComponent(HexcasterDrawingComponent.class,
+        HexcasterDrawingComponent::new);
+    HexcasterDrawingComponent.setComponentType(drawingRootComponentType);
+
     ComponentType<EntityStore, RootGlyph> executionComponentType = entityStoreRegistry.registerComponent(RootGlyph.class,
         RootGlyph::new);
     RootGlyph.setComponentType(executionComponentType);
@@ -152,8 +166,11 @@ public class Hexcode extends JavaPlugin {
     ComponentType<EntityStore, SlotComponent> slotComponentType = entityStoreRegistry.registerComponent(SlotComponent.class, SlotComponent::new);
     SlotComponent.setComponentType(slotComponentType);
 
-    ComponentType<EntityStore, PedestalComponent> pedestalComponentType = entityStoreRegistry.registerComponent(PedestalComponent.class, PedestalComponent::new);
-    PedestalComponent.setComponentType(pedestalComponentType);
+    ComponentType<EntityStore, PedestalAnchorComponent> pedestalComponentType = entityStoreRegistry.registerComponent(PedestalAnchorComponent.class, PedestalAnchorComponent::new);
+    PedestalAnchorComponent.setComponentType(pedestalComponentType);
+
+    ComponentType<EntityStore, DebugComponent> debugComponentType = entityStoreRegistry.registerComponent(DebugComponent.class, DebugComponent::new);
+    DebugComponent.setComponentType(debugComponentType);
 
     // Block Component Registries
     ComponentRegistryProxy<ChunkStore> chunkStoreRegistry = this.getChunkStoreRegistry();
@@ -182,11 +199,12 @@ public class Hexcode extends JavaPlugin {
     Interaction.CODEC.register("HexMode", HexMode.class, HexMode.CODEC);
     Interaction.CODEC.register("HexModeExit", HexModeExit.class, HexModeExit.CODEC);
     Interaction.CODEC.register("PedestalInteraction", PedestalInteraction.class, PedestalInteraction.CODEC);
+    Interaction.CODEC.register("HexItemCondition", HexItemCondition.class, HexItemCondition.CODEC);
 
     // State Managers
     StateRouter.registerState(HexState.IDLE, new IdleSystem());
     StateRouter.registerState(HexState.CASTING, new CastingSystem());
-    StateRouter.registerState(HexState.CASTING, HexcasterCastingComponent.getComponentType());
+    // StateRouter.registerState(HexState.CASTING, HexcasterCastingComponent.getComponentType());
     StateRouter.registerState(HexState.DRAWING, new DrawingSystem());
     StateRouter.registerState(HexState.CRAFTING, new CraftingSystem());
     StateRouter.registerState(HexState.EXECUTION, new ExecutionSystem());
@@ -196,7 +214,9 @@ public class Hexcode extends JavaPlugin {
     entityStoreRegistry.registerSystem(new ExecutionTickSystem());
     entityStoreRegistry.registerSystem(new PropelTickSystem());
     entityStoreRegistry.registerSystem(new PedestalTickSystem());
+    entityStoreRegistry.registerSystem(new PedestalBlockEventSystem());
     entityStoreRegistry.registerSystem(new ObeliskProtectionSystem());
+    entityStoreRegistry.registerSystem(new DebugTickSystem());
 
     // Events
     this.getEventRegistry().registerGlobal(PlayerConnectEvent.class, Hexcode::onPlayerConnect);

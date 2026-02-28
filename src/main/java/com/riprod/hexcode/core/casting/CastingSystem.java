@@ -208,8 +208,7 @@ public class CastingSystem extends HexcodeManager {
 
         HeadRotation headRot2 = accessor.getComponent(ref, HeadRotation.getComponentType());
         if (headRot2 != null) {
-            HexComponent targetHex = HexSelector.findHoveredHex(accessor, headRot2.getRotation(),
-                    castingComp.getActiveHexes());
+            HexComponent targetHex = castingComp.getHoveredHex();
             GlyphComponent targetGlyph = null;
             if (targetHex != null && targetHex != castingComp.getDraggingHex()) {
                 targetGlyph = HexSelector.findHoveredGlyph(accessor, headRot2.getRotation(), targetHex);
@@ -232,30 +231,19 @@ public class CastingSystem extends HexcodeManager {
             return InteractionState.Finished;
         }
 
-        HeadRotation headRotation = accessor.getComponent(ref, HeadRotation.getComponentType());
-        if (headRotation == null) {
-            return InteractionState.Failed;
-        }
-
-        HexComponent hoveredHex = HexSelector.findHoveredHex(accessor, headRotation.getRotation(),
-                castingComp.getActiveHexes());
-
-        if (hoveredHex != null) {
-            GlyphComponent hoveredGlyph = HexSelector.findHoveredGlyph(accessor, headRotation.getRotation(),
-                    hoveredHex);
-            if (hoveredGlyph != null) {
-                try {
-                    float eyeHeight = 0f;
-                    ModelComponent modelComp = accessor.getComponent(ref, ModelComponent.getComponentType());
-                    eyeHeight = modelComp.getModel().getEyeHeight(ref, accessor);
-                    HexSpawner.MergeGlyphs(accessor, hoveredGlyph, draggedHex, eyeHeight);
-                    castingComp.getActiveHexes().remove(draggedHex.getSelfRef());
-                    castingComp.setDraggingHex(null);
-                    GlyphStyler.hoverGlyph(accessor, null, castingComp);
-                    return InteractionState.Finished;
-                } catch (Exception e) {
-                    LOGGER.atWarning().withCause(e).log("Error merging glyphs, dropping on ground instead");
-                }
+        GlyphComponent hoveredGlyph = castingComp.getHoveredGlyph();
+        if (hoveredGlyph != null) {
+            try {
+                float eyeHeight = 0f;
+                ModelComponent modelComp = accessor.getComponent(ref, ModelComponent.getComponentType());
+                eyeHeight = modelComp.getModel().getEyeHeight(ref, accessor);
+                HexSpawner.MergeGlyphs(accessor, hoveredGlyph, draggedHex, eyeHeight);
+                castingComp.getActiveHexes().remove(draggedHex.getSelfRef());
+                castingComp.setDraggingHex(null);
+                GlyphStyler.hoverGlyph(accessor, null, castingComp);
+                return InteractionState.Finished;
+            } catch (Exception e) {
+                LOGGER.atWarning().withCause(e).log("Error merging glyphs, dropping on ground instead");
             }
         }
 

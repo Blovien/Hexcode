@@ -52,12 +52,6 @@ public class HexSelector {
             float angularDist = GlyphMath.calculateAngularDistance(playerRotation, glyphRotation);
             float selectionRadius = GlyphMath.getSelectionRadius(childGlyph.getScale());
 
-            LOGGER.atInfo().log("glyph hover check: glyph=%s, angularDist=%.4f, selectionRadius=%.4f, "
-                    + "playerRot=(p=%.3f, y=%.3f), glyphRot=(p=%.3f, y=%.3f)",
-                    childGlyph.getGlyphId(), angularDist, selectionRadius,
-                    playerRotation.getPitch(), playerRotation.getYaw(),
-                    absolutePitch, absoluteYaw);
-
             if (angularDist <= selectionRadius) {
                 if (childGlyph.getNext() != null && !childGlyph.getNext().isEmpty()) {
                     GlyphComponent hoveredChild = findHoveredGlyph(accessor, playerRotation, hex,

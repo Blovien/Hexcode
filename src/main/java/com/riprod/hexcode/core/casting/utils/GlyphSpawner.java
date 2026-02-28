@@ -25,7 +25,7 @@ public class GlyphSpawner {
 
         List<Glyph> children = hex.getGlyphs(glyph.getNext());
 
-        List<Vector3f> childRotations = GlyphMath.getChildRotations(children.size(), glyph.getScale());
+        List<Vector3f> childRotations = GlyphMath.getChildRotations(children.size(), glyph.getScale(), glyph.getRotation().getZ());
 
         // Spawn the children
         for (int i = 0; i < children.size(); i++) {

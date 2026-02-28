@@ -16,7 +16,7 @@
     "Compatible": true
   },
   "Interactions": {
-    "Primary": "Hexbook_Primary",
-    "Secondary": "Hexbook_Secondary"
+    "Primary": "Hexstaff_Primary",
+    "Secondary": "Hexstaff_Secondary"
   }
 }

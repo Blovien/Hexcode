@@ -33,10 +33,6 @@ public class HexTick extends EntityTickingSystem<EntityStore> {
       HexcodeManager old = StateRouter.route(comp.getState());
       if (old != null) {
         old.lastTick(ref, comp, store, buffer);
-        ComponentType<EntityStore, ?> oldCompType = StateRouter.getStateComponent(comp.getState());
-        if (oldCompType != null) {
-          buffer.tryRemoveComponent(ref, oldCompType);
-        }
       }
 
       comp.applyState(pending);
