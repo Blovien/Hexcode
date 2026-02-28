@@ -2,7 +2,7 @@ package com.riprod.hexcode.core.casting.component;
 
 import javax.annotation.Nonnull;
 
-import com.riprod.hexcode.utils.SphericalPosition;
+import com.hypixel.hytale.math.vector.Vector3f;
 
 import java.util.List;
 
@@ -12,5 +12,5 @@ public interface CastingStyle {
     String getStyleId();
 
     @Nonnull
-    List<SphericalPosition> getInitialPositions(int glyphCount, float lookYaw, float lookPitch);
+    List<Vector3f> getInitialPositions(int glyphCount, float lookYaw, float lookPitch);
 }

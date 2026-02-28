@@ -2,10 +2,9 @@ package com.riprod.hexcode.core.execution;
 
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
-import com.riprod.hexcode.components.ExecutionContext;
-import com.riprod.hexcode.components.Glyph;
-import com.riprod.hexcode.components.HexContext;
-import com.riprod.hexcode.core.execution.component.ExecutionComponent;
+import com.riprod.hexcode.core.glyphs.component.Glyph;
+import com.riprod.hexcode.core.execution.component.RootGlyph;
+import com.riprod.hexcode.core.execution.component.HexContext;
 import com.riprod.hexcode.core.execution.component.PendingContinue;
 import com.riprod.hexcode.core.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.glyphs.registry.GlyphRegistry;
@@ -17,77 +16,67 @@ import javax.annotation.Nonnull;
 
 public class Executor {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
-    private static final int MAX_EXECUTION_DEPTH = 10000;
 
     private Executor() {
     }
 
-    public static void beginExecution(@Nonnull HexContext hexContext) {
-        ExecutionContext executionContext = new ExecutionContext();
+    public static void beginExecution(List<String> nextGlyphs, @Nonnull HexContext hexContext) {
 
-        UUIDComponent uuidComponent = hexContext.accessor.getComponent(
-                hexContext.casterRef, UUIDComponent.getComponentType());
-        EntityVar casterVar = new EntityVar(uuidComponent.getUuid(), hexContext.casterRef);
-        executionContext.setVariable(1, List.of(casterVar));
-        executionContext.setCurrentNode(hexContext.spellGraph.rootId);
-
-        Glyph rootNode = hexContext.spellGraph.nodes.get(hexContext.spellGraph.rootId);
-        GlyphHandler handler = GlyphRegistry.get(rootNode.getGlyphId());
-        if (handler == null) {
-            LOGGER.atSevere().log("no handler found for root glyph %s", rootNode.getGlyphId());
-            return;
-        }
-
-        handler.execute(rootNode, hexContext, executionContext);
+        UUIDComponent uuidComponent = hexContext.getAccessor().getComponent(
+                hexContext.getCasterRef(), UUIDComponent.getComponentType());
+        EntityVar casterVar = new EntityVar(EntityVar.createRef(uuidComponent.getUuid(), hexContext.getCasterRef()));
+        
+        hexContext.setVariable(1, casterVar);
+        
+        continueExecution(nextGlyphs, hexContext);
     }
 
-    public static void continueExecution(HexContext hexContext, ExecutionContext executionContext) {
-        if (executionContext.incrementDepth() > MAX_EXECUTION_DEPTH) {
-            LOGGER.atWarning().log("max execution depth reached, aborting spell");
+    public static void continueExecution(List<String> nextGlyphs, HexContext hexContext) {
+
+        if (nextGlyphs.isEmpty()) {
             return;
         }
 
-        UUID currentNodeId = executionContext.getCurrentNode();
-        Glyph currentNode = hexContext.spellGraph.nodes.get(currentNodeId);
-        List<UUID> nextNodes = currentNode.getNext();
-
-        if (nextNodes.isEmpty()) {
-            return;
-        }
-
-        if (nextNodes.size() == 1) {
-            UUID nextId = nextNodes.get(0);
-            Glyph nextNode = hexContext.spellGraph.nodes.get(nextId);
+        if (nextGlyphs.size() == 1) {
+            String nextId = nextGlyphs.get(0);
+            Glyph nextNode = hexContext.getGlyph(nextId);
             GlyphHandler nextHandler = GlyphRegistry.get(nextNode.getGlyphId());
             if (nextHandler == null) {
                 LOGGER.atSevere().log("no handler found for glyph %s, skipping", nextNode.getGlyphId());
                 return;
             }
-            executionContext.setCurrentNode(nextId);
-            nextHandler.execute(nextNode, hexContext, executionContext);
+            try {
+                nextHandler.execute(nextNode, hexContext);
+            } catch (Exception e) {
+                LOGGER.atSevere().log("error executing glyph %s: %s", nextNode.getGlyphId(), e.getMessage());
+            }
             return;
         }
 
-        for (UUID nextNodeId : nextNodes) {
-            Glyph nextNode = hexContext.spellGraph.nodes.get(nextNodeId);
+        for (String nextNodeId : nextGlyphs) {
+            Glyph nextNode = hexContext.getGlyph(nextNodeId);
             GlyphHandler nextHandler = GlyphRegistry.get(nextNode.getGlyphId());
             if (nextHandler == null) {
                 LOGGER.atSevere().log("no handler found for glyph %s, skipping", nextNode.getGlyphId());
                 continue;
             }
-            ExecutionContext branchedContext = executionContext.copy();
-            branchedContext.setCurrentNode(nextNodeId);
-            nextHandler.execute(nextNode, hexContext, branchedContext);
+            HexContext copiedBranch = hexContext.copy();
+            try {
+                nextHandler.execute(nextNode, copiedBranch);
+            } catch (Exception e) {
+                LOGGER.atSevere().log("error executing glyph %s: %s", nextNode.getGlyphId(), e.getMessage());
+            }
         }
     }
 
-    public static void delayContinuation(HexContext hexContext, ExecutionContext executionContext, int delayTicks) {
-        ExecutionComponent execComp = hexContext.accessor.getComponent(
-                hexContext.root.getRootEntityRef(), ExecutionComponent.getComponentType());
+    public static void delayContinuation(List<String> nextGlyphs, HexContext hexContext, int delayTicks) {
+        RootGlyph rootGlyph = hexContext.getAccessor().getComponent(
+                hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
+
         PendingContinue pending = new PendingContinue(
-                executionContext.getCurrentNode(),
-                executionContext.copy(),
+                nextGlyphs,
+                hexContext,
                 delayTicks);
-        execComp.addPendingContinue(pending);
+        rootGlyph.addPendingContinue(pending);
     }
 }

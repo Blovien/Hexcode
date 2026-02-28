@@ -14,11 +14,12 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.execution.component.ExecutionComponent;
-import com.riprod.hexcode.core.execution.component.HexGraph;
+import com.riprod.hexcode.core.execution.component.RootGlyph;
+import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.execution.component.PlayerHexRoot;
 import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.hexcaster.utils.CasterInventory;
+import com.riprod.hexcode.core.hexes.component.Hex;
 import com.riprod.hexcode.core.hexstaff.component.HexStaffComponent;
 import com.riprod.hexcode.state.HexcodeManager;
 
@@ -73,16 +74,16 @@ public class ExecutionSystem extends HexcodeManager {
             return InteractionState.Failed;
         }
 
-        HexGraph activeHex = hexStaff.getActiveSpell();
+        Hex activeHex = hexStaff.getActiveHex();
         if (activeHex == null) {
             LOGGER.atWarning().log("no active spell on staff, nothing to execute");
             return InteractionState.Finished;
         }
 
-        HexGraph spellClone = activeHex.clone();
+        Hex hexClone = activeHex.clone();
 
-        ExecutionComponent execComp = new ExecutionComponent();
-        execComp.setSpellGraph(spellClone);
+        RootGlyph execComp = new RootGlyph();
+        execComp.setHex(hexClone);
         execComp.setNeedsInitialExecution(true);
 
         Holder<EntityStore> holder = buildHexEntityHolder(accessor, ref, execComp);
@@ -95,7 +96,7 @@ public class ExecutionSystem extends HexcodeManager {
     }
 
     private Holder<EntityStore> buildHexEntityHolder(ComponentAccessor<EntityStore> accessor,
-            Ref<EntityStore> playerRef, ExecutionComponent execComp) {
+            Ref<EntityStore> playerRef, RootGlyph execComp) {
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
 
         TransformComponent playerTransform = accessor.getComponent(playerRef, TransformComponent.getComponentType());
@@ -103,7 +104,7 @@ public class ExecutionSystem extends HexcodeManager {
                 new TransformComponent(playerTransform.getPosition(), new Vector3f(0, 0, 0)));
 
         holder.addComponent(UUIDComponent.getComponentType(), new UUIDComponent(UUID.randomUUID()));
-        holder.addComponent(ExecutionComponent.getComponentType(), execComp);
+        holder.addComponent(RootGlyph.getComponentType(), execComp);
         holder.ensureComponent(EntityStore.REGISTRY.getNonSerializedComponentType());
 
         int networkId = accessor.getExternalData().takeNextNetworkId();

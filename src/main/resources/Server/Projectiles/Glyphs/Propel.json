@@ -31,5 +31,9 @@
       "TargetNodeName": "Ice_Bolt01",
       "TrailId": "Arrow"
     }
-  ]
+  ],
+  "HitParticles": {
+    "SystemId": "Laser_Impact",
+    "Color": "#0ae5ff"
+  }
 }

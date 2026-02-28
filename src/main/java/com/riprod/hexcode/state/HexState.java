@@ -5,5 +5,5 @@ public enum HexState {
     CASTING,
     DRAWING,
     CRAFTING,
-    EXECUTION,
+    EXECUTION
 }

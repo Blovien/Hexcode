@@ -13,9 +13,13 @@ import com.hypixel.hytale.assetstore.map.DefaultAssetMap;
 import com.hypixel.hytale.assetstore.map.JsonAssetWithMap;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
+import com.hypixel.hytale.codec.codecs.EnumCodec;
 import com.hypixel.hytale.codec.codecs.array.ArrayCodec;
 import com.hypixel.hytale.codec.validation.ValidatorCache;
+import com.hypixel.hytale.codec.validation.Validators;
+import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.riprod.hexcode.core.drawing.component.DrawnShapeComponent;
+import com.riprod.hexcode.core.glyphs.utils.GlyphType;
 
 public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<String, GlyphAsset>> {
     public static final AssetBuilderCodec<String, GlyphAsset> CODEC;
@@ -29,6 +33,9 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
     protected float basePower = 1.0f;
     protected int manaConsumption = 10;
     protected ArrayList<DrawnShapeComponent> shapes = new ArrayList<>();
+    protected GlyphType glyphType;
+    protected int inputCount = 0;
+    protected int outputCount = 0;
 
     public static AssetStore<String, GlyphAsset, DefaultAssetMap<String, GlyphAsset>> getAssetStore() {
         if (ASSET_STORE == null) {
@@ -66,6 +73,18 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
         return this.shapes;
     }
 
+    public GlyphType getGlyphType() {
+        return this.glyphType;
+    }
+
+    public int getInputCount() {
+        return this.inputCount;
+    }
+
+    public int getOutputCount() {
+        return this.outputCount;
+    }
+
     static {
         CODEC = AssetBuilderCodec
                 .builder(GlyphAsset.class, GlyphAsset::new, Codec.STRING, (glyphAsset, s) -> {
@@ -80,6 +99,7 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
                 .<String>appendInherited(new KeyedCodec<>("ModelPath", Codec.STRING),
                         (a, v) -> a.modelPath = v, a -> a.modelPath,
                         (a, p) -> a.modelPath = p.modelPath)
+                .addValidatorLate(() -> ModelAsset.VALIDATOR_CACHE.getValidator().late())
                 .add()
                 .<Float>appendInherited(new KeyedCodec<>("BasePower", Codec.FLOAT),
                         (a, v) -> a.basePower = v, a -> a.basePower,
@@ -93,7 +113,14 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
                         (a, v) -> a.manaConsumption = v, a -> a.manaConsumption,
                         (a, p) -> a.manaConsumption = p.manaConsumption)
                 .add()
-                .<DrawnShapeComponent[]>appendInherited(new KeyedCodec<>("ShapeStructure", new ArrayCodec<>(DrawnShapeComponent.CODEC, DrawnShapeComponent[]::new)),
+                .<GlyphType>appendInherited(new KeyedCodec<>("GlyphType", new EnumCodec<>(GlyphType.class)),
+                        (a, v) -> a.glyphType = v, a -> a.glyphType,
+                        (a, p) -> a.glyphType = p.glyphType)
+                .addValidator(Validators.nonNull())
+                .add()
+                .<DrawnShapeComponent[]>appendInherited(
+                        new KeyedCodec<>("ShapeStructure",
+                                new ArrayCodec<>(DrawnShapeComponent.CODEC, DrawnShapeComponent[]::new)),
                         (c, v) -> {
                             if (v != null) {
                                 c.shapes = new ArrayList<>(Arrays.asList(v));
@@ -103,6 +130,14 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
                         },
                         c -> c.shapes.toArray(DrawnShapeComponent[]::new),
                         (a, p) -> a.shapes = new ArrayList<>(p.shapes))
+                .add()
+                .<Integer>appendInherited(new KeyedCodec<>("InputCount", Codec.INTEGER),
+                        (a, v) -> a.inputCount = v, a -> a.inputCount,
+                        (a, p) -> a.inputCount = p.inputCount)
+                .add()
+                .<Integer>appendInherited(new KeyedCodec<>("OutputCount", Codec.INTEGER),
+                        (a, v) -> a.outputCount = v, a -> a.outputCount,
+                        (a, p) -> a.outputCount = p.outputCount)
                 .add()
                 .build();
         VALIDATOR_CACHE = new ValidatorCache<>(new AssetKeyValidator<>(GlyphAsset::getAssetStore));

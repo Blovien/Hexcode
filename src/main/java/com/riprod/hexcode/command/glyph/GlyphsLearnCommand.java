@@ -11,10 +11,13 @@ import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayer
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.glyphs.component.Glyph;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.glyphs.registry.GlyphAsset;
+import com.riprod.hexcode.core.glyphs.utils.GlyphType;
 import com.riprod.hexcode.core.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.hexcaster.utils.CasterInventory;
+import com.riprod.hexcode.core.hexes.component.Hex;
 
 import javax.annotation.Nonnull;
 
@@ -54,11 +57,18 @@ public class GlyphsLearnCommand extends AbstractPlayerCommand {
             return;
         }
 
-        GlyphComponent glyph = new GlyphComponent(glyphId, accuracy, speed);
-        
+        if (asset.getGlyphType() == GlyphType.Value) {
+            playerRef.sendMessage(Message.raw("Cannot learn value glyphs: " + glyphId));
+            return;
+        }
+
+        Glyph glyph = new Glyph(asset, accuracy, speed);
+
+        Hex hex = new Hex(glyph);
+
         HexBookComponent bookComponent = CasterInventory.getHexBookComponent(store, playerEntityRef);
 
-        bookComponent.addGlyph(glyph);
+        bookComponent.addHex(hex);
 
         CasterInventory.saveHexBookComponent(store, playerEntityRef, bookComponent);
 

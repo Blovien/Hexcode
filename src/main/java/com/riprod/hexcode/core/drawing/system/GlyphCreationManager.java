@@ -7,7 +7,6 @@ import javax.annotation.Nullable;
 
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.riprod.hexcode.core.drawing.component.DrawnShapeComponent;
-import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.glyphs.registry.GlyphAsset;
 
 public class GlyphCreationManager {
@@ -69,14 +68,5 @@ public class GlyphCreationManager {
         LOGGER.atInfo().log("Best glyph match: " + (bestMatch != null ? bestMatch.getId() : "none") + " with score " + bestScore);
 
         return bestMatch; // null if nothing matched
-    }
-
-    public static GlyphComponent CreateGlyphComponent(GlyphAsset asset, float accuracy, long drawTimeMillis) {
-        if (asset == null)
-            return null;
-
-        GlyphComponent component = new GlyphComponent(asset.getId(), accuracy, drawTimeMillis);
-        // set the rest of the glyph component data
-        return component;
     }
 }

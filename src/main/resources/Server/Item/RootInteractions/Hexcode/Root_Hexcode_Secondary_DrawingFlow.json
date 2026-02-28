@@ -27,7 +27,7 @@
             "ClearSoundEventOnFinish": true
           },
           "Forks": {
-            "Primary": "Hexcode_Staff_Primary"
+            "Primary": "Hexbook_Primary"
           },
           "Next": {
             "Type": "Simple",

@@ -1,0 +1,12 @@
+{
+  "Parent": "Base_Glyph",
+  "GlyphType": "Effect",
+  "ModelPath": "Glyph_Less",
+  "InputCount": 2,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Less",
+      "Size": 1.0
+    }
+  ]
+}

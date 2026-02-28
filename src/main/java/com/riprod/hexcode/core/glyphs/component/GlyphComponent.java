@@ -1,124 +1,54 @@
 package com.riprod.hexcode.core.glyphs.component;
 
-import com.hypixel.hytale.codec.Codec;
-import com.hypixel.hytale.codec.ExtraInfo;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
-import com.hypixel.hytale.codec.codecs.array.ArrayCodec;
-import com.hypixel.hytale.codec.schema.SchemaContext;
-import com.hypixel.hytale.codec.schema.config.Schema;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.utils.SphericalPosition;
-
-import org.bson.BsonValue;
-
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
-import java.util.UUID;
-
+import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class GlyphComponent implements Component<EntityStore> {
 
+    private enum GlyphFlags {
+        Hovering,
+        Dragging,
+        Hiding,
+        Selected
+    }
+
     public static final BuilderCodec<GlyphComponent> CODEC = BuilderCodec
             .builder(GlyphComponent.class, GlyphComponent::new)
-            .append(new KeyedCodec<>("GlyphId", Codec.STRING),
-                    (c, v) -> c.glyphId = v,
-                    c -> c.glyphId)
-            .add()
-            .append(new KeyedCodec<>("Accuracy", Codec.FLOAT),
-                    (c, v) -> c.accuracy = v,
-                    c -> c.accuracy)
-            .add()
-            .append(new KeyedCodec<>("UUID", Codec.UUID_STRING),
-                    (c, v) -> c.id = v,
-                    c -> c.id)
-            .add()
-            .append(new KeyedCodec<>("Speed", Codec.FLOAT),
-                    (c, v) -> c.speed = v,
-                    c -> c.speed)
-            .add()
-            .append(new KeyedCodec<>("Children", new ArrayCodec<>(selfCodec(), GlyphComponent[]::new)),
-                    (c, v) -> {
-                        if (v != null) {
-                            c.children = new ArrayList<>(Arrays.asList(v));
-                        } else {
-                            c.children = new ArrayList<>();
-                        }
-                    },
-                    c -> c.children.toArray(GlyphComponent[]::new))
+            .append(new KeyedCodec<>("Glyph", Glyph.CODEC),
+                    (c, v) -> c.glyph = v,
+                    c -> c.glyph)
             .add()
             .build();
 
-    private static Codec<GlyphComponent> selfCodec() {
-        return new Codec<GlyphComponent>() {
-            @Override
-            public GlyphComponent decode(BsonValue bsonValue, ExtraInfo extraInfo) {
-                return CODEC.decode(bsonValue, extraInfo);
-            }
-
-            @Override
-            public BsonValue encode(GlyphComponent value, ExtraInfo extraInfo) {
-                return CODEC.encode(value, extraInfo);
-            }
-
-            @Override
-            public Schema toSchema(SchemaContext context) {
-                return CODEC.toSchema(context);
-            }
-        };
-    }
-
     private static ComponentType<EntityStore, GlyphComponent> componentType;
 
-    private List<GlyphComponent> children = new ArrayList<>();
-
-    // persistent
+    // persistent - from asset
     @Nonnull
-    private String glyphId;;
-    @Nonnull
-    private UUID id;
-    private float accuracy = 1f;
-    private float speed = 1f;
-    private float idealSpeed = 1f;
+    private Glyph glyph = new Glyph(); // default value to avoid null issues during codec construction
 
-    // non-persistent
-    @Nullable
-    private Ref<EntityStore> ownerRef;
-    private Ref<EntityStore> rootRef;
+    // transient
+    private Ref<EntityStore> parentRef;
     private Ref<EntityStore> selfRef;
-    private float yaw = 0f;
-    private float pitch = 0f;
-    private double distance = 2d;
-    private Boolean isBeingDragged = false;
-    /** Used for positioning child glyphs relative to their parent */
-    private Vector3f offset = new Vector3f(0, 0, 0);
+    private Ref<EntityStore> hexRef;
+    private Set<GlyphFlags> flags = EnumSet.noneOf(GlyphFlags.class);
     private float scale = 1f;
-
-    /** Execution Context items */
-    private List<Integer> numbers = new ArrayList<>();
-    private List<Integer> variables = new ArrayList<>();
 
     // for the codec - do not use
     public GlyphComponent() {
     }
 
-    public GlyphComponent(@Nonnull String glyphId) {
-        this.glyphId = glyphId;
-        this.id = UUID.randomUUID();
-    }
-
-    public GlyphComponent(@Nonnull String glyphId, float accuracy, float speed) {
-        this.glyphId = glyphId;
-        this.accuracy = accuracy;
-        this.speed = speed / Math.max(idealSpeed, 1); // normalize speed to idealSpeed
-        this.id = UUID.randomUUID();
+    public GlyphComponent(@Nonnull Glyph glyph) {
+        this.glyph = glyph;
     }
 
     public static void setComponentType(ComponentType<EntityStore, GlyphComponent> type) {
@@ -130,36 +60,30 @@ public class GlyphComponent implements Component<EntityStore> {
     }
 
     @Nonnull
-    public UUID getId() {
-        return id;
+    public String getId() {
+        return this.glyph.getId();
     }
 
-    public void setId(@Nonnull UUID id) {
-        this.id = id;
+    /** Abstraction from Glyph */
+
+    public List<String> getNext() {
+        return this.glyph.getNext();
     }
 
-    /** Casting Context Items */
-
-    public boolean isChild() {
-        return rootRef != null;
-    }
+    /** Getters and Setters */
 
     @Nonnull
     public String getGlyphId() {
-        return glyphId;
-    }
-
-    public void setGlyphId(@Nonnull String glyphId) {
-        this.glyphId = glyphId;
+        return this.glyph.getGlyphId();
     }
 
     @Nullable
-    public Ref<EntityStore> getOwnerRef() {
-        return ownerRef;
+    public Ref<EntityStore> getParentRef() {
+        return parentRef;
     }
 
-    public void setOwnerRef(@Nullable Ref<EntityStore> ownerRef) {
-        this.ownerRef = ownerRef;
+    public void setParentRef(@Nullable Ref<EntityStore> parentRef) {
+        this.parentRef = parentRef;
     }
 
     @Nullable
@@ -172,79 +96,46 @@ public class GlyphComponent implements Component<EntityStore> {
     }
 
     @Nullable
-    public Ref<EntityStore> getRootRef() {
-        return rootRef;
+    public Ref<EntityStore> getHexRef() {
+        return hexRef;
     }
 
-    public void setRootRef(@Nullable Ref<EntityStore> hexRootRef) {
-        this.rootRef = hexRootRef;
-    }
-
-    public List<GlyphComponent> getChildren() {
-        return children;
-    }
-
-    public void setChildren(List<GlyphComponent> children) {
-        this.children = children;
-    }
-
-    public void addChild(GlyphComponent child) {
-        this.children.add(child);
-    }
-
-    public void removeChild(GlyphComponent child) {
-        this.children.remove(child);
-    }
-
-    public void removeChild(UUID id) {
-        this.children.removeIf(child -> child.getId().equals(id));
-    }
-
-    public List<GlyphComponent> getAllDescendants() {
-        List<GlyphComponent> descendants = new ArrayList<>();
-        for (GlyphComponent child : children) {
-            descendants.add(child);
-            descendants.addAll(child.getAllDescendants());
-        }
-        return descendants;
-    }
-
-    public boolean isHex() {
-        return !children.isEmpty();
-    }
-
-    public boolean isLeaf() {
-        return children.isEmpty();
+    public void setHexRef(@Nullable Ref<EntityStore> hexRef) {
+        this.hexRef = hexRef;
     }
 
     /** Positioning */
 
     public float getYaw() {
-        return yaw;
+        return this.glyph.getRotation().getYaw();
     }
 
     public void setYaw(float yaw) {
-        this.yaw = yaw;
+        this.glyph.getRotation().setYaw(yaw);
     }
 
     public float getPitch() {
-        return pitch;
+        return this.glyph.getRotation().getPitch();
     }
 
     public void setPitch(float pitch) {
-        this.pitch = pitch;
+        this.glyph.getRotation().setPitch(pitch);
     }
 
-    public double getDistance() {
-        return distance;
+    public float getDistance() {
+        return this.glyph.getRotation().getZ();
     }
 
-    public void setDistance(double distance) {
-        this.distance = distance;
+    public void setDistance(float distance) {
+        this.glyph.getRotation().setZ(distance);
     }
 
-    public SphericalPosition getSphericalPosition() {
-        return new SphericalPosition(yaw, pitch, distance);
+    public Vector3f getRotation() {
+        return this.glyph.getRotation();
+    }
+
+    public void setRotation(Vector3f rotation) {
+        this.glyph.setRotation(rotation);
     }
 
     public float getScale() {
@@ -255,79 +146,58 @@ public class GlyphComponent implements Component<EntityStore> {
         this.scale = scale;
     }
 
-    public void setDragState(Boolean isBeingDragged) {
-        this.isBeingDragged = isBeingDragged;
-    }
-
-    public boolean isBeingDragged() {
-        return isBeingDragged;
-    }
-
     public Vector3f getOffset() {
-        return offset;
+        return this.glyph.getPosition();
     }
 
     public void setOffset(Vector3f offset) {
-        this.offset = offset;
+        this.glyph.setPosition(offset);
     }
 
     public void setOffset(float x, float y, float z) {
-        this.offset = new Vector3f(x, y, z);
+        this.glyph.setPosition(new Vector3f(x, y, z));
     }
 
-    /** Attributes */
-
-    public float getAccuracy() {
-        return accuracy;
+    public void addNext(String nextId) {
+        this.glyph.addNext(nextId);
     }
 
-    public void setAccuracy(float accuracy) {
-        this.accuracy = accuracy;
+    /** Flags */
+
+    public void setHoverState(boolean isHovered) {
+        if (isHovered) {
+            this.flags.add(GlyphFlags.Hovering);
+        } else {
+            this.flags.remove(GlyphFlags.Hovering);
+        }
     }
 
-    public float getSpeed() {
-        return speed;
+    public boolean isHovered() {
+        return this.flags.contains(GlyphFlags.Hovering);
     }
 
-    public void setSpeed(float speed) {
-        this.speed = speed;
+    public void setDragState(boolean isBeingDragged) {
+        if (isBeingDragged) {
+            this.flags.add(GlyphFlags.Dragging);
+        } else {
+            this.flags.remove(GlyphFlags.Dragging);
+        }
     }
 
-    /** Casting Context Items */
-    public List<Integer> getNumbers() {
-        return numbers;
-    }
-
-    public void setNumbers(List<Integer> numbers) {
-        this.numbers = numbers;
-    }
-
-    public List<Integer> getVariables() {
-        return variables;
-    }
-
-    public void setVariables(List<Integer> variables) {
-        this.variables = variables;
+    public boolean isBeingDragged() {
+        return this.flags.contains(GlyphFlags.Dragging);
     }
 
     @Nonnull
     @Override
     public GlyphComponent clone() {
         GlyphComponent copy = new GlyphComponent();
-        copy.glyphId = this.glyphId;
-        copy.ownerRef = this.ownerRef;
-        copy.id = this.id;
-        copy.yaw = this.yaw;
-        copy.pitch = this.pitch;
-        copy.distance = this.distance;
+        copy.glyph = this.glyph.clone();
         copy.scale = this.scale;
-        copy.accuracy = this.accuracy;
-        copy.speed = this.speed;
-        copy.children = new ArrayList<>();
-        copy.idealSpeed = this.idealSpeed;
-        for (GlyphComponent child : this.children) {
-            copy.children.add(child.clone());
-        }
+        copy.parentRef = this.parentRef;
+        copy.selfRef = this.selfRef;
+        copy.hexRef = this.hexRef;
+        copy.flags = this.flags.isEmpty() ? EnumSet.noneOf(GlyphFlags.class) : EnumSet.copyOf(this.flags);
         return copy;
     }
 }

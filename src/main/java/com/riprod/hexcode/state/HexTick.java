@@ -2,14 +2,17 @@ package com.riprod.hexcode.state;
 
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
+import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
 
 public class HexTick extends EntityTickingSystem<EntityStore> {
+  private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
   @Override
   public Query<EntityStore> getQuery() {
@@ -26,6 +29,7 @@ public class HexTick extends EntityTickingSystem<EntityStore> {
 
     HexState pending = comp.consumePendingState();
     if (pending != null) {
+      LOGGER.atInfo().log("Processing state change for entity %s: %s -> %s", ref, comp.getState(), pending);
       HexcodeManager old = StateRouter.route(comp.getState());
       if (old != null) {
         old.lastTick(ref, comp, store, buffer);
@@ -36,6 +40,7 @@ public class HexTick extends EntityTickingSystem<EntityStore> {
       HexcodeManager next = StateRouter.route(pending);
       if (next != null) {
         next.firstTick(ref, comp, store, buffer);
+        return;
       }
     }
 

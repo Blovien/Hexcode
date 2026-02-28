@@ -1,0 +1,15 @@
+{
+  "Parent": "Base_Glyph",
+  "GlyphType": "Value",
+  "ModelPath": "Number_14",
+  "ShapeStructure": [
+    {
+      "ShapeId": "Line",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Antisquare",
+      "Size": 1.0
+    }
+  ]
+}

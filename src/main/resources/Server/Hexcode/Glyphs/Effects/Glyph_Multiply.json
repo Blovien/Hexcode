@@ -1,0 +1,17 @@
+{
+  "Parent": "Base_Glyph",
+  "GlyphType": "Effect",
+  "ModelPath": "Glyph_Multiply",
+  "InputCount": -1,
+  "OutputCount": 1,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Slash",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Antislash",
+      "Size": 1.0
+    }
+  ]
+}

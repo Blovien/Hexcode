@@ -1,6 +1,9 @@
 package com.riprod.hexcode.core.execution.system;
 
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
@@ -13,9 +16,10 @@ import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.components.HexContext;
 import com.riprod.hexcode.core.execution.Executor;
-import com.riprod.hexcode.core.execution.component.ExecutionComponent;
+import com.riprod.hexcode.core.execution.component.RootGlyph;
+import com.riprod.hexcode.core.glyphs.component.Glyph;
+import com.riprod.hexcode.core.execution.component.HexContext;
 import com.riprod.hexcode.core.execution.component.HexRoot;
 import com.riprod.hexcode.core.execution.component.PendingContinue;
 
@@ -23,47 +27,47 @@ public class ExecutionTickSystem extends EntityTickingSystem<EntityStore> {
 
     @Override
     public Query<EntityStore> getQuery() {
-        return ExecutionComponent.getComponentType();
+        return RootGlyph.getComponentType();
     }
 
     @Override
     public void tick(float dt, int index, ArchetypeChunk<EntityStore> chunk,
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
-        ExecutionComponent execComp = chunk.getComponent(index, ExecutionComponent.getComponentType());
+        RootGlyph rootGlyph = chunk.getComponent(index, RootGlyph.getComponentType());
         Ref<EntityStore> ref = chunk.getReferenceTo(index);
 
-        HexRoot root = execComp.getRoot();
+        HexRoot root = rootGlyph.getRoot();
         if (root == null || !root.isAlive()) {
             return;
         }
 
         ComponentAccessor<ChunkStore> chunkAccessor = buffer.getExternalData().getWorld().getChunkStore().getStore();
 
-        if (execComp.needsInitialExecution()) {
-            execComp.setNeedsInitialExecution(false);
-            HexContext hexContext = new HexContext(root, buffer, chunkAccessor, execComp.getSpellGraph());
-            Executor.beginExecution(hexContext);
+        if (rootGlyph.needsInitialExecution()) {
+            rootGlyph.setNeedsInitialExecution(false);
 
-            if (!execComp.hasPendingContinues() && execComp.getExternalWaiters() <= 0) {
+            HexContext hexContext = new HexContext(root, buffer, chunkAccessor, rootGlyph.getHex());
+            Executor.beginExecution(List.of(rootGlyph.getHex().getFirstGlyphId()), hexContext);
+
+            if (!rootGlyph.hasPendingContinues() && rootGlyph.getExternalWaiters() <= 0) {
                 Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
                 buffer.removeEntity(ref, holder, RemoveReason.REMOVE);
             }
             return;
         }
 
-        Iterator<PendingContinue> it = execComp.getPendingContinues().iterator();
+        Iterator<PendingContinue> it = rootGlyph.getPendingContinues().iterator();
         while (it.hasNext()) {
             PendingContinue pending = it.next();
             pending.tick();
 
             if (pending.isReady()) {
                 it.remove();
-                HexContext hexContext = new HexContext(root, buffer, chunkAccessor, execComp.getSpellGraph());
-                Executor.continueExecution(hexContext, pending.getExecutionContext());
+                Executor.continueExecution(pending.getGlyphIds(), pending.getExecutionContext());
             }
         }
 
-        if (!execComp.hasPendingContinues() && execComp.getExternalWaiters() <= 0) {
+        if (!rootGlyph.hasPendingContinues() && rootGlyph.getExternalWaiters() <= 0) {
             Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
             buffer.removeEntity(ref, holder, RemoveReason.REMOVE);
         }

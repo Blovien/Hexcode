@@ -7,7 +7,7 @@
     "Items.Weapons"
   ],
   "Icon": "Icons/ItemsGenerated/Arcane_Hexbook.png",
-  "Quality": "Common",
+  "Quality": "Epic",
   "ItemLevel": 40,
   "Model": "Items/Tools/Book/Blue_Grimoire.blockymodel",
   "Texture": "Items/Tools/Book/Blue_Grimoire.png",
@@ -24,7 +24,7 @@
     ]
   },
   "DroppedItemAnimation": "Items/Animations/Dropped/Dropped_Diagonal_Left.blockyanim",
-  "MaxStack": 25,
+  "MaxStack": 1,
   "Scale": 1.2,
   "Tags": {
     "Type": [

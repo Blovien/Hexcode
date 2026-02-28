@@ -2,8 +2,8 @@ package com.riprod.hexcode.builtin.styles;
 
 import javax.annotation.Nonnull;
 
+import com.hypixel.hytale.math.vector.Vector3f;
 import com.riprod.hexcode.core.casting.component.CastingStyle;
-import com.riprod.hexcode.utils.SphericalPosition;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,15 +23,15 @@ public class ArcStyle implements CastingStyle {
 
     @Nonnull
     @Override
-    public List<SphericalPosition> getInitialPositions(int glyphCount, float lookYaw, float lookPitch) {
-        List<SphericalPosition> positions = new ArrayList<>();
+    public List<Vector3f> getInitialPositions(int glyphCount, float lookYaw, float lookPitch) {
+        List<Vector3f> positions = new ArrayList<>();
 
         if (glyphCount <= 0) {
             return positions;
         }
 
         if (glyphCount == 1) {
-            positions.add(new SphericalPosition(lookYaw, ARC_PITCH, DEFAULT_DISTANCE));
+            positions.add(new Vector3f(lookYaw, ARC_PITCH, DEFAULT_DISTANCE));
             return positions;
         }
 
@@ -40,7 +40,7 @@ public class ArcStyle implements CastingStyle {
 
         for (int i = 0; i < glyphCount; i++) {
             float yaw = startYaw + angleStep * i;
-            positions.add(new SphericalPosition(yaw, ARC_PITCH, DEFAULT_DISTANCE));
+            positions.add(new Vector3f(ARC_PITCH, yaw, DEFAULT_DISTANCE));
         }
 
         return positions;

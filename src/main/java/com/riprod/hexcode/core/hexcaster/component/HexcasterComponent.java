@@ -5,7 +5,6 @@ import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.drawing.component.DrawnShapeComponent;
-import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.state.HexState;
 
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
@@ -15,7 +14,6 @@ import javax.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class HexcasterComponent implements Component<EntityStore> {
 
@@ -48,16 +46,6 @@ public class HexcasterComponent implements Component<EntityStore> {
         this.currentState = newState;
     }
 
-    // Casting Mode
-    private Ref<EntityStore> castingRootRef = null;
-    private Ref<EntityStore> headAnchorRef = null;
-    @Nonnull
-    private List<GlyphComponent> activeGlyphs = new ArrayList<>();
-    private List<GlyphComponent> hoveredChain = new ArrayList<>();
-    private GlyphComponent draggingGlyph = null;
-    private GlyphComponent hoveredGlyph = null;
-    private GlyphComponent lastSelectedGlyph = null;
-
     // Drawing Mode
     private FloatArrayList drawnStrokes = new FloatArrayList();
     private List<DrawnShapeComponent> drawnGlyphs = new ArrayList<>();
@@ -66,6 +54,7 @@ public class HexcasterComponent implements Component<EntityStore> {
     private long drawStartTimeMillis = 0;
 
     // Crafting Mode
+    private Ref<EntityStore> pendingPedestalRef = null;
 
     public HexcasterComponent() {
     }
@@ -78,102 +67,7 @@ public class HexcasterComponent implements Component<EntityStore> {
         return componentType;
     }
 
-    public GlyphComponent getHoveredGlyph() {
-        return hoveredGlyph;
-    }
-
-    public void setHoveredGlyph(@Nullable GlyphComponent hoveredGlyph) {
-        this.hoveredGlyph = hoveredGlyph;
-    }
-
-    public GlyphComponent getDraggingGlyph() {
-        return draggingGlyph;
-    }
-
-    public void setDraggingGlyph(@Nullable GlyphComponent draggingGlyph) {
-        if (draggingGlyph != null) {
-            setLastSelectedGlyph(draggingGlyph);
-        }
-
-        if (this.draggingGlyph != null) {
-            this.draggingGlyph.setDragState(false);
-        }
-
-        if (draggingGlyph == null) {
-            this.draggingGlyph = null;
-            return;
-        }
-
-        this.draggingGlyph = draggingGlyph;
-        this.draggingGlyph.setDragState(true);
-    }
-
-    public Ref<EntityStore> getCastingRootRef() {
-        return castingRootRef;
-    }
-
-    public void setCastingRootRef(Ref<EntityStore> castingRootRef) {
-        this.castingRootRef = castingRootRef;
-    }
-
-    public Ref<EntityStore> getHeadAnchorRef() {
-        return headAnchorRef;
-    }
-
-    public void setHeadAnchorRef(Ref<EntityStore> headAnchorRef) {
-        this.headAnchorRef = headAnchorRef;
-    }
-
-    public List<GlyphComponent> getActiveGlyphs() {
-        return activeGlyphs;
-    }
-
-    public void setActiveGlyphs(@Nonnull List<GlyphComponent> activeGlyphs) {
-        this.activeGlyphs = activeGlyphs;
-    }
-
-    public void addActiveGlyph(GlyphComponent glyph) {
-        this.activeGlyphs.add(glyph);
-    }
-
-    public void removeActiveGlyph(GlyphComponent glyph) {
-        this.activeGlyphs.remove(glyph);
-    }
-
-    public void removeActiveGlyph(UUID glyphId) {
-        this.activeGlyphs.removeIf(glyph -> glyph.getId().equals(glyphId));
-    }
-
-    public void pushToChain(GlyphComponent glyph) {
-        this.hoveredChain.add(glyph);
-    }
-
-    public void popFromChain() {
-        if (!this.hoveredChain.isEmpty()) {
-            this.hoveredChain.remove(this.hoveredChain.size() - 1);
-        }
-    }
-
-    public void setLastSelectedGlyph(GlyphComponent glyph) {
-        this.lastSelectedGlyph = glyph;
-    }
-
-    public GlyphComponent getLastSelectedGlyph() {
-        return this.lastSelectedGlyph;
-    }
-
-    public void clearCastingState() {
-        this.castingRootRef = null;
-        this.headAnchorRef = null;
-        this.activeGlyphs.clear();
-        this.hoveredChain.clear();
-        this.draggingGlyph = null;
-        this.hoveredGlyph = null;
-        this.lastSelectedGlyph = null;
-    }
-
     public void clearDrawingState() {
-        this.hoveredChain.clear();
         this.drawnStrokes.clear();
         this.drawnGlyphs.clear();
         this.trailRef = null;
@@ -181,8 +75,22 @@ public class HexcasterComponent implements Component<EntityStore> {
         this.drawStartTimeMillis = 0;
     }
 
+    public Ref<EntityStore> getPendingPedestalRef() {
+        return pendingPedestalRef;
+    }
+
+    public void setPendingPedestalRef(@Nullable Ref<EntityStore> ref) {
+        this.pendingPedestalRef = ref;
+    }
+
+    public Ref<EntityStore> consumePendingPedestalRef() {
+        Ref<EntityStore> ref = this.pendingPedestalRef;
+        this.pendingPedestalRef = null;
+        return ref;
+    }
+
     public void clearCraftingState() {
-        this.hoveredChain.clear();
+        this.pendingPedestalRef = null;
     }
 
     public FloatArrayList getDrawnStrokes() {
@@ -244,18 +152,12 @@ public class HexcasterComponent implements Component<EntityStore> {
     public HexcasterComponent clone() {
         HexcasterComponent copy = new HexcasterComponent();
         copy.currentState = this.currentState;
-        copy.castingRootRef = this.castingRootRef;
-        copy.headAnchorRef = this.headAnchorRef;
-        copy.activeGlyphs = new ArrayList<>(this.activeGlyphs);
-        copy.hoveredChain = new ArrayList<>(this.hoveredChain);
-        copy.draggingGlyph = this.draggingGlyph;
-        copy.hoveredGlyph = this.hoveredGlyph;
-        copy.lastSelectedGlyph = this.lastSelectedGlyph;
         copy.drawnStrokes = new FloatArrayList(this.drawnStrokes);
         copy.drawnGlyphs = new ArrayList<>(this.drawnGlyphs);
         copy.trailRef = this.trailRef;
         copy.lastParticleSpawnMillis = this.lastParticleSpawnMillis;
         copy.drawStartTimeMillis = this.drawStartTimeMillis;
+        copy.pendingPedestalRef = this.pendingPedestalRef;
         return copy;
     }
 }

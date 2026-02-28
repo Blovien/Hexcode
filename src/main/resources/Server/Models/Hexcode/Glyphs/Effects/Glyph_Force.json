@@ -1,0 +1,5 @@
+{
+  "Parent": "Base_Glyph",
+  "Model": "VFX/Glyphs/Shapes/Circle.blockymodel",
+  "Texture": "VFX/Glyphs/Shapes/Circle.png"
+}

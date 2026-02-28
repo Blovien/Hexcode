@@ -1,0 +1,11 @@
+{
+  "RequireNewClick": true,
+  "Cooldown": {
+    "Id": "PedestalInteractionCooldown",
+    "Cooldown": 0.3,
+    "ClickBypass": true
+  },
+  "Interactions": [
+    "Pedestal_Interact"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "Parent": "Base_Glyph",
+  "GlyphType": "Effect",
+  "ModelPath": "Glyph_Equal",
+  "InputCount": 2,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Antiline",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Antiline",
+      "Size": 1.0
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "Parent": "Base_Glyph",
+  "GlyphType": "Effect",
+  "ModelPath": "Glyph_Self",
+  "BasePower": 1.0,
+  "ManaConsumption": 0,
+  "OutputCount": 1,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Square",
+      "Size": 1.0
+    }
+  ]
+}

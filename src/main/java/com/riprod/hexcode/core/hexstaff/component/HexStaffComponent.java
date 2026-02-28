@@ -6,8 +6,7 @@ import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.execution.component.HexGraph;
-import com.riprod.hexcode.core.hexstaff.registry.HexStaffAsset;
+import com.riprod.hexcode.core.hexes.component.Hex;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -20,9 +19,9 @@ public class HexStaffComponent implements Component<EntityStore> {
                     (c, v) -> c.styleId = v,
                     c -> c.styleId)
             .add()
-            .append(new KeyedCodec<>("SpellGraph", HexGraph.CODEC),
-                    (c, v) -> c.activeSpell = v,
-                    c -> c.activeSpell)
+            .append(new KeyedCodec<>("Hex", Hex.CODEC),
+                    (c, v) -> c.hex = v,
+                    c -> c.hex)
             .add()
             .build();
 
@@ -31,7 +30,7 @@ public class HexStaffComponent implements Component<EntityStore> {
     @Nonnull
     private String styleId = "ring";
     @Nullable
-    private HexGraph activeSpell;
+    private Hex hex;
 
     public HexStaffComponent() {
     }
@@ -58,16 +57,16 @@ public class HexStaffComponent implements Component<EntityStore> {
     }
 
     @Nullable
-    public HexGraph getActiveSpell() {
-        return activeSpell;
+    public Hex getActiveHex() {
+        return hex;
     }
 
-    public void setActiveSpell(@Nullable HexGraph activeSpell) {
-        this.activeSpell = activeSpell;
+    public void setActiveHex(@Nullable Hex hex) {
+        this.hex = hex;
     }
 
-    public boolean hasActiveSpell() {
-        return activeSpell != null;
+    public boolean hasActiveHex() {
+        return hex != null;
     }
 
     @Nonnull
@@ -75,7 +74,7 @@ public class HexStaffComponent implements Component<EntityStore> {
     public HexStaffComponent clone() {
         HexStaffComponent copy = new HexStaffComponent();
         copy.styleId = this.styleId;
-        copy.activeSpell = this.activeSpell != null ? this.activeSpell.clone() : null;
+        copy.hex = this.hex != null ? this.hex.clone() : null;
         return copy;
     }
 }

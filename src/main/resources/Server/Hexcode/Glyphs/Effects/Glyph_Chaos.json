@@ -1,0 +1,15 @@
+{
+  "Parent": "Base_Glyph",
+  "GlyphType": "Effect",
+  "ModelPath": "Glyph_Chaos",
+  "BasePower": 1.0,
+  "ManaConsumption": 3,
+  "InputCount": 2,
+  "OutputCount": 1,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Antisquare",
+      "Size": 1.0
+    }
+  ]
+}

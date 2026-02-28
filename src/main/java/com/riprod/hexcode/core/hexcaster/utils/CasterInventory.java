@@ -9,10 +9,10 @@ import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.hexbook.component.HexBookAsset;
 import com.riprod.hexcode.core.hexbook.component.HexBookComponent;
-import com.riprod.hexcode.core.hexbook.registry.HexBookAsset;
+import com.riprod.hexcode.core.hexstaff.component.HexStaffAsset;
 import com.riprod.hexcode.core.hexstaff.component.HexStaffComponent;
-import com.riprod.hexcode.core.hexstaff.registry.HexStaffAsset;
 
 public class CasterInventory {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -51,7 +51,7 @@ public class CasterInventory {
         }
 
         // Create and initialize new component
-        HexBookComponent newComponent = new HexBookComponent(bookAsset.getMaxGlyphs());
+        HexBookComponent newComponent = new HexBookComponent(bookAsset);
         ItemStack newStack = utilityItem.withMetadata(METADATA_KEY_HEX_BOOK, HexBookComponent.CODEC, newComponent);
 
         // replace item

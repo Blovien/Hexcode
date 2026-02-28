@@ -1,0 +1,12 @@
+{
+  "Parent": "Base_Glyph",
+  "GlyphType": "Effect",
+  "ModelPath": "Glyph_Greater",
+  "InputCount": 2,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Greater",
+      "Size": 1.0
+    }
+  ]
+}

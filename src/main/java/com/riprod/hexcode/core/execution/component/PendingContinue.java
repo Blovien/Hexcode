@@ -1,27 +1,26 @@
 package com.riprod.hexcode.core.execution.component;
 
+import java.util.List;
 import java.util.UUID;
 
-import com.riprod.hexcode.components.ExecutionContext;
-
 public class PendingContinue {
-    private final UUID glyphId;
-    private final ExecutionContext executionContext;
+    private final List<String> glyphIds;
+    private final HexContext executionContext;
     private final int delayTicks;
     private int elapsedTicks;
 
-    public PendingContinue(UUID glyphId, ExecutionContext executionContext, int delayTicks) {
-        this.glyphId = glyphId;
+    public PendingContinue(List<String> glyphIds, HexContext executionContext, int delayTicks) {
+        this.glyphIds = glyphIds;
         this.executionContext = executionContext;
         this.delayTicks = delayTicks;
         this.elapsedTicks = 0;
     }
 
-    public UUID getGlyphId() {
-        return glyphId;
+    public List<String> getGlyphIds() {
+        return glyphIds;
     }
 
-    public ExecutionContext getExecutionContext() {
+    public HexContext getExecutionContext() {
         return executionContext;
     }
 
