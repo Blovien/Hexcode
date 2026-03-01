@@ -53,6 +53,9 @@ public class HexcasterComponent implements Component<EntityStore> {
     private long lastParticleSpawnMillis = 0;
     private long drawStartTimeMillis = 0;
 
+    // training mode
+    private String trainingShapeId = null;
+
     // Crafting Mode
     private Ref<EntityStore> pendingPedestalRef = null;
 
@@ -91,6 +94,20 @@ public class HexcasterComponent implements Component<EntityStore> {
 
     public void clearCraftingState() {
         this.pendingPedestalRef = null;
+    }
+
+    public String getTrainingShapeId() {
+        return trainingShapeId;
+    }
+
+    public void setTrainingShapeId(String shapeId) {
+        this.trainingShapeId = shapeId;
+    }
+
+    public String consumeTrainingShapeId() {
+        String id = this.trainingShapeId;
+        this.trainingShapeId = null;
+        return id;
     }
 
     public FloatArrayList getDrawnStrokes() {
@@ -158,6 +175,7 @@ public class HexcasterComponent implements Component<EntityStore> {
         copy.lastParticleSpawnMillis = this.lastParticleSpawnMillis;
         copy.drawStartTimeMillis = this.drawStartTimeMillis;
         copy.pendingPedestalRef = this.pendingPedestalRef;
+        copy.trainingShapeId = this.trainingShapeId;
         return copy;
     }
 }

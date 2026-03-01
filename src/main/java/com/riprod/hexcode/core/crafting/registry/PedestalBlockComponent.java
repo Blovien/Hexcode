@@ -3,6 +3,7 @@ package com.riprod.hexcode.core.crafting.registry;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
+import com.hypixel.hytale.codec.codecs.EnumCodec;
 import com.hypixel.hytale.codec.codecs.map.MapCodec;
 import com.hypixel.hytale.codec.schema.metadata.ui.UIDefaultCollapsedState;
 import com.hypixel.hytale.codec.schema.metadata.ui.UIEditorSectionStart;
@@ -19,7 +20,7 @@ import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.crafting.component.PedestalState;
+import com.riprod.hexcode.core.crafting.utils.PedestalState;
 import com.riprod.hexcode.core.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.hexcaster.utils.CasterInventory;
 import com.riprod.hexcode.core.hexes.component.Hex;
@@ -65,20 +66,17 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
                     (a, v) -> a.essenceOffset = v,
                     a -> a.essenceOffset,
                     (a, p) -> a.essenceOffset = p.essenceOffset)
-            .documentation("Particles that spawn while the pedestal is ready for activation")
+            .documentation("Essence offset vector")
             .add()
             .appendInherited(new KeyedCodec<>("BookOffsetVector", Vector3f.CODEC),
                     (a, v) -> a.bookOffset = v,
                     a -> a.bookOffset,
                     (a, p) -> a.bookOffset = p.bookOffset)
-            .documentation("Particles that spawn when the pedestal is active")
+            .documentation("Book offset from the center")
             .add()
-            .<Map<String, ModelAsset.AnimationSet>>appendInherited(new KeyedCodec<>("AnimationSets", new MapCodec<>(ModelAsset.AnimationSet.CODEC, HashMap::new)),
-                    (model, m) -> model.animationSetMap = MapUtil.combineUnmodifiable(model.animationSetMap, m),
-                    (model) -> model.animationSetMap,
-                    (model, parent) -> model.animationSetMap = parent.animationSetMap)
-            .metadata(new UIEditorSectionStart("Animations"))
-            .metadata(UIDefaultCollapsedState.UNCOLLAPSED)
+            .append(new KeyedCodec<>("AnimationSets", new MapCodec<>(ModelAsset.AnimationSet.CODEC, HashMap::new)),
+                    (model, m) -> model.animationSetMap = m,
+                    (model) -> model.animationSetMap)
             .add()
             .append(new KeyedCodec<>("StoredBook", ItemStack.CODEC), (c, v) -> c.storedBook = v, c -> c.storedBook)
             .documentation(
@@ -94,8 +92,15 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
             .addValidatorLate(() -> ModelAsset.VALIDATOR_CACHE.getValidator().late())
             .documentation(
                     "A model that has the animations for the items (book/essence). Used for customizing the animation displays.")
-            .add().append(new KeyedCodec<>("Location", Vector3i.CODEC), (c, v) -> c.location = v, c -> c.location)
-            .documentation("The location of the pedestal in the world.").add().build();
+            .add()
+            .append(new KeyedCodec<>("Location", Vector3i.CODEC), (c, v) -> c.location = v, c -> c.location)
+            .documentation("The location of the pedestal in the world.")
+            .add()
+            .append(new KeyedCodec<>("State", new EnumCodec<>(PedestalState.class)),
+                    (c, v) -> c.blockState = v, c -> c.blockState)
+            .documentation("The current state of the pedestal")
+            .add()
+            .build();
 
     private static ComponentType<ChunkStore, PedestalBlockComponent> componentType;
 
@@ -113,12 +118,12 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
     private int maxRadius = 30;
     private boolean perPlayer = false;
     private int obeliskRange = 30;
-    private String referenceHolder = null;
+    private String referenceHolder = "Pedestal_Holder";
     private Map<String, AnimationSet> animationSetMap = Collections.emptyMap();
-    protected Vector3f essenceOffset;
-    protected Vector3f bookOffset;
+    protected Vector3f essenceOffset = new Vector3f(0f, -0.5f, 0f);
+    protected Vector3f bookOffset = new Vector3f(0f, 0.3f, 0f);
     // transient
-    private PedestalState blockState = PedestalState.OFF;
+    private PedestalState blockState = PedestalState.IDLE;
     private Hex activeHex = null;
     private Ref<EntityStore> activeHexEntityRef;
     private Ref<EntityStore> anchorEntityRef;
@@ -296,7 +301,7 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
     }
 
     // style
-    public Vector3f getBlockOffset() {
+    public Vector3f getBookOffset() {
         return this.bookOffset;
     }
 
@@ -330,6 +335,7 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
         copy.bookOffset = this.bookOffset;
         copy.essenceOffset = this.essenceOffset;
         copy.location = this.location != null ? this.location.clone() : null;
+        copy.animationSetMap = this.animationSetMap;
         return copy;
     }
 }

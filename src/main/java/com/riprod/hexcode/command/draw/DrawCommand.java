@@ -17,6 +17,7 @@ public class DrawCommand extends AbstractPlayerCommand {
         addAliases("d");
 
         addSubCommand(new DrawEnterCrafting());
+        addSubCommand(new DrawTrainCommand());
     }
 
     @Override

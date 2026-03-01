@@ -1,12 +1,12 @@
-package com.riprod.hexcode.core.crafting.component;
+package com.riprod.hexcode.core.crafting.utils;
 
 public enum PedestalState {
     /** Not ready yet */
-    OFF,
+    IDLE,
     /** Ready to be activated */
     READY,
     /** Active and awaiting glyph selection */
-    ACTIVE,
+    SELECTING,
     /** Actively crafting */
-    CRAFTING
+    CRAFTING,
 }

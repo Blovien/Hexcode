@@ -1,4 +1,4 @@
-package com.riprod.hexcode.core.crafting.system;
+package com.riprod.hexcode.core.crafting.events;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -16,7 +16,7 @@ import com.hypixel.hytale.server.core.event.events.ecs.BreakBlockEvent;
 import com.hypixel.hytale.server.core.event.events.ecs.DamageBlockEvent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
-public class ObeliskProtectionSystem extends EntityEventSystem<EntityStore, BreakBlockEvent> {
+public class ObeliskBlockEvent extends EntityEventSystem<EntityStore, BreakBlockEvent> {
 
     private static final Set<Vector3i> protectedPositions = new HashSet<>();
 
@@ -28,7 +28,7 @@ public class ObeliskProtectionSystem extends EntityEventSystem<EntityStore, Brea
         protectedPositions.remove(pos);
     }
 
-    public ObeliskProtectionSystem() {
+    public ObeliskBlockEvent() {
         super(BreakBlockEvent.class);
     }
 

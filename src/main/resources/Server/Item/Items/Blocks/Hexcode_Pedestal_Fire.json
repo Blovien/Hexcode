@@ -1,4 +1,5 @@
 {
+  "Parent": "Hexcode_Pedestal_Template",
   "TranslationProperties": {
     "Name": "Hexcode Pedestal"
   },
@@ -12,6 +13,7 @@
     "Material": "Solid",
     "Opacity": "Transparent",
     "CustomModel": "Blocks/Hexcode/Pedestals/Pedestal_Fire.blockymodel",
+    "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Idle.blockyanim",
     "CustomModelTexture": [
       {
         "Texture": "Blocks/Hexcode/Pedestals/Pedestal_Fire.png",
@@ -24,60 +26,90 @@
     "Flags": {
       "IsUsable": true
     },
-    "Interactions": {
-      "Use": {
-        "RequireNewClick": true,
-        "Cooldown": {
-          "Id": "PedestalInteractionCooldown",
-          "Cooldown": 0.3,
-          "ClickBypass": true
-        },
-        "Interactions": [
-          "Pedestal_Interact"
-        ]
-      }
-    },
     "State": {
       "Definitions": {
-        "Active": {
-          "CustomModel": "Blocks/Hexcode/Pedestals/Pedestal_Fire.blockymodel",
+        "Idle": {
           "Light": {
-            "Color": "#88aabb",
-            "Intensity": 10
-          }
+            "Color": "#ff4400",
+            "Intensity": 1
+          },
+          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Idle.blockyanim"
         },
-        "Inactive": {
-          "CustomModel": "Blocks/Hexcode/Pedestals/Pedestal_Fire.blockymodel",
+        "Ready": {
           "Light": {
-            "Color": "#446677",
-            "Intensity": 3
-          }
+            "Color": "#ff6600",
+            "Intensity": 2
+          },
+          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Ready.blockyanim"
+        },
+        "Selecting": {
+          "Light": {
+            "Color": "#ff8800",
+            "Intensity": 4
+          },
+          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Selecting.blockyanim"
+        },
+        "Crafting": {
+          "Light": {
+            "Color": "#ffaa00",
+            "Intensity": 6
+          },
+          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Crafting.blockyanim"
         }
       }
     },
-    "HexPedestal": {
-      "MaxRadius": 30,
-      "PerPlayer": false,
-      "HexBook": {},
-      "EssenceId": {},
-      "ActiveHexes": [],
-      "MaxObelisks": 4,
-      "ObeliskRange": 30
+    "BlockEntity": {
+      "Components": {
+        "Hexcode_PedestalBlock": {
+          "MaxObelisks": 5,
+          "HolderReference": "Pedestal_Holder",
+          "ObeliskRange": 25,
+          "PerPlayer": false,
+          "MaxRadius": 30,
+          "AnimationSets": {
+            "Ready": {
+              "Animations": [
+                {
+                  "Animation": "VFX/Animations/Pedestal_Idle.blockyanim"
+                }
+              ]
+            },
+            "Idle": {
+              "Animations": [
+                {
+                  "Animation": "VFX/Animations/Pedestal_Idle.blockyanim",
+                  "Speed": 0.8,
+                  "Looping": true
+                }
+              ]
+            },
+            "Selecting": {
+              "Animations": [
+                {
+                  "Animation": "VFX/Animations/Pedestal_Active.blockyanim",
+                  "Speed": 0.8,
+                  "Looping": true,
+                  "BlendingDuration": 0.5
+                }
+              ]
+            },
+            "Crafting": {
+              "Animations": [
+                {
+                  "Animation": "VFX/Animations/Pedestal_Active.blockyanim",
+                  "Speed": 0.8,
+                  "Looping": true,
+                  "BlendingDuration": 0.5
+                }
+              ]
+            }
+          }
+        }
+      }
     },
     "Gathering": {
       "Breaking": {
         "GatherType": "SoftBlocks"
-      }
-    },
-    "BlockEntity": {
-      "Hexcode_PedestalBlock": {
-        "MaxObelisks": 4
-      },
-      "Components": {
-        "Hexcode_PedestalBlock": {
-          "MaxObelisks": 5,
-          "HolderReference": "Pedestal_Holder"
-        }
       }
     },
     "Support": {

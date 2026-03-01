@@ -1,4 +1,5 @@
 {
+  "Parent": "Hexcode_Pedestal_Template",
   "TranslationProperties": {
     "Name": "Hexcode Pedestal"
   },
@@ -24,60 +25,89 @@
     "Flags": {
       "IsUsable": true
     },
-    "Interactions": {
-      "Use": {
-        "RequireNewClick": true,
-        "Cooldown": {
-          "Id": "PedestalInteractionCooldown",
-          "Cooldown": 0.3,
-          "ClickBypass": true
-        },
-        "Interactions": [
-          "Pedestal_Interact"
-        ]
-      }
-    },
     "State": {
       "Definitions": {
-        "Active": {
-          "CustomModel": "Blocks/Hexcode/Pedestals/Pedestal_Void_Transparent.blockymodel",
+        "Idle": {
           "Light": {
             "Color": "#88aabb",
             "Intensity": 10
           }
         },
-        "Inactive": {
-          "CustomModel": "Blocks/Hexcode/Pedestals/Pedestal_Void_Transparent.blockymodel",
+        "Ready": {
           "Light": {
             "Color": "#446677",
             "Intensity": 3
+          },
+          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Old_Idle.blockyanim"
+        },
+        "Selecting": {
+          "Light": {
+            "Color": "#446677",
+            "Intensity": 3
+          },
+          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Old_Active.blockyanim"
+        },
+        "Crafting": {
+          "Light": {
+            "Color": "#446677",
+            "Intensity": 3
+          },
+          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Old_Active.blockyanim"
+        }
+      }
+    },
+    "BlockEntity": {
+      "Components": {
+        "Hexcode_PedestalBlock": {
+          "MaxObelisks": 5,
+          "HolderReference": "Pedestal_Holder",
+          "ObeliskRange": 25,
+          "PerPlayer": false,
+          "MaxRadius": 30,
+          "AnimationSets": {
+            "Ready": {
+              "Animations": [
+                {
+                  "Animation": "VFX/Animations/Pedestal_Idle.blockyanim"
+                }
+              ]
+            },
+            "Idle": {
+              "Animations": [
+                {
+                  "Animation": "VFX/Animations/Pedestal_Idle.blockyanim",
+                  "Speed": 0.8,
+                  "Looping": true
+                }
+              ]
+            },
+            "Selecting": {
+              "Animations": [
+                {
+                  "Animation": "VFX/Animations/Pedestal_Active.blockyanim",
+                  "Speed": 0.8,
+                  "Looping": true,
+                  "BlendingDuration": 0.5
+                }
+              ]
+            },
+            "Crafting": {
+              "Animations": [
+                {
+                  "Animation": "VFX/Animations/Pedestal_Active.blockyanim",
+                  "Speed": 0.8,
+                  "Looping": true,
+                  "BlendingDuration": 0.5
+                }
+              ]
+            }
           }
         }
       }
     },
-    "HexPedestal": {
-      "MaxRadius": 30,
-      "PerPlayer": false,
-      "HexBook": {},
-      "EssenceId": {},
-      "ActiveHexes": [],
-      "MaxObelisks": 4,
-      "ObeliskRange": 30
-    },
     "Gathering": {
       "Breaking": {
         "GatherType": "SoftBlocks"
-      }
-    },
-    "BlockEntity": {
-      "Hexcode_PedestalBlock": {
-        "MaxObelisks": 4
-      },
-      "Components": {
-        "Hexcode_PedestalBlock": {
-          "MaxObelisks": 5,
-          "HolderReference": "Pedestal_Holder"
-        }
       }
     },
     "Support": {
@@ -87,7 +117,8 @@
         }
       ]
     },
-    "VariantRotation": "NESW"
+    "VariantRotation": "NESW",
+    "CustomModelScale": 1
   },
   "Tags": {
     "Type": [

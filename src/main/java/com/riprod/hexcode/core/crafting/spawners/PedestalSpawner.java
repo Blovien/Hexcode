@@ -104,7 +104,7 @@ public class PedestalSpawner {
         addDisplayModel(pedestal, holder, item, anchorId, 0.5f);
 
         holder.addComponent(MountedComponent.getComponentType(),
-                new MountedComponent(pedestal.getAnchorRef(), new Vector3f(0, -0.5f, 0),
+                new MountedComponent(pedestal.getAnchorRef(), pedestal.getEssenceOffset(),
                         MountController.Minecart));
 
         return accessor.addEntity(holder, AddReason.SPAWN);
@@ -112,8 +112,7 @@ public class PedestalSpawner {
 
     public static Ref<EntityStore> spawnBookDisplay(ComponentAccessor<EntityStore> accessor,
             PedestalBlockComponent pedestal,
-            Vector3d anchorPos, Item item,
-            String anchorId) {
+            Vector3d anchorPos, Item item) {
 
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
 
@@ -127,10 +126,10 @@ public class PedestalSpawner {
         int networkId = accessor.getExternalData().takeNextNetworkId();
         holder.addComponent(NetworkId.getComponentType(), new NetworkId(networkId));
 
-        addDisplayModel(pedestal, holder, item, anchorId, 1.0f);
+        addDisplayModel(pedestal, holder, item, pedestal.getReferenceHolder(), 1.0f);
 
         holder.addComponent(MountedComponent.getComponentType(),
-                new MountedComponent(pedestal.getAnchorRef(), new Vector3f(0, 0.3f, 0),
+                new MountedComponent(pedestal.getAnchorRef(), pedestal.getBookOffset(),
                         MountController.Minecart));
 
         return accessor.addEntity(holder, AddReason.SPAWN);
@@ -139,11 +138,12 @@ public class PedestalSpawner {
     private static void addDisplayModel(PedestalBlockComponent pedestal, Holder<EntityStore> holder, Item item,
             String anchorId, float scale) {
 
-        ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(anchorId != null ? anchorId : "Pedestal_Holder");
+        ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(pedestal.getReferenceHolder());
         if (modelAsset == null) {
             logger.atWarning().log("pedestal addDisplayModel: no ModelAsset for id=%s", anchorId);
             return;
         }
+        logger.atInfo().log("Adding animation set map with vals %s compared to modelAsset with vals %s", pedestal.getAnimationSetMap().values(), modelAsset.getAnimationSetMap().values());
 
         Model model;
         model = new Model(
