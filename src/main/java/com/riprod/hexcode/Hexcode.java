@@ -6,6 +6,7 @@ import com.riprod.hexcode.builtin.glyphs.effect.propel.PropelTickSystem;
 import com.riprod.hexcode.command.HexcodeCommand;
 import com.riprod.hexcode.core.casting.registery.CastingStyleRegistry;
 import com.riprod.hexcode.core.drawing.registry.ShapeAsset;
+import com.riprod.hexcode.core.drawing.registry.TemplateAsset;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.glyphs.component.SlotComponent;
 import com.riprod.hexcode.core.glyphs.registry.GlyphAsset;
@@ -99,6 +100,14 @@ public class Hexcode extends JavaPlugin {
             .setPath("Hexcode/Shapes")
             .setCodec(ShapeAsset.CODEC)
             .setKeyFunction(ShapeAsset::getId)
+            .build());
+    AssetRegistry.register(
+        HytaleAssetStore
+            .builder(TemplateAsset.class, new DefaultAssetMap<String, TemplateAsset>())
+            .setPath("Hexcode/Templates")
+            .setCodec(TemplateAsset.CODEC)
+            .setKeyFunction(TemplateAsset::getId)
+            .loadsAfter(ShapeAsset.class)
             .build());
     AssetRegistry.register(
         HytaleAssetStore

@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.riprod.hexcode.core.drawing.component.DrawnShapeComponent;
 import com.riprod.hexcode.core.drawing.registry.ShapeAsset;
+import com.riprod.hexcode.core.drawing.registry.TemplateAsset;
 
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 
@@ -32,6 +33,7 @@ public class DollarOneFixedDetector implements ShapeDetector {
 
         float[][] input = extractPoints(points);
         float[][] processed = preprocess(input);
+        float[][] processedReversed = preprocess(reverse(input));
 
         List<String> names = new ArrayList<>();
         List<Float> scores = new ArrayList<>();
@@ -49,13 +51,8 @@ public class DollarOneFixedDetector implements ShapeDetector {
             float dist = distanceAtBestAngle(processed, template, -ANGLE_RANGE, ANGLE_RANGE, ANGLE_PRECISION);
             float score = 1f - dist / HALF_DIAGONAL;
 
-            if (Boolean.TRUE.equals(entry.getValue().getCanRotate())) {
-                for (int rot = 1; rot < 4; rot++) {
-                    float[][] rotInput = rotateBy(processed, (float) (rot * Math.PI / 2));
-                    float d = distanceAtBestAngle(rotInput, template, -ANGLE_RANGE, ANGLE_RANGE, ANGLE_PRECISION);
-                    score = Math.max(score, 1f - d / HALF_DIAGONAL);
-                }
-            }
+            float distRev = distanceAtBestAngle(processedReversed, template, -ANGLE_RANGE, ANGLE_RANGE, ANGLE_PRECISION);
+            score = Math.max(score, 1f - distRev / HALF_DIAGONAL);
 
             score = Math.max(0f, score);
             names.add(entry.getKey());
@@ -81,13 +78,57 @@ public class DollarOneFixedDetector implements ShapeDetector {
         return result;
     }
 
-    private float[][] preprocess(float[][] points) {
+    public static float[][] preprocess(float[][] points) {
         float[][] resampled = resample(points, N);
         float[][] scaled = scaleTo(resampled);
-        return translateTo(scaled);
+        float[][] translated = translateTo(scaled);
+        return canonicalizeStart(translated);
     }
 
-    private float[][] resample(float[][] points, int n) {
+    static boolean isClosed(float[][] points) {
+        if (points.length < 2) return false;
+        float dx = points[0][0] - points[points.length - 1][0];
+        float dy = points[0][1] - points[points.length - 1][1];
+        float closeDist = (float) Math.sqrt(dx * dx + dy * dy);
+        float totalLen = pathLength(points);
+        return closeDist < totalLen * 0.15f;
+    }
+
+    static float[][] canonicalizeStart(float[][] points) {
+        if (!isClosed(points)) return points;
+
+        float[] c = centroid(points);
+        int bestIdx = 0;
+        float bestAngleDist = Float.MAX_VALUE;
+        for (int i = 0; i < points.length; i++) {
+            float angle = Math.abs((float) Math.atan2(points[i][1] - c[1], points[i][0] - c[0]));
+            if (angle < bestAngleDist) {
+                bestAngleDist = angle;
+                bestIdx = i;
+            }
+        }
+
+        if (bestIdx == 0) return points;
+
+        float[][] shifted = new float[points.length][2];
+        for (int i = 0; i < points.length; i++) {
+            int src = (i + bestIdx) % points.length;
+            shifted[i][0] = points[src][0];
+            shifted[i][1] = points[src][1];
+        }
+        return shifted;
+    }
+
+    static float[][] reverse(float[][] points) {
+        float[][] result = new float[points.length][2];
+        for (int i = 0; i < points.length; i++) {
+            result[i][0] = points[points.length - 1 - i][0];
+            result[i][1] = points[points.length - 1 - i][1];
+        }
+        return result;
+    }
+
+    private static float[][] resample(float[][] points, int n) {
         if (points.length < 2) {
             float[][] result = new float[n][2];
             float[] p = points.length > 0 ? points[0] : new float[2];
@@ -146,7 +187,7 @@ public class DollarOneFixedDetector implements ShapeDetector {
         return result;
     }
 
-    private float[][] scaleTo(float[][] points) {
+    private static float[][] scaleTo(float[][] points) {
         float minX = Float.MAX_VALUE, maxX = -Float.MAX_VALUE;
         float minY = Float.MAX_VALUE, maxY = -Float.MAX_VALUE;
         for (float[] p : points) {
@@ -168,7 +209,7 @@ public class DollarOneFixedDetector implements ShapeDetector {
         return result;
     }
 
-    private float[][] translateTo(float[][] points) {
+    private static float[][] translateTo(float[][] points) {
         float[] c = centroid(points);
         float[][] result = new float[points.length][2];
         for (int i = 0; i < points.length; i++) {
@@ -178,13 +219,13 @@ public class DollarOneFixedDetector implements ShapeDetector {
         return result;
     }
 
-    private float[] centroid(float[][] points) {
+    private static float[] centroid(float[][] points) {
         float cx = 0, cy = 0;
         for (float[] p : points) { cx += p[0]; cy += p[1]; }
         return new float[] { cx / points.length, cy / points.length };
     }
 
-    private float pathLength(float[][] points) {
+    private static float pathLength(float[][] points) {
         float len = 0;
         for (int i = 1; i < points.length; i++) {
             float dx = points[i][0] - points[i - 1][0];
@@ -324,14 +365,13 @@ public class DollarOneFixedDetector implements ShapeDetector {
         initialized = true;
 
         ShapeCacheManager.ensureLoaded();
-        ShapeTemplateStore.ensureLoaded();
-        int recorded = 0;
 
+        int[] counts = { 0, 0 };
         ShapeAsset.getAssetMap().getAssetMap().forEach((key, asset) -> {
-            List<float[][]> recordings = ShapeTemplateStore.getTemplatesFor(key);
-            if (!recordings.isEmpty()) {
-                float[][] processed = preprocess(recordings.getFirst());
-                templateCache.put(key, processed);
+            List<TemplateAsset> templates = TemplateAsset.getTemplatesForShape(key);
+            if (!templates.isEmpty()) {
+                templateCache.put(key, canonicalizeStart(templates.getFirst().getPointsAs2D()));
+                counts[0]++;
                 return;
             }
 
@@ -349,12 +389,11 @@ public class DollarOneFixedDetector implements ShapeDetector {
 
             float[][] processed = preprocess(rawPoints);
             templateCache.put(key, processed);
+            counts[1]++;
         });
 
-        recorded = (int) ShapeAsset.getAssetMap().getAssetMap().keySet().stream()
-                .filter(k -> !ShapeTemplateStore.getTemplatesFor(k).isEmpty()).count();
         LOGGER.atInfo().log("DollarOneFixedDetector initialized with " + templateCache.size()
-                + " templates (" + recorded + " from recordings).");
+                + " templates (" + counts[0] + " from TemplateAsset, " + counts[1] + " from PNG).");
     }
 
     @Override
