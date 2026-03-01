@@ -143,6 +143,7 @@ public class PedestalSpawner {
             logger.atWarning().log("pedestal addDisplayModel: no ModelAsset for id=%s", anchorId);
             return;
         }
+        logger.atInfo().log("Adding animation set map with vals %s compared to modelAsset with vals %s", pedestal.getAnimationSetMap().values(), modelAsset.getAnimationSetMap().values());
 
         Model model;
         model = new Model(

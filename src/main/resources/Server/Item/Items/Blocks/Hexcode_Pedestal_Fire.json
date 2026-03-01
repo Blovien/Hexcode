@@ -13,7 +13,7 @@
     "Material": "Solid",
     "Opacity": "Transparent",
     "CustomModel": "Blocks/Hexcode/Pedestals/Pedestal_Fire.blockymodel",
-    "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Ready.blockyanim",
+    "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Idle.blockyanim",
     "CustomModelTexture": [
       {
         "Texture": "Blocks/Hexcode/Pedestals/Pedestal_Fire.png",
@@ -31,27 +31,28 @@
         "Idle": {
           "Light": {
             "Color": "#ff4400",
-            "Intensity": 0
-          }
+            "Intensity": 1
+          },
+          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Idle.blockyanim"
         },
         "Ready": {
           "Light": {
             "Color": "#ff6600",
-            "Intensity": 1
+            "Intensity": 2
           },
           "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Ready.blockyanim"
         },
         "Selecting": {
           "Light": {
             "Color": "#ff8800",
-            "Intensity": 3
+            "Intensity": 4
           },
           "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Selecting.blockyanim"
         },
         "Crafting": {
           "Light": {
             "Color": "#ffaa00",
-            "Intensity": 5
+            "Intensity": 6
           },
           "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Crafting.blockyanim"
         }

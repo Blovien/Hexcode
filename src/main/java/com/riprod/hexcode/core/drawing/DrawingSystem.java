@@ -33,7 +33,9 @@ import com.riprod.hexcode.core.drawing.component.DrawnShapeComponent;
 import com.riprod.hexcode.core.drawing.component.HexcasterDrawingComponent;
 import com.riprod.hexcode.core.drawing.system.GlyphCreationManager;
 import com.riprod.hexcode.core.drawing.system.InterfaceManager;
-import com.riprod.hexcode.core.drawing.utils.DrawRasterizer;
+import com.riprod.hexcode.core.drawing.system.CompositeShapeDetector;
+import com.riprod.hexcode.core.drawing.system.ShapeDetector;
+import com.riprod.hexcode.core.drawing.system.ShapeTemplateStore;
 import com.riprod.hexcode.core.drawing.utils.ShapeComparator;
 import com.riprod.hexcode.core.glyphs.component.Glyph;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
@@ -51,6 +53,16 @@ public class DrawingSystem extends HexcodeManager {
   private static final Box PREVIEW_BOUNDING_BOX = new Box(-0.25, -0.25, -0.25, 0.25, 0.25, 0.25);
   private static final float GLYPH_DISPLAY_DISTANCE = 1.0f;
   private static final float PEDESTAL_GLYPH_PITCH = (float) (-Math.PI / 2);
+
+  private static ShapeDetector shapeDetector = new CompositeShapeDetector();
+
+  public static ShapeDetector getShapeDetector() {
+    return shapeDetector;
+  }
+
+  public static void setShapeDetector(ShapeDetector detector) {
+    shapeDetector = detector;
+  }
 
   @Override
   public void firstTick(Ref<EntityStore> ref, HexcasterComponent hexcaster,
@@ -182,6 +194,16 @@ public class DrawingSystem extends HexcodeManager {
       return InteractionState.Finished;
     }
 
+    String trainingId = comp.consumeTrainingShapeId();
+    if (trainingId != null) {
+      ShapeTemplateStore.saveTemplate(trainingId, points);
+      shapeDetector.clearCache();
+      LOGGER.atInfo().log("recorded training template for '%s' (%d points)", trainingId, points.size() / 2);
+      InterfaceManager.removeTrails(accessor, ref);
+      comp.clearStrokes();
+      return InteractionState.Finished;
+    }
+
     float minYaw = Float.MAX_VALUE, maxYaw = -Float.MAX_VALUE;
     float minPitch = Float.MAX_VALUE, maxPitch = -Float.MAX_VALUE;
     for (int i = 0; i < points.size(); i += 2) {
@@ -193,10 +215,7 @@ public class DrawingSystem extends HexcodeManager {
       maxPitch = Math.max(maxPitch, pitch);
     }
 
-    boolean[][] grid = DrawRasterizer.rasterize(points, 32,
-        minYaw, maxYaw, minPitch, maxPitch);
-
-    DrawnShapeComponent result = ShapeComparator.getShape(grid);
+    DrawnShapeComponent result = shapeDetector.detect(points, minYaw, maxYaw, minPitch, maxPitch);
 
     List<Vector3d> drawnGlyphs = InterfaceManager.getPositionsFromAngles(accessor, points, ref, 4.0f);
     Color color = InterfaceManager.getColorFromQuality(result.getVolatility());

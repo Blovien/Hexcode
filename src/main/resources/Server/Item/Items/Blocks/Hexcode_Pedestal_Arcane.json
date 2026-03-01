@@ -13,7 +13,7 @@
     "Material": "Solid",
     "Opacity": "Transparent",
     "CustomModel": "Blocks/Hexcode/Pedestals/Pedestal_Arcane.blockymodel",
-    "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Ready.blockyanim",
+    "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Idle.blockyanim",
     "CustomModelTexture": [
       {
         "Texture": "Blocks/Hexcode/Pedestals/Pedestal_Arcane.png",
@@ -31,29 +31,38 @@
         "Idle": {
           "Light": {
             "Color": "#3a1a5e",
-            "Intensity": 0
-          }
+            "Intensity": 1
+          },
+          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Idle.blockyanim",
+          "Looping": true,
+          "InteractionHint": "server.hexcode.pedestal.interact.idle"
         },
         "Ready": {
           "Light": {
             "Color": "#7b3fbf",
-            "Intensity": 1
+            "Intensity": 2
           },
-          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Ready.blockyanim"
+          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Ready.blockyanim",
+          "Looping": true,
+          "InteractionHint": "server.hexcode.pedestal.interact.ready"
         },
         "Selecting": {
           "Light": {
             "Color": "#aa55ff",
-            "Intensity": 3
+            "Intensity": 4
           },
-          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Selecting.blockyanim"
+          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Selecting.blockyanim",
+          "Looping": true,
+          "InteractionHint": "server.hexcode.pedestal.interact.selecting"
         },
         "Crafting": {
           "Light": {
             "Color": "#cc88ff",
-            "Intensity": 5
+            "Intensity": 6
           },
-          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Crafting.blockyanim"
+          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Crafting.blockyanim",
+          "Looping": true,
+          "InteractionHint": "server.hexcode.pedestal.interact.crafting"
         }
       }
     },
@@ -69,23 +78,27 @@
             "Ready": {
               "Animations": [
                 {
-                  "Animation": "VFX/Animations/Pedestal_Idle.blockyanim"
+                  "Animation": "VFX/Animations/Pedestal_Arcane_Ready.blockyanim",
+                  "Speed": 0.8,
+                  "Looping": true,
+                  "BlendingDuration": 0.5
                 }
               ]
             },
             "Idle": {
               "Animations": [
                 {
-                  "Animation": "VFX/Animations/Pedestal_Idle.blockyanim",
+                  "Animation": "VFX/Animations/Pedestal_Arcane_Idle.blockyanim",
                   "Speed": 0.8,
-                  "Looping": true
+                  "Looping": true,
+                  "BlendingDuration": 0.5
                 }
               ]
             },
             "Selecting": {
               "Animations": [
                 {
-                  "Animation": "VFX/Animations/Pedestal_Active.blockyanim",
+                  "Animation": "VFX/Animations/Pedestal_Arcane_Selecting.blockyanim",
                   "Speed": 0.8,
                   "Looping": true,
                   "BlendingDuration": 0.5
@@ -95,13 +108,23 @@
             "Crafting": {
               "Animations": [
                 {
-                  "Animation": "VFX/Animations/Pedestal_Active.blockyanim",
+                  "Animation": "VFX/Animations/Pedestal_Arcane_Crafting.blockyanim",
                   "Speed": 0.8,
                   "Looping": true,
                   "BlendingDuration": 0.5
                 }
               ]
             }
+          },
+          "BookOffsetVector": {
+            "Y": 0.1,
+            "X": 0,
+            "Z": 0
+          },
+          "EssenceOffsetVector": {
+            "Y": -0.1,
+            "X": 0,
+            "Z": 0
           }
         }
       }

@@ -1,6 +1,6 @@
 {
   "ItemId": "Arcane_Hexbook",
-  "MaxGlyphs": 8,
+  "MaxGlyphs": 12,
   "CastingAuraParticles": [
     {
       "SystemId": "Shock_Spawner",

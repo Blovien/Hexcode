@@ -23,6 +23,7 @@ import com.riprod.hexcode.core.crafting.registry.PedestalBlockComponent;
 import com.riprod.hexcode.core.crafting.spawners.AnchorSpawner;
 import com.riprod.hexcode.core.crafting.spawners.PedestalSpawner;
 import com.riprod.hexcode.core.crafting.utils.PedestalBlockUtil;
+import com.riprod.hexcode.core.crafting.utils.PedestalItemUtil;
 import com.riprod.hexcode.core.crafting.utils.PedestalState;
 import com.riprod.hexcode.core.crafting.utils.RadialPositionUtil;
 import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
@@ -140,7 +141,8 @@ public class PedestalSystem {
 
         Vector3d anchorPos = PedestalSpawner.getAnchorPosition(blockPos);
 
-        pedestalComponent.setStoredBook(bookItem);
+        ItemStack prepared = PedestalItemUtil.ensureHexBookComponent(bookItem);
+        pedestalComponent.setStoredBook(prepared);
 
         Ref<EntityStore> oldBookDisplay = pedestalComponent.getBookDisplayRef();
         if (oldBookDisplay != null && oldBookDisplay.isValid()) {
@@ -213,7 +215,7 @@ public class PedestalSystem {
 
         ItemStack bookStack = pedestalComponent.getStoredBook();
         if (bookStack != null && !bookStack.isEmpty()) {
-            player.getInventory().getHotbar().addItemStack(bookStack);
+            PedestalItemUtil.returnBookToPlayer(player, bookStack);
             pedestalComponent.setStoredBook(ItemStack.EMPTY);
         }
 
@@ -234,7 +236,8 @@ public class PedestalSystem {
     }
 
     public static void handleReady(CommandBuffer<EntityStore> accessor, PedestalBlockComponent pedestal, World world) {
-        if (pedestal.getStoredBook() == null || pedestal.getEssenceItemId() == null) {
+        if (pedestal.getStoredBook() == null || pedestal.getEssenceItemId() == null || pedestal.getStoredBook().isEmpty()) {
+            // updateState(accessor, pedestal, world, PedestalState.IDLE);
             return;
         }
 

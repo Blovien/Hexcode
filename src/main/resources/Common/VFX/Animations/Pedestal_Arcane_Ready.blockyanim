@@ -16,19 +16,6 @@
       "shapeVisible": [],
       "shapeUvOffset": []
     },
-    "Bookmark": {
-      "position": [],
-      "orientation": [
-        {
-          "time": 0,
-          "delta": {"x": 0, "y": 0, "z": 0, "w": 1},
-          "interpolationType": "smooth"
-        }
-      ],
-      "shapeStretch": [],
-      "shapeVisible": [],
-      "shapeUvOffset": []
-    },
     "Book-Top": {
       "position": [],
       "orientation": [
@@ -55,53 +42,20 @@
       "shapeVisible": [],
       "shapeUvOffset": []
     },
-    "Page-Top": {
-      "position": [],
-      "orientation": [
-        {
-          "time": 0,
-          "delta": {"x": 0, "y": 0, "z": 0, "w": 1},
-          "interpolationType": "smooth"
-        }
-      ],
-      "shapeStretch": [],
-      "shapeVisible": [],
-      "shapeUvOffset": []
-    },
-    "Origin_Item": {
-      "position": [
-        {
-          "time": 0,
-          "delta": {"x": 0, "y": 0, "z": 0},
-          "interpolationType": "smooth"
-        }
-      ],
-      "orientation": [
-        {
-          "time": 0,
-          "delta": {"x": -0.70711, "y": 0, "z": 0, "w": 0.70711},
-          "interpolationType": "smooth"
-        }
-      ],
-      "shapeStretch": [],
-      "shapeVisible": [],
-      "shapeUvOffset": []
-    },
     "Handle": {
       "position": [
         {
           "time": 0,
-          "delta": {"x": -13, "y": 0, "z": 0},
+          "delta": {"x": 0, "y": 6, "z": 0},
           "interpolationType": "smooth"
-        }
-      ],
-      "orientation": [
+        },
         {
-          "time": 0,
-          "delta": {"x": 0, "y": 0, "z": -0.70711, "w": 0.70711},
+          "time": 60,
+          "delta": {"x": 0, "y": 5, "z": 0},
           "interpolationType": "smooth"
         }
       ],
+      "orientation": [],
       "shapeStretch": [],
       "shapeVisible": [],
       "shapeUvOffset": []
