@@ -18,9 +18,9 @@ import com.hypixel.hytale.server.core.util.TargetUtil;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.crafting.component.PedestalAnchorComponent;
-import com.riprod.hexcode.core.crafting.component.PedestalState;
 import com.riprod.hexcode.core.crafting.registry.PedestalBlockComponent;
 import com.riprod.hexcode.core.crafting.system.PedestalSystem;
+import com.riprod.hexcode.core.crafting.utils.PedestalState;
 import com.riprod.hexcode.core.crafting.utils.SelectionUtils;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
@@ -78,11 +78,11 @@ public class CraftingSystem extends HexcodeManager {
             return;
         }
 
-        if (pedestal.getState() != PedestalState.ACTIVE) {
+        if (pedestal.getState() != PedestalState.SELECTING) {
             return;
         }
         switch (pedestal.getState()) {
-            case ACTIVE:
+            case SELECTING:
                 tickActive(buffer, ref, pedestal);
                 break;
             case CRAFTING:
@@ -180,7 +180,7 @@ public class CraftingSystem extends HexcodeManager {
             return InteractionState.Failed;
         }
 
-        if (pedestal.getState() != PedestalState.ACTIVE) {
+        if (pedestal.getState() != PedestalState.SELECTING) {
             return InteractionState.NotFinished;
         }
 

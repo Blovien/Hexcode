@@ -1,4 +1,4 @@
-package com.riprod.hexcode.core.crafting.system;
+package com.riprod.hexcode.core.crafting.events;
 
 import javax.annotation.Nonnull;
 
@@ -15,14 +15,14 @@ import com.hypixel.hytale.server.core.event.events.ecs.BreakBlockEvent;
 import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.crafting.component.PedestalState;
 import com.riprod.hexcode.core.crafting.registry.PedestalBlockComponent;
 import com.riprod.hexcode.core.crafting.spawners.AnchorSpawner;
 import com.riprod.hexcode.core.crafting.utils.PedestalBlockUtil;
+import com.riprod.hexcode.core.crafting.utils.PedestalState;
 
-public class PedestalBlockEventSystem extends EntityEventSystem<EntityStore, BreakBlockEvent> {
+public class PedestalBlockEvent extends EntityEventSystem<EntityStore, BreakBlockEvent> {
 
-    public PedestalBlockEventSystem() {
+    public PedestalBlockEvent() {
         super(BreakBlockEvent.class);
     }
 
@@ -56,7 +56,7 @@ public class PedestalBlockEventSystem extends EntityEventSystem<EntityStore, Bre
 
         AnchorSpawner.DespawnHexPreviews(buffer, pedestal);
 
-        ObeliskProtectionSystem.unprotect(pos);
+        ObeliskBlockEvent.unprotect(pos);
 
         Ref<EntityStore> bookRef = pedestal.getBookDisplayRef();
         if (bookRef != null && bookRef.isValid()) {

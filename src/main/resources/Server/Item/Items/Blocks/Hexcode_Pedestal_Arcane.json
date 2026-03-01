@@ -1,4 +1,5 @@
 {
+  "Parent": "Hexcode_Pedestal_Template",
   "TranslationProperties": {
     "Name": "Hexcode Pedestal"
   },
@@ -12,6 +13,7 @@
     "Material": "Solid",
     "Opacity": "Transparent",
     "CustomModel": "Blocks/Hexcode/Pedestals/Pedestal_Arcane.blockymodel",
+    "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Ready.blockyanim",
     "CustomModelTexture": [
       {
         "Texture": "Blocks/Hexcode/Pedestals/Pedestal_Arcane.png",
@@ -24,49 +26,35 @@
     "Flags": {
       "IsUsable": true
     },
-    "Interactions": {
-      "Use": {
-        "RequireNewClick": true,
-        "Cooldown": {
-          "Id": "PedestalInteractionCooldown",
-          "Cooldown": 0.3,
-          "ClickBypass": true
-        },
-        "Interactions": [
-          "Pedestal_Interact"
-        ]
-      }
-    },
     "State": {
       "Definitions": {
-        "Active": {
-          "CustomModel": "Blocks/Hexcode/Pedestals/Pedestal_Arcane.blockymodel",
+        "Idle": {
           "Light": {
-            "Color": "#88aabb",
-            "Intensity": 10
+            "Color": "#3a1a5e",
+            "Intensity": 0
           }
         },
-        "Inactive": {
-          "CustomModel": "Blocks/Hexcode/Pedestals/Pedestal_Arcane.blockymodel",
+        "Ready": {
           "Light": {
-            "Color": "#446677",
+            "Color": "#7b3fbf",
+            "Intensity": 1
+          },
+          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Ready.blockyanim"
+        },
+        "Selecting": {
+          "Light": {
+            "Color": "#aa55ff",
             "Intensity": 3
-          }
+          },
+          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Selecting.blockyanim"
+        },
+        "Crafting": {
+          "Light": {
+            "Color": "#cc88ff",
+            "Intensity": 5
+          },
+          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Crafting.blockyanim"
         }
-      }
-    },
-    "HexPedestal": {
-      "MaxRadius": 30,
-      "PerPlayer": false,
-      "HexBook": {},
-      "EssenceId": {},
-      "ActiveHexes": [],
-      "MaxObelisks": 4,
-      "ObeliskRange": 30
-    },
-    "Gathering": {
-      "Breaking": {
-        "GatherType": "SoftBlocks"
       }
     },
     "BlockEntity": {
@@ -78,7 +66,7 @@
           "PerPlayer": false,
           "MaxRadius": 30,
           "AnimationSets": {
-            "Pedestal_Enter": {
+            "Ready": {
               "Animations": [
                 {
                   "Animation": "VFX/Animations/Pedestal_Idle.blockyanim"
@@ -94,7 +82,17 @@
                 }
               ]
             },
-            "Pedestal_Active": {
+            "Selecting": {
+              "Animations": [
+                {
+                  "Animation": "VFX/Animations/Pedestal_Active.blockyanim",
+                  "Speed": 0.8,
+                  "Looping": true,
+                  "BlendingDuration": 0.5
+                }
+              ]
+            },
+            "Crafting": {
               "Animations": [
                 {
                   "Animation": "VFX/Animations/Pedestal_Active.blockyanim",
@@ -108,13 +106,19 @@
         }
       }
     },
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "SoftBlocks"
+      }
+    },
     "Support": {
       "Down": [
         {
           "FaceType": "Full"
         }
       ]
-    }
+    },
+    "CustomModelScale": 1
   },
   "Tags": {
     "Type": [

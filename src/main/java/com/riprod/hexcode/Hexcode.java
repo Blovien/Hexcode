@@ -45,11 +45,11 @@ import com.riprod.hexcode.interaction.HexItemCondition;
 import com.riprod.hexcode.interaction.PedestalInteraction;
 import com.riprod.hexcode.core.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.crafting.component.PedestalAnchorComponent;
+import com.riprod.hexcode.core.crafting.events.ObeliskBlockEvent;
+import com.riprod.hexcode.core.crafting.events.PedestalBlockEvent;
+import com.riprod.hexcode.core.crafting.events.PedestalTickEvent;
 import com.riprod.hexcode.core.crafting.registry.ObeliskBlockComponent;
 import com.riprod.hexcode.core.crafting.registry.PedestalBlockComponent;
-import com.riprod.hexcode.core.crafting.system.ObeliskProtectionSystem;
-import com.riprod.hexcode.core.crafting.system.PedestalBlockEventSystem;
-import com.riprod.hexcode.core.crafting.system.PedestalTickSystem;
 import com.hypixel.hytale.assetstore.AssetRegistry;
 import com.hypixel.hytale.assetstore.map.DefaultAssetMap;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
@@ -213,9 +213,9 @@ public class Hexcode extends JavaPlugin {
     entityStoreRegistry.registerSystem(new HexTick());
     entityStoreRegistry.registerSystem(new ExecutionTickSystem());
     entityStoreRegistry.registerSystem(new PropelTickSystem());
-    entityStoreRegistry.registerSystem(new PedestalTickSystem());
-    entityStoreRegistry.registerSystem(new PedestalBlockEventSystem());
-    entityStoreRegistry.registerSystem(new ObeliskProtectionSystem());
+    entityStoreRegistry.registerSystem(new PedestalTickEvent());
+    entityStoreRegistry.registerSystem(new PedestalBlockEvent());
+    entityStoreRegistry.registerSystem(new ObeliskBlockEvent());
     entityStoreRegistry.registerSystem(new DebugTickSystem());
 
     // Events

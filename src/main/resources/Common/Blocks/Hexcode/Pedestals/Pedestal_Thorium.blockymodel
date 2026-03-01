@@ -22,7 +22,7 @@
         {
           "id": "2",
           "name": "floating core--C1",
-          "position": {"x": -0.5, "y": 18.25, "z": -0.5},
+          "position": {"x": -0.5, "y": 7.25, "z": -0.5},
           "orientation": {"x": 0.19134, "y": 0.46194, "z": 0.19134, "w": 0.84462},
           "shape": {
             "type": "box",

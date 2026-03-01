@@ -19,7 +19,7 @@ import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.crafting.component.PedestalState;
+import com.riprod.hexcode.core.crafting.utils.PedestalState;
 import com.riprod.hexcode.core.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.hexcaster.utils.CasterInventory;
 import com.riprod.hexcode.core.hexes.component.Hex;
@@ -113,12 +113,12 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
     private int maxRadius = 30;
     private boolean perPlayer = false;
     private int obeliskRange = 30;
-    private String referenceHolder = null;
+    private String referenceHolder = "Pedestal_Holder";
     private Map<String, AnimationSet> animationSetMap = Collections.emptyMap();
-    protected Vector3f essenceOffset;
-    protected Vector3f bookOffset;
+    protected Vector3f essenceOffset = new Vector3f(0f, -0.5f, 0f);
+    protected Vector3f bookOffset = new Vector3f(0f, 0.3f, 0f);
     // transient
-    private PedestalState blockState = PedestalState.OFF;
+    private PedestalState blockState = PedestalState.IDLE;
     private Hex activeHex = null;
     private Ref<EntityStore> activeHexEntityRef;
     private Ref<EntityStore> anchorEntityRef;
@@ -296,7 +296,7 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
     }
 
     // style
-    public Vector3f getBlockOffset() {
+    public Vector3f getBookOffset() {
         return this.bookOffset;
     }
 

@@ -98,6 +98,7 @@ public class CastingSystem extends HexcodeManager {
         }
 
         castingComp.clearCastingState();
+        buffer.tryRemoveComponent(ref, HexcasterCastingComponent.getComponentType());
     }
 
     @Override

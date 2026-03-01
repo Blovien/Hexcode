@@ -1,4 +1,4 @@
-package com.riprod.hexcode.core.crafting.system;
+package com.riprod.hexcode.core.crafting.events;
 
 import java.util.List;
 
@@ -19,13 +19,13 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.TargetUtil;
 import com.riprod.hexcode.core.crafting.component.PedestalAnchorComponent;
-import com.riprod.hexcode.core.crafting.component.PedestalState;
 import com.riprod.hexcode.core.crafting.registry.PedestalBlockComponent;
 import com.riprod.hexcode.core.crafting.spawners.PedestalSpawner;
+import com.riprod.hexcode.core.crafting.utils.PedestalState;
 import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.state.HexState;
 
-public class PedestalTickSystem extends EntityTickingSystem<EntityStore> {
+public class PedestalTickEvent extends EntityTickingSystem<EntityStore> {
 
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
@@ -58,11 +58,11 @@ public class PedestalTickSystem extends EntityTickingSystem<EntityStore> {
                 break;
             case CRAFTING: // crafting
                 tickCrafting(pedestalBlock, store, buffer);
-            case ACTIVE: // has hexes placed but not crafting yet
+            case SELECTING: // has hexes placed but not crafting yet
                 Ref<EntityStore> anchorRef = accessor.getReferenceTo(index);
                 tickPlayerDetection(pedestalBlock, anchorRef, store, buffer);
                 break;
-            case OFF: // error state
+            case IDLE: // error state
                 break;
         }
     }
