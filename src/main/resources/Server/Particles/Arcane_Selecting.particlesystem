@@ -1,0 +1,10 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "Arcane_Selecting_Spawner",
+      "PositionOffset": {
+        "Y": 1
+      }
+    }
+  ]
+}
