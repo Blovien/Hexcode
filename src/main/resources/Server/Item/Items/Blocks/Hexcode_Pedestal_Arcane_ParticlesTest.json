@@ -118,7 +118,7 @@
     "VariantRotation": "NESW",
     "Particles": [
       {
-        "SystemId": "Arcane_Ready"
+        "SystemId": "Arcane_Ice_Crafting"
       }
     ]
   },

@@ -50,7 +50,7 @@
           ],
           "Particles": [
             {
-              "SystemId": "Arcane_Ready"
+              "SystemId": "Arcane_Ice_Ready"
             }
           ]
         },
@@ -67,7 +67,7 @@
               "SystemId": "Rune_System"
             },
             {
-              "SystemId": "Arcane_Selecting"
+              "SystemId": "Arcane_Ice_Selecting"
             }
           ]
         },
@@ -85,6 +85,9 @@
             },
             {
               "SystemId": "Glyph_Spawner"
+            },
+            {
+              "SystemId": "Arcane_Ice_Crafting"
             }
           ]
         }
