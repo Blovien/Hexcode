@@ -14,7 +14,7 @@
     "CustomModel": "Blocks/Hexcode/Pedestals/Pedestal_Arcane.blockymodel",
     "CustomModelTexture": [
       {
-        "Texture": "Blocks/Hexcode/Pedestals/Pedestal_Arcane.png",
+        "Texture": "Blocks/Hexcode/Pedestals/Pedestal_Fire.png",
         "Weight": 1
       }
     ],
@@ -118,7 +118,7 @@
     "VariantRotation": "NESW",
     "Particles": [
       {
-        "SystemId": "Arcane_Ice_Crafting"
+        "SystemId": "Arcane_Fire_Crafting"
       }
     ]
   },
