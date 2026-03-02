@@ -18,10 +18,10 @@ import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.crafting.entity.AnchorEntity;
+import com.riprod.hexcode.core.crafting.entity.PedestalEntity;
 import com.riprod.hexcode.core.crafting.events.ObeliskBlockEvent;
 import com.riprod.hexcode.core.crafting.registry.PedestalBlockComponent;
-import com.riprod.hexcode.core.crafting.spawners.AnchorSpawner;
-import com.riprod.hexcode.core.crafting.spawners.PedestalSpawner;
 import com.riprod.hexcode.core.crafting.utils.PedestalBlockUtil;
 import com.riprod.hexcode.core.crafting.utils.PedestalItemUtil;
 import com.riprod.hexcode.core.crafting.utils.PedestalState;
@@ -49,7 +49,7 @@ public class PedestalSystem {
             return;
         }
 
-        Vector3d anchorPos = PedestalSpawner.getAnchorPosition(pedestal.getLocation());
+        Vector3d anchorPos = PedestalEntity.getAnchorPosition(pedestal.getLocation());
         List<Vector3f> offsets = RadialPositionUtil.calculateOffsets(totalSlots, PREVIEW_RADIUS, 0);
         List<Ref<EntityStore>> spawnedRefs = new ArrayList<>();
 
@@ -57,11 +57,11 @@ public class PedestalSystem {
             Vector3f offset = offsets.get(i);
 
             if (i < hexes.size()) {
-                Ref<EntityStore> hexRef = AnchorSpawner.spawnFilledSlot(buffer, hexes.get(i), anchorRef, anchorPos,
+                Ref<EntityStore> hexRef = AnchorEntity.spawnFilledSlot(buffer, hexes.get(i), anchorRef, anchorPos,
                         offset);
                 spawnedRefs.add(hexRef);
             } else {
-                Ref<EntityStore> emptyRef = AnchorSpawner.spawnEmptySlot(buffer, anchorRef, anchorPos, offset);
+                Ref<EntityStore> emptyRef = AnchorEntity.spawnEmptySlot(buffer, anchorRef, anchorPos, offset);
                 spawnedRefs.add(emptyRef);
             }
         }
@@ -97,7 +97,7 @@ public class PedestalSystem {
             buffer.removeEntity(ref, RemoveReason.REMOVE);
         }
 
-        Vector3d anchorPos = PedestalSpawner.getAnchorPosition(pedestal.getLocation());
+        Vector3d anchorPos = PedestalEntity.getAnchorPosition(pedestal.getLocation());
         Vector3d activePos = new Vector3d(
                 anchorPos.x + ACTIVE_HEX_OFFSET.x,
                 anchorPos.y + ACTIVE_HEX_OFFSET.y,
@@ -118,14 +118,14 @@ public class PedestalSystem {
     public static void handleEssencePlacement(CommandBuffer<EntityStore> buffer,
             Player player, ItemStack essenceItem, PedestalBlockComponent pedestalComponent, Vector3i blockPos) {
 
-        Vector3d anchorPos = PedestalSpawner.getAnchorPosition(blockPos);
+        Vector3d anchorPos = PedestalEntity.getAnchorPosition(blockPos);
 
         Ref<EntityStore> oldEssenceRef = pedestalComponent.getEssenceDisplayRef();
         if (oldEssenceRef != null && oldEssenceRef.isValid()) {
             buffer.removeEntity(oldEssenceRef, RemoveReason.REMOVE);
         }
 
-        Ref<EntityStore> newEssenceRef = PedestalSpawner.spawnEssenceDisplay(
+        Ref<EntityStore> newEssenceRef = PedestalEntity.spawnEssenceDisplay(
                 buffer, pedestalComponent, anchorPos, essenceItem.getItem(), pedestalComponent.getReferenceHolder());
         pedestalComponent.setEssenceDisplayRef(newEssenceRef);
         pedestalComponent.setEssenceItemId(essenceItem.getItem().getId());
@@ -139,7 +139,7 @@ public class PedestalSystem {
     public static void handleBookPlacement(CommandBuffer<EntityStore> buffer,
             Player player, ItemStack bookItem, PedestalBlockComponent pedestalComponent, Vector3i blockPos) {
 
-        Vector3d anchorPos = PedestalSpawner.getAnchorPosition(blockPos);
+        Vector3d anchorPos = PedestalEntity.getAnchorPosition(blockPos);
 
         ItemStack prepared = PedestalItemUtil.ensureHexBookComponent(bookItem);
         pedestalComponent.setStoredBook(prepared);
@@ -149,7 +149,7 @@ public class PedestalSystem {
             buffer.removeEntity(oldBookDisplay, RemoveReason.REMOVE);
         }
 
-        Ref<EntityStore> newBookDisplayRef = PedestalSpawner.spawnBookDisplay(
+        Ref<EntityStore> newBookDisplayRef = PedestalEntity.spawnBookDisplay(
                 buffer, pedestalComponent, anchorPos, bookItem.getItem());
         pedestalComponent.setBookDisplayRef(newBookDisplayRef);
 
@@ -193,7 +193,7 @@ public class PedestalSystem {
             Player player, PedestalBlockComponent pedestalComponent,
             World world) {
 
-        AnchorSpawner.DespawnHexPreviews(buffer, pedestalComponent);
+        AnchorEntity.DespawnHexPreviews(buffer, pedestalComponent);
 
         List<Ref<EntityStore>> activePlayers = pedestalComponent.getActivePlayerRefs();
         for (int i = 0; i < activePlayers.size(); i++) {

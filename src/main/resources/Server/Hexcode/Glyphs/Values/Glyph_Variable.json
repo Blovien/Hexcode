@@ -1,7 +1,7 @@
 {
   "Parent": "Base_Glyph",
   "GlyphType": "Effect",
-  "ModelPath": "Glyph_Variable",
+  "ModelPath": "Value_Variable",
   "ShapeStructure": [
     {
       "ShapeId": "Down",

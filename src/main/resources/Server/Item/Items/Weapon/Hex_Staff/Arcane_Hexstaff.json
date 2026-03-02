@@ -38,5 +38,6 @@
   "ItemSoundSetId": "ISS_Weapons_Wood",
   "Utility": {
     "Compatible": true
-  }
+  },
+  "MaxStack": 1
 }

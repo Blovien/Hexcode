@@ -16,6 +16,7 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.ParticleUtil;
 import com.hypixel.hytale.server.core.util.TargetUtil;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.casting.utils.GlyphStyler;
 import com.riprod.hexcode.core.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.crafting.component.PedestalAnchorComponent;
 import com.riprod.hexcode.core.crafting.registry.PedestalBlockComponent;
@@ -31,7 +32,7 @@ public class CraftingSystem extends HexcodeManager {
 
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     private static final float DETECTION_RANGE = 10.0f;
-    private static final String HOVER_PARTICLE = "Glyph_Ambient";
+    private static final String HOVER_PARTICLE = "Object_Hover";
 
     @Override
     public void firstTick(Ref<EntityStore> ref, HexcasterComponent comp,
@@ -83,15 +84,15 @@ public class CraftingSystem extends HexcodeManager {
         }
         switch (pedestal.getState()) {
             case SELECTING:
-                tickActive(buffer, ref, pedestal);
+                tickActive(buffer, dt, ref, pedestal);
                 break;
             case CRAFTING:
-                tickCrafting(buffer, ref, pedestal);
+                tickCrafting(buffer, dt, ref, pedestal);
                 break;
         }
     }
 
-    private static void tickActive(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref,
+    private static void tickActive(CommandBuffer<EntityStore> buffer, float dt, Ref<EntityStore> ref,
             PedestalBlockComponent pedestal) {
         List<Ref<EntityStore>> previewRefs = pedestal.getHexPreviewRefs();
 
@@ -118,9 +119,16 @@ public class CraftingSystem extends HexcodeManager {
                 || (hoveredRef != null && !hoveredRef.equals(previousHovered));
         if (changed) {
             LOGGER.atInfo().log("crafting: hover changed from %s to %s", previousHovered, hoveredRef);
+            pedestal.setTickLength(HOVER_PARTICLE, 0f);
         }
 
         craftingComp.setHoveredHexRef(hoveredRef);
+
+        if (pedestal.getTickLength(HOVER_PARTICLE) < 0.5f) {
+            pedestal.incrementTickLength(HOVER_PARTICLE, dt);
+            return;
+        }
+        pedestal.setTickLength(HOVER_PARTICLE, 0f);
 
         if (hoveredRef != null && hoveredRef.isValid()) {
             TransformComponent transform = buffer.getComponent(hoveredRef, TransformComponent.getComponentType());
@@ -131,7 +139,7 @@ public class CraftingSystem extends HexcodeManager {
         }
     }
 
-    private static void tickCrafting(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref,
+    private static void tickCrafting(CommandBuffer<EntityStore> buffer, float dt, Ref<EntityStore> ref,
             PedestalBlockComponent pedestal) {
         List<Ref<EntityStore>> previewRefs = pedestal.getHexPreviewRefs();
 
@@ -158,15 +166,23 @@ public class CraftingSystem extends HexcodeManager {
                 || (hoveredRef != null && !hoveredRef.equals(previousHovered));
         if (changed) {
             LOGGER.atInfo().log("crafting: hover changed from %s to %s", previousHovered, hoveredRef);
+            pedestal.setTickLength(HOVER_PARTICLE, 1f);
         }
 
         craftingComp.setHoveredHexRef(hoveredRef);
+
+        if (pedestal.getTickLength(HOVER_PARTICLE) < 0.5f) {
+            pedestal.incrementTickLength(HOVER_PARTICLE, dt);
+            return;
+        }
+        pedestal.setTickLength(HOVER_PARTICLE, 0f);
 
         if (hoveredRef != null && hoveredRef.isValid()) {
             TransformComponent transform = buffer.getComponent(hoveredRef, TransformComponent.getComponentType());
             if (transform != null) {
                 Vector3d pos = transform.getPosition();
                 ParticleUtil.spawnParticleEffect(HOVER_PARTICLE, pos, hoveredRef, List.of(ref), buffer);
+                GlyphStyler.updateScale(buffer, hoveredRef, 0.5f);
             }
         }
     }

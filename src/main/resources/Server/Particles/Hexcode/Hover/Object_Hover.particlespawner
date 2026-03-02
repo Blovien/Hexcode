@@ -1,0 +1,124 @@
+{
+  "RenderMode": "Erosion",
+  "ParticleRotationInfluence": "BillboardVelocity",
+  "LinearFiltering": true,
+  "ParticleRotateWithSpawner": true,
+  "TrailSpawnerPositionMultiplier": 1,
+  "TrailSpawnerRotationMultiplier": 1,
+  "MaxConcurrentParticles": 100,
+  "ParticleLifeSpan": {
+    "Min": 0.5,
+    "Max": 1
+  },
+  "SpawnRate": {
+    "Min": 200,
+    "Max": 200
+  },
+  "Particle": {
+    "Texture": "Particles/Textures/Basic/Ball2.png",
+    "FrameSize": {
+      "Width": 64,
+      "Height": 64
+    },
+    "ScaleRatioConstraint": "OneToOne",
+    "Animation": {
+      "0": {
+        "FrameIndex": {
+          "Min": 0,
+          "Max": 0
+        },
+        "Scale": {
+          "X": {
+            "Min": 0.15,
+            "Max": 0.15
+          }
+        },
+        "Rotation": {
+          "X": {
+            "Min": 0,
+            "Max": 0
+          },
+          "Y": {
+            "Min": 0,
+            "Max": 0
+          },
+          "Z": {
+            "Min": 0,
+            "Max": 0
+          }
+        },
+        "Opacity": 1,
+        "Color": "#bad9ff"
+      },
+      "100": {
+        "Opacity": 0.14,
+        "Scale": {
+          "X": {
+            "Min": 0.1,
+            "Max": 0.1
+          }
+        },
+        "Color": "#0e1f8d"
+      }
+    },
+    "InitialAnimationFrame": {
+      "Rotation": {
+        "X": {
+          "Min": 0,
+          "Max": 360
+        },
+        "Y": {
+          "Min": 0,
+          "Max": 360
+        },
+        "Z": {
+          "Min": 0,
+          "Max": 360
+        }
+      },
+      "Scale": {
+        "X": {
+          "Min": 0.15,
+          "Max": 0.15
+        }
+      },
+      "Opacity": 0.764,
+      "Color": "#008dff",
+      "FrameIndex": {
+        "Min": 0,
+        "Max": 0
+      }
+    }
+  },
+  "SpawnBurst": false,
+  "EmitOffset": {
+    "X": {
+      "Min": 0,
+      "Max": 0.35
+    },
+    "Z": {
+      "Min": 0,
+      "Max": 0.35
+    },
+    "Y": {
+      "Max": 0.35
+    }
+  },
+  "Shape": "Cube",
+  "Attractors": [
+    {
+      "LinearAcceleration": {
+        "Y": 0.5
+      },
+      "RadialImpulse": 0.5
+    },
+    {
+      "RadialTangentAcceleration": 2
+    }
+  ],
+  "LifeSpan": 0,
+  "IntersectionHighlight": {
+    "HighlightThreshold": 0
+  },
+  "IsLowRes": true
+}

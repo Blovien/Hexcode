@@ -5,6 +5,5 @@
       "StartDelay": 2
     }
   ],
-  "LifeSpan": 999,
   "CullDistance": 50
 }

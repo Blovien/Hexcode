@@ -26,16 +26,17 @@ import com.riprod.hexcode.core.casting.utils.GlyphSpawner;
 import com.riprod.hexcode.core.casting.utils.GlyphStyler;
 import com.riprod.hexcode.core.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.crafting.component.PedestalAnchorComponent;
+import com.riprod.hexcode.core.crafting.entity.PedestalEntity;
 import com.riprod.hexcode.core.crafting.registry.PedestalBlockComponent;
-import com.riprod.hexcode.core.crafting.spawners.PedestalSpawner;
 import com.riprod.hexcode.core.debug.DebugComponent;
 import com.riprod.hexcode.core.drawing.component.DrawnShapeComponent;
 import com.riprod.hexcode.core.drawing.component.HexcasterDrawingComponent;
+import com.riprod.hexcode.core.drawing.registry.ShapeTemplateStore;
 import com.riprod.hexcode.core.drawing.system.GlyphCreationManager;
 import com.riprod.hexcode.core.drawing.system.InterfaceManager;
-import com.riprod.hexcode.core.drawing.system.CompositeShapeDetector;
-import com.riprod.hexcode.core.drawing.system.ShapeDetector;
-import com.riprod.hexcode.core.drawing.system.ShapeTemplateStore;
+import com.riprod.hexcode.core.drawing.system.shapes.CompositeShapeDetector;
+import com.riprod.hexcode.core.drawing.system.shapes.DollarOneFixedDetector;
+import com.riprod.hexcode.core.drawing.system.shapes.ShapeDetector;
 import com.riprod.hexcode.core.drawing.utils.ShapeComparator;
 import com.riprod.hexcode.core.glyphs.component.Glyph;
 import com.riprod.hexcode.core.glyphs.component.GlyphComponent;
@@ -54,7 +55,7 @@ public class DrawingSystem extends HexcodeManager {
   private static final float GLYPH_DISPLAY_DISTANCE = 1.0f;
   private static final float PEDESTAL_GLYPH_PITCH = (float) (-Math.PI / 2);
 
-  private static ShapeDetector shapeDetector = new CompositeShapeDetector();
+  private static ShapeDetector shapeDetector = new DollarOneFixedDetector();
 
   public static ShapeDetector getShapeDetector() {
     return shapeDetector;
@@ -100,7 +101,7 @@ public class DrawingSystem extends HexcodeManager {
         if (pedestal == null || anchorRef == null || spawnPos == null) {
           LOGGER.atInfo().log("cannot spawn drawn hex: missing pedestal or draw position");
         } else {
-          Vector3d anchorPos = PedestalSpawner.getAnchorPosition(pedestal.getLocation());
+          Vector3d anchorPos = PedestalEntity.getAnchorPosition(pedestal.getLocation());
           double maxRadius = pedestal.getMaxRadius();
           double distSq = spawnPos.distanceSquaredTo(anchorPos);
 
@@ -324,6 +325,6 @@ public class DrawingSystem extends HexcodeManager {
     List<Ref<EntityStore>> refs = new ArrayList<>(pedestal.getHexPreviewRefs());
     refs.add(hexRef);
     pedestal.setHexPreviewRefs(refs);
-    LOGGER.atInfo().log("spawned drawn hex at %.1f", spawnPos);
+    LOGGER.atInfo().log("spawned drawn hex at %.1s", spawnPos);
   }
 }

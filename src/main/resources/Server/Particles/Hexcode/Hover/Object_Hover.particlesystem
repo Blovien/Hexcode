@@ -1,0 +1,9 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "Object_Hover"
+    }
+  ],
+  "CullDistance": 50,
+  "LifeSpan": 0.5
+}

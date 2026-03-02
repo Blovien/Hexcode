@@ -17,8 +17,8 @@ import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.crafting.entity.AnchorEntity;
 import com.riprod.hexcode.core.crafting.registry.PedestalBlockComponent;
-import com.riprod.hexcode.core.crafting.spawners.AnchorSpawner;
 import com.riprod.hexcode.core.crafting.utils.PedestalItemUtil;
 import com.riprod.hexcode.core.crafting.utils.PedestalState;
 
@@ -57,7 +57,7 @@ public class PedestalBlockEvent extends EntityEventSystem<EntityStore, BreakBloc
             return;
         }
 
-        AnchorSpawner.DespawnHexPreviews(buffer, pedestal);
+        AnchorEntity.DespawnHexPreviews(buffer, pedestal);
         ObeliskBlockEvent.unprotect(pos);
 
         ItemStack bookStack = pedestal.getStoredBook();

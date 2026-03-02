@@ -4,11 +4,11 @@
   "ModelPath": "Number_1",
   "ShapeStructure": [
     {
-      "ShapeId": "Slash",
+      "ShapeId": "Antislash",
       "Size": 1.0
     },
     {
-      "ShapeId": "Slash",
+      "ShapeId": "Antislash",
       "Size": 1.0
     }
   ]

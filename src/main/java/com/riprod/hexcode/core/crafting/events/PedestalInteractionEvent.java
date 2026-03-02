@@ -12,8 +12,8 @@ import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.crafting.entity.PedestalEntity;
 import com.riprod.hexcode.core.crafting.registry.PedestalBlockComponent;
-import com.riprod.hexcode.core.crafting.spawners.PedestalSpawner;
 import com.riprod.hexcode.core.crafting.system.PedestalSystem;
 import com.riprod.hexcode.core.crafting.utils.PedestalItemUtil;
 import com.riprod.hexcode.core.crafting.utils.PedestalState;
@@ -76,14 +76,14 @@ public class PedestalInteractionEvent {
         }
 
         logger.atInfo().log("pedestal: rebuilding anchor at %s", blockPos);
-        anchorRef = PedestalSpawner.spawnAnchorEntity(buffer, blockPos);
+        anchorRef = PedestalEntity.spawnAnchorEntity(buffer, blockPos);
         pedestal.setAnchorEntityRef(anchorRef);
     }
 
     private static void rebuildDisplays(CommandBuffer<EntityStore> buffer,
             PedestalBlockComponent pedestal, Vector3i blockPos) {
 
-        Vector3d anchorPos = PedestalSpawner.getAnchorPosition(blockPos);
+        Vector3d anchorPos = PedestalEntity.getAnchorPosition(blockPos);
 
         ItemStack storedBook = pedestal.getStoredBook();
         Ref<EntityStore> bookRef = pedestal.getBookDisplayRef();
@@ -91,7 +91,7 @@ public class PedestalInteractionEvent {
             Item bookItem = storedBook.getItem();
             if (bookItem != null) {
                 logger.atInfo().log("pedestal: rebuilding book display at %s", blockPos);
-                Ref<EntityStore> newBookRef = PedestalSpawner.spawnBookDisplay(
+                Ref<EntityStore> newBookRef = PedestalEntity.spawnBookDisplay(
                         buffer, pedestal, anchorPos, bookItem);
                 pedestal.setBookDisplayRef(newBookRef);
             }
@@ -103,7 +103,7 @@ public class PedestalInteractionEvent {
             Item essenceItem = Item.getAssetMap().getAsset(essenceId);
             if (essenceItem != null) {
                 logger.atInfo().log("pedestal: rebuilding essence display at %s", blockPos);
-                Ref<EntityStore> newEssenceRef = PedestalSpawner.spawnEssenceDisplay(
+                Ref<EntityStore> newEssenceRef = PedestalEntity.spawnEssenceDisplay(
                         buffer, pedestal, anchorPos, essenceItem, pedestal.getReferenceHolder());
                 pedestal.setEssenceDisplayRef(newEssenceRef);
             }

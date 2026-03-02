@@ -44,7 +44,15 @@
           },
           "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Ready.blockyanim",
           "Looping": true,
-          "InteractionHint": "server.hexcode.pedestal.interact.ready"
+          "InteractionHint": "server.hexcode.pedestal.interact.ready",
+          "Effect": [
+            "None"
+          ],
+          "Particles": [
+            {
+              "SystemId": "Arcane_Ready"
+            }
+          ]
         },
         "Selecting": {
           "Light": {
@@ -53,7 +61,15 @@
           },
           "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Selecting.blockyanim",
           "Looping": true,
-          "InteractionHint": "server.hexcode.pedestal.interact.selecting"
+          "InteractionHint": "server.hexcode.pedestal.interact.selecting",
+          "Particles": [
+            {
+              "SystemId": "Rune_System"
+            },
+            {
+              "SystemId": "Arcane_Selecting"
+            }
+          ]
         },
         "Crafting": {
           "Light": {
@@ -62,7 +78,15 @@
           },
           "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Crafting.blockyanim",
           "Looping": true,
-          "InteractionHint": "server.hexcode.pedestal.interact.crafting"
+          "InteractionHint": "server.hexcode.pedestal.interact.crafting",
+          "Particles": [
+            {
+              "SystemId": "Room_Spawner"
+            },
+            {
+              "SystemId": "Glyph_Spawner"
+            }
+          ]
         }
       }
     },

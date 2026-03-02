@@ -6,7 +6,7 @@ import java.util.List;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.riprod.hexcode.core.drawing.component.DrawnShapeComponent;
 import com.riprod.hexcode.core.drawing.registry.ShapeAsset;
-import com.riprod.hexcode.core.drawing.system.ShapeCacheManager;
+import com.riprod.hexcode.core.drawing.system.shapes.ShapeCacheManager;
 
 public class ShapeComparator {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();

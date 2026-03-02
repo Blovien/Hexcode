@@ -1,5 +1,6 @@
 package com.riprod.hexcode.core.crafting.events;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -17,17 +18,20 @@ import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.hypixel.hytale.server.core.util.TargetUtil;
 import com.riprod.hexcode.core.crafting.component.PedestalAnchorComponent;
+import com.riprod.hexcode.core.crafting.entity.PedestalEntity;
 import com.riprod.hexcode.core.crafting.registry.PedestalBlockComponent;
-import com.riprod.hexcode.core.crafting.spawners.PedestalSpawner;
-import com.riprod.hexcode.core.crafting.utils.PedestalState;
+import com.riprod.hexcode.core.crafting.utils.PlayerLocationUtil;
 import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.state.HexState;
+import io.sentry.util.Pair;
 
 public class PedestalTickEvent extends EntityTickingSystem<EntityStore> {
 
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+
+    public static final float PLAYER_DETECTION_INTERVAL_DT = 2.0f;
+    public static final String PLAYER_DETECTION_DT_KEY = "CRAFTING";
 
     @Override
     public Query<EntityStore> getQuery() {
@@ -57,10 +61,10 @@ public class PedestalTickEvent extends EntityTickingSystem<EntityStore> {
                 tickReady(dt, pedestalBlock, buffer.getExternalData().getWorld(), buffer);
                 break;
             case CRAFTING: // crafting
-                tickCrafting(pedestalBlock, store, buffer);
+                tickCrafting(buffer, store, dt, pedestalBlock);
             case SELECTING: // has hexes placed but not crafting yet
                 Ref<EntityStore> anchorRef = accessor.getReferenceTo(index);
-                tickPlayerDetection(pedestalBlock, anchorRef, store, buffer);
+                tickPlayerDetection(buffer, store, dt, pedestalBlock, anchorRef);
                 break;
             case IDLE: // error state
                 break;
@@ -71,37 +75,38 @@ public class PedestalTickEvent extends EntityTickingSystem<EntityStore> {
             CommandBuffer<EntityStore> buffer) {
     }
 
-    private void tickPlayerDetection(PedestalBlockComponent pedestal, Ref<EntityStore> anchorRef,
-            Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
+    private void tickPlayerDetection(CommandBuffer<EntityStore> buffer, Store<EntityStore> store, float dt,
+            PedestalBlockComponent pedestal, Ref<EntityStore> anchorRef) {
+
+        if (pedestal.getTickLength(PLAYER_DETECTION_DT_KEY) < PLAYER_DETECTION_INTERVAL_DT) {
+            pedestal.incrementTickLength(PLAYER_DETECTION_DT_KEY, dt);
+            return;
+        }
+        pedestal.setTickLength(PLAYER_DETECTION_DT_KEY, 0f);
 
         Vector3i blockPos = pedestal.getLocation();
         if (blockPos == null) {
             return;
         }
 
-        Vector3d anchorPos = PedestalSpawner.getAnchorPosition(blockPos);
+        Vector3d anchorPos = PedestalEntity.getAnchorPosition(blockPos);
         double maxRadius = pedestal.getMaxRadius();
         double maxRadiusSq = maxRadius * maxRadius;
 
-        List<Ref<EntityStore>> nearbyEntities = TargetUtil.getAllEntitiesInSphere(anchorPos, maxRadius, buffer);
+        List<Pair<Ref<EntityStore>, HexcasterComponent>> nearbyEntities = PlayerLocationUtil.findNearbyPlayers(buffer,
+                anchorPos, maxRadius);
 
         // find nearby players and set them to CRAFTING if they are idle
-        for (int i = 0; i < nearbyEntities.size(); i++) {
-            Ref<EntityStore> entityRef = nearbyEntities.get(i);
-            if (entityRef == null || !entityRef.isValid()) {
-                continue;
-            }
+        for (Pair<Ref<EntityStore>, HexcasterComponent> hexPair : nearbyEntities) {
 
-            HexcasterComponent hexcaster = buffer.getComponent(entityRef, HexcasterComponent.getComponentType());
-            if (hexcaster == null) {
-                continue;
-            }
+            HexcasterComponent hexcaster = hexPair.getSecond();
 
             if (hexcaster.getState() == HexState.IDLE || hexcaster.getState() == HexState.EXECUTION) {
                 hexcaster.setPendingPedestalRef(anchorRef);
                 hexcaster.requestStateChange(HexState.CRAFTING);
-                pedestal.addDetectedPlayer(entityRef);
-                LOGGER.atInfo().log("pedestal: auto-entering player %s into CRAFTING, anchor=%s", entityRef, anchorRef);
+                pedestal.addDetectedPlayer(hexPair.getFirst());
+                LOGGER.atInfo().log("pedestal: auto-entering player %s into CRAFTING, anchor=%s", hexPair.getFirst(),
+                        anchorRef);
             }
         }
 
@@ -134,8 +139,8 @@ public class PedestalTickEvent extends EntityTickingSystem<EntityStore> {
         }
     }
 
-    private void tickCrafting(PedestalBlockComponent pedestal, Store<EntityStore> store,
-            CommandBuffer<EntityStore> buffer) {
+    private void tickCrafting(CommandBuffer<EntityStore> buffer, Store<EntityStore> store, float dt,
+            PedestalBlockComponent pedestal) {
 
         Ref<EntityStore> activeHexRef = pedestal.getActiveHexEntityRef();
         if (activeHexRef == null || !activeHexRef.isValid()) {

@@ -13,7 +13,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class HexcasterComponent implements Component<EntityStore> {
 
@@ -58,6 +60,7 @@ public class HexcasterComponent implements Component<EntityStore> {
 
     // Crafting Mode
     private Ref<EntityStore> pendingPedestalRef = null;
+    private Map<String, Float> lastTickMap = new HashMap<>();
 
     public HexcasterComponent() {
     }
@@ -162,6 +165,18 @@ public class HexcasterComponent implements Component<EntityStore> {
 
     public void setDrawStartTimeMillis(long drawStartTimeMillis) {
         this.drawStartTimeMillis = drawStartTimeMillis;
+    }
+
+    public float getTickLength(String keyId) {
+        return this.lastTickMap.getOrDefault(keyId, 0f);
+    }
+
+    public void setTickLength(String keyId, float value) {
+        this.lastTickMap.put(keyId, value);
+    }
+
+    public void incrementTickLength(String keyId, float dt) {
+        this.lastTickMap.merge(keyId, dt, Float::sum);
     }
 
     @Nonnull

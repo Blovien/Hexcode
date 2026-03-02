@@ -132,6 +132,7 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
     private List<Ref<EntityStore>> activePlayerRefs = new ArrayList<>();
     private List<Ref<EntityStore>> hexPreviewRefs = new ArrayList<>();
     private Vector3i location = null;
+    private Map<String, Float> lastTickMap = new HashMap<>();
 
     public void setLocation(Vector3i location) {
         this.location = location;
@@ -311,6 +312,18 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
 
     public Map<String, AnimationSet> getAnimationSetMap() {
         return animationSetMap;
+    }
+
+    public float getTickLength(String keyId) {
+        return this.lastTickMap.getOrDefault(keyId, 0f);
+    }
+
+    public void setTickLength(String keyId, float value) {
+        this.lastTickMap.put(keyId, value);
+    }
+
+    public void incrementTickLength(String keyId, float dt) {
+        this.lastTickMap.merge(keyId, dt, Float::sum);
     }
 
     @Nonnull

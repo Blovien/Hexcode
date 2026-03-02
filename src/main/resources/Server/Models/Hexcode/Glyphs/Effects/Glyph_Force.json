@@ -1,5 +1,20 @@
 {
   "Parent": "Base_Glyph",
   "Model": "VFX/Glyphs/Shapes/Circle.blockymodel",
-  "Texture": "VFX/Glyphs/Shapes/Circle.png"
+  "Texture": "VFX/Glyphs/Shapes/Circle.png",
+  "GradientId": "Blue",
+  "GradientSet": "Colored_Cotton",
+  "Icon": "Icons/ModelsGenerated/Glyph_Force.png",
+  "IconProperties": {
+    "Scale": 0.25,
+    "Rotation": [
+      0,
+      -45,
+      0
+    ],
+    "Translation": [
+      0,
+      1
+    ]
+  }
 }
