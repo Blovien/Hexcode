@@ -7,8 +7,8 @@ import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.execution.component.HexContext;
-import com.riprod.hexcode.core.glyphs.component.Glyph;
+import com.riprod.hexcode.core.common.glyphs.component.Glyph;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
 
 public class PropelComponent implements Component<EntityStore> {
 

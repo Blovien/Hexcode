@@ -15,7 +15,7 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHa
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.SimpleInteraction;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.data.Collector;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
+import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
 import com.riprod.hexcode.state.StateRouter;
@@ -77,7 +77,7 @@ public class HexModeExit extends SimpleInteraction {
         }
 
         if (firstRun) {
-            ctx.getState().state = manager.exitInteraction(playerRef, hexcaster, commandBuffer);
+            ctx.getState().state = manager.exitInteraction(commandBuffer, playerRef, hexcaster);
         }
 
         super.tick0(firstRun, time, type, ctx, cooldown);

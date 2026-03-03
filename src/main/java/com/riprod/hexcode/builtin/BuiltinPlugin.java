@@ -40,9 +40,9 @@ import com.riprod.hexcode.builtin.glyphs.value.NumberGlyph;
 import com.riprod.hexcode.builtin.styles.ArcStyle;
 import com.riprod.hexcode.builtin.styles.RingStyle;
 import com.riprod.hexcode.builtin.styles.SphereStyle;
-import com.riprod.hexcode.core.casting.registery.CastingStyleRegistry;
-import com.riprod.hexcode.core.glyphs.registry.GlyphRegistry;
-import com.riprod.hexcode.core.glyphs.registry.HexValueRegistry;
+import com.riprod.hexcode.core.common.glyphs.registry.GlyphRegistry;
+import com.riprod.hexcode.core.common.glyphs.registry.HexValueRegistry;
+import com.riprod.hexcode.core.state.casting.registery.CastingStyleRegistry;
 
 public class BuiltinPlugin {
 

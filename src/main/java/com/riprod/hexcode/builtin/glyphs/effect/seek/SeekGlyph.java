@@ -12,13 +12,13 @@ import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.TargetUtil;
-import com.riprod.hexcode.core.glyphs.component.Glyph;
-import com.riprod.hexcode.core.execution.Executor;
-import com.riprod.hexcode.core.execution.component.HexContext;
-import com.riprod.hexcode.core.glyphs.component.GlyphHandler;
-import com.riprod.hexcode.core.glyphs.variables.BlockVar;
-import com.riprod.hexcode.core.glyphs.variables.EntityVar;
-import com.riprod.hexcode.core.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.common.glyphs.component.Glyph;
+import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
+import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
+import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
+import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.state.execution.Executor;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
 public class SeekGlyph implements GlyphHandler {

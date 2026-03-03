@@ -8,14 +8,14 @@ import com.hypixel.hytale.protocol.ChangeVelocityType;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.glyphs.component.Glyph;
-import com.riprod.hexcode.core.execution.Executor;
-import com.riprod.hexcode.core.execution.component.HexContext;
-import com.riprod.hexcode.core.glyphs.component.GlyphHandler;
-import com.riprod.hexcode.core.glyphs.variables.EntityVar;
-import com.riprod.hexcode.core.glyphs.variables.HexVar;
-import com.riprod.hexcode.core.glyphs.variables.NumberVar;
-import com.riprod.hexcode.core.glyphs.variables.PositionVar;
+import com.riprod.hexcode.core.common.glyphs.component.Glyph;
+import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
+import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
+import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.common.glyphs.variables.NumberVar;
+import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
+import com.riprod.hexcode.core.state.execution.Executor;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
 public class ForceGlyph implements GlyphHandler {

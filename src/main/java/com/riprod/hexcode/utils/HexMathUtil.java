@@ -11,12 +11,12 @@ import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.server.core.entity.reference.PersistentRef;
-import com.riprod.hexcode.core.glyphs.variables.BlockVar;
-import com.riprod.hexcode.core.glyphs.variables.EntityVar;
-import com.riprod.hexcode.core.glyphs.variables.HexVar;
-import com.riprod.hexcode.core.glyphs.variables.NumberVar;
-import com.riprod.hexcode.core.glyphs.variables.PositionVar;
-import com.riprod.hexcode.core.glyphs.variables.RotationVar;
+import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
+import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
+import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.common.glyphs.variables.NumberVar;
+import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
+import com.riprod.hexcode.core.common.glyphs.variables.RotationVar;
 
 public class HexMathUtil {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();

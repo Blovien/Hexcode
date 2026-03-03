@@ -3,10 +3,10 @@ package com.riprod.hexcode.builtin.glyphs.value;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
-import com.riprod.hexcode.core.execution.component.HexContext;
-import com.riprod.hexcode.core.glyphs.values.HexVal;
-import com.riprod.hexcode.core.glyphs.variables.HexVar;
-import com.riprod.hexcode.core.glyphs.variables.NumberVar;
+import com.riprod.hexcode.core.common.glyphs.values.HexVal;
+import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.common.glyphs.variables.NumberVar;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
 
 public class NumberGlyph implements HexVal {
 

@@ -12,8 +12,8 @@ import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayer
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.drawing.registry.ShapeAsset;
-import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
+import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
+import com.riprod.hexcode.core.state.drawing.registry.ShapeAsset;
 
 public class DrawTrainCommand extends AbstractPlayerCommand {
 

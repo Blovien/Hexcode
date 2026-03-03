@@ -8,7 +8,7 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
+import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 
 public abstract class HexcodeManager {
 
@@ -30,12 +30,9 @@ public abstract class HexcodeManager {
                 tick0(ref, comp, dt, store, buffer);
         }
 
-        public abstract InteractionState exitInteraction(Ref<EntityStore> ref, HexcasterComponent comp,
-                        CommandBuffer<EntityStore> buffer);
+        public abstract InteractionState exitInteraction(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref, HexcasterComponent comp);
 
-        public abstract InteractionState enterInteraction(Ref<EntityStore> ref, HexcasterComponent comp,
-                        CommandBuffer<EntityStore> buffer);
+        public abstract InteractionState enterInteraction(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref, HexcasterComponent comp);
 
-        public abstract InteractionState tickInteraction(Ref<EntityStore> ref, HexcasterComponent comp,
-                        CommandBuffer<EntityStore> buffer);
+        public abstract InteractionState tickInteraction(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref, float dt, HexcasterComponent comp);
 }

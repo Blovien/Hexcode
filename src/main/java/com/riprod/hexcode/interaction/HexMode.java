@@ -17,7 +17,7 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHa
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.client.ChargingInteraction;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
+import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
 import com.riprod.hexcode.state.StateRouter;
@@ -61,7 +61,7 @@ public class HexMode extends ChargingInteraction {
     }
 
     @Override
-    protected void tick0(boolean firstRun, float time, @Nonnull InteractionType type,
+    protected void tick0(boolean firstRun, float dt, @Nonnull InteractionType type,
             @Nonnull InteractionContext ctx, @Nonnull CooldownHandler cooldown) {
 
         if (targetState == null) {
@@ -100,12 +100,11 @@ public class HexMode extends ChargingInteraction {
         }
 
         if (firstRun) {
-            LOGGER.atInfo().log("hexmode: entering %s", targetState);
-            ctx.getState().state = manager.enterInteraction(playerRef, hexcaster, commandBuffer);
+            ctx.getState().state = manager.enterInteraction(commandBuffer, playerRef, hexcaster);
         } else {
-            ctx.getState().state = manager.tickInteraction(playerRef, hexcaster, commandBuffer);
+            ctx.getState().state = manager.tickInteraction(commandBuffer, playerRef, dt, hexcaster);
         }
 
-        super.tick0(firstRun, time, type, ctx, cooldown);
+        super.tick0(firstRun, dt, type, ctx, cooldown);
     }
 }

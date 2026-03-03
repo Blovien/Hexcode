@@ -1,13 +1,12 @@
 package com.riprod.hexcode.builtin.glyphs.effect.chaos;
 
-import com.riprod.hexcode.core.execution.Executor;
-import com.riprod.hexcode.core.execution.component.HexContext;
-import com.riprod.hexcode.core.glyphs.component.Glyph;
-
-import com.riprod.hexcode.core.glyphs.component.GlyphHandler;
-import com.riprod.hexcode.core.glyphs.variables.NumberVar;
+import com.riprod.hexcode.core.common.glyphs.component.Glyph;
+import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
+import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.common.glyphs.variables.NumberVar;
+import com.riprod.hexcode.core.state.execution.Executor;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.utils.SpellVarUtil;
-import com.riprod.hexcode.core.glyphs.variables.HexVar;
 
 import java.util.concurrent.ThreadLocalRandom;
 

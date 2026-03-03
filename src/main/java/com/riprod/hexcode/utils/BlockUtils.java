@@ -13,11 +13,11 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.execution.component.HexContext;
-import com.riprod.hexcode.core.glyphs.variables.BlockVar;
-import com.riprod.hexcode.core.glyphs.variables.EntityVar;
-import com.riprod.hexcode.core.glyphs.variables.PositionVar;
-import com.riprod.hexcode.core.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
+import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
+import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
 
 public class BlockUtils {
     public static void moveBlock(Vector3i source, Vector3d destination, World world) {

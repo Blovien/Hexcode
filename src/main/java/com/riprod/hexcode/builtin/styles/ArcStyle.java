@@ -3,7 +3,7 @@ package com.riprod.hexcode.builtin.styles;
 import javax.annotation.Nonnull;
 
 import com.hypixel.hytale.math.vector.Vector3f;
-import com.riprod.hexcode.core.casting.component.CastingStyle;
+import com.riprod.hexcode.core.state.casting.component.CastingStyle;
 
 import java.util.ArrayList;
 import java.util.List;

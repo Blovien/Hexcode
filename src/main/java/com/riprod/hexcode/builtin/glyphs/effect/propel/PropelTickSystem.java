@@ -19,12 +19,12 @@ import com.hypixel.hytale.server.core.modules.projectile.config.StandardPhysicsP
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.TargetUtil;
-import com.riprod.hexcode.core.execution.Executor;
-import com.riprod.hexcode.core.execution.component.RootGlyph;
-import com.riprod.hexcode.core.execution.component.HexContext;
-import com.riprod.hexcode.core.execution.component.HexRoot;
-import com.riprod.hexcode.core.glyphs.variables.BlockVar;
-import com.riprod.hexcode.core.glyphs.variables.EntityVar;
+import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
+import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
+import com.riprod.hexcode.core.state.execution.Executor;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
+import com.riprod.hexcode.core.state.execution.component.HexRoot;
+import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 
 public class PropelTickSystem extends EntityTickingSystem<EntityStore> {
 

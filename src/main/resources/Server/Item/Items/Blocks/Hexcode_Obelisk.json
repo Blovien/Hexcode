@@ -28,18 +28,55 @@
       }
     },
     "BlockEntity": {
-      "Hexcode_ObeliskBlock": {
-        "Power": 5
+      "Components": {
+        "Hexcode_ObeliskBlock": {
+          "Power": 10
+        }
       }
     },
     "State": {
       "Definitions": {
-        "Active": {
-          "CustomModel": "Blocks/Hexcode/Obelisks/Obelisk_Active.blockymodel",
+        "Idle": {
           "Light": {
-            "Color": "#88aabb",
-            "Intensity": 5
+            "Color": "#3a1a5e",
+            "Intensity": 1
+          },
+          "CustomModelAnimation": "Blocks/Hexcode/Obelisks/Animations/Obelisk_Idle.blockyanim"
+        },
+        "Ready": {
+          "Light": {
+            "Color": "#7b3fbf",
+            "Intensity": 2
           }
+        },
+        "Selecting": {
+          "Light": {
+            "Color": "#aa55ff",
+            "Intensity": 4
+          },
+          "Particles": [
+            {
+              "SystemId": "Obelisk_Selecting",
+              "DetachedFromModel": false,
+              "PositionOffset": {
+                "Y": 0
+              }
+            }
+          ],
+          "CustomModelAnimation": "Blocks/Hexcode/Obelisks/Animations/Obelisk_Selecting.blockyanim"
+        },
+        "Crafting": {
+          "Light": {
+            "Color": "#cc88ff",
+            "Intensity": 6
+          },
+          "Particles": [
+            {
+              "SystemId": "Obelisk_Crafting",
+              "DetachedFromModel": false
+            }
+          ],
+          "CustomModelAnimation": "Blocks/Hexcode/Obelisks/Animations/Obelisk_Crafting.blockyanim"
         }
       }
     },

@@ -2,12 +2,12 @@ package com.riprod.hexcode.builtin.glyphs.effect.position;
 
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
-import com.riprod.hexcode.core.execution.Executor;
-import com.riprod.hexcode.core.execution.component.HexContext;
-import com.riprod.hexcode.core.glyphs.component.Glyph;
-import com.riprod.hexcode.core.glyphs.component.GlyphHandler;
-import com.riprod.hexcode.core.glyphs.variables.HexVar;
-import com.riprod.hexcode.core.glyphs.variables.PositionVar;
+import com.riprod.hexcode.core.common.glyphs.component.Glyph;
+import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
+import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
+import com.riprod.hexcode.core.state.execution.Executor;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
 public class PositionGlyph implements GlyphHandler {

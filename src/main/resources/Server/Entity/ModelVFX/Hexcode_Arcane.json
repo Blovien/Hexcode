@@ -1,0 +1,8 @@
+  {
+    "SwitchTo": "PostColor",
+    "HighlightColor": "#7ec8ff",
+    "HighlightThickness": 1.0,
+    "UseBloomOnHighlight": true,
+    "PostColor": "#4a9edd",
+    "PostColorOpacity": 0.85
+  }

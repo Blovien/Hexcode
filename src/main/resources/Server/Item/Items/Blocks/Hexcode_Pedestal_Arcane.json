@@ -96,7 +96,7 @@
     "BlockEntity": {
       "Components": {
         "Hexcode_PedestalBlock": {
-          "MaxObelisks": 5,
+          "MaxObelisks": 4,
           "HolderReference": "Pedestal_Holder",
           "ObeliskRange": 25,
           "PerPlayer": false,

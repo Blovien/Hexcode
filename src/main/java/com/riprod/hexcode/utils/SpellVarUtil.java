@@ -14,12 +14,12 @@ import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.TargetUtil;
-import com.riprod.hexcode.core.glyphs.variables.BlockVar;
-import com.riprod.hexcode.core.glyphs.variables.EntityVar;
-import com.riprod.hexcode.core.glyphs.variables.PositionVar;
-import com.riprod.hexcode.core.glyphs.variables.RotationVar;
-import com.riprod.hexcode.core.glyphs.variables.HexVar;
-import com.riprod.hexcode.core.glyphs.variables.NumberVar;
+import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
+import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
+import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.common.glyphs.variables.NumberVar;
+import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
+import com.riprod.hexcode.core.common.glyphs.variables.RotationVar;
 
 public class SpellVarUtil {
 

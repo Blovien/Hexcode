@@ -9,7 +9,7 @@ import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.hexcaster.component.HexcasterComponent;
+import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 
 public class HexTick extends EntityTickingSystem<EntityStore> {
   private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -29,7 +29,7 @@ public class HexTick extends EntityTickingSystem<EntityStore> {
 
     HexState pending = comp.consumePendingState();
     if (pending != null) {
-      LOGGER.atInfo().log("Processing state change for entity %s: %s -> %s", ref, comp.getState(), pending);
+      LOGGER.atInfo().log("%s -> %s", comp.getState(), pending);
       HexcodeManager old = StateRouter.route(comp.getState());
       if (old != null) {
         old.lastTick(ref, comp, store, buffer);
