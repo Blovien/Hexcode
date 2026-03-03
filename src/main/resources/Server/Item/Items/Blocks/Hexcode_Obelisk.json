@@ -11,10 +11,10 @@
     "DrawType": "Model",
     "Material": "Solid",
     "Opacity": "Transparent",
-    "CustomModel": "Blocks/Hexcode/Obelisks/Obelisk.blockymodel",
+    "CustomModel": "Blocks/Hexcode/Obelisks/Life_Essence_Obelisk.blockymodel",
     "CustomModelTexture": [
       {
-        "Texture": "Blocks/Hexcode/Obelisks/Obelisk_Texture.png",
+        "Texture": "Blocks/Hexcode/Obelisks/Life_Essence_Obelisk.png",
         "Weight": 1
       }
     ],
@@ -41,13 +41,15 @@
             "Color": "#3a1a5e",
             "Intensity": 1
           },
-          "CustomModelAnimation": "Blocks/Hexcode/Obelisks/Animations/Obelisk_Idle.blockyanim"
+          "CustomModelAnimation": "Blocks/Hexcode/Obelisks/Animations/Obelisk_Idle.blockyanim",
+          "CustomModel": "Blocks/Hexcode/Obelisks/Life_Essence_Obelisk_Inactive.blockymodel"
         },
         "Ready": {
           "Light": {
             "Color": "#7b3fbf",
             "Intensity": 2
-          }
+          },
+          "CustomModel": "Blocks/Hexcode/Obelisks/Life_Essence_Obelisk.blockymodel"
         },
         "Selecting": {
           "Light": {
@@ -63,7 +65,8 @@
               }
             }
           ],
-          "CustomModelAnimation": "Blocks/Hexcode/Obelisks/Animations/Obelisk_Selecting.blockyanim"
+          "CustomModelAnimation": "Blocks/Hexcode/Obelisks/Animations/Obelisk_Selecting.blockyanim",
+          "CustomModel": "Blocks/Hexcode/Obelisks/Life_Essence_Obelisk.blockymodel"
         },
         "Crafting": {
           "Light": {
@@ -76,7 +79,8 @@
               "DetachedFromModel": false
             }
           ],
-          "CustomModelAnimation": "Blocks/Hexcode/Obelisks/Animations/Obelisk_Crafting.blockyanim"
+          "CustomModelAnimation": "Blocks/Hexcode/Obelisks/Animations/Obelisk_Crafting.blockyanim",
+          "CustomModel": "Blocks/Hexcode/Obelisks/Life_Essence_Obelisk.blockymodel"
         }
       }
     },
@@ -103,7 +107,8 @@
       "Up": [
         {}
       ]
-    }
+    },
+    "VariantRotation": "NESW"
   },
   "Tags": {
     "Type": [

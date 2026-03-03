@@ -15,9 +15,7 @@ public class HoverableSpatialSystem extends SpatialSystem<EntityStore> {
 
     private static ResourceType<EntityStore, SpatialResource<Ref<EntityStore>, EntityStore>> resourceType;
 
-    public static final Query<EntityStore> QUERY = Query.and(
-            TransformComponent.getComponentType(),
-            HoverableComponent.getComponentType());
+    public static final Query<EntityStore> QUERY = Query.and(HoverableComponent.getComponentType());
 
     public HoverableSpatialSystem(
             ResourceType<EntityStore, SpatialResource<Ref<EntityStore>, EntityStore>> resourceType) {
