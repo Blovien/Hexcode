@@ -1,0 +1,85 @@
+{
+  "RenderMode": "BlendAdd",
+  "EmitOffset": {
+    "X": {
+      "Min": 0,
+      "Max": 0.5
+    },
+    "Y": {
+      "Min": 0,
+      "Max": 0.5
+    },
+    "Z": {
+      "Min": 0,
+      "Max": 0.5
+    }
+  },
+  "ParticleRotationInfluence": "Billboard",
+  "LinearFiltering": true,
+  "LightInfluence": 0,
+  "MaxConcurrentParticles": 15,
+  "ParticleLifeSpan": {
+    "Min": 5.8,
+    "Max": 6.2
+  },
+  "ParticleRotateWithSpawner": false,
+  "SpawnRate": {
+    "Min": 3,
+    "Max": 10
+  },
+  "Particle": {
+    "Texture": "Particles/Hexcode/Glyphs/glyph_2.png",
+    "FrameSize": {
+      "Width": 32,
+      "Height": 32
+    },
+    "ScaleRatioConstraint": "OneToOne",
+    "Animation": {
+      "0": {
+        "Scale": {
+          "X": {
+            "Min": 0.08,
+            "Max": 0.08
+          },
+          "Y": {
+            "Min": 0.08,
+            "Max": 0.08
+          }
+        },
+        "Opacity": 1,
+        "Color": "#22ff00"
+      },
+      "10": {
+        "Opacity": 1.0
+      },
+      "60": {
+        "Opacity": 1
+      },
+      "100": {
+        "Opacity": 0,
+        "Scale": {
+          "X": {
+            "Min": 0.04,
+            "Max": 0.04
+          },
+          "Y": {
+            "Min": 0.04,
+            "Max": 0.04
+          }
+        },
+        "Color": "#ffffff"
+      }
+    }
+  },
+  "Attractors": [
+    {
+      "RadialTangentAcceleration": 0.04,
+      "RadialAcceleration": -0.3,
+      "RadialAxis": {
+        "X": 1,
+        "Y": 2,
+        "Z": 2
+      }
+    }
+  ]
+}

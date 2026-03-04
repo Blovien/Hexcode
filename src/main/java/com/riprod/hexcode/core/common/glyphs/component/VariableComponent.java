@@ -12,15 +12,15 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 
-public class SlotComponent implements Component<EntityStore> {
+public class VariableComponent implements Component<EntityStore> {
 
-    private static ComponentType<EntityStore, SlotComponent> componentType;
+    private static ComponentType<EntityStore, VariableComponent> componentType;
 
-    public static ComponentType<EntityStore, SlotComponent> getComponentType() {
+    public static ComponentType<EntityStore, VariableComponent> getComponentType() {
         return componentType;
     }
 
-    public static void setComponentType(ComponentType<EntityStore, SlotComponent> type) {
+    public static void setComponentType(ComponentType<EntityStore, VariableComponent> type) {
         componentType = type;
     }
 
@@ -31,10 +31,10 @@ public class SlotComponent implements Component<EntityStore> {
     private Boolean isHovered;
     private Ref<EntityStore> self;
 
-    public SlotComponent() {
+    public VariableComponent() {
     }
 
-    public SlotComponent(int index, GlyphSlotType type, Vector3f offset, Ref<EntityStore> parentRef) {
+    public VariableComponent(int index, GlyphSlotType type, Vector3f offset, Ref<EntityStore> parentRef) {
         this.index = index;
         this.type = type;
         this.offset = offset;
@@ -106,8 +106,8 @@ public class SlotComponent implements Component<EntityStore> {
 
     @Nonnull
     @Override
-    public SlotComponent clone() {
-        SlotComponent copy = new SlotComponent();
+    public VariableComponent clone() {
+        VariableComponent copy = new VariableComponent();
         copy.type = this.type;
         copy.index = this.index;
         copy.offset = this.offset;

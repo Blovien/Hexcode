@@ -14,7 +14,7 @@ public class HoverableComponent implements Component<EntityStore> {
     public HoverableComponent() {
     }
 
-    public HoverableComponent(Ref<EntityStore> ref, HoverableType type) {
+    public HoverableComponent(HoverableType type, Ref<EntityStore> ref) {
         this.entityType = type;
         this.rootRef = ref;
     }
@@ -31,7 +31,7 @@ public class HoverableComponent implements Component<EntityStore> {
         return componentType;
     }
 
-    private HoverableType entityType = HoverableType.UNSET;
+    private HoverableType entityType = HoverableType.CONTAINER;
     private Ref<EntityStore> rootRef = null;
 
     public HoverableType getType() {

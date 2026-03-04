@@ -13,7 +13,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class GlyphComponent implements Component<EntityStore> {
+public class EffectComponent implements Component<EntityStore> {
 
     private enum GlyphFlags {
         Hovering,
@@ -22,15 +22,15 @@ public class GlyphComponent implements Component<EntityStore> {
         Selected
     }
 
-    public static final BuilderCodec<GlyphComponent> CODEC = BuilderCodec
-            .builder(GlyphComponent.class, GlyphComponent::new)
+    public static final BuilderCodec<EffectComponent> CODEC = BuilderCodec
+            .builder(EffectComponent.class, EffectComponent::new)
             .append(new KeyedCodec<>("Glyph", Glyph.CODEC),
                     (c, v) -> c.glyph = v,
                     c -> c.glyph)
             .add()
             .build();
 
-    private static ComponentType<EntityStore, GlyphComponent> componentType;
+    private static ComponentType<EntityStore, EffectComponent> componentType;
 
     // persistent - from asset
     @Nonnull
@@ -44,18 +44,18 @@ public class GlyphComponent implements Component<EntityStore> {
     private float scale = 1f;
 
     // for the codec - do not use
-    public GlyphComponent() {
+    public EffectComponent() {
     }
 
-    public GlyphComponent(@Nonnull Glyph glyph) {
+    public EffectComponent(@Nonnull Glyph glyph) {
         this.glyph = glyph;
     }
 
-    public static void setComponentType(ComponentType<EntityStore, GlyphComponent> type) {
+    public static void setComponentType(ComponentType<EntityStore, EffectComponent> type) {
         componentType = type;
     }
 
-    public static ComponentType<EntityStore, GlyphComponent> getComponentType() {
+    public static ComponentType<EntityStore, EffectComponent> getComponentType() {
         return componentType;
     }
 
@@ -198,8 +198,8 @@ public class GlyphComponent implements Component<EntityStore> {
 
     @Nonnull
     @Override
-    public GlyphComponent clone() {
-        GlyphComponent copy = new GlyphComponent();
+    public EffectComponent clone() {
+        EffectComponent copy = new EffectComponent();
         copy.glyph = this.glyph.clone();
         copy.scale = this.scale;
         copy.parentRef = this.parentRef;

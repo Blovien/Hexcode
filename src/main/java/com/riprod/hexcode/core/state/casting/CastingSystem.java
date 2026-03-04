@@ -21,7 +21,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.common.glyphs.component.EffectComponent;
 import com.riprod.hexcode.core.common.glyphs.utils.CreateGlyph;
 import com.riprod.hexcode.core.common.hexbook.component.HexBookAsset;
 import com.riprod.hexcode.core.common.hexbook.component.HexBookComponent;
@@ -208,7 +208,7 @@ public class CastingSystem extends HexcodeManager {
         HeadRotation headRot2 = accessor.getComponent(ref, HeadRotation.getComponentType());
         if (headRot2 != null) {
             HexComponent targetHex = castingComp.getHoveredHex();
-            GlyphComponent targetGlyph = null;
+            EffectComponent targetGlyph = null;
             if (targetHex != null && targetHex != castingComp.getDraggingHex()) {
                 targetGlyph = HexSelector.findHoveredGlyph(accessor, headRot2.getRotation(), targetHex);
             }
@@ -229,7 +229,7 @@ public class CastingSystem extends HexcodeManager {
             return InteractionState.Finished;
         }
 
-        GlyphComponent hoveredGlyph = castingComp.getHoveredGlyph();
+        EffectComponent hoveredGlyph = castingComp.getHoveredGlyph();
         if (hoveredGlyph != null) {
             try {
                 float eyeHeight = 0f;

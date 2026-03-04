@@ -10,14 +10,15 @@ import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.ParticleUtil;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.common.glyphs.component.EffectComponent;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
+import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalBlockUtil;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalState;
-import com.riprod.hexcode.core.state.crafting.utils.SelectionUtils;
+
 
 public class SelectingStateSystem {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -78,7 +79,10 @@ public class SelectingStateSystem {
         if (hexGlyphs.isEmpty())
             return;
 
-        Ref<EntityStore> targetRef = SelectionUtils.getSmallestTarget(buffer, ref, hexGlyphs);
+        TransformComponent playerTransform = buffer.getComponent(ref, TransformComponent.getComponentType());
+
+        List<Ref<EntityStore>> nearbyHoverables = HoverableUtils.getNearbyHoverables(buffer, playerTransform.getPosition(), 8);
+        Ref<EntityStore> targetRef = HoverableUtils.getSmallestTarget(buffer, ref, nearbyHoverables);
         Ref<EntityStore> hoveredRef = resolveHoveredPreview(targetRef, previewRefs, buffer);
 
         Ref<EntityStore> previousHovered = craftingComp.getHoveredHexRef();
@@ -118,7 +122,7 @@ public class SelectingStateSystem {
             }
         }
 
-        GlyphComponent glyphComp = buffer.getComponent(targetRef, GlyphComponent.getComponentType());
+        EffectComponent glyphComp = buffer.getComponent(targetRef, EffectComponent.getComponentType());
         if (glyphComp != null) {
             Ref<EntityStore> hexRef = glyphComp.getHexRef();
             if (hexRef != null && hexRef.isValid()) {

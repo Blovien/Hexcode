@@ -20,7 +20,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
-import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.common.glyphs.component.EffectComponent;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.hexes.utils.CreateHex;
@@ -72,7 +72,7 @@ public class HexSpawner {
             // getting the first glyph
             String firstGlyphId = hex.getFirstGlyphId();
             Glyph firstGlyph = hex.get(firstGlyphId);
-            GlyphComponent firstGlyphComponent = new GlyphComponent(firstGlyph);
+            EffectComponent firstGlyphComponent = new EffectComponent(firstGlyph);
 
             // setting up the first glyph
             firstGlyphComponent.setHexRef(hexRef);
@@ -90,7 +90,7 @@ public class HexSpawner {
     }
 
     /** Just logically merges the hex into the hex tree */
-    public static void MergeGlyphs(CommandBuffer<EntityStore> accessor, GlyphComponent droppedOnGlyph,
+    public static void MergeGlyphs(CommandBuffer<EntityStore> accessor, EffectComponent droppedOnGlyph,
             HexComponent draggedHex, float eyeHeight) {
 
         HexComponent droppedOnHex = accessor.getComponent(droppedOnGlyph.getHexRef(), HexComponent.getComponentType());
@@ -106,7 +106,7 @@ public class HexSpawner {
 
         // get the first glyph ref
         Ref<EntityStore> firstGlyphRef = droppedGlyphs.get(firstGlyphId);
-        GlyphComponent firstChildGlyph = accessor.getComponent(firstGlyphRef, GlyphComponent.getComponentType());
+        EffectComponent firstChildGlyph = accessor.getComponent(firstGlyphRef, EffectComponent.getComponentType());
 
         firstChildGlyph.setParentRef(droppedOnGlyph.getSelfRef()); // update the parent ref of the first child glyph to the new parent glyph
         accessor.tryRemoveComponent(firstGlyphRef, MountedComponent.getComponentType()); // unmount the first glyph from the dragged hex
@@ -115,7 +115,7 @@ public class HexSpawner {
             if (childRef == null || !childRef.isValid()) {
                 continue;
             }
-            GlyphComponent childGlyph = accessor.getComponent(childRef, GlyphComponent.getComponentType());
+            EffectComponent childGlyph = accessor.getComponent(childRef, EffectComponent.getComponentType());
             childGlyph.setHexRef(droppedOnGlyph.getHexRef()); // update the hex ref of all of the children to the new hex
         }
 
@@ -129,7 +129,7 @@ public class HexSpawner {
 
         // get first hex of the main tree for updating
         Ref<EntityStore> rootGlyph = droppedOnHex.getChildGlyphRef(hex1.getFirstGlyphId());
-        GlyphComponent rootGlyphComponent = accessor.getComponent(rootGlyph, GlyphComponent.getComponentType());
+        EffectComponent rootGlyphComponent = accessor.getComponent(rootGlyph, EffectComponent.getComponentType());
 
         // update all children inside of the glyph recursively to new position / scale
         GlyphStyler.UpdateHexTree(accessor, droppedOnHex, rootGlyphComponent);

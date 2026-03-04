@@ -24,7 +24,7 @@ import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.block.event.BlockBreakEvent;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
-import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.common.glyphs.component.EffectComponent;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.hexes.utils.CreateHex;
@@ -80,7 +80,7 @@ public class AnchorEntity {
 
         String firstGlyphId = hex.getFirstGlyphId();
         Glyph firstGlyph = hex.get(firstGlyphId);
-        GlyphComponent firstGlyphComponent = new GlyphComponent(firstGlyph);
+        EffectComponent firstGlyphComponent = new EffectComponent(firstGlyph);
 
         firstGlyphComponent.setHexRef(hexRef);
         firstGlyphComponent.setParentRef(hexRef);

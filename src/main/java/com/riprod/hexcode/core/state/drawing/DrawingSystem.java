@@ -23,12 +23,15 @@ import com.hypixel.hytale.server.core.modules.time.TimeResource;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
-import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.common.glyphs.component.EffectComponent;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
+import com.riprod.hexcode.core.common.glyphs.utils.CreateGlyph;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.hexes.utils.CreateHex;
+import com.riprod.hexcode.core.common.hover.component.HoverableType;
+import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.state.casting.utils.GlyphSpawner;
 import com.riprod.hexcode.core.state.casting.utils.GlyphStyler;
@@ -91,11 +94,11 @@ public class DrawingSystem extends HexcodeManager {
         LOGGER.atInfo().log("Efficiency: %f | Volatility: %f", efficiency, volatility);
 
         Glyph glyph = new Glyph(matchedGlyph, volatility, efficiency);
-        Hex hex = new Hex(glyph);
 
         Ref<EntityStore> anchorRef = resolveAnchorRef(ref, buffer);
-        HeadRotation hRotation = buffer.getComponent(ref, HeadRotation.getComponentType());
         PedestalBlockComponent pedestal = resolvePedestal(anchorRef, buffer);
+
+        HeadRotation hRotation = buffer.getComponent(ref, HeadRotation.getComponentType());
         Vector3d spawnPos = calculateDrawCenter(drawnShapes);
         Transform transform = new Transform(spawnPos, hRotation.getRotation());
 
@@ -109,7 +112,7 @@ public class DrawingSystem extends HexcodeManager {
           if (distSq > maxRadius * maxRadius) {
             LOGGER.atInfo().log("drawn hex outside pedestal radius");
           } else {
-            spawnDrawnHex(buffer, hex, glyph, anchorRef, pedestal, transform);
+            spawnDrawnGlyph(buffer, glyph, anchorRef, pedestal, transform);
           }
         }
       }
@@ -139,7 +142,8 @@ public class DrawingSystem extends HexcodeManager {
   }
 
   @Override
-  public InteractionState enterInteraction(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref, HexcasterComponent comp) {
+  public InteractionState enterInteraction(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref,
+      HexcasterComponent comp) {
 
     HeadRotation head = accessor.getComponent(ref, HeadRotation.getComponentType());
     if (head == null)
@@ -154,7 +158,8 @@ public class DrawingSystem extends HexcodeManager {
   }
 
   @Override
-  public InteractionState tickInteraction(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref, float dt, HexcasterComponent comp) {
+  public InteractionState tickInteraction(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref, float dt,
+      HexcasterComponent comp) {
 
     FloatArrayList points = comp.getDrawnStrokes();
     if (points == null)
@@ -186,7 +191,8 @@ public class DrawingSystem extends HexcodeManager {
   }
 
   @Override
-  public InteractionState exitInteraction(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref, HexcasterComponent comp) {
+  public InteractionState exitInteraction(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref,
+      HexcasterComponent comp) {
 
     FloatArrayList points = comp.getDrawnStrokes();
     if (points == null || points.size() < 3) {
@@ -232,7 +238,8 @@ public class DrawingSystem extends HexcodeManager {
     float maxSize = Math.max(Math.abs(maxYaw - minYaw), Math.abs(maxPitch - minPitch));
     result.setSize(maxSize);
 
-    LOGGER.atInfo().log("%d ms (%d score) | S: %f | A: %f", drawSpeed, result.getEfficiency(), maxSize, result.getVolatility());
+    LOGGER.atInfo().log("%d ms (%d score) | S: %f | A: %f", drawSpeed, result.getEfficiency(), maxSize,
+        result.getVolatility());
 
     InterfaceManager.removeTrails(accessor, ref);
     comp.addDrawnGlyph(result);
@@ -292,36 +299,23 @@ public class DrawingSystem extends HexcodeManager {
     return new Vector3d(x / count, y / count, z / count);
   }
 
-  private static void spawnDrawnHex(CommandBuffer<EntityStore> buffer, Hex hex, Glyph glyph,
+  private static void spawnDrawnGlyph(CommandBuffer<EntityStore> accessor, Glyph glyph,
       Ref<EntityStore> anchorRef, PedestalBlockComponent pedestal, Transform spawnPos) {
 
-    HexComponent hexComponent = new HexComponent(hex);
-    hexComponent.setRootRef(anchorRef);
-    hexComponent.setParentRef(null);
+    EffectComponent glyphComponent = new EffectComponent(glyph);
 
-    Holder<EntityStore> holder = CreateHex.createHexHolder(buffer, hexComponent, spawnPos.getPosition());
-    holder.addComponent(BoundingBox.getComponentType(), new BoundingBox(PREVIEW_BOUNDING_BOX));
-    holder.addComponent(DebugComponent.getComponentType(),
-        new DebugComponent(DebugShape.Sphere, new Vector3f(0f, 1f, 0f), 0.15, 2.0f, 1));
+    Ref<EntityStore> hexRef = pedestal.getActiveHexEntityRef();
 
-    Ref<EntityStore> hexRef = CreateHex.createEntity(buffer, holder);
-    hexComponent.setSelfRef(hexRef);
+    glyphComponent.setHexRef(hexRef);
+    glyphComponent.setParentRef(hexRef);
+    glyphComponent.setOffset(Vector3f.ZERO);
+    glyphComponent.setRotation(spawnPos.getRotation());
 
-    int numGlyphs = hex.getGlyphs().size();
-    float scaleMultiplier = 1 + (numGlyphs * GlyphStyler.SCALE_PER_GLYPH);
-
-    String firstGlyphId = hex.getFirstGlyphId();
-    Glyph firstGlyph = hex.get(firstGlyphId);
-    GlyphComponent firstGlyphComponent = new GlyphComponent(firstGlyph);
-
-    firstGlyphComponent.setHexRef(hexRef);
-    firstGlyphComponent.setParentRef(hexRef);
-    firstGlyphComponent.setOffset(Vector3f.ZERO);
-    firstGlyphComponent.setRotation(spawnPos.getRotation());
-    firstGlyphComponent.setScale(scaleMultiplier);
-    hexComponent.setScale(scaleMultiplier);
-
-    GlyphSpawner.spawnGlyphs(buffer, hexComponent, firstGlyphComponent, spawnPos.getPosition());
+    Ref<EntityStore> glyphRef = CreateGlyph.createGlyph(accessor, glyphComponent, spawnPos.getPosition());
+    glyphComponent.setSelfRef(glyphRef);
+    
+    // Ensures the drawn hex is hoverable
+    HoverableUtils.ensureHoverable(accessor, glyphRef, HoverableType.GLYPH);
 
     List<Ref<EntityStore>> refs = new ArrayList<>(pedestal.getHexPreviewRefs());
     refs.add(hexRef);

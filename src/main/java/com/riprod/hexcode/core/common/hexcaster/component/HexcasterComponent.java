@@ -73,6 +73,7 @@ public class HexcasterComponent implements Component<EntityStore> {
         return componentType;
     }
 
+    /** @deprecated */
     public void clearDrawingState() {
         this.drawnStrokes.clear();
         this.drawnGlyphs.clear();
@@ -95,90 +96,103 @@ public class HexcasterComponent implements Component<EntityStore> {
         return ref;
     }
 
+    /** @deprecated */
     public void clearCraftingState() {
         this.pendingPedestalRef = null;
     }
-
+    
+    /** @deprecated */
     public String getTrainingShapeId() {
         return trainingShapeId;
     }
-
+    
+    /** @deprecated */
     public void setTrainingShapeId(String shapeId) {
         this.trainingShapeId = shapeId;
     }
-
+    
+    /** @deprecated */
     public String consumeTrainingShapeId() {
         String id = this.trainingShapeId;
         this.trainingShapeId = null;
         return id;
     }
-
+    
+    /** @deprecated */
     public FloatArrayList getDrawnStrokes() {
         return drawnStrokes;
     }
 
+    /** @deprecated */
     public List<DrawnShapeComponent> getDrawnGlyphs() {
         return drawnGlyphs;
     }
-
+    
     public void addDrawnStroke(float[] stroke) {
         this.drawnStrokes.add(stroke[0]);
         this.drawnStrokes.add(stroke[1]);
     }
-
+    
     public void addDrawnGlyph(DrawnShapeComponent glyph) {
         this.drawnGlyphs.add(glyph);
     }
-
+    
+    /** @deprecated */
     public void clearStrokes() {
         this.drawnStrokes.clear();
     }
-
+    
     public void clearDrawing() {
         clearStrokes();
         this.drawnGlyphs.clear();
     }
-
+    
+    /** @deprecated */
     public void setTrailRef(Ref<EntityStore> trailRef) {
         this.trailRef = trailRef;
     }
-
+    
+    /** @deprecated */
     public void clearTrailRef() {
         this.trailRef = null;
     }
-
+    
+    /** @deprecated */
     public Ref<EntityStore> getTrailRef() {
         return trailRef;
     }
-
+    
+    /** @deprecated */
     public Long getLastParticleSpawnMillis() {
         return lastParticleSpawnMillis;
     }
-
+    
+    /** @deprecated */
     public void setLastParticleSpawnMillis(Long millis) {
         this.lastParticleSpawnMillis = millis;
     }
-
+    
+    /** @deprecated */
     public long getDrawStartTimeMillis() {
         return drawStartTimeMillis;
     }
-
+    
     public void setDrawStartTimeMillis(long drawStartTimeMillis) {
         this.drawStartTimeMillis = drawStartTimeMillis;
     }
-
+    
     public float getTickLength(String keyId) {
         return this.lastTickMap.getOrDefault(keyId, 0f);
     }
-
+    
     public void setTickLength(String keyId, float value) {
         this.lastTickMap.put(keyId, value);
     }
-
+    
     public void incrementTickLength(String keyId, float dt) {
         this.lastTickMap.merge(keyId, dt, Float::sum);
     }
-
+    
     @Nonnull
     @Override
     public HexcasterComponent clone() {

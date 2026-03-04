@@ -2,6 +2,8 @@ package com.riprod.hexcode.core.common.hover.utils;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.spatial.SpatialResource;
@@ -14,6 +16,8 @@ import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.TargetUtil;
+import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
+import com.riprod.hexcode.core.common.hover.component.HoverableType;
 import com.riprod.hexcode.core.common.hover.system.HoverableSpatialSystem;
 
 import it.unimi.dsi.fastutil.objects.ObjectList;
@@ -32,6 +36,11 @@ public class HoverableUtils {
 
     public static Ref<EntityStore> getSmallestTarget(CommandBuffer<EntityStore> accessor, Ref<EntityStore> playerRef,
             List<Ref<EntityStore>> targetRefs) {
+        return getSmallestTarget(accessor, playerRef, targetRefs, null);
+    }
+
+    public static Ref<EntityStore> getSmallestTarget(CommandBuffer<EntityStore> accessor, Ref<EntityStore> playerRef,
+            List<Ref<EntityStore>> targetRefs, @Nullable HoverableType type) {
         Transform look = TargetUtil.getLook(playerRef, accessor);
         Vector3d rayStart = look.getPosition();
         Vector3d rayDir = look.getDirection();
@@ -47,6 +56,12 @@ public class HoverableUtils {
             Ref<EntityStore> targetRef = targetRefs.get(i);
             if (targetRef == null || !targetRef.isValid())
                 continue;
+
+            if (type != null) {// filter by type
+                HoverableComponent comp = accessor.getComponent(targetRef, HoverableComponent.getComponentType());
+                if (comp.getType() != type)
+                    continue;
+            }
 
             Vector2d minMax = rayIntersect(accessor, targetRef, rayStart, rayDir);
 
@@ -104,5 +119,15 @@ public class HoverableUtils {
         Vector3d min = box.getMin();
         Vector3d max = box.getMax();
         return (max.x - min.x) * (max.y - min.y) * (max.z - min.z);
+    }
+
+    public static void ensureHoverable(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref, HoverableType type) {
+        if (accessor.getComponent(ref, HoverableComponent.getComponentType()) != null) {
+            return;
+        }
+
+        // Add the component
+        HoverableComponent comp = new HoverableComponent(type, ref);
+        accessor.putComponent(ref, HoverableComponent.getComponentType(), comp);
     }
 }

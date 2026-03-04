@@ -1,0 +1,140 @@
+{
+  "TranslationProperties": {
+    "Name": "Hexcode Obelisk"
+  },
+  "Icon": "Icons/ItemsGenerated/Hexcode_Obelisk_Life.png",
+  "Categories": [
+    "Blocks.Deco"
+  ],
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "DrawType": "Model",
+    "Material": "Solid",
+    "Opacity": "Transparent",
+    "CustomModel": "Blocks/Hexcode/Obelisks/Life_Essence_Obelisk.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "Blocks/Hexcode/Obelisks/Life_Essence_Obelisk.png",
+        "Weight": 1
+      }
+    ],
+    "HitboxType": "Full",
+    "BlockSoundSetId": "Stone",
+    "BlockParticleSetId": "Stone",
+    "Flags": {},
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "SoftBlocks"
+      }
+    },
+    "BlockEntity": {
+      "Components": {
+        "Hexcode_ObeliskBlock": {
+          "Power": 10
+        }
+      }
+    },
+    "State": {
+      "Definitions": {
+        "Idle": {
+          "Light": {
+            "Color": "#3a1a5e",
+            "Intensity": 1
+          },
+          "CustomModelAnimation": "Blocks/Hexcode/Obelisks/Animations/Obelisk_Life_Idle.blockyanim",
+          "CustomModel": "Blocks/Hexcode/Obelisks/Life_Essence_Obelisk.blockymodel"
+        },
+        "Ready": {
+          "Light": {
+            "Color": "#7b3fbf",
+            "Intensity": 2
+          },
+          "CustomModel": "Blocks/Hexcode/Obelisks/Life_Essence_Obelisk_Active.blockymodel"
+        },
+        "Selecting": {
+          "Light": {
+            "Color": "#aa55ff",
+            "Intensity": 4
+          },
+          "Particles": [
+            {
+              "SystemId": "Life_Obelisk_Crafting",
+              "DetachedFromModel": false,
+              "PositionOffset": {
+                "Y": 2.2,
+                "Z": 0,
+                "X": 0.1
+              }
+            }
+          ],
+          "CustomModelAnimation": "Blocks/Hexcode/Obelisks/Animations/Obelisk_Life_Selecting.blockyanim",
+          "CustomModel": "Blocks/Hexcode/Obelisks/Life_Essence_Obelisk_Active.blockymodel"
+        },
+        "Crafting": {
+          "Light": {
+            "Color": "#cc88ff",
+            "Intensity": 6
+          },
+          "Particles": [
+            {
+              "SystemId": "Life_Obelisk_Crafting",
+              "DetachedFromModel": false,
+              "PositionOffset": {
+                "Y": 2.3
+              }
+            }
+          ],
+          "CustomModelAnimation": "Blocks/Hexcode/Obelisks/Animations/Obelisk_Life_Crafting.blockyanim",
+          "CustomModel": "Blocks/Hexcode/Obelisks/Life_Essence_Obelisk_Active.blockymodel",
+          "Looping": true
+        }
+      }
+    },
+    "HexObelisk": {
+      "Type": "Modifier",
+      "Modifiers": [
+        {
+          "Type": "",
+          "Value": -1
+        }
+      ]
+    },
+    "Support": {
+      "Down": [
+        {
+          "FaceType": "Full"
+        }
+      ]
+    },
+    "Supporting": {
+      "Down": [
+        {}
+      ],
+      "Up": [
+        {}
+      ]
+    },
+    "VariantRotation": "NESW"
+  },
+  "Tags": {
+    "Type": [
+      "Deco"
+    ],
+    "Family": [
+      "Hexcode"
+    ]
+  },
+  "ItemSoundSetId": "ISS_Blocks_Stone",
+  "IconProperties": {
+    "Scale": 0.4,
+    "Rotation": [
+      22.5,
+      49,
+      22.5
+    ],
+    "Translation": [
+      0,
+      -34
+    ]
+  }
+}

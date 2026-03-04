@@ -16,7 +16,7 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.ParticleUtil;
 import com.hypixel.hytale.server.core.util.TargetUtil;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.common.glyphs.component.EffectComponent;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.state.casting.utils.GlyphStyler;
@@ -29,7 +29,7 @@ import com.riprod.hexcode.core.state.crafting.system.PedestalSystem;
 import com.riprod.hexcode.core.state.crafting.system.SelectingStateSystem;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalBlockUtil;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalState;
-import com.riprod.hexcode.core.state.crafting.utils.SelectionUtils;
+
 import com.riprod.hexcode.state.HexcodeManager;
 
 public class CraftingSystem extends HexcodeManager {

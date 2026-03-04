@@ -9,13 +9,13 @@ import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
-import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.common.glyphs.component.EffectComponent;
 import com.riprod.hexcode.core.common.glyphs.utils.CreateGlyph;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.utils.GlyphMath;
 
 public class GlyphSpawner {
-    public static void spawnGlyphs(ComponentAccessor<EntityStore> accessor, HexComponent hex, GlyphComponent glyph,
+    public static void spawnGlyphs(ComponentAccessor<EntityStore> accessor, HexComponent hex, EffectComponent glyph,
             Vector3d parentPos) {
 
         // create the glyph
@@ -38,7 +38,7 @@ public class GlyphSpawner {
                 continue; // if the child glyph is already spawned elsewhere, skip it
             }
 
-            GlyphComponent childGlyphComponent = new GlyphComponent(childGlyph);
+            EffectComponent childGlyphComponent = new EffectComponent(childGlyph);
             
             // set the relative offset based on the angle and distance
             childGlyphComponent.setRotation(childRotation);

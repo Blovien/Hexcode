@@ -6,8 +6,8 @@ import com.riprod.hexcode.builtin.glyphs.effect.propel.PropelTickSystem;
 import com.riprod.hexcode.command.HexcodeCommand;
 import com.riprod.hexcode.core.common.block.component.UnbreakableBlockComponent;
 import com.riprod.hexcode.core.common.block.event.BlockBreakEvent;
-import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
-import com.riprod.hexcode.core.common.glyphs.component.SlotComponent;
+import com.riprod.hexcode.core.common.glyphs.component.EffectComponent;
+import com.riprod.hexcode.core.common.glyphs.component.VariableComponent;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
@@ -140,10 +140,10 @@ public class Hexcode extends JavaPlugin {
         // Entity Component Registries
         ComponentRegistryProxy<EntityStore> entityStoreRegistry = this.getEntityStoreRegistry();
 
-        ComponentType<EntityStore, GlyphComponent> glyphComponentType = entityStoreRegistry.registerComponent(
-                GlyphComponent.class, "Glyph",
-                GlyphComponent.CODEC);
-        GlyphComponent.setComponentType(glyphComponentType);
+        ComponentType<EntityStore, EffectComponent> glyphComponentType = entityStoreRegistry.registerComponent(
+                EffectComponent.class, "Glyph",
+                EffectComponent.CODEC);
+        EffectComponent.setComponentType(glyphComponentType);
 
         ComponentType<EntityStore, HexComponent> hexComponentType = entityStoreRegistry.registerComponent(
                 HexComponent.class, "Hex",
@@ -189,9 +189,9 @@ public class Hexcode extends JavaPlugin {
                 .registerComponent(PropelComponent.class, PropelComponent::new);
         PropelComponent.setComponentType(propelComponentType);
 
-        ComponentType<EntityStore, SlotComponent> slotComponentType = entityStoreRegistry
-                .registerComponent(SlotComponent.class, SlotComponent::new);
-        SlotComponent.setComponentType(slotComponentType);
+        ComponentType<EntityStore, VariableComponent> slotComponentType = entityStoreRegistry
+                .registerComponent(VariableComponent.class, VariableComponent::new);
+        VariableComponent.setComponentType(slotComponentType);
 
         ComponentType<EntityStore, PedestalAnchorComponent> pedestalComponentType = entityStoreRegistry
                 .registerComponent(PedestalAnchorComponent.class, PedestalAnchorComponent::new);

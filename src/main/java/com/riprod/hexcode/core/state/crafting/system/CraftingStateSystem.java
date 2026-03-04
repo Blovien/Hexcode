@@ -10,12 +10,12 @@ import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.ParticleUtil;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.common.glyphs.component.EffectComponent;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.state.casting.utils.GlyphStyler;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.state.crafting.utils.SelectionUtils;
+import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
 
 public class CraftingStateSystem {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -50,7 +50,7 @@ public class CraftingStateSystem {
         if (hexGlyphs.isEmpty())
             return;
 
-        Ref<EntityStore> targetRef = SelectionUtils.getSmallestTarget(buffer, ref, hexGlyphs);
+        Ref<EntityStore> targetRef = HoverableUtils.getSmallestTarget(buffer, ref, hexGlyphs, null);
         Ref<EntityStore> hoveredRef = resolveHoveredPreview(targetRef, previewRefs, buffer);
 
         Ref<EntityStore> previousHovered = craftingComp.getHoveredHexRef();
@@ -91,7 +91,7 @@ public class CraftingStateSystem {
             }
         }
 
-        GlyphComponent glyphComp = buffer.getComponent(targetRef, GlyphComponent.getComponentType());
+        EffectComponent glyphComp = buffer.getComponent(targetRef, EffectComponent.getComponentType());
         if (glyphComp != null) {
             Ref<EntityStore> hexRef = glyphComp.getHexRef();
             if (hexRef != null && hexRef.isValid()) {
