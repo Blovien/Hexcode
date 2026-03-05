@@ -27,6 +27,7 @@ public class NodeComponent implements Component<EntityStore> {
 
     private List<Ref<EntityStore>> outputRefs = new ArrayList<>();
     private List<Ref<EntityStore>> inputRefs = new ArrayList<>();
+    private Ref<EntityStore> parentGlyphRef;
     private boolean isHovered = false;
 
     public List<Ref<EntityStore>> getOutputRefs() {
@@ -69,12 +70,21 @@ public class NodeComponent implements Component<EntityStore> {
         this.isHovered = hoverState;
     }
 
+    public Ref<EntityStore> getParentGlyphRef() {
+        return parentGlyphRef;
+    }
+
+    public void setParentGlyphRef(Ref<EntityStore> parentGlyphRef) {
+        this.parentGlyphRef = parentGlyphRef;
+    }
+
     @Nonnull
     @Override
     public NodeComponent clone() {
         NodeComponent copy = new NodeComponent();
-        copy.outputRefs = new ArrayList(this.outputRefs);
-        copy.inputRefs = new ArrayList(this.inputRefs);
+        copy.outputRefs = new ArrayList<>(this.outputRefs);
+        copy.inputRefs = new ArrayList<>(this.inputRefs);
+        copy.parentGlyphRef = this.parentGlyphRef;
         copy.isHovered = this.isHovered;
         return copy;
     }

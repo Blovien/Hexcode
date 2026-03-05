@@ -1,0 +1,124 @@
+package com.riprod.hexcode.core.state.crafting.utils;
+
+import java.util.List;
+import java.util.Objects;
+
+import com.hypixel.hytale.component.CommandBuffer;
+import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.universe.world.ParticleUtil;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.common.glyphs.component.EffectComponent;
+import com.riprod.hexcode.core.common.hexes.component.HexComponent;
+import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
+import com.riprod.hexcode.core.common.hover.component.HoverableType;
+import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
+import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
+import com.riprod.hexcode.core.state.casting.utils.GlyphStyler;
+import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
+import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
+
+public class HoverStyleUtils {
+
+    private static final String HOVER_PARTICLE = "Object_Hover";
+
+    public static void unhover(CommandBuffer<EntityStore> accessor, Ref<EntityStore> previousHovered) {
+
+        if (previousHovered == null || !previousHovered.isValid())
+            return;
+
+        HoverableComponent hoveredComponent = accessor.getComponent(previousHovered,
+                HoverableComponent.getComponentType());
+
+        switch (hoveredComponent.getType()) {
+            case GLYPH: {
+                EffectComponent prevEffect = accessor.getComponent(previousHovered,
+                        EffectComponent.getComponentType());
+                if (prevEffect == null)
+                    return;
+                GlyphStyler.exitGlyphHover(accessor, prevEffect);
+            }
+                break;
+            case NODE: {
+                DebugComponent debug = accessor.getComponent(previousHovered, DebugComponent.getComponentType());
+                if (debug == null)
+                    return;
+                debug.resetScaleMultiplier();
+            }
+            case CONTAINER: {
+                DebugComponent debug = accessor.getComponent(previousHovered, DebugComponent.getComponentType());
+                if (debug == null)
+                    return;
+                debug.resetScaleMultiplier();
+            }
+        }
+    }
+
+    public static void hover(CommandBuffer<EntityStore> accessor, Ref<EntityStore> hovered) {
+        if (hovered == null || !hovered.isValid())
+            return;
+
+        HoverableComponent hoveredComponent = accessor.getComponent(hovered,
+                HoverableComponent.getComponentType());
+
+        switch (hoveredComponent.getType()) {
+            case GLYPH: {
+                EffectComponent newEffect = accessor.getComponent(hovered,
+                        EffectComponent.getComponentType());
+                if (newEffect == null)
+                    return;
+                GlyphStyler.enterGlyphHover(accessor, newEffect);
+            }
+                break;
+            case NODE: {
+                DebugComponent debug = accessor.getComponent(hovered, DebugComponent.getComponentType());
+                if (debug == null)
+                    return;
+                debug.setScaleMultiplier(1.3f);
+                debug.setTimer(0);
+            }
+                break;
+            case CONTAINER: {
+                DebugComponent debug = accessor.getComponent(hovered, DebugComponent.getComponentType());
+                if (debug == null)
+                    return;
+                debug.setScaleMultiplier(1.3f);
+                debug.setTimer(0);
+            }
+        }
+
+    }
+
+    public static void hoverParticles(CommandBuffer<EntityStore> accessor, Ref<EntityStore> hovered, float dt,
+            PedestalBlockComponent pedestal, Ref<EntityStore> playerRef) {
+        if (hovered == null || !hovered.isValid())
+            return;
+
+        HoverableComponent hoverComp = accessor.getComponent(hovered,
+                HoverableComponent.getComponentType());
+
+        if (hoverComp == null)
+            return;
+
+        switch (hoverComp.getType()) {
+            case GLYPH: {
+                if (pedestal.getTickLength(HOVER_PARTICLE) > 0f) {
+                    pedestal.incrementTickLength(HOVER_PARTICLE, dt);
+                    return;
+                }
+
+                pedestal.setTickLength(HOVER_PARTICLE, -0.5f);
+                TransformComponent transform = accessor.getComponent(hovered,
+                        TransformComponent.getComponentType());
+                if (transform == null)
+                    return;
+                Vector3d pos = transform.getPosition();
+                ParticleUtil.spawnParticleEffect(HOVER_PARTICLE, pos, hovered,
+                        List.of(playerRef), accessor);
+
+            }
+                break;
+        }
+    }
+}

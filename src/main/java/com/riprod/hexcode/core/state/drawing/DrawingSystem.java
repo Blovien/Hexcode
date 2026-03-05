@@ -26,6 +26,7 @@ import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.EffectComponent;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.utils.CreateGlyph;
+import com.riprod.hexcode.core.common.glyphs.utils.GlyphType;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
@@ -39,6 +40,8 @@ import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingCompone
 import com.riprod.hexcode.core.state.crafting.component.PedestalAnchorComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.entity.PedestalEntity;
+import com.riprod.hexcode.core.state.crafting.utils.CraftingGlyphNodeSpawner;
+import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.riprod.hexcode.core.state.drawing.component.DrawnShapeComponent;
 import com.riprod.hexcode.core.state.drawing.component.HexcasterDrawingComponent;
 import com.riprod.hexcode.core.state.drawing.registry.ShapeTemplateStore;
@@ -302,23 +305,42 @@ public class DrawingSystem extends HexcodeManager {
   private static void spawnDrawnGlyph(CommandBuffer<EntityStore> accessor, Glyph glyph,
       Ref<EntityStore> anchorRef, PedestalBlockComponent pedestal, Transform spawnPos) {
 
-    EffectComponent glyphComponent = new EffectComponent(glyph);
-
     Ref<EntityStore> hexRef = pedestal.getActiveHexEntityRef();
+    HexComponent hexComp = accessor.getComponent(hexRef, HexComponent.getComponentType());
 
+    EffectComponent glyphComponent = new EffectComponent(glyph);
     glyphComponent.setHexRef(hexRef);
-    glyphComponent.setParentRef(hexRef);
-    glyphComponent.setOffset(Vector3f.ZERO);
-    glyphComponent.setRotation(spawnPos.getRotation());
 
-    Ref<EntityStore> glyphRef = CreateGlyph.createGlyph(accessor, glyphComponent, spawnPos.getPosition());
+    Vector3f rotation = spawnPos.getRotation();
+    glyphComponent.setRotation(rotation);
+    glyph.setRotation(rotation);
+
+    Vector3d worldPos = spawnPos.getPosition();
+
+    if (hexComp != null) {
+      TransformComponent hexTransform = accessor.getComponent(hexRef, TransformComponent.getComponentType());
+      if (hexTransform != null) {
+        Vector3d hexPos = hexTransform.getPosition();
+        glyph.setPosition(new Vector3f(
+            (float) (worldPos.x - hexPos.x),
+            (float) (worldPos.y - hexPos.y),
+            (float) (worldPos.z - hexPos.z)));
+      }
+    }
+
+    Holder<EntityStore> holder = CreateGlyph.createGlyphHolder(accessor, glyphComponent, worldPos);
+    HoverableUtils.ensureHoverable(holder, HoverableType.GLYPH);
+
+    Ref<EntityStore> glyphRef = CreateGlyph.createEntity(accessor, holder);
     glyphComponent.setSelfRef(glyphRef);
-    
-    // Ensures the drawn hex is hoverable
-    HoverableUtils.ensureHoverable(accessor, glyphRef, HoverableType.GLYPH);
 
-    List<Ref<EntityStore>> refs = new ArrayList<>(pedestal.getHexPreviewRefs());
-    refs.add(hexRef);
-    pedestal.setHexPreviewRefs(refs);
+    if (hexComp != null) {
+      hexComp.getHex().put(glyph.getId(), glyph);
+      hexComp.addChildGlyphRef(glyph.getId(), glyphRef);
+
+      if (glyph.getType() == GlyphType.Effect) {
+        CraftingGlyphNodeSpawner.spawnNodeForGlyph(accessor, glyphRef, glyphComponent, worldPos);
+      }
+    }
   }
 }

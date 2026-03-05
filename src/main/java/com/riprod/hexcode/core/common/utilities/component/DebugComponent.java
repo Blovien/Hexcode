@@ -26,6 +26,7 @@ public class DebugComponent implements Component<EntityStore> {
     private float respawnInterval;
     private float timer;
     private float intervalMultiplier;
+    private float scaleMultiplier = 1;
 
     public DebugComponent() {
         this(DebugShape.Cube, new Vector3f(0f, 1f, 0f), 0.5, 2.0f);
@@ -58,6 +59,17 @@ public class DebugComponent implements Component<EntityStore> {
         this.shape = shape;
     }
 
+    public void setScaleMultiplier(float scale) {
+        this.scaleMultiplier = scale;
+    }
+
+    public void resetScaleMultiplier() {
+        this.scaleMultiplier = 1;
+    }
+    public float getScaleMultiplier() {
+        return scaleMultiplier;
+    }
+
     public Vector3f getColor() {
         return color;
     }
@@ -67,7 +79,7 @@ public class DebugComponent implements Component<EntityStore> {
     }
 
     public double getScale() {
-        return scale;
+        return scale * scaleMultiplier;
     }
 
     public void setScale(double scale) {

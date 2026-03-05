@@ -1,5 +1,13 @@
 {
   "Parent": "Base_Glyph",
-  "Model": "VFX/Glyphs/Values/Number_14.blockymodel",
-  "Texture": "VFX/Glyphs/Values/Number_14.png"
+  "DefaultAttachments": [
+    {
+      "Model": "NPC/Glyphs/Models/Glyph_1.blockymodel",
+      "Texture": "NPC/Glyphs/Textures/Line.png"
+    },
+    {
+      "Model": "NPC/Glyphs/Models/Glyph_2.blockymodel",
+      "Texture": "NPC/Glyphs/Textures/Antisquare.png"
+    }
+  ]
 }

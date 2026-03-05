@@ -94,7 +94,7 @@ public class GlyphStyler {
         }
     }
 
-    private static void enterGlyphHover(ComponentAccessor<EntityStore> accessor, EffectComponent glyph) {
+    public static void enterGlyphHover(ComponentAccessor<EntityStore> accessor, EffectComponent glyph) {
         try {
             glyph.setHoverState(true);
             updateScale(accessor, glyph.getSelfRef(), glyph.getScale() * HOVER_SCALE);
@@ -103,7 +103,7 @@ public class GlyphStyler {
         }
     }
 
-    private static void exitGlyphHover(ComponentAccessor<EntityStore> accessor, EffectComponent glyph) {
+    public static void exitGlyphHover(ComponentAccessor<EntityStore> accessor, EffectComponent glyph) {
         try {
             glyph.setHoverState(false);
             updateScale(accessor, glyph.getSelfRef(), glyph.getScale());

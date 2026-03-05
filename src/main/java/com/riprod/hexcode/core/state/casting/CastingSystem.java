@@ -40,6 +40,7 @@ import com.riprod.hexcode.core.state.casting.utils.RootSpawner;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
 import com.riprod.hexcode.utils.GlyphMath;
+import com.riprod.hexcode.utils.HexSlot;
 
 public class CastingSystem extends HexcodeManager {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();

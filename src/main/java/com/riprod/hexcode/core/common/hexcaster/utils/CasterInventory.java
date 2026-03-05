@@ -13,6 +13,9 @@ import com.riprod.hexcode.core.common.hexbook.component.HexBookAsset;
 import com.riprod.hexcode.core.common.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffAsset;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffComponent;
+import com.riprod.hexcode.utils.HexSlot;
+
+import io.sentry.util.Pair;
 
 public class CasterInventory {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -22,15 +25,40 @@ public class CasterInventory {
     @Nullable
     public static HexBookComponent getHexBookComponent(ComponentAccessor<EntityStore> store,
             Ref<EntityStore> playerRef) {
+        return getHexBookComponent(store, playerRef, HexSlot.OffHand).getSecond();
+    }
+
+    @Nullable
+    public static Pair<HexSlot, HexBookComponent> getHexBookComponent(ComponentAccessor<EntityStore> store,
+            Ref<EntityStore> playerRef, HexSlot slot) {
         Player player = store.getComponent(playerRef, Player.getComponentType());
         if (player == null) {
             LOGGER.atWarning().log("Player component not found for entity ref: " + playerRef);
             return null;
         }
 
-        ItemStack utilityItem = player.getInventory().getUtilityItem();
+        ItemStack utilityItem = null;
+
+        switch (slot) {
+            case MainHand:
+                utilityItem = player.getInventory().getActiveHotbarItem();
+                break;
+            case OffHand:
+                utilityItem = player.getInventory().getUtilityItem();
+                break;
+            case Both:
+            default:
+                utilityItem = player.getInventory().getUtilityItem();
+                slot = HexSlot.OffHand;
+                if (utilityItem == null) {
+                    slot = HexSlot.MainHand;
+                    utilityItem = player.getInventory().getActiveHotbarItem();
+                }
+                break;
+        }
+
         if (utilityItem == null || utilityItem.isEmpty()) {
-            LOGGER.atInfo().log("No item in main hand");
+            LOGGER.atInfo().log("No item in hand");
             return null;
         }
 
@@ -39,7 +67,7 @@ public class CasterInventory {
                 HexBookComponent.CODEC);
         if (existingComponent != null) {
             LOGGER.atInfo().log("Found existing HexBookComponent in item metadata");
-            return existingComponent;
+            return new Pair(slot, existingComponent);
         }
         LOGGER.atInfo().log("Creating HexBookComponent...");
 
@@ -58,16 +86,32 @@ public class CasterInventory {
         short activeSlot = player.getInventory().getActiveUtilitySlot();
         player.getInventory().getUtility().setItemStackForSlot(activeSlot, newStack);
 
-        return newComponent;
+        return new Pair(slot, newComponent);
     }
 
     public static void saveHexBookComponent(ComponentAccessor<EntityStore> store,
             Ref<EntityStore> playerRef, HexBookComponent component) {
+        saveHexBookComponent(store, playerRef, component, HexSlot.OffHand);
+    }
+
+    public static void saveHexBookComponent(ComponentAccessor<EntityStore> store,
+            Ref<EntityStore> playerRef, HexBookComponent component, HexSlot slot) {
+
         Player player = store.getComponent(playerRef, Player.getComponentType());
         ItemStack utilityItem = player.getInventory().getUtilityItem();
         ItemStack newStack = utilityItem.withMetadata(METADATA_KEY_HEX_BOOK, HexBookComponent.CODEC, component);
-        short activeSlot = player.getInventory().getActiveUtilitySlot();
-        player.getInventory().getUtility().setItemStackForSlot(activeSlot, newStack);
+        switch (slot) {
+            case MainHand: {
+                short activeSlot = player.getInventory().getActiveHotbarSlot();
+                player.getInventory().getHotbar().setItemStackForSlot(activeSlot, newStack);
+            }
+            case OffHand:
+            default: {
+                short activeSlot = player.getInventory().getActiveUtilitySlot();
+
+                player.getInventory().getUtility().setItemStackForSlot(activeSlot, newStack);
+            }
+        }
     }
 
     public static void saveHexStaffComponent(ComponentAccessor<EntityStore> store,

@@ -30,6 +30,10 @@ public abstract class HexcodeManager {
                 tick0(ref, comp, dt, store, buffer);
         }
 
+        public InteractionState enterAbilityTwo(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref, HexcasterComponent comp) {
+                return InteractionState.Finished;
+        }
+
         public abstract InteractionState exitInteraction(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref, HexcasterComponent comp);
 
         public abstract InteractionState enterInteraction(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref, HexcasterComponent comp);

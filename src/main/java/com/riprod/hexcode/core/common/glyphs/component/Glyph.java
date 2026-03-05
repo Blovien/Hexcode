@@ -205,6 +205,18 @@ public class Glyph {
         this.previous.remove(previousId);
     }
 
+    public int getTotalInputs() {
+        return totalInputs;
+    }
+
+    public int getTotalOutputs() {
+        return totalOutputs;
+    }
+
+    public GlyphType getType() {
+        return type;
+    }
+
     public static final BuilderCodec<Glyph> CODEC = BuilderCodec
             .builder(Glyph.class, Glyph::new)
             .append(new KeyedCodec<>("GlyphId", Codec.STRING),

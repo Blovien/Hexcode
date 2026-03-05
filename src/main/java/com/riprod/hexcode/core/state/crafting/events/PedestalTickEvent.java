@@ -120,7 +120,7 @@ public class PedestalTickEvent extends EntityTickingSystem<EntityStore> {
             }
 
             HexcasterComponent hexcaster = buffer.getComponent(playerRef, HexcasterComponent.getComponentType());
-            if (hexcaster == null || hexcaster.getState() != HexState.CRAFTING) {
+            if (hexcaster == null || (hexcaster.getState() != HexState.CRAFTING && hexcaster.getState() != HexState.DRAWING)) {
                 activePlayers.remove(playerRef);
                 continue;
             }

@@ -38,6 +38,7 @@ import com.riprod.hexcode.core.state.casting.component.HexcasterCastingComponent
 import com.riprod.hexcode.core.state.casting.registery.CastingStyleRegistry;
 import com.riprod.hexcode.core.state.crafting.CraftingSystem;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
+import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
 import com.riprod.hexcode.core.state.crafting.component.ObeliskBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalAnchorComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
@@ -179,6 +180,13 @@ public class Hexcode extends JavaPlugin {
                 .registerComponent(HexcasterDrawingComponent.class,
                         HexcasterDrawingComponent::new);
         HexcasterDrawingComponent.setComponentType(drawingRootComponentType);
+        
+        ComponentType<EntityStore, NodeComponent> nodeComponentType = entityStoreRegistry
+                .registerComponent(NodeComponent.class,
+                        NodeComponent::new);
+        NodeComponent.setComponentType(nodeComponentType);
+
+
 
         ComponentType<EntityStore, RootGlyph> executionComponentType = entityStoreRegistry.registerComponent(
                 RootGlyph.class,

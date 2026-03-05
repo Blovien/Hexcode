@@ -5,6 +5,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import com.hypixel.hytale.component.CommandBuffer;
+import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.spatial.SpatialResource;
 import com.hypixel.hytale.math.shape.Box;
@@ -40,7 +41,7 @@ public class HoverableUtils {
     }
 
     public static Ref<EntityStore> getSmallestTarget(CommandBuffer<EntityStore> accessor, Ref<EntityStore> playerRef,
-            List<Ref<EntityStore>> targetRefs, @Nullable HoverableType type) {
+            List<Ref<EntityStore>> targetRefs, @Nullable List<HoverableType> types) {
         Transform look = TargetUtil.getLook(playerRef, accessor);
         Vector3d rayStart = look.getPosition();
         Vector3d rayDir = look.getDirection();
@@ -57,9 +58,9 @@ public class HoverableUtils {
             if (targetRef == null || !targetRef.isValid())
                 continue;
 
-            if (type != null) {// filter by type
+            if (types != null) {
                 HoverableComponent comp = accessor.getComponent(targetRef, HoverableComponent.getComponentType());
-                if (comp.getType() != type)
+                if (comp == null || !types.contains(comp.getType()))
                     continue;
             }
 
@@ -122,12 +123,11 @@ public class HoverableUtils {
     }
 
     public static void ensureHoverable(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref, HoverableType type) {
-        if (accessor.getComponent(ref, HoverableComponent.getComponentType()) != null) {
-            return;
-        }
-
-        // Add the component
         HoverableComponent comp = new HoverableComponent(type, ref);
         accessor.putComponent(ref, HoverableComponent.getComponentType(), comp);
+    }
+
+    public static void ensureHoverable(Holder<EntityStore> holder, HoverableType type) {
+        holder.addComponent(HoverableComponent.getComponentType(), new HoverableComponent(type));
     }
 }

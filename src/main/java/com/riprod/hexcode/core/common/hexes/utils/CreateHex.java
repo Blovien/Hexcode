@@ -37,7 +37,7 @@ public class CreateHex {
 
         // persistance
         holder.ensureComponent(EntityStore.REGISTRY.getNonSerializedComponentType());
-        holder.addComponent(UUIDComponent.getComponentType(), new UUIDComponent(UUID.fromString(hex.getId())));
+        holder.addComponent(UUIDComponent.getComponentType(), new UUIDComponent(UUID.randomUUID()));
         int networkId = accessor.getExternalData().takeNextNetworkId();
         holder.addComponent(NetworkId.getComponentType(), new NetworkId(networkId));
 

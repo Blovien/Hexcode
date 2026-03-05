@@ -1,5 +1,13 @@
 {
   "Parent": "Base_Glyph",
-  "Model": "VFX/Glyphs/Effects/Propel.blockymodel",
-  "Texture": "VFX/Glyphs/Effects/Propel.png"
+  "DefaultAttachments": [
+    {
+      "Model": "NPC/Glyphs/Models/Glyph_1.blockymodel",
+      "Texture": "NPC/Glyphs/Textures/Circle.png"
+    },
+    {
+      "Model": "NPC/Glyphs/Models/Triangle_2.blockymodel",
+      "Texture": "NPC/Glyphs/Textures/Triangle.png"
+    }
+  ]
 }

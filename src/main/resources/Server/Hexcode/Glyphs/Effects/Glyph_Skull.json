@@ -1,0 +1,17 @@
+{
+  "Parent": "Base_Glyph",
+  "GlyphType": "Effect",
+  "ModelPath": "Glyph_Skull",
+  "InputCount": 1,
+  "OutputCount": 1,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Circle",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Skull",
+      "Size": 1.0
+    }
+  ]
+}

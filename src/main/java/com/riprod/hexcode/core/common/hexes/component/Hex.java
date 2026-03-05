@@ -78,6 +78,10 @@ public class Hex {
         hexGraph.put(id, glyph);
     }
 
+    public void remove(String id) {
+        hexGraph.remove(id);
+    }
+
     public String getHexId() {
         return hexId;
     }

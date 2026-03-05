@@ -113,7 +113,6 @@ public class SpellVarUtil {
         return dir != null ? Vector3f.lookAt(dir) : null;
     }
 
-    @Nullable
     public static Double resolveNumberOrDefault(@Nonnull HexVar var, Double defaultValue) {
         Double result = resolveNumber(var);
         return result != null ? result : defaultValue;

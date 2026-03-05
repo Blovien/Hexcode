@@ -1,6 +1,6 @@
 {
-  "Model": "VFX/Glyphs/Effects/Base_Glyph.blockymodel",
-  "Texture": "VFX/Glyphs/Effects/Base_Glyph.png",
+  "Model": "NPC/Glyphs/Models/Glyph_Holder.blockymodel",
+  "Texture": "NPC/Glyphs/Textures/Circle.png",
   "HitBox": {
     "Min": {
       "X": -0.25,
@@ -21,7 +21,7 @@
         {
           "Looping": true,
           "Speed": 0.25,
-          "Animation": "VFX/Glyphs/Animations/Glyph_Idle.blockyanim"
+          "Animation": "NPC/Glyphs/Animations/Glyph_Idle.blockyanim"
         }
       ]
     }

@@ -42,6 +42,7 @@ public class EffectComponent implements Component<EntityStore> {
     private Ref<EntityStore> hexRef;
     private Set<GlyphFlags> flags = EnumSet.noneOf(GlyphFlags.class);
     private float scale = 1f;
+    private Ref<EntityStore> nodeRef;
 
     // for the codec - do not use
     public EffectComponent() {
@@ -57,6 +58,11 @@ public class EffectComponent implements Component<EntityStore> {
 
     public static ComponentType<EntityStore, EffectComponent> getComponentType() {
         return componentType;
+    }
+
+    @Nonnull
+    public Glyph getGlyph() {
+        return this.glyph;
     }
 
     @Nonnull
@@ -102,6 +108,15 @@ public class EffectComponent implements Component<EntityStore> {
 
     public void setHexRef(@Nullable Ref<EntityStore> hexRef) {
         this.hexRef = hexRef;
+    }
+
+    @Nullable
+    public Ref<EntityStore> getNodeRef() {
+        return nodeRef;
+    }
+
+    public void setNodeRef(@Nullable Ref<EntityStore> nodeRef) {
+        this.nodeRef = nodeRef;
     }
 
     /** Positioning */
@@ -205,6 +220,7 @@ public class EffectComponent implements Component<EntityStore> {
         copy.parentRef = this.parentRef;
         copy.selfRef = this.selfRef;
         copy.hexRef = this.hexRef;
+        copy.nodeRef = this.nodeRef;
         copy.flags = this.flags.isEmpty() ? EnumSet.noneOf(GlyphFlags.class) : EnumSet.copyOf(this.flags);
         return copy;
     }

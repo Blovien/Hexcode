@@ -95,7 +95,7 @@ public class CreateGlyph {
     // required
     holder.ensureComponent(EntityStore.REGISTRY.getNonSerializedComponentType());
     holder.addComponent(UUIDComponent.getComponentType(),
-        new UUIDComponent(UUID.fromString(glyph.getId())));
+        new UUIDComponent(UUID.randomUUID()));
     holder.addComponent(BoundingBox.getComponentType(), new BoundingBox(model.getBoundingBox()));
     holder.addComponent(PersistentModel.getComponentType(), new PersistentModel(model.toReference()));
     int networkId = accessor.getExternalData().takeNextNetworkId();

@@ -96,7 +96,6 @@ public class HexcasterComponent implements Component<EntityStore> {
         return ref;
     }
 
-    /** @deprecated */
     public void clearCraftingState() {
         this.pendingPedestalRef = null;
     }

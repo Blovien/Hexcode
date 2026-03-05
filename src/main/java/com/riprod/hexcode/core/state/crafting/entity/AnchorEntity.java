@@ -22,7 +22,10 @@ import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
 import com.riprod.hexcode.core.common.block.event.BlockBreakEvent;
+import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
+import com.riprod.hexcode.core.common.hover.component.HoverableType;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.EffectComponent;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
@@ -67,8 +70,8 @@ public class AnchorEntity {
         holder.addComponent(PersistentModel.getComponentType(),
                 new PersistentModel(model.toReference()));
 
-        // holder.addComponent(BoundingBox.getComponentType(), new
-        // BoundingBox(PREVIEW_BOUNDING_BOX));
+        holder.addComponent(BoundingBox.getComponentType(), new BoundingBox(PREVIEW_BOUNDING_BOX));
+        holder.addComponent(HoverableComponent.getComponentType(), new HoverableComponent(HoverableType.HEX));
         holder.addComponent(DebugComponent.getComponentType(),
                 new DebugComponent(DebugShape.Cube, new Vector3f(0f, 1f, 0f), 0.5, 2.0f));
 
@@ -124,8 +127,8 @@ public class AnchorEntity {
         int networkId = buffer.getExternalData().takeNextNetworkId();
         holder.addComponent(NetworkId.getComponentType(), new NetworkId(networkId));
 
-        // holder.addComponent(BoundingBox.getComponentType(), new
-        // BoundingBox(PREVIEW_BOUNDING_BOX));
+        holder.addComponent(BoundingBox.getComponentType(), new BoundingBox(PREVIEW_BOUNDING_BOX));
+        holder.addComponent(HoverableComponent.getComponentType(), new HoverableComponent(HoverableType.HEX));
         holder.addComponent(DebugComponent.getComponentType(),
                 new DebugComponent(DebugShape.Cube, new Vector3f(0.5f, 0.5f, 0.5f), 0.5, 2.0f));
 
@@ -149,9 +152,14 @@ public class AnchorEntity {
                 Map<String, Ref<EntityStore>> childRefs = hexComp.getChildGlyphRefs();
                 if (childRefs != null) {
                     for (Ref<EntityStore> glyphRef : childRefs.values()) {
-                        if (glyphRef != null && glyphRef.isValid()) {
-                            buffer.removeEntity(glyphRef, RemoveReason.REMOVE);
+                        if (glyphRef == null || !glyphRef.isValid()) continue;
+                        EffectComponent effect = buffer.getComponent(glyphRef,
+                                EffectComponent.getComponentType());
+                        if (effect != null && effect.getNodeRef() != null
+                                && effect.getNodeRef().isValid()) {
+                            buffer.removeEntity(effect.getNodeRef(), RemoveReason.REMOVE);
                         }
+                        buffer.removeEntity(glyphRef, RemoveReason.REMOVE);
                     }
                 }
             }

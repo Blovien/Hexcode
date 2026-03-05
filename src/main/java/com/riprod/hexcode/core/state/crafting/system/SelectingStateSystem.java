@@ -13,12 +13,15 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.EffectComponent;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
+import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
+import com.riprod.hexcode.core.common.hover.component.HoverableType;
 import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.state.crafting.entity.PedestalEntity;
+import com.riprod.hexcode.core.state.crafting.utils.CraftingGlyphSpawner;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalBlockUtil;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalState;
-
 
 public class SelectingStateSystem {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -41,22 +44,37 @@ public class SelectingStateSystem {
             return InteractionState.Failed;
         }
 
-        Ref<EntityStore> hoveredRef = craftingComp.getHoveredHexRef();
-        LOGGER.atInfo().log("crafting enterInteraction: hoveredRef=%s", hoveredRef);
+        HoverableType hoverableType = craftingComp.getHoveredType();
+        Ref<EntityStore> hoveredRef = craftingComp.getHoveredRef();
         if (hoveredRef == null || !hoveredRef.isValid()) {
             return InteractionState.NotFinished;
         }
 
-        HexComponent hexComp = buffer.getComponent(hoveredRef, HexComponent.getComponentType());
-        if (hexComp == null || hexComp.getHex() == null) {
-            return InteractionState.NotFinished;
+        switch (hoverableType) {
+            case HEX: {
+                HexComponent hexComp = buffer.getComponent(hoveredRef, HexComponent.getComponentType());
+                if (hexComp == null || hexComp.getHex() == null) {
+                    return InteractionState.NotFinished;
+                }
+
+                pedestal.setActiveHex(hexComp.getHex());
+                PedestalSystem.ActivateHexSelection(buffer, pedestal, hoveredRef);
+                ObeliskSystem.ActivateHexSelection(buffer, pedestal, hoveredRef);
+                craftingComp.setHoveredRef(null, null);
+
+                craftingComp.setHexRootRef(hoveredRef);
+                Vector3d anchorPos = PedestalEntity.getAnchorPosition(pedestal.getLocation());
+                Vector3d activePos = new Vector3d(
+                        anchorPos.x + PedestalSystem.ACTIVE_HEX_OFFSET.x,
+                        anchorPos.y + PedestalSystem.ACTIVE_HEX_OFFSET.y,
+                        anchorPos.z + PedestalSystem.ACTIVE_HEX_OFFSET.z);
+                CraftingGlyphSpawner.spawnCraftingGlyphs(buffer, hexComp, activePos);
+            }
+                break;
+            case CONTAINER: {
+                // handle selection of an empty node
+            }
         }
-
-        pedestal.setActiveHex(hexComp.getHex());
-        PedestalSystem.ActivateHexSelection(buffer, pedestal, hoveredRef);
-        ObeliskSystem.ActivateHexSelection(buffer, pedestal, hoveredRef);
-        craftingComp.setHoveredHexRef(null);
-
         return InteractionState.Finished;
     }
 
@@ -81,19 +99,31 @@ public class SelectingStateSystem {
 
         TransformComponent playerTransform = buffer.getComponent(ref, TransformComponent.getComponentType());
 
-        List<Ref<EntityStore>> nearbyHoverables = HoverableUtils.getNearbyHoverables(buffer, playerTransform.getPosition(), 8);
-        Ref<EntityStore> targetRef = HoverableUtils.getSmallestTarget(buffer, ref, nearbyHoverables);
-        Ref<EntityStore> hoveredRef = resolveHoveredPreview(targetRef, previewRefs, buffer);
+        List<Ref<EntityStore>> nearbyHoverables = HoverableUtils.getNearbyHoverables(buffer,
+                playerTransform.getPosition(), 8);
 
-        Ref<EntityStore> previousHovered = craftingComp.getHoveredHexRef();
-        boolean changed = (hoveredRef == null) != (previousHovered == null)
-                || (hoveredRef != null && !hoveredRef.equals(previousHovered));
+        Ref<EntityStore> targetRef = HoverableUtils.getSmallestTarget(buffer, ref, nearbyHoverables);
+
+        Ref<EntityStore> previousHovered = craftingComp.getHoveredRef();
+
+        boolean changed = (targetRef == null) != (previousHovered == null)
+                || (targetRef != null && !targetRef.equals(previousHovered));
         if (changed) {
-            LOGGER.atInfo().log("crafting: hover changed from %s to %s", previousHovered, hoveredRef);
             pedestal.setTickLength(HOVER_PARTICLE, 0f);
         }
 
-        craftingComp.setHoveredHexRef(hoveredRef);
+        if (targetRef == null || !targetRef.isValid()) {
+            craftingComp.setHoveredRef(null, null);
+            return;
+        }
+
+        HoverableComponent targetRefHoverableComponent = buffer.getComponent(targetRef,
+                HoverableComponent.getComponentType());
+        if (targetRefHoverableComponent == null)
+            return; // shouldn't be reachable
+        HoverableType hoveredType = targetRefHoverableComponent.getType();
+
+        craftingComp.setHoveredRef(targetRef, hoveredType);
 
         if (pedestal.getTickLength(HOVER_PARTICLE) < 0.5f) {
             pedestal.incrementTickLength(HOVER_PARTICLE, dt);
@@ -101,39 +131,12 @@ public class SelectingStateSystem {
         }
         pedestal.setTickLength(HOVER_PARTICLE, 0f);
 
-        if (hoveredRef != null && hoveredRef.isValid()) {
-            TransformComponent transform = buffer.getComponent(hoveredRef, TransformComponent.getComponentType());
+        if (targetRef != null && targetRef.isValid()) {
+            TransformComponent transform = buffer.getComponent(targetRef, TransformComponent.getComponentType());
             if (transform != null) {
                 Vector3d pos = transform.getPosition();
-                ParticleUtil.spawnParticleEffect(HOVER_PARTICLE, pos, hoveredRef, List.of(ref), buffer);
+                ParticleUtil.spawnParticleEffect(HOVER_PARTICLE, pos, targetRef, List.of(ref), buffer);
             }
         }
-    }
-
-    public static Ref<EntityStore> resolveHoveredPreview(Ref<EntityStore> targetRef,
-            List<Ref<EntityStore>> previewRefs, CommandBuffer<EntityStore> buffer) {
-        if (targetRef == null || !targetRef.isValid()) {
-            return null;
-        }
-
-        for (Ref<EntityStore> previewRef : previewRefs) {
-            if (previewRef != null && previewRef.equals(targetRef)) {
-                return targetRef;
-            }
-        }
-
-        EffectComponent glyphComp = buffer.getComponent(targetRef, EffectComponent.getComponentType());
-        if (glyphComp != null) {
-            Ref<EntityStore> hexRef = glyphComp.getHexRef();
-            if (hexRef != null && hexRef.isValid()) {
-                for (Ref<EntityStore> previewRef : previewRefs) {
-                    if (previewRef != null && previewRef.equals(hexRef)) {
-                        return hexRef;
-                    }
-                }
-            }
-        }
-
-        return null;
     }
 }

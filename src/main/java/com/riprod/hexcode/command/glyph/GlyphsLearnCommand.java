@@ -18,6 +18,9 @@ import com.riprod.hexcode.core.common.glyphs.utils.GlyphType;
 import com.riprod.hexcode.core.common.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.common.hexcaster.utils.CasterInventory;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
+import com.riprod.hexcode.utils.HexSlot;
+
+import io.sentry.util.Pair;
 
 import javax.annotation.Nonnull;
 
@@ -38,7 +41,7 @@ public class GlyphsLearnCommand extends AbstractPlayerCommand {
 
     @Override
     protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store,
-                          @Nonnull Ref<EntityStore> playerEntityRef, @Nonnull PlayerRef playerRef, @Nonnull World world) {
+            @Nonnull Ref<EntityStore> playerEntityRef, @Nonnull PlayerRef playerRef, @Nonnull World world) {
 
         String glyphId = glyphIdArg.get(context);
         Float accuracy = accuracyArg.get(context);
@@ -66,13 +69,16 @@ public class GlyphsLearnCommand extends AbstractPlayerCommand {
 
         Hex hex = new Hex(glyph);
 
-        HexBookComponent bookComponent = CasterInventory.getHexBookComponent(store, playerEntityRef);
+        Pair<HexSlot, HexBookComponent> bookPair = CasterInventory.getHexBookComponent(store, playerEntityRef,
+                HexSlot.Both);
+        HexBookComponent bookComponent = bookPair.getSecond();
 
         bookComponent.addHex(hex);
 
-        CasterInventory.saveHexBookComponent(store, playerEntityRef, bookComponent);
+        CasterInventory.saveHexBookComponent(store, playerEntityRef, bookComponent, bookPair.getFirst());
 
         // stub: would add to book here
-        playerRef.sendMessage(Message.raw("(debug) Learned glyph '" + glyphId + "' (accuracy=" + accuracy + ", speed=" + speed + ")"));
+        playerRef.sendMessage(Message
+                .raw("(debug) Learned glyph '" + glyphId + "' (accuracy=" + accuracy + ", speed=" + speed + ")"));
     }
 }

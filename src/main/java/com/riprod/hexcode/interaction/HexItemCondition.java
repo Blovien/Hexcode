@@ -16,15 +16,10 @@ import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHandler;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.SimpleInteraction;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.utils.HexSlot;
 import com.riprod.hexcode.utils.HexStaffUtil;
 
 public class HexItemCondition extends SimpleInteraction {
-
-    public enum CheckMode {
-        MainHand,
-        OffHand,
-        Both
-    }
 
     public enum HexItemType {
         HexStaff,
@@ -34,8 +29,8 @@ public class HexItemCondition extends SimpleInteraction {
     @Nonnull
     public static final BuilderCodec<HexItemCondition> CODEC = BuilderCodec
             .builder(HexItemCondition.class, HexItemCondition::new, SimpleInteraction.CODEC)
-            .<CheckMode>appendInherited(
-                    new KeyedCodec<>("CheckMode", new EnumCodec<>(CheckMode.class)),
+            .<HexSlot>appendInherited(
+                    new KeyedCodec<>("CheckMode", new EnumCodec<>(HexSlot.class)),
                     (i, v) -> i.checkMode = v,
                     i -> i.checkMode,
                     (i, p) -> i.checkMode = p.checkMode)
@@ -55,7 +50,7 @@ public class HexItemCondition extends SimpleInteraction {
             .build();
 
     @Nullable
-    private CheckMode checkMode;
+    private HexSlot checkMode;
 
     @Nullable
     private HexItemType mainHandItem;
@@ -97,7 +92,7 @@ public class HexItemCondition extends SimpleInteraction {
     }
 
     private boolean checkHexItems(Player player) {
-        CheckMode mode = checkMode != null ? checkMode : CheckMode.Both;
+        HexSlot mode = checkMode != null ? checkMode : HexSlot.Both;
 
         switch (mode) {
             case MainHand:

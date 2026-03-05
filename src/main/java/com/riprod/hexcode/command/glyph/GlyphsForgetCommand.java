@@ -13,6 +13,9 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.common.hexcaster.utils.CasterInventory;
+import com.riprod.hexcode.utils.HexSlot;
+
+import io.sentry.util.Pair;
 
 import javax.annotation.Nonnull;
 
@@ -39,11 +42,14 @@ public class GlyphsForgetCommand extends AbstractPlayerCommand {
             return;
         }
 
-        HexBookComponent bookComponent = CasterInventory.getHexBookComponent(store, playerEntityRef);
+        Pair<HexSlot, HexBookComponent> bookPair = CasterInventory.getHexBookComponent(store, playerEntityRef,
+                HexSlot.Both);
+        HexBookComponent bookComponent = bookPair.getSecond();
+
 
         boolean removed = bookComponent.removeGlyph(asset.getId());
 
-        CasterInventory.saveHexBookComponent(store, playerEntityRef, bookComponent);
+        CasterInventory.saveHexBookComponent(store, playerEntityRef, bookComponent, bookPair.getFirst());
 
         if (removed) {
             playerRef.sendMessage(Message.raw("(debug) Forgot glyph '" + glyphId + "' from your hexbook!"));
