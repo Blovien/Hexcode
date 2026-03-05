@@ -1,0 +1,11 @@
+{
+  "ItemId": "Life_Essence_Hexbook",
+  "MaxGlyphs": 12,
+  "CastingAuraParticles": [
+    {
+      "SystemId": "Shock_Spawner",
+      "TargetEntityPart": "Self",
+      "TargetNodeName": ""
+    }
+  ]
+}
