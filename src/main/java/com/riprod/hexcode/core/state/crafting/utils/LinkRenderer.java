@@ -19,6 +19,7 @@ import com.riprod.hexcode.utils.VfxUtil;
 public class LinkRenderer {
 
     private static final Vector3f LINK_COLOR = new Vector3f(0.3f, 0.7f, 1.0f);
+    private static final Vector3f ROOT_LINK_COLOR = new Vector3f(1.0f, 0.6f, 0.2f);
 
     private static final double LINK_THICKNESS = 0.05;
 
@@ -40,7 +41,7 @@ public class LinkRenderer {
             return;
 
         LinkRenderer.renderAllLinks(accessor, hexComp,
-                accessor.getExternalData().getWorld());
+                accessor.getExternalData().getWorld(), craftingComp.getRootNodeRef());
 
     }
 
@@ -55,7 +56,23 @@ public class LinkRenderer {
     }
 
     public static void renderAllLinks(ComponentAccessor<EntityStore> accessor,
-            HexComponent hexComp, World world) {
+            HexComponent hexComp, World world, Ref<EntityStore> rootNodeRef) {
+
+        String firstId = hexComp.getHex().getFirstGlyphId();
+        if (rootNodeRef != null && rootNodeRef.isValid() && firstId != null) {
+            Ref<EntityStore> firstGlyphRef = hexComp.getChildGlyphRef(firstId);
+            if (firstGlyphRef != null && firstGlyphRef.isValid()) {
+                TransformComponent rootTransform = accessor.getComponent(rootNodeRef,
+                        TransformComponent.getComponentType());
+                TransformComponent firstTransform = accessor.getComponent(firstGlyphRef,
+                        TransformComponent.getComponentType());
+                if (rootTransform != null && firstTransform != null) {
+                    renderLink(world, rootTransform.getPosition(),
+                            firstTransform.getPosition(), ROOT_LINK_COLOR, 1f);
+                }
+            }
+        }
+
         List<Glyph> glyphs = hexComp.getHex().getGlyphs();
 
         for (Glyph glyph : glyphs) {

@@ -88,6 +88,10 @@ public class CraftingSystem extends HexcodeManager {
                 craftingComp.getHeadAnchorRef());
 
         if (nextState != HexState.DRAWING) {
+            Ref<EntityStore> rootNodeRef = craftingComp.getRootNodeRef();
+            if (rootNodeRef != null && rootNodeRef.isValid()) {
+                buffer.tryRemoveEntity(rootNodeRef, RemoveReason.REMOVE);
+            }
             craftingComp.clearCraftingState();
             comp.clearCraftingState();
         }
@@ -159,14 +163,25 @@ public class CraftingSystem extends HexcodeManager {
 
         HoverableComponent hover = buffer.getComponent(hoveredRef,
                 HoverableComponent.getComponentType());
-        if (hover == null || hover.getType() != HoverableType.GLYPH) {
+        if (hover == null)
             return InteractionState.Finished;
-        }
 
         HexComponent hexComp = buffer.getComponent(craftingComp.getHexRootRef(),
                 HexComponent.getComponentType());
         if (hexComp == null)
             return InteractionState.Finished;
+
+        if (hover.getType() == HoverableType.NODE) {
+            NodeComponent nodeComp = buffer.getComponent(hoveredRef, NodeComponent.getComponentType());
+            if (nodeComp != null && nodeComp.isRootNode()) {
+                hexComp.getHex().setFirstGlyphId(null);
+            }
+            return InteractionState.Finished;
+        }
+
+        if (hover.getType() != HoverableType.GLYPH) {
+            return InteractionState.Finished;
+        }
 
         if (craftingComp.isRemoveWarning()
                 && hoveredRef.equals(craftingComp.getRemoveWarningRef())) {
@@ -333,35 +348,46 @@ public class CraftingSystem extends HexcodeManager {
                 return InteractionState.Finished;
             }
             case NODE: {
-
                 NodeComponent nodeComp = buffer.getComponent(draggedRef, NodeComponent.getComponentType());
+                if (nodeComp == null) {
+                    craftingComp.setDraggingRef(null, null);
+                    craftingComp.setDragTickCount(0);
+                    return InteractionState.Failed;
+                }
 
-                if (nodeComp != null && nodeComp.getParentGlyphRef() != null) {
-                    TransformComponent playerTransform = buffer.getComponent(ref,
-                            TransformComponent.getComponentType());
+                TransformComponent playerTransform = buffer.getComponent(ref,
+                        TransformComponent.getComponentType());
+                Ref<EntityStore> dropTargetRef = null;
+                if (playerTransform != null) {
+                    List<Ref<EntityStore>> nearby = HoverableUtils.getNearbyHoverables(buffer,
+                            playerTransform.getPosition(), 8.0);
+                    nearby.remove(draggedRef);
+                    dropTargetRef = HoverableUtils.getSmallestTarget(buffer, ref, nearby);
+                }
 
-                    Ref<EntityStore> dropTargetRef = null;
+                if (dropTargetRef == null || !dropTargetRef.isValid()) {
+                    craftingComp.setDraggingRef(null, null);
+                    craftingComp.setDragTickCount(0);
+                    return InteractionState.Finished;
+                }
 
-                    if (playerTransform != null) {
-                        List<Ref<EntityStore>> nearby = HoverableUtils.getNearbyHoverables(buffer,
-                                playerTransform.getPosition(), 8.0);
+                Ref<EntityStore> targetGlyphRef = resolveGlyphFromTarget(buffer, dropTargetRef);
 
-                        nearby.remove(draggedRef);
-                        dropTargetRef = HoverableUtils.getSmallestTarget(buffer, ref, nearby);
+                if (nodeComp.isRootNode()) {
+                    if (targetGlyphRef != null && targetGlyphRef.isValid()) {
+                        HexComponent hexComp = buffer.getComponent(craftingComp.getHexRootRef(),
+                                HexComponent.getComponentType());
+                        EffectComponent targetEffect = buffer.getComponent(targetGlyphRef,
+                                EffectComponent.getComponentType());
+                        if (hexComp != null && targetEffect != null) {
+                            hexComp.getHex().setFirstGlyphId(targetEffect.getId());
+                            LOGGER.atInfo().log("root node linked to glyph %s", targetEffect.getId());
+                        }
                     }
-
-                    if (dropTargetRef == null || !dropTargetRef.isValid())
-                        return InteractionState.Failed;
-
-                    Ref<EntityStore> targetGlyphRef = resolveGlyphFromTarget(buffer, dropTargetRef);
+                } else if (nodeComp.getParentGlyphRef() != null) {
                     Ref<EntityStore> sourceGlyphRef = nodeComp.getParentGlyphRef();
-
-                    LOGGER.atInfo().log("node drop: target=%s (valid=%s), source=%s (valid=%s)",
-                            targetGlyphRef, targetGlyphRef != null ? targetGlyphRef.isValid() : "null",
-                            sourceGlyphRef, sourceGlyphRef != null ? sourceGlyphRef.isValid() : "null");
-
                     if (targetGlyphRef != null && targetGlyphRef.isValid()
-                            && sourceGlyphRef != null && sourceGlyphRef.isValid()
+                            && sourceGlyphRef.isValid()
                             && !targetGlyphRef.equals(sourceGlyphRef)) {
                         EffectComponent sourceEffect = buffer.getComponent(sourceGlyphRef,
                                 EffectComponent.getComponentType());
@@ -376,7 +402,6 @@ public class CraftingSystem extends HexcodeManager {
                     }
                 }
 
-                LOGGER.atInfo().log("Exiting interaction and setting hoveredRef to null");
                 craftingComp.setDraggingRef(null, null);
                 craftingComp.setDragTickCount(0);
                 return InteractionState.Finished;

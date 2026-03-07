@@ -37,6 +37,7 @@ public class HexcasterCraftingComponent implements Component<EntityStore> {
     private Ref<EntityStore> detailsGlyphRef;
     private List<Ref<EntityStore>> detailSlotRefs = new ArrayList<>();
     private Ref<EntityStore> hexRootRef;
+    private Ref<EntityStore> rootNodeRef;
     private boolean removeWarning;
     private Ref<EntityStore> removeWarningRef;
     private int dragTickCount;
@@ -112,6 +113,15 @@ public class HexcasterCraftingComponent implements Component<EntityStore> {
         this.hexRootRef = hexRootRef;
     }
 
+    @Nullable
+    public Ref<EntityStore> getRootNodeRef() {
+        return rootNodeRef;
+    }
+
+    public void setRootNodeRef(@Nullable Ref<EntityStore> rootNodeRef) {
+        this.rootNodeRef = rootNodeRef;
+    }
+
     public boolean isRemoveWarning() {
         return removeWarning;
     }
@@ -145,6 +155,7 @@ public class HexcasterCraftingComponent implements Component<EntityStore> {
         this.hoveredType = null;
         this.draggedType = null;
         this.detailSlotRefs = new ArrayList<>();
+        this.rootNodeRef = null;
         this.removeWarning = false;
         this.removeWarningRef = null;
         this.dragTickCount = 0;
@@ -163,6 +174,7 @@ public class HexcasterCraftingComponent implements Component<EntityStore> {
         copy.detailsGlyphRef = this.detailsGlyphRef;
         copy.detailSlotRefs = new ArrayList<>(this.detailSlotRefs);
         copy.hexRootRef = this.hexRootRef;
+        copy.rootNodeRef = this.rootNodeRef;
         copy.removeWarning = this.removeWarning;
         copy.removeWarningRef = this.removeWarningRef;
         copy.dragTickCount = this.dragTickCount;

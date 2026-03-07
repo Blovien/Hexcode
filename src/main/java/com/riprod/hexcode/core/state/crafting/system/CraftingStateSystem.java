@@ -64,17 +64,22 @@ public class CraftingStateSystem {
                 return InteractionState.Finished;
 
             case NODE: {
-                // reset details
                 if (craftingComp.getDetailsGlyphRef() != null) {
                     DetailsRenderer.closeDetails(buffer, craftingComp.getDetailSlotRefs());
                     craftingComp.setDetailsGlyphRef(null);
                 }
 
-                // get if the node is allowed to be dragged
                 NodeComponent nodeComp = buffer.getComponent(hoveredRef,
                         NodeComponent.getComponentType());
+                if (nodeComp == null)
+                    return InteractionState.Failed;
 
-                if (nodeComp == null || nodeComp.getParentGlyphRef() == null
+                if (nodeComp.isRootNode()) {
+                    craftingComp.setDraggingRef(hoveredRef, hoveredType);
+                    return InteractionState.Finished;
+                }
+
+                if (nodeComp.getParentGlyphRef() == null
                         || !nodeComp.getParentGlyphRef().isValid())
                     return InteractionState.Failed;
 
@@ -84,26 +89,21 @@ public class CraftingStateSystem {
                     return InteractionState.Failed;
 
                 Ref<EntityStore> hexRootRef = craftingComp.getHexRootRef();
-
                 if (hexRootRef == null)
                     return InteractionState.Failed;
 
                 HexComponent hexComp = buffer.getComponent(hexRootRef,
                         HexComponent.getComponentType());
-
                 if (hexComp == null)
                     return InteractionState.Failed;
 
+                // allow drag only if glyph is reachable from root
                 String firstId = hexComp.getHex().getFirstGlyphId();
+                boolean isFirstGlyph = firstId != null && parentEffect.getId().equals(firstId);
+                boolean hasIncoming = !parentEffect.getGlyph().getPrevious().isEmpty();
+                if (!isFirstGlyph && !hasIncoming)
+                    return InteractionState.Failed;
 
-                if (parentEffect.getGlyph().getPrevious().isEmpty()) {
-                    // is okay if the parent is the root
-                    if (firstId == null || !parentEffect.getId().equals(firstId)) {
-                        return InteractionState.Failed;
-                    }
-                }
-
-                LOGGER.atInfo().log("Entering interaction and setting hoveredRef");
                 craftingComp.setDraggingRef(hoveredRef, hoveredType);
                 return InteractionState.Finished;
             }

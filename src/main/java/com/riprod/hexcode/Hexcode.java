@@ -75,6 +75,7 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Int
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
@@ -298,16 +299,21 @@ public class Hexcode extends JavaPlugin {
     private static void onPlayerDisconnect(PlayerDisconnectEvent event) {
         PlayerRef playerRef = event.getPlayerRef();
         Ref<EntityStore> ref = playerRef.getReference();
-        if (ref != null && ref.isValid()) {
+        if (ref != null) {
             Store<EntityStore> store = ref.getStore();
-            HexcasterComponent hexcaster = store.getComponent(ref, HexcasterComponent.getComponentType());
-            if (hexcaster != null && hexcaster.getState() != HexState.IDLE) {
-                hexcaster.requestStateChange(HexState.IDLE);
-            }
-        }
+            World world = store.getExternalData().getWorld();
+            world.execute(() -> {
+                if (ref.isValid()) {
+                    HexcasterComponent hexcaster = store.getComponent(ref, HexcasterComponent.getComponentType());
+                    if (hexcaster != null && hexcaster.getState() != HexState.IDLE) {
+                        hexcaster.requestStateChange(HexState.IDLE);
+                    }
+                }
 
-        for (HexcodeManager manager : StateRouter.allManagers()) {
-            manager.onPlayerLeave(playerRef);
+                for (HexcodeManager manager : StateRouter.allManagers()) {
+                    manager.onPlayerLeave(playerRef);
+                }
+            });
         }
     }
 }

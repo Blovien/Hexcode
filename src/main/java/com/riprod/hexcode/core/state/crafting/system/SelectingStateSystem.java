@@ -20,6 +20,8 @@ import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.entity.PedestalEntity;
+import com.riprod.hexcode.core.common.hexes.component.Hex;
+import com.riprod.hexcode.core.state.crafting.utils.CraftingGlyphNodeSpawner;
 import com.riprod.hexcode.core.state.crafting.utils.CraftingGlyphSpawner;
 import com.riprod.hexcode.core.state.crafting.utils.HoverStyleUtils;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalBlockUtil;
@@ -88,10 +90,33 @@ public class SelectingStateSystem {
                         anchorPos.y + PedestalSystem.ACTIVE_HEX_OFFSET.y,
                         anchorPos.z + PedestalSystem.ACTIVE_HEX_OFFSET.z);
                 CraftingGlyphSpawner.spawnCraftingGlyphs(buffer, hexComp, activePos);
+
+                Ref<EntityStore> rootNodeRef = CraftingGlyphNodeSpawner.spawnRootNode(buffer, activePos);
+                craftingComp.setRootNodeRef(rootNodeRef);
             }
                 break;
             case CONTAINER: {
-                // handle selection of an empty node
+                HexComponent hexComp = buffer.getComponent(hoveredRef, HexComponent.getComponentType());
+                if (hexComp == null) {
+                    hexComp = new HexComponent(new Hex());
+                    buffer.putComponent(hoveredRef, HexComponent.getComponentType(), hexComp);
+                }
+                hexComp.setSelfRef(hoveredRef);
+
+                pedestal.setActiveHex(hexComp.getHex());
+                PedestalSystem.ActivateHexSelection(buffer, pedestal, hoveredRef);
+                ObeliskSystem.ActivateHexSelection(buffer, pedestal, hoveredRef);
+                craftingComp.setHoveredRef(null, null);
+                craftingComp.setHexRootRef(hoveredRef);
+
+                Vector3d anchorPos = PedestalEntity.getAnchorPosition(pedestal.getLocation());
+                Vector3d activePos = new Vector3d(
+                        anchorPos.x + PedestalSystem.ACTIVE_HEX_OFFSET.x,
+                        anchorPos.y + PedestalSystem.ACTIVE_HEX_OFFSET.y,
+                        anchorPos.z + PedestalSystem.ACTIVE_HEX_OFFSET.z);
+
+                Ref<EntityStore> rootNodeRef = CraftingGlyphNodeSpawner.spawnRootNode(buffer, activePos);
+                craftingComp.setRootNodeRef(rootNodeRef);
             }
         }
         return InteractionState.Finished;
