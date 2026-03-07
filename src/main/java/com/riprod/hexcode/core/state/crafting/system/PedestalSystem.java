@@ -23,6 +23,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.block.component.UnbreakableBlockComponent;
 import com.riprod.hexcode.core.common.block.event.BlockBreakEvent;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
+import com.riprod.hexcode.core.common.hexcaster.utils.PlayerUtils;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.state.crafting.component.ObeliskBlockComponent;
@@ -35,6 +36,7 @@ import com.riprod.hexcode.core.state.crafting.utils.PedestalItemUtil;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalState;
 import com.riprod.hexcode.core.state.crafting.utils.RadialPositionUtil;
 import com.riprod.hexcode.state.HexState;
+import com.riprod.hexcode.utils.HexSlot;
 
 import io.sentry.util.Pair;
 
@@ -138,11 +140,11 @@ public class PedestalSystem {
         pedestalComponent.setEssenceDisplayRef(newEssenceRef);
         pedestalComponent.setEssenceItemId(essenceItem.getItem().getId());
 
-        consumeOneFromHand(player);
+        PlayerUtils.consumeOneFromHand(player);
     }
 
     public static void handleBookPlacement(CommandBuffer<EntityStore> buffer,
-            Player player, ItemStack bookItem, PedestalBlockComponent pedestalComponent, Vector3i blockPos) {
+            Player player, ItemStack bookItem, HexSlot slot, PedestalBlockComponent pedestalComponent, Vector3i blockPos) {
 
         Vector3d anchorPos = PedestalEntity.getAnchorPosition(blockPos);
 
@@ -157,7 +159,7 @@ public class PedestalSystem {
         Ref<EntityStore> newBookDisplayRef = PedestalEntity.spawnBookDisplay(
                 buffer, pedestalComponent, anchorPos, bookItem.getItem());
         pedestalComponent.setBookDisplayRef(newBookDisplayRef);
-        consumeOneFromHand(player);
+        PlayerUtils.consumeOneFromHand(player, slot);
     }
 
     public static void handleActivation(PedestalBlockComponent pedestalComponent,
@@ -243,21 +245,6 @@ public class PedestalSystem {
 
         // Update the state
         updateState(accessor, pedestal, world, PedestalState.READY);
-    }
-
-    public static void consumeOneFromHand(Player player) {
-        ItemStack current = player.getInventory().getItemInHand();
-        if (current == null || current.isEmpty()) {
-            return;
-        }
-
-        short activeSlot = player.getInventory().getActiveHotbarSlot();
-        if (current.getQuantity() <= 1) {
-            player.getInventory().getHotbar().setItemStackForSlot(activeSlot, ItemStack.EMPTY);
-        } else {
-            player.getInventory().getHotbar().setItemStackForSlot(activeSlot,
-                    current.withQuantity(current.getQuantity() - 1));
-        }
     }
 
     public static void updateState(CommandBuffer<EntityStore> accessor, PedestalBlockComponent pedestal, World world,

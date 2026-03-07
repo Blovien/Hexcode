@@ -12,7 +12,7 @@
     "DrawType": "Model",
     "Material": "Solid",
     "Opacity": "Transparent",
-    "CustomModel": "Blocks/Hexcode/Pedestals/Pedestal_Fire.blockymodel",
+    "CustomModel": "Blocks/Hexcode/Pedestals/Pedestal_Arcane.blockymodel",
     "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Idle.blockyanim",
     "CustomModelTexture": [
       {

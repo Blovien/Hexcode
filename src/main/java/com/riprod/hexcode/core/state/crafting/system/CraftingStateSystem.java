@@ -69,7 +69,7 @@ public class CraftingStateSystem {
                     craftingComp.setDetailsGlyphRef(null);
                 }
 
-                // get if the node is allowed ti be dragged
+                // get if the node is allowed to be dragged
                 NodeComponent nodeComp = buffer.getComponent(hoveredRef,
                         NodeComponent.getComponentType());
 
@@ -79,7 +79,7 @@ public class CraftingStateSystem {
 
                 EffectComponent parentEffect = buffer.getComponent(
                         nodeComp.getParentGlyphRef(), EffectComponent.getComponentType());
-                if (parentEffect == null || !parentEffect.getGlyph().getPrevious().isEmpty())
+                if (parentEffect == null)
                     return InteractionState.Failed;
 
                 Ref<EntityStore> hexRootRef = craftingComp.getHexRootRef();
@@ -95,8 +95,11 @@ public class CraftingStateSystem {
 
                 String firstId = hexComp.getHex().getFirstGlyphId();
 
-                if (firstId == null || !parentEffect.getId().equals(firstId)) {
-                    return InteractionState.Failed;
+                if (parentEffect.getGlyph().getPrevious().isEmpty()) {
+                    // is okay if the parent is the root
+                    if (firstId == null || !parentEffect.getId().equals(firstId)) {
+                        return InteractionState.Failed;
+                    }
                 }
 
                 craftingComp.setDraggingRef(hoveredRef, hoveredType);
@@ -119,25 +122,23 @@ public class CraftingStateSystem {
 
         HoverableType draggingType = craftingComp.getDraggingType();
 
-        if (draggingType == null) return;
+        if (draggingType == null)
+            return;
 
         switch (draggingType) {
             case GLYPH: {
                 CraftingDragUtil.updateDrag(buffer, craftingComp.getHeadAnchorRef(), ref);
 
-                TransformComponent playerTransform = buffer.getComponent(ref,
-                        TransformComponent.getComponentType());
-                if (playerTransform != null) {
-                    List<Ref<EntityStore>> nearby = HoverableUtils.getNearbyHoverables(buffer,
-                            playerTransform.getPosition(), 8.0);
-                    List<Ref<EntityStore>> filtered = new ArrayList<>(nearby.size());
-                    for (Ref<EntityStore> candidate : nearby) {
-                        if (!candidate.equals(craftingComp.getDraggingRef())) {
-                            filtered.add(candidate);
-                        }
-                    }
-                    HoverableUtils.getSmallestTarget(buffer, ref, filtered);
-                }
+                // TransformComponent playerTransform = buffer.getComponent(ref,
+                //         TransformComponent.getComponentType());
+                // if (playerTransform == null)
+                //     return;
+
+                // List<Ref<EntityStore>> nearby = HoverableUtils.getNearbyHoverables(buffer,
+                //         playerTransform.getPosition(), 8.0);
+                // List<Ref<EntityStore>> filtered = new ArrayList<>(nearby.size());
+
+                // Ref<EntityStore> hoveredEntity = HoverableUtils.getSmallestTarget(buffer, ref, filtered);
             }
                 break;
             case NODE: {
@@ -157,19 +158,19 @@ public class CraftingStateSystem {
                             new Vector3f(0.3f, 0.7f, 1.0f));
                 }
 
-                TransformComponent playerTransform = buffer.getComponent(ref,
-                        TransformComponent.getComponentType());
-                if (playerTransform != null) {
-                    List<Ref<EntityStore>> nearby = HoverableUtils.getNearbyHoverables(buffer,
-                            playerTransform.getPosition(), 8.0);
-                    List<Ref<EntityStore>> filtered = new ArrayList<>(nearby.size());
-                    for (Ref<EntityStore> candidate : nearby) {
-                        if (!candidate.equals(craftingComp.getDraggingRef())) {
-                            filtered.add(candidate);
-                        }
-                    }
-                    HoverableUtils.getSmallestTarget(buffer, ref, filtered);
-                }
+                // TransformComponent playerTransform = buffer.getComponent(ref,
+                //         TransformComponent.getComponentType());
+                // if (playerTransform != null) {
+                //     List<Ref<EntityStore>> nearby = HoverableUtils.getNearbyHoverables(buffer,
+                //             playerTransform.getPosition(), 8.0);
+                //     List<Ref<EntityStore>> filtered = new ArrayList<>(nearby.size());
+                //     for (Ref<EntityStore> candidate : nearby) {
+                //         if (!candidate.equals(craftingComp.getDraggingRef())) {
+                //             filtered.add(candidate);
+                //         }
+                //     }
+                //     HoverableUtils.getSmallestTarget(buffer, ref, filtered);
+                // }
             }
                 break;
         }
@@ -190,20 +191,20 @@ public class CraftingStateSystem {
         List<Ref<EntityStore>> nearby = HoverableUtils.getNearbyHoverables(accessor,
                 playerTransform.getPosition(), 8.0);
         Ref<EntityStore> targetRef = HoverableUtils.getSmallestTarget(accessor, ref, nearby);
-        
+
         HoverableType hoverableType = null;
         if (targetRef != null && targetRef.isValid()) {
             HoverableComponent comp = accessor.getComponent(targetRef, HoverableComponent.getComponentType());
             hoverableType = comp.getType();
         }
-        
+
         Ref<EntityStore> previousHovered = craftingComp.getHoveredRef();
         boolean changed = !Objects.equals(targetRef, previousHovered);
-        
+
         if (changed) {
-            
+
             HoverStyleUtils.unhover(accessor, previousHovered);
-            
+
             craftingComp.setHoveredRef(targetRef, hoverableType);
             craftingComp.setRemoveWarning(false);
             craftingComp.setRemoveWarningRef(null);

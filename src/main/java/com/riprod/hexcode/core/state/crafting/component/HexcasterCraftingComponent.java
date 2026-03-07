@@ -2,10 +2,8 @@ package com.riprod.hexcode.core.state.crafting.component;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;

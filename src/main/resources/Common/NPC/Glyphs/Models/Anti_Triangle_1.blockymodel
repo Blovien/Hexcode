@@ -14,7 +14,7 @@
         },
         "textureLayout": {},
         "unwrapMode": "custom",
-        "visible": true,
+        "visible": false,
         "doubleSided": false,
         "shadingMode": "flat"
       },
@@ -23,7 +23,7 @@
           "id": "2",
           "name": "Glyph_1--C1",
           "position": {"x": 0, "y": 0, "z": 0},
-          "orientation": {"x": 0, "y": 0, "z": -1, "w": 0},
+          "orientation": {"x": 0, "y": 0, "z": 1, "w": 0},
           "shape": {
             "type": "quad",
             "offset": {"x": 0, "y": 0, "z": 0},
@@ -42,7 +42,7 @@
               }
             },
             "unwrapMode": "custom",
-            "visible": true,
+            "visible": false,
             "doubleSided": true,
             "shadingMode": "fullbright"
           }
@@ -70,7 +70,7 @@
               }
             },
             "unwrapMode": "custom",
-            "visible": true,
+            "visible": false,
             "doubleSided": true,
             "shadingMode": "fullbright"
           }
@@ -98,7 +98,7 @@
               }
             },
             "unwrapMode": "custom",
-            "visible": true,
+            "visible": false,
             "doubleSided": true,
             "shadingMode": "fullbright"
           }

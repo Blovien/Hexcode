@@ -22,7 +22,7 @@
           }
         },
         "unwrapMode": "custom",
-        "visible": true,
+        "visible": false,
         "doubleSided": true,
         "shadingMode": "fullbright"
       },
@@ -50,7 +50,7 @@
               }
             },
             "unwrapMode": "custom",
-            "visible": true,
+            "visible": false,
             "doubleSided": true,
             "shadingMode": "fullbright"
           }
@@ -78,7 +78,7 @@
               }
             },
             "unwrapMode": "custom",
-            "visible": true,
+            "visible": false,
             "doubleSided": true,
             "shadingMode": "fullbright"
           }

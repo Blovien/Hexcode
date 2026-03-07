@@ -37,42 +37,26 @@ public class CasterInventory {
             return null;
         }
 
-        ItemStack utilityItem = null;
+        Pair<ItemStack, HexSlot> inventoryPair = PlayerUtils.getItemFromInventory(player, slot, true);
+        slot = inventoryPair.getSecond();
+        ItemStack inventoryItem = inventoryPair.getFirst();
 
-        switch (slot) {
-            case MainHand:
-                utilityItem = player.getInventory().getActiveHotbarItem();
-                break;
-            case OffHand:
-                utilityItem = player.getInventory().getUtilityItem();
-                break;
-            case Both:
-            default:
-                utilityItem = player.getInventory().getUtilityItem();
-                slot = HexSlot.OffHand;
-                if (utilityItem == null) {
-                    slot = HexSlot.MainHand;
-                    utilityItem = player.getInventory().getActiveHotbarItem();
-                }
-                break;
-        }
-
-        if (utilityItem == null || utilityItem.isEmpty()) {
+        if (inventoryItem == null || inventoryItem.isEmpty()) {
             LOGGER.atInfo().log("No item in hand");
             return null;
         }
 
         // Check if component already exists
-        HexBookComponent existingComponent = utilityItem.getFromMetadataOrNull(METADATA_KEY_HEX_BOOK,
+        HexBookComponent existingComponent = inventoryItem.getFromMetadataOrNull(METADATA_KEY_HEX_BOOK,
                 HexBookComponent.CODEC);
         if (existingComponent != null) {
             LOGGER.atInfo().log("Found existing HexBookComponent in item metadata");
-            return new Pair(slot, existingComponent);
+            return new Pair(inventoryPair.getSecond(), existingComponent);
         }
         LOGGER.atInfo().log("Creating HexBookComponent...");
 
         // Check if this item is a registered HexBook asset
-        HexBookAsset bookAsset = getHexBookAsset(utilityItem);
+        HexBookAsset bookAsset = getHexBookAsset(inventoryItem);
         if (bookAsset == null) {
             LOGGER.atInfo().log("No HexBook asset found for item in main hand");
             return null;
@@ -80,11 +64,9 @@ public class CasterInventory {
 
         // Create and initialize new component
         HexBookComponent newComponent = new HexBookComponent(bookAsset);
-        ItemStack newStack = utilityItem.withMetadata(METADATA_KEY_HEX_BOOK, HexBookComponent.CODEC, newComponent);
+        ItemStack newStack = inventoryItem.withMetadata(METADATA_KEY_HEX_BOOK, HexBookComponent.CODEC, newComponent);
 
-        // replace item
-        short activeSlot = player.getInventory().getActiveUtilitySlot();
-        player.getInventory().getUtility().setItemStackForSlot(activeSlot, newStack);
+        PlayerUtils.setItemToInventory(player, newStack, slot);
 
         return new Pair(slot, newComponent);
     }
@@ -100,18 +82,7 @@ public class CasterInventory {
         Player player = store.getComponent(playerRef, Player.getComponentType());
         ItemStack utilityItem = player.getInventory().getUtilityItem();
         ItemStack newStack = utilityItem.withMetadata(METADATA_KEY_HEX_BOOK, HexBookComponent.CODEC, component);
-        switch (slot) {
-            case MainHand: {
-                short activeSlot = player.getInventory().getActiveHotbarSlot();
-                player.getInventory().getHotbar().setItemStackForSlot(activeSlot, newStack);
-            }
-            case OffHand:
-            default: {
-                short activeSlot = player.getInventory().getActiveUtilitySlot();
-
-                player.getInventory().getUtility().setItemStackForSlot(activeSlot, newStack);
-            }
-        }
+        PlayerUtils.setItemToInventory(player, newStack, slot);
     }
 
     public static void saveHexStaffComponent(ComponentAccessor<EntityStore> store,

@@ -32,6 +32,7 @@ import com.riprod.hexcode.core.state.crafting.utils.CraftingDropHandler;
 import com.riprod.hexcode.core.state.crafting.utils.CraftingGlyphRemover;
 import com.riprod.hexcode.core.state.crafting.utils.CraftingPositionUtil;
 import com.riprod.hexcode.core.state.crafting.utils.DetailsRenderer;
+import com.riprod.hexcode.core.state.crafting.utils.GravityUtil;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalBlockUtil;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalState;
 
@@ -57,6 +58,8 @@ public class CraftingSystem extends HexcodeManager {
             }
             craftingComp.setPedestalRef(anchorRef);
         }
+
+        GravityUtil.enterFly(buffer, ref);
     }
 
     @Override
@@ -69,6 +72,8 @@ public class CraftingSystem extends HexcodeManager {
             comp.clearCraftingState();
             return;
         }
+
+        GravityUtil.exitFly(buffer, ref);
 
         DetailsRenderer.closeDetails(buffer, craftingComp.getDetailSlotRefs());
 
