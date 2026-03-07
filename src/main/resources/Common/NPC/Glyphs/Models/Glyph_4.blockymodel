@@ -22,7 +22,7 @@
           }
         },
         "unwrapMode": "custom",
-        "visible": false,
+        "visible": true,
         "doubleSided": true,
         "shadingMode": "fullbright"
       }

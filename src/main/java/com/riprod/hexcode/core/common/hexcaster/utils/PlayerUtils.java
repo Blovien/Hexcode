@@ -69,30 +69,20 @@ public class PlayerUtils {
         return new Pair<>(item, first);
     }
 
-    private static ItemStack getHandItem(Player player, HexSlot slot) {
+    public static ItemStack getHandItem(Player player, HexSlot slot) {
         return slot == HexSlot.OffHand
                 ? player.getInventory().getUtilityItem()
                 : player.getInventory().getActiveHotbarItem();
     }
 
-    /**
-     * Replaces an item in the player's inventory. Prefers MainHand if slot is Both
-     */
-    public static void setItemToInventory(Player player, ItemStack item, HexSlot slot) {
-        switch (slot) {
-            case OffHand: {
-                short activeSlot = player.getInventory().getActiveUtilitySlot();
-                player.getInventory().getUtility().setItemStackForSlot(activeSlot, item);
-            }
-                break;
-            case MainHand:
-            case Both:
-            default: {
-
-                short activeSlot = player.getInventory().getActiveHotbarSlot();
-                player.getInventory().getHotbar().setItemStackForSlot(activeSlot, item);
-            }
-
+    public static void setHandItem(Player player, HexSlot slot, ItemStack item) {
+        if (slot == HexSlot.OffHand) {
+            short s = player.getInventory().getActiveUtilitySlot();
+            // bypass slot filter — utility filter rejects empty/non-utility items
+            player.getInventory().getUtility().setItemStackForSlot(s, item, false);
+        } else {
+            short s = player.getInventory().getActiveHotbarSlot();
+            player.getInventory().getHotbar().setItemStackForSlot(s, item);
         }
     }
 

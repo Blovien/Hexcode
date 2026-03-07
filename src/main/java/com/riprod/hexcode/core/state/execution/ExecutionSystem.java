@@ -21,6 +21,7 @@ import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffComponent;
 import com.riprod.hexcode.core.state.execution.component.PlayerHexRoot;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
+import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
 
 import java.util.UUID;
@@ -30,12 +31,14 @@ public class ExecutionSystem extends HexcodeManager {
 
     @Override
     public void firstTick(Ref<EntityStore> ref, HexcasterComponent comp,
-            Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
+            Store<EntityStore> store, CommandBuffer<EntityStore> buffer,
+            HexState previousState) {
     }
 
     @Override
     public void lastTick(Ref<EntityStore> ref, HexcasterComponent comp,
-            Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
+            Store<EntityStore> store, CommandBuffer<EntityStore> buffer,
+            HexState nextState) {
     }
 
     @Override

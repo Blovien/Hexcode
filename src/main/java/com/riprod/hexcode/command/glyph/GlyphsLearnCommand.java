@@ -15,12 +15,9 @@ import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.EffectComponent;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.utils.GlyphType;
-import com.riprod.hexcode.core.common.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.common.hexcaster.utils.CasterInventory;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.utils.HexSlot;
-
-import io.sentry.util.Pair;
 
 import javax.annotation.Nonnull;
 
@@ -66,18 +63,17 @@ public class GlyphsLearnCommand extends AbstractPlayerCommand {
         }
 
         Glyph glyph = new Glyph(asset, accuracy, speed);
-
         Hex hex = new Hex(glyph);
 
-        Pair<HexSlot, HexBookComponent> bookPair = CasterInventory.getHexBookComponent(store, playerEntityRef,
-                HexSlot.Both);
-        HexBookComponent bookComponent = bookPair.getSecond();
+        boolean ok = CasterInventory.withHexBook(store, playerEntityRef, HexSlot.Both, book -> {
+            book.addHex(hex);
+        });
 
-        bookComponent.addHex(hex);
+        if (!ok) {
+            playerRef.sendMessage(Message.raw("No hexbook found in hand"));
+            return;
+        }
 
-        CasterInventory.saveHexBookComponent(store, playerEntityRef, bookComponent, bookPair.getFirst());
-
-        // stub: would add to book here
         playerRef.sendMessage(Message
                 .raw("(debug) Learned glyph '" + glyphId + "' (accuracy=" + accuracy + ", speed=" + speed + ")"));
     }

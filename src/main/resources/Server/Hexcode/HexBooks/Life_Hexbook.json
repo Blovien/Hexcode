@@ -1,6 +1,6 @@
 {
-  "ItemId": "Life_Essence_Hexbook",
-  "MaxGlyphs": 12,
+  "ItemId": "Life_Hexbook",
+  "MaxGlyphs": 4,
   "CastingAuraParticles": [
     {
       "SystemId": "Shock_Spawner",

@@ -14,7 +14,7 @@
         },
         "textureLayout": {},
         "unwrapMode": "custom",
-        "visible": false,
+        "visible": true,
         "doubleSided": false,
         "shadingMode": "flat"
       },
@@ -42,7 +42,7 @@
               }
             },
             "unwrapMode": "custom",
-            "visible": false,
+            "visible": true,
             "doubleSided": true,
             "shadingMode": "fullbright"
           }
@@ -70,7 +70,7 @@
               }
             },
             "unwrapMode": "custom",
-            "visible": false,
+            "visible": true,
             "doubleSided": true,
             "shadingMode": "fullbright"
           }
@@ -98,7 +98,7 @@
               }
             },
             "unwrapMode": "custom",
-            "visible": false,
+            "visible": true,
             "doubleSided": true,
             "shadingMode": "fullbright"
           }

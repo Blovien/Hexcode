@@ -66,7 +66,7 @@ public class CasterInventory {
         HexBookComponent newComponent = new HexBookComponent(bookAsset);
         ItemStack newStack = inventoryItem.withMetadata(METADATA_KEY_HEX_BOOK, HexBookComponent.CODEC, newComponent);
 
-        PlayerUtils.setItemToInventory(player, newStack, slot);
+        PlayerUtils.setHandItem(player, slot, newStack);
 
         return new Pair(slot, newComponent);
     }
@@ -80,18 +80,29 @@ public class CasterInventory {
             Ref<EntityStore> playerRef, HexBookComponent component, HexSlot slot) {
 
         Player player = store.getComponent(playerRef, Player.getComponentType());
-        ItemStack utilityItem = player.getInventory().getUtilityItem();
-        ItemStack newStack = utilityItem.withMetadata(METADATA_KEY_HEX_BOOK, HexBookComponent.CODEC, component);
-        PlayerUtils.setItemToInventory(player, newStack, slot);
+        ItemStack item = PlayerUtils.getHandItem(player, slot);
+        ItemStack newStack = item.withMetadata(METADATA_KEY_HEX_BOOK, HexBookComponent.CODEC, component);
+        PlayerUtils.setHandItem(player, slot, newStack);
+    }
+
+    public static boolean withHexBook(ComponentAccessor<EntityStore> store,
+            Ref<EntityStore> playerRef, HexSlot slot,
+            java.util.function.Consumer<HexBookComponent> mutator) {
+
+        Pair<HexSlot, HexBookComponent> result = getHexBookComponent(store, playerRef, slot);
+        if (result == null) return false;
+
+        mutator.accept(result.getSecond());
+        saveHexBookComponent(store, playerRef, result.getSecond(), result.getFirst());
+        return true;
     }
 
     public static void saveHexStaffComponent(ComponentAccessor<EntityStore> store,
             Ref<EntityStore> playerRef, HexStaffComponent component) {
         Player player = store.getComponent(playerRef, Player.getComponentType());
-        ItemStack mainHandItem = player.getInventory().getItemInHand();
+        ItemStack mainHandItem = PlayerUtils.getHandItem(player, HexSlot.MainHand);
         ItemStack newStack = mainHandItem.withMetadata(METADATA_KEY_HEX_STAFF, HexStaffComponent.CODEC, component);
-        short activeSlot = player.getInventory().getActiveHotbarSlot();
-        player.getInventory().getHotbar().setItemStackForSlot(activeSlot, newStack);
+        PlayerUtils.setHandItem(player, HexSlot.MainHand, newStack);
     }
 
     @Nullable

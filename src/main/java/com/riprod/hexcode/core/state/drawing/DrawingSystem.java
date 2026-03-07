@@ -51,6 +51,7 @@ import com.riprod.hexcode.core.state.drawing.system.shapes.CompositeShapeDetecto
 import com.riprod.hexcode.core.state.drawing.system.shapes.DollarOneFixedDetector;
 import com.riprod.hexcode.core.state.drawing.system.shapes.ShapeDetector;
 import com.riprod.hexcode.core.state.drawing.utils.ShapeComparator;
+import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
 
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
@@ -73,7 +74,8 @@ public class DrawingSystem extends HexcodeManager {
 
   @Override
   public void firstTick(Ref<EntityStore> ref, HexcasterComponent hexcaster,
-      Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
+      Store<EntityStore> store, CommandBuffer<EntityStore> buffer,
+      HexState previousState) {
     // first tick stuffs
     HexcasterDrawingComponent drawingComponent = new HexcasterDrawingComponent();
     buffer.putComponent(ref, HexcasterDrawingComponent.getComponentType(), drawingComponent);
@@ -81,7 +83,8 @@ public class DrawingSystem extends HexcodeManager {
 
   @Override
   public void lastTick(Ref<EntityStore> ref, HexcasterComponent comp,
-      Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
+      Store<EntityStore> store, CommandBuffer<EntityStore> buffer,
+      HexState nextState) {
 
     List<DrawnShapeComponent> drawnShapes = comp.getDrawnGlyphs();
     if (drawnShapes != null && !drawnShapes.isEmpty()) {
@@ -92,8 +95,8 @@ public class DrawingSystem extends HexcodeManager {
       if (matchedGlyph == null) {
         LOGGER.atInfo().log("no matching glyph found for drawn shape");
       } else {
-        Float efficiency = ShapeComparator.calculateEfficiency(drawnShapes);
-        Float volatility = ShapeComparator.calculateVolatility(drawnShapes);
+        float efficiency = ShapeComparator.calculateEfficiency(drawnShapes);
+        float volatility = ShapeComparator.calculateVolatility(drawnShapes);
         LOGGER.atInfo().log("Efficiency: %f | Volatility: %f", efficiency, volatility);
 
         Glyph glyph = new Glyph(matchedGlyph, volatility, efficiency);
@@ -241,7 +244,7 @@ public class DrawingSystem extends HexcodeManager {
     float maxSize = Math.max(Math.abs(maxYaw - minYaw), Math.abs(maxPitch - minPitch));
     result.setSize(maxSize);
 
-    LOGGER.atInfo().log("%d ms (%d score) | S: %f | A: %f", drawSpeed, result.getEfficiency(), maxSize,
+    LOGGER.atInfo().log("%d ms (%f score) | S: %f | A: %f", drawSpeed, result.getEfficiency(), maxSize,
         result.getVolatility());
 
     InterfaceManager.removeTrails(accessor, ref);
@@ -306,6 +309,10 @@ public class DrawingSystem extends HexcodeManager {
       Ref<EntityStore> anchorRef, PedestalBlockComponent pedestal, Transform spawnPos) {
 
     Ref<EntityStore> hexRef = pedestal.getActiveHexEntityRef();
+    if (hexRef == null || !hexRef.isValid()) {
+      LOGGER.atWarning().log("cannot spawn drawn glyph: no active hex entity ref on pedestal");
+      return;
+    }
     HexComponent hexComp = accessor.getComponent(hexRef, HexComponent.getComponentType());
 
     EffectComponent glyphComponent = new EffectComponent(glyph);

@@ -28,7 +28,7 @@ public class DrawnShapeComponent {
 
     // scoring
     private float volatility;
-    private long efficiency;
+    private float efficiency;
 
     // shape calc
     private float size;
@@ -100,11 +100,16 @@ public class DrawnShapeComponent {
         this.relativeSize = relativeSize;
     }
 
-    public long getEfficiency() {
+    public float getEfficiency() {
         return efficiency;
     }
 
     public void setSpeed(long speed) {
-        this.efficiency = shapeAsset.getExpectedSpeed() / speed;
+        if (shapeAsset == null || shapeAsset.getExpectedSpeed() <= 0 || speed <= 0) {
+            this.efficiency = 0.8f;
+            return;
+        }
+        float ratio = (float) shapeAsset.getExpectedSpeed() / (float) speed;
+        this.efficiency = Math.min(ratio, 1.0f);
     }
 }

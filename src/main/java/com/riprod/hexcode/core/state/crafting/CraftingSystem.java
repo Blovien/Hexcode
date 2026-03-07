@@ -36,6 +36,7 @@ import com.riprod.hexcode.core.state.crafting.utils.GravityUtil;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalBlockUtil;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalState;
 
+import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
 
 public class CraftingSystem extends HexcodeManager {
@@ -44,7 +45,8 @@ public class CraftingSystem extends HexcodeManager {
 
     @Override
     public void firstTick(Ref<EntityStore> ref, HexcasterComponent comp,
-            Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
+            Store<EntityStore> store, CommandBuffer<EntityStore> buffer,
+            HexState previousState) {
 
         Ref<EntityStore> anchorRef = comp.consumePendingPedestalRef();
 
@@ -59,12 +61,15 @@ public class CraftingSystem extends HexcodeManager {
             craftingComp.setPedestalRef(anchorRef);
         }
 
-        GravityUtil.enterFly(buffer, ref);
+        if (previousState != HexState.DRAWING) {
+            GravityUtil.enterFly(buffer, ref);
+        }
     }
 
     @Override
     public void lastTick(Ref<EntityStore> ref, HexcasterComponent comp,
-            Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
+            Store<EntityStore> store, CommandBuffer<EntityStore> buffer,
+            HexState nextState) {
 
         HexcasterCraftingComponent craftingComp = buffer.getComponent(ref,
                 HexcasterCraftingComponent.getComponentType());
@@ -73,15 +78,19 @@ public class CraftingSystem extends HexcodeManager {
             return;
         }
 
-        GravityUtil.exitFly(buffer, ref);
+        if (nextState != HexState.DRAWING) {
+            GravityUtil.exitFly(buffer, ref);
+        }
 
         DetailsRenderer.closeDetails(buffer, craftingComp.getDetailSlotRefs());
 
         CraftingDragUtil.endDrag(buffer, craftingComp.getDraggingRef(),
                 craftingComp.getHeadAnchorRef());
 
-        craftingComp.clearCraftingState();
-        comp.clearCraftingState();
+        if (nextState != HexState.DRAWING) {
+            craftingComp.clearCraftingState();
+            comp.clearCraftingState();
+        }
     }
 
     @Override
@@ -101,9 +110,10 @@ public class CraftingSystem extends HexcodeManager {
                 CraftingStateSystem.tickCrafting(buffer, dt, ref, pedestal);
                 HexcasterCraftingComponent craftingComp = buffer.getComponent(ref,
                         HexcasterCraftingComponent.getComponentType());
-                if (craftingComp != null && craftingComp.getHoveredRef() == null
+                if (craftingComp != null && craftingComp.getDraggingRef() == null
                         && craftingComp.getHeadAnchorRef() != null
                         && craftingComp.getHeadAnchorRef().isValid()) {
+
                     buffer.tryRemoveEntity(craftingComp.getHeadAnchorRef(), RemoveReason.REMOVE);
                     craftingComp.setHeadAnchorRef(null);
                 }
@@ -208,6 +218,7 @@ public class CraftingSystem extends HexcodeManager {
         if (craftingComp.getDragTickCount() < 3) {
             Ref<EntityStore> draggedRef = craftingComp.getDraggingRef();
             CraftingDragUtil.endDrag(buffer, draggedRef, craftingComp.getHeadAnchorRef());
+            LOGGER.atInfo().log("Exiting interaction after click and setting drag ref to null");
             craftingComp.setDraggingRef(null, null);
             craftingComp.setHeadAnchorRef(null);
             craftingComp.setDragTickCount(0);
@@ -238,7 +249,8 @@ public class CraftingSystem extends HexcodeManager {
 
         HoverableType draggedType = craftingComp.getDraggingType();
 
-        if (draggedType == null) return InteractionState.Failed;
+        if (draggedType == null)
+            return InteractionState.Failed;
 
         Ref<EntityStore> draggedRef = craftingComp.getDraggingRef();
 
@@ -314,6 +326,7 @@ public class CraftingSystem extends HexcodeManager {
                         break;
                 }
 
+                LOGGER.atInfo().log("Exiting interaction after drop and setting drag ref to null");
                 craftingComp.setDraggingRef(null, null);
                 craftingComp.setHeadAnchorRef(null);
                 craftingComp.setDragTickCount(0);
@@ -326,9 +339,9 @@ public class CraftingSystem extends HexcodeManager {
                 if (nodeComp != null && nodeComp.getParentGlyphRef() != null) {
                     TransformComponent playerTransform = buffer.getComponent(ref,
                             TransformComponent.getComponentType());
-                
+
                     Ref<EntityStore> dropTargetRef = null;
-                    
+
                     if (playerTransform != null) {
                         List<Ref<EntityStore>> nearby = HoverableUtils.getNearbyHoverables(buffer,
                                 playerTransform.getPosition(), 8.0);
@@ -363,6 +376,7 @@ public class CraftingSystem extends HexcodeManager {
                     }
                 }
 
+                LOGGER.atInfo().log("Exiting interaction and setting hoveredRef to null");
                 craftingComp.setDraggingRef(null, null);
                 craftingComp.setDragTickCount(0);
                 return InteractionState.Finished;

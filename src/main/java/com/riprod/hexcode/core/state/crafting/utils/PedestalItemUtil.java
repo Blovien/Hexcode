@@ -17,6 +17,8 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexbook.component.HexBookAsset;
 import com.riprod.hexcode.core.common.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.common.hexcaster.utils.CasterInventory;
+import com.riprod.hexcode.core.common.hexcaster.utils.PlayerUtils;
+import com.riprod.hexcode.utils.HexSlot;
 
 public class PedestalItemUtil {
 
@@ -68,10 +70,38 @@ public class PedestalItemUtil {
     }
 
     public static void returnBookToPlayer(Player player, ItemStack bookStack) {
+        returnBookToPlayer(player, bookStack, HexSlot.MainHand);
+    }
+
+    public static void returnBookToPlayer(Player player, ItemStack bookStack, HexSlot slot) {
         if (bookStack == null || bookStack.isEmpty()) {
             return;
         }
-        player.getInventory().getHotbar().addItemStack(bookStack);
+        PlayerUtils.setHandItem(player, slot, bookStack);
+    }
+
+    public static boolean returnEssenceToPlayer(Player player, @Nullable String essenceItemId) {
+        if (essenceItemId == null) {
+            return false;
+        }
+        ItemStack essenceStack = new ItemStack(essenceItemId, 1);
+        return player.getInventory().getHotbar().addItemStack(essenceStack).succeeded();
+    }
+
+    @Nullable
+    public static Ref<EntityStore> dropEssenceAtPosition(
+            ComponentAccessor<EntityStore> accessor, @Nullable String essenceItemId, Vector3i blockPos) {
+        if (essenceItemId == null) {
+            return null;
+        }
+        ItemStack essenceStack = new ItemStack(essenceItemId, 1);
+        Vector3d dropPos = new Vector3d(blockPos.x + 0.5, blockPos.y + 1.0, blockPos.z + 0.5);
+        Holder<EntityStore> holder = ItemComponent.generateItemDrop(
+                accessor, essenceStack, dropPos, Vector3f.ZERO, 0f, 0.2f, 0f);
+        if (holder == null) {
+            return null;
+        }
+        return accessor.addEntity(holder, AddReason.SPAWN);
     }
 
     @Nullable

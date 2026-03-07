@@ -4,6 +4,7 @@ import com.hypixel.hytale.builtin.mounts.MountedComponent;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.MountController;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
@@ -13,6 +14,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.utils.CreateGlyph;
 
 public class CraftingDragUtil {
+    private static HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     public static Ref<EntityStore> startDrag(CommandBuffer<EntityStore> accessor,
             Ref<EntityStore> playerRef, Ref<EntityStore> entityRef) {
@@ -39,10 +41,9 @@ public class CraftingDragUtil {
         TransformComponent headTransform = accessor.getComponent(headAnchorRef,
                 TransformComponent.getComponentType());
         headTransform.getRotation().assign(
-            headRot.getRotation().getPitch(),
-            headRot.getRotation().getYaw(),
-            0
-        );
+                headRot.getRotation().getPitch(),
+                headRot.getRotation().getYaw(),
+                0);
     }
 
     public static void endDrag(CommandBuffer<EntityStore> accessor,

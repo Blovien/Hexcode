@@ -9,13 +9,15 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
+import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
 
 public class IdleSystem extends HexcodeManager {
 
         @Override
         public void firstTick(Ref<EntityStore> ref, HexcasterComponent comp,
-                        Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
+                        Store<EntityStore> store, CommandBuffer<EntityStore> buffer,
+                        HexState previousState) {
                 comp.clearDrawingState();
                 comp.clearCraftingState();
 
@@ -29,7 +31,8 @@ public class IdleSystem extends HexcodeManager {
 
         @Override
         public void lastTick(Ref<EntityStore> ref, HexcasterComponent comp,
-                        Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
+                        Store<EntityStore> store, CommandBuffer<EntityStore> buffer,
+                        HexState nextState) {
         }
 
         @Override

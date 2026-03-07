@@ -63,6 +63,7 @@ import com.hypixel.hytale.component.ComponentRegistryProxy;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.ResourceType;
 import com.hypixel.hytale.component.spatial.KDTree;
 import com.hypixel.hytale.component.spatial.SpatialResource;
@@ -296,6 +297,14 @@ public class Hexcode extends JavaPlugin {
 
     private static void onPlayerDisconnect(PlayerDisconnectEvent event) {
         PlayerRef playerRef = event.getPlayerRef();
+        Ref<EntityStore> ref = playerRef.getReference();
+        if (ref != null && ref.isValid()) {
+            Store<EntityStore> store = ref.getStore();
+            HexcasterComponent hexcaster = store.getComponent(ref, HexcasterComponent.getComponentType());
+            if (hexcaster != null && hexcaster.getState() != HexState.IDLE) {
+                hexcaster.requestStateChange(HexState.IDLE);
+            }
+        }
 
         for (HexcodeManager manager : StateRouter.allManagers()) {
             manager.onPlayerLeave(playerRef);

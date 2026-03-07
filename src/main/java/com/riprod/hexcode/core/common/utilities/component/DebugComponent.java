@@ -25,7 +25,8 @@ public class DebugComponent implements Component<EntityStore> {
     private double scale;
     private float respawnInterval;
     private float timer;
-    private float intervalMultiplier;
+    private float fadeMultiplier = 2.0f;
+    private float intervalMultiplier = 1;
     private float scaleMultiplier = 1;
 
     public DebugComponent() {
@@ -37,17 +38,6 @@ public class DebugComponent implements Component<EntityStore> {
         this.color = color;
         this.scale = scale;
         this.respawnInterval = respawnInterval;
-        this.intervalMultiplier = 2.0f;
-        this.timer = 0;
-    }
-
-    public DebugComponent(DebugShape shape, Vector3f color, double scale, float respawnInterval,
-            float intervalMultiplier) {
-        this.shape = shape;
-        this.color = color;
-        this.scale = scale;
-        this.respawnInterval = respawnInterval;
-        this.intervalMultiplier = intervalMultiplier;
         this.timer = 0;
     }
 
@@ -90,6 +80,10 @@ public class DebugComponent implements Component<EntityStore> {
         return respawnInterval;
     }
 
+    public float getFadeTime() {
+        return respawnInterval * fadeMultiplier;
+    }
+
     public void setRespawnInterval(float respawnInterval) {
         this.respawnInterval = respawnInterval;
     }
@@ -99,7 +93,19 @@ public class DebugComponent implements Component<EntityStore> {
     }
 
     public void setTimer(float timer) {
-        this.timer = timer;
+        this.timer = timer * intervalMultiplier;
+    }
+
+    public float getFadeMultiplier() {
+        return this.fadeMultiplier;
+    }
+
+    public void setFadeMultiplier(float multiplier) {
+        this.fadeMultiplier = multiplier;
+    }
+
+    public void resetFadeMultipler() {
+        this.fadeMultiplier = 2;
     }
 
     public float getIntervalMultiplier() {
@@ -108,6 +114,10 @@ public class DebugComponent implements Component<EntityStore> {
 
     public void setIntervalMultiplier(float multiplier) {
         this.intervalMultiplier = multiplier;
+    }
+
+    public void resetIntervalMultiplier() {
+        this.intervalMultiplier = 1;
     }
 
     @Nonnull

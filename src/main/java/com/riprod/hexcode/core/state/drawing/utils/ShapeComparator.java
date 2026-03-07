@@ -188,8 +188,8 @@ public class ShapeComparator {
         return cumulative / shapes.size();
     }
 
-    public static Float calculateEfficiency(List<DrawnShapeComponent> shapes) {
-	Float totalSpeed = 0.0f;
+    public static float calculateEfficiency(List<DrawnShapeComponent> shapes) {
+	float totalSpeed = 0.0f;
 	
 	for (DrawnShapeComponent shape : shapes) {
 		totalSpeed += shape.getEfficiency();

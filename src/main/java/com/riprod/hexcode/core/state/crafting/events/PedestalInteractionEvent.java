@@ -12,7 +12,6 @@ import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.common.hexcaster.utils.CasterInventory;
 import com.riprod.hexcode.core.common.hexcaster.utils.PlayerUtils;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.entity.PedestalEntity;
@@ -20,7 +19,6 @@ import com.riprod.hexcode.core.state.crafting.system.ObeliskSystem;
 import com.riprod.hexcode.core.state.crafting.system.PedestalSystem;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalItemUtil;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalState;
-import com.riprod.hexcode.interaction.HexItemCondition.HexItemType;
 import com.riprod.hexcode.utils.HexSlot;
 
 import io.sentry.util.Pair;
@@ -55,38 +53,56 @@ public class PedestalInteractionEvent {
         ensureAnchor(accessor, pedestalComponent, blockPos);
         rebuildDisplays(accessor, pedestalComponent, blockPos);
 
-        Pair<ItemStack, HexSlot> itemInHand = PlayerUtils.getItemFromInventory(player, HexSlot.Both);
+        Pair<ItemStack, HexSlot> held = PlayerUtils.getItemFromInventory(player, HexSlot.Both);
+        ItemStack item = held.getFirst();
+        HexSlot slot = held.getSecond();
 
-        if (PedestalItemUtil.isEssence(itemInHand.getFirst()) && pedestalComponent.getEssenceItemId() == null) {
-            PedestalSystem.handleEssencePlacement(accessor, player, itemInHand.getFirst(), pedestalComponent, blockPos);
+        if (PedestalItemUtil.isEssence(item) && pedestalComponent.getEssenceItemId() == null) {
+            PedestalSystem.handleEssencePlacement(accessor, player, item, slot, pedestalComponent, blockPos);
             PedestalSystem.handleReady(accessor, pedestalComponent, world);
             ObeliskSystem.handleReady(accessor, pedestalComponent, world);
             return;
         }
 
-        if (PedestalItemUtil.isHexBook(itemInHand.getFirst()) && pedestalComponent.getStoredBook().isEmpty()) {
-            PedestalSystem.handleBookPlacement(accessor, player, itemInHand.getFirst(), itemInHand.getSecond(), pedestalComponent, blockPos);
+        if (PedestalItemUtil.isHexBook(item) && pedestalComponent.getStoredBook().isEmpty()) {
+            PedestalSystem.handleBookPlacement(accessor, player, item, slot, pedestalComponent, blockPos);
             PedestalSystem.handleReady(accessor, pedestalComponent, world);
             ObeliskSystem.handleReady(accessor, pedestalComponent, world);
+            return;
         }
 
-        if (PedestalItemUtil.isEmptyHand(itemInHand.getFirst())) {
-            PedestalState state = pedestalComponent.getState();
-            boolean shouldDeactivate = state == PedestalState.SELECTING
-                    || state == PedestalState.CRAFTING
-                    || pedestalComponent.getEssenceItemId() == null
-                    || pedestalComponent.getStoredBook() == null
-                    || pedestalComponent.getStoredBook().isEmpty();
+        // holding a relevant item the pedestal can't accept
+        if (!PedestalItemUtil.isEmptyHand(item)) {
+            return;
+        }
 
-            if (shouldDeactivate) {
+        boolean hasEssence = pedestalComponent.getEssenceItemId() != null;
+        boolean hasBook = pedestalComponent.getStoredBook() != null
+                && !pedestalComponent.getStoredBook().isEmpty();
+
+        // partial state: return the lone item
+        if (hasBook && !hasEssence) {
+            PedestalSystem.handleDeactivation(accessor, player, pedestalComponent, world);
+            ObeliskSystem.handleDeactivation(accessor, pedestalComponent, world);
+            return;
+        }
+
+        if (hasEssence && !hasBook) {
+            PedestalSystem.handleDeactivation(accessor, player, pedestalComponent, world);
+            ObeliskSystem.handleDeactivation(accessor, pedestalComponent, world);
+            return;
+        }
+
+        // both items present: toggle activation
+        if (hasBook && hasEssence) {
+            PedestalState state = pedestalComponent.getState();
+            if (state == PedestalState.SELECTING || state == PedestalState.CRAFTING) {
                 PedestalSystem.handleDeactivation(accessor, player, pedestalComponent, world);
                 ObeliskSystem.handleDeactivation(accessor, pedestalComponent, world);
             } else {
                 PedestalSystem.handleActivation(pedestalComponent, world, accessor);
                 ObeliskSystem.handleActivation(pedestalComponent, world, accessor);
             }
-
-            return;
         }
     }
 

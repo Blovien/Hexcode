@@ -23,17 +23,19 @@ public class HoverStyleUtils {
 
     private static final String HOVER_PARTICLE = "Object_Hover";
 
-    public static void unhover(CommandBuffer<EntityStore> accessor, Ref<EntityStore> previousHovered) {
+    public static void unhover(CommandBuffer<EntityStore> accessor, Ref<EntityStore> unhoveredRef) {
 
-        if (previousHovered == null || !previousHovered.isValid())
+        if (unhoveredRef == null || !unhoveredRef.isValid())
             return;
 
-        HoverableComponent hoveredComponent = accessor.getComponent(previousHovered,
+        HoverableComponent hoveredComponent = accessor.getComponent(unhoveredRef,
                 HoverableComponent.getComponentType());
+        if (hoveredComponent == null)
+            return;
 
         switch (hoveredComponent.getType()) {
             case GLYPH: {
-                EffectComponent prevEffect = accessor.getComponent(previousHovered,
+                EffectComponent prevEffect = accessor.getComponent(unhoveredRef,
                         EffectComponent.getComponentType());
                 if (prevEffect == null)
                     return;
@@ -41,15 +43,21 @@ public class HoverStyleUtils {
             }
                 break;
             case NODE: {
-                DebugComponent debug = accessor.getComponent(previousHovered, DebugComponent.getComponentType());
+                DebugComponent debug = accessor.getComponent(unhoveredRef, DebugComponent.getComponentType());
                 if (debug == null)
                     return;
                 debug.resetScaleMultiplier();
+                debug.resetFadeMultipler();
+                debug.resetIntervalMultiplier();
             }
+                break;
             case CONTAINER: {
-                DebugComponent debug = accessor.getComponent(previousHovered, DebugComponent.getComponentType());
+                DebugComponent debug = accessor.getComponent(unhoveredRef, DebugComponent.getComponentType());
                 if (debug == null)
                     return;
+
+                debug.resetIntervalMultiplier();
+                debug.resetFadeMultipler();
                 debug.resetScaleMultiplier();
             }
         }
@@ -61,6 +69,8 @@ public class HoverStyleUtils {
 
         HoverableComponent hoveredComponent = accessor.getComponent(hovered,
                 HoverableComponent.getComponentType());
+        if (hoveredComponent == null)
+            return;
 
         switch (hoveredComponent.getType()) {
             case GLYPH: {
@@ -76,6 +86,8 @@ public class HoverStyleUtils {
                 if (debug == null)
                     return;
                 debug.setScaleMultiplier(1.3f);
+                debug.setIntervalMultiplier(0.25f);
+                debug.setFadeMultiplier(0.25f);
                 debug.setTimer(0);
             }
                 break;
@@ -84,6 +96,8 @@ public class HoverStyleUtils {
                 if (debug == null)
                     return;
                 debug.setScaleMultiplier(1.3f);
+                debug.setIntervalMultiplier(0.25f);
+                debug.setFadeMultiplier(0.25f);
                 debug.setTimer(0);
             }
         }

@@ -11,10 +11,10 @@
     "DrawType": "Model",
     "Material": "Solid",
     "Opacity": "Transparent",
-    "CustomModel": "Blocks/Hexcode/Obelisks/Life_Essence_Obelisk.blockymodel",
+    "CustomModel": "Blocks/Hexcode/Obelisks/Life_Obelisk.blockymodel",
     "CustomModelTexture": [
       {
-        "Texture": "Blocks/Hexcode/Obelisks/Life_Essence_Obelisk.png",
+        "Texture": "Blocks/Hexcode/Obelisks/Life_Obelisk.png",
         "Weight": 1
       }
     ],
@@ -42,14 +42,14 @@
             "Intensity": 1
           },
           "CustomModelAnimation": "Blocks/Hexcode/Obelisks/Animations/Obelisk_Life_Idle.blockyanim",
-          "CustomModel": "Blocks/Hexcode/Obelisks/Life_Essence_Obelisk.blockymodel"
+          "CustomModel": "Blocks/Hexcode/Obelisks/Life_Obelisk.blockymodel"
         },
         "Ready": {
           "Light": {
             "Color": "#7b3fbf",
             "Intensity": 2
           },
-          "CustomModel": "Blocks/Hexcode/Obelisks/Life_Essence_Obelisk_Active.blockymodel"
+          "CustomModel": "Blocks/Hexcode/Obelisks/Life_Obelisk_Active.blockymodel"
         },
         "Selecting": {
           "Light": {
@@ -68,7 +68,7 @@
             }
           ],
           "CustomModelAnimation": "Blocks/Hexcode/Obelisks/Animations/Obelisk_Life_Selecting.blockyanim",
-          "CustomModel": "Blocks/Hexcode/Obelisks/Life_Essence_Obelisk_Active.blockymodel"
+          "CustomModel": "Blocks/Hexcode/Obelisks/Life_Obelisk_Active.blockymodel"
         },
         "Crafting": {
           "Light": {
@@ -85,7 +85,7 @@
             }
           ],
           "CustomModelAnimation": "Blocks/Hexcode/Obelisks/Animations/Obelisk_Life_Crafting.blockyanim",
-          "CustomModel": "Blocks/Hexcode/Obelisks/Life_Essence_Obelisk_Active.blockymodel",
+          "CustomModel": "Blocks/Hexcode/Obelisks/Life_Obelisk_Active.blockymodel",
           "Looping": true
         }
       }

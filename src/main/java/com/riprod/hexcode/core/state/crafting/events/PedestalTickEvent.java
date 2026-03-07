@@ -61,9 +61,10 @@ public class PedestalTickEvent extends EntityTickingSystem<EntityStore> {
             case READY: // has all required components but not active yet
                 tickReady(dt, pedestalBlock, buffer.getExternalData().getWorld(), buffer);
                 break;
-            case CRAFTING: // crafting
+            case CRAFTING:
                 tickCrafting(buffer, store, dt, pedestalBlock);
-            case SELECTING: // has hexes placed but not crafting yet
+                // fall-through: both crafting and selecting need player detection
+            case SELECTING:
                 Ref<EntityStore> anchorRef = accessor.getReferenceTo(index);
                 tickPlayerDetection(buffer, store, dt, pedestalBlock, anchorRef);
                 break;
@@ -111,17 +112,17 @@ public class PedestalTickEvent extends EntityTickingSystem<EntityStore> {
             }
         }
 
-        // remove players that are out of range or no longer idle/crafting
         Set<Ref<EntityStore>> activePlayers = pedestal.getActivePlayerRefs();
+        List<Ref<EntityStore>> toRemove = new ArrayList<>();
         for (Ref<EntityStore> playerRef : activePlayers) {
             if (playerRef == null || !playerRef.isValid()) {
-                activePlayers.remove(playerRef);
+                toRemove.add(playerRef);
                 continue;
             }
 
             HexcasterComponent hexcaster = buffer.getComponent(playerRef, HexcasterComponent.getComponentType());
             if (hexcaster == null || (hexcaster.getState() != HexState.CRAFTING && hexcaster.getState() != HexState.DRAWING)) {
-                activePlayers.remove(playerRef);
+                toRemove.add(playerRef);
                 continue;
             }
 
@@ -133,10 +134,11 @@ public class PedestalTickEvent extends EntityTickingSystem<EntityStore> {
             double distSq = transform.getPosition().distanceSquaredTo(anchorPos);
             if (distSq > maxRadiusSq) {
                 hexcaster.requestStateChange(HexState.IDLE);
-                activePlayers.remove(playerRef);
+                toRemove.add(playerRef);
                 LOGGER.atInfo().log("pedestal: player %s out of range, exiting CRAFTING", playerRef);
             }
         }
+        activePlayers.removeAll(toRemove);
     }
 
     private void tickCrafting(CommandBuffer<EntityStore> buffer, Store<EntityStore> store, float dt,

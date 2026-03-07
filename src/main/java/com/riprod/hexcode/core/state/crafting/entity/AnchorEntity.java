@@ -128,7 +128,7 @@ public class AnchorEntity {
         holder.addComponent(NetworkId.getComponentType(), new NetworkId(networkId));
 
         holder.addComponent(BoundingBox.getComponentType(), new BoundingBox(PREVIEW_BOUNDING_BOX));
-        holder.addComponent(HoverableComponent.getComponentType(), new HoverableComponent(HoverableType.HEX));
+        holder.addComponent(HoverableComponent.getComponentType(), new HoverableComponent(HoverableType.CONTAINER));
         holder.addComponent(DebugComponent.getComponentType(),
                 new DebugComponent(DebugShape.Cube, new Vector3f(0.5f, 0.5f, 0.5f), 0.5, 2.0f));
 

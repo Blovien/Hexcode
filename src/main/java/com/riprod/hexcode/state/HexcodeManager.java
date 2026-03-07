@@ -13,10 +13,12 @@ import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 public abstract class HexcodeManager {
 
         public abstract void firstTick(Ref<EntityStore> ref, HexcasterComponent comp,
-                        Store<EntityStore> store, CommandBuffer<EntityStore> buffer);
+                        Store<EntityStore> store, CommandBuffer<EntityStore> buffer,
+                        HexState previousState);
 
         public abstract void lastTick(Ref<EntityStore> ref, HexcasterComponent comp,
-                        Store<EntityStore> store, CommandBuffer<EntityStore> buffer);
+                        Store<EntityStore> store, CommandBuffer<EntityStore> buffer,
+                        HexState nextState);
 
         public abstract void tick0(Ref<EntityStore> ref, HexcasterComponent comp, float dt,
                         Store<EntityStore> store, CommandBuffer<EntityStore> buffer);

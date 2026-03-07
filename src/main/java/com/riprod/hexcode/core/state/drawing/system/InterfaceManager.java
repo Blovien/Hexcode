@@ -112,6 +112,7 @@ public class InterfaceManager {
         head.getRotation().getPitch(), 2.0f);
 
     TransformComponent trailTransform = accessor.getComponent(trailRef, TransformComponent.getComponentType());
+    if (trailTransform == null) return;
     trailTransform.setPosition(position);
   }
 

@@ -126,7 +126,8 @@ public class PedestalSystem {
     }
 
     public static void handleEssencePlacement(CommandBuffer<EntityStore> buffer,
-            Player player, ItemStack essenceItem, PedestalBlockComponent pedestalComponent, Vector3i blockPos) {
+            Player player, ItemStack essenceItem, HexSlot slot,
+            PedestalBlockComponent pedestalComponent, Vector3i blockPos) {
 
         Vector3d anchorPos = PedestalEntity.getAnchorPosition(blockPos);
 
@@ -140,7 +141,7 @@ public class PedestalSystem {
         pedestalComponent.setEssenceDisplayRef(newEssenceRef);
         pedestalComponent.setEssenceItemId(essenceItem.getItem().getId());
 
-        PlayerUtils.consumeOneFromHand(player);
+        PlayerUtils.consumeOneFromHand(player, slot);
     }
 
     public static void handleBookPlacement(CommandBuffer<EntityStore> buffer,
@@ -150,6 +151,7 @@ public class PedestalSystem {
 
         ItemStack prepared = PedestalItemUtil.ensureHexBookComponent(bookItem);
         pedestalComponent.setStoredBook(prepared);
+        pedestalComponent.setBookSourceSlot(slot);
 
         Ref<EntityStore> oldBookDisplay = pedestalComponent.getBookDisplayRef();
         if (oldBookDisplay != null && oldBookDisplay.isValid()) {
@@ -204,7 +206,7 @@ public class PedestalSystem {
                 continue;
             }
             HexcasterComponent hexcaster = buffer.getComponent(activePlayerRef, HexcasterComponent.getComponentType());
-            if (hexcaster != null && hexcaster.getState() == HexState.CRAFTING || hexcaster.getState() == HexState.DRAWING) {
+            if (hexcaster != null && (hexcaster.getState() == HexState.CRAFTING || hexcaster.getState() == HexState.DRAWING)) {
                 hexcaster.requestStateChange(HexState.IDLE);
                 logger.atInfo().log("pedestal: kicking player from %s on deactivation", hexcaster.getState().toString());
             }
@@ -217,7 +219,7 @@ public class PedestalSystem {
 
         ItemStack bookStack = pedestalComponent.getStoredBook();
         if (bookStack != null && !bookStack.isEmpty()) {
-            PedestalItemUtil.returnBookToPlayer(player, bookStack);
+            PedestalItemUtil.returnBookToPlayer(player, bookStack, pedestalComponent.getBookSourceSlot());
             pedestalComponent.setStoredBook(ItemStack.EMPTY);
         }
 
@@ -231,6 +233,12 @@ public class PedestalSystem {
         if (essenceRef != null && essenceRef.isValid()) {
             buffer.removeEntity(essenceRef, RemoveReason.REMOVE);
             pedestalComponent.setEssenceDisplayRef(null);
+        }
+        if (!pedestalComponent.isConsumeEssence()) {
+            boolean returned = PedestalItemUtil.returnEssenceToPlayer(player, pedestalComponent.getEssenceItemId());
+            if (!returned && pedestalComponent.getEssenceItemId() != null) {
+                PedestalItemUtil.dropEssenceAtPosition(buffer, pedestalComponent.getEssenceItemId(), blockPos);
+            }
         }
         pedestalComponent.setEssenceItemId(null);
 

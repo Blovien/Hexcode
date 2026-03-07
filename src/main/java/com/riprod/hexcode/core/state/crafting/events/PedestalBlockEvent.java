@@ -24,6 +24,10 @@ import com.riprod.hexcode.core.state.crafting.entity.AnchorEntity;
 import com.riprod.hexcode.core.state.crafting.system.ObeliskSystem;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalItemUtil;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalState;
+import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
+import com.riprod.hexcode.state.HexState;
+
+import java.util.Set;
 
 public class PedestalBlockEvent extends EntityEventSystem<EntityStore, BreakBlockEvent> {
 
@@ -64,6 +68,16 @@ public class PedestalBlockEvent extends EntityEventSystem<EntityStore, BreakBloc
         UnbreakableBlockComponent.unprotect(world, pos);
         ObeliskSystem.handleDeactivation(buffer, pedestal, world);
 
+        Set<Ref<EntityStore>> activePlayers = pedestal.getActivePlayerRefs();
+        for (Ref<EntityStore> playerRef : activePlayers) {
+            if (playerRef == null || !playerRef.isValid()) continue;
+            HexcasterComponent hexcaster = buffer.getComponent(playerRef, HexcasterComponent.getComponentType());
+            if (hexcaster != null) {
+                hexcaster.requestStateChange(HexState.IDLE);
+            }
+        }
+        activePlayers.clear();
+
         ItemStack bookStack = pedestal.getStoredBook();
         if (bookStack != null && !bookStack.isEmpty()) {
             PedestalItemUtil.dropBookAtPosition(buffer, bookStack, pos);
@@ -81,6 +95,10 @@ public class PedestalBlockEvent extends EntityEventSystem<EntityStore, BreakBloc
         if (essenceRef != null && essenceRef.isValid()) {
             buffer.removeEntity(essenceRef, RemoveReason.REMOVE);
             pedestal.setEssenceDisplayRef(null);
+        }
+
+        if (!pedestal.isConsumeEssence() && pedestal.getEssenceItemId() != null) {
+            PedestalItemUtil.dropEssenceAtPosition(buffer, pedestal.getEssenceItemId(), pos);
         }
 
         Ref<EntityStore> anchorRef = pedestal.getAnchorRef();

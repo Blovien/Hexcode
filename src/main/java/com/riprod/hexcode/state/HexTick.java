@@ -29,17 +29,18 @@ public class HexTick extends EntityTickingSystem<EntityStore> {
 
     HexState pending = comp.consumePendingState();
     if (pending != null) {
-      LOGGER.atInfo().log("%s -> %s", comp.getState(), pending);
-      HexcodeManager old = StateRouter.route(comp.getState());
+      HexState current = comp.getState();
+      LOGGER.atInfo().log("%s -> %s", current, pending);
+      HexcodeManager old = StateRouter.route(current);
       if (old != null) {
-        old.lastTick(ref, comp, store, buffer);
+        old.lastTick(ref, comp, store, buffer, pending);
       }
 
       comp.applyState(pending);
 
       HexcodeManager next = StateRouter.route(pending);
       if (next != null) {
-        next.firstTick(ref, comp, store, buffer);
+        next.firstTick(ref, comp, store, buffer, current);
         return;
       }
     }

@@ -17,6 +17,7 @@ public class CraftingGlyphSpawner {
 
     public static void spawnCraftingGlyphs(CommandBuffer<EntityStore> buffer,
             HexComponent hexComp, Vector3d hexWorldPos) {
+        String firstGlyphId = hexComp.getHex().getFirstGlyphId();
         for (Glyph glyph : hexComp.getHex().getGlyphs()) {
             EffectComponent effect = new EffectComponent(glyph);
             effect.setHexRef(hexComp.getSelfRef());

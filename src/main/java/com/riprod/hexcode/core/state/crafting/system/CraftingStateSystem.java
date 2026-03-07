@@ -54,13 +54,14 @@ public class CraftingStateSystem {
             case GLYPH:
                 Ref<EntityStore> headAnchor = CraftingDragUtil.startDrag(buffer, ref, hoveredRef);
                 craftingComp.setHeadAnchorRef(headAnchor);
+                LOGGER.atInfo().log("Entering interaction and setting hoveredRef");
                 craftingComp.setDraggingRef(hoveredRef, hoveredType);
                 if (craftingComp.getDetailsGlyphRef() == null)
-                    return InteractionState.NotFinished;
+                    return InteractionState.Failed;
 
                 DetailsRenderer.closeDetails(buffer, craftingComp.getDetailSlotRefs());
                 craftingComp.setDetailsGlyphRef(null);
-                return InteractionState.NotFinished;
+                return InteractionState.Finished;
 
             case NODE: {
                 // reset details
@@ -102,8 +103,9 @@ public class CraftingStateSystem {
                     }
                 }
 
+                LOGGER.atInfo().log("Entering interaction and setting hoveredRef");
                 craftingComp.setDraggingRef(hoveredRef, hoveredType);
-                return InteractionState.NotFinished;
+                return InteractionState.Finished;
             }
             default:
                 return InteractionState.Failed;
@@ -111,9 +113,9 @@ public class CraftingStateSystem {
 
     }
 
-    public static void tickInteraction(CommandBuffer<EntityStore> buffer, float dt, Ref<EntityStore> ref,
+    public static void tickInteraction(CommandBuffer<EntityStore> accessor, float dt, Ref<EntityStore> ref,
             PedestalBlockComponent pedestal) {
-        HexcasterCraftingComponent craftingComp = buffer.getComponent(ref,
+        HexcasterCraftingComponent craftingComp = accessor.getComponent(ref,
                 HexcasterCraftingComponent.getComponentType());
         if (craftingComp == null)
             return;
@@ -127,49 +129,50 @@ public class CraftingStateSystem {
 
         switch (draggingType) {
             case GLYPH: {
-                CraftingDragUtil.updateDrag(buffer, craftingComp.getHeadAnchorRef(), ref);
+                CraftingDragUtil.updateDrag(accessor, craftingComp.getHeadAnchorRef(), ref);
 
                 // TransformComponent playerTransform = buffer.getComponent(ref,
-                //         TransformComponent.getComponentType());
+                // TransformComponent.getComponentType());
                 // if (playerTransform == null)
-                //     return;
+                // return;
 
                 // List<Ref<EntityStore>> nearby = HoverableUtils.getNearbyHoverables(buffer,
-                //         playerTransform.getPosition(), 8.0);
+                // playerTransform.getPosition(), 8.0);
                 // List<Ref<EntityStore>> filtered = new ArrayList<>(nearby.size());
 
-                // Ref<EntityStore> hoveredEntity = HoverableUtils.getSmallestTarget(buffer, ref, filtered);
+                // Ref<EntityStore> hoveredEntity = HoverableUtils.getSmallestTarget(buffer,
+                // ref, filtered);
             }
                 break;
             case NODE: {
 
-                TransformComponent nodeTransform = buffer.getComponent(
+                TransformComponent nodeTransform = accessor.getComponent(
                         craftingComp.getDraggingRef(), TransformComponent.getComponentType());
 
-                Transform look = TargetUtil.getLook(ref, buffer);
+                Transform look = TargetUtil.getLook(ref, accessor);
                 Vector3d targetPoint = new Vector3d(
                         look.getPosition().x + look.getDirection().x * 5,
                         look.getPosition().y + look.getDirection().y * 5,
                         look.getPosition().z + look.getDirection().z * 5);
 
                 if (nodeTransform != null) {
-                    LinkRenderer.renderActiveLink(buffer, buffer.getExternalData().getWorld(),
+                    LinkRenderer.renderActiveLink(accessor, accessor.getExternalData().getWorld(),
                             nodeTransform.getPosition(), targetPoint,
                             new Vector3f(0.3f, 0.7f, 1.0f));
                 }
 
                 // TransformComponent playerTransform = buffer.getComponent(ref,
-                //         TransformComponent.getComponentType());
+                // TransformComponent.getComponentType());
                 // if (playerTransform != null) {
-                //     List<Ref<EntityStore>> nearby = HoverableUtils.getNearbyHoverables(buffer,
-                //             playerTransform.getPosition(), 8.0);
-                //     List<Ref<EntityStore>> filtered = new ArrayList<>(nearby.size());
-                //     for (Ref<EntityStore> candidate : nearby) {
-                //         if (!candidate.equals(craftingComp.getDraggingRef())) {
-                //             filtered.add(candidate);
-                //         }
-                //     }
-                //     HoverableUtils.getSmallestTarget(buffer, ref, filtered);
+                // List<Ref<EntityStore>> nearby = HoverableUtils.getNearbyHoverables(buffer,
+                // playerTransform.getPosition(), 8.0);
+                // List<Ref<EntityStore>> filtered = new ArrayList<>(nearby.size());
+                // for (Ref<EntityStore> candidate : nearby) {
+                // if (!candidate.equals(craftingComp.getDraggingRef())) {
+                // filtered.add(candidate);
+                // }
+                // }
+                // HoverableUtils.getSmallestTarget(buffer, ref, filtered);
                 // }
             }
                 break;
@@ -195,7 +198,7 @@ public class CraftingStateSystem {
         HoverableType hoverableType = null;
         if (targetRef != null && targetRef.isValid()) {
             HoverableComponent comp = accessor.getComponent(targetRef, HoverableComponent.getComponentType());
-            hoverableType = comp.getType();
+            if (comp != null) hoverableType = comp.getType();
         }
 
         Ref<EntityStore> previousHovered = craftingComp.getHoveredRef();
@@ -213,7 +216,7 @@ public class CraftingStateSystem {
             HoverStyleUtils.hover(accessor, targetRef);
         }
 
-        HoverStyleUtils.hoverParticles(accessor, previousHovered, dt, pedestal, ref);
+        HoverStyleUtils.hoverParticles(accessor, craftingComp.getHoveredRef(), dt, pedestal, ref);
 
         LinkRenderer.renderLinks(accessor, craftingComp, pedestal, dt);
     }

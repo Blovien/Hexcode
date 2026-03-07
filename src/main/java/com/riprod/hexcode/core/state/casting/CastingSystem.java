@@ -47,7 +47,8 @@ public class CastingSystem extends HexcodeManager {
 
     @Override
     public void firstTick(Ref<EntityStore> ref, HexcasterComponent comp,
-            Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
+            Store<EntityStore> store, CommandBuffer<EntityStore> buffer,
+            HexState previousState) {
         HexcasterCastingComponent castingComp = new HexcasterCastingComponent();
         buffer.addComponent(ref, HexcasterCastingComponent.getComponentType(), castingComp);
 
@@ -84,7 +85,8 @@ public class CastingSystem extends HexcodeManager {
 
     @Override
     public void lastTick(Ref<EntityStore> ref, HexcasterComponent comp,
-            Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
+            Store<EntityStore> store, CommandBuffer<EntityStore> buffer,
+            HexState nextState) {
         HexcasterCastingComponent castingComp = buffer.getComponent(ref, HexcasterCastingComponent.getComponentType());
 
         cleanupEntities(buffer, castingComp);

@@ -6,11 +6,11 @@
   "Categories": [
     "Items.Weapons"
   ],
-  "Icon": "Icons/ItemsGenerated/Life_Essence_Hexbook.png",
+  "Icon": "Icons/ItemsGenerated/Life_Hexbook.png",
   "Quality": "Epic",
   "ItemLevel": 40,
-  "Model": "Items/Tools/Book/Essence_Grimoire.blockymodel",
-  "Texture": "Items/Tools/Book/Life_Essence_Grimoire.png",
+  "Model": "Items/Tools/Book/Life_Hexbook.blockymodel",
+  "Texture": "Items/Tools/Book/Life_Hexbook.png",
   "IconProperties": {
     "Scale": 0.745,
     "Rotation": [
@@ -28,7 +28,7 @@
   "Scale": 1.2,
   "Tags": {
     "Type": [
-      "ArcaneHexBook"
+      "LifeHexBook"
     ]
   },
   "Weapon": {},

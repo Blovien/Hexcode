@@ -36,6 +36,8 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.riprod.hexcode.utils.HexSlot;
+
 public class PedestalBlockComponent implements Component<ChunkStore> {
 
     public static final BuilderCodec<PedestalBlockComponent> CODEC = BuilderCodec
@@ -124,8 +126,10 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
     private Map<String, AnimationSet> animationSetMap = Collections.emptyMap();
     protected Vector3f essenceOffset = new Vector3f(0f, -0.5f, 0f);
     protected Vector3f bookOffset = new Vector3f(0f, 0.3f, 0f);
+    private boolean consumeEssence = false;
     // transient
     private Vector3i location = null;
+    private HexSlot bookSourceSlot = HexSlot.MainHand;
     private Map<String, Float> lastTickMap = new HashMap<>();
     private List<Vector3i> obeliskLocations = new ArrayList<>();
     private Set<Ref<EntityStore>> activePlayerRefs = new HashSet<>();
@@ -154,6 +158,22 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
 
     public void setEssenceItemId(@Nullable String essenceItemId) {
         this.essenceItemId = essenceItemId;
+    }
+
+    public boolean isConsumeEssence() {
+        return consumeEssence;
+    }
+
+    public void setConsumeEssence(boolean consumeEssence) {
+        this.consumeEssence = consumeEssence;
+    }
+
+    public HexSlot getBookSourceSlot() {
+        return bookSourceSlot;
+    }
+
+    public void setBookSourceSlot(HexSlot bookSourceSlot) {
+        this.bookSourceSlot = bookSourceSlot;
     }
 
     public int getMaxObelisks() {
@@ -351,6 +371,8 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
     public Component<ChunkStore> clone() {
         PedestalBlockComponent copy = new PedestalBlockComponent();
         copy.essenceItemId = this.essenceItemId;
+        copy.consumeEssence = this.consumeEssence;
+        copy.bookSourceSlot = this.bookSourceSlot;
         copy.maxObelisks = this.maxObelisks;
         copy.maxRadius = this.maxRadius;
         copy.perPlayer = this.perPlayer;
