@@ -6,11 +6,11 @@
   "Categories": [
     "Items.Weapons"
   ],
-  "Icon": "Icons/ItemsGenerated/Life_Hexbook.png",
+  "Icon": "Icons/ItemsGenerated/Void_Hexbook.png",
   "Quality": "Epic",
   "ItemLevel": 40,
   "Model": "Items/Tools/Book/Life_Hexbook.blockymodel",
-  "Texture": "Items/Tools/Book/Life_Essence_Grimoire_Alternative.png",
+  "Texture": "Items/Tools/Book/Void_Essence_Grimoire.png",
   "IconProperties": {
     "Scale": 0.745,
     "Rotation": [
