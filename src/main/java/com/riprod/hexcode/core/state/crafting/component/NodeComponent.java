@@ -29,6 +29,7 @@ public class NodeComponent implements Component<EntityStore> {
     private List<Ref<EntityStore>> inputRefs = new ArrayList<>();
     private Ref<EntityStore> parentGlyphRef;
     private boolean isHovered = false;
+    private boolean isRootNode = false;
 
     public List<Ref<EntityStore>> getOutputRefs() {
         return outputRefs;
@@ -78,6 +79,14 @@ public class NodeComponent implements Component<EntityStore> {
         this.parentGlyphRef = parentGlyphRef;
     }
 
+    public boolean isRootNode() {
+        return isRootNode;
+    }
+
+    public void setRootNode(boolean rootNode) {
+        this.isRootNode = rootNode;
+    }
+
     @Nonnull
     @Override
     public NodeComponent clone() {
@@ -86,6 +95,7 @@ public class NodeComponent implements Component<EntityStore> {
         copy.inputRefs = new ArrayList<>(this.inputRefs);
         copy.parentGlyphRef = this.parentGlyphRef;
         copy.isHovered = this.isHovered;
+        copy.isRootNode = this.isRootNode;
         return copy;
     }
 }

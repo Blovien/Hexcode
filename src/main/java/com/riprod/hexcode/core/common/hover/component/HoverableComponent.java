@@ -33,6 +33,7 @@ public class HoverableComponent implements Component<EntityStore> {
 
     private HoverableType entityType = HoverableType.CONTAINER;
     private Ref<EntityStore> rootRef = null;
+    private Ref<EntityStore> ownerRef = null;
 
     public HoverableType getType() {
         return entityType;
@@ -50,12 +51,21 @@ public class HoverableComponent implements Component<EntityStore> {
         this.rootRef = ref;
     }
 
+    public Ref<EntityStore> getOwnerRef() {
+        return ownerRef;
+    }
+
+    public void setOwnerRef(Ref<EntityStore> ownerRef) {
+        this.ownerRef = ownerRef;
+    }
+
     @Nonnull
     @Override
     public HoverableComponent clone() {
         HoverableComponent copy = new HoverableComponent();
         copy.rootRef = this.rootRef;
         copy.entityType = this.entityType;
+        copy.ownerRef = this.ownerRef;
         return copy;
     }
 }

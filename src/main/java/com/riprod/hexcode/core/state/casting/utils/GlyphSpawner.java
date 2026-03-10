@@ -2,6 +2,8 @@ package com.riprod.hexcode.core.state.casting.utils;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
@@ -17,9 +19,14 @@ import com.riprod.hexcode.utils.GlyphMath;
 public class GlyphSpawner {
     public static void spawnGlyphs(ComponentAccessor<EntityStore> accessor, HexComponent hex, EffectComponent glyph,
             Vector3d parentPos) {
+            spawnGlyphs(accessor, hex, glyph, parentPos, null);
+    }
+
+    public static void spawnGlyphs(ComponentAccessor<EntityStore> accessor, HexComponent hex, EffectComponent glyph,
+            Vector3d parentPos, @Nullable Ref<EntityStore> playerRef) {
 
         // create the glyph
-        Ref<EntityStore> glyphRef = CreateGlyph.createGlyph(accessor, glyph, parentPos);
+        Ref<EntityStore> glyphRef = CreateGlyph.createGlyph(accessor, glyph, parentPos, playerRef);
         glyph.setSelfRef(glyphRef); // backwards reference
         hex.addChildGlyphRef(glyph.getId(), glyphRef);
 

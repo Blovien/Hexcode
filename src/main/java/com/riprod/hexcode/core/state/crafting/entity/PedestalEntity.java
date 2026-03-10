@@ -26,8 +26,10 @@ import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.state.crafting.component.PedestalAnchorComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.state.crafting.component.PedestalPlayerData;
 import com.hypixel.hytale.logger.HytaleLogger;
 
 public class PedestalEntity {
@@ -85,11 +87,13 @@ public class PedestalEntity {
     }
 
     public static Ref<EntityStore> spawnEssenceDisplay(ComponentAccessor<EntityStore> accessor,
-            PedestalBlockComponent pedestal,
+            PedestalBlockComponent pedestal, PedestalPlayerData playerData,
             Vector3d anchorPos, Item item,
-            String anchorId) {
+            String anchorId, @Nullable Ref<EntityStore> playerRef) {
 
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
+
+        HiddenUtils.addHiddenToHolder(holder, playerRef);
 
         holder.addComponent(TransformComponent.getComponentType(),
                 new TransformComponent(anchorPos, new Vector3f(0, 0, 0)));
@@ -104,7 +108,7 @@ public class PedestalEntity {
         addDisplayModel(pedestal, holder, item, anchorId, 0.5f);
 
         holder.addComponent(MountedComponent.getComponentType(),
-                new MountedComponent(pedestal.getAnchorRef(), pedestal.getEssenceOffset(),
+                new MountedComponent(playerData.getAnchorRef(), pedestal.getEssenceOffset(),
                         MountController.Minecart));
 
         return accessor.addEntity(holder, AddReason.SPAWN);
@@ -112,9 +116,11 @@ public class PedestalEntity {
 
     public static Ref<EntityStore> spawnBookDisplay(ComponentAccessor<EntityStore> accessor,
             PedestalBlockComponent pedestal,
-            Vector3d anchorPos, Item item) {
+            PedestalPlayerData playerData, Vector3d anchorPos, Item item, @Nullable Ref<EntityStore> playerRef) {
 
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
+
+        HiddenUtils.addHiddenToHolder(holder, playerRef);
 
         holder.addComponent(TransformComponent.getComponentType(),
                 new TransformComponent(anchorPos, new Vector3f(0, 0, 0)));
@@ -129,7 +135,7 @@ public class PedestalEntity {
         addDisplayModel(pedestal, holder, item, pedestal.getReferenceHolder(), 1.0f);
 
         holder.addComponent(MountedComponent.getComponentType(),
-                new MountedComponent(pedestal.getAnchorRef(), pedestal.getBookOffset(),
+                new MountedComponent(playerData.getAnchorRef(), pedestal.getBookOffset(),
                         MountController.Minecart));
 
         return accessor.addEntity(holder, AddReason.SPAWN);
@@ -168,24 +174,5 @@ public class PedestalEntity {
             return null;
         }
         return modelAsset.getAnimationSetMap();
-    }
-
-    public static void despawnAnchor(PedestalBlockComponent comp,
-            CommandBuffer<EntityStore> buffer) {
-
-        Ref<EntityStore> essenceRef = comp.getEssenceDisplayRef();
-        if (essenceRef != null && essenceRef.isValid()) {
-            buffer.removeEntity(essenceRef, RemoveReason.REMOVE);
-        }
-
-        Ref<EntityStore> bookRef = comp.getBookDisplayRef();
-        if (bookRef != null && bookRef.isValid()) {
-            buffer.removeEntity(bookRef, RemoveReason.REMOVE);
-        }
-        
-        Ref<EntityStore> anchorRef = comp.getAnchorRef();
-        if (anchorRef != null && anchorRef.isValid()) {
-            buffer.removeEntity(anchorRef, RemoveReason.REMOVE);
-        }
     }
 }

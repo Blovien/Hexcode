@@ -21,6 +21,8 @@ import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffAsset;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffComponent;
+import com.riprod.hexcode.core.common.hidden.component.HiddenComponent;
+import com.riprod.hexcode.core.common.hidden.system.HiddenFilterSystem;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.system.HoverableSpatialSystem;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
@@ -75,6 +77,7 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Int
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
@@ -214,6 +217,10 @@ public class Hexcode extends JavaPlugin {
                 .registerComponent(DebugComponent.class, DebugComponent::new);
         DebugComponent.setComponentType(debugComponentType);
 
+        ComponentType<EntityStore, HiddenComponent> hiddenComponentType = entityStoreRegistry
+                .registerComponent(HiddenComponent.class, HiddenComponent::new);
+        HiddenComponent.setComponentType(hiddenComponentType);
+
         // Block Component Registries
         ComponentRegistryProxy<ChunkStore> chunkStoreRegistry = this.getChunkStoreRegistry();
 
@@ -286,6 +293,11 @@ public class Hexcode extends JavaPlugin {
         LOGGER.atInfo().log("Hexcode setup complete!");
     }
 
+    @Override
+    protected void start() {
+        EntityStore.REGISTRY.registerSystem(new HiddenFilterSystem());
+    }
+
     private static void onPlayerConnect(PlayerConnectEvent event) {
         Holder<EntityStore> holder = event.getHolder();
         HexcasterComponent comp = holder.ensureAndGetComponent(HexcasterComponent.getComponentType());
@@ -298,16 +310,21 @@ public class Hexcode extends JavaPlugin {
     private static void onPlayerDisconnect(PlayerDisconnectEvent event) {
         PlayerRef playerRef = event.getPlayerRef();
         Ref<EntityStore> ref = playerRef.getReference();
-        if (ref != null && ref.isValid()) {
+        if (ref != null) {
             Store<EntityStore> store = ref.getStore();
-            HexcasterComponent hexcaster = store.getComponent(ref, HexcasterComponent.getComponentType());
-            if (hexcaster != null && hexcaster.getState() != HexState.IDLE) {
-                hexcaster.requestStateChange(HexState.IDLE);
-            }
-        }
+            World world = store.getExternalData().getWorld();
+            world.execute(() -> {
+                if (ref.isValid()) {
+                    HexcasterComponent hexcaster = store.getComponent(ref, HexcasterComponent.getComponentType());
+                    if (hexcaster != null && hexcaster.getState() != HexState.IDLE) {
+                        hexcaster.requestStateChange(HexState.IDLE);
+                    }
+                }
 
-        for (HexcodeManager manager : StateRouter.allManagers()) {
-            manager.onPlayerLeave(playerRef);
+                for (HexcodeManager manager : StateRouter.allManagers()) {
+                    manager.onPlayerLeave(playerRef);
+                }
+            });
         }
     }
 }

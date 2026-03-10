@@ -2,6 +2,8 @@ package com.riprod.hexcode.core.state.crafting.utils;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Ref;
@@ -19,11 +21,12 @@ import com.riprod.hexcode.utils.VfxUtil;
 public class LinkRenderer {
 
     private static final Vector3f LINK_COLOR = new Vector3f(0.3f, 0.7f, 1.0f);
+    private static final Vector3f ROOT_LINK_COLOR = new Vector3f(1.0f, 0.6f, 0.2f);
 
     private static final double LINK_THICKNESS = 0.05;
 
     public static void renderLinks(CommandBuffer<EntityStore> accessor, HexcasterCraftingComponent craftingComp,
-            PedestalBlockComponent pedestal, float dt) {
+            PedestalBlockComponent pedestal, float dt, @Nullable Ref<EntityStore> playerRef) {
         Ref<EntityStore> hexRootRef = craftingComp.getHexRootRef();
         if (hexRootRef == null)
             return;
@@ -40,22 +43,33 @@ public class LinkRenderer {
             return;
 
         LinkRenderer.renderAllLinks(accessor, hexComp,
-                accessor.getExternalData().getWorld());
+                accessor.getExternalData().getWorld(), craftingComp.getRootNodeRef(), playerRef);
 
-    }
-
-    public static void renderLink(World world, Vector3d source, Vector3d target,
-            Vector3f color, float duration) {
-        VfxUtil.line(world, source, target, color, LINK_THICKNESS, duration, false);
     }
 
     public static void renderActiveLink(ComponentAccessor<EntityStore> accessor,
             World world, Vector3d source, Vector3d target, Vector3f color) {
-        renderLink(world, source, target, color, 0.04f);
+        VfxUtil.line(accessor, world, source, target, color, LINK_THICKNESS, 0.04f, false);
     }
 
     public static void renderAllLinks(ComponentAccessor<EntityStore> accessor,
-            HexComponent hexComp, World world) {
+            HexComponent hexComp, World world, Ref<EntityStore> rootNodeRef, @Nullable Ref<EntityStore> playerRef) {
+
+        String firstId = hexComp.getHex().getFirstGlyphId();
+        if (rootNodeRef != null && rootNodeRef.isValid() && firstId != null) {
+            Ref<EntityStore> firstGlyphRef = hexComp.getChildGlyphRef(firstId);
+            if (firstGlyphRef != null && firstGlyphRef.isValid()) {
+                TransformComponent rootTransform = accessor.getComponent(rootNodeRef,
+                        TransformComponent.getComponentType());
+                TransformComponent firstTransform = accessor.getComponent(firstGlyphRef,
+                        TransformComponent.getComponentType());
+                if (rootTransform != null && firstTransform != null) {
+                    VfxUtil.line(accessor, world, rootTransform.getPosition(),
+                            firstTransform.getPosition(), ROOT_LINK_COLOR, LINK_THICKNESS, 1f, false, playerRef);
+                }
+            }
+        }
+
         List<Glyph> glyphs = hexComp.getHex().getGlyphs();
 
         for (Glyph glyph : glyphs) {
@@ -78,8 +92,8 @@ public class LinkRenderer {
                 if (targetTransform == null)
                     continue;
 
-                renderLink(world, sourceTransform.getPosition(),
-                        targetTransform.getPosition(), LINK_COLOR, 1f);
+                VfxUtil.line(accessor, world, sourceTransform.getPosition(),
+                        targetTransform.getPosition(), LINK_COLOR, LINK_THICKNESS, 1f, false, playerRef);
             }
         }
     }

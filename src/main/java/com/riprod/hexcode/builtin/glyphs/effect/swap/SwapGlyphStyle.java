@@ -34,6 +34,6 @@ public class SwapGlyphStyle {
         DebugUtils.addSphere(world, posA, SPHERE_COLOR, SPHERE_SCALE, SPHERE_DURATION);
         DebugUtils.addSphere(world, posB, SPHERE_COLOR, SPHERE_SCALE, SPHERE_DURATION);
 
-        VfxUtil.line(world, posA, posB, LINE_COLOR, LINE_THICKNESS, LINE_DURATION, true);
+        VfxUtil.line(accessor, world, posA, posB, LINE_COLOR, LINE_THICKNESS, LINE_DURATION, true);
     }
 }

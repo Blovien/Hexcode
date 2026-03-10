@@ -1,6 +1,6 @@
-package com.riprod.hexcode.core.state.crafting.utils;
+package com.riprod.hexcode.core.state.crafting.constants;
 
-public enum PedestalState {
+public enum NodeType {
     /** Not ready yet */
     IDLE,
     /** Ready to be activated */

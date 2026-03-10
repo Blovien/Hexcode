@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
+
 import com.hypixel.hytale.builtin.mounts.MountedComponent;
 import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.CommandBuffer;
@@ -31,12 +33,14 @@ import com.riprod.hexcode.core.common.glyphs.component.EffectComponent;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.hexes.utils.CreateHex;
+import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.state.casting.utils.GlyphSpawner;
 import com.riprod.hexcode.core.state.casting.utils.GlyphStyler;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.state.crafting.component.PedestalPlayerData;
+import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalBlockUtil;
-import com.riprod.hexcode.core.state.crafting.utils.PedestalState;
 
 public class AnchorEntity {
 
@@ -45,7 +49,7 @@ public class AnchorEntity {
     private static final Box PREVIEW_BOUNDING_BOX = new Box(-0.25, -0.25, -0.25, 0.25, 0.25, 0.25);
 
     public static Ref<EntityStore> spawnFilledSlot(CommandBuffer<EntityStore> buffer, Hex hex,
-            Ref<EntityStore> anchorRef, Vector3d anchorPos, Vector3f offset) {
+            Ref<EntityStore> anchorRef, Vector3d anchorPos, Vector3f offset, @Nullable Ref<EntityStore> playerRef) {
 
         Vector3d globalPos = new Vector3d(anchorPos.x + offset.x, anchorPos.y + offset.y, anchorPos.z + offset.z);
 
@@ -55,6 +59,7 @@ public class AnchorEntity {
         hexComponent.setOffset(offset);
 
         Holder<EntityStore> holder = CreateHex.createHexHolder(buffer, hexComponent, globalPos);
+        HiddenUtils.addHiddenToHolder(holder, playerRef);
 
         ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset("Selection_Anchor");
 
@@ -72,8 +77,6 @@ public class AnchorEntity {
 
         holder.addComponent(BoundingBox.getComponentType(), new BoundingBox(PREVIEW_BOUNDING_BOX));
         holder.addComponent(HoverableComponent.getComponentType(), new HoverableComponent(HoverableType.HEX));
-        holder.addComponent(DebugComponent.getComponentType(),
-                new DebugComponent(DebugShape.Cube, new Vector3f(0f, 1f, 0f), 0.5, 2.0f));
 
         Ref<EntityStore> hexRef = CreateHex.createEntity(buffer, holder);
         hexComponent.setSelfRef(hexRef);
@@ -92,17 +95,18 @@ public class AnchorEntity {
         firstGlyphComponent.setScale(scaleMultiplier);
         hexComponent.setScale(scaleMultiplier);
 
-        GlyphSpawner.spawnGlyphs(buffer, hexComponent, firstGlyphComponent, globalPos);
+        GlyphSpawner.spawnGlyphs(buffer, hexComponent, firstGlyphComponent, globalPos, playerRef);
 
         return hexRef;
     }
 
     public static Ref<EntityStore> spawnEmptySlot(CommandBuffer<EntityStore> buffer,
-            Ref<EntityStore> anchorRef, Vector3d anchorPos, Vector3f offset) {
+            Ref<EntityStore> anchorRef, Vector3d anchorPos, Vector3f offset, @Nullable Ref<EntityStore> playerRef) {
 
         Vector3d globalPos = new Vector3d(anchorPos.x + offset.x, anchorPos.y + offset.y, anchorPos.z + offset.z);
 
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
+        HiddenUtils.addHiddenToHolder(holder, playerRef);
 
         ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset("Selection_Anchor");
 
@@ -130,13 +134,14 @@ public class AnchorEntity {
         holder.addComponent(BoundingBox.getComponentType(), new BoundingBox(PREVIEW_BOUNDING_BOX));
         holder.addComponent(HoverableComponent.getComponentType(), new HoverableComponent(HoverableType.CONTAINER));
         holder.addComponent(DebugComponent.getComponentType(),
-                new DebugComponent(DebugShape.Cube, new Vector3f(0.5f, 0.5f, 0.5f), 0.5, 2.0f));
+                new DebugComponent(DebugShape.Sphere, new Vector3f(0.5f, 0.5f, 0.5f), 0.5, 2.0f, playerRef));
 
         return buffer.addEntity(holder, AddReason.SPAWN);
     }
 
-    public static void DespawnHexPreviews(CommandBuffer<EntityStore> buffer, PedestalBlockComponent pedestal) {
-        List<Ref<EntityStore>> refs = pedestal.getHexPreviewRefs();
+    public static void DespawnHexPreviews(CommandBuffer<EntityStore> buffer, PedestalBlockComponent pedestal,
+            PedestalPlayerData playerData) {
+        List<Ref<EntityStore>> refs = playerData.getHexPreviewRefs();
         if (refs == null || refs.isEmpty()) {
             return;
         }
@@ -152,7 +157,8 @@ public class AnchorEntity {
                 Map<String, Ref<EntityStore>> childRefs = hexComp.getChildGlyphRefs();
                 if (childRefs != null) {
                     for (Ref<EntityStore> glyphRef : childRefs.values()) {
-                        if (glyphRef == null || !glyphRef.isValid()) continue;
+                        if (glyphRef == null || !glyphRef.isValid())
+                            continue;
                         EffectComponent effect = buffer.getComponent(glyphRef,
                                 EffectComponent.getComponentType());
                         if (effect != null && effect.getNodeRef() != null
@@ -167,8 +173,8 @@ public class AnchorEntity {
             buffer.removeEntity(hexRef, RemoveReason.REMOVE);
         }
 
-        pedestal.clearHexPreviewRefs();
-        pedestal.setActiveHex(null);
-        pedestal.setActiveHexEntityRef(null);
+        playerData.clearHexPreviewRefs();
+        playerData.setActiveHex(null);
+        playerData.setActiveHexEntityRef(null);
     }
 }
