@@ -9,10 +9,13 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
+import com.hypixel.hytale.math.matrix.Matrix4d;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.protocol.packets.player.DisplayDebug;
 import com.hypixel.hytale.server.core.modules.debug.DebugUtils;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
@@ -51,7 +54,8 @@ public class DebugTickSystem extends EntityTickingSystem<EntityStore> {
         if (mount != null) {
             Ref<EntityStore> parentRef = mount.getMountedToEntity();
             if (parentRef != null && parentRef.isValid()) {
-                TransformComponent parentTransform = store.getComponent(parentRef, TransformComponent.getComponentType());
+                TransformComponent parentTransform = store.getComponent(parentRef,
+                        TransformComponent.getComponentType());
                 if (parentTransform != null) {
                     Vector3d parentPos = parentTransform.getPosition();
                     Vector3f offset = mount.getAttachmentOffset();
@@ -63,23 +67,26 @@ public class DebugTickSystem extends EntityTickingSystem<EntityStore> {
             }
         }
 
-        World world = buffer.getExternalData().getWorld();
+        double scale = debug.getScale();
+        Matrix4d matrix = new Matrix4d();
+        matrix.identity();
+        matrix.translate(pos.x, pos.y, pos.z);
+        matrix.scale(scale, scale, scale);
 
-        switch (debug.getShape()) {
-            case Cube:
-                DebugUtils.addCube(world, pos, debug.getColor(), debug.getScale(), debug.getFadeTime());
-                break;
-            case Sphere:
-                DebugUtils.addSphere(world, pos, debug.getColor(), debug.getScale(), debug.getFadeTime());
-                break;
-            case Cylinder:
-                DebugUtils.addCylinder(world, pos, debug.getColor(), debug.getScale(), debug.getFadeTime());
-                break;
-            case Cone:
-                DebugUtils.addCone(world, pos, debug.getColor(), debug.getScale(), debug.getFadeTime());
-                break;
-            default:
-                break;
+        Ref<EntityStore> targetRef = debug.getTargetRef();
+        if (targetRef != null && targetRef.isValid()) {
+            PlayerRef playerRef = store.getComponent(targetRef, PlayerRef.getComponentType());
+            if (playerRef != null) {
+                DisplayDebug packet = new DisplayDebug(
+                        debug.getShape(), matrix.asFloatData(),
+                        new com.hypixel.hytale.protocol.Vector3f(
+                                debug.getColor().x, debug.getColor().y, debug.getColor().z),
+                        debug.getFadeTime(), true, null, 0.8f);
+                playerRef.getPacketHandler().write(packet);
+            }
+        } else {
+            World world = buffer.getExternalData().getWorld();
+            DebugUtils.add(world, debug.getShape(), matrix, debug.getColor(), debug.getFadeTime(), true);
         }
     }
 }

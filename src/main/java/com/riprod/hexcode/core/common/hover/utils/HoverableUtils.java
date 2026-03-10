@@ -1,5 +1,7 @@
 package com.riprod.hexcode.core.common.hover.utils;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -32,6 +34,7 @@ public class HoverableUtils {
 
         ObjectList<Ref<EntityStore>> results = SpatialResource.getThreadLocalReferenceList();
         spatial.getSpatialStructure().collect(position, range, results);
+
         return results;
     }
 

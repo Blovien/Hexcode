@@ -38,5 +38,6 @@
     ]
   },
   "Weapon": {},
-  "ItemSoundSetId": "ISS_Weapons_Wood"
+  "ItemSoundSetId": "ISS_Weapons_Wood",
+  "MaxStack": 1
 }

@@ -1,5 +1,10 @@
 package com.riprod.hexcode.core.state.crafting.utils;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.Nullable;
+
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
@@ -10,13 +15,14 @@ import com.riprod.hexcode.core.common.glyphs.component.EffectComponent;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.utils.CreateGlyph;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
+import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableType;
 
 public class CraftingGlyphSpawner {
 
     public static void spawnCraftingGlyphs(CommandBuffer<EntityStore> buffer,
-            HexComponent hexComp, Vector3d hexWorldPos) {
+            HexComponent hexComp, Vector3d hexWorldPos, @Nullable Ref<EntityStore> playerRef) {
         String firstGlyphId = hexComp.getHex().getFirstGlyphId();
         for (Glyph glyph : hexComp.getHex().getGlyphs()) {
             EffectComponent effect = new EffectComponent(glyph);
@@ -29,6 +35,7 @@ public class CraftingGlyphSpawner {
                     hexWorldPos.z + offset.z);
 
             Holder<EntityStore> holder = CreateGlyph.createGlyphHolder(buffer, effect, worldPos);
+            HiddenUtils.addHiddenToHolder(holder, playerRef);
             holder.addComponent(HoverableComponent.getComponentType(),
                     new HoverableComponent(HoverableType.GLYPH));
 
@@ -36,7 +43,7 @@ public class CraftingGlyphSpawner {
             effect.setSelfRef(ref);
             hexComp.addChildGlyphRef(glyph.getId(), ref);
 
-            CraftingGlyphNodeSpawner.spawnNodeForGlyph(buffer, ref, effect, worldPos);
+            CraftingGlyphNodeSpawner.spawnNodeForGlyph(buffer, ref, effect, worldPos, playerRef);
         }
     }
 }

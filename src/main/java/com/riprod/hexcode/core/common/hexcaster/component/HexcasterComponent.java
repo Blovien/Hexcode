@@ -49,8 +49,6 @@ public class HexcasterComponent implements Component<EntityStore> {
     }
 
     // Drawing Mode
-    private FloatArrayList drawnStrokes = new FloatArrayList();
-    private List<DrawnShapeComponent> drawnGlyphs = new ArrayList<>();
     private Ref<EntityStore> trailRef = null;
     private long lastParticleSpawnMillis = 0;
     private long drawStartTimeMillis = 0;
@@ -75,8 +73,6 @@ public class HexcasterComponent implements Component<EntityStore> {
 
     /** @deprecated */
     public void clearDrawingState() {
-        this.drawnStrokes.clear();
-        this.drawnGlyphs.clear();
         this.trailRef = null;
         this.lastParticleSpawnMillis = 0;
         this.drawStartTimeMillis = 0;
@@ -116,35 +112,7 @@ public class HexcasterComponent implements Component<EntityStore> {
         this.trainingShapeId = null;
         return id;
     }
-    
-    /** @deprecated */
-    public FloatArrayList getDrawnStrokes() {
-        return drawnStrokes;
-    }
 
-    /** @deprecated */
-    public List<DrawnShapeComponent> getDrawnGlyphs() {
-        return drawnGlyphs;
-    }
-    
-    public void addDrawnStroke(float[] stroke) {
-        this.drawnStrokes.add(stroke[0]);
-        this.drawnStrokes.add(stroke[1]);
-    }
-    
-    public void addDrawnGlyph(DrawnShapeComponent glyph) {
-        this.drawnGlyphs.add(glyph);
-    }
-    
-    /** @deprecated */
-    public void clearStrokes() {
-        this.drawnStrokes.clear();
-    }
-    
-    public void clearDrawing() {
-        clearStrokes();
-        this.drawnGlyphs.clear();
-    }
     
     /** @deprecated */
     public void setTrailRef(Ref<EntityStore> trailRef) {
@@ -197,8 +165,6 @@ public class HexcasterComponent implements Component<EntityStore> {
     public HexcasterComponent clone() {
         HexcasterComponent copy = new HexcasterComponent();
         copy.currentState = this.currentState;
-        copy.drawnStrokes = new FloatArrayList(this.drawnStrokes);
-        copy.drawnGlyphs = new ArrayList<>(this.drawnGlyphs);
         copy.trailRef = this.trailRef;
         copy.lastParticleSpawnMillis = this.lastParticleSpawnMillis;
         copy.drawStartTimeMillis = this.drawStartTimeMillis;

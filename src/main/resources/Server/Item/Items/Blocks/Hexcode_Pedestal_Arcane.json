@@ -99,7 +99,7 @@
           "MaxObelisks": 4,
           "HolderReference": "Pedestal_Holder",
           "ObeliskRange": 25,
-          "PerPlayer": false,
+          "PerPlayer": true,
           "MaxRadius": 30,
           "AnimationSets": {
             "Ready": {

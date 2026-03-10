@@ -21,6 +21,8 @@ import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffAsset;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffComponent;
+import com.riprod.hexcode.core.common.hidden.component.HiddenComponent;
+import com.riprod.hexcode.core.common.hidden.system.HiddenFilterSystem;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.system.HoverableSpatialSystem;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
@@ -215,6 +217,10 @@ public class Hexcode extends JavaPlugin {
                 .registerComponent(DebugComponent.class, DebugComponent::new);
         DebugComponent.setComponentType(debugComponentType);
 
+        ComponentType<EntityStore, HiddenComponent> hiddenComponentType = entityStoreRegistry
+                .registerComponent(HiddenComponent.class, HiddenComponent::new);
+        HiddenComponent.setComponentType(hiddenComponentType);
+
         // Block Component Registries
         ComponentRegistryProxy<ChunkStore> chunkStoreRegistry = this.getChunkStoreRegistry();
 
@@ -285,6 +291,11 @@ public class Hexcode extends JavaPlugin {
         BuiltinPlugin.startup();
 
         LOGGER.atInfo().log("Hexcode setup complete!");
+    }
+
+    @Override
+    protected void start() {
+        EntityStore.REGISTRY.registerSystem(new HiddenFilterSystem());
     }
 
     private static void onPlayerConnect(PlayerConnectEvent event) {

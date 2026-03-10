@@ -18,6 +18,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.EffectComponent;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
+import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableType;
 import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
@@ -193,6 +194,9 @@ public class CraftingStateSystem {
 
         List<Ref<EntityStore>> nearby = HoverableUtils.getNearbyHoverables(accessor,
                 playerTransform.getPosition(), 8.0);
+        
+        HiddenUtils.filterByOwner(accessor, nearby, ref);
+
         Ref<EntityStore> targetRef = HoverableUtils.getSmallestTarget(accessor, ref, nearby);
 
         HoverableType hoverableType = null;
@@ -216,8 +220,10 @@ public class CraftingStateSystem {
             HoverStyleUtils.hover(accessor, targetRef);
         }
 
+        Ref<EntityStore> playerRefFlag = pedestal.isPerPlayer() ? ref : null;
+
         HoverStyleUtils.hoverParticles(accessor, craftingComp.getHoveredRef(), dt, pedestal, ref);
 
-        LinkRenderer.renderLinks(accessor, craftingComp, pedestal, dt);
+        LinkRenderer.renderLinks(accessor, craftingComp, pedestal, dt, playerRefFlag);
     }
 }

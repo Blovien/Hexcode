@@ -27,6 +27,7 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.state.drawing.component.DrawnShapeComponent;
+import com.riprod.hexcode.core.state.drawing.component.HexcasterDrawingComponent;
 import com.riprod.hexcode.utils.GlyphMath;
 import com.riprod.hexcode.utils.VfxUtil;
 
@@ -117,8 +118,7 @@ public class InterfaceManager {
   }
 
   public static void createIndicator(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> playerRef,
-      HexcasterComponent hexcaster) {
-
+      HexcasterDrawingComponent hexcaster) {
     TimeResource timeResource = accessor.getResource(TimeResource.getResourceType());
 
     Long lastTime = hexcaster.getLastParticleSpawnMillis();
@@ -172,7 +172,7 @@ public class InterfaceManager {
     for (int i = 0; i < points.size() - 1; i++) {
       Vector3d a = points.get(i);
       Vector3d b = points.get(i + 1);
-      VfxUtil.line(world, a, b, lineColor, 0.1, 5.0f, true);
+      VfxUtil.line(accessor, world, a, b, lineColor, 0.1, 5.0f, true, playerRef);
     }
   }
 

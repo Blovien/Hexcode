@@ -1,9 +1,11 @@
 package com.riprod.hexcode.core.common.utilities.component;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
+import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.DebugShape;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -28,17 +30,24 @@ public class DebugComponent implements Component<EntityStore> {
     private float fadeMultiplier = 2.0f;
     private float intervalMultiplier = 1;
     private float scaleMultiplier = 1;
+    private Ref<EntityStore> targetRef;
 
     public DebugComponent() {
         this(DebugShape.Cube, new Vector3f(0f, 1f, 0f), 0.5, 2.0f);
     }
 
     public DebugComponent(DebugShape shape, Vector3f color, double scale, float respawnInterval) {
+        this(shape, color, scale, respawnInterval, null);
+    }
+
+    public DebugComponent(DebugShape shape, Vector3f color, double scale, float respawnInterval,
+            @Nullable Ref<EntityStore> targetRef) {
         this.shape = shape;
         this.color = color;
         this.scale = scale;
         this.respawnInterval = respawnInterval;
         this.timer = 0;
+        this.targetRef = targetRef;
     }
 
     public DebugShape getShape() {
@@ -56,6 +65,7 @@ public class DebugComponent implements Component<EntityStore> {
     public void resetScaleMultiplier() {
         this.scaleMultiplier = 1;
     }
+
     public float getScaleMultiplier() {
         return scaleMultiplier;
     }
@@ -120,11 +130,24 @@ public class DebugComponent implements Component<EntityStore> {
         this.intervalMultiplier = 1;
     }
 
+    @Nullable
+    public Ref<EntityStore> getTargetRef() {
+        return targetRef;
+    }
+
+    public void setTargetRef(@Nullable Ref<EntityStore> targetRef) {
+        this.targetRef = targetRef;
+    }
+
     @Nonnull
     @Override
     public DebugComponent clone() {
-        DebugComponent copy = new DebugComponent(this.shape, this.color, this.scale, this.respawnInterval);
+        DebugComponent copy = new DebugComponent(this.shape, this.color, this.scale, this.respawnInterval,
+                this.targetRef);
         copy.timer = this.timer;
+        copy.fadeMultiplier = this.fadeMultiplier;
+        copy.intervalMultiplier = this.intervalMultiplier;
+        copy.scaleMultiplier = this.scaleMultiplier;
         return copy;
     }
 }

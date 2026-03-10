@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
+
 import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Holder;
@@ -23,6 +25,7 @@ import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.VariableComponent;
 import com.riprod.hexcode.core.common.glyphs.utils.GlyphSlotType;
 import com.riprod.hexcode.core.common.glyphs.values.HexVal;
+import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableType;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
@@ -36,7 +39,7 @@ public class DetailsRenderer {
     private static final double SLOT_SCALE = 0.2;
 
     public static List<Ref<EntityStore>> openDetails(CommandBuffer<EntityStore> accessor,
-            Ref<EntityStore> glyphRef, EffectComponent effect) {
+            Ref<EntityStore> glyphRef, EffectComponent effect, @Nullable Ref<EntityStore> playerRefFlag) {
         List<Ref<EntityStore>> slotRefs = new ArrayList<>();
         Glyph glyph = effect.getGlyph();
 
@@ -57,7 +60,7 @@ public class DetailsRenderer {
         int totalSlots = displayInputs + displayOutputs;
         if (totalSlots <= 0) return slotRefs;
 
-        List<Vector3f> offsets = RadialPositionUtil.calculateOffsets(totalSlots, SLOT_RADIUS, 0f);
+        List<Vector3f> offsets = RadialPositionUtil.calculateOffsets(totalSlots, SLOT_RADIUS, 0f, null);
 
         for (int i = 0; i < displayInputs; i++) {
             Vector3f offset = offsets.get(i);
@@ -66,7 +69,7 @@ public class DetailsRenderer {
 
             Ref<EntityStore> slotRef = spawnSlotEntity(accessor, glyphPos, offset,
                     new VariableComponent(i, GlyphSlotType.Input, offset, glyphRef),
-                    color);
+                    color, playerRefFlag);
             slotRefs.add(slotRef);
         }
 
@@ -77,7 +80,7 @@ public class DetailsRenderer {
 
             Ref<EntityStore> slotRef = spawnSlotEntity(accessor, glyphPos, offset,
                     new VariableComponent(i, GlyphSlotType.Output, offset, glyphRef),
-                    color);
+                    color, playerRefFlag);
             slotRefs.add(slotRef);
         }
 
@@ -85,8 +88,10 @@ public class DetailsRenderer {
     }
 
     private static Ref<EntityStore> spawnSlotEntity(CommandBuffer<EntityStore> accessor,
-            Vector3d parentPos, Vector3f offset, VariableComponent varComp, Vector3f color) {
+            Vector3d parentPos, Vector3f offset, VariableComponent varComp, Vector3f color, @Nullable Ref<EntityStore> playerRefFlag) {
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
+
+        HiddenUtils.addHiddenToHolder(holder, playerRefFlag);
 
         Vector3d slotPos = new Vector3d(
             parentPos.x + offset.x,

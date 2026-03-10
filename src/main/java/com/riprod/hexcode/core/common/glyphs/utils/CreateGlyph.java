@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
+
 import com.hypixel.hytale.builtin.mounts.MountedComponent;
 import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.ComponentAccessor;
@@ -31,6 +33,7 @@ import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.EffectComponent;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
+import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.utils.GlyphMath;
 
 public class CreateGlyph {
@@ -122,10 +125,11 @@ public class CreateGlyph {
    * @return
    */
   public static Ref<EntityStore> createGlyph(ComponentAccessor<EntityStore> accessor, EffectComponent glyph,
-      Vector3d parentPos) {
+      Vector3d parentPos, @Nullable Ref<EntityStore> playerRef) {
 
     // Create the first glyph
     Holder<EntityStore> holder = createGlyphHolder(accessor, glyph, parentPos);
+    HiddenUtils.addHiddenToHolder(holder, playerRef);
     Ref<EntityStore> ref = createEntity(accessor, holder);
     glyph.setSelfRef(ref); // backwards reference
 

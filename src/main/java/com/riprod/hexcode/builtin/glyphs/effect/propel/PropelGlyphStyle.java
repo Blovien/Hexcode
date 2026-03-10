@@ -46,7 +46,7 @@ public class PropelGlyphStyle {
 
         World world = accessor.getExternalData().getWorld();
         Vector3d lineEnd = new Vector3d(position).addScaled(direction, LAUNCH_LINE_LENGTH);
-        VfxUtil.line(world, position, lineEnd, LAUNCH_LINE_COLOR, LAUNCH_LINE_THICKNESS,
+        VfxUtil.line(accessor, world, position, lineEnd, LAUNCH_LINE_COLOR, LAUNCH_LINE_THICKNESS,
                 LAUNCH_LINE_DURATION, true);
     }
 
@@ -58,7 +58,7 @@ public class PropelGlyphStyle {
         World world = accessor.getExternalData().getWorld();
         DebugUtils.addSphere(world, hitPos, ENTITY_HIT_COLOR, ENTITY_HIT_SPHERE_SCALE,
                 ENTITY_HIT_SPHERE_DURATION);
-        VfxUtil.line(world, projectilePos, hitPos, ENTITY_HIT_COLOR, HIT_LINE_THICKNESS,
+        VfxUtil.line(accessor, world, projectilePos, hitPos, ENTITY_HIT_COLOR, HIT_LINE_THICKNESS,
                 HIT_LINE_DURATION, true);
     }
 

@@ -11,6 +11,7 @@ import com.hypixel.hytale.common.util.MapUtil;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelParticle;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset.AnimationSet;
+import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
@@ -23,7 +24,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.common.hexcaster.utils.CasterInventory;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
-import com.riprod.hexcode.core.state.crafting.utils.PedestalState;
+import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -82,15 +83,6 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
                     (model, m) -> model.animationSetMap = m,
                     (model) -> model.animationSetMap)
             .add()
-            .append(new KeyedCodec<>("StoredBook", ItemStack.CODEC), (c, v) -> c.storedBook = v, c -> c.storedBook)
-            .documentation(
-                    "The book currently stored in the pedestal. Set at runtime when a player places a book on the pedestal")
-            .add()
-            .append(new KeyedCodec<>("EssenceItemId", Codec.STRING), (c, v) -> c.essenceItemId = v,
-                    c -> c.essenceItemId)
-            .documentation(
-                    "The essence item ID currently stored in the pedestal. Set at runtime when a player places a book on the pedestal")
-            .add()
             .append(new KeyedCodec<>("HolderReference", Codec.STRING), (c, v) -> c.referenceHolder = v,
                     c -> c.referenceHolder)
             .addValidatorLate(() -> ModelAsset.VALIDATOR_CACHE.getValidator().late())
@@ -100,8 +92,9 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
             .append(new KeyedCodec<>("Location", Vector3i.CODEC), (c, v) -> c.location = v, c -> c.location)
             .documentation("The location of the pedestal in the world.")
             .add()
-            .append(new KeyedCodec<>("State", new EnumCodec<>(PedestalState.class)),
-                    (c, v) -> c.blockState = v, c -> c.blockState)
+            .append(new KeyedCodec<>("PlayerData", new MapCodec<>(PedestalPlayerData.CODEC, HashMap::new)),
+                    (c, v) -> c.playerData = v,
+                    c -> c.playerData)
             .documentation("The current state of the pedestal")
             .add()
             .build();
@@ -116,8 +109,6 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
         return componentType;
     }
 
-    private ItemStack storedBook = ItemStack.EMPTY;
-    private String essenceItemId = null;
     private int maxObelisks = 4;
     private int maxRadius = 30;
     private boolean perPlayer = false;
@@ -127,21 +118,12 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
     protected Vector3f essenceOffset = new Vector3f(0f, -0.5f, 0f);
     protected Vector3f bookOffset = new Vector3f(0f, 0.3f, 0f);
     private boolean consumeEssence = false;
+    private Map<String, PedestalPlayerData> playerData = new HashMap<>();
     // transient
     private Vector3i location = null;
-    private HexSlot bookSourceSlot = HexSlot.MainHand;
     private Map<String, Float> lastTickMap = new HashMap<>();
     private List<Vector3i> obeliskLocations = new ArrayList<>();
     private Set<Ref<EntityStore>> activePlayerRefs = new HashSet<>();
-
-    // per player
-    private PedestalState blockState = PedestalState.IDLE;
-    private Hex activeHex = null;
-    private Ref<EntityStore> activeHexEntityRef;
-    private Ref<EntityStore> anchorEntityRef;
-    private Ref<EntityStore> bookDisplayRef;
-    private Ref<EntityStore> essenceDisplayRef;
-    private List<Ref<EntityStore>> hexPreviewRefs = new ArrayList<>();
 
     public void setLocation(Vector3i location) {
         this.location = location;
@@ -152,12 +134,35 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
     }
 
     @Nullable
-    public String getEssenceItemId() {
-        return essenceItemId;
+    public String getEssenceItemId(String playerId) {
+        return getPlayerData(playerId).getEssence();
     }
 
-    public void setEssenceItemId(@Nullable String essenceItemId) {
-        this.essenceItemId = essenceItemId;
+    public void setEssenceItemId(String playerId, @Nullable String essenceItemId) {
+        getPlayerData(playerId).setEssence(essenceItemId);
+    }
+
+    public PedestalPlayerData getPlayerData(String playerId) {
+        if (!(playerData instanceof HashMap)) {
+            playerData = new HashMap<>(playerData);
+        }
+        return playerData.computeIfAbsent(playerId, k -> new PedestalPlayerData());
+    }
+
+    public Map<String, PedestalPlayerData> getPlayerData() {
+        return playerData;
+    }
+
+    public List<PedestalPlayerData> getAllPlayerData() {
+        return new ArrayList<>(playerData.values());
+    }
+
+    public void setPlayerData(String playerId, PedestalPlayerData data) {
+        this.playerData.put(playerId, data);
+    }
+
+    public void removePlayerData(String playerId) {
+        this.playerData.remove(playerId);
     }
 
     public boolean isConsumeEssence() {
@@ -168,83 +173,16 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
         this.consumeEssence = consumeEssence;
     }
 
-    public HexSlot getBookSourceSlot() {
-        return bookSourceSlot;
-    }
-
-    public void setBookSourceSlot(HexSlot bookSourceSlot) {
-        this.bookSourceSlot = bookSourceSlot;
-    }
-
     public int getMaxObelisks() {
         return maxObelisks;
     }
 
-    public ItemStack getStoredBook() {
-        return storedBook;
+    public ItemStack getStoredBook(String playerId) {
+        return getPlayerData(playerId).getStoredBook();
     }
 
-    public void setStoredBook(ItemStack storedBook) {
-        this.storedBook = storedBook;
-    }
-
-    public HexBookComponent getStoredBookComponent() {
-        if (storedBook == null || storedBook.isEmpty()) {
-            return null;
-        }
-
-        return storedBook.getFromMetadataOrNull(CasterInventory.METADATA_KEY_HEX_BOOK, HexBookComponent.CODEC);
-    }
-
-    public Integer getBookSlots() {
-        if (storedBook == null || storedBook.isEmpty()) {
-            return null;
-        }
-
-        HexBookComponent bookComponent = getStoredBookComponent();
-
-        if (bookComponent == null) {
-            return null;
-        }
-
-        return bookComponent.getMaxCapacity();
-    }
-
-    public Hex getActiveHex() {
-        return activeHex;
-    }
-
-    public void setActiveHex(@Nullable Hex hex) {
-        this.activeHex = hex;
-    }
-
-    public Ref<EntityStore> getActiveHexEntityRef() {
-        return activeHexEntityRef;
-    }
-
-    public void setActiveHexEntityRef(@Nullable Ref<EntityStore> ref) {
-        this.activeHexEntityRef = ref;
-    }
-
-    public List<Ref<EntityStore>> getHexPreviewRefs() {
-        return hexPreviewRefs;
-    }
-
-    public void setHexPreviewRefs(List<Ref<EntityStore>> refs) {
-        this.hexPreviewRefs = refs;
-    }
-
-    public void clearHexPreviewRefs() {
-        this.hexPreviewRefs = new ArrayList<>();
-    }
-
-    public List<Hex> getHexes() {
-        HexBookComponent bookComponent = getStoredBookComponent();
-        if (bookComponent == null) {
-            return List.of();
-        }
-
-        return bookComponent.getHexes();
+    public void setStoredBook(String playerId, ItemStack storedBook) {
+        getPlayerData(playerId).setStoredBook(storedBook);
     }
 
     public String getReferenceHolder() {
@@ -255,43 +193,17 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
         this.referenceHolder = referenceHolder;
     }
 
-    public PedestalState getState() {
-        return blockState;
+    public List<PedestalState> getStates() {
+        return playerData.values().stream().map(PedestalPlayerData::getState).toList();
     }
 
-    public void setState(PedestalState state) {
-        this.blockState = state;
-    }
-
-    public Ref<EntityStore> getAnchorRef() {
-        return anchorEntityRef;
-    }
-
-    public void setAnchorEntityRef(Ref<EntityStore> anchorEntityRef) {
-        this.anchorEntityRef = anchorEntityRef;
-    }
-
-    public Ref<EntityStore> getBookDisplayRef() {
-        return bookDisplayRef;
-    }
-
-    public void setBookDisplayRef(Ref<EntityStore> bookDisplayRef) {
-        this.bookDisplayRef = bookDisplayRef;
-    }
-
-    public Ref<EntityStore> getEssenceDisplayRef() {
-        return essenceDisplayRef;
-    }
-
-    public void setEssenceDisplayRef(Ref<EntityStore> essenceDisplayRef) {
-        this.essenceDisplayRef = essenceDisplayRef;
-    }
-
-    public Boolean addDetectedPlayer(Ref<EntityStore> playerRef) {
+    public Boolean addDetectedPlayer(CommandBuffer<EntityStore> accessor, Ref<EntityStore> playerRef) {
         if (activePlayerRefs.contains(playerRef)) {
             return false;
         }
         activePlayerRefs.add(playerRef);
+        UUIDComponent uuidComponent = accessor.getComponent(playerRef, UUIDComponent.getComponentType());
+        this.playerData.computeIfAbsent(uuidComponent.getUuid().toString(), k -> new PedestalPlayerData());
         return true;
     }
 
@@ -366,27 +278,21 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
         this.lastTickMap.merge(keyId, dt, Float::sum);
     }
 
+    public boolean isPerPlayer() {
+        return perPlayer;
+    }
+
     @Nonnull
     @Override
     public Component<ChunkStore> clone() {
         PedestalBlockComponent copy = new PedestalBlockComponent();
-        copy.essenceItemId = this.essenceItemId;
         copy.consumeEssence = this.consumeEssence;
-        copy.bookSourceSlot = this.bookSourceSlot;
         copy.maxObelisks = this.maxObelisks;
         copy.maxRadius = this.maxRadius;
         copy.perPlayer = this.perPlayer;
         copy.obeliskRange = this.obeliskRange;
         copy.referenceHolder = this.referenceHolder;
-        copy.storedBook = this.storedBook;
-        copy.blockState = this.blockState;
-        copy.activeHex = this.activeHex;
-        copy.activeHexEntityRef = this.activeHexEntityRef;
-        copy.anchorEntityRef = this.anchorEntityRef;
-        copy.bookDisplayRef = this.bookDisplayRef;
-        copy.essenceDisplayRef = this.essenceDisplayRef;
         copy.activePlayerRefs = new HashSet<>(this.activePlayerRefs);
-        copy.hexPreviewRefs = new ArrayList<>(this.hexPreviewRefs);
         copy.bookOffset = this.bookOffset;
         copy.essenceOffset = this.essenceOffset;
         copy.location = this.location != null ? this.location.clone() : null;

@@ -2,6 +2,8 @@ package com.riprod.hexcode.core.state.crafting.utils;
 
 import java.util.UUID;
 
+import javax.annotation.Nullable;
+
 import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Holder;
@@ -20,6 +22,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.EffectComponent;
+import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableType;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
@@ -32,8 +35,10 @@ public class CraftingGlyphNodeSpawner {
         private static final double ROOT_NODE_SCALE = 0.2;
 
         public static Ref<EntityStore> spawnNodeForGlyph(CommandBuffer<EntityStore> buffer,
-                        Ref<EntityStore> glyphRef, EffectComponent effect, Vector3d glyphPos) {
+                        Ref<EntityStore> glyphRef, EffectComponent effect, Vector3d glyphPos, @Nullable Ref<EntityStore> playerRef) {
                 Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
+
+                HiddenUtils.addHiddenToHolder(holder, playerRef);
 
                 Vector3d nodePos = new Vector3d(glyphPos.x, glyphPos.y + NODE_OFFSET_Y, glyphPos.z);
                 holder.addComponent(TransformComponent.getComponentType(),
@@ -63,7 +68,7 @@ public class CraftingGlyphNodeSpawner {
 
                 holder.addComponent(DebugComponent.getComponentType(),
                                 new DebugComponent(DebugShape.Sphere, new Vector3f(0.8f, 0.8f, 0.2f),
-                                                NODE_SCALE * 2.5, 2.0f));
+                                                NODE_SCALE * 2.5, 2.0f, playerRef));
                 holder.addComponent(HoverableComponent.getComponentType(),
                                 new HoverableComponent(HoverableType.NODE));
 
@@ -73,8 +78,10 @@ public class CraftingGlyphNodeSpawner {
                 return nodeRef;
         }
 
-        public static Ref<EntityStore> spawnRootNode(CommandBuffer<EntityStore> buffer, Vector3d centerPos) {
+        public static Ref<EntityStore> spawnRootNode(CommandBuffer<EntityStore> buffer, Vector3d centerPos, @Nullable Ref<EntityStore> playerRef) {
                 Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
+
+                HiddenUtils.addHiddenToHolder(holder, playerRef);
 
                 holder.addComponent(TransformComponent.getComponentType(),
                                 new TransformComponent(centerPos, new Vector3f(0, 0, 0)));
@@ -95,8 +102,8 @@ public class CraftingGlyphNodeSpawner {
                 holder.addComponent(NetworkId.getComponentType(), new NetworkId(networkId));
 
                 holder.addComponent(DebugComponent.getComponentType(),
-                                new DebugComponent(DebugShape.Sphere, new Vector3f(1.0f, 0.5f, 0.2f),
-                                                ROOT_NODE_SCALE * 2.5, 2.0f));
+                                new DebugComponent(DebugShape.Sphere, new Vector3f(1.0f, 0.5f, 0.2f), // color: orange-ish
+                                                ROOT_NODE_SCALE * 2.5, 2.0f, playerRef));
                 holder.addComponent(HoverableComponent.getComponentType(),
                                 new HoverableComponent(HoverableType.NODE));
 

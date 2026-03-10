@@ -20,13 +20,16 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.block.component.UnbreakableBlockComponent;
 import com.riprod.hexcode.core.common.block.event.BlockBreakEvent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.state.crafting.component.PedestalPlayerData;
+import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
 import com.riprod.hexcode.core.state.crafting.entity.AnchorEntity;
 import com.riprod.hexcode.core.state.crafting.system.ObeliskSystem;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalItemUtil;
-import com.riprod.hexcode.core.state.crafting.utils.PedestalState;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.state.HexState;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class PedestalBlockEvent extends EntityEventSystem<EntityStore, BreakBlockEvent> {
@@ -56,21 +59,16 @@ public class PedestalBlockEvent extends EntityEventSystem<EntityStore, BreakBloc
             return;
         }
 
-        LOGGER.atInfo().log("pedestal break detected at %s, state=%s", pos, pedestal.getState());
-
-        if (pedestal.getState() == PedestalState.CRAFTING) {
+        if (pedestal.getStates().contains(PedestalState.CRAFTING)) {
             LOGGER.atInfo().log("pedestal at %s is crafting, cancelling break", pos);
             event.setCancelled(true);
             return;
         }
 
-        AnchorEntity.DespawnHexPreviews(buffer, pedestal);
-        UnbreakableBlockComponent.unprotect(world, pos);
-        ObeliskSystem.handleDeactivation(buffer, pedestal, world);
-
         Set<Ref<EntityStore>> activePlayers = pedestal.getActivePlayerRefs();
         for (Ref<EntityStore> playerRef : activePlayers) {
-            if (playerRef == null || !playerRef.isValid()) continue;
+            if (playerRef == null || !playerRef.isValid())
+                continue;
             HexcasterComponent hexcaster = buffer.getComponent(playerRef, HexcasterComponent.getComponentType());
             if (hexcaster != null) {
                 hexcaster.requestStateChange(HexState.IDLE);
@@ -78,37 +76,50 @@ public class PedestalBlockEvent extends EntityEventSystem<EntityStore, BreakBloc
         }
         activePlayers.clear();
 
-        ItemStack bookStack = pedestal.getStoredBook();
-        if (bookStack != null && !bookStack.isEmpty()) {
-            PedestalItemUtil.dropBookAtPosition(buffer, bookStack, pos);
-            pedestal.setStoredBook(ItemStack.EMPTY);
-            LOGGER.atInfo().log("dropped stored book at %s", pos);
+        Map<String, PedestalPlayerData> playerDataList = pedestal.getPlayerData();
+
+        if (playerDataList != null && !playerDataList.isEmpty()) {
+            for (Map.Entry<String, PedestalPlayerData> entry : playerDataList.entrySet()) {
+                String playerId = entry.getKey();
+                PedestalPlayerData playerData = entry.getValue();
+                if (playerData == null)
+                    continue;
+
+                ItemStack bookStack = playerData.getStoredBook();
+                if (bookStack != null && !bookStack.isEmpty()) {
+                    PedestalItemUtil.dropBookAtPosition(buffer, bookStack, pos);
+                }
+
+                Ref<EntityStore> bookRef = playerData.getBookDisplayRef();
+                if (bookRef != null && bookRef.isValid()) {
+                    buffer.removeEntity(bookRef, RemoveReason.REMOVE);
+                    playerData.setBookDisplayRef(null);
+                }
+
+                Ref<EntityStore> essenceRef = playerData.getEssenceDisplayRef();
+                if (essenceRef != null && essenceRef.isValid()) {
+                    buffer.removeEntity(essenceRef, RemoveReason.REMOVE);
+                    playerData.setEssenceDisplayRef(null);
+                }
+
+                if (!pedestal.isConsumeEssence() && playerData.getEssence() != null) {
+                    PedestalItemUtil.dropEssenceAtPosition(buffer, playerData.getEssence(), pos);
+                }
+
+                playerData.setEssence(null);
+                playerData.setState(PedestalState.IDLE);
+                AnchorEntity.DespawnHexPreviews(buffer, pedestal, playerData);
+                Ref<EntityStore> anchorRef = playerData.getAnchorRef();
+                if (anchorRef != null && anchorRef.isValid()) {
+                    buffer.removeEntity(anchorRef, RemoveReason.REMOVE);
+                    playerData.setAnchorEntityRef(null);
+                }
+            }
+            playerDataList.clear();
         }
 
-        Ref<EntityStore> bookRef = pedestal.getBookDisplayRef();
-        if (bookRef != null && bookRef.isValid()) {
-            buffer.removeEntity(bookRef, RemoveReason.REMOVE);
-            pedestal.setBookDisplayRef(null);
-        }
-
-        Ref<EntityStore> essenceRef = pedestal.getEssenceDisplayRef();
-        if (essenceRef != null && essenceRef.isValid()) {
-            buffer.removeEntity(essenceRef, RemoveReason.REMOVE);
-            pedestal.setEssenceDisplayRef(null);
-        }
-
-        if (!pedestal.isConsumeEssence() && pedestal.getEssenceItemId() != null) {
-            PedestalItemUtil.dropEssenceAtPosition(buffer, pedestal.getEssenceItemId(), pos);
-        }
-
-        Ref<EntityStore> anchorRef = pedestal.getAnchorRef();
-        if (anchorRef != null && anchorRef.isValid()) {
-            buffer.removeEntity(anchorRef, RemoveReason.REMOVE);
-            pedestal.setAnchorEntityRef(null);
-        }
-
-        pedestal.setEssenceItemId(null);
-        pedestal.setState(PedestalState.IDLE);
+        UnbreakableBlockComponent.unprotect(world, pos);
+        ObeliskSystem.enterIdle(buffer, pedestal, world);
 
         LOGGER.atInfo().log("pedestal cleanup complete at %s", pos);
     }

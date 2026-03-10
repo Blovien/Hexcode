@@ -18,5 +18,6 @@
   "Interactions": {
     "Primary": "Hexstaff_Primary",
     "Secondary": "Hexstaff_Secondary"
-  }
+  },
+  "MaxStack": 1
 }

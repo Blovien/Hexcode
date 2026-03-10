@@ -1,49 +1,45 @@
 package com.riprod.hexcode.core.state.crafting.system;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
-import com.hypixel.hytale.builtin.mounts.MountedComponent;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.component.RemoveReason;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.math.vector.Vector3i;
-import com.hypixel.hytale.protocol.AnimationSlot;
-import com.hypixel.hytale.server.core.entity.AnimationUtils;
-import com.hypixel.hytale.server.core.entity.entities.Player;
-import com.hypixel.hytale.server.core.inventory.ItemStack;
-import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.block.component.UnbreakableBlockComponent;
-import com.riprod.hexcode.core.common.block.event.BlockBreakEvent;
-import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
-import com.riprod.hexcode.core.common.hexes.component.Hex;
-import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.state.crafting.entity.AnchorEntity;
-import com.riprod.hexcode.core.state.crafting.entity.PedestalEntity;
+import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalBlockUtil;
-import com.riprod.hexcode.core.state.crafting.utils.PedestalItemUtil;
-import com.riprod.hexcode.core.state.crafting.utils.PedestalState;
-import com.riprod.hexcode.core.state.crafting.utils.RadialPositionUtil;
-import com.riprod.hexcode.state.HexState;
 
 /** Handles obelisk-related logic and interactions */
 public class ObeliskSystem {
-    public static void ActivateHexSelection(CommandBuffer<EntityStore> buffer,
-            PedestalBlockComponent pedestal, Ref<EntityStore> selectedHexRef) {
+    public static void enterCrafting(CommandBuffer<EntityStore> buffer,
+            PedestalBlockComponent pedestalComponent, Ref<EntityStore> selectedHexRef) {
 
         // Activates hexes
+        List<PedestalState> pedestalStates = pedestalComponent.getStates();
+        if (pedestalComponent.isPerPlayer()) {
+            boolean anyInCrafting = pedestalStates.stream()
+                    .anyMatch(state -> state == PedestalState.CRAFTING);
+            if (anyInCrafting) {
+                return; // return if there are any players who are in crafting on this pedestal
+            }
+        }
 
-        updateState(buffer, pedestal, buffer.getExternalData().getWorld(), PedestalState.CRAFTING);
+        updateState(buffer, pedestalComponent, buffer.getExternalData().getWorld(), PedestalState.CRAFTING);
     }
 
-    public static void handleActivation(PedestalBlockComponent pedestalComponent,
+    public static void enterSelecting(PedestalBlockComponent pedestalComponent,
             World world, CommandBuffer<EntityStore> buffer) {
+
+        List<PedestalState> pedestalStates = pedestalComponent.getStates();
+        if (pedestalComponent.isPerPlayer() && !pedestalStates.isEmpty()) {
+            boolean anyInSelectingOrCrafting = pedestalStates.stream()
+                    .anyMatch(state -> state == PedestalState.SELECTING || state == PedestalState.CRAFTING);
+            if (anyInSelectingOrCrafting) {
+                return; // return if there are any players who are crafting / selecting on this pedestal
+            }
+        }
 
         List<Vector3i> obeliskPositions = pedestalComponent.getActiveObelisks();
 
@@ -53,9 +49,17 @@ public class ObeliskSystem {
         updateState(buffer, pedestalComponent, world, PedestalState.SELECTING);
     }
 
-    public static void handleDeactivation(CommandBuffer<EntityStore> buffer,
+    public static void enterIdle(CommandBuffer<EntityStore> buffer,
             PedestalBlockComponent pedestalComponent,
             World world) {
+
+        List<PedestalState> pedestalStates = pedestalComponent.getStates();
+        if (pedestalComponent.isPerPlayer() && !pedestalStates.isEmpty()) {
+            boolean anyNotIdle = pedestalStates.stream().anyMatch(state -> state != PedestalState.IDLE);
+            if (anyNotIdle) {
+                return; // return if there are still crafting states active for other players
+            }
+        }
 
         List<Vector3i> obeliskPositions = pedestalComponent.getActiveObelisks();
 
@@ -68,8 +72,11 @@ public class ObeliskSystem {
     }
 
     public static void handleReady(CommandBuffer<EntityStore> accessor, PedestalBlockComponent pedestal, World world) {
-        if (pedestal.getStoredBook() == null || pedestal.getEssenceItemId() == null
-                || pedestal.getStoredBook().isEmpty()) {
+        if (pedestal.isPerPlayer())
+            return;
+
+        if (pedestal.getStoredBook(null) == null || pedestal.getEssenceItemId(null) == null
+                || pedestal.getStoredBook(null).isEmpty()) {
             // updateState(accessor, pedestal, world, PedestalState.IDLE);
             return;
         }
@@ -101,19 +108,22 @@ public class ObeliskSystem {
 
         for (Vector3i obeliskPos : obeliskPositions) {
             // update the state of every obelisk
-            if (obeliskPos == null) continue;
+            if (obeliskPos == null)
+                continue;
             PedestalBlockUtil.changeBlockState(world, obeliskPos, blockState);
         }
     }
 
     public static void CleanupObelisks(CommandBuffer<EntityStore> accessor, World world, List<Vector3i> obelisks) {
         // Remove them
-        if (obelisks.isEmpty()) return;
+        if (obelisks.isEmpty())
+            return;
         UnbreakableBlockComponent.unprotectBlocks(world, obelisks);
 
         for (Vector3i obeliskPos : obelisks) {
             // update the state of every obelisk
-            if (obeliskPos == null) continue;
+            if (obeliskPos == null)
+                continue;
             PedestalBlockUtil.changeBlockState(world, obeliskPos, "Idle");
         }
     }

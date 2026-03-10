@@ -22,6 +22,8 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalAnchorComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.state.crafting.component.PedestalPlayerData;
+import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
 import com.riprod.hexcode.core.state.crafting.entity.PedestalEntity;
 import com.riprod.hexcode.core.state.crafting.utils.PlayerLocationUtil;
 import com.riprod.hexcode.state.HexState;
@@ -57,19 +59,32 @@ public class PedestalTickEvent extends EntityTickingSystem<EntityStore> {
             return;
         }
 
-        switch (pedestalBlock.getState()) {
-            case READY: // has all required components but not active yet
-                tickReady(dt, pedestalBlock, buffer.getExternalData().getWorld(), buffer);
-                break;
-            case CRAFTING:
-                tickCrafting(buffer, store, dt, pedestalBlock);
-                // fall-through: both crafting and selecting need player detection
-            case SELECTING:
-                Ref<EntityStore> anchorRef = accessor.getReferenceTo(index);
-                tickPlayerDetection(buffer, store, dt, pedestalBlock, anchorRef);
-                break;
-            case IDLE: // error state
-                break;
+        List<PedestalState> states = pedestalBlock.getStates();
+        if (states == null || states.isEmpty())
+            return;
+
+        boolean hasCrafting = states.contains(PedestalState.CRAFTING);
+        boolean hasSelecting = states.contains(PedestalState.SELECTING);
+        boolean hasReady = states.contains(PedestalState.READY);
+        if (!hasCrafting && !hasSelecting && !hasReady) {
+            return;
+        }
+
+        List<PedestalPlayerData> playerDataList = pedestalBlock.getAllPlayerData();
+        if (playerDataList == null || playerDataList.isEmpty()) {
+            return;
+        }
+        
+        if (hasCrafting) {
+            tickCrafting(buffer, store, dt, pedestalBlock);
+        }
+        if (hasSelecting || hasCrafting) {
+            Ref<EntityStore> anchorRef = accessor.getReferenceTo(index);
+            tickPlayerDetection(buffer, store, dt, pedestalBlock, anchorRef);
+        }
+
+        if (hasReady) {
+            tickReady(dt, pedestalBlock, buffer.getExternalData().getWorld(), buffer);
         }
     }
 
@@ -77,7 +92,7 @@ public class PedestalTickEvent extends EntityTickingSystem<EntityStore> {
             CommandBuffer<EntityStore> buffer) {
     }
 
-    private void tickPlayerDetection(CommandBuffer<EntityStore> buffer, Store<EntityStore> store, float dt,
+    private void tickPlayerDetection(CommandBuffer<EntityStore> accessor, Store<EntityStore> store, float dt,
             PedestalBlockComponent pedestal, Ref<EntityStore> anchorRef) {
 
         if (pedestal.getTickLength(PLAYER_DETECTION_DT_KEY) < PLAYER_DETECTION_INTERVAL_DT) {
@@ -95,7 +110,7 @@ public class PedestalTickEvent extends EntityTickingSystem<EntityStore> {
         double maxRadius = pedestal.getMaxRadius();
         double maxRadiusSq = maxRadius * maxRadius;
 
-        List<Pair<Ref<EntityStore>, HexcasterComponent>> nearbyEntities = PlayerLocationUtil.findNearbyPlayers(buffer,
+        List<Pair<Ref<EntityStore>, HexcasterComponent>> nearbyEntities = PlayerLocationUtil.findNearbyPlayers(accessor,
                 anchorPos, maxRadius);
 
         // find nearby players and set them to CRAFTING if they are idle
@@ -106,7 +121,7 @@ public class PedestalTickEvent extends EntityTickingSystem<EntityStore> {
             if (!pedestal.getActivePlayerRefs().contains(hexPair.getFirst())) {
                 hexcaster.setPendingPedestalRef(anchorRef);
                 hexcaster.requestStateChange(HexState.CRAFTING);
-                pedestal.addDetectedPlayer(hexPair.getFirst());
+                pedestal.addDetectedPlayer(accessor, hexPair.getFirst());
                 LOGGER.atInfo().log("pedestal: auto-entering player %s into CRAFTING, anchor=%s", hexPair.getFirst(),
                         anchorRef);
             }
@@ -120,13 +135,14 @@ public class PedestalTickEvent extends EntityTickingSystem<EntityStore> {
                 continue;
             }
 
-            HexcasterComponent hexcaster = buffer.getComponent(playerRef, HexcasterComponent.getComponentType());
-            if (hexcaster == null || (hexcaster.getState() != HexState.CRAFTING && hexcaster.getState() != HexState.DRAWING)) {
+            HexcasterComponent hexcaster = accessor.getComponent(playerRef, HexcasterComponent.getComponentType());
+            if (hexcaster == null
+                    || (hexcaster.getState() != HexState.CRAFTING && hexcaster.getState() != HexState.DRAWING)) {
                 toRemove.add(playerRef);
                 continue;
             }
 
-            TransformComponent transform = buffer.getComponent(playerRef, TransformComponent.getComponentType());
+            TransformComponent transform = accessor.getComponent(playerRef, TransformComponent.getComponentType());
             if (transform == null) {
                 continue;
             }
@@ -144,9 +160,9 @@ public class PedestalTickEvent extends EntityTickingSystem<EntityStore> {
     private void tickCrafting(CommandBuffer<EntityStore> buffer, Store<EntityStore> store, float dt,
             PedestalBlockComponent pedestal) {
 
-        Ref<EntityStore> activeHexRef = pedestal.getActiveHexEntityRef();
-        if (activeHexRef == null || !activeHexRef.isValid()) {
-            return;
-        }
+        // Ref<EntityStore> activeHexRef = pedestal.getActiveHexEntityRef();
+        // if (activeHexRef == null || !activeHexRef.isValid()) {
+        // return;
+        // }
     }
 }

@@ -12,18 +12,23 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.InteractionState;
+import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.EffectComponent;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
+import com.riprod.hexcode.core.common.hidden.component.HiddenComponent;
+import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableType;
 import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.state.crafting.component.PedestalPlayerData;
+import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
 import com.riprod.hexcode.core.state.crafting.system.CraftingStateSystem;
 import com.riprod.hexcode.core.state.crafting.system.SelectingStateSystem;
 import com.riprod.hexcode.core.state.crafting.utils.CraftingDragUtil;
@@ -34,8 +39,6 @@ import com.riprod.hexcode.core.state.crafting.utils.CraftingPositionUtil;
 import com.riprod.hexcode.core.state.crafting.utils.DetailsRenderer;
 import com.riprod.hexcode.core.state.crafting.utils.GravityUtil;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalBlockUtil;
-import com.riprod.hexcode.core.state.crafting.utils.PedestalState;
-
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
 
@@ -106,9 +109,12 @@ public class CraftingSystem extends HexcodeManager {
             return;
         }
 
-        switch (pedestal.getState()) {
+        UUIDComponent uuidComp = buffer.getComponent(ref, UUIDComponent.getComponentType());
+        PedestalPlayerData playerData = pedestal.getPlayerData(uuidComp.getUuid().toString());
+
+        switch (playerData.getState()) {
             case SELECTING:
-                SelectingStateSystem.tickSelecting(buffer, dt, ref, pedestal);
+                SelectingStateSystem.tickSelecting(buffer, dt, ref, pedestal, playerData);
                 break;
             case CRAFTING:
                 CraftingStateSystem.tickCrafting(buffer, dt, ref, pedestal);
@@ -133,8 +139,10 @@ public class CraftingSystem extends HexcodeManager {
         if (pedestal == null) {
             return InteractionState.Failed;
         }
+        UUIDComponent uuidComp = buffer.getComponent(ref, UUIDComponent.getComponentType());
+        PedestalPlayerData playerData = pedestal.getPlayerData(uuidComp.getUuid().toString());
 
-        switch (pedestal.getState()) {
+        switch (playerData.getState()) {
             case SELECTING:
                 return SelectingStateSystem.enterInteraction(ref, comp, buffer);
             case CRAFTING:
@@ -148,7 +156,11 @@ public class CraftingSystem extends HexcodeManager {
     public InteractionState enterAbilityTwo(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref,
             HexcasterComponent comp) {
         PedestalBlockComponent pedestal = PedestalBlockUtil.resolvePedestal(ref, buffer);
-        if (pedestal == null || pedestal.getState() != PedestalState.CRAFTING) {
+
+        UUIDComponent uuidComp = buffer.getComponent(ref, UUIDComponent.getComponentType());
+        PedestalPlayerData playerData = pedestal.getPlayerData(uuidComp.getUuid().toString());
+
+        if (pedestal == null || playerData.getState() != PedestalState.CRAFTING) {
             return InteractionState.Finished;
         }
 
@@ -210,7 +222,10 @@ public class CraftingSystem extends HexcodeManager {
         if (pedestal == null)
             return InteractionState.NotFinished;
 
-        if (pedestal.getState() == PedestalState.CRAFTING) {
+        UUIDComponent uuidComp = buffer.getComponent(ref, UUIDComponent.getComponentType());
+        PedestalPlayerData playerData = pedestal.getPlayerData(uuidComp.getUuid().toString());
+
+        if (playerData.getState() == PedestalState.CRAFTING) {
             CraftingStateSystem.tickInteraction(buffer, dt, ref, pedestal);
         }
 
@@ -218,41 +233,46 @@ public class CraftingSystem extends HexcodeManager {
     }
 
     @Override
-    public InteractionState exitInteraction(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref,
+    public InteractionState exitInteraction(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref,
             HexcasterComponent comp) {
-        PedestalBlockComponent pedestal = PedestalBlockUtil.resolvePedestal(ref, buffer);
-        if (pedestal == null || pedestal.getState() != PedestalState.CRAFTING) {
+        PedestalBlockComponent pedestal = PedestalBlockUtil.resolvePedestal(ref, accessor);
+
+        UUIDComponent uuidComp = accessor.getComponent(ref, UUIDComponent.getComponentType());
+        PedestalPlayerData playerData = pedestal.getPlayerData(uuidComp.getUuid().toString());
+
+        if (pedestal == null || playerData.getState() != PedestalState.CRAFTING) {
             return InteractionState.Finished;
         }
+        Ref<EntityStore> playerRefFlag = pedestal.isPerPlayer() ? ref : null;
 
-        HexcasterCraftingComponent craftingComp = buffer.getComponent(ref,
+        HexcasterCraftingComponent craftingComp = accessor.getComponent(ref,
                 HexcasterCraftingComponent.getComponentType());
         if (craftingComp == null)
             return InteractionState.Finished;
 
         if (craftingComp.getDragTickCount() < 3) {
             Ref<EntityStore> draggedRef = craftingComp.getDraggingRef();
-            CraftingDragUtil.endDrag(buffer, draggedRef, craftingComp.getHeadAnchorRef());
+            CraftingDragUtil.endDrag(accessor, draggedRef, craftingComp.getHeadAnchorRef());
             LOGGER.atInfo().log("Exiting interaction after click and setting drag ref to null");
             craftingComp.setDraggingRef(null, null);
             craftingComp.setHeadAnchorRef(null);
             craftingComp.setDragTickCount(0);
 
             if (craftingComp.getDetailsGlyphRef() != null) {
-                DetailsRenderer.closeDetails(buffer, craftingComp.getDetailSlotRefs());
+                DetailsRenderer.closeDetails(accessor, craftingComp.getDetailSlotRefs());
                 craftingComp.setDetailsGlyphRef(null);
             }
 
             Ref<EntityStore> hoveredRef = craftingComp.getHoveredRef();
             if (hoveredRef != null && hoveredRef.isValid()) {
-                HoverableComponent hoverComp = buffer.getComponent(hoveredRef,
+                HoverableComponent hoverComp = accessor.getComponent(hoveredRef,
                         HoverableComponent.getComponentType());
                 if (hoverComp != null && hoverComp.getType() == HoverableType.GLYPH) {
-                    EffectComponent effect = buffer.getComponent(hoveredRef,
+                    EffectComponent effect = accessor.getComponent(hoveredRef,
                             EffectComponent.getComponentType());
                     if (effect != null) {
                         List<Ref<EntityStore>> slotRefs = DetailsRenderer.openDetails(
-                                buffer, hoveredRef, effect);
+                                accessor, hoveredRef, effect, playerRefFlag);
                         craftingComp.setDetailsGlyphRef(hoveredRef);
                         craftingComp.setDetailSlotRefs(slotRefs);
                     }
@@ -274,61 +294,63 @@ public class CraftingSystem extends HexcodeManager {
 
         switch (draggedType) {
             case GLYPH: {
-                CraftingDragUtil.endDrag(buffer, draggedRef, craftingComp.getHeadAnchorRef());
+                CraftingDragUtil.endDrag(accessor, draggedRef, craftingComp.getHeadAnchorRef());
 
-                TransformComponent playerTransform = buffer.getComponent(ref,
+                TransformComponent playerTransform = accessor.getComponent(ref,
                         TransformComponent.getComponentType());
                 Ref<EntityStore> dropTargetRef = null;
                 if (playerTransform != null) {
-                    List<Ref<EntityStore>> nearby = HoverableUtils.getNearbyHoverables(buffer,
+                    List<Ref<EntityStore>> nearby = HoverableUtils.getNearbyHoverables(accessor,
                             playerTransform.getPosition(), 8.0);
+
+                    HiddenUtils.filterByOwner(accessor, nearby, ref);
                     List<Ref<EntityStore>> filtered = new ArrayList<>(nearby.size());
                     for (Ref<EntityStore> candidate : nearby) {
                         if (!candidate.equals(draggedRef)) {
                             filtered.add(candidate);
                         }
                     }
-                    dropTargetRef = HoverableUtils.getSmallestTarget(buffer, ref, filtered);
+                    dropTargetRef = HoverableUtils.getSmallestTarget(accessor, ref, filtered);
                 }
 
                 CraftingDropHandler.DropResult result = CraftingDropHandler.handleDrop(
-                        buffer, draggedRef, dropTargetRef);
+                        accessor, draggedRef, dropTargetRef);
 
                 switch (result) {
                     case LINKED:
                     case PLACED:
                     case IGNORED:
                     default:
-                        Vector3f dropOffset = CraftingPositionUtil.lookToHexOffset(buffer, ref,
+                        Vector3f dropOffset = CraftingPositionUtil.lookToHexOffset(accessor, ref,
                                 craftingComp.getHexRootRef(), 2.0f);
-                        Vector3d dropWorldPos = CraftingPositionUtil.hexOffsetToWorld(buffer,
+                        Vector3d dropWorldPos = CraftingPositionUtil.hexOffsetToWorld(accessor,
                                 craftingComp.getHexRootRef(), dropOffset);
 
-                        EffectComponent effect = buffer.getComponent(draggedRef,
+                        EffectComponent effect = accessor.getComponent(draggedRef,
                                 EffectComponent.getComponentType());
                         Vector3f rotation = effect != null ? effect.getRotation() : Vector3f.ZERO;
 
-                        buffer.putComponent(draggedRef, TransformComponent.getComponentType(),
+                        accessor.putComponent(draggedRef, TransformComponent.getComponentType(),
                                 new TransformComponent(dropWorldPos, rotation));
 
                         if (effect != null) {
                             effect.getGlyph().setPosition(dropOffset);
                         }
-                        updateNodePosition(buffer, draggedRef, dropWorldPos);
+                        updateNodePosition(accessor, draggedRef, dropWorldPos);
                         break;
 
                     case SLOTTED:
                         if (dropTargetRef != null && dropTargetRef.isValid()) {
-                            Ref<EntityStore> slottedGlyphRef = resolveGlyphFromTarget(buffer, dropTargetRef);
+                            Ref<EntityStore> slottedGlyphRef = resolveGlyphFromTarget(accessor, dropTargetRef);
                             if (slottedGlyphRef != null && slottedGlyphRef.isValid()) {
                                 if (craftingComp.getDetailsGlyphRef() != null) {
-                                    DetailsRenderer.closeDetails(buffer, craftingComp.getDetailSlotRefs());
+                                    DetailsRenderer.closeDetails(accessor, craftingComp.getDetailSlotRefs());
                                 }
-                                EffectComponent slottedEffect = buffer.getComponent(slottedGlyphRef,
+                                EffectComponent slottedEffect = accessor.getComponent(slottedGlyphRef,
                                         EffectComponent.getComponentType());
                                 if (slottedEffect != null) {
                                     List<Ref<EntityStore>> slotRefs = DetailsRenderer.openDetails(
-                                            buffer, slottedGlyphRef, slottedEffect);
+                                            accessor, slottedGlyphRef, slottedEffect, playerRefFlag);
                                     craftingComp.setDetailsGlyphRef(slottedGlyphRef);
                                     craftingComp.setDetailSlotRefs(slotRefs);
                                 }
@@ -348,21 +370,24 @@ public class CraftingSystem extends HexcodeManager {
                 return InteractionState.Finished;
             }
             case NODE: {
-                NodeComponent nodeComp = buffer.getComponent(draggedRef, NodeComponent.getComponentType());
+                NodeComponent nodeComp = accessor.getComponent(draggedRef, NodeComponent.getComponentType());
                 if (nodeComp == null) {
                     craftingComp.setDraggingRef(null, null);
                     craftingComp.setDragTickCount(0);
                     return InteractionState.Failed;
                 }
 
-                TransformComponent playerTransform = buffer.getComponent(ref,
+                TransformComponent playerTransform = accessor.getComponent(ref,
                         TransformComponent.getComponentType());
                 Ref<EntityStore> dropTargetRef = null;
                 if (playerTransform != null) {
-                    List<Ref<EntityStore>> nearby = HoverableUtils.getNearbyHoverables(buffer,
+                    List<Ref<EntityStore>> nearby = HoverableUtils.getNearbyHoverables(accessor,
                             playerTransform.getPosition(), 8.0);
+
+                    HiddenUtils.filterByOwner(accessor, nearby, ref);
+
                     nearby.remove(draggedRef);
-                    dropTargetRef = HoverableUtils.getSmallestTarget(buffer, ref, nearby);
+                    dropTargetRef = HoverableUtils.getSmallestTarget(accessor, ref, nearby);
                 }
 
                 if (dropTargetRef == null || !dropTargetRef.isValid()) {
@@ -371,13 +396,13 @@ public class CraftingSystem extends HexcodeManager {
                     return InteractionState.Finished;
                 }
 
-                Ref<EntityStore> targetGlyphRef = resolveGlyphFromTarget(buffer, dropTargetRef);
+                Ref<EntityStore> targetGlyphRef = resolveGlyphFromTarget(accessor, dropTargetRef);
 
                 if (nodeComp.isRootNode()) {
                     if (targetGlyphRef != null && targetGlyphRef.isValid()) {
-                        HexComponent hexComp = buffer.getComponent(craftingComp.getHexRootRef(),
+                        HexComponent hexComp = accessor.getComponent(craftingComp.getHexRootRef(),
                                 HexComponent.getComponentType());
-                        EffectComponent targetEffect = buffer.getComponent(targetGlyphRef,
+                        EffectComponent targetEffect = accessor.getComponent(targetGlyphRef,
                                 EffectComponent.getComponentType());
                         if (hexComp != null && targetEffect != null) {
                             hexComp.getHex().setFirstGlyphId(targetEffect.getId());
@@ -389,9 +414,9 @@ public class CraftingSystem extends HexcodeManager {
                     if (targetGlyphRef != null && targetGlyphRef.isValid()
                             && sourceGlyphRef.isValid()
                             && !targetGlyphRef.equals(sourceGlyphRef)) {
-                        EffectComponent sourceEffect = buffer.getComponent(sourceGlyphRef,
+                        EffectComponent sourceEffect = accessor.getComponent(sourceGlyphRef,
                                 EffectComponent.getComponentType());
-                        EffectComponent targetEffect = buffer.getComponent(targetGlyphRef,
+                        EffectComponent targetEffect = accessor.getComponent(targetGlyphRef,
                                 EffectComponent.getComponentType());
                         if (sourceEffect != null && targetEffect != null) {
                             sourceEffect.getGlyph().addNext(targetEffect.getId());

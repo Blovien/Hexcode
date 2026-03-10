@@ -3,12 +3,14 @@ package com.riprod.hexcode.core.state.crafting.utils;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import com.hypixel.hytale.math.vector.Vector3f;
 
 public class RadialPositionUtil {
     // Generates positions around a circle around a center point in relative XYZ
     // coordinates as relative offset
-    public static List<Vector3f> calculateOffsets(int count, float radius, float angleOffset) {
+    public static List<Vector3f> calculateOffsets(int count, float radius, float angleOffset, @Nullable Vector3f centerOffset) {
         List<Vector3f> positions = new ArrayList<>();
 
         if (count <= 0) {
@@ -21,7 +23,11 @@ public class RadialPositionUtil {
             float yaw = angleStep * i + angleOffset; // Full 360° around the player
             float x = (float) Math.cos(yaw) * radius;
             float z = (float) Math.sin(yaw) * radius;
-            positions.add(new Vector3f(x, 0, z));
+            Vector3f offset = new Vector3f(x, 0, z);
+            if (centerOffset != null) {
+                offset.add(centerOffset);
+            }
+            positions.add(offset);
         }
 
         return positions;

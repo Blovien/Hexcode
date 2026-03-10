@@ -41,7 +41,7 @@ public class SeekGlyphStyle {
         };
 
         World world = accessor.getExternalData().getWorld();
-        VfxUtil.line(world, origin, endPoint, beamColor, LINE_THICKNESS, LINE_DURATION, true);
+        VfxUtil.line(accessor, world, origin, endPoint, beamColor, LINE_THICKNESS, LINE_DURATION, true);
 
         if (hitType == HitType.MISS) {
             return;
