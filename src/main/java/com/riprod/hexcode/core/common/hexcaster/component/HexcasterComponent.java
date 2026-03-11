@@ -160,6 +160,7 @@ public class HexcasterComponent implements Component<EntityStore> {
         copy.drawStartTimeMillis = this.drawStartTimeMillis;
         copy.pendingPedestalRef = this.pendingPedestalRef;
         copy.trainingShapeId = this.trainingShapeId;
+        copy.lastTickMap = new HashMap<>(this.lastTickMap);
         return copy;
     }
 }

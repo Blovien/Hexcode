@@ -20,7 +20,7 @@ public class HaltGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targets = glyph.getInput(0, hexContext);
+        HexVar targets = glyph.resolveInput("target", hexContext);
 
         if (targets == null || targets.size() == 0) {
             LOGGER.atInfo().log("halt glyph: no targets, skipping");

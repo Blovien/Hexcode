@@ -16,15 +16,15 @@ public class SelfGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        int setSlot = glyph.getOutput(0, hexContext);
+        Integer setSlot = glyph.resolveOutput("result", hexContext);
         Ref<EntityStore> playerRef = hexContext.getCasterRef();
 
-        if (playerRef != null && playerRef.isValid()) {
+        if (setSlot != null && playerRef != null && playerRef.isValid()) {
             UUIDComponent uuidComponent = hexContext.getAccessor().getComponent(playerRef, UUIDComponent.getComponentType());
             EntityVar selfVar = new EntityVar(EntityVar.createRef(uuidComponent.getUuid(), playerRef));
             hexContext.setVariable(setSlot, selfVar);
         } else {
-            LOGGER.atWarning().log("self glyph: invalid caster reference");
+            LOGGER.atWarning().log("self glyph: invalid caster reference or no output slot");
         }
 
         Executor.continueExecution(glyph.getNext(), hexContext);

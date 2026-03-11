@@ -67,7 +67,7 @@ public class PropelTickSystem extends EntityTickingSystem<EntityStore> {
 
             if (hitEntity != null) {
                 UUIDComponent uuidComp = buffer.getComponent(hitEntity, UUIDComponent.getComponentType());
-                if (uuidComp != null) {
+                if (uuidComp != null && propel.getOutputSlot() != null) {
                     EntityVar resultVar = new EntityVar(uuidComp.getUuid(), hitEntity);
                     propel.getHexContext().setVariable(propel.getOutputSlot(), resultVar);
                 }
@@ -89,7 +89,9 @@ public class PropelTickSystem extends EntityTickingSystem<EntityStore> {
             // block/ground collision detected by physics system
             Vector3d contactPos = physics.getContactPosition();
             BlockVar resultVar = new BlockVar(contactPos.toVector3i());
-            propel.getHexContext().setVariable(propel.getOutputSlot(), resultVar);
+            if (propel.getOutputSlot() != null) {
+                propel.getHexContext().setVariable(propel.getOutputSlot(), resultVar);
+            }
 
             PropelGlyphStyle.renderBlockHit(contactPos, buffer);
             continuePropelExecution(propel, buffer);

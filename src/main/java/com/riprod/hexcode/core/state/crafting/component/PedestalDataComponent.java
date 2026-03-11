@@ -227,25 +227,19 @@ public class PedestalDataComponent implements Component<EntityStore> {
     @Override
     public Component<EntityStore> clone() {
         PedestalDataComponent copy = new PedestalDataComponent();
+        copy.storedBook = this.storedBook;
         copy.essenceItemId = this.essenceItemId;
         copy.bookSourceSlot = this.bookSourceSlot;
-        copy.storedBook = this.storedBook;
-        copy.slotNodeRefs = new ArrayList<>(this.slotNodeRefs);
-        copy.anchorNodeRef = this.anchorNodeRef;
-        copy.essenceItemId = this.essenceItemId;
-        copy.storedBook = this.storedBook;
         copy.blockState = this.blockState;
-        copy.blockState = this.blockState;
-        copy.pedestalLocation = this.pedestalLocation;
-        copy.pedestalRadius = this.pedestalRadius;
-        copy.pedestalPerPlayer = this.pedestalPerPlayer;
         copy.bookDisplayRef = this.bookDisplayRef;
         copy.essenceDisplayRef = this.essenceDisplayRef;
         copy.hexPreviewRefs = new ArrayList<>(this.hexPreviewRefs);
         copy.anchorRef = this.anchorRef;
-        copy.bookDisplayRef = this.bookDisplayRef;
-        copy.essenceDisplayRef = this.essenceDisplayRef;
-        copy.hexPreviewRefs = new ArrayList<>(this.hexPreviewRefs);
+        copy.pedestalLocation = this.pedestalLocation;
+        copy.pedestalRadius = this.pedestalRadius;
+        copy.pedestalPerPlayer = this.pedestalPerPlayer;
+        copy.slotNodeRefs = new ArrayList<>(this.slotNodeRefs);
+        copy.anchorNodeRef = this.anchorNodeRef;
         return copy;
     }
 }

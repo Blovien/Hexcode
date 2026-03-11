@@ -4,7 +4,11 @@
   "ModelPath": "Glyph_Erode",
   "BasePower": 1.0,
   "ManaConsumption": 10,
-  "InputCount": 3,
+  "Inputs": {
+    "target": { "Title": "Target", "DefaultSlot": 1 },
+    "amount": { "Title": "Amount", "DefaultSlot": 2 },
+    "duration": { "Title": "Duration", "DefaultSlot": 3 }
+  },
   "ShapeStructure": [
     {
       "ShapeId": "Antisquare",

@@ -1,0 +1,13 @@
+{
+  "RequireNewClick": true,
+  "ClickQueuingTimeout": 0.1,
+  "Cooldown": {
+    "Cooldown": 0.3
+  },
+  "Interactions": [
+    {
+      "Type": "HexAbility",
+      "CancelOnItemChange": true
+    }
+  ]
+}

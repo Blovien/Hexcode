@@ -17,8 +17,8 @@ public class SwapGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar varsA = glyph.getInput(0, hexContext);
-        HexVar varsB = glyph.getInput(1, hexContext);
+        HexVar varsA = glyph.resolveInput("a", hexContext);
+        HexVar varsB = glyph.resolveInput("b", hexContext);
 
         if (varsA == null || varsB == null) {
             LOGGER.atWarning().log("swap glyph: missing input variables");

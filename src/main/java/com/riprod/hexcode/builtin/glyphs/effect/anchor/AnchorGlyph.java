@@ -11,14 +11,12 @@ public class AnchorGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     public static final String ID = "Glyph_Anchor";
 
-    
-
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar inputVar = glyph.getInput(0, hexContext);
-        int outputSlot = glyph.getOutputOrNumber(0, hexContext);
+        HexVar inputVar = glyph.resolveInput("target", hexContext);
+        Integer outputSlot = glyph.resolveOutput("result", hexContext);
 
-        if (inputVar != null) {
+        if (inputVar != null && outputSlot != null) {
             hexContext.setVariable(outputSlot, inputVar);
         }
 

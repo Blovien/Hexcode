@@ -4,8 +4,14 @@
   "ModelPath": "Glyph_Gather",
   "BasePower": 1.0,
   "ManaConsumption": 12,
-  "InputCount": 3,
-  "OutputCount": 1,
+  "Inputs": {
+    "center": { "Title": "Center", "DefaultSlot": 1 },
+    "radius": { "Title": "Radius", "DefaultSlot": 2 },
+    "filter": { "Title": "Filter", "DefaultSlot": 3 }
+  },
+  "Outputs": {
+    "result": { "Title": "Result", "DefaultSlot": 1 }
+  },
   "ShapeStructure": [
     {
       "ShapeId": "Antisquare",

@@ -14,6 +14,7 @@ public class NodeRouter {
     static {
         HANDLERS.put(NodeType.Anchor, AnchorNodeHandler.INSTANCE);
         HANDLERS.put(NodeType.Glyph, GlyphNodeHandler.INSTANCE);
+        HANDLERS.put(NodeType.Slot, SlotNodeHandler.INSTANCE);
     }
 
     public static NodeInterface getHandler(NodeType type) {

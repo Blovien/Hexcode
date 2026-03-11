@@ -4,7 +4,12 @@
   "ModelPath": "Glyph_Bolt",
   "BasePower": 1.0,
   "ManaConsumption": 15,
-  "InputCount": 2,
+  "Inputs": {
+    "target": { "Title": "Target", "DefaultSlot": 1 }
+  },
+  "Outputs": {
+    "result": { "Title": "Result", "DefaultSlot": 1 }
+  },
   "ShapeStructure": [
     {
       "ShapeId": "Circle",

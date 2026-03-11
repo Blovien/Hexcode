@@ -34,6 +34,7 @@ import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
+import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 import com.riprod.hexcode.core.state.crafting.constants.NodeType;
 import com.riprod.hexcode.core.state.crafting.handlers.DetailsHandler;
 import com.riprod.hexcode.core.state.crafting.utils.LinkRenderer;
@@ -97,7 +98,7 @@ public class GlyphNodeHandler implements NodeInterface {
         if (nodeTransform != null) {
             LinkRenderer.renderActiveLink(accessor, accessor.getExternalData().getWorld(),
                     nodeTransform.getPosition(), targetPoint,
-                    new Vector3f(0.3f, 0.7f, 1.0f));
+                    CraftingColors.GLYPH_LINK);
         }
         return InteractionState.Finished;
     }
@@ -304,7 +305,7 @@ public class GlyphNodeHandler implements NodeInterface {
         // PersistentModel(model.toReference()));
 
         holder.addComponent(DebugComponent.getComponentType(),
-                new DebugComponent(DebugShape.Sphere, new Vector3f(0.8f, 0.8f, 0.2f),
+                new DebugComponent(DebugShape.Sphere, CraftingColors.GLYPH_LINK,
                         NODE_SCALE * 2.5, 2.0f, playerRef));
         holder.addComponent(HoverableComponent.getComponentType(),
                 new HoverableComponent(HoverableType.NODE));
@@ -331,18 +332,20 @@ public class GlyphNodeHandler implements NodeInterface {
             return InteractionState.Failed;
         }
 
-        // first, delete the old slots
-        if (playerData.getSlotNodeRefs() != null && !playerData.getSlotNodeRefs().isEmpty()) {
-            DetailsHandler.closeDetails(accessor, playerData.getSlotNodeRefs());
-        }
-
         GlyphComponent effect = accessor.getComponent(effectRef,
                 GlyphComponent.getComponentType());
-        if (effect != null) {
-            List<Ref<EntityStore>> slotRefs = DetailsHandler.openDetails(
-                    accessor, effectRef, playerRef);
-
-            playerData.setSlotNodeRefs(slotRefs);
+        if (effect != null && effect.getGlyph().getType() != GlyphType.Value) {
+            if (DetailsHandler.isOpenFor(accessor, playerData.getSlotNodeRefs(), effectRef)) {
+                DetailsHandler.closeDetails(accessor, playerData.getSlotNodeRefs());
+                playerData.setSlotNodeRefs(null);
+            } else {
+                if (playerData.getSlotNodeRefs() != null && !playerData.getSlotNodeRefs().isEmpty()) {
+                    DetailsHandler.closeDetails(accessor, playerData.getSlotNodeRefs());
+                }
+                List<Ref<EntityStore>> slotRefs = DetailsHandler.openDetails(
+                        accessor, effectRef, playerRef);
+                playerData.setSlotNodeRefs(slotRefs);
+            }
         }
 
         return InteractionState.Finished;

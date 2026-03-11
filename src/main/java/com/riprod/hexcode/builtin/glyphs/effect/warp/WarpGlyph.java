@@ -17,8 +17,8 @@ public class WarpGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targets = glyph.getInput(0, hexContext);
-        HexVar destInput = glyph.getInput(1, hexContext);
+        HexVar targets = glyph.resolveInput("target", hexContext);
+        HexVar destInput = glyph.resolveInput("destination", hexContext);
 
         if (destInput == null || destInput.size() == 0) {
             LOGGER.atWarning().log("warp glyph: no destination provided");
@@ -26,24 +26,7 @@ public class WarpGlyph implements GlyphHandler {
             return;
         }
 
-        Vector3d destination = null;
-
-        if (destInput != null) {
-            destination = SpellVarUtil.resolvePosition(destInput, hexContext.getAccessor());
-        }
-
-        if (destination == null) {
-            HexVar xInput = glyph.getInput(2, hexContext);
-            HexVar yInput = glyph.getInput(3, hexContext);
-            HexVar zInput = glyph.getInput(4, hexContext);
-            Double x = SpellVarUtil.resolveNumber(xInput);
-            Double y = SpellVarUtil.resolveNumber(yInput);
-            Double z = SpellVarUtil.resolveNumber(zInput);
-
-            if (x != null && y != null && z != null) {
-                destination = new Vector3d(x, y, z);
-            }
-        }
+        Vector3d destination = SpellVarUtil.resolvePosition(destInput, hexContext.getAccessor());
 
         if (destination == null) {
             LOGGER.atWarning().log("warp glyph: could not resolve destination");

@@ -9,6 +9,7 @@ import com.hypixel.hytale.server.core.universe.world.ParticleUtil;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
+import com.hypixel.hytale.server.core.entity.nameplate.Nameplate;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.state.casting.utils.GlyphStyler;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
@@ -26,6 +27,8 @@ public class HoverStyleUtils {
                 HoverableComponent.getComponentType());
         if (hoveredComponent == null)
             return;
+
+        clearHint(accessor, unhoveredRef, hoveredComponent);
 
         switch (hoveredComponent.getType()) {
             case GLYPH: {
@@ -66,6 +69,8 @@ public class HoverStyleUtils {
         if (hoveredComponent == null)
             return;
 
+        showHint(accessor, hovered, hoveredComponent);
+
         switch (hoveredComponent.getType()) {
             case GLYPH: {
                 GlyphComponent newEffect = accessor.getComponent(hovered,
@@ -95,7 +100,6 @@ public class HoverStyleUtils {
                 debug.setTimer(0);
             }
         }
-
     }
 
     public static void hoverParticles(CommandBuffer<EntityStore> accessor, Ref<EntityStore> hovered, float dt,
@@ -130,5 +134,26 @@ public class HoverStyleUtils {
             default:
                 break;
         }
+    }
+
+    private static void showHint(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref,
+            HoverableComponent hoverable) {
+        String text = hoverable.getHintText();
+        if (text == null)
+            return;
+        Nameplate nameplate = accessor.getComponent(ref, Nameplate.getComponentType());
+        if (nameplate == null)
+            return;
+        nameplate.setText(text);
+    }
+
+    private static void clearHint(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref,
+            HoverableComponent hoverable) {
+        if (hoverable.getHintText() == null)
+            return;
+        Nameplate nameplate = accessor.getComponent(ref, Nameplate.getComponentType());
+        if (nameplate == null)
+            return;
+        nameplate.setText("");
     }
 }

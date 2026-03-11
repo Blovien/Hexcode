@@ -13,15 +13,16 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
+import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
+import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
+import com.riprod.hexcode.core.state.crafting.component.SlotComponent;
+import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 import com.riprod.hexcode.utils.VfxUtil;
 
 public class LinkRenderer {
-
-    private static final Vector3f LINK_COLOR = new Vector3f(0.3f, 0.7f, 1.0f);
-    private static final Vector3f ROOT_LINK_COLOR = new Vector3f(1.0f, 0.6f, 0.2f);
 
     private static final double LINK_THICKNESS = 0.05;
 
@@ -42,9 +43,11 @@ public class LinkRenderer {
         if (hexComp == null)
             return;
 
-        LinkRenderer.renderAllLinks(accessor, hexComp,
-                accessor.getExternalData().getWorld(), playerData.getAnchorNodeRef(), playerRef);
+        World world = accessor.getExternalData().getWorld();
 
+        LinkRenderer.renderAllLinks(accessor, hexComp, world, playerData.getAnchorNodeRef(), playerRef);
+
+        renderSlotValueLinks(accessor, hexComp, world, playerData.getSlotNodeRefs(), playerRef);
     }
 
     public static void renderActiveLink(ComponentAccessor<EntityStore> accessor,
@@ -65,7 +68,7 @@ public class LinkRenderer {
                         TransformComponent.getComponentType());
                 if (rootTransform != null && firstTransform != null) {
                     VfxUtil.line(accessor, world, rootTransform.getPosition(),
-                            firstTransform.getPosition(), ROOT_LINK_COLOR, LINK_THICKNESS, 1f, false, playerRef);
+                            firstTransform.getPosition(), CraftingColors.ANCHOR, LINK_THICKNESS, 1f, false, playerRef);
                 }
             }
         }
@@ -93,8 +96,50 @@ public class LinkRenderer {
                     continue;
 
                 VfxUtil.line(accessor, world, sourceTransform.getPosition(),
-                        targetTransform.getPosition(), LINK_COLOR, LINK_THICKNESS, 1f, false, playerRef);
+                        targetTransform.getPosition(), CraftingColors.GLYPH_LINK, LINK_THICKNESS, 1f, false, playerRef);
             }
+
+        }
+    }
+
+    private static void renderSlotValueLinks(ComponentAccessor<EntityStore> accessor,
+            HexComponent hexComp, World world,
+            @Nullable List<Ref<EntityStore>> slotRefs, @Nullable Ref<EntityStore> playerRef) {
+        if (slotRefs == null || slotRefs.isEmpty())
+            return;
+
+        for (Ref<EntityStore> slotRef : slotRefs) {
+            if (slotRef == null || !slotRef.isValid())
+                continue;
+
+            SlotComponent slotComp = accessor.getComponent(slotRef, SlotComponent.getComponentType());
+            NodeComponent nodeComp = accessor.getComponent(slotRef, NodeComponent.getComponentType());
+            if (slotComp == null || nodeComp == null)
+                continue;
+
+            Ref<EntityStore> parentGlyphRef = nodeComp.getParentEntity();
+            if (parentGlyphRef == null || !parentGlyphRef.isValid())
+                continue;
+
+            GlyphComponent glyphComp = accessor.getComponent(parentGlyphRef, GlyphComponent.getComponentType());
+            if (glyphComp == null)
+                continue;
+
+            String valueGlyphId = glyphComp.getGlyph().getInputs().get(slotComp.getSlotKey());
+            if (valueGlyphId == null)
+                continue;
+
+            Ref<EntityStore> valueRef = hexComp.getChildGlyphRef(valueGlyphId);
+            if (valueRef == null || !valueRef.isValid())
+                continue;
+
+            TransformComponent slotTransform = accessor.getComponent(slotRef, TransformComponent.getComponentType());
+            TransformComponent valueTransform = accessor.getComponent(valueRef, TransformComponent.getComponentType());
+            if (slotTransform == null || valueTransform == null)
+                continue;
+
+            VfxUtil.line(accessor, world, slotTransform.getPosition(),
+                    valueTransform.getPosition(), CraftingColors.INPUT, LINK_THICKNESS, 1f, false, playerRef);
         }
     }
 }

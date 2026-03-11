@@ -14,16 +14,14 @@ public class SubtractGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar result = glyph.getInput(0, hexContext);
+        HexVar a = glyph.resolveInput("a", hexContext);
+        HexVar b = glyph.resolveInput("b", hexContext);
 
-        for (int i = 1; ; i++) {
-            HexVar next = glyph.getInput(i, hexContext);
-            if (next == null) break;
-            result = HexMathUtil.subtract(result, next);
-        }
+        HexVar result = HexMathUtil.subtract(a, b);
 
         if (result != null) {
-            hexContext.setVariable(glyph.getOutput(0, hexContext), result);
+            Integer outputSlot = glyph.resolveOutput("result", hexContext);
+            if (outputSlot != null) hexContext.setVariable(outputSlot, result);
         }
 
         Executor.continueExecution(glyph.getNext(), hexContext);

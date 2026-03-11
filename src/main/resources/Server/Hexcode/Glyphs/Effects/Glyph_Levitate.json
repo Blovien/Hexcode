@@ -4,7 +4,11 @@
   "ModelPath": "Glyph_Levitate",
   "BasePower": 1.0,
   "ManaConsumption": 10,
-  "InputCount": 3,
+  "Inputs": {
+    "target": { "Title": "Target", "DefaultSlot": 1 },
+    "intensity": { "Title": "Intensity", "DefaultSlot": 2 },
+    "duration": { "Title": "Duration", "DefaultSlot": 3 }
+  },
   "ShapeStructure": [
     {
       "ShapeId": "Anticircle",

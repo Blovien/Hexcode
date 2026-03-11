@@ -6,18 +6,14 @@ import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
-import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.utils.GlyphType;
-import com.riprod.hexcode.core.common.glyphs.values.HexValInterface;
-
-import java.util.List;
 
 import javax.annotation.Nullable;
 
 public class CraftingDropHandler {
 
     public enum DropResult {
-        PLACED, LINKED, SLOTTED, SWAPPED, IGNORED
+        PLACED, LINKED, IGNORED
     }
 
     public static DropResult handleDrop(CommandBuffer<EntityStore> accessor,
@@ -43,23 +39,6 @@ public class CraftingDropHandler {
             linkGlyphs(draggedEffect, targetEffect);
             offsetToAvoidOverlap(accessor, draggedRef, targetRef);
             return DropResult.LINKED;
-        }
-
-        if (draggedType == GlyphType.Value && targetEffect != null
-                && targetEffect.getGlyph().getType() == GlyphType.Effect) {
-            if (fillNextAvailableSlot(targetEffect.getGlyph())) {
-                return DropResult.SLOTTED;
-            }
-            return DropResult.IGNORED;
-        }
-
-        if (draggedType == GlyphType.Value) {
-            return DropResult.SWAPPED;
-        }
-
-        if (draggedType == GlyphType.Value && targetEffect != null
-                && targetEffect.getGlyph().getType() == GlyphType.Value) {
-            return DropResult.IGNORED;
         }
 
         return DropResult.IGNORED;
@@ -89,22 +68,5 @@ public class CraftingDropHandler {
             draggedTransform.setPosition(new Vector3d(
                 targetPos.x + 0.6, targetPos.y, targetPos.z));
         }
-    }
-
-    private static boolean fillNextAvailableSlot(Glyph glyph) {
-        int totalInputs = glyph.getTotalInputs();
-        List<HexValInterface> inputs = glyph.getInputs();
-
-        if (totalInputs == -1 || inputs.size() < totalInputs) {
-            return true;
-        }
-
-        int totalOutputs = glyph.getTotalOutputs();
-        List<HexValInterface> outputs = glyph.getOutputs();
-        if (totalOutputs == -1 || outputs.size() < totalOutputs) {
-            return true;
-        }
-
-        return false;
     }
 }

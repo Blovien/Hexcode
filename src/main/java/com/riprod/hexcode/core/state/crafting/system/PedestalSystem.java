@@ -53,12 +53,16 @@ public class PedestalSystem {
 
         Integer totalSlots = playerData.getBookSlots();
         if (totalSlots == null || totalSlots <= 0) {
+            logger.atWarning().log("pedestal: SpawnHexPreviews aborted — bookSlots=%s, storedBook=%s, bookComponent=%s",
+                    totalSlots, playerData.getStoredBook(), playerData.getStoredBookComponent());
             return;
         }
 
         List<Hex> hexes = playerData.getHexes();
         Ref<EntityStore> anchorRef = playerData.getAnchorRef();
         if (anchorRef == null || !anchorRef.isValid()) {
+            logger.atWarning().log("pedestal: SpawnHexPreviews aborted — anchorRef=%s, valid=%s",
+                    anchorRef, anchorRef != null ? anchorRef.isValid() : "null");
             return;
         }
 
@@ -73,10 +77,16 @@ public class PedestalSystem {
             if (i < hexes.size()) {
                 Ref<EntityStore> hexRef = AnchorEntity.spawnFilledSlot(buffer, hexes.get(i), anchorRef, anchorPos,
                         offset, playerRef);
+                if (hexRef == null) {
+                    logger.atWarning().log("pedestal: spawnFilledSlot returned null for slot %d", i);
+                }
                 spawnedRefs.add(hexRef);
             } else {
                 Ref<EntityStore> emptyRef = AnchorEntity.spawnEmptySlot(buffer, anchorRef, anchorPos, offset,
                         playerRef);
+                if (emptyRef == null) {
+                    logger.atWarning().log("pedestal: spawnEmptySlot returned null for slot %d", i);
+                }
                 spawnedRefs.add(emptyRef);
             }
         }
@@ -136,11 +146,10 @@ public class PedestalSystem {
 
     public static void handleEssencePlacement(CommandBuffer<EntityStore> buffer,
             Player player, ItemStack essenceItem, HexSlot slot,
-            PedestalBlockComponent pedestalComponent, Vector3i blockPos) {
+            PedestalBlockComponent pedestalComponent, PedestalDataComponent playerData,
+            Vector3i blockPos) {
 
         Vector3d anchorPos = PedestalEntity.getAnchorPosition(blockPos);
-
-        PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(buffer, player.getReference());
 
         Ref<EntityStore> oldEssenceRef = playerData.getEssenceDisplayRef();
         if (oldEssenceRef != null && oldEssenceRef.isValid()) {
@@ -160,11 +169,9 @@ public class PedestalSystem {
 
     public static void handleBookPlacement(CommandBuffer<EntityStore> buffer,
             Player player, ItemStack bookItem, HexSlot slot, PedestalBlockComponent pedestalComponent,
-            Vector3i blockPos) {
+            PedestalDataComponent playerData, Vector3i blockPos) {
 
         Vector3d anchorPos = PedestalEntity.getAnchorPosition(blockPos);
-
-        PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(buffer, player.getReference());
 
         ItemStack prepared = PedestalItemUtil.ensureHexBookComponent(bookItem);
         playerData.setStoredBook(prepared);
@@ -188,11 +195,25 @@ public class PedestalSystem {
 
         PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(buffer, player.getReference());
 
+        if (playerData == null) {
+            logger.atWarning().log("pedestal: enterSelecting aborted — playerData is null for player %s",
+                    player.getReference());
+            return;
+        }
+
         Integer bookSlots = playerData.getBookSlots();
-        logger.atInfo().log("pedestal: SpawnHexPreviews at %s, bookSlots=%s",
-                pedestalComponent.getLocation(), bookSlots);
 
         PedestalSystem.SpawnHexPreviews(buffer, player.getReference(), pedestalComponent, playerData);
+
+        if (pedestalComponent.isPerPlayer()) {
+            HexcasterComponent hexcaster = buffer.getComponent(player.getReference(),
+                    HexcasterComponent.getComponentType());
+            if (hexcaster != null) {
+                hexcaster.setPendingPedestalRef(playerData.getAnchorRef());
+                hexcaster.requestStateChange(HexState.CRAFTING);
+                pedestalComponent.addDetectedPlayer(buffer, player.getReference());
+            }
+        }
 
         List<Pair<Vector3i, ObeliskBlockComponent>> obeliskPairs = ObeliskBlockUtil
                 .getObelisks(pedestalComponent.getLocation(), pedestalComponent.getObeliskRange(), world);

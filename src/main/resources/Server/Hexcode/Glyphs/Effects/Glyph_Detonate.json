@@ -4,7 +4,11 @@
   "ModelPath": "Glyph_Detonate",
   "BasePower": 1.0,
   "ManaConsumption": 15,
-  "InputCount": 3,
+  "Inputs": {
+    "center": { "Title": "Center", "DefaultSlot": 1 },
+    "radius": { "Title": "Radius", "DefaultSlot": 2 },
+    "magnitude": { "Title": "Magnitude", "DefaultSlot": 3 }
+  },
   "ShapeStructure": [
     {
       "ShapeId": "Circle",

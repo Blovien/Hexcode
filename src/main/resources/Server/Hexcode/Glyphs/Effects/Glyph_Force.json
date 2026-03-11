@@ -4,7 +4,11 @@
   "ModelPath": "Glyph_Force",
   "BasePower": 1.0,
   "ManaConsumption": 8,
-  "InputCount": 3,
+  "Inputs": {
+    "target": { "Title": "Target", "DefaultSlot": 1 },
+    "direction": { "Title": "Direction", "DefaultSlot": 1 },
+    "magnitude": { "Title": "Magnitude", "DefaultSlot": 2 }
+  },
   "ShapeStructure": [
     {
       "ShapeId": "Circle",

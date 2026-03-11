@@ -4,7 +4,10 @@
   "ModelPath": "Glyph_Swap",
   "BasePower": 1.0,
   "ManaConsumption": 20,
-  "InputCount": 2,
+  "Inputs": {
+    "a": { "Title": "A", "DefaultSlot": 1 },
+    "b": { "Title": "B", "DefaultSlot": 2 }
+  },
   "ShapeStructure": [
     {
       "ShapeId": "Antisquare",

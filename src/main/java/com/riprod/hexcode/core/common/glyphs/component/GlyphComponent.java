@@ -17,7 +17,8 @@ public class GlyphComponent implements Component<EntityStore> {
 
     private enum GlyphFlags {
         Hovering,
-        Dragging
+        Dragging,
+        Details
     }
 
     public static final BuilderCodec<GlyphComponent> CODEC = BuilderCodec
@@ -199,6 +200,18 @@ public class GlyphComponent implements Component<EntityStore> {
 
     public boolean isBeingDragged() {
         return this.flags.contains(GlyphFlags.Dragging);
+    }
+
+    public void setDetailsOpen(boolean open) {
+        if (open) {
+            this.flags.add(GlyphFlags.Details);
+        } else {
+            this.flags.remove(GlyphFlags.Details);
+        }
+    }
+
+    public boolean isDetailsOpen() {
+        return this.flags.contains(GlyphFlags.Details);
     }
 
     public float getVolatility() {

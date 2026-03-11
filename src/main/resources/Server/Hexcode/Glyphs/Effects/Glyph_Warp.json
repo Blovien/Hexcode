@@ -4,7 +4,10 @@
   "ModelPath": "Glyph_Warp",
   "BasePower": 1.0,
   "ManaConsumption": 30,
-  "InputCount": 5,
+  "Inputs": {
+    "target": { "Title": "Target", "DefaultSlot": 1 },
+    "destination": { "Title": "Destination", "DefaultSlot": 2 }
+  },
   "ShapeStructure": [
     {
       "ShapeId": "Square",

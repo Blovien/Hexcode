@@ -4,7 +4,9 @@
   "ModelPath": "Glyph_Delay",
   "BasePower": 1.0,
   "ManaConsumption": 3,
-  "InputCount": 1,
+  "Inputs": {
+    "duration": { "Title": "Duration", "DefaultSlot": 1 }
+  },
   "ShapeStructure": [
     {
       "ShapeId": "Triangle",

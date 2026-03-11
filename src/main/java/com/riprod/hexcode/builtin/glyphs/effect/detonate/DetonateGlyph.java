@@ -28,9 +28,9 @@ public class DetonateGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar centerVar = glyph.getInput(0, hexContext);
-        double radius = SpellVarUtil.resolveNumberOrDefault(glyph.getInput(1, hexContext), RADIUS);
-        double mag = SpellVarUtil.resolveNumberOrDefault(glyph.getInput(2, hexContext), MAG);
+        HexVar centerVar = glyph.resolveInput("center", hexContext);
+        double radius = SpellVarUtil.resolveNumberOrDefault(glyph.resolveInput("radius", hexContext), RADIUS);
+        double mag = SpellVarUtil.resolveNumberOrDefault(glyph.resolveInput("magnitude", hexContext), MAG);
 
         if (centerVar == null || centerVar.size() == 0) {
             LOGGER.atInfo().log("detonate glyph: no centers, skipping");

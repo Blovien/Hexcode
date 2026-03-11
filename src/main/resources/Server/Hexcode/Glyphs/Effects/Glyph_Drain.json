@@ -4,7 +4,9 @@
   "ModelPath": "Glyph_Drain",
   "BasePower": 1.0,
   "ManaConsumption": 5,
-  "InputCount": 4,
+  "Inputs": {
+    "amount": { "Title": "Amount", "DefaultSlot": 1 }
+  },
   "ShapeStructure": [
     {
       "ShapeId": "Anticircle",

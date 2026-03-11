@@ -3,7 +3,6 @@ package com.riprod.hexcode.builtin.glyphs.effect.force;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.ChangeVelocityType;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
@@ -24,7 +23,7 @@ public class ForceGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targets = glyph.getInput(0, hexContext);
+        HexVar targets = glyph.resolveInput("target", hexContext);
 
         if (targets == null || targets.size() == 0) {
             LOGGER.atInfo().log("force glyph: no targets, skipping");
@@ -32,8 +31,8 @@ public class ForceGlyph implements GlyphHandler {
             return;
         }
 
-        HexVar dirInput = glyph.getInputOrDefault(1, hexContext, new PositionVar(new Vector3d(0, 1, 0)));
-        HexVar magInput = glyph.getInputOrDefault(2, hexContext, new NumberVar(DEFAULT_FORCE));
+        HexVar dirInput = glyph.resolveInputOrDefault("direction", hexContext, new PositionVar(new Vector3d(0, 1, 0)));
+        HexVar magInput = glyph.resolveInputOrDefault("magnitude", hexContext, new NumberVar(DEFAULT_FORCE));
 
         Vector3d force;
         double magnitude = SpellVarUtil.resolveNumberOrDefault(magInput, DEFAULT_FORCE);

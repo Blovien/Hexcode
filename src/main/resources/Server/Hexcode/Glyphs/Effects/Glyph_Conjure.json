@@ -4,8 +4,6 @@
   "ModelPath": "Glyph_Conjure",
   "BasePower": 1.0,
   "ManaConsumption": 15,
-  "InputCount": 3,
-  "OutputCount": 1,
   "ShapeStructure": [
     {
       "ShapeId": "Anticircle",

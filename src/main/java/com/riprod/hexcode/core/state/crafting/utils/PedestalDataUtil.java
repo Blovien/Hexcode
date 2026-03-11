@@ -9,24 +9,41 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
+import com.hypixel.hytale.logger.HytaleLogger;
 
 public class PedestalDataUtil {
+    private static final HytaleLogger logger = HytaleLogger.forEnclosingClass();
+
     public static PedestalDataComponent getPedestalData(CommandBuffer<EntityStore> accessor,
             Ref<EntityStore> playerRef) {
+        return getPedestalData(accessor, playerRef, false);
+    }
 
-        PedestalDataComponent pedestalData = accessor.getComponent(playerRef, PedestalDataComponent.getComponentType());
-        if (pedestalData != null) {
-            return pedestalData; // per-player data
+    public static PedestalDataComponent getPedestalData(CommandBuffer<EntityStore> accessor,
+            Ref<EntityStore> playerRef, boolean perPlayer) {
+
+        PedestalDataComponent playerPedestalData = accessor.getComponent(playerRef,
+                PedestalDataComponent.getComponentType());
+        if (playerPedestalData != null) {
+            return playerPedestalData;
+        }
+
+        if (perPlayer) {
+            playerPedestalData = new PedestalDataComponent();
+            accessor.addComponent(playerRef, PedestalDataComponent.getComponentType(), playerPedestalData);
+            return playerPedestalData;
         }
 
         HexcasterCraftingComponent playerData = accessor.getComponent(playerRef,
                 HexcasterCraftingComponent.getComponentType());
         if (playerData == null) {
-            return null; // should not happen, player should always have crafting component
+            logger.atWarning().log("pedestal: getPedestalData — no HexcasterCraftingComponent on player");
+            return null;
         }
         Ref<EntityStore> pedestalEntityRef = playerData.getPedestalEntityRef();
         if (pedestalEntityRef == null || !pedestalEntityRef.isValid()) {
-            return null; // no valid pedestal ref, cannot get data
+            logger.atWarning().log("pedestal: getPedestalData — pedestalEntityRef null or invalid");
+            return null;
         }
 
         PedestalDataComponent anchorData = accessor.getComponent(pedestalEntityRef,

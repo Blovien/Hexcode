@@ -4,7 +4,10 @@
   "ModelPath": "Glyph_Nullify",
   "BasePower": 1.0,
   "ManaConsumption": 12,
-  "InputCount": 2,
+  "Inputs": {
+    "target": { "Title": "Target", "DefaultSlot": 1 },
+    "amount": { "Title": "Amount", "DefaultSlot": 2 }
+  },
   "ShapeStructure": [
     {
       "ShapeId": "Anticircle",

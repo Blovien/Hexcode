@@ -1,14 +1,9 @@
 package com.riprod.hexcode.core.state.crafting.component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.annotation.Nonnull;
 
-import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
-import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.utils.GlyphSlotType;
 import com.riprod.hexcode.core.state.crafting.constants.NodeType;
@@ -20,8 +15,8 @@ public class SlotComponent implements Component<EntityStore> {
     public SlotComponent() {
     }
 
-    public SlotComponent(int slotIndex, GlyphSlotType slotType) {
-        this.slotIndex = slotIndex;
+    public SlotComponent(String slotKey, GlyphSlotType slotType) {
+        this.slotKey = slotKey;
         this.slotType = slotType;
     }
 
@@ -33,7 +28,7 @@ public class SlotComponent implements Component<EntityStore> {
         return componentType;
     }
 
-    private int slotIndex;
+    private String slotKey;
     private GlyphSlotType slotType;
     private boolean isHovered = false;
     private NodeType nodeType;
@@ -42,8 +37,8 @@ public class SlotComponent implements Component<EntityStore> {
         return isHovered;
     }
 
-    public int getSlotIndex() {
-        return slotIndex;
+    public String getSlotKey() {
+        return slotKey;
     }
 
     public GlyphSlotType getSlotType() {
@@ -66,6 +61,8 @@ public class SlotComponent implements Component<EntityStore> {
     @Override
     public SlotComponent clone() {
         SlotComponent copy = new SlotComponent();
+        copy.slotKey = this.slotKey;
+        copy.slotType = this.slotType;
         copy.isHovered = this.isHovered;
         copy.nodeType = this.nodeType;
         return copy;

@@ -4,7 +4,12 @@
   "ModelPath": "Glyph_Excavate",
   "BasePower": 1.0,
   "ManaConsumption": 18,
-  "InputCount": 3,
+  "Inputs": {
+    "target": { "Title": "Target", "DefaultSlot": 1 }
+  },
+  "Outputs": {
+    "result": { "Title": "Result", "DefaultSlot": 1 }
+  },
   "ShapeStructure": [
     {
       "ShapeId": "Square",

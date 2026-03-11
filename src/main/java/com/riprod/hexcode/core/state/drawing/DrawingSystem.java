@@ -186,7 +186,12 @@ public class DrawingSystem extends HexcodeManager {
     if (!points.isEmpty()) {
       float lastYaw = points.getFloat(points.size() - 2);
       float lastPitch = points.getFloat(points.size() - 1);
+      // unwrap yaw so it stays continuous across the ±180 boundary
       float dy = yaw - lastYaw;
+      if (dy > 180f) dy -= 360f;
+      else if (dy < -180f) dy += 360f;
+      yaw = lastYaw + dy;
+
       float dp = pitch - lastPitch;
       float dist = dy * dy + dp * dp;
       if (dist < (0.5f * 0.5f)) {

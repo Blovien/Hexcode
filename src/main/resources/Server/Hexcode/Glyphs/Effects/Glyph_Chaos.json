@@ -4,8 +4,14 @@
   "ModelPath": "Glyph_Chaos",
   "BasePower": 1.0,
   "ManaConsumption": 3,
-  "InputCount": 2,
-  "OutputCount": 1,
+  "Inputs": {
+    "source": { "Title": "Source", "DefaultSlot": 1 },
+    "min": { "Title": "Min", "DefaultSlot": 2 },
+    "max": { "Title": "Max", "DefaultSlot": 3 }
+  },
+  "Outputs": {
+    "result": { "Title": "Result", "DefaultSlot": 1 }
+  },
   "ShapeStructure": [
     {
       "ShapeId": "Antisquare",

@@ -53,16 +53,10 @@ public class CraftingStateSystem {
             return InteractionState.Failed;
         }
 
-        if (playerData.getSlotNodeRefs() != null) {
-            DetailsHandler.closeDetails(buffer, playerData.getSlotNodeRefs());
-            playerData.setSlotNodeRefs(null);
-        }
-
         switch (hoverComp.getType()) {
             case GLYPH:
                 Ref<EntityStore> headAnchor = CraftingDragHandler.startDrag(buffer, ref, hoveredRef);
                 craftingComp.setHeadAnchorRef(headAnchor);
-                LOGGER.atInfo().log("Entering interaction and setting hoveredRef");
                 craftingComp.setDraggingRef(hoveredRef);
                 return InteractionState.Finished;
             case NODE:

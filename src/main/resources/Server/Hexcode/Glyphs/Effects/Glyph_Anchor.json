@@ -4,8 +4,12 @@
   "ModelPath": "Glyph_Anchor",
   "BasePower": 1.0,
   "ManaConsumption": 3,
-  "InputCount": 1,
-  "OutputCount": 1,
+  "Inputs": {
+    "target": { "Title": "Target", "DefaultSlot": 1 }
+  },
+  "Outputs": {
+    "result": { "Title": "Result", "DefaultSlot": 2 }
+  },
   "ShapeStructure": [
     {
       "ShapeId": "Triangle",

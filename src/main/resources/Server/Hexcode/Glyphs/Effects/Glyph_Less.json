@@ -2,7 +2,13 @@
   "Parent": "Base_Glyph",
   "GlyphType": "Effect",
   "ModelPath": "Glyph_Less",
-  "InputCount": 2,
+  "Inputs": {
+    "a": { "Title": "A", "DefaultSlot": 1 },
+    "b": { "Title": "B", "DefaultSlot": 2 }
+  },
+  "Outputs": {
+    "result": { "Title": "Result", "DefaultSlot": 1 }
+  },
   "ShapeStructure": [
     {
       "ShapeId": "Less",

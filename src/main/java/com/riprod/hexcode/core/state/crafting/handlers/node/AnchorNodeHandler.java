@@ -26,6 +26,7 @@ import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
+import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 import com.riprod.hexcode.core.state.crafting.constants.NodeType;
 
 public class AnchorNodeHandler implements NodeInterface {
@@ -163,7 +164,7 @@ public class AnchorNodeHandler implements NodeInterface {
         holder.addComponent(NetworkId.getComponentType(), new NetworkId(networkId));
 
         holder.addComponent(DebugComponent.getComponentType(),
-                new DebugComponent(DebugShape.Sphere, new Vector3f(1.0f, 0.5f, 0.2f), // color: orange-ish
+                new DebugComponent(DebugShape.Sphere, CraftingColors.ANCHOR,
                         ROOT_NODE_SCALE * 2.5, 2.0f, playerRef));
         holder.addComponent(HoverableComponent.getComponentType(),
                 new HoverableComponent(HoverableType.NODE));

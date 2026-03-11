@@ -7,6 +7,7 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import com.hypixel.hytale.builtin.mounts.MountedComponent;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Holder;
@@ -39,9 +40,11 @@ import com.riprod.hexcode.core.state.casting.utils.GlyphSpawner;
 import com.riprod.hexcode.core.state.casting.utils.GlyphStyler;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
+import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 
 public class AnchorEntity {
 
+    private static final HytaleLogger logger = HytaleLogger.forEnclosingClass();
     private static final float GLYPH_DISPLAY_DISTANCE = 1.0f;
     private static final float PEDESTAL_GLYPH_PITCH = (float) (-Math.PI / 2);
     private static final Box PREVIEW_BOUNDING_BOX = new Box(-0.25, -0.25, -0.25, 0.25, 0.25, 0.25);
@@ -62,6 +65,7 @@ public class AnchorEntity {
         ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset("Selection_Anchor");
 
         if (modelAsset == null) {
+            logger.atWarning().log("pedestal: spawnFilledSlot — Selection_Anchor model not found");
             return null;
         }
 
@@ -84,6 +88,11 @@ public class AnchorEntity {
 
         String firstGlyphId = hex.getFirstGlyphId();
         Glyph firstGlyph = hex.get(firstGlyphId);
+        if (firstGlyph == null) {
+            logger.atWarning().log("pedestal: spawnFilledSlot — firstGlyph is null, firstGlyphId=%s, glyphCount=%d",
+                    firstGlyphId, hex.getGlyphs().size());
+            return hexRef;
+        }
         GlyphComponent firstGlyphComponent = new GlyphComponent(firstGlyph);
 
         firstGlyphComponent.setHexRef(hexRef);
@@ -109,6 +118,7 @@ public class AnchorEntity {
         ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset("Selection_Anchor");
 
         if (modelAsset == null) {
+            logger.atWarning().log("pedestal: spawnEmptySlot — Selection_Anchor model not found");
             return null;
         }
 
@@ -132,7 +142,7 @@ public class AnchorEntity {
         holder.addComponent(BoundingBox.getComponentType(), new BoundingBox(PREVIEW_BOUNDING_BOX));
         holder.addComponent(HoverableComponent.getComponentType(), new HoverableComponent(HoverableType.CONTAINER));
         holder.addComponent(DebugComponent.getComponentType(),
-                new DebugComponent(DebugShape.Sphere, new Vector3f(0.5f, 0.5f, 0.5f), 0.5, 2.0f, playerRef));
+                new DebugComponent(DebugShape.Sphere, CraftingColors.EMPTY_SLOT, 0.5, 2.0f, playerRef));
 
         return accessor.addEntity(holder, AddReason.SPAWN);
     }

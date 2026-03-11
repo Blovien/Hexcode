@@ -4,8 +4,14 @@
   "ModelPath": "Glyph_Seek",
   "BasePower": 1.0,
   "ManaConsumption": 8,
-  "InputCount": 3,
-  "OutputCount": 1,
+  "Inputs": {
+    "entity": { "Title": "Entity", "DefaultSlot": 1 },
+    "rotation": { "Title": "Rotation", "DefaultSlot": 1 },
+    "distance": { "Title": "Distance", "DefaultSlot": 2 }
+  },
+  "Outputs": {
+    "result": { "Title": "Result", "DefaultSlot": 1 }
+  },
   "ShapeStructure": [
     {
       "ShapeId": "Circle",

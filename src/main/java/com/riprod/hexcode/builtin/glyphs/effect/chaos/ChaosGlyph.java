@@ -18,20 +18,20 @@ public class ChaosGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        int outVarIndex = glyph.getOutput(0, hexContext);
-        HexVar variable = hexContext.getVariable(outVarIndex);
-        HexVar minValVar = glyph.getInput(1, hexContext);
-        HexVar maxValVar = glyph.getInput(2, hexContext);
+        Integer outVarIndex = glyph.resolveOutput("result", hexContext);
+        HexVar variable = outVarIndex != null ? hexContext.getVariable(outVarIndex) : null;
+        HexVar minValVar = glyph.resolveInput("min", hexContext);
+        HexVar maxValVar = glyph.resolveInput("max", hexContext);
         int minVal = (int) Math.round(SpellVarUtil.resolveNumber(minValVar));
 
-        if (maxValVar != null) {
+        if (maxValVar != null && outVarIndex != null) {
             int maxVal = (int) Math.round(SpellVarUtil.resolveNumber(maxValVar));
             int randomValue = ThreadLocalRandom.current().nextInt(minVal, (int) maxVal + 1);
             hexContext.setVariable(outVarIndex, new NumberVar(randomValue));
             LOGGER.atInfo().log("Casted Chaos with range [" + minVal + ", " + maxVal + "], set variable " + outVarIndex
                     + " to " + randomValue);
         } else {
-            if (minVal > 0 && variable.size() >= minVal) {
+            if (minVal > 0 && variable != null && variable.size() >= minVal) {
                 variable.shuffleAndTrim(minVal);
                 LOGGER.atInfo().log("Casted Chaos selecting " + minVal + " random items from variable " + outVarIndex);
             } else {

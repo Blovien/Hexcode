@@ -28,11 +28,9 @@ public class SeekGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        // getting input 1 and 2 for position and rotation
-        HexVar posVar = glyph.getInput(0, hexContext);
-        HexVar rotVar = glyph.getInputOrDefault(1, hexContext, posVar); // defaults to also be input 1 if not present
+        HexVar posVar = glyph.resolveInput("entity", hexContext);
+        HexVar rotVar = glyph.resolveInputOrDefault("rotation", hexContext, posVar);
 
-        // next several lines are just null checks for unrecoverable states
         if (posVar == null) {
             LOGGER.atWarning().log("seek glyph: no source provided");
             Executor.continueExecution(glyph.getNext(), hexContext);
@@ -53,19 +51,15 @@ public class SeekGlyph implements GlyphHandler {
             return;
         }
 
-        origin.add(new Vector3d(direction).scale(1.5)); // start a bit in front of the caster to avoid collisions
+        origin.add(new Vector3d(direction).scale(1.5));
 
-        // gets the length of the beam from var 2
         int beamLength = (int) SpellVarUtil.resolveNumberOrDefault(
-                glyph.getInput(2,
-                        hexContext),
+                glyph.resolveInput("distance", hexContext),
                 DEFAULT_BEAM_LENGTH).doubleValue();
 
-        // resolve rotation
         Vector3f rotation = Vector3f.lookAt(direction);
         Transform transform = new Transform(origin, rotation);
 
-        // TargetUtil for raycasting
         Vector3d blockHitLocation = TargetUtil.getTargetLocation(transform, blockId -> blockId != 0,
                 beamLength, hexContext.getAccessor());
 
@@ -77,7 +71,6 @@ public class SeekGlyph implements GlyphHandler {
             blockHitDistSq = new Vector3d(origin).subtract(blockHitLocation).squaredLength();
         }
 
-        // get if an entitiy was hit
         if (posVar instanceof EntityVar entityVar && entityVar.size() > 0) {
             Ref<EntityStore> sourceRef = entityVar.getRef(0, hexContext.getAccessor());
             if (sourceRef != null && sourceRef.isValid()) {
@@ -90,22 +83,20 @@ public class SeekGlyph implements GlyphHandler {
             }
         }
 
-        // get where to output - default to first slot
-        int outputSlot = glyph.getOutputOrNumber(0, hexContext);
+        Integer outputSlot = glyph.resolveOutput("result", hexContext);
         Vector3d endPoint;
         SeekGlyphStyle.HitType hitType;
 
-        // different effects depending on what was hit + styling
         if (entityHit != null && entityHitDistSq < blockHitDistSq) {
             UUIDComponent uuidComp = hexContext.getAccessor().getComponent(entityHit, UUIDComponent.getComponentType());
             EntityVar resultVar = new EntityVar(EntityVar.createRef(uuidComp.getUuid(), entityHit));
-            hexContext.setVariable(outputSlot, resultVar);
+            if (outputSlot != null) hexContext.setVariable(outputSlot, resultVar);
             endPoint = hexContext.getAccessor().getComponent(entityHit,
                     TransformComponent.getComponentType()).getPosition();
             hitType = SeekGlyphStyle.HitType.ENTITY;
         } else if (blockHitLocation != null) {
             BlockVar resultVar = new BlockVar(new ArrayList<>(List.of(blockHitLocation.toVector3i())));
-            hexContext.setVariable(outputSlot, resultVar);
+            if (outputSlot != null) hexContext.setVariable(outputSlot, resultVar);
             endPoint = blockHitLocation;
             hitType = SeekGlyphStyle.HitType.BLOCK;
         } else {
@@ -115,7 +106,6 @@ public class SeekGlyph implements GlyphHandler {
 
         SeekGlyphStyle.render(origin, endPoint, hitType, hexContext.getAccessor());
 
-        // continues the execution
         Executor.continueExecution(glyph.getNext(), hexContext);
     }
 }

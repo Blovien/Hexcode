@@ -2,7 +2,5 @@
   "ModelPath": "Base_Glyph",
   "GlyphType": "Effect",
   "BasePower": 1.0,
-  "InputCount": 0,
-  "OutputCount": 0,
   "ManaConsumption": 25
 }

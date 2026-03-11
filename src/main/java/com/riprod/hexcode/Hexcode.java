@@ -56,6 +56,7 @@ import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.core.state.execution.system.ExecutionTickSystem;
 import com.riprod.hexcode.core.state.idle.IdleSystem;
 import com.riprod.hexcode.interaction.HexStateBranch;
+import com.riprod.hexcode.interaction.HexAbility;
 import com.riprod.hexcode.interaction.HexItemCondition;
 import com.riprod.hexcode.interaction.PedestalInteraction;
 import com.hypixel.hytale.assetstore.AssetRegistry;
@@ -264,6 +265,7 @@ public class Hexcode extends JavaPlugin {
     Interaction.CODEC.register("HexModeExit", HexModeExit.class, HexModeExit.CODEC);
     Interaction.CODEC.register("PedestalInteraction", PedestalInteraction.class, PedestalInteraction.CODEC);
     Interaction.CODEC.register("HexItemCondition", HexItemCondition.class, HexItemCondition.CODEC);
+    Interaction.CODEC.register("HexAbility", HexAbility.class, HexAbility.CODEC);
 
     // State Managers
     StateRouter.registerState(HexState.IDLE, new IdleSystem());

@@ -14,9 +14,9 @@ public class DelayGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        Double delayLength = SpellVarUtil.resolveNumberOrDefault(glyph.getInput(0, hexContext), 1.0d);
+        Double delayLength = SpellVarUtil.resolveNumberOrDefault(glyph.resolveInput("duration", hexContext), 1.0d);
 
-        int tickDelay = TICKS_PER_SECOND * 2 * (int) Math.round(delayLength); // default 2 second
+        int tickDelay = TICKS_PER_SECOND * 2 * (int) Math.round(delayLength);
 
         Executor.delayContinuation(glyph.getNext(), hexContext, tickDelay);
     }

@@ -4,21 +4,14 @@ import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffec
 
 public class GlyphStyleUtil {
     public static EntityEffect getGlyphEffect(float volatility, float efficiency) {
-        EntityEffect tintEffect = null;
-        float combinedScore = (volatility + efficiency) / 2f; // just an average
+        float combinedScore = (volatility + efficiency) / 2f;
 
-        if (combinedScore > 0.9f) {
-            tintEffect = EntityEffect.getAssetMap().getAsset("Hexcode_Tint_Purple");
+        if (combinedScore >= 0.85f) {
+            return EntityEffect.getAssetMap().getAsset("Hexcode_Tint_Purple");
+        } else if (combinedScore >= 0.6f) {
+            return EntityEffect.getAssetMap().getAsset("Hexcode_Tint_Arcane");
+        } else {
+            return EntityEffect.getAssetMap().getAsset("Hexcode_Tint_Red");
         }
-
-        if (combinedScore > 0.7f) {
-            tintEffect = EntityEffect.getAssetMap().getAsset("Hexcode_Tint_Arcane");
-        }
-
-        if (combinedScore > 0.5f) {
-            tintEffect = EntityEffect.getAssetMap().getAsset("Hexcode_Tint_Red");
-        }
-
-        return tintEffect;
     }
 }

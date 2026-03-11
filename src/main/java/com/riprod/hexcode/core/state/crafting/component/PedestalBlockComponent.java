@@ -220,6 +220,8 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
         copy.essenceOffset = this.essenceOffset;
         copy.location = this.location != null ? this.location.clone() : null;
         copy.animationSetMap = this.animationSetMap;
+        copy.lastTickMap = new HashMap<>(this.lastTickMap);
+        copy.obeliskLocations = new ArrayList<>(this.obeliskLocations);
         return copy;
     }
 }

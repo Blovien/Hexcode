@@ -16,7 +16,7 @@ public class PropelComponent implements Component<EntityStore> {
 
     private Ref<EntityStore> hexEntityRef;
     private HexContext hexContext;
-    private int outputSlot;
+    private Integer outputSlot;
     private Ref<EntityStore> casterRef;
     private double maxDistance;
     private Vector3d spawnPosition;
@@ -26,7 +26,7 @@ public class PropelComponent implements Component<EntityStore> {
     }
 
     public PropelComponent(Glyph sourceGlyph, Ref<EntityStore> hexEntityRef, HexContext hexContext,
-            int outputSlot, Ref<EntityStore> casterRef, double maxDistance, Vector3d spawnPosition) {
+            Integer outputSlot, Ref<EntityStore> casterRef, double maxDistance, Vector3d spawnPosition) {
         this.sourceGlyph = sourceGlyph;
         this.hexEntityRef = hexEntityRef;
         this.hexContext = hexContext;
@@ -52,7 +52,7 @@ public class PropelComponent implements Component<EntityStore> {
         return hexContext;
     }
 
-    public int getOutputSlot() {
+    public Integer getOutputSlot() {
         return outputSlot;
     }
 

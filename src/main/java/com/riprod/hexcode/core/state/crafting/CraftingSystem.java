@@ -8,7 +8,6 @@ import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.InteractionState;
@@ -40,7 +39,7 @@ import com.riprod.hexcode.state.HexcodeManager;
 
 public class CraftingSystem extends HexcodeManager {
 
-    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+
 
     @Override
     public void firstTick(Ref<EntityStore> ref, HexcasterComponent comp,
@@ -48,21 +47,24 @@ public class CraftingSystem extends HexcodeManager {
             HexState previousState) {
 
         if (previousState == HexState.DRAWING) {
-            return; // state is fine
+            return;
         }
 
         Ref<EntityStore> anchorRef = comp.consumePendingPedestalRef();
 
+        if (anchorRef == null || !anchorRef.isValid()) {
+            comp.requestStateChange(HexState.IDLE);
+            return;
+        }
+
         HexcasterCraftingComponent craftingComp = buffer.getComponent(ref,
                 HexcasterCraftingComponent.getComponentType());
 
-        if (anchorRef != null && anchorRef.isValid()) {
-            if (craftingComp == null) {
-                craftingComp = new HexcasterCraftingComponent();
-                buffer.putComponent(ref, HexcasterCraftingComponent.getComponentType(), craftingComp);
-            }
-            craftingComp.setPedestalEntityRef(anchorRef);
+        if (craftingComp == null) {
+            craftingComp = new HexcasterCraftingComponent();
+            buffer.putComponent(ref, HexcasterCraftingComponent.getComponentType(), craftingComp);
         }
+        craftingComp.setPedestalEntityRef(anchorRef);
         GravityUtil.enterFly(buffer, ref);
     }
 
@@ -238,43 +240,46 @@ public class CraftingSystem extends HexcodeManager {
         if (craftingComp == null)
             return InteractionState.Finished;
 
-        if (craftingComp.getDragTickCount() < 3) {
-            Ref<EntityStore> draggedRef = craftingComp.getDraggingRef();
-            CraftingDragHandler.endDrag(accessor, draggedRef, craftingComp.getHeadAnchorRef());
-            LOGGER.atInfo().log("Exiting interaction after click and setting drag ref to null");
+        if (craftingComp.getDragTickCount() < 10) {
+            Ref<EntityStore> clickedRef = craftingComp.getDraggingRef();
+            CraftingDragHandler.endDrag(accessor, clickedRef, craftingComp.getHeadAnchorRef());
+
             craftingComp.setDraggingRef(null);
             craftingComp.setHeadAnchorRef(null);
             craftingComp.setDragTickCount(0);
 
-            Ref<EntityStore> hoveredRef = craftingComp.getHoveredRef();
-            if (hoveredRef != null && hoveredRef.isValid()) {
-                HoverableComponent hoverComp = accessor.getComponent(hoveredRef,
+            if (clickedRef != null && clickedRef.isValid()) {
+                HoverableComponent hoverComp = accessor.getComponent(clickedRef,
                         HoverableComponent.getComponentType());
-                switch (hoverComp.getType()) {
-                    case GLYPH: {
-                        GlyphComponent effect = accessor.getComponent(hoveredRef,
-                                GlyphComponent.getComponentType());
-                        if (effect != null) {
-                            if (playerData.getSlotNodeRefs() != null && !playerData.getSlotNodeRefs().isEmpty()) {
-                                DetailsHandler.closeDetails(accessor, playerData.getSlotNodeRefs());
+                if (hoverComp != null) {
+                    switch (hoverComp.getType()) {
+                        case GLYPH: {
+                            GlyphComponent effect = accessor.getComponent(clickedRef,
+                                    GlyphComponent.getComponentType());
+                            if (effect != null) {
+                                if (DetailsHandler.isOpenFor(accessor, playerData.getSlotNodeRefs(), clickedRef)) {
+                                    DetailsHandler.closeDetails(accessor, playerData.getSlotNodeRefs());
+                                    playerData.setSlotNodeRefs(null);
+                                } else {
+                                    if (playerData.getSlotNodeRefs() != null
+                                            && !playerData.getSlotNodeRefs().isEmpty()) {
+                                        DetailsHandler.closeDetails(accessor, playerData.getSlotNodeRefs());
+                                    }
+                                    List<Ref<EntityStore>> slotRefs = DetailsHandler.openDetails(
+                                            accessor, clickedRef, ref);
+                                    playerData.setSlotNodeRefs(slotRefs);
+                                }
                             }
-                            List<Ref<EntityStore>> slotRefs = DetailsHandler.openDetails(
-                                    accessor, hoveredRef, ref);
-                            playerData.setSlotNodeRefs(slotRefs);
                         }
+                            break;
+                        case NODE:
+                            NodeRouter.click(accessor, clickedRef, ref);
+                            break;
+                        default:
+                            break;
                     }
-                        break;
-                    case NODE:
-                        NodeRouter.click(accessor, hoveredRef, ref);
-                        break;
-                    default:
-                        break;
                 }
-
             }
-
-            craftingComp.setDraggingRef(null);
-            craftingComp.setDragTickCount(0);
 
             return InteractionState.Finished;
         }
@@ -334,31 +339,8 @@ public class CraftingSystem extends HexcodeManager {
                         updateNodePosition(accessor, draggedRef, dropWorldPos);
                         break;
 
-                    case SLOTTED:
-                        if (dropTargetRef != null && dropTargetRef.isValid()) {
-                            Ref<EntityStore> slottedGlyphRef = HoverableUtils.getGlyphFromHoverable(accessor,
-                                    dropTargetRef);
-                            if (slottedGlyphRef != null && slottedGlyphRef.isValid()) {
-                                if (playerData.getSlotNodeRefs() != null) {
-                                    DetailsHandler.closeDetails(accessor, playerData.getSlotNodeRefs());
-                                }
-                                GlyphComponent slottedEffect = accessor.getComponent(slottedGlyphRef,
-                                        GlyphComponent.getComponentType());
-                                if (slottedEffect != null) {
-                                    List<Ref<EntityStore>> slotRefs = DetailsHandler.openDetails(
-                                            accessor, slottedGlyphRef, ref);
-                                    playerData.setSlotNodeRefs(slotRefs);
-                                }
-                            }
-                        }
-                        break;
-
-                    case SWAPPED:
-                        LOGGER.atInfo().log("crafting: variable swap not yet implemented");
-                        break;
                 }
 
-                LOGGER.atInfo().log("Exiting interaction after drop and setting drag ref to null");
                 craftingComp.setDraggingRef(null);
                 craftingComp.setHeadAnchorRef(null);
                 craftingComp.setDragTickCount(0);
