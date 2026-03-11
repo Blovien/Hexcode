@@ -15,7 +15,7 @@ import com.hypixel.hytale.protocol.MountController;
 import com.hypixel.hytale.server.core.modules.entity.component.EntityScaleComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.common.glyphs.component.EffectComponent;
+import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.state.casting.component.HexcasterCastingComponent;
 import com.riprod.hexcode.utils.GlyphMath;
@@ -34,7 +34,7 @@ public class GlyphStyler {
 
         HexComponent previous = castingComp.getHoveredHex();
 
-        EffectComponent hoveredGlyph = castingComp.getHoveredGlyph();
+        GlyphComponent hoveredGlyph = castingComp.getHoveredGlyph();
 
         if (hoveredGlyph != null) {
             // do nothing while hovering a specific glyph
@@ -54,10 +54,10 @@ public class GlyphStyler {
         }
     }
 
-    public static void hoverGlyph(ComponentAccessor<EntityStore> accessor, EffectComponent hoveredGlyph,
+    public static void hoverGlyph(ComponentAccessor<EntityStore> accessor, GlyphComponent hoveredGlyph,
             HexcasterCastingComponent castingComp) {
 
-        EffectComponent previous = castingComp.getHoveredGlyph();
+        GlyphComponent previous = castingComp.getHoveredGlyph();
 
         if (previous == hoveredGlyph) return;
 
@@ -94,7 +94,7 @@ public class GlyphStyler {
         }
     }
 
-    public static void enterGlyphHover(ComponentAccessor<EntityStore> accessor, EffectComponent glyph) {
+    public static void enterGlyphHover(ComponentAccessor<EntityStore> accessor, GlyphComponent glyph) {
         try {
             glyph.setHoverState(true);
             updateScale(accessor, glyph.getSelfRef(), glyph.getScale() * HOVER_SCALE);
@@ -103,7 +103,7 @@ public class GlyphStyler {
         }
     }
 
-    public static void exitGlyphHover(ComponentAccessor<EntityStore> accessor, EffectComponent glyph) {
+    public static void exitGlyphHover(ComponentAccessor<EntityStore> accessor, GlyphComponent glyph) {
         try {
             glyph.setHoverState(false);
             updateScale(accessor, glyph.getSelfRef(), glyph.getScale());
@@ -125,7 +125,7 @@ public class GlyphStyler {
         }
     }
 
-    public static void updateTransformPosition(ComponentAccessor<EntityStore> accessor, EffectComponent glyph,
+    public static void updateTransformPosition(ComponentAccessor<EntityStore> accessor, GlyphComponent glyph,
             Vector3d newPosition) {
         try {
 
@@ -139,7 +139,7 @@ public class GlyphStyler {
         }
     }
 
-    public static void updateMountPosition(CommandBuffer<EntityStore> accessor, EffectComponent glyph,
+    public static void updateMountPosition(CommandBuffer<EntityStore> accessor, GlyphComponent glyph,
             Vector3f newPosition) {
         try {
 
@@ -169,7 +169,7 @@ public class GlyphStyler {
      * @param hexComponent
      */
     public static void UpdateHexTree(CommandBuffer<EntityStore> accessor, HexComponent hexComponent,
-            EffectComponent parentGlyph) {
+            GlyphComponent parentGlyph) {
 
         int numGlyphs = hexComponent.getHex().getGlyphs().size();
 
@@ -189,7 +189,7 @@ public class GlyphStyler {
      * @param hexComponent
      */
     private static void UpdateGlyphTree(CommandBuffer<EntityStore> accessor, HexComponent hexComponent,
-            EffectComponent parentGlyph, Set<String> styledGlyphs) {
+            GlyphComponent parentGlyph, Set<String> styledGlyphs) {
 
         List<String> nextGlyphIds = parentGlyph.getNext();
 
@@ -207,7 +207,7 @@ public class GlyphStyler {
 
             for (int i = 0; i < children.size(); i++) {
                 Ref<EntityStore> childRef = children.get(i);
-                EffectComponent child = accessor.getComponent(childRef, EffectComponent.getComponentType());
+                GlyphComponent child = accessor.getComponent(childRef, GlyphComponent.getComponentType());
                 Vector3f childRotation = childRotations.get(i);
 
                 if (styledGlyphs.contains(child.getId())) {

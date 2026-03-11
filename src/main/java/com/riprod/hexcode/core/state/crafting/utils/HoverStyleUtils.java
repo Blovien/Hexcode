@@ -1,22 +1,16 @@
 package com.riprod.hexcode.core.state.crafting.utils;
 
 import java.util.List;
-import java.util.Objects;
-
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.ParticleUtil;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.common.glyphs.component.EffectComponent;
-import com.riprod.hexcode.core.common.hexes.component.HexComponent;
+import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
-import com.riprod.hexcode.core.common.hover.component.HoverableType;
-import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.state.casting.utils.GlyphStyler;
-import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
 
 public class HoverStyleUtils {
@@ -35,8 +29,8 @@ public class HoverStyleUtils {
 
         switch (hoveredComponent.getType()) {
             case GLYPH: {
-                EffectComponent prevEffect = accessor.getComponent(unhoveredRef,
-                        EffectComponent.getComponentType());
+                GlyphComponent prevEffect = accessor.getComponent(unhoveredRef,
+                        GlyphComponent.getComponentType());
                 if (prevEffect == null)
                     return;
                 GlyphStyler.exitGlyphHover(accessor, prevEffect);
@@ -74,8 +68,8 @@ public class HoverStyleUtils {
 
         switch (hoveredComponent.getType()) {
             case GLYPH: {
-                EffectComponent newEffect = accessor.getComponent(hovered,
-                        EffectComponent.getComponentType());
+                GlyphComponent newEffect = accessor.getComponent(hovered,
+                        GlyphComponent.getComponentType());
                 if (newEffect == null)
                     return;
                 GlyphStyler.enterGlyphHover(accessor, newEffect);
@@ -132,6 +126,8 @@ public class HoverStyleUtils {
                         List.of(playerRef), accessor);
 
             }
+                break;
+            default:
                 break;
         }
     }

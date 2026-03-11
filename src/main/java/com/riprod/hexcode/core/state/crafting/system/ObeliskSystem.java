@@ -1,6 +1,8 @@
 package com.riprod.hexcode.core.state.crafting.system;
 
 import java.util.List;
+import java.util.Set;
+
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.vector.Vector3i;
@@ -8,21 +10,18 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.block.component.UnbreakableBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
 import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalBlockUtil;
+import com.riprod.hexcode.core.state.crafting.utils.PedestalDataUtil;
 
-/** Handles obelisk-related logic and interactions */
 public class ObeliskSystem {
     public static void enterCrafting(CommandBuffer<EntityStore> buffer,
             PedestalBlockComponent pedestalComponent, Ref<EntityStore> selectedHexRef) {
 
-        // Activates hexes
-        List<PedestalState> pedestalStates = pedestalComponent.getStates();
         if (pedestalComponent.isPerPlayer()) {
-            boolean anyInCrafting = pedestalStates.stream()
-                    .anyMatch(state -> state == PedestalState.CRAFTING);
-            if (anyInCrafting) {
-                return; // return if there are any players who are in crafting on this pedestal
+            if (anyPlayerInState(buffer, pedestalComponent, PedestalState.CRAFTING)) {
+                return;
             }
         }
 
@@ -32,20 +31,19 @@ public class ObeliskSystem {
     public static void enterSelecting(PedestalBlockComponent pedestalComponent,
             World world, CommandBuffer<EntityStore> buffer) {
 
-        List<PedestalState> pedestalStates = pedestalComponent.getStates();
-        if (pedestalComponent.isPerPlayer() && !pedestalStates.isEmpty()) {
-            boolean anyInSelectingOrCrafting = pedestalStates.stream()
-                    .anyMatch(state -> state == PedestalState.SELECTING || state == PedestalState.CRAFTING);
-            if (anyInSelectingOrCrafting) {
-                return; // return if there are any players who are crafting / selecting on this pedestal
+        if (pedestalComponent.isPerPlayer()) {
+            Set<Ref<EntityStore>> players = pedestalComponent.getActivePlayerRefs();
+            if (players != null && !players.isEmpty()) {
+                if (anyPlayerInState(buffer, pedestalComponent, PedestalState.SELECTING)
+                        || anyPlayerInState(buffer, pedestalComponent, PedestalState.CRAFTING)) {
+                    return;
+                }
             }
         }
 
         List<Vector3i> obeliskPositions = pedestalComponent.getActiveObelisks();
-
         UnbreakableBlockComponent.protectBlocks(world, obeliskPositions);
 
-        // Handle state change
         updateState(buffer, pedestalComponent, world, PedestalState.SELECTING);
     }
 
@@ -53,21 +51,22 @@ public class ObeliskSystem {
             PedestalBlockComponent pedestalComponent,
             World world) {
 
-        List<PedestalState> pedestalStates = pedestalComponent.getStates();
-        if (pedestalComponent.isPerPlayer() && !pedestalStates.isEmpty()) {
-            boolean anyNotIdle = pedestalStates.stream().anyMatch(state -> state != PedestalState.IDLE);
-            if (anyNotIdle) {
-                return; // return if there are still crafting states active for other players
+        if (pedestalComponent.isPerPlayer()) {
+            Set<Ref<EntityStore>> players = pedestalComponent.getActivePlayerRefs();
+            if (players != null && !players.isEmpty()) {
+                if (anyPlayerInState(buffer, pedestalComponent, PedestalState.CRAFTING)
+                        || anyPlayerInState(buffer, pedestalComponent, PedestalState.SELECTING)
+                        || anyPlayerInState(buffer, pedestalComponent, PedestalState.READY)) {
+                    return;
+                }
             }
         }
 
         List<Vector3i> obeliskPositions = pedestalComponent.getActiveObelisks();
-
         UnbreakableBlockComponent.unprotectBlocks(world, obeliskPositions);
 
         pedestalComponent.addObelisk(null);
 
-        // handle state change
         updateState(buffer, pedestalComponent, world, PedestalState.IDLE);
     }
 
@@ -75,13 +74,6 @@ public class ObeliskSystem {
         if (pedestal.isPerPlayer())
             return;
 
-        if (pedestal.getStoredBook(null) == null || pedestal.getEssenceItemId(null) == null
-                || pedestal.getStoredBook(null).isEmpty()) {
-            // updateState(accessor, pedestal, world, PedestalState.IDLE);
-            return;
-        }
-
-        // Update the state
         updateState(accessor, pedestal, world, PedestalState.READY);
     }
 
@@ -107,7 +99,6 @@ public class ObeliskSystem {
         List<Vector3i> obeliskPositions = pedestal.getActiveObelisks();
 
         for (Vector3i obeliskPos : obeliskPositions) {
-            // update the state of every obelisk
             if (obeliskPos == null)
                 continue;
             PedestalBlockUtil.changeBlockState(world, obeliskPos, blockState);
@@ -115,16 +106,26 @@ public class ObeliskSystem {
     }
 
     public static void CleanupObelisks(CommandBuffer<EntityStore> accessor, World world, List<Vector3i> obelisks) {
-        // Remove them
         if (obelisks.isEmpty())
             return;
         UnbreakableBlockComponent.unprotectBlocks(world, obelisks);
 
         for (Vector3i obeliskPos : obelisks) {
-            // update the state of every obelisk
             if (obeliskPos == null)
                 continue;
             PedestalBlockUtil.changeBlockState(world, obeliskPos, "Idle");
         }
+    }
+
+    private static boolean anyPlayerInState(CommandBuffer<EntityStore> buffer,
+            PedestalBlockComponent pedestal, PedestalState targetState) {
+        Set<Ref<EntityStore>> players = pedestal.getActivePlayerRefs();
+        if (players == null) return false;
+        for (Ref<EntityStore> playerRef : players) {
+            if (playerRef == null || !playerRef.isValid()) continue;
+            PedestalDataComponent data = PedestalDataUtil.getPedestalData(buffer, playerRef);
+            if (data != null && data.getState() == targetState) return true;
+        }
+        return false;
     }
 }

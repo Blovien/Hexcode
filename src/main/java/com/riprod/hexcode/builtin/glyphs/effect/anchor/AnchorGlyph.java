@@ -1,7 +1,5 @@
 package com.riprod.hexcode.builtin.glyphs.effect.anchor;
 
-import java.util.List;
-
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;

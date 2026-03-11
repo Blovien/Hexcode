@@ -25,7 +25,6 @@ import com.hypixel.hytale.server.core.modules.time.TimeResource;
 import com.hypixel.hytale.server.core.universe.world.ParticleUtil;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.state.drawing.component.DrawnShapeComponent;
 import com.riprod.hexcode.core.state.drawing.component.HexcasterDrawingComponent;
 import com.riprod.hexcode.utils.GlyphMath;
@@ -41,7 +40,7 @@ public class InterfaceManager {
       HeadRotation head) {
     TransformComponent transform = accessor.getComponent(playerRef, TransformComponent.getComponentType());
     ModelComponent playerModel = accessor.getComponent(playerRef, ModelComponent.getComponentType());
-    HexcasterComponent hexcaster = accessor.getComponent(playerRef, HexcasterComponent.getComponentType());
+    HexcasterDrawingComponent hexcaster = accessor.getComponent(playerRef, HexcasterDrawingComponent.getComponentType());
 
     if (hexcaster.getTrailRef() != null) {
       return; // already spawned
@@ -84,7 +83,7 @@ public class InterfaceManager {
   }
 
   public static void removeTrails(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> playerRef) {
-    HexcasterComponent hexcaster = accessor.getComponent(playerRef, HexcasterComponent.getComponentType());
+    HexcasterDrawingComponent hexcaster = accessor.getComponent(playerRef, HexcasterDrawingComponent.getComponentType());
     if (hexcaster.getTrailRef() != null) {
       Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
       accessor.removeEntity(hexcaster.getTrailRef(), holder, RemoveReason.REMOVE);
@@ -94,7 +93,7 @@ public class InterfaceManager {
 
   public static void positionTrail(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> playerRef,
       HeadRotation head) {
-    HexcasterComponent hexcaster = accessor.getComponent(playerRef, HexcasterComponent.getComponentType());
+    HexcasterDrawingComponent hexcaster = accessor.getComponent(playerRef, HexcasterDrawingComponent.getComponentType());
     Ref<EntityStore> trailRef = hexcaster.getTrailRef();
     if (trailRef == null || trailRef.isValid() == false)
       return;

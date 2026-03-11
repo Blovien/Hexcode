@@ -10,6 +10,7 @@ import javax.annotation.Nullable;
 
 import com.hypixel.hytale.builtin.mounts.MountedComponent;
 import com.hypixel.hytale.component.AddReason;
+import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
@@ -30,7 +31,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
-import com.riprod.hexcode.core.common.glyphs.component.EffectComponent;
+import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
@@ -66,11 +67,11 @@ public class CreateGlyph {
     return accessor.addEntity(holder, AddReason.SPAWN);
   }
 
-  public static Holder<EntityStore> createGlyphHolder(ComponentAccessor<EntityStore> accessor, EffectComponent glyph,
+  public static Holder<EntityStore> createGlyphHolder(ComponentAccessor<EntityStore> accessor, GlyphComponent glyph,
       Vector3d parentPos) {
     Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
 
-    holder.addComponent(EffectComponent.getComponentType(), glyph);
+    holder.addComponent(GlyphComponent.getComponentType(), glyph);
 
     // Required components
     TransformComponent glyphTransform = new TransformComponent(parentPos,
@@ -124,12 +125,12 @@ public class CreateGlyph {
    * @param holder
    * @return
    */
-  public static Ref<EntityStore> createGlyph(ComponentAccessor<EntityStore> accessor, EffectComponent glyph,
-      Vector3d parentPos, @Nullable Ref<EntityStore> playerRef) {
+  public static Ref<EntityStore> createGlyph(CommandBuffer<EntityStore> accessor, GlyphComponent glyph,
+      Vector3d parentPos, Ref<EntityStore> playerRef) {
 
     // Create the first glyph
     Holder<EntityStore> holder = createGlyphHolder(accessor, glyph, parentPos);
-    HiddenUtils.addHiddenToHolder(holder, playerRef);
+    HiddenUtils.addHiddenToHolder(accessor, holder, playerRef);
     Ref<EntityStore> ref = createEntity(accessor, holder);
     glyph.setSelfRef(ref); // backwards reference
 

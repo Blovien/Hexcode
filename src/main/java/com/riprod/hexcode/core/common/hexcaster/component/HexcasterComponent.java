@@ -1,25 +1,31 @@
 package com.riprod.hexcode.core.common.hexcaster.component;
 
+import com.hypixel.hytale.codec.KeyedCodec;
+import com.hypixel.hytale.codec.builder.BuilderCodec;
+import com.hypixel.hytale.codec.codecs.EnumCodec;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.state.drawing.component.DrawnShapeComponent;
 import com.riprod.hexcode.state.HexState;
-
-import it.unimi.dsi.fastutil.floats.FloatArrayList;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class HexcasterComponent implements Component<EntityStore> {
 
     private static ComponentType<EntityStore, HexcasterComponent> componentType;
+
+    public static final BuilderCodec<HexcasterComponent> CODEC = BuilderCodec
+            .builder(HexcasterComponent.class, HexcasterComponent::new)
+            .append(new KeyedCodec<>("State", new EnumCodec<>(HexState.class)),
+                    (c, v) -> c.currentState = v,
+                    c -> c.currentState)
+            .add()
+            .build();
 
     private HexState currentState = HexState.IDLE;
     private HexState pendingState = null;
@@ -95,17 +101,17 @@ public class HexcasterComponent implements Component<EntityStore> {
     public void clearCraftingState() {
         this.pendingPedestalRef = null;
     }
-    
+
     /** @deprecated */
     public String getTrainingShapeId() {
         return trainingShapeId;
     }
-    
+
     /** @deprecated */
     public void setTrainingShapeId(String shapeId) {
         this.trainingShapeId = shapeId;
     }
-    
+
     /** @deprecated */
     public String consumeTrainingShapeId() {
         String id = this.trainingShapeId;
@@ -113,53 +119,37 @@ public class HexcasterComponent implements Component<EntityStore> {
         return id;
     }
 
-    
     /** @deprecated */
     public void setTrailRef(Ref<EntityStore> trailRef) {
         this.trailRef = trailRef;
     }
-    
-    /** @deprecated */
-    public void clearTrailRef() {
-        this.trailRef = null;
-    }
-    
+
     /** @deprecated */
     public Ref<EntityStore> getTrailRef() {
         return trailRef;
     }
-    
-    /** @deprecated */
-    public Long getLastParticleSpawnMillis() {
-        return lastParticleSpawnMillis;
-    }
-    
-    /** @deprecated */
-    public void setLastParticleSpawnMillis(Long millis) {
-        this.lastParticleSpawnMillis = millis;
-    }
-    
+
     /** @deprecated */
     public long getDrawStartTimeMillis() {
         return drawStartTimeMillis;
     }
-    
+
     public void setDrawStartTimeMillis(long drawStartTimeMillis) {
         this.drawStartTimeMillis = drawStartTimeMillis;
     }
-    
+
     public float getTickLength(String keyId) {
         return this.lastTickMap.getOrDefault(keyId, 0f);
     }
-    
+
     public void setTickLength(String keyId, float value) {
         this.lastTickMap.put(keyId, value);
     }
-    
+
     public void incrementTickLength(String keyId, float dt) {
         this.lastTickMap.merge(keyId, dt, Float::sum);
     }
-    
+
     @Nonnull
     @Override
     public HexcasterComponent clone() {

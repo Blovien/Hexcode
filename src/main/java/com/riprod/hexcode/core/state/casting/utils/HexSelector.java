@@ -12,21 +12,21 @@ import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.common.glyphs.component.EffectComponent;
+import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.utils.GlyphMath;
 
 public class HexSelector {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
-    public static EffectComponent findHoveredGlyph(CommandBuffer<EntityStore> accessor, Vector3f playerRotation,
+    public static GlyphComponent findHoveredGlyph(CommandBuffer<EntityStore> accessor, Vector3f playerRotation,
             HexComponent hex) {
 
         return findHoveredGlyph(accessor, playerRotation, hex, List.of(hex.getHex().getFirstGlyphId()),
                 new Vector3f(0, 0, 0), new ArrayList<>());
     }
 
-    public static EffectComponent findHoveredGlyph(CommandBuffer<EntityStore> accessor, Vector3f playerRotation,
+    public static GlyphComponent findHoveredGlyph(CommandBuffer<EntityStore> accessor, Vector3f playerRotation,
             HexComponent hex, List<String> nextGlyphs, Vector3f parentRotation, List<String> visitedGlyphs) {
 
         List<Ref<EntityStore>> childGlyphRefs = hex.getChildGlyphRefs(nextGlyphs);
@@ -36,7 +36,7 @@ public class HexSelector {
             if (childRef == null || !childRef.isValid()) {
                 continue;
             }
-            EffectComponent childGlyph = accessor.getComponent(childRef, EffectComponent.getComponentType());
+            GlyphComponent childGlyph = accessor.getComponent(childRef, GlyphComponent.getComponentType());
             if (childGlyph == null) {
                 continue;
             }
@@ -54,7 +54,7 @@ public class HexSelector {
 
             if (angularDist <= selectionRadius) {
                 if (childGlyph.getNext() != null && !childGlyph.getNext().isEmpty()) {
-                    EffectComponent hoveredChild = findHoveredGlyph(accessor, playerRotation, hex,
+                    GlyphComponent hoveredChild = findHoveredGlyph(accessor, playerRotation, hex,
                             childGlyph.getNext(), glyphRotation, visitedGlyphs);
                     if (hoveredChild != null) {
                         return hoveredChild;

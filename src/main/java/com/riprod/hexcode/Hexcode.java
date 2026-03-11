@@ -6,8 +6,7 @@ import com.riprod.hexcode.builtin.glyphs.effect.propel.PropelTickSystem;
 import com.riprod.hexcode.command.HexcodeCommand;
 import com.riprod.hexcode.core.common.block.component.UnbreakableBlockComponent;
 import com.riprod.hexcode.core.common.block.event.BlockBreakEvent;
-import com.riprod.hexcode.core.common.glyphs.component.EffectComponent;
-import com.riprod.hexcode.core.common.glyphs.component.VariableComponent;
+import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
@@ -44,6 +43,8 @@ import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
 import com.riprod.hexcode.core.state.crafting.component.ObeliskBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalAnchorComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
+import com.riprod.hexcode.core.state.crafting.component.SlotComponent;
 import com.riprod.hexcode.core.state.crafting.events.PedestalBlockEvent;
 import com.riprod.hexcode.core.state.crafting.events.PedestalTickEvent;
 import com.riprod.hexcode.core.state.drawing.DrawingSystem;
@@ -82,249 +83,258 @@ import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class Hexcode extends JavaPlugin {
-    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
-    private static Hexcode instance;
+  private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+  private static Hexcode instance;
 
-    public Hexcode(JavaPluginInit init) {
-        super(init);
-        LOGGER.atInfo().log("Hexcode spell-crafting mod v%s initializing...",
-                this.getManifest().getVersion().toString());
-        instance = this;
+  public Hexcode(JavaPluginInit init) {
+    super(init);
+    LOGGER.atInfo().log("Hexcode spell-crafting mod v%s initializing...",
+        this.getManifest().getVersion().toString());
+    instance = this;
+  }
+
+  public static Hexcode get() {
+    return instance;
+  }
+
+  @SuppressWarnings("null")
+  @Override
+  protected void setup() {
+    // Custom asset registries
+    AssetRegistry.register(
+        HytaleAssetStore
+            .builder(GlyphAsset.class, new DefaultAssetMap<String, GlyphAsset>())
+            .setPath("Hexcode/Glyphs")
+            .setCodec(GlyphAsset.CODEC)
+            .setKeyFunction(GlyphAsset::getId)
+            .build());
+    AssetRegistry.register(
+        HytaleAssetStore
+            .builder(ShapeAsset.class, new DefaultAssetMap<String, ShapeAsset>())
+            .setPath("Hexcode/Shapes")
+            .setCodec(ShapeAsset.CODEC)
+            .setKeyFunction(ShapeAsset::getId)
+            .build());
+    AssetRegistry.register(
+        HytaleAssetStore
+            .builder(TemplateAsset.class,
+                new DefaultAssetMap<String, TemplateAsset>())
+            .setPath("Hexcode/Templates")
+            .setCodec(TemplateAsset.CODEC)
+            .setKeyFunction(TemplateAsset::getId)
+            .loadsAfter(ShapeAsset.class)
+            .build());
+    AssetRegistry.register(
+        HytaleAssetStore
+            .builder(HexBookAsset.class,
+                new DefaultAssetMap<String, HexBookAsset>())
+            .setPath("Hexcode/HexBooks")
+            .setCodec(HexBookAsset.CODEC)
+            .setKeyFunction(HexBookAsset::getId)
+            .loadsAfter(ParticleSystem.class)
+            .loadsAfter(Item.class)
+            .build());
+    AssetRegistry.register(
+        HytaleAssetStore
+            .builder(HexStaffAsset.class,
+                new DefaultAssetMap<String, HexStaffAsset>())
+            .setPath("Hexcode/HexStaffs")
+            .setCodec(HexStaffAsset.CODEC)
+            .setKeyFunction(HexStaffAsset::getId)
+            .loadsAfter(ParticleSystem.class)
+            .loadsAfter(Item.class)
+            .build());
+
+    // Entity Component Registries
+    ComponentRegistryProxy<EntityStore> entityStoreRegistry = this.getEntityStoreRegistry();
+
+    ComponentType<EntityStore, GlyphComponent> glyphComponentType = entityStoreRegistry.registerComponent(
+        GlyphComponent.class, "Glyph",
+        GlyphComponent.CODEC);
+    GlyphComponent.setComponentType(glyphComponentType);
+
+    ComponentType<EntityStore, HexComponent> hexComponentType = entityStoreRegistry.registerComponent(
+        HexComponent.class, "Hex",
+        HexComponent.CODEC);
+    HexComponent.setComponentType(hexComponentType);
+
+    ComponentType<EntityStore, HexBookComponent> hexBookComponentType = entityStoreRegistry
+        .registerComponent(
+            HexBookComponent.class, "HexBook",
+            HexBookComponent.CODEC);
+    HexBookComponent.setComponentType(hexBookComponentType);
+
+    ComponentType<EntityStore, HexStaffComponent> hexStaffComponentType = entityStoreRegistry
+        .registerComponent(
+            HexStaffComponent.class, "HexStaff",
+            HexStaffComponent.CODEC);
+    HexStaffComponent.setComponentType(hexStaffComponentType);
+
+    ComponentType<EntityStore, HexcasterComponent> hexcasterComponentType = entityStoreRegistry
+        .registerComponent(
+            HexcasterComponent.class, "HexcasterComponent",
+            HexcasterComponent.CODEC);
+    HexcasterComponent.setComponentType(hexcasterComponentType);
+
+    ComponentType<EntityStore, HexcasterCastingComponent> castingRootComponentType = entityStoreRegistry
+        .registerComponent(HexcasterCastingComponent.class,
+            HexcasterCastingComponent::new);
+    HexcasterCastingComponent.setComponentType(castingRootComponentType);
+
+    ComponentType<EntityStore, HexcasterCraftingComponent> craftingRootComponentType = entityStoreRegistry
+        .registerComponent(HexcasterCraftingComponent.class,
+            HexcasterCraftingComponent::new);
+    HexcasterCraftingComponent.setComponentType(craftingRootComponentType);
+
+    ComponentType<EntityStore, HexcasterDrawingComponent> drawingRootComponentType = entityStoreRegistry
+        .registerComponent(HexcasterDrawingComponent.class,
+            HexcasterDrawingComponent::new);
+    HexcasterDrawingComponent.setComponentType(drawingRootComponentType);
+
+    ComponentType<EntityStore, PedestalDataComponent> pedestalPlayerRootComponentType = entityStoreRegistry
+        .registerComponent(PedestalDataComponent.class, "PedestalDataComponent",
+            PedestalDataComponent.CODEC);
+    PedestalDataComponent.setComponentType(pedestalPlayerRootComponentType);
+
+    ComponentType<EntityStore, NodeComponent> nodeComponentType = entityStoreRegistry
+        .registerComponent(NodeComponent.class,
+            NodeComponent::new);
+    NodeComponent.setComponentType(nodeComponentType);
+
+    ComponentType<EntityStore, RootGlyph> executionComponentType = entityStoreRegistry.registerComponent(
+        RootGlyph.class,
+        RootGlyph::new);
+    RootGlyph.setComponentType(executionComponentType);
+
+    ComponentType<EntityStore, PropelComponent> propelComponentType = entityStoreRegistry
+        .registerComponent(PropelComponent.class, PropelComponent::new);
+    PropelComponent.setComponentType(propelComponentType);
+
+    ComponentType<EntityStore, SlotComponent> slotComponentType = entityStoreRegistry
+        .registerComponent(SlotComponent.class, SlotComponent::new);
+    SlotComponent.setComponentType(slotComponentType);
+
+    ComponentType<EntityStore, PedestalAnchorComponent> pedestalComponentType = entityStoreRegistry
+        .registerComponent(PedestalAnchorComponent.class, PedestalAnchorComponent::new);
+    PedestalAnchorComponent.setComponentType(pedestalComponentType);
+
+    ComponentType<EntityStore, HoverableComponent> hoverableComponentType = entityStoreRegistry
+        .registerComponent(HoverableComponent.class, HoverableComponent::new);
+    HoverableComponent.setComponentType(hoverableComponentType);
+
+    ComponentType<EntityStore, DebugComponent> debugComponentType = entityStoreRegistry
+        .registerComponent(DebugComponent.class, DebugComponent::new);
+    DebugComponent.setComponentType(debugComponentType);
+
+    ComponentType<EntityStore, HiddenComponent> hiddenComponentType = entityStoreRegistry
+        .registerComponent(HiddenComponent.class, HiddenComponent::new);
+    HiddenComponent.setComponentType(hiddenComponentType);
+
+    // Block Component Registries
+    ComponentRegistryProxy<ChunkStore> chunkStoreRegistry = this.getChunkStoreRegistry();
+
+    ComponentType<ChunkStore, PedestalBlockComponent> pedestalBlockComponentType = chunkStoreRegistry
+        .registerComponent(PedestalBlockComponent.class,
+            "Hexcode_PedestalBlock",
+            PedestalBlockComponent.CODEC);
+    PedestalBlockComponent.setComponentType(pedestalBlockComponentType);
+
+    ComponentType<ChunkStore, ObeliskBlockComponent> obeliskBlockComponentType = chunkStoreRegistry
+        .registerComponent(ObeliskBlockComponent.class,
+            "Hexcode_ObeliskBlock",
+            ObeliskBlockComponent.CODEC);
+    ObeliskBlockComponent.setComponentType(obeliskBlockComponentType);
+
+    ComponentType<ChunkStore, UnbreakableBlockComponent> unbreakableComponentType = chunkStoreRegistry
+        .registerComponent(UnbreakableBlockComponent.class, UnbreakableBlockComponent::new);
+    UnbreakableBlockComponent.setComponentType(unbreakableComponentType);
+
+    // Glyph Var Variables
+    HexVar.CODEC.register("Entity", EntityVar.class, EntityVar.CODEC);
+    HexVar.CODEC.register("Block", BlockVar.class, BlockVar.CODEC);
+    HexVar.CODEC.register("Rotation", RotationVar.class, RotationVar.CODEC);
+    HexVar.CODEC.register("Position", PositionVar.class, PositionVar.CODEC);
+    HexVar.CODEC.register("Number", NumberVar.class, NumberVar.CODEC);
+
+    // Interaction Registries
+    Interaction.CODEC.register("HexStateBranch", HexStateBranch.class, HexStateBranch.CODEC);
+    Interaction.CODEC.register("HexStateChange", HexStateChange.class, HexStateChange.CODEC);
+    Interaction.CODEC.register("HexHold", HexHold.class, HexHold.CODEC);
+    Interaction.CODEC.register("HexMode", HexMode.class, HexMode.CODEC);
+    Interaction.CODEC.register("HexModeExit", HexModeExit.class, HexModeExit.CODEC);
+    Interaction.CODEC.register("PedestalInteraction", PedestalInteraction.class, PedestalInteraction.CODEC);
+    Interaction.CODEC.register("HexItemCondition", HexItemCondition.class, HexItemCondition.CODEC);
+
+    // State Managers
+    StateRouter.registerState(HexState.IDLE, new IdleSystem());
+    StateRouter.registerState(HexState.CASTING, new CastingSystem());
+    // StateRouter.registerState(HexState.CASTING,
+    // HexcasterCastingComponent.getComponentType());
+    StateRouter.registerState(HexState.DRAWING, new DrawingSystem());
+    StateRouter.registerState(HexState.CRAFTING, new CraftingSystem());
+    StateRouter.registerState(HexState.EXECUTION, new ExecutionSystem());
+
+    // Ticking Systems
+    entityStoreRegistry.registerSystem(new HexTick());
+    entityStoreRegistry.registerSystem(new ExecutionTickSystem());
+    entityStoreRegistry.registerSystem(new PropelTickSystem());
+    entityStoreRegistry.registerSystem(new PedestalTickEvent());
+    entityStoreRegistry.registerSystem(new PedestalBlockEvent());
+    entityStoreRegistry.registerSystem(new BlockBreakEvent());
+    entityStoreRegistry.registerSystem(new DebugTickSystem());
+
+    // Events
+    this.getEventRegistry().registerGlobal(PlayerConnectEvent.class, Hexcode::onPlayerConnect);
+    this.getEventRegistry().registerGlobal(PlayerDisconnectEvent.class, Hexcode::onPlayerDisconnect);
+
+    // Commands
+    this.getCommandRegistry().registerCommand(new HexcodeCommand());
+
+    // spatial resources
+    ResourceType<EntityStore, SpatialResource<Ref<EntityStore>, EntityStore>> hoverableSpatialResourceType = entityStoreRegistry
+        .registerSpatialResource(() -> new KDTree<>(Ref::isValid));
+    entityStoreRegistry.registerSystem(new HoverableSpatialSystem(hoverableSpatialResourceType));
+
+    // Startups
+    CastingStyleRegistry.init();
+    BuiltinPlugin.startup();
+
+    LOGGER.atInfo().log("Hexcode setup complete!");
+  }
+
+  @Override
+  protected void start() {
+    EntityStore.REGISTRY.registerSystem(new HiddenFilterSystem());
+  }
+
+  private static void onPlayerConnect(PlayerConnectEvent event) {
+    Holder<EntityStore> holder = event.getHolder();
+    HexcasterComponent comp = holder.ensureAndGetComponent(HexcasterComponent.getComponentType());
+
+    for (HexcodeManager manager : StateRouter.allManagers()) {
+      manager.onPlayerJoin(holder, comp);
     }
+  }
 
-    public static Hexcode get() {
-        return instance;
-    }
-
-    @Override
-    protected void setup() {
-        // Custom asset registries
-        AssetRegistry.register(
-                HytaleAssetStore
-                        .builder(GlyphAsset.class, new DefaultAssetMap<String, GlyphAsset>())
-                        .setPath("Hexcode/Glyphs")
-                        .setCodec(GlyphAsset.CODEC)
-                        .setKeyFunction(GlyphAsset::getId)
-                        .build());
-        AssetRegistry.register(
-                HytaleAssetStore
-                        .builder(ShapeAsset.class, new DefaultAssetMap<String, ShapeAsset>())
-                        .setPath("Hexcode/Shapes")
-                        .setCodec(ShapeAsset.CODEC)
-                        .setKeyFunction(ShapeAsset::getId)
-                        .build());
-        AssetRegistry.register(
-                HytaleAssetStore
-                        .builder(TemplateAsset.class, new DefaultAssetMap<String, TemplateAsset>())
-                        .setPath("Hexcode/Templates")
-                        .setCodec(TemplateAsset.CODEC)
-                        .setKeyFunction(TemplateAsset::getId)
-                        .loadsAfter(ShapeAsset.class)
-                        .build());
-        AssetRegistry.register(
-                HytaleAssetStore
-                        .builder(HexBookAsset.class,
-                                new DefaultAssetMap<String, HexBookAsset>())
-                        .setPath("Hexcode/HexBooks")
-                        .setCodec(HexBookAsset.CODEC)
-                        .setKeyFunction(HexBookAsset::getId)
-                        .loadsAfter(ParticleSystem.class)
-                        .loadsAfter(Item.class)
-                        .build());
-        AssetRegistry.register(
-                HytaleAssetStore
-                        .builder(HexStaffAsset.class,
-                                new DefaultAssetMap<String, HexStaffAsset>())
-                        .setPath("Hexcode/HexStaffs")
-                        .setCodec(HexStaffAsset.CODEC)
-                        .setKeyFunction(HexStaffAsset::getId)
-                        .loadsAfter(ParticleSystem.class)
-                        .loadsAfter(Item.class)
-                        .build());
-
-        // Entity Component Registries
-        ComponentRegistryProxy<EntityStore> entityStoreRegistry = this.getEntityStoreRegistry();
-
-        ComponentType<EntityStore, EffectComponent> glyphComponentType = entityStoreRegistry.registerComponent(
-                EffectComponent.class, "Glyph",
-                EffectComponent.CODEC);
-        EffectComponent.setComponentType(glyphComponentType);
-
-        ComponentType<EntityStore, HexComponent> hexComponentType = entityStoreRegistry.registerComponent(
-                HexComponent.class, "Hex",
-                HexComponent.CODEC);
-        HexComponent.setComponentType(hexComponentType);
-
-        ComponentType<EntityStore, HexBookComponent> hexBookComponentType = entityStoreRegistry.registerComponent(
-                HexBookComponent.class, "HexBook",
-                HexBookComponent.CODEC);
-        HexBookComponent.setComponentType(hexBookComponentType);
-
-        ComponentType<EntityStore, HexStaffComponent> hexStaffComponentType = entityStoreRegistry.registerComponent(
-                HexStaffComponent.class, "HexStaff",
-                HexStaffComponent.CODEC);
-        HexStaffComponent.setComponentType(hexStaffComponentType);
-
-        ComponentType<EntityStore, HexcasterComponent> hexcasterComponentType = entityStoreRegistry.registerComponent(
-                HexcasterComponent.class,
-                HexcasterComponent::new);
-        HexcasterComponent.setComponentType(hexcasterComponentType);
-
-        ComponentType<EntityStore, HexcasterCastingComponent> castingRootComponentType = entityStoreRegistry
-                .registerComponent(HexcasterCastingComponent.class,
-                        HexcasterCastingComponent::new);
-        HexcasterCastingComponent.setComponentType(castingRootComponentType);
-
-        ComponentType<EntityStore, HexcasterCraftingComponent> craftingRootComponentType = entityStoreRegistry
-                .registerComponent(HexcasterCraftingComponent.class,
-                        HexcasterCraftingComponent::new);
-        HexcasterCraftingComponent.setComponentType(craftingRootComponentType);
-
-        ComponentType<EntityStore, HexcasterDrawingComponent> drawingRootComponentType = entityStoreRegistry
-                .registerComponent(HexcasterDrawingComponent.class,
-                        HexcasterDrawingComponent::new);
-        HexcasterDrawingComponent.setComponentType(drawingRootComponentType);
-        
-        ComponentType<EntityStore, NodeComponent> nodeComponentType = entityStoreRegistry
-                .registerComponent(NodeComponent.class,
-                        NodeComponent::new);
-        NodeComponent.setComponentType(nodeComponentType);
-
-
-
-        ComponentType<EntityStore, RootGlyph> executionComponentType = entityStoreRegistry.registerComponent(
-                RootGlyph.class,
-                RootGlyph::new);
-        RootGlyph.setComponentType(executionComponentType);
-
-        ComponentType<EntityStore, PropelComponent> propelComponentType = entityStoreRegistry
-                .registerComponent(PropelComponent.class, PropelComponent::new);
-        PropelComponent.setComponentType(propelComponentType);
-
-        ComponentType<EntityStore, VariableComponent> slotComponentType = entityStoreRegistry
-                .registerComponent(VariableComponent.class, VariableComponent::new);
-        VariableComponent.setComponentType(slotComponentType);
-
-        ComponentType<EntityStore, PedestalAnchorComponent> pedestalComponentType = entityStoreRegistry
-                .registerComponent(PedestalAnchorComponent.class, PedestalAnchorComponent::new);
-        PedestalAnchorComponent.setComponentType(pedestalComponentType);
-
-        ComponentType<EntityStore, HoverableComponent> hoverableComponentType = entityStoreRegistry
-                .registerComponent(HoverableComponent.class, HoverableComponent::new);
-        HoverableComponent.setComponentType(hoverableComponentType);
-
-        ComponentType<EntityStore, DebugComponent> debugComponentType = entityStoreRegistry
-                .registerComponent(DebugComponent.class, DebugComponent::new);
-        DebugComponent.setComponentType(debugComponentType);
-
-        ComponentType<EntityStore, HiddenComponent> hiddenComponentType = entityStoreRegistry
-                .registerComponent(HiddenComponent.class, HiddenComponent::new);
-        HiddenComponent.setComponentType(hiddenComponentType);
-
-        // Block Component Registries
-        ComponentRegistryProxy<ChunkStore> chunkStoreRegistry = this.getChunkStoreRegistry();
-
-        ComponentType<ChunkStore, PedestalBlockComponent> pedestalBlockComponentType = chunkStoreRegistry
-                .registerComponent(PedestalBlockComponent.class,
-                        "Hexcode_PedestalBlock",
-                        PedestalBlockComponent.CODEC);
-        PedestalBlockComponent.setComponentType(pedestalBlockComponentType);
-
-        ComponentType<ChunkStore, ObeliskBlockComponent> obeliskBlockComponentType = chunkStoreRegistry
-                .registerComponent(ObeliskBlockComponent.class,
-                        "Hexcode_ObeliskBlock",
-                        ObeliskBlockComponent.CODEC);
-        ObeliskBlockComponent.setComponentType(obeliskBlockComponentType);
-
-        ComponentType<ChunkStore, UnbreakableBlockComponent> unbreakableComponentType = chunkStoreRegistry
-                .registerComponent(UnbreakableBlockComponent.class, UnbreakableBlockComponent::new);
-        UnbreakableBlockComponent.setComponentType(unbreakableComponentType);
-
-        // Glyph Var Variables
-        HexVar.CODEC.register("Entity", EntityVar.class, EntityVar.CODEC);
-        HexVar.CODEC.register("Block", BlockVar.class, BlockVar.CODEC);
-        HexVar.CODEC.register("Rotation", RotationVar.class, RotationVar.CODEC);
-        HexVar.CODEC.register("Position", PositionVar.class, PositionVar.CODEC);
-        HexVar.CODEC.register("Number", NumberVar.class, NumberVar.CODEC);
-
-        // Interaction Registries
-        Interaction.CODEC.register("HexStateBranch", HexStateBranch.class, HexStateBranch.CODEC);
-        Interaction.CODEC.register("HexStateChange", HexStateChange.class, HexStateChange.CODEC);
-        Interaction.CODEC.register("HexHold", HexHold.class, HexHold.CODEC);
-        Interaction.CODEC.register("HexMode", HexMode.class, HexMode.CODEC);
-        Interaction.CODEC.register("HexModeExit", HexModeExit.class, HexModeExit.CODEC);
-        Interaction.CODEC.register("PedestalInteraction", PedestalInteraction.class, PedestalInteraction.CODEC);
-        Interaction.CODEC.register("HexItemCondition", HexItemCondition.class, HexItemCondition.CODEC);
-
-        // State Managers
-        StateRouter.registerState(HexState.IDLE, new IdleSystem());
-        StateRouter.registerState(HexState.CASTING, new CastingSystem());
-        // StateRouter.registerState(HexState.CASTING,
-        // HexcasterCastingComponent.getComponentType());
-        StateRouter.registerState(HexState.DRAWING, new DrawingSystem());
-        StateRouter.registerState(HexState.CRAFTING, new CraftingSystem());
-        StateRouter.registerState(HexState.EXECUTION, new ExecutionSystem());
-
-        // Ticking Systems
-        entityStoreRegistry.registerSystem(new HexTick());
-        entityStoreRegistry.registerSystem(new ExecutionTickSystem());
-        entityStoreRegistry.registerSystem(new PropelTickSystem());
-        entityStoreRegistry.registerSystem(new PedestalTickEvent());
-        entityStoreRegistry.registerSystem(new PedestalBlockEvent());
-        entityStoreRegistry.registerSystem(new BlockBreakEvent());
-        entityStoreRegistry.registerSystem(new DebugTickSystem());
-
-        // Events
-        this.getEventRegistry().registerGlobal(PlayerConnectEvent.class, Hexcode::onPlayerConnect);
-        this.getEventRegistry().registerGlobal(PlayerDisconnectEvent.class, Hexcode::onPlayerDisconnect);
-
-        // Commands
-        this.getCommandRegistry().registerCommand(new HexcodeCommand());
-
-        // spatial resources
-        ResourceType<EntityStore, SpatialResource<Ref<EntityStore>, EntityStore>> hoverableSpatialResourceType = entityStoreRegistry
-                .registerSpatialResource(() -> new KDTree<>(Ref::isValid));
-        entityStoreRegistry.registerSystem(new HoverableSpatialSystem(hoverableSpatialResourceType));
-
-        // Startups
-        CastingStyleRegistry.init();
-        BuiltinPlugin.startup();
-
-        LOGGER.atInfo().log("Hexcode setup complete!");
-    }
-
-    @Override
-    protected void start() {
-        EntityStore.REGISTRY.registerSystem(new HiddenFilterSystem());
-    }
-
-    private static void onPlayerConnect(PlayerConnectEvent event) {
-        Holder<EntityStore> holder = event.getHolder();
-        HexcasterComponent comp = holder.ensureAndGetComponent(HexcasterComponent.getComponentType());
+  private static void onPlayerDisconnect(PlayerDisconnectEvent event) {
+    PlayerRef playerRef = event.getPlayerRef();
+    Ref<EntityStore> ref = playerRef.getReference();
+    if (ref != null) {
+      Store<EntityStore> store = ref.getStore();
+      World world = store.getExternalData().getWorld();
+      world.execute(() -> {
+        if (ref.isValid()) {
+          HexcasterComponent hexcaster = store.getComponent(ref,
+              HexcasterComponent.getComponentType());
+          if (hexcaster != null && hexcaster.getState() != HexState.IDLE) {
+            hexcaster.requestStateChange(HexState.IDLE);
+          }
+        }
 
         for (HexcodeManager manager : StateRouter.allManagers()) {
-            manager.onPlayerJoin(holder, comp);
+          manager.onPlayerLeave(playerRef);
         }
+      });
     }
-
-    private static void onPlayerDisconnect(PlayerDisconnectEvent event) {
-        PlayerRef playerRef = event.getPlayerRef();
-        Ref<EntityStore> ref = playerRef.getReference();
-        if (ref != null) {
-            Store<EntityStore> store = ref.getStore();
-            World world = store.getExternalData().getWorld();
-            world.execute(() -> {
-                if (ref.isValid()) {
-                    HexcasterComponent hexcaster = store.getComponent(ref, HexcasterComponent.getComponentType());
-                    if (hexcaster != null && hexcaster.getState() != HexState.IDLE) {
-                        hexcaster.requestStateChange(HexState.IDLE);
-                    }
-                }
-
-                for (HexcodeManager manager : StateRouter.allManagers()) {
-                    manager.onPlayerLeave(playerRef);
-                }
-            });
-        }
-    }
+  }
 }

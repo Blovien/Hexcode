@@ -19,9 +19,11 @@ import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.TargetUtil;
+import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableType;
 import com.riprod.hexcode.core.common.hover.system.HoverableSpatialSystem;
+import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
 
 import it.unimi.dsi.fastutil.objects.ObjectList;
 
@@ -132,5 +134,34 @@ public class HoverableUtils {
 
     public static void ensureHoverable(Holder<EntityStore> holder, HoverableType type) {
         holder.addComponent(HoverableComponent.getComponentType(), new HoverableComponent(type));
+    }
+
+    public static Ref<EntityStore> getGlyphFromHoverable(CommandBuffer<EntityStore> buffer,
+            Ref<EntityStore> targetRef) {
+        HoverableComponent hoverComp = buffer.getComponent(targetRef,
+                HoverableComponent.getComponentType());
+        if (hoverComp == null)
+            return null;
+
+        switch (hoverComp.getType()) {
+            case GLYPH:
+                return targetRef;
+            case NODE:
+                NodeComponent targetNode = buffer.getComponent(targetRef,
+                        NodeComponent.getComponentType());
+                return targetNode != null ? targetNode.getParentEntity() : null;
+            case HEX:
+                HexComponent hexComp = buffer.getComponent(targetRef,
+                        HexComponent.getComponentType());
+                if (hexComp != null && hexComp.getHex() != null) {
+                    String firstId = hexComp.getHex().getFirstGlyphId();
+                    if (firstId != null) {
+                        return hexComp.getChildGlyphRef(firstId);
+                    }
+                }
+                return null;
+            default:
+                return null;
+        }
     }
 }

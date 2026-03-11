@@ -15,11 +15,12 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexcaster.utils.PlayerUtils;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalPlayerData;
+import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
 import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
 import com.riprod.hexcode.core.state.crafting.entity.PedestalEntity;
 import com.riprod.hexcode.core.state.crafting.system.ObeliskSystem;
 import com.riprod.hexcode.core.state.crafting.system.PedestalSystem;
+import com.riprod.hexcode.core.state.crafting.utils.PedestalDataUtil;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalItemUtil;
 import com.riprod.hexcode.utils.HexSlot;
 
@@ -52,9 +53,7 @@ public class PedestalInteractionEvent {
             pedestalComponent.setLocation(blockPos);
         }
 
-        UUIDComponent uuidComp = accessor.getComponent(playerRef, UUIDComponent.getComponentType());
-        String playerId = uuidComp.getUuid().toString();
-        PedestalPlayerData playerData = pedestalComponent.getPlayerData(playerId);
+        PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(accessor, playerRef);
 
         ensureAnchor(accessor, pedestalComponent, playerData, blockPos);
         rebuildDisplays(accessor, playerData, pedestalComponent, blockPos);
@@ -116,7 +115,7 @@ public class PedestalInteractionEvent {
     }
 
     private static void ensureAnchor(CommandBuffer<EntityStore> buffer,
-            PedestalBlockComponent pedestal, PedestalPlayerData playerData, Vector3i blockPos) {
+            PedestalBlockComponent pedestal, PedestalDataComponent playerData, Vector3i blockPos) {
         Ref<EntityStore> anchorRef = playerData.getAnchorRef();
         if (anchorRef != null && anchorRef.isValid()) {
             return;
@@ -127,7 +126,7 @@ public class PedestalInteractionEvent {
         playerData.setAnchorEntityRef(anchorRef);
     }
 
-    private static void rebuildDisplays(CommandBuffer<EntityStore> buffer, PedestalPlayerData playerData,
+    private static void rebuildDisplays(CommandBuffer<EntityStore> buffer, PedestalDataComponent playerData,
             PedestalBlockComponent pedestal, Vector3i blockPos) {
 
         Vector3d anchorPos = PedestalEntity.getAnchorPosition(blockPos);
@@ -139,7 +138,7 @@ public class PedestalInteractionEvent {
             if (bookItem != null) {
                 logger.atInfo().log("pedestal: rebuilding book display at %s", blockPos);
                 Ref<EntityStore> newBookRef = PedestalEntity.spawnBookDisplay(
-                        buffer, pedestal, playerData, anchorPos, bookItem, null);
+                        buffer, pedestal, playerData, anchorPos, bookItem, playerData.getAnchorNodeRef());
                 playerData.setBookDisplayRef(newBookRef);
             }
         }
@@ -151,7 +150,7 @@ public class PedestalInteractionEvent {
             if (essenceItem != null) {
                 logger.atInfo().log("pedestal: rebuilding essence display at %s", blockPos);
                 Ref<EntityStore> newEssenceRef = PedestalEntity.spawnEssenceDisplay(
-                        buffer, pedestal, playerData, anchorPos, essenceItem, pedestal.getReferenceHolder(), null);
+                        buffer, pedestal, playerData, anchorPos, essenceItem, pedestal.getReferenceHolder(), playerData.getAnchorNodeRef());
                 playerData.setEssenceDisplayRef(newEssenceRef);
             }
         }

@@ -3,6 +3,7 @@ package com.riprod.hexcode.core.common.hidden.utils;
 import java.util.Iterator;
 import java.util.List;
 
+import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
@@ -10,6 +11,8 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hidden.component.HiddenComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
+import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
+import com.riprod.hexcode.core.state.crafting.utils.PedestalDataUtil;
 
 public class HiddenUtils {
     private static HytaleLogger logger = HytaleLogger.forEnclosingClass();
@@ -43,10 +46,13 @@ public class HiddenUtils {
         }
     }
 
-    public static void addHiddenToHolder(Holder<EntityStore> holder,
+    public static void addHiddenToHolder(CommandBuffer<EntityStore> accessor, Holder<EntityStore> holder,
             Ref<EntityStore> playerRef) {
         if (playerRef != null && playerRef.isValid()) {
-            holder.addComponent(HiddenComponent.getComponentType(), new HiddenComponent(playerRef));
+            PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(accessor, playerRef);
+            if (playerData != null && playerData.isPerPlayer()) {
+                holder.addComponent(HiddenComponent.getComponentType(), new HiddenComponent(playerRef));
+            }
         }
     }
 }

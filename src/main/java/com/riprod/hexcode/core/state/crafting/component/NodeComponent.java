@@ -5,16 +5,31 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 
+import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.state.crafting.constants.NodeType;
 
 public class NodeComponent implements Component<EntityStore> {
 
     private static ComponentType<EntityStore, NodeComponent> componentType;
 
     public NodeComponent() {
+    }
+
+    public NodeComponent(NodeComponent other) {
+        this.outgoingRefs = new ArrayList<>(other.outgoingRefs);
+        this.incomingRefs = new ArrayList<>(other.incomingRefs);
+        this.parentEntity = other.parentEntity;
+        this.isHovered = other.isHovered;
+        this.nodeType = other.nodeType;
+    }
+
+    public NodeComponent(Ref<EntityStore> parentEntity, NodeType nodeType) {
+        this.parentEntity = parentEntity;
+        this.nodeType = nodeType;
     }
 
     public static void setComponentType(ComponentType<EntityStore, NodeComponent> type) {
@@ -25,42 +40,42 @@ public class NodeComponent implements Component<EntityStore> {
         return componentType;
     }
 
-    private List<Ref<EntityStore>> outputRefs = new ArrayList<>();
-    private List<Ref<EntityStore>> inputRefs = new ArrayList<>();
-    private Ref<EntityStore> parentGlyphRef;
+    private List<Ref<EntityStore>> outgoingRefs = new ArrayList<>(); // links going away from this node
+    private List<Ref<EntityStore>> incomingRefs = new ArrayList<>(); // links coming into this node
+    private Ref<EntityStore> parentEntity; // parent object
     private boolean isHovered = false;
-    private boolean isRootNode = false;
+    private NodeType nodeType;
 
-    public List<Ref<EntityStore>> getOutputRefs() {
-        return outputRefs;
+    public List<Ref<EntityStore>> getOutgoingRefs() {
+        return outgoingRefs;
     }
 
-    public void setOutputRefs(List<Ref<EntityStore>> refs) {
-        this.outputRefs = refs;
+    public void setOutgoingRefs(List<Ref<EntityStore>> refs) {
+        this.outgoingRefs = refs;
     }
 
-    public void addOutputRef(Ref<EntityStore> ref) {
-        this.outputRefs.add(ref);
+    public void addOutgoingRef(Ref<EntityStore> ref) {
+        this.outgoingRefs.add(ref);
     }
 
-    public void removeOutputRef(Ref<EntityStore> ref) {
-        this.outputRefs.remove(ref);
+    public void removeOutgoingRef(Ref<EntityStore> nodeRef) {
+        this.outgoingRefs.remove(nodeRef);
     }
 
-    public List<Ref<EntityStore>> getInputRefs() {
-        return inputRefs;
+    public List<Ref<EntityStore>> getIncomingRefs() {
+        return incomingRefs;
     }
 
-    public void setInputRefs(List<Ref<EntityStore>> refs) {
-        this.inputRefs = refs;
+    public void setIncomingRefs(List<Ref<EntityStore>> refs) {
+        this.incomingRefs = refs;
     }
 
-    public void addInputRef(Ref<EntityStore> ref) {
-        this.inputRefs.add(ref);
+    public void addIncomingRef(Ref<EntityStore> ref) {
+        this.incomingRefs.add(ref);
     }
 
-    public void removeInputRef(Ref<EntityStore> ref) {
-        this.inputRefs.remove(ref);
+    public void removeIncomingRef(Ref<EntityStore> ref) {
+        this.incomingRefs.remove(ref);
     }
 
     public boolean getIsHovered() {
@@ -71,31 +86,31 @@ public class NodeComponent implements Component<EntityStore> {
         this.isHovered = hoverState;
     }
 
-    public Ref<EntityStore> getParentGlyphRef() {
-        return parentGlyphRef;
+    public Ref<EntityStore> getParentEntity() {
+        return parentEntity;
     }
 
-    public void setParentGlyphRef(Ref<EntityStore> parentGlyphRef) {
-        this.parentGlyphRef = parentGlyphRef;
+    public void setParentEntity(Ref<EntityStore> parentGlyphRef) {
+        this.parentEntity = parentGlyphRef;
     }
 
-    public boolean isRootNode() {
-        return isRootNode;
+    public NodeType getNodeType() {
+        return nodeType;
     }
 
-    public void setRootNode(boolean rootNode) {
-        this.isRootNode = rootNode;
+    public void setNodeType(NodeType nodeType) {
+        this.nodeType = nodeType;
     }
 
     @Nonnull
     @Override
     public NodeComponent clone() {
         NodeComponent copy = new NodeComponent();
-        copy.outputRefs = new ArrayList<>(this.outputRefs);
-        copy.inputRefs = new ArrayList<>(this.inputRefs);
-        copy.parentGlyphRef = this.parentGlyphRef;
+        copy.outgoingRefs = new ArrayList<>(this.outgoingRefs);
+        copy.incomingRefs = new ArrayList<>(this.incomingRefs);
+        copy.parentEntity = this.parentEntity;
         copy.isHovered = this.isHovered;
-        copy.isRootNode = this.isRootNode;
+        copy.nodeType = this.nodeType;
         return copy;
     }
 }

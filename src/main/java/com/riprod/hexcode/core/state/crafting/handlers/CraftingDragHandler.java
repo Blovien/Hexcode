@@ -1,4 +1,4 @@
-package com.riprod.hexcode.core.state.crafting.utils;
+package com.riprod.hexcode.core.state.crafting.handlers;
 
 import com.hypixel.hytale.builtin.mounts.MountedComponent;
 import com.hypixel.hytale.component.CommandBuffer;
@@ -13,7 +13,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.utils.CreateGlyph;
 
-public class CraftingDragUtil {
+public class CraftingDragHandler {
     private static HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     public static Ref<EntityStore> startDrag(CommandBuffer<EntityStore> accessor,

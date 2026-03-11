@@ -51,7 +51,7 @@ public class CasterInventory {
                 HexBookComponent.CODEC);
         if (existingComponent != null) {
             LOGGER.atInfo().log("Found existing HexBookComponent in item metadata");
-            return new Pair(inventoryPair.getSecond(), existingComponent);
+            return new Pair<>(inventoryPair.getSecond(), existingComponent);
         }
         LOGGER.atInfo().log("Creating HexBookComponent...");
 
@@ -68,7 +68,7 @@ public class CasterInventory {
 
         PlayerUtils.setHandItem(player, slot, newStack);
 
-        return new Pair(slot, newComponent);
+        return new Pair<>(slot, newComponent);
     }
 
     public static void saveHexBookComponent(ComponentAccessor<EntityStore> store,

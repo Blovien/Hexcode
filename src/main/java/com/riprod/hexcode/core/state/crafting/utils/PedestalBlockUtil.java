@@ -38,7 +38,7 @@ public class PedestalBlockUtil {
             return null;
         }
 
-        Ref<EntityStore> anchorRef = craftingComp.getPedestalRef();
+        Ref<EntityStore> anchorRef = craftingComp.getPedestalEntityRef();
         if (anchorRef == null || !anchorRef.isValid()) {
             return null;
         }

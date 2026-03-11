@@ -7,12 +7,12 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.protocol.InteractionState;
-import com.hypixel.hytale.server.core.entity.UUIDComponent;
+import com.riprod.hexcode.core.state.crafting.utils.PedestalDataUtil;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.ParticleUtil;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.component.RemoveReason;
-import com.riprod.hexcode.core.common.glyphs.component.EffectComponent;
+import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
@@ -21,12 +21,13 @@ import com.riprod.hexcode.core.common.hover.component.HoverableType;
 import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalPlayerData;
+import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
+import com.riprod.hexcode.core.state.crafting.constants.NodeType;
 import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
+import com.riprod.hexcode.core.state.crafting.entity.GlyphSpawner;
 import com.riprod.hexcode.core.state.crafting.entity.PedestalEntity;
+import com.riprod.hexcode.core.state.crafting.handlers.node.NodeRouter;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
-import com.riprod.hexcode.core.state.crafting.utils.CraftingGlyphNodeSpawner;
-import com.riprod.hexcode.core.state.crafting.utils.CraftingGlyphSpawner;
 import com.riprod.hexcode.core.state.crafting.utils.HoverStyleUtils;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalBlockUtil;
 
@@ -43,12 +44,7 @@ public class SelectingStateSystem {
             return InteractionState.Failed;
         }
 
-        UUIDComponent uuidComp = buffer.getComponent(ref, UUIDComponent.getComponentType());
-        if (uuidComp == null) {
-            return InteractionState.Failed;
-        }
-        String playerId = uuidComp.getUuid().toString();
-        PedestalPlayerData playerData = pedestal.getPlayerData(playerId);
+        PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(buffer, ref);
         if (playerData == null) {
             return InteractionState.Failed;
         }
@@ -63,35 +59,34 @@ public class SelectingStateSystem {
             return InteractionState.Failed;
         }
 
-        HoverableType hoverableType = craftingComp.getHoveredType();
         Ref<EntityStore> hoveredRef = craftingComp.getHoveredRef();
         if (hoveredRef == null || !hoveredRef.isValid()) {
             return InteractionState.Failed;
         }
-        Ref<EntityStore> playerRefFlag = pedestal.isPerPlayer() ? ref : null;
 
-        switch (hoverableType) {
+        HoverableComponent hoverComp = buffer.getComponent(hoveredRef, HoverableComponent.getComponentType());
+        if (hoverComp == null) {
+            return InteractionState.Failed;
+        }
+
+        switch (hoverComp.getType()) {
             case HEX: {
                 HexComponent hexComp = buffer.getComponent(hoveredRef, HexComponent.getComponentType());
                 if (hexComp == null || hexComp.getHex() == null) {
                     return InteractionState.Failed;
                 }
 
-                playerData.setActiveHex(hexComp.getHex());
-                PedestalSystem.enterCrafting(buffer, ref, pedestal, playerData, hoveredRef);
+                PedestalSystem.enterCrafting(buffer, ref, pedestal, hoveredRef);
                 ObeliskSystem.enterCrafting(buffer, pedestal, hoveredRef);
                 playerData.setState(PedestalState.CRAFTING);
-                craftingComp.setHoveredRef(null, null);
+                craftingComp.setHoveredRef(null);
 
-                craftingComp.setHexRootRef(hoveredRef);
-
-                // despawn old preview child glyphs before spawning crafting glyphs
                 Map<String, Ref<EntityStore>> oldChildren = hexComp.getChildGlyphRefs();
                 if (oldChildren != null) {
                     for (Ref<EntityStore> childRef : oldChildren.values()) {
                         if (childRef == null || !childRef.isValid())
                             continue;
-                        EffectComponent effect = buffer.getComponent(childRef, EffectComponent.getComponentType());
+                        GlyphComponent effect = buffer.getComponent(childRef, GlyphComponent.getComponentType());
                         if (effect != null && effect.getNodeRef() != null && effect.getNodeRef().isValid()) {
                             buffer.removeEntity(effect.getNodeRef(), RemoveReason.REMOVE);
                         }
@@ -100,17 +95,17 @@ public class SelectingStateSystem {
                     oldChildren.clear();
                 }
 
-
                 Vector3d anchorPos = PedestalEntity.getAnchorPosition(pedestal.getLocation());
                 Vector3d activePos = new Vector3d(
                         anchorPos.x + PedestalSystem.ACTIVE_HEX_OFFSET.x,
                         anchorPos.y + PedestalSystem.ACTIVE_HEX_OFFSET.y,
                         anchorPos.z + PedestalSystem.ACTIVE_HEX_OFFSET.z);
-                CraftingGlyphSpawner.spawnCraftingGlyphs(buffer, hexComp,
-                        activePos, playerRefFlag);
+                GlyphSpawner.spawnCraftingGlyphs(buffer, hexComp,
+                        activePos, ref);
 
-                Ref<EntityStore> rootNodeRef = CraftingGlyphNodeSpawner.spawnRootNode(buffer, activePos, playerRefFlag);
-                craftingComp.setRootNodeRef(rootNodeRef);
+                Ref<EntityStore> rootNodeRef = NodeRouter.getHandler(NodeType.Anchor).spawnNode(buffer, hoveredRef, activePos,
+                        ref);
+                playerData.setAnchorNodeRef(rootNodeRef);
             }
                 break;
             case CONTAINER: {
@@ -121,11 +116,9 @@ public class SelectingStateSystem {
                 }
                 hexComp.setSelfRef(hoveredRef);
 
-                playerData.setActiveHex(hexComp.getHex());
-                PedestalSystem.enterCrafting(buffer, ref, pedestal, playerData, hoveredRef);
+                PedestalSystem.enterCrafting(buffer, ref, pedestal, hoveredRef);
                 ObeliskSystem.enterCrafting(buffer, pedestal, hoveredRef);
-                craftingComp.setHoveredRef(null, null);
-                craftingComp.setHexRootRef(hoveredRef);
+                craftingComp.setHoveredRef(null);
 
                 Vector3d anchorPos = PedestalEntity.getAnchorPosition(pedestal.getLocation());
                 Vector3d activePos = new Vector3d(
@@ -133,15 +126,16 @@ public class SelectingStateSystem {
                         anchorPos.y + PedestalSystem.ACTIVE_HEX_OFFSET.y,
                         anchorPos.z + PedestalSystem.ACTIVE_HEX_OFFSET.z);
 
-                Ref<EntityStore> rootNodeRef = CraftingGlyphNodeSpawner.spawnRootNode(buffer, activePos, playerRefFlag);
-                craftingComp.setRootNodeRef(rootNodeRef);
+                Ref<EntityStore> rootNodeRef = NodeRouter.getHandler(NodeType.Anchor).spawnNode(buffer, hoveredRef, activePos,
+                        ref);
+                playerData.setAnchorNodeRef(rootNodeRef);
             }
         }
         return InteractionState.Finished;
     }
 
     public static void tickSelecting(CommandBuffer<EntityStore> accessor, float dt, Ref<EntityStore> ref,
-            PedestalBlockComponent pedestal, PedestalPlayerData playerData) {
+            PedestalBlockComponent pedestal, PedestalDataComponent playerData) {
         List<Ref<EntityStore>> previewRefs = playerData.getHexPreviewRefs();
 
         if (previewRefs == null || previewRefs.isEmpty()) {
@@ -179,7 +173,7 @@ public class SelectingStateSystem {
         }
 
         if (targetRef == null || !targetRef.isValid()) {
-            craftingComp.setHoveredRef(null, null);
+            craftingComp.setHoveredRef(null);
             return;
         }
 
@@ -189,7 +183,7 @@ public class SelectingStateSystem {
             return; // shouldn't be reachable
         HoverableType hoveredType = targetRefHoverableComponent.getType();
 
-        craftingComp.setHoveredRef(targetRef, hoveredType);
+        craftingComp.setHoveredRef(targetRef);
         HoverStyleUtils.hover(accessor, targetRef);
 
         HoverStyleUtils.hoverParticles(accessor, targetRef, dt, pedestal, ref);

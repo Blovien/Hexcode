@@ -6,7 +6,7 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.common.glyphs.component.EffectComponent;
+import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
@@ -15,8 +15,8 @@ public class CraftingGlyphRemover {
 
     public static void removeLinks(CommandBuffer<EntityStore> accessor,
             Ref<EntityStore> glyphRef, HexComponent hexComp) {
-        EffectComponent effect = accessor.getComponent(glyphRef,
-                EffectComponent.getComponentType());
+        GlyphComponent effect = accessor.getComponent(glyphRef,
+                GlyphComponent.getComponentType());
         if (effect == null) return;
 
         Glyph glyph = effect.getGlyph();
@@ -43,8 +43,8 @@ public class CraftingGlyphRemover {
             Ref<EntityStore> glyphRef, HexComponent hexComp) {
         removeLinks(accessor, glyphRef, hexComp);
 
-        EffectComponent effect = accessor.getComponent(glyphRef,
-                EffectComponent.getComponentType());
+        GlyphComponent effect = accessor.getComponent(glyphRef,
+                GlyphComponent.getComponentType());
         if (effect == null) return;
 
         Ref<EntityStore> nodeRef = effect.getNodeRef();

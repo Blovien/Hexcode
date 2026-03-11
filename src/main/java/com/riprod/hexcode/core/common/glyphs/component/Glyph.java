@@ -15,7 +15,7 @@ import com.hypixel.hytale.codec.codecs.array.ArrayCodec;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.utils.GlyphType;
-import com.riprod.hexcode.core.common.glyphs.values.HexVal;
+import com.riprod.hexcode.core.common.glyphs.values.HexValInterface;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.utils.SpellVarUtil;
@@ -25,8 +25,8 @@ public class Glyph {
     private String id;
     private float volatility;
     private float efficiency;
-    private List<HexVal> inputs;
-    private List<HexVal> outputs;
+    private List<HexValInterface> inputs;
+    private List<HexValInterface> outputs;
     private int totalInputs = 0;
     private int totalOutputs = 0;
     private List<String> next;
@@ -122,26 +122,26 @@ public class Glyph {
         if (key < 0 || key >= inputs.size()) {
             return hexContext.getVariable(key + 1);
         }
-        HexVal val = inputs.get(key);
+        HexValInterface val = inputs.get(key);
         return val != null ? val.getValue(hexContext) : hexContext.getVariable(key);
     }
 
-    public HexVal getInputVal(int key) {
+    public HexValInterface getInputVal(int key) {
         if (key < 0 || key >= inputs.size()) {
             return null;
         }
         return inputs.get(key);
     }
 
-    public List<HexVal> getInputs() {
+    public List<HexValInterface> getInputs() {
         return inputs;
     }
 
-    public void setInputs(List<HexVal> inputs) {
+    public void setInputs(List<HexValInterface> inputs) {
         this.inputs = inputs;
     }
 
-    public void addInput(HexVal input) {
+    public void addInput(HexValInterface input) {
         this.inputs.add(input);
     }
 
@@ -169,7 +169,7 @@ public class Glyph {
         return getOutput(key, hexContext);
     }
 
-    public List<HexVal> getOutputs() {
+    public List<HexValInterface> getOutputs() {
         return outputs;
     }
 
@@ -231,13 +231,13 @@ public class Glyph {
             .append(new KeyedCodec<>("Speed", Codec.FLOAT),
                     (n, v) -> n.efficiency = v, n -> n.efficiency)
             .add()
-            .append(new KeyedCodec<>("Inputs", new ArrayCodec<>(HexVal.CODEC, HexVal[]::new)),
+            .append(new KeyedCodec<>("Inputs", new ArrayCodec<>(HexValInterface.CODEC, HexValInterface[]::new)),
                     (n, v) -> n.inputs = v != null ? new ArrayList<>(Arrays.asList(v)) : new ArrayList<>(),
-                    n -> n.inputs.toArray(HexVal[]::new))
+                    n -> n.inputs.toArray(HexValInterface[]::new))
             .add()
-            .append(new KeyedCodec<>("Outputs", new ArrayCodec<>(HexVal.CODEC, HexVal[]::new)),
+            .append(new KeyedCodec<>("Outputs", new ArrayCodec<>(HexValInterface.CODEC, HexValInterface[]::new)),
                     (n, v) -> n.outputs = v != null ? new ArrayList<>(Arrays.asList(v)) : new ArrayList<>(),
-                    n -> n.outputs.toArray(HexVal[]::new))
+                    n -> n.outputs.toArray(HexValInterface[]::new))
             .add()
             .append(new KeyedCodec<>("TotalInputs", Codec.INTEGER),
                     (n, v) -> n.totalInputs = v, n -> n.totalInputs)

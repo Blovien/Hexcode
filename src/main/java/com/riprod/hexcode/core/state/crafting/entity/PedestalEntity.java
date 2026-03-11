@@ -29,7 +29,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.state.crafting.component.PedestalAnchorComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalPlayerData;
+import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
 import com.hypixel.hytale.logger.HytaleLogger;
 
 public class PedestalEntity {
@@ -86,14 +86,14 @@ public class PedestalEntity {
         return accessor.addEntity(holder, AddReason.SPAWN);
     }
 
-    public static Ref<EntityStore> spawnEssenceDisplay(ComponentAccessor<EntityStore> accessor,
-            PedestalBlockComponent pedestal, PedestalPlayerData playerData,
+    public static Ref<EntityStore> spawnEssenceDisplay(CommandBuffer<EntityStore> accessor,
+            PedestalBlockComponent pedestal, PedestalDataComponent playerData,
             Vector3d anchorPos, Item item,
-            String anchorId, @Nullable Ref<EntityStore> playerRef) {
+            String anchorId, Ref<EntityStore> playerRef) {
 
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
 
-        HiddenUtils.addHiddenToHolder(holder, playerRef);
+        HiddenUtils.addHiddenToHolder(accessor, holder, playerRef);
 
         holder.addComponent(TransformComponent.getComponentType(),
                 new TransformComponent(anchorPos, new Vector3f(0, 0, 0)));
@@ -114,13 +114,13 @@ public class PedestalEntity {
         return accessor.addEntity(holder, AddReason.SPAWN);
     }
 
-    public static Ref<EntityStore> spawnBookDisplay(ComponentAccessor<EntityStore> accessor,
+    public static Ref<EntityStore> spawnBookDisplay(CommandBuffer<EntityStore> accessor,
             PedestalBlockComponent pedestal,
-            PedestalPlayerData playerData, Vector3d anchorPos, Item item, @Nullable Ref<EntityStore> playerRef) {
+            PedestalDataComponent playerData, Vector3d anchorPos, Item item, Ref<EntityStore> playerRef) {
 
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
 
-        HiddenUtils.addHiddenToHolder(holder, playerRef);
+        HiddenUtils.addHiddenToHolder(accessor, holder, playerRef);
 
         holder.addComponent(TransformComponent.getComponentType(),
                 new TransformComponent(anchorPos, new Vector3f(0, 0, 0)));

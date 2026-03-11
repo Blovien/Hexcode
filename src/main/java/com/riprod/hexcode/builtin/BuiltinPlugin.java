@@ -36,7 +36,7 @@ import com.riprod.hexcode.builtin.glyphs.effect.subtract.SubtractGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.swap.SwapGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.terraform.TerraformGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.warp.WarpGlyph;
-import com.riprod.hexcode.builtin.glyphs.value.NumberGlyph;
+import com.riprod.hexcode.builtin.glyphs.value.NumberValue;
 import com.riprod.hexcode.builtin.styles.ArcStyle;
 import com.riprod.hexcode.builtin.styles.RingStyle;
 import com.riprod.hexcode.builtin.styles.SphereStyle;
@@ -107,25 +107,25 @@ public class BuiltinPlugin {
         GlyphRegistry.register("Glyph_Position", new PositionGlyph());
         
         // Values
-        HexValueRegistry.register("Number_1", new NumberGlyph(1));
-        HexValueRegistry.register("Number_2", new NumberGlyph(2));
-        HexValueRegistry.register("Number_3", new NumberGlyph(3));
-        HexValueRegistry.register("Number_4", new NumberGlyph(4));
-        HexValueRegistry.register("Number_5", new NumberGlyph(5));
-        HexValueRegistry.register("Number_6", new NumberGlyph(6));
-        HexValueRegistry.register("Number_7", new NumberGlyph(7));
-        HexValueRegistry.register("Number_8", new NumberGlyph(8));
-        HexValueRegistry.register("Number_9", new NumberGlyph(9));
-        HexValueRegistry.register("Number_10", new NumberGlyph(10));
-        HexValueRegistry.register("Number_11", new NumberGlyph(11));
-        HexValueRegistry.register("Number_12", new NumberGlyph(12));
-        HexValueRegistry.register("Number_13", new NumberGlyph(13));
-        HexValueRegistry.register("Number_14", new NumberGlyph(14));
-        HexValueRegistry.register("Number_15", new NumberGlyph(15));
-        HexValueRegistry.register("Number_16", new NumberGlyph(16));
-        HexValueRegistry.register("Value_Variable", new NumberGlyph(16));
-        HexValueRegistry.register("Value_Rotation", new NumberGlyph(16));
-        HexValueRegistry.register("Value_Position", new NumberGlyph(16));
+        HexValueRegistry.register("Number_1", new NumberValue(1));
+        HexValueRegistry.register("Number_2", new NumberValue(2));
+        HexValueRegistry.register("Number_3", new NumberValue(3));
+        HexValueRegistry.register("Number_4", new NumberValue(4));
+        HexValueRegistry.register("Number_5", new NumberValue(5));
+        HexValueRegistry.register("Number_6", new NumberValue(6));
+        HexValueRegistry.register("Number_7", new NumberValue(7));
+        HexValueRegistry.register("Number_8", new NumberValue(8));
+        HexValueRegistry.register("Number_9", new NumberValue(9));
+        HexValueRegistry.register("Number_10", new NumberValue(10));
+        HexValueRegistry.register("Number_11", new NumberValue(11));
+        HexValueRegistry.register("Number_12", new NumberValue(12));
+        HexValueRegistry.register("Number_13", new NumberValue(13));
+        HexValueRegistry.register("Number_14", new NumberValue(14));
+        HexValueRegistry.register("Number_15", new NumberValue(15));
+        HexValueRegistry.register("Number_16", new NumberValue(16));
+        HexValueRegistry.register("Value_Variable", new NumberValue(16));
+        HexValueRegistry.register("Value_Rotation", new NumberValue(16));
+        HexValueRegistry.register("Value_Position", new NumberValue(16));
 
     }
 

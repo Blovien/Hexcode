@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
@@ -11,18 +12,18 @@ import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
-import com.riprod.hexcode.core.common.glyphs.component.EffectComponent;
+import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.glyphs.utils.CreateGlyph;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.utils.GlyphMath;
 
 public class GlyphSpawner {
-    public static void spawnGlyphs(ComponentAccessor<EntityStore> accessor, HexComponent hex, EffectComponent glyph,
+    public static void spawnGlyphs(CommandBuffer<EntityStore> accessor, HexComponent hex, GlyphComponent glyph,
             Vector3d parentPos) {
             spawnGlyphs(accessor, hex, glyph, parentPos, null);
     }
 
-    public static void spawnGlyphs(ComponentAccessor<EntityStore> accessor, HexComponent hex, EffectComponent glyph,
+    public static void spawnGlyphs(CommandBuffer<EntityStore> accessor, HexComponent hex, GlyphComponent glyph,
             Vector3d parentPos, @Nullable Ref<EntityStore> playerRef) {
 
         // create the glyph
@@ -45,7 +46,7 @@ public class GlyphSpawner {
                 continue; // if the child glyph is already spawned elsewhere, skip it
             }
 
-            EffectComponent childGlyphComponent = new EffectComponent(childGlyph);
+            GlyphComponent childGlyphComponent = new GlyphComponent(childGlyph);
             
             // set the relative offset based on the angle and distance
             childGlyphComponent.setRotation(childRotation);

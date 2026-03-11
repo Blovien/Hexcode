@@ -15,28 +15,25 @@ import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.protocol.AnimationSlot;
 import com.hypixel.hytale.server.core.entity.AnimationUtils;
-import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.block.component.UnbreakableBlockComponent;
-import com.riprod.hexcode.core.common.block.event.BlockBreakEvent;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexcaster.utils.PlayerUtils;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
-import com.riprod.hexcode.core.common.hidden.component.HiddenComponent;
-import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.state.crafting.component.ObeliskBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalPlayerData;
+import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
 import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
 import com.riprod.hexcode.core.state.crafting.entity.AnchorEntity;
 import com.riprod.hexcode.core.state.crafting.entity.PedestalEntity;
 import com.riprod.hexcode.core.state.crafting.utils.ObeliskBlockUtil;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalBlockUtil;
+import com.riprod.hexcode.core.state.crafting.utils.PedestalDataUtil;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalItemUtil;
 import com.riprod.hexcode.core.state.crafting.utils.RadialPositionUtil;
 import com.riprod.hexcode.state.HexState;
@@ -52,7 +49,7 @@ public class PedestalSystem {
 
     public static void SpawnHexPreviews(CommandBuffer<EntityStore> buffer, Ref<EntityStore> playerRef,
             PedestalBlockComponent pedestal,
-            PedestalPlayerData playerData) {
+            PedestalDataComponent playerData) {
 
         Integer totalSlots = playerData.getBookSlots();
         if (totalSlots == null || totalSlots <= 0) {
@@ -66,21 +63,20 @@ public class PedestalSystem {
         }
 
         Vector3d anchorPos = PedestalEntity.getAnchorPosition(pedestal.getLocation());
-        List<Vector3f> offsets = RadialPositionUtil.calculateOffsets(totalSlots, PREVIEW_RADIUS, 0, new Vector3f(0, -1.5f, 0));
+        List<Vector3f> offsets = RadialPositionUtil.calculateOffsets(totalSlots, PREVIEW_RADIUS, 0,
+                new Vector3f(0, -1.5f, 0));
         List<Ref<EntityStore>> spawnedRefs = new ArrayList<>();
-
-        Ref<EntityStore> playerRefFlag = pedestal.isPerPlayer() ? playerRef : null;
 
         for (int i = 0; i < totalSlots; i++) {
             Vector3f offset = offsets.get(i);
 
             if (i < hexes.size()) {
                 Ref<EntityStore> hexRef = AnchorEntity.spawnFilledSlot(buffer, hexes.get(i), anchorRef, anchorPos,
-                        offset, playerRefFlag);
+                        offset, playerRef);
                 spawnedRefs.add(hexRef);
             } else {
                 Ref<EntityStore> emptyRef = AnchorEntity.spawnEmptySlot(buffer, anchorRef, anchorPos, offset,
-                        playerRefFlag);
+                        playerRef);
                 spawnedRefs.add(emptyRef);
             }
         }
@@ -89,7 +85,9 @@ public class PedestalSystem {
     }
 
     public static void enterCrafting(CommandBuffer<EntityStore> buffer, Ref<EntityStore> playerRef,
-            PedestalBlockComponent pedestal, PedestalPlayerData playerData, Ref<EntityStore> selectedHexRef) {
+            PedestalBlockComponent pedestal, Ref<EntityStore> selectedAnchorNodeRef) {
+
+        PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(buffer, playerRef);
 
         List<Ref<EntityStore>> refs = playerData.getHexPreviewRefs();
         if (refs == null || refs.isEmpty()) {
@@ -97,7 +95,7 @@ public class PedestalSystem {
         }
 
         for (Ref<EntityStore> ref : refs) {
-            if (ref == null || !ref.isValid() || ref.equals(selectedHexRef)) {
+            if (ref == null || !ref.isValid() || ref.equals(selectedAnchorNodeRef)) {
                 continue;
             }
 
@@ -121,14 +119,14 @@ public class PedestalSystem {
                 anchorPos.x + ACTIVE_HEX_OFFSET.x,
                 anchorPos.y + ACTIVE_HEX_OFFSET.y,
                 anchorPos.z + ACTIVE_HEX_OFFSET.z);
-        buffer.putComponent(selectedHexRef, TransformComponent.getComponentType(),
+        buffer.putComponent(selectedAnchorNodeRef, TransformComponent.getComponentType(),
                 new TransformComponent(activePos, new Vector3f(0, 0, 0)));
-        if (buffer.getComponent(selectedHexRef, MountedComponent.getComponentType()) != null) {
-            buffer.removeComponent(selectedHexRef, MountedComponent.getComponentType());
+        if (buffer.getComponent(selectedAnchorNodeRef, MountedComponent.getComponentType()) != null) {
+            buffer.removeComponent(selectedAnchorNodeRef, MountedComponent.getComponentType());
         }
 
-        playerData.setHexPreviewRefs(List.of(selectedHexRef));
-        playerData.setActiveHexEntityRef(selectedHexRef);
+        playerData.setHexPreviewRefs(List.of(selectedAnchorNodeRef));
+        playerData.setAnchorEntityRef(selectedAnchorNodeRef);
 
         World world = buffer.getExternalData().getWorld();
         UnbreakableBlockComponent.protect(world, pedestal.getLocation());
@@ -142,8 +140,7 @@ public class PedestalSystem {
 
         Vector3d anchorPos = PedestalEntity.getAnchorPosition(blockPos);
 
-        UUIDComponent uuidComp = buffer.getComponent(player.getReference(), UUIDComponent.getComponentType());
-        PedestalPlayerData playerData = pedestalComponent.getPlayerData(uuidComp.getUuid().toString());
+        PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(buffer, player.getReference());
 
         Ref<EntityStore> oldEssenceRef = playerData.getEssenceDisplayRef();
         if (oldEssenceRef != null && oldEssenceRef.isValid()) {
@@ -167,8 +164,7 @@ public class PedestalSystem {
 
         Vector3d anchorPos = PedestalEntity.getAnchorPosition(blockPos);
 
-        UUIDComponent uuidComp = buffer.getComponent(player.getReference(), UUIDComponent.getComponentType());
-        PedestalPlayerData playerData = pedestalComponent.getPlayerData(uuidComp.getUuid().toString());
+        PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(buffer, player.getReference());
 
         ItemStack prepared = PedestalItemUtil.ensureHexBookComponent(bookItem);
         playerData.setStoredBook(prepared);
@@ -190,8 +186,7 @@ public class PedestalSystem {
     public static void enterSelecting(PedestalBlockComponent pedestalComponent, Player player,
             World world, CommandBuffer<EntityStore> buffer) {
 
-        UUIDComponent uuidComp = buffer.getComponent(player.getReference(), UUIDComponent.getComponentType());
-        PedestalPlayerData playerData = pedestalComponent.getPlayerData(uuidComp.getUuid().toString());
+        PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(buffer, player.getReference());
 
         Integer bookSlots = playerData.getBookSlots();
         logger.atInfo().log("pedestal: SpawnHexPreviews at %s, bookSlots=%s",
@@ -225,8 +220,7 @@ public class PedestalSystem {
             Player player, PedestalBlockComponent pedestalComponent,
             World world) {
 
-        UUIDComponent uuidComp = buffer.getComponent(player.getReference(), UUIDComponent.getComponentType());
-        PedestalPlayerData playerData = pedestalComponent.getPlayerData(uuidComp.getUuid().toString());
+        PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(buffer, player.getReference());
 
         AnchorEntity.DespawnHexPreviews(buffer, pedestalComponent, playerData);
 
@@ -280,7 +274,7 @@ public class PedestalSystem {
         updateState(buffer, pedestalComponent, playerData, world, PedestalState.IDLE);
     }
 
-    public static void handleReady(CommandBuffer<EntityStore> accessor, PedestalPlayerData playerData,
+    public static void handleReady(CommandBuffer<EntityStore> accessor, PedestalDataComponent playerData,
             PedestalBlockComponent pedestal,
             World world) {
 
@@ -295,7 +289,7 @@ public class PedestalSystem {
     }
 
     public static void updateState(CommandBuffer<EntityStore> accessor, PedestalBlockComponent pedestal,
-            PedestalPlayerData playerData, World world,
+            PedestalDataComponent playerData, World world,
             PedestalState state) {
 
         Vector3i blockPos = pedestal.getLocation();
@@ -327,26 +321,39 @@ public class PedestalSystem {
             AnimationUtils.playAnimation(essenceRef, AnimationSlot.Action, blockState, accessor);
         }
 
-        boolean canSwitch = canSwitchState(pedestal, state);
+        boolean canSwitch = canSwitchState(accessor, pedestal, state);
 
         if (canSwitch) {
             PedestalBlockUtil.changeBlockState(world, blockPos, blockState);
         }
     }
 
-    private static boolean canSwitchState(PedestalBlockComponent pedestal, PedestalState newState) {
+    private static boolean canSwitchState(CommandBuffer<EntityStore> buffer,
+            PedestalBlockComponent pedestal, PedestalState newState) {
         if (!pedestal.isPerPlayer()) {
-            return true; // always change state if not per-player
-        }
-
-        List<PedestalState> states = pedestal.getStates();
-        if (states == null) {
             return true;
         }
 
-        boolean containsCrafting = states.contains(PedestalState.CRAFTING);
-        boolean containsReady = states.contains(PedestalState.READY);
-        boolean containsSelecting = states.contains(PedestalState.SELECTING);
+        Set<Ref<EntityStore>> activePlayers = pedestal.getActivePlayerRefs();
+        if (activePlayers == null || activePlayers.isEmpty()) {
+            return true;
+        }
+
+        boolean containsCrafting = false;
+        boolean containsReady = false;
+        boolean containsSelecting = false;
+
+        for (Ref<EntityStore> playerRef : activePlayers) {
+            if (playerRef == null || !playerRef.isValid()) continue;
+            PedestalDataComponent data = PedestalDataUtil.getPedestalData(buffer, playerRef);
+            if (data == null) continue;
+            switch (data.getState()) {
+                case CRAFTING: containsCrafting = true; break;
+                case READY: containsReady = true; break;
+                case SELECTING: containsSelecting = true; break;
+                default: break;
+            }
+        }
 
         switch (newState) {
             case IDLE:
