@@ -198,13 +198,22 @@ public class DollarOneFixedDetector implements ShapeDetector {
         }
         float w = maxX - minX;
         float h = maxY - minY;
-        if (w < 1e-6f) w = 1f;
-        if (h < 1e-6f) h = 1f;
+        if (w < 1e-6f) w = 1e-6f;
+        if (h < 1e-6f) h = 1e-6f;
 
         float[][] result = new float[points.length][2];
-        for (int i = 0; i < points.length; i++) {
-            result[i][0] = points[i][0] * (SQUARE_SIZE / w);
-            result[i][1] = points[i][1] * (SQUARE_SIZE / h);
+        float ratio = Math.min(w, h) / Math.max(w, h);
+        if (ratio < 0.15f) {
+            float scale = SQUARE_SIZE / Math.max(w, h);
+            for (int i = 0; i < points.length; i++) {
+                result[i][0] = points[i][0] * scale;
+                result[i][1] = points[i][1] * scale;
+            }
+        } else {
+            for (int i = 0; i < points.length; i++) {
+                result[i][0] = points[i][0] * (SQUARE_SIZE / w);
+                result[i][1] = points[i][1] * (SQUARE_SIZE / h);
+            }
         }
         return result;
     }

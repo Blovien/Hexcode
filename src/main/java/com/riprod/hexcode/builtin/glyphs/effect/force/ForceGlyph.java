@@ -24,6 +24,9 @@ public class ForceGlyph implements GlyphHandler {
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targets = glyph.resolveInput("target", hexContext);
+        LOGGER.atInfo().log("force glyph: target=%s (type=%s, size=%d)",
+                targets, targets != null ? targets.getClass().getSimpleName() : "null",
+                targets != null ? targets.size() : 0);
 
         if (targets == null || targets.size() == 0) {
             LOGGER.atInfo().log("force glyph: no targets, skipping");

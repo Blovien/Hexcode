@@ -11,6 +11,7 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.command.draw.DrawCommand;
 import com.riprod.hexcode.command.glyph.GlyphsCommand;
+import com.riprod.hexcode.command.hex.HexCommand;
 import com.riprod.hexcode.command.test.TestCommand;
 
 import javax.annotation.Nonnull;
@@ -23,6 +24,7 @@ public class HexcodeCommand extends AbstractPlayerCommand {
 
         addSubCommand(new GlyphsCommand());
         addSubCommand(new DrawCommand());
+        addSubCommand(new HexCommand());
         addSubCommand(new TestCommand());
     }
 
@@ -39,5 +41,6 @@ public class HexcodeCommand extends AbstractPlayerCommand {
                 Message.raw("  /hexcode spawnGlyph [glyph_id] [scale] [mounted] - Spawn a glyph entity for testing"));
         ctx.sendMessage(Message.raw("  /hexcode glyphs ... - Commands for managing glyphs in hexbooks"));
         ctx.sendMessage(Message.raw("  /hexcode draw ... - Commands for drawing glyphs"));
+        ctx.sendMessage(Message.raw("  /hexcode hex inspect [--detailed] - Print the glyph tree on the held staff"));
     }
 }

@@ -240,57 +240,26 @@ public class CraftingSystem extends HexcodeManager {
         if (craftingComp == null)
             return InteractionState.Finished;
 
-        if (craftingComp.getDragTickCount() < 10) {
-            Ref<EntityStore> clickedRef = craftingComp.getDraggingRef();
-            CraftingDragHandler.endDrag(accessor, clickedRef, craftingComp.getHeadAnchorRef());
-
-            craftingComp.setDraggingRef(null);
-            craftingComp.setHeadAnchorRef(null);
-            craftingComp.setDragTickCount(0);
-
-            if (clickedRef != null && clickedRef.isValid()) {
-                HoverableComponent hoverComp = accessor.getComponent(clickedRef,
-                        HoverableComponent.getComponentType());
-                if (hoverComp != null) {
-                    switch (hoverComp.getType()) {
-                        case GLYPH: {
-                            GlyphComponent effect = accessor.getComponent(clickedRef,
-                                    GlyphComponent.getComponentType());
-                            if (effect != null) {
-                                if (DetailsHandler.isOpenFor(accessor, playerData.getSlotNodeRefs(), clickedRef)) {
-                                    DetailsHandler.closeDetails(accessor, playerData.getSlotNodeRefs());
-                                    playerData.setSlotNodeRefs(null);
-                                } else {
-                                    if (playerData.getSlotNodeRefs() != null
-                                            && !playerData.getSlotNodeRefs().isEmpty()) {
-                                        DetailsHandler.closeDetails(accessor, playerData.getSlotNodeRefs());
-                                    }
-                                    List<Ref<EntityStore>> slotRefs = DetailsHandler.openDetails(
-                                            accessor, clickedRef, ref);
-                                    playerData.setSlotNodeRefs(slotRefs);
-                                }
-                            }
-                        }
-                            break;
-                        case NODE:
-                            NodeRouter.click(accessor, clickedRef, ref);
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }
-
-            return InteractionState.Finished;
-        }
+        boolean isClick = craftingComp.getDragTickCount() < 10;
 
         Ref<EntityStore> draggedRef = craftingComp.getDraggingRef();
 
-        if (draggedRef == null || !draggedRef.isValid())
-            return InteractionState.Failed;
+        if (draggedRef == null || !draggedRef.isValid()) {
+            craftingComp.setDraggingRef(null);
+            craftingComp.setHeadAnchorRef(null);
+            craftingComp.setDragTickCount(0);
+            return InteractionState.Finished;
+        }
 
         HoverableComponent hoverComp = accessor.getComponent(draggedRef,
                 HoverableComponent.getComponentType());
+
+        if (hoverComp == null) {
+            craftingComp.setDraggingRef(null);
+            craftingComp.setHeadAnchorRef(null);
+            craftingComp.setDragTickCount(0);
+            return InteractionState.Finished;
+        }
 
         switch (hoverComp.getType()) {
             case GLYPH: {
@@ -316,29 +285,36 @@ public class CraftingSystem extends HexcodeManager {
                 CraftingDropHandler.DropResult result = CraftingDropHandler.handleDrop(
                         accessor, draggedRef, dropTargetRef);
 
-                switch (result) {
-                    case LINKED:
-                    case PLACED:
-                    case IGNORED:
-                    default:
-                        Vector3f dropOffset = CraftingPositionUtil.lookToHexOffset(accessor, ref,
-                                playerData.getAnchorNodeRef(), 2.0f);
-                        Vector3d dropWorldPos = CraftingPositionUtil.hexOffsetToWorld(accessor,
-                                playerData.getAnchorNodeRef(), dropOffset);
+                Vector3f dropOffset = CraftingPositionUtil.lookToHexOffset(accessor, ref,
+                        playerData.getAnchorNodeRef(), 2.0f);
+                Vector3d dropWorldPos = CraftingPositionUtil.hexOffsetToWorld(accessor,
+                        playerData.getAnchorNodeRef(), dropOffset);
 
-                        GlyphComponent effect = accessor.getComponent(draggedRef,
-                                GlyphComponent.getComponentType());
-                        Vector3f rotation = effect != null ? effect.getRotation() : Vector3f.ZERO;
+                GlyphComponent effect = accessor.getComponent(draggedRef,
+                        GlyphComponent.getComponentType());
+                Vector3f rotation = effect != null ? effect.getRotation() : Vector3f.ZERO;
 
-                        accessor.putComponent(draggedRef, TransformComponent.getComponentType(),
-                                new TransformComponent(dropWorldPos, rotation));
+                accessor.putComponent(draggedRef, TransformComponent.getComponentType(),
+                        new TransformComponent(dropWorldPos, rotation));
 
-                        if (effect != null) {
-                            effect.getGlyph().setPosition(dropOffset);
+                if (effect != null) {
+                    effect.getGlyph().setPosition(dropOffset);
+                }
+                updateNodePosition(accessor, draggedRef, dropWorldPos);
+
+                if (isClick && effect != null) {
+                    if (DetailsHandler.isOpenFor(accessor, playerData.getSlotNodeRefs(), draggedRef)) {
+                        DetailsHandler.closeDetails(accessor, playerData.getSlotNodeRefs());
+                        playerData.setSlotNodeRefs(null);
+                    } else {
+                        if (playerData.getSlotNodeRefs() != null
+                                && !playerData.getSlotNodeRefs().isEmpty()) {
+                            DetailsHandler.closeDetails(accessor, playerData.getSlotNodeRefs());
                         }
-                        updateNodePosition(accessor, draggedRef, dropWorldPos);
-                        break;
-
+                        List<Ref<EntityStore>> slotRefs = DetailsHandler.openDetails(
+                                accessor, draggedRef, ref);
+                        playerData.setSlotNodeRefs(slotRefs);
+                    }
                 }
 
                 craftingComp.setDraggingRef(null);
@@ -346,12 +322,25 @@ public class CraftingSystem extends HexcodeManager {
                 craftingComp.setDragTickCount(0);
                 return InteractionState.Finished;
             }
-            case NODE:
+            case NODE: {
+                if (isClick) {
+                    CraftingDragHandler.endDrag(accessor, draggedRef, craftingComp.getHeadAnchorRef());
+                    craftingComp.setDraggingRef(null);
+                    craftingComp.setHeadAnchorRef(null);
+                    craftingComp.setDragTickCount(0);
+                    NodeRouter.click(accessor, draggedRef, ref);
+                    return InteractionState.Finished;
+                }
                 return NodeRouter.exit(accessor, draggedRef, ref);
+            }
             default:
                 break;
 
         }
+
+        craftingComp.setDraggingRef(null);
+        craftingComp.setHeadAnchorRef(null);
+        craftingComp.setDragTickCount(0);
         return InteractionState.Finished;
     }
 

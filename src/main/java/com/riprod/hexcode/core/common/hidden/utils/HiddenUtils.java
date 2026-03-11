@@ -33,9 +33,6 @@ public class HiddenUtils {
                     logger.atInfo().log(
                             "filterByOwner: ref %s has no HoverableComponent and no HiddenComponent, skipping",
                             ref);
-                } else {
-                    logger.atInfo().log("filterByOwner: entity %s has no HiddenComponent, skipping",
-                            hoverable.getType());
                 }
                 continue;
             }

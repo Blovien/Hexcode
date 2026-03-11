@@ -29,6 +29,9 @@ public class DetonateGlyph implements GlyphHandler {
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar centerVar = glyph.resolveInput("center", hexContext);
+        LOGGER.atInfo().log("detonate glyph: center=%s (type=%s, size=%d), inputs=%s",
+                centerVar, centerVar != null ? centerVar.getClass().getSimpleName() : "null",
+                centerVar != null ? centerVar.size() : 0, glyph.getInputs());
         double radius = SpellVarUtil.resolveNumberOrDefault(glyph.resolveInput("radius", hexContext), RADIUS);
         double mag = SpellVarUtil.resolveNumberOrDefault(glyph.resolveInput("magnitude", hexContext), MAG);
 
@@ -55,6 +58,10 @@ public class DetonateGlyph implements GlyphHandler {
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
 
         for (Vector3d center : centers) {
+            // offset slightly so entities at the exact center don't produce a zero-length
+            // direction vector (which normalizes to NaN and crashes BlockIterator)
+            center.add(0, MIN_KNOCKBACK_DISTANCE, 0);
+
             ExplosionConfig config = new ExplosionConfig() {
                 {
                     damageEntities = true;

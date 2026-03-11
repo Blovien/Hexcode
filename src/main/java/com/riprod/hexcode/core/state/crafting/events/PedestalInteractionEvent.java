@@ -102,14 +102,18 @@ public class PedestalInteractionEvent {
             return;
         }
 
-        // both items present: toggle activation
+        // both items present: tiered step-back
         if (hasBook && hasEssence) {
             PedestalState state = playerData.getState();
-            if (state == PedestalState.SELECTING || state == PedestalState.CRAFTING) {
+            logger.atInfo().log("pedestal: hasBook && hasEssence, state=%s", state);
+            if (state == PedestalState.CRAFTING) {
+                PedestalSystem.enterSelectingFromCrafting(accessor, playerRef, pedestalComponent, playerData);
+            } else if (state == PedestalState.SELECTING) {
                 playerData.setState(PedestalState.IDLE);
                 PedestalSystem.enterIdle(accessor, player, pedestalComponent, world);
                 ObeliskSystem.enterIdle(accessor, pedestalComponent, world);
             } else {
+                logger.atInfo().log("pedestal: entering selecting + obelisk flow");
                 PedestalSystem.enterSelecting(pedestalComponent, player, world, accessor);
                 ObeliskSystem.enterSelecting(pedestalComponent, world, accessor);
                 playerData.setState(PedestalState.SELECTING);
@@ -135,7 +139,8 @@ public class PedestalInteractionEvent {
             PedestalBlockComponent pedestal, Vector3i blockPos) {
 
         PedestalState state = playerData.getState();
-        if (state != PedestalState.IDLE && state != null && pedestal.getActivePlayerRefs().isEmpty()) {
+        if (pedestal.isPerPlayer() && state != PedestalState.IDLE && state != null
+                && pedestal.getActivePlayerRefs().isEmpty()) {
             logger.atWarning().log("pedestal: stale state %s with no active players at %s, resetting to IDLE",
                     state, blockPos);
             playerData.setState(PedestalState.IDLE);

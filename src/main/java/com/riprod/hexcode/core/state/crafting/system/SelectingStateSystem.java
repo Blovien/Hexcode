@@ -69,6 +69,8 @@ public class SelectingStateSystem {
             return InteractionState.Failed;
         }
 
+        int slotIndex = playerData.getHexPreviewRefs().indexOf(hoveredRef);
+
         switch (hoverComp.getType()) {
             case HEX: {
                 HexComponent hexComp = buffer.getComponent(hoveredRef, HexComponent.getComponentType());
@@ -76,6 +78,7 @@ public class SelectingStateSystem {
                     return InteractionState.Failed;
                 }
 
+                playerData.setActiveSlotIndex(slotIndex);
                 PedestalSystem.enterCrafting(buffer, ref, pedestal, hoveredRef);
                 ObeliskSystem.enterCrafting(buffer, pedestal, hoveredRef);
                 playerData.setState(PedestalState.CRAFTING);
@@ -95,6 +98,17 @@ public class SelectingStateSystem {
                     oldChildren.clear();
                 }
 
+                // reload hex from book to get uncorrupted positions
+                // (casting preview overwrites glyph relPosition via GlyphComponent.setOffset)
+                List<Hex> bookHexes = playerData.getHexes();
+                if (slotIndex >= 0 && slotIndex < bookHexes.size()) {
+                    HexComponent freshComp = new HexComponent(bookHexes.get(slotIndex));
+                    freshComp.setSelfRef(hoveredRef);
+                    freshComp.setRootRef(hexComp.getRootRef());
+                    buffer.putComponent(hoveredRef, HexComponent.getComponentType(), freshComp);
+                    hexComp = freshComp;
+                }
+
                 Vector3d anchorPos = PedestalEntity.getAnchorPosition(pedestal.getLocation());
                 Vector3d activePos = new Vector3d(
                         anchorPos.x + PedestalSystem.ACTIVE_HEX_OFFSET.x,
@@ -109,15 +123,15 @@ public class SelectingStateSystem {
             }
                 break;
             case CONTAINER: {
-                HexComponent hexComp = buffer.getComponent(hoveredRef, HexComponent.getComponentType());
-                if (hexComp == null) {
-                    hexComp = new HexComponent(new Hex());
-                    buffer.putComponent(hoveredRef, HexComponent.getComponentType(), hexComp);
-                }
+                playerData.setActiveSlotIndex(playerData.getHexes().size());
+
+                HexComponent hexComp = new HexComponent(new Hex());
                 hexComp.setSelfRef(hoveredRef);
+                buffer.putComponent(hoveredRef, HexComponent.getComponentType(), hexComp);
 
                 PedestalSystem.enterCrafting(buffer, ref, pedestal, hoveredRef);
                 ObeliskSystem.enterCrafting(buffer, pedestal, hoveredRef);
+                playerData.setState(PedestalState.CRAFTING);
                 craftingComp.setHoveredRef(null);
 
                 Vector3d anchorPos = PedestalEntity.getAnchorPosition(pedestal.getLocation());

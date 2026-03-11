@@ -61,7 +61,7 @@ public class PedestalDataUtil {
 
         // remove and drop book
         ItemStack bookStack = playerData.getStoredBook();
-        if (bookStack != null && !bookStack.isEmpty()) {
+        if (bookStack != null && !bookStack.isEmpty() && pos != null) {
             PedestalItemUtil.dropBookAtPosition(buffer, bookStack, pos);
         }
 
@@ -73,7 +73,7 @@ public class PedestalDataUtil {
 
         // remove and drop essence
         String essenceId = playerData.getEssence();
-        if (pedestal != null && !pedestal.isConsumeEssence() && essenceId != null) {
+        if (pedestal != null && !pedestal.isConsumeEssence() && essenceId != null && pos != null) {
             PedestalItemUtil.dropEssenceAtPosition(buffer, essenceId, pos);
         }
 

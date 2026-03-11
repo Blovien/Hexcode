@@ -26,6 +26,7 @@ import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableType;
 import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
 import com.riprod.hexcode.core.state.crafting.component.SlotComponent;
@@ -34,6 +35,7 @@ import com.riprod.hexcode.core.state.crafting.constants.NodeType;
 import com.riprod.hexcode.core.state.crafting.utils.LinkRenderer;
 
 public class SlotNodeHandler implements NodeInterface {
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     public static final SlotNodeHandler INSTANCE = new SlotNodeHandler();
 
     private static final double NODE_SCALE = 0.2;
@@ -133,6 +135,9 @@ public class SlotNodeHandler implements NodeInterface {
                 GlyphComponent.getComponentType());
         if (parentEffect != null) {
             parentEffect.getGlyph().setInput(slotComp.getSlotKey(), targetGlyphComp.getId());
+            LOGGER.atInfo().log("slot: connected slot '%s' on %s to value glyph %s (id=%s)",
+                    slotComp.getSlotKey(), parentEffect.getGlyphId(),
+                    targetGlyphComp.getGlyphId(), targetGlyphComp.getId());
         }
 
         craftingComp.setDraggingRef(null);

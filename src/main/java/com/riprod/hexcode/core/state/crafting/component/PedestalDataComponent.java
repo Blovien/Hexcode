@@ -76,6 +76,7 @@ public class PedestalDataComponent implements Component<EntityStore> {
     private boolean pedestalPerPlayer = false;
     private List<Ref<EntityStore>> slotNodeRefs = new ArrayList<>();
     private Ref<EntityStore> anchorNodeRef;
+    private int activeSlotIndex = -1;
 
     public List<Ref<EntityStore>> getAllRefs() {
         List<Ref<EntityStore>> allRefs = new ArrayList<>();
@@ -211,6 +212,14 @@ public class PedestalDataComponent implements Component<EntityStore> {
         this.anchorNodeRef = anchorNodeRef;
     }
 
+    public int getActiveSlotIndex() {
+        return activeSlotIndex;
+    }
+
+    public void setActiveSlotIndex(int activeSlotIndex) {
+        this.activeSlotIndex = activeSlotIndex;
+    }
+
     public boolean isPerPlayer() {
         return pedestalPerPlayer;
     }
@@ -240,6 +249,7 @@ public class PedestalDataComponent implements Component<EntityStore> {
         copy.pedestalPerPlayer = this.pedestalPerPlayer;
         copy.slotNodeRefs = new ArrayList<>(this.slotNodeRefs);
         copy.anchorNodeRef = this.anchorNodeRef;
+        copy.activeSlotIndex = this.activeSlotIndex;
         return copy;
     }
 }

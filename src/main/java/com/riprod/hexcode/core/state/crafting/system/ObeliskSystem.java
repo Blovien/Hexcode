@@ -12,10 +12,12 @@ import com.riprod.hexcode.core.common.block.component.UnbreakableBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
 import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalBlockUtil;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalDataUtil;
 
 public class ObeliskSystem {
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     public static void enterCrafting(CommandBuffer<EntityStore> buffer,
             PedestalBlockComponent pedestalComponent, Ref<EntityStore> selectedHexRef) {
 
@@ -36,12 +38,14 @@ public class ObeliskSystem {
             if (players != null && !players.isEmpty()) {
                 if (anyPlayerInState(buffer, pedestalComponent, PedestalState.SELECTING)
                         || anyPlayerInState(buffer, pedestalComponent, PedestalState.CRAFTING)) {
+                    LOGGER.atInfo().log("obelisk: enterSelecting skipped — player already in SELECTING/CRAFTING");
                     return;
                 }
             }
         }
 
         List<Vector3i> obeliskPositions = pedestalComponent.getActiveObelisks();
+        LOGGER.atInfo().log("obelisk: enterSelecting — protecting %d obelisks", obeliskPositions.size());
         UnbreakableBlockComponent.protectBlocks(world, obeliskPositions);
 
         updateState(buffer, pedestalComponent, world, PedestalState.SELECTING);
@@ -65,7 +69,7 @@ public class ObeliskSystem {
         List<Vector3i> obeliskPositions = pedestalComponent.getActiveObelisks();
         UnbreakableBlockComponent.unprotectBlocks(world, obeliskPositions);
 
-        pedestalComponent.addObelisk(null);
+        pedestalComponent.getActiveObelisks().clear();
 
         updateState(buffer, pedestalComponent, world, PedestalState.IDLE);
     }
@@ -97,10 +101,12 @@ public class ObeliskSystem {
         }
 
         List<Vector3i> obeliskPositions = pedestal.getActiveObelisks();
+        LOGGER.atInfo().log("obelisk: updateState to %s — %d obelisks in list", blockState, obeliskPositions.size());
 
         for (Vector3i obeliskPos : obeliskPositions) {
             if (obeliskPos == null)
                 continue;
+            LOGGER.atInfo().log("obelisk: changing block state at %s to %s", obeliskPos, blockState);
             PedestalBlockUtil.changeBlockState(world, obeliskPos, blockState);
         }
     }

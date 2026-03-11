@@ -37,6 +37,7 @@ import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
 import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 import com.riprod.hexcode.core.state.crafting.constants.NodeType;
 import com.riprod.hexcode.core.state.crafting.handlers.DetailsHandler;
+import com.riprod.hexcode.core.state.crafting.utils.CraftingGlyphRemover;
 import com.riprod.hexcode.core.state.crafting.utils.LinkRenderer;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalDataUtil;
 
@@ -154,38 +155,48 @@ public class GlyphNodeHandler implements NodeInterface {
             return InteractionState.Failed;
         }
 
-        List<Ref<EntityStore>> outgoingRefs = nodeComp.getOutgoingRefs();
-        List<Ref<EntityStore>> incomingRefs = nodeComp.getIncomingRefs();
         Ref<EntityStore> glyphRef = nodeComp.getParentEntity();
-
         GlyphComponent effectComp = accessor.getComponent(glyphRef, GlyphComponent.getComponentType());
         if (effectComp == null) {
-            return InteractionState.Failed; // always a hex component on the hex ref
+            return InteractionState.Failed;
         }
 
-        // check if there is nothing connected to the glyph, in which case we can just
-        // remove it without worrying about breaking the hex
-        if ((outgoingRefs == null || outgoingRefs.isEmpty()) && (incomingRefs == null || incomingRefs.isEmpty())) {
-            // remove from root hex first
+        Glyph glyph = effectComp.getGlyph();
+
+        // step 1: if glyph has input/output connections, clear those first
+        if (!glyph.getInputs().isEmpty() || !glyph.getOutputs().isEmpty()) {
             Ref<EntityStore> hexRootRef = effectComp.getHexRef();
             HexComponent hexComp = accessor.getComponent(hexRootRef, HexComponent.getComponentType());
             if (hexComp != null) {
-                hexComp.getHex().remove(effectComp.getId());
+                CraftingGlyphRemover.clearInputOutputConnections(glyph, hexComp.getHex());
             }
-
-            // then remove the glyph entity itself
-            accessor.removeEntity(glyphRef, RemoveReason.REMOVE);
-            accessor.removeEntity(nodeRef, RemoveReason.REMOVE);
             return InteractionState.Finished;
         }
 
-        removeOutgoingLinks(accessor, nodeComp, nodeRef, effectComp);
-        removeIncomingLinks(accessor, nodeComp, nodeRef, effectComp);
+        List<Ref<EntityStore>> outgoingRefs = nodeComp.getOutgoingRefs();
+        List<Ref<EntityStore>> incomingRefs = nodeComp.getIncomingRefs();
 
-        // remove all outgoing refs from the node, effectively disconnecting the hex
-        // from all glyphs and making it an empty root node
-        nodeComp.getOutgoingRefs().clear();
-        nodeComp.getIncomingRefs().clear();
+        // step 2: if glyph has graph links, disconnect those
+        if ((outgoingRefs != null && !outgoingRefs.isEmpty())
+                || (incomingRefs != null && !incomingRefs.isEmpty())) {
+            removeOutgoingLinks(accessor, nodeComp, nodeRef, effectComp);
+            removeIncomingLinks(accessor, nodeComp, nodeRef, effectComp);
+            nodeComp.getOutgoingRefs().clear();
+            nodeComp.getIncomingRefs().clear();
+            return InteractionState.Finished;
+        }
+
+        // step 3: nothing connected, remove the glyph
+        Ref<EntityStore> hexRootRef = effectComp.getHexRef();
+        HexComponent hexComp = accessor.getComponent(hexRootRef, HexComponent.getComponentType());
+        if (hexComp != null) {
+            CraftingGlyphRemover.clearInputOutputConnections(glyph, hexComp.getHex());
+            hexComp.getHex().remove(effectComp.getId());
+            hexComp.removeChildGlyph(effectComp.getId());
+        }
+
+        accessor.removeEntity(glyphRef, RemoveReason.REMOVE);
+        accessor.removeEntity(nodeRef, RemoveReason.REMOVE);
         return InteractionState.Finished;
     }
 

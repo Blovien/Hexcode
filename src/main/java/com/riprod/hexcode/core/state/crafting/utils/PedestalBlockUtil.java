@@ -26,6 +26,14 @@ public class PedestalBlockUtil {
             return;
         }
 
+        String baseKey = blockType.getDefaultStateKey();
+        if (baseKey != null) {
+            BlockType baseType = BlockType.getAssetMap().getAsset(baseKey);
+            if (baseType != null) {
+                blockType = baseType;
+            }
+        }
+
         chunk.setBlockInteractionState(pos, blockType, stateName);
     }
 

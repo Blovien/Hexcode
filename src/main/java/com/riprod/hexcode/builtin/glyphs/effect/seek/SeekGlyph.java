@@ -84,13 +84,19 @@ public class SeekGlyph implements GlyphHandler {
         }
 
         Integer outputSlot = glyph.resolveOutput("result", hexContext);
+        LOGGER.atInfo().log("seek: outputSlot=%s (null means using default)", outputSlot);
         Vector3d endPoint;
         SeekGlyphStyle.HitType hitType;
 
         if (entityHit != null && entityHitDistSq < blockHitDistSq) {
             UUIDComponent uuidComp = hexContext.getAccessor().getComponent(entityHit, UUIDComponent.getComponentType());
             EntityVar resultVar = new EntityVar(EntityVar.createRef(uuidComp.getUuid(), entityHit));
-            if (outputSlot != null) hexContext.setVariable(outputSlot, resultVar);
+            if (outputSlot != null) {
+                hexContext.setVariable(outputSlot, resultVar);
+                LOGGER.atInfo().log("seek: wrote entity %s to slot %d", uuidComp.getUuid(), outputSlot);
+            } else {
+                LOGGER.atWarning().log("seek: outputSlot is null, entity result NOT stored");
+            }
             endPoint = hexContext.getAccessor().getComponent(entityHit,
                     TransformComponent.getComponentType()).getPosition();
             hitType = SeekGlyphStyle.HitType.ENTITY;

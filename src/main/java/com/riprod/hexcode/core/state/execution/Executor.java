@@ -41,6 +41,10 @@ public class Executor {
         if (nextGlyphs.size() == 1) {
             String nextId = nextGlyphs.get(0);
             Glyph nextNode = hexContext.getGlyph(nextId);
+            if (nextNode == null) {
+                LOGGER.atSevere().log("dangling glyph reference: %s not found in hex graph", nextId);
+                return;
+            }
             GlyphHandler nextHandler = GlyphRegistry.get(nextNode.getGlyphId());
             if (nextHandler == null) {
                 LOGGER.atSevere().log("no handler found for glyph %s, skipping", nextNode.getGlyphId());
@@ -56,6 +60,10 @@ public class Executor {
 
         for (String nextNodeId : nextGlyphs) {
             Glyph nextNode = hexContext.getGlyph(nextNodeId);
+            if (nextNode == null) {
+                LOGGER.atSevere().log("dangling glyph reference: %s not found in hex graph", nextNodeId);
+                continue;
+            }
             GlyphHandler nextHandler = GlyphRegistry.get(nextNode.getGlyphId());
             if (nextHandler == null) {
                 LOGGER.atSevere().log("no handler found for glyph %s, skipping", nextNode.getGlyphId());

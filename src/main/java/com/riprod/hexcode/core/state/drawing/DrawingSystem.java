@@ -372,11 +372,9 @@ public class DrawingSystem extends HexcodeManager {
       hexComp.getHex().put(glyph.getId(), glyph);
       hexComp.addChildGlyphRef(glyph.getId(), glyphRef);
 
-      if (glyph.getType() == GlyphType.Effect) {
-        Ref<EntityStore> nodeRef = NodeRouter.getHandler(NodeType.Glyph).spawnNode(accessor, glyphRef, worldPos,
-            playerRef);
-        glyphComponent.setNodeRef(nodeRef);
-      }
+      Ref<EntityStore> nodeRef = NodeRouter.getHandler(NodeType.Glyph).spawnNode(accessor, glyphRef, worldPos,
+          playerRef);
+      glyphComponent.setNodeRef(nodeRef);
     }
   }
 }

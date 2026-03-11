@@ -80,6 +80,14 @@ public class HexBookComponent implements Component<EntityStore> {
         }
     }
 
+    public void setHex(int index, @Nonnull Hex hex) {
+        if (index >= 0 && index < hexes.size()) {
+            hexes.set(index, hex);
+        } else if (index == hexes.size() && canAddHex()) {
+            hexes.add(hex);
+        }
+    }
+
     public boolean removeHex(@Nonnull String id) {
         return hexes.removeIf(g -> g.getHexId().equals(id));
     }
