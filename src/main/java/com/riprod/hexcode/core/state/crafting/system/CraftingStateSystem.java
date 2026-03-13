@@ -56,7 +56,7 @@ public class CraftingStateSystem {
         switch (hoverComp.getType()) {
             case GLYPH:
                 Ref<EntityStore> headAnchor = CraftingDragHandler.startDrag(buffer, ref, hoveredRef);
-                craftingComp.setHeadAnchorRef(headAnchor);
+                craftingComp.setHeadAnchorRef(buffer, headAnchor);
                 craftingComp.setDraggingRef(hoveredRef);
                 return InteractionState.Finished;
             case NODE:

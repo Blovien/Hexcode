@@ -82,7 +82,7 @@ public class SelectingStateSystem {
                 PedestalSystem.enterCrafting(buffer, ref, pedestal, hoveredRef);
                 ObeliskSystem.enterCrafting(buffer, pedestal, hoveredRef);
                 playerData.setState(PedestalState.CRAFTING);
-                craftingComp.setHoveredRef(null);
+                craftingComp.setHoveredRef( null);
 
                 Map<String, Ref<EntityStore>> oldChildren = hexComp.getChildGlyphRefs();
                 if (oldChildren != null) {
@@ -132,7 +132,7 @@ public class SelectingStateSystem {
                 PedestalSystem.enterCrafting(buffer, ref, pedestal, hoveredRef);
                 ObeliskSystem.enterCrafting(buffer, pedestal, hoveredRef);
                 playerData.setState(PedestalState.CRAFTING);
-                craftingComp.setHoveredRef(null);
+                craftingComp.setHoveredRef( null);
 
                 Vector3d anchorPos = PedestalEntity.getAnchorPosition(pedestal.getLocation());
                 Vector3d activePos = new Vector3d(

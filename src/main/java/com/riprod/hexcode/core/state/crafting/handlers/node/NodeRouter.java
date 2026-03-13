@@ -7,6 +7,9 @@ import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
 import com.riprod.hexcode.core.state.crafting.constants.NodeType;
+import com.riprod.hexcode.core.state.crafting.handlers.node.Anchor.AnchorNodeHandler;
+import com.riprod.hexcode.core.state.crafting.handlers.node.Glyph.GlyphNodeHandler;
+import com.riprod.hexcode.core.state.crafting.handlers.node.Slot.SlotNodeHandler;
 
 public class NodeRouter {
 
@@ -42,7 +45,7 @@ public class NodeRouter {
         NodeInterface handler = getHandler(accessor, nodeRef);
         if (handler == null)
             return InteractionState.Failed;
-        return handler.drag(accessor, nodeRef, playerRef);
+        return handler.tick(accessor, nodeRef, playerRef);
     }
 
     public static InteractionState exit(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
@@ -50,7 +53,7 @@ public class NodeRouter {
         NodeInterface handler = getHandler(accessor, nodeRef);
         if (handler == null)
             return InteractionState.Failed;
-        return handler.drop(accessor, nodeRef, playerRef);
+        return handler.exit(accessor, nodeRef, playerRef);
     }
 
     public static InteractionState ability(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
@@ -58,7 +61,7 @@ public class NodeRouter {
         NodeInterface handler = getHandler(accessor, nodeRef);
         if (handler == null)
             return InteractionState.Failed;
-        return handler.ability(accessor, nodeRef, playerRef);
+        return handler.ability3(accessor, nodeRef, playerRef);
     }
 
     private static NodeInterface getHandler(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef) {

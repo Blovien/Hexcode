@@ -1,4 +1,4 @@
-package com.riprod.hexcode.core.state.crafting.handlers.node;
+package com.riprod.hexcode.core.state.crafting.handlers.node.Anchor;
 
 import java.util.List;
 import java.util.UUID;
@@ -28,6 +28,8 @@ import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingCompone
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
 import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 import com.riprod.hexcode.core.state.crafting.constants.NodeType;
+import com.riprod.hexcode.core.state.crafting.handlers.node.NodeInterface;
+import com.riprod.hexcode.utils.CleanupUtils;
 
 public class AnchorNodeHandler implements NodeInterface {
 
@@ -42,12 +44,11 @@ public class AnchorNodeHandler implements NodeInterface {
                 HexcasterCraftingComponent.getComponentType());
         if (craftingComp == null)
             return InteractionState.Failed;
-
         craftingComp.setDraggingRef(nodeRef);
         return InteractionState.Finished;
     }
 
-    public InteractionState drag(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
+    public InteractionState tick(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
             Ref<EntityStore> playerRef) {
 
         // HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
@@ -56,7 +57,7 @@ public class AnchorNodeHandler implements NodeInterface {
         return InteractionState.Finished;
     }
 
-    public InteractionState drop(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
+    public InteractionState exit(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
             Ref<EntityStore> playerRef) {
 
         HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
@@ -87,7 +88,8 @@ public class AnchorNodeHandler implements NodeInterface {
             return InteractionState.Failed;
         }
 
-        // clear existing connections from the root to glyphs if there is a valid hex root ref, effectively making the root an empty node
+        // clear existing connections from the root to glyphs if there is a valid hex
+        // root ref, effectively making the root an empty node
         if (nodeComp.getOutgoingRefs() != null) {
             nodeComp.getOutgoingRefs().clear();
         }
@@ -105,7 +107,7 @@ public class AnchorNodeHandler implements NodeInterface {
         return InteractionState.Finished;
     }
 
-    public InteractionState ability(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
+    public InteractionState ability3(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
             Ref<EntityStore> playerRef) {
 
         NodeComponent nodeComp = accessor.getComponent(nodeRef, NodeComponent.getComponentType());

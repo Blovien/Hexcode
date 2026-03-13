@@ -1,4 +1,4 @@
-package com.riprod.hexcode.core.state.crafting.handlers.node;
+package com.riprod.hexcode.core.state.crafting.handlers.node.Slot;
 
 import java.util.UUID;
 
@@ -32,6 +32,7 @@ import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
 import com.riprod.hexcode.core.state.crafting.component.SlotComponent;
 import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 import com.riprod.hexcode.core.state.crafting.constants.NodeType;
+import com.riprod.hexcode.core.state.crafting.handlers.node.NodeInterface;
 import com.riprod.hexcode.core.state.crafting.utils.LinkRenderer;
 
 public class SlotNodeHandler implements NodeInterface {
@@ -58,7 +59,7 @@ public class SlotNodeHandler implements NodeInterface {
         return InteractionState.Finished;
     }
 
-    public InteractionState drag(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
+    public InteractionState tick(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
             Ref<EntityStore> playerRef) {
 
         HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
@@ -80,7 +81,7 @@ public class SlotNodeHandler implements NodeInterface {
         return InteractionState.Finished;
     }
 
-    public InteractionState drop(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
+    public InteractionState exit(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
             Ref<EntityStore> playerRef) {
 
         HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
@@ -146,7 +147,7 @@ public class SlotNodeHandler implements NodeInterface {
         return InteractionState.Finished;
     }
 
-    public InteractionState ability(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
+    public InteractionState ability3(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
             Ref<EntityStore> playerRef) {
 
         NodeComponent nodeComp = accessor.getComponent(nodeRef, NodeComponent.getComponentType());

@@ -5,10 +5,12 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.utils.CleanupUtils;
 
 public class HexcasterCraftingComponent implements Component<EntityStore> {
 
@@ -32,12 +34,15 @@ public class HexcasterCraftingComponent implements Component<EntityStore> {
     private Ref<EntityStore> draggingRef;
     private Ref<EntityStore> hoveredRef;
 
-
-
     private int dragTickCount;
 
     public Ref<EntityStore> getPedestalEntityRef() {
         return pedestalEntityRef;
+    }
+
+    public void setPedestalEntityRef(CommandBuffer<EntityStore> accessor, @Nullable Ref<EntityStore> pedestalRef) {
+        CleanupUtils.safeRemoveEntity(accessor, this.pedestalEntityRef);
+        this.pedestalEntityRef = pedestalRef;
     }
 
     public void setPedestalEntityRef(@Nullable Ref<EntityStore> pedestalRef) {
@@ -49,8 +54,15 @@ public class HexcasterCraftingComponent implements Component<EntityStore> {
         return headAnchorRef;
     }
 
-    public void setHeadAnchorRef(@Nullable Ref<EntityStore> headAnchorRef) {
+    public void setHeadAnchorRef(CommandBuffer<EntityStore> accessor, @Nullable Ref<EntityStore> headAnchorRef) {
+        CleanupUtils.safeRemoveEntity(accessor, this.headAnchorRef);
         this.headAnchorRef = headAnchorRef;
+    }
+
+    public Ref<EntityStore> setHeadAnchorRef(@Nullable Ref<EntityStore> headAnchorRef) {
+        Ref<EntityStore> oldRef = this.headAnchorRef;
+        this.headAnchorRef = headAnchorRef;
+        return oldRef;
     }
 
     @Nullable

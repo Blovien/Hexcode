@@ -3,6 +3,7 @@ package com.riprod.hexcode.core.state.crafting;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.hypixel.hytale.builtin.mounts.MountedComponent;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
@@ -36,10 +37,9 @@ import com.riprod.hexcode.core.state.crafting.utils.PedestalBlockUtil;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalDataUtil;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
+import com.riprod.hexcode.utils.CleanupUtils;
 
 public class CraftingSystem extends HexcodeManager {
-
-
 
     @Override
     public void firstTick(Ref<EntityStore> ref, HexcasterComponent comp,
@@ -139,7 +139,7 @@ public class CraftingSystem extends HexcodeManager {
                         && craftingComp.getHeadAnchorRef().isValid()) {
 
                     buffer.tryRemoveEntity(craftingComp.getHeadAnchorRef(), RemoveReason.REMOVE);
-                    craftingComp.setHeadAnchorRef(null);
+                    craftingComp.setHeadAnchorRef(buffer, null);
                 }
                 break;
             default:
@@ -246,7 +246,7 @@ public class CraftingSystem extends HexcodeManager {
 
         if (draggedRef == null || !draggedRef.isValid()) {
             craftingComp.setDraggingRef(null);
-            craftingComp.setHeadAnchorRef(null);
+            craftingComp.setHeadAnchorRef(accessor, null);
             craftingComp.setDragTickCount(0);
             return InteractionState.Finished;
         }
@@ -256,13 +256,41 @@ public class CraftingSystem extends HexcodeManager {
 
         if (hoverComp == null) {
             craftingComp.setDraggingRef(null);
-            craftingComp.setHeadAnchorRef(null);
+            craftingComp.setHeadAnchorRef(accessor, null);
             craftingComp.setDragTickCount(0);
             return InteractionState.Finished;
         }
 
+        InteractionState result = InteractionState.Finished;
+
         switch (hoverComp.getType()) {
             case GLYPH: {
+
+                if (isClick) {
+                    if (DetailsHandler.isOpenFor(accessor, playerData.getSlotNodeRefs(), draggedRef)) {
+                        DetailsHandler.closeDetails(accessor, playerData.getSlotNodeRefs());
+                        playerData.setSlotNodeRefs(null);
+                    } else {
+                        if (playerData.getSlotNodeRefs() != null
+                                && !playerData.getSlotNodeRefs().isEmpty()) {
+                            DetailsHandler.closeDetails(accessor, playerData.getSlotNodeRefs());
+                        }
+                        List<Ref<EntityStore>> slotRefs = DetailsHandler.openDetails(
+                                accessor, draggedRef, ref);
+                        playerData.setSlotNodeRefs(slotRefs);
+                    }
+
+                    // remove the head component if it's still there, since this is just a click,
+                    // not a drag
+                    if (draggedRef != null && draggedRef.isValid()) {
+                        accessor.tryRemoveComponent(draggedRef, MountedComponent.getComponentType());
+                    }
+                    Ref<EntityStore> headAnchorRef = craftingComp.getHeadAnchorRef();
+                    if (headAnchorRef != null && headAnchorRef.isValid()) {
+                        accessor.tryRemoveEntity(headAnchorRef, RemoveReason.REMOVE);
+                    }
+                    break;
+                }
                 CraftingDragHandler.endDrag(accessor, draggedRef, craftingComp.getHeadAnchorRef());
 
                 TransformComponent playerTransform = accessor.getComponent(ref,
@@ -282,7 +310,7 @@ public class CraftingSystem extends HexcodeManager {
                     dropTargetRef = HoverableUtils.getSmallestTarget(accessor, ref, filtered);
                 }
 
-                CraftingDropHandler.DropResult result = CraftingDropHandler.handleDrop(
+                CraftingDropHandler.DropResult dResult = CraftingDropHandler.handleDrop(
                         accessor, draggedRef, dropTargetRef);
 
                 Vector3f dropOffset = CraftingPositionUtil.lookToHexOffset(accessor, ref,
@@ -302,36 +330,16 @@ public class CraftingSystem extends HexcodeManager {
                 }
                 updateNodePosition(accessor, draggedRef, dropWorldPos);
 
-                if (isClick && effect != null) {
-                    if (DetailsHandler.isOpenFor(accessor, playerData.getSlotNodeRefs(), draggedRef)) {
-                        DetailsHandler.closeDetails(accessor, playerData.getSlotNodeRefs());
-                        playerData.setSlotNodeRefs(null);
-                    } else {
-                        if (playerData.getSlotNodeRefs() != null
-                                && !playerData.getSlotNodeRefs().isEmpty()) {
-                            DetailsHandler.closeDetails(accessor, playerData.getSlotNodeRefs());
-                        }
-                        List<Ref<EntityStore>> slotRefs = DetailsHandler.openDetails(
-                                accessor, draggedRef, ref);
-                        playerData.setSlotNodeRefs(slotRefs);
-                    }
-                }
-
                 craftingComp.setDraggingRef(null);
-                craftingComp.setHeadAnchorRef(null);
+                craftingComp.setHeadAnchorRef(accessor, null);
                 craftingComp.setDragTickCount(0);
                 return InteractionState.Finished;
             }
             case NODE: {
                 if (isClick) {
-                    CraftingDragHandler.endDrag(accessor, draggedRef, craftingComp.getHeadAnchorRef());
-                    craftingComp.setDraggingRef(null);
-                    craftingComp.setHeadAnchorRef(null);
-                    craftingComp.setDragTickCount(0);
-                    NodeRouter.click(accessor, draggedRef, ref);
-                    return InteractionState.Finished;
+                    result = NodeRouter.click(accessor, draggedRef, ref);
                 }
-                return NodeRouter.exit(accessor, draggedRef, ref);
+                result = NodeRouter.exit(accessor, draggedRef, ref);
             }
             default:
                 break;
@@ -339,9 +347,9 @@ public class CraftingSystem extends HexcodeManager {
         }
 
         craftingComp.setDraggingRef(null);
-        craftingComp.setHeadAnchorRef(null);
+        craftingComp.setHeadAnchorRef(accessor, null);
         craftingComp.setDragTickCount(0);
-        return InteractionState.Finished;
+        return result;
     }
 
     private static void updateNodePosition(CommandBuffer<EntityStore> buffer,

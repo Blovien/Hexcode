@@ -127,8 +127,7 @@ public class CastingSystem extends HexcodeManager {
         // Despawn head anchor if not dragging a hex
         Ref<EntityStore> headAnchor = castingComp.getHeadAnchorRef();
         if (castingComp.getDraggingHex() == null && headAnchor != null && headAnchor.isValid()) {
-            Holder<EntityStore> headHolder = EntityStore.REGISTRY.newHolder();
-            buffer.removeEntity(headAnchor, headHolder, RemoveReason.REMOVE);
+            buffer.tryRemoveEntity(headAnchor, RemoveReason.REMOVE);
             castingComp.setHeadAnchorRef(null);
         }
 

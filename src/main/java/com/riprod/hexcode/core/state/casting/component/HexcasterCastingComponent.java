@@ -6,18 +6,18 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
-
+import com.riprod.hexcode.utils.CleanupUtils;
 
 public class HexcasterCastingComponent implements Component<EntityStore> {
 
     private static ComponentType<EntityStore, HexcasterCastingComponent> componentType;
-
 
     // Casting Mode
     private Ref<EntityStore> castingRootRef = null;
@@ -83,7 +83,7 @@ public class HexcasterCastingComponent implements Component<EntityStore> {
         return headAnchorRef;
     }
 
-    public void setHeadAnchorRef(Ref<EntityStore> headAnchorRef) {
+    public void setHeadAnchorRef(@Nullable Ref<EntityStore> headAnchorRef) {
         this.headAnchorRef = headAnchorRef;
     }
 
@@ -91,8 +91,10 @@ public class HexcasterCastingComponent implements Component<EntityStore> {
         return castingRootRef;
     }
 
-    public void setCastingRootRef(Ref<EntityStore> castingRootRef) {
+    public Ref<EntityStore> setCastingRootRef(Ref<EntityStore> castingRootRef) {
+        Ref<EntityStore> oldRef = this.castingRootRef;
         this.castingRootRef = castingRootRef;
+        return oldRef;
     }
 
     public List<Ref<EntityStore>> getActiveHexes() {
@@ -137,4 +139,3 @@ public class HexcasterCastingComponent implements Component<EntityStore> {
         return copy;
     }
 }
-

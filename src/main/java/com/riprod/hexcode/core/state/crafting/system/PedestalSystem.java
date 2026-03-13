@@ -349,18 +349,6 @@ public class PedestalSystem {
         }
         activePlayers.clear();
 
-        Ref<EntityStore> anchorRef = playerData.getAnchorRef();
-        if (anchorRef != null && anchorRef.isValid()) {
-            buffer.removeEntity(anchorRef, RemoveReason.REMOVE);
-            playerData.setAnchorNodeRef(null);
-        }
-
-        Ref<EntityStore> anchorNodeRef = playerData.getAnchorNodeRef();
-        if (anchorNodeRef != null && anchorNodeRef.isValid()) {
-            buffer.removeEntity(anchorNodeRef, RemoveReason.REMOVE);
-            playerData.setAnchorNodeRef(null);
-        }
-
         DetailsHandler.closeDetails(buffer, playerData.getSlotNodeRefs());
 
         Vector3i blockPos = pedestalComponent.getLocation();
@@ -391,6 +379,18 @@ public class PedestalSystem {
             }
         }
         playerData.setEssence(null);
+
+        Ref<EntityStore> anchorRef = playerData.getAnchorRef();
+        if (anchorRef != null && anchorRef.isValid()) {
+            buffer.tryRemoveEntity(anchorRef, RemoveReason.REMOVE);
+            playerData.setAnchorNodeRef(null);
+        }
+
+        Ref<EntityStore> anchorNodeRef = playerData.getAnchorNodeRef();
+        if (anchorNodeRef != null && anchorNodeRef.isValid()) {
+            buffer.tryRemoveEntity(anchorNodeRef, RemoveReason.REMOVE);
+            playerData.setAnchorNodeRef(null);
+        }
 
         updateState(buffer, pedestalComponent, playerData, world, PedestalState.IDLE);
     }
@@ -465,14 +465,23 @@ public class PedestalSystem {
         boolean containsSelecting = false;
 
         for (Ref<EntityStore> playerRef : activePlayers) {
-            if (playerRef == null || !playerRef.isValid()) continue;
+            if (playerRef == null || !playerRef.isValid())
+                continue;
             PedestalDataComponent data = PedestalDataUtil.getPedestalData(buffer, playerRef);
-            if (data == null) continue;
+            if (data == null)
+                continue;
             switch (data.getState()) {
-                case CRAFTING: containsCrafting = true; break;
-                case READY: containsReady = true; break;
-                case SELECTING: containsSelecting = true; break;
-                default: break;
+                case CRAFTING:
+                    containsCrafting = true;
+                    break;
+                case READY:
+                    containsReady = true;
+                    break;
+                case SELECTING:
+                    containsSelecting = true;
+                    break;
+                default:
+                    break;
             }
         }
 
