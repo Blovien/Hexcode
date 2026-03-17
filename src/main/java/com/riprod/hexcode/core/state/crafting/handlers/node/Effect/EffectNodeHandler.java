@@ -29,7 +29,7 @@ import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableType;
 import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
-import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
+import com.riprod.hexcode.core.state.casting.utils.GlyphStyler;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
@@ -51,15 +51,27 @@ public class EffectNodeHandler implements NodeInterface {
     @Override
     public InteractionState enter(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
             Ref<EntityStore> playerRef) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'enter'");
+        HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
+                HexcasterCraftingComponent.getComponentType());
+        if (craftingComp == null)
+            return InteractionState.Failed;
+
+        Ref<EntityStore> headAnchor = CraftingDragHandler.startDrag(accessor, playerRef, node);
+        craftingComp.setHeadAnchorRef(accessor, headAnchor);
+        craftingComp.setDraggingRef(node);
+        return InteractionState.Finished;
     }
 
     @Override
     public InteractionState tick(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
             Ref<EntityStore> playerRef) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'tick'");
+        HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
+                HexcasterCraftingComponent.getComponentType());
+        if (craftingComp == null)
+            return InteractionState.Failed;
+
+        CraftingDragHandler.updateDrag(accessor, craftingComp.getHeadAnchorRef(), playerRef);
+        return InteractionState.Finished;
     }
 
     @Override
@@ -102,11 +114,11 @@ public class EffectNodeHandler implements NodeInterface {
 
         if (effect != null) {
             effect.getGlyph().setPosition(dropOffset);
-        } else {
-            TransformComponent nodeTransform = accessor.getComponent(effect.getNodeRef(),
-                    TransformComponent.getComponentType());
-            if (nodeTransform != null) {
-                nodeTransform.setPosition(new Vector3d(dropWorldPos));
+
+            Ref<EntityStore> graphNodeRef = effect.getNodeRef();
+            if (graphNodeRef != null && graphNodeRef.isValid()) {
+                accessor.putComponent(graphNodeRef, TransformComponent.getComponentType(),
+                        new TransformComponent(dropWorldPos, Vector3f.ZERO));
             }
         }
 
@@ -132,70 +144,57 @@ public class EffectNodeHandler implements NodeInterface {
             playerData.setSlotNodeRefs(slotRefs);
         }
 
-        // remove the head component if it's still there, since this is just a click,
-        // not a drag
-        if (nodeRef != null && nodeRef.isValid()) {
-            accessor.tryRemoveComponent(nodeRef, MountedComponent.getComponentType());
-        }
-
         return InteractionState.Finished;
     }
 
     public Ref<EntityStore> spawnNode(CommandBuffer<EntityStore> accessor, Ref<EntityStore> parentRef,
-            Vector3d position, Ref<EntityStore> playerRef, GlyphComponent glyphComp) {
+            Vector3d position, Ref<EntityStore> playerRef, GlyphComponent glyphComp,
+            Ref<EntityStore> hexEntityRef) {
 
         Holder<EntityStore> glyphHolder = CreateGlyph.createGlyphHolder(accessor, glyphComp, position);
         HiddenUtils.addHiddenToHolder(accessor, glyphHolder, playerRef);
+        glyphHolder.addComponent(HoverableComponent.getComponentType(),
+                new HoverableComponent(HoverableType.NODE));
+        glyphHolder.addComponent(NodeComponent.getComponentType(),
+                new NodeComponent(hexEntityRef, NodeType.Effect));
         Ref<EntityStore> glyphNodeRef = accessor.addEntity(glyphHolder, AddReason.SPAWN);
+        glyphComp.setSelfRef(glyphNodeRef);
 
         Holder<EntityStore> glyphNode = GlyphNodeHandler.INSTANCE.spawnNode(accessor, glyphNodeRef, position,
                 playerRef);
-        glyphHolder.addComponent(HoverableComponent.getComponentType(),
-                new HoverableComponent(HoverableType.GLYPH));
+        Ref<EntityStore> graphNodeRef = accessor.addEntity(glyphNode, AddReason.SPAWN);
+        glyphComp.setNodeRef(graphNodeRef);
 
-        Ref<EntityStore> rootNodeRef = accessor.addEntity(glyphNode, AddReason.SPAWN);
-        glyphComp.setNodeRef(rootNodeRef);
-
-        glyphComp.setHexRef(parentRef);
-
-        glyphComp.setParentRef(playerRef);
-
+        glyphComp.setHexRef(hexEntityRef);
+        glyphComp.setParentRef(hexEntityRef);
 
         return glyphNodeRef;
     }
 
     @Override
     public void despawn(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'despawn'");
     }
 
     @Override
     public void hover(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
-        DebugComponent debug = accessor.getComponent(nodeRef, DebugComponent.getComponentType());
-        if (debug == null)
+        GlyphComponent glyph = accessor.getComponent(nodeRef, GlyphComponent.getComponentType());
+        if (glyph == null)
             return;
-        debug.setScaleMultiplier(1.3f);
-        debug.setIntervalMultiplier(0.25f);
-        debug.setFadeMultiplier(0.25f);
-        debug.setTimer(0);
+        GlyphStyler.enterGlyphHover(accessor, glyph);
     }
 
     @Override
     public void unhover(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
-        DebugComponent debug = accessor.getComponent(nodeRef, DebugComponent.getComponentType());
-        if (debug == null)
+        GlyphComponent glyph = accessor.getComponent(nodeRef, GlyphComponent.getComponentType());
+        if (glyph == null)
             return;
-        debug.resetScaleMultiplier();
-        debug.resetFadeMultipler();
-        debug.resetIntervalMultiplier();
+        GlyphStyler.exitGlyphHover(accessor, glyph);
     }
 
     @Override
     public InteractionState ability(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
             InteractionType inputType, Ref<EntityStore> playerRef) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'ability'");
+        return InteractionState.Finished;
     }
 
 }

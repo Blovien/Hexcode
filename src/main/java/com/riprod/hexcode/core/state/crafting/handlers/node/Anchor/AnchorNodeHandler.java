@@ -28,6 +28,9 @@ import com.riprod.hexcode.core.common.hover.component.HoverableType;
 import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
+import com.hypixel.hytale.math.vector.Transform;
+import com.hypixel.hytale.server.core.util.TargetUtil;
+import com.riprod.hexcode.core.state.crafting.utils.LinkRenderer;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
 import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 import com.riprod.hexcode.core.state.crafting.constants.NodeType;
@@ -53,15 +56,25 @@ public class AnchorNodeHandler implements NodeInterface {
         if (craftingComp == null)
             return InteractionState.Failed;
         craftingComp.setDraggingRef(nodeRef);
-        return InteractionState.Finished;
+        return InteractionState.NotFinished;
     }
 
     public InteractionState tick(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
             Ref<EntityStore> playerRef) {
 
-        // HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
-        // HexcasterCraftingComponent.getComponentType());
+        TransformComponent nodeTransform = accessor.getComponent(nodeRef, TransformComponent.getComponentType());
 
+        Transform look = TargetUtil.getLook(playerRef, accessor);
+        Vector3d targetPoint = new Vector3d(
+                look.getPosition().x + look.getDirection().x * 5,
+                look.getPosition().y + look.getDirection().y * 5,
+                look.getPosition().z + look.getDirection().z * 5);
+
+        if (nodeTransform != null) {
+            LinkRenderer.renderActiveLink(accessor, accessor.getExternalData().getWorld(),
+                    nodeTransform.getPosition(), targetPoint,
+                    CraftingColors.ANCHOR);
+        }
         return InteractionState.Finished;
     }
 
@@ -194,15 +207,13 @@ public class AnchorNodeHandler implements NodeInterface {
 
             GlyphComponent glyphComp = new GlyphComponent(glyph);
 
-
-
             Ref<EntityStore> glyphRef = EffectNodeHandler.INSTANCE.spawnNode(accessor, nodeGlyph, worldPos,
-                    playerRef, glyphComp);
+                    playerRef, glyphComp, parentRef);
 
             hexComp.addChildGlyphRef(glyph.getId(), glyphRef);
         }
 
-
+        accessor.putComponent(parentRef, HexComponent.getComponentType(), hexComp);
         return nodeGlyph;
     }
 

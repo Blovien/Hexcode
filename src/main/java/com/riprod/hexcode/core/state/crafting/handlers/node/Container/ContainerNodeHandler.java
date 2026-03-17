@@ -114,7 +114,8 @@ public class ContainerNodeHandler implements NodeInterface {
         holder.addComponent(HoverableComponent.getComponentType(), new HoverableComponent(HoverableType.NODE));
         holder.addComponent(NodeComponent.getComponentType(), new NodeComponent(anchorRef, NodeType.Container));
         holder.addComponent(DebugComponent.getComponentType(),
-                new DebugComponent(DebugShape.Sphere, isEmpty ? CraftingColors.EMPTY_SLOT : CraftingColors.FILLED_SLOT, 0.5, 2.0f, playerRef));
+                new DebugComponent(DebugShape.Sphere, isEmpty ? CraftingColors.EMPTY_SLOT : CraftingColors.FILLED_SLOT,
+                        0.5, 2.0f, playerRef));
 
         Ref<EntityStore> hexRef = CreateHex.createEntity(accessor, holder);
         if (isEmpty || hex == null) {
@@ -138,8 +139,8 @@ public class ContainerNodeHandler implements NodeInterface {
         firstGlyphComponent.setScale(scaleMultiplier);
         hexComponent.setScale(scaleMultiplier);
 
-        // spawning the glyphs
         GlyphSpawner.spawnGlyphs(accessor, hexComponent, firstGlyphComponent, globalPos, playerRef);
+        accessor.putComponent(hexRef, HexComponent.getComponentType(), hexComponent);
         return hexRef;
     }
 

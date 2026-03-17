@@ -367,7 +367,7 @@ public class DrawingSystem extends HexcodeManager {
     }
 
     Ref<EntityStore> effectRef = EffectNodeHandler.INSTANCE.spawnNode(accessor, hexRef, worldPos, playerRef,
-        glyphComponent);
+        glyphComponent, hexRef);
 
     hexComp.addChildGlyphRef(glyph.getId(), effectRef);
     hexComp.getHex().put(glyph.getId(), glyph);

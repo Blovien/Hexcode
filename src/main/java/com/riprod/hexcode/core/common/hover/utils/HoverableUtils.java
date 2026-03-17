@@ -19,6 +19,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.TargetUtil;
+import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableType;
@@ -138,30 +139,22 @@ public class HoverableUtils {
 
     public static Ref<EntityStore> getGlyphFromHoverable(CommandBuffer<EntityStore> buffer,
             Ref<EntityStore> targetRef) {
-        HoverableComponent hoverComp = buffer.getComponent(targetRef,
-                HoverableComponent.getComponentType());
-        if (hoverComp == null)
-            return null;
+        GlyphComponent glyphComp = buffer.getComponent(targetRef, GlyphComponent.getComponentType());
+        if (glyphComp != null)
+            return targetRef;
 
-        switch (hoverComp.getType()) {
-            case GLYPH:
-                return targetRef;
-            case NODE:
-                NodeComponent targetNode = buffer.getComponent(targetRef,
-                        NodeComponent.getComponentType());
-                return targetNode != null ? targetNode.getParentEntity() : null;
-            case HEX:
-                HexComponent hexComp = buffer.getComponent(targetRef,
-                        HexComponent.getComponentType());
-                if (hexComp != null && hexComp.getHex() != null) {
-                    String firstId = hexComp.getHex().getFirstGlyphId();
-                    if (firstId != null) {
-                        return hexComp.getChildGlyphRef(firstId);
-                    }
-                }
-                return null;
-            default:
-                return null;
+        NodeComponent nodeComp = buffer.getComponent(targetRef, NodeComponent.getComponentType());
+        if (nodeComp != null)
+            return nodeComp.getParentEntity();
+
+        HexComponent hexComp = buffer.getComponent(targetRef, HexComponent.getComponentType());
+        if (hexComp != null && hexComp.getHex() != null) {
+            String firstId = hexComp.getHex().getFirstGlyphId();
+            if (firstId != null) {
+                return hexComp.getChildGlyphRef(firstId);
+            }
         }
+
+        return null;
     }
 }

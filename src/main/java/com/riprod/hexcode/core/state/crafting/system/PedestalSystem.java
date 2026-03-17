@@ -20,6 +20,7 @@ import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.block.component.UnbreakableBlockComponent;
 import com.riprod.hexcode.core.common.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
@@ -115,14 +116,20 @@ public class PedestalSystem {
                 Map<String, Ref<EntityStore>> childRefs = hexComp.getChildGlyphRefs();
                 if (childRefs != null) {
                     for (Ref<EntityStore> glyphRef : childRefs.values()) {
-                        if (glyphRef != null && glyphRef.isValid()) {
-                            buffer.removeEntity(glyphRef, RemoveReason.REMOVE);
+                        if (glyphRef == null || !glyphRef.isValid())
+                            continue;
+                        GlyphComponent effect = buffer.getComponent(glyphRef,
+                                GlyphComponent.getComponentType());
+                        if (effect != null && effect.getNodeRef() != null
+                                && effect.getNodeRef().isValid()) {
+                            buffer.tryRemoveEntity(effect.getNodeRef(), RemoveReason.REMOVE);
                         }
+                        buffer.tryRemoveEntity(glyphRef, RemoveReason.REMOVE);
                     }
                 }
             }
 
-            buffer.removeEntity(ref, RemoveReason.REMOVE);
+            buffer.tryRemoveEntity(ref, RemoveReason.REMOVE);
         }
 
         Vector3d anchorPos = PedestalEntity.getAnchorPosition(pedestal.getLocation());
@@ -376,16 +383,18 @@ public class PedestalSystem {
         }
         playerData.setEssence(null);
 
-        Ref<EntityStore> anchorRef = playerData.getAnchorRef();
-        if (anchorRef != null && anchorRef.isValid()) {
-            buffer.tryRemoveEntity(anchorRef, RemoveReason.REMOVE);
-            playerData.setAnchorNodeRef(null);
-        }
+        AnchorEntity.DespawnHexPreviews(buffer, pedestalComponent, playerData);
 
         Ref<EntityStore> anchorNodeRef = playerData.getAnchorNodeRef();
         if (anchorNodeRef != null && anchorNodeRef.isValid()) {
             buffer.tryRemoveEntity(anchorNodeRef, RemoveReason.REMOVE);
             playerData.setAnchorNodeRef(null);
+        }
+
+        Ref<EntityStore> anchorRef = playerData.getAnchorRef();
+        if (anchorRef != null && anchorRef.isValid()) {
+            buffer.tryRemoveEntity(anchorRef, RemoveReason.REMOVE);
+            playerData.setAnchorEntityRef(null);
         }
 
         updateState(buffer, pedestalComponent, playerData, world, PedestalState.IDLE);

@@ -10,7 +10,6 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.hypixel.hytale.server.core.entity.nameplate.Nameplate;
-import com.riprod.hexcode.core.state.casting.utils.GlyphStyler;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeRouter;
 
@@ -30,20 +29,7 @@ public class HoverStyleUtils {
             return;
 
         clearHint(accessor, unhoveredRef, hoveredComponent);
-
-        switch (hoveredComponent.getType()) {
-            case GLYPH: {
-                GlyphComponent prevEffect = accessor.getComponent(unhoveredRef,
-                        GlyphComponent.getComponentType());
-                if (prevEffect == null)
-                    return;
-                GlyphStyler.exitGlyphHover(accessor, prevEffect);
-            }
-                break;
-            case NODE:
-                NodeRouter.unhover(accessor, unhoveredRef, playerRef);
-                break;
-        }
+        NodeRouter.unhover(accessor, unhoveredRef, playerRef);
     }
 
     public static void hover(CommandBuffer<EntityStore> accessor, Ref<EntityStore> hovered,
@@ -57,20 +43,7 @@ public class HoverStyleUtils {
             return;
 
         showHint(accessor, hovered, hoveredComponent);
-
-        switch (hoveredComponent.getType()) {
-            case GLYPH: {
-                GlyphComponent newEffect = accessor.getComponent(hovered,
-                        GlyphComponent.getComponentType());
-                if (newEffect == null)
-                    return;
-                GlyphStyler.enterGlyphHover(accessor, newEffect);
-            }
-                break;
-            case NODE:
-                NodeRouter.hover(accessor, hovered, playerRef);
-                break;
-        }
+        NodeRouter.hover(accessor, hovered, playerRef);
     }
 
     public static void hoverParticles(CommandBuffer<EntityStore> accessor, Ref<EntityStore> hovered, float dt,
@@ -78,33 +51,23 @@ public class HoverStyleUtils {
         if (hovered == null || !hovered.isValid())
             return;
 
-        HoverableComponent hoverComp = accessor.getComponent(hovered,
-                HoverableComponent.getComponentType());
-
-        if (hoverComp == null)
+        GlyphComponent glyph = accessor.getComponent(hovered, GlyphComponent.getComponentType());
+        if (glyph == null)
             return;
 
-        switch (hoverComp.getType()) {
-            case GLYPH: {
-                if (pedestal.getTickLength(HOVER_PARTICLE) > 0f) {
-                    pedestal.incrementTickLength(HOVER_PARTICLE, dt);
-                    return;
-                }
-
-                pedestal.setTickLength(HOVER_PARTICLE, -0.5f);
-                TransformComponent transform = accessor.getComponent(hovered,
-                        TransformComponent.getComponentType());
-                if (transform == null)
-                    return;
-                Vector3d pos = transform.getPosition();
-                ParticleUtil.spawnParticleEffect(HOVER_PARTICLE, pos, hovered,
-                        List.of(playerRef), accessor);
-
-            }
-                break;
-            default:
-                break;
+        if (pedestal.getTickLength(HOVER_PARTICLE) > 0f) {
+            pedestal.incrementTickLength(HOVER_PARTICLE, dt);
+            return;
         }
+
+        pedestal.setTickLength(HOVER_PARTICLE, -0.5f);
+        TransformComponent transform = accessor.getComponent(hovered,
+                TransformComponent.getComponentType());
+        if (transform == null)
+            return;
+        Vector3d pos = transform.getPosition();
+        ParticleUtil.spawnParticleEffect(HOVER_PARTICLE, pos, hovered,
+                List.of(playerRef), accessor);
     }
 
     private static void showHint(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref,

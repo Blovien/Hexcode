@@ -2,6 +2,7 @@ package com.riprod.hexcode.core.state.crafting;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.hypixel.hytale.builtin.mounts.MountedComponent;
 import com.hypixel.hytale.component.CommandBuffer;
@@ -18,6 +19,7 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
+import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableType;
@@ -27,7 +29,6 @@ import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
 import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
 import com.riprod.hexcode.core.state.crafting.handlers.CraftingDragHandler;
-import com.riprod.hexcode.core.state.crafting.handlers.CraftingDropHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.DetailsHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeRouter;
 import com.riprod.hexcode.core.state.crafting.system.CraftingStateSystem;
@@ -217,5 +218,40 @@ public class CraftingSystem extends HexcodeManager {
 
     @Override
     public void onPlayerLeave(PlayerRef playerRef) {
+        Ref<EntityStore> ref = playerRef.getReference();
+        if (ref == null || !ref.isValid())
+            return;
+
+        Store<EntityStore> store = ref.getStore();
+
+        PedestalDataComponent playerData = store.getComponent(ref, PedestalDataComponent.getComponentType());
+        if (playerData == null)
+            return;
+
+        for (Ref<EntityStore> previewRef : playerData.getHexPreviewRefs()) {
+            if (previewRef == null || !previewRef.isValid())
+                continue;
+            HexComponent hexComp = store.getComponent(previewRef, HexComponent.getComponentType());
+            if (hexComp == null)
+                continue;
+            Map<String, Ref<EntityStore>> children = hexComp.getChildGlyphRefs();
+            if (children == null)
+                continue;
+            for (Ref<EntityStore> childRef : children.values()) {
+                if (childRef == null || !childRef.isValid())
+                    continue;
+                GlyphComponent glyph = store.getComponent(childRef, GlyphComponent.getComponentType());
+                if (glyph != null && glyph.getNodeRef() != null && glyph.getNodeRef().isValid()) {
+                    store.removeEntity(glyph.getNodeRef(), RemoveReason.REMOVE);
+                }
+                store.removeEntity(childRef, RemoveReason.REMOVE);
+            }
+        }
+
+        for (Ref<EntityStore> entityRef : playerData.getAllRefs()) {
+            if (entityRef != null && entityRef.isValid()) {
+                store.removeEntity(entityRef, RemoveReason.REMOVE);
+            }
+        }
     }
 }

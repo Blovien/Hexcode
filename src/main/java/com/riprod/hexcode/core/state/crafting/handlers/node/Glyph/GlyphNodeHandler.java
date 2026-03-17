@@ -131,7 +131,7 @@ public class GlyphNodeHandler implements NodeInterface {
 
         Ref<EntityStore> sourceGlyphRef = nodeComp.getParentEntity();
         if (targetGlyphRef != null && targetGlyphRef.isValid()
-                && sourceGlyphRef.isValid()
+                && sourceGlyphRef != null && sourceGlyphRef.isValid()
                 && !targetGlyphRef.equals(sourceGlyphRef)) {
             GlyphComponent sourceEffect = accessor.getComponent(sourceGlyphRef,
                     GlyphComponent.getComponentType());
@@ -367,8 +367,7 @@ public class GlyphNodeHandler implements NodeInterface {
     @Override
     public InteractionState ability(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
             InteractionType inputType, Ref<EntityStore> playerRef) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'ability'");
+        return ability3(accessor, node, playerRef);
     }
 
     @Override

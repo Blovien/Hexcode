@@ -7,7 +7,6 @@ import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.protocol.BlockPosition;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
-import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.block.BlockModule;
@@ -59,7 +58,6 @@ public class PedestalInteractionEvent {
 
         playerData.updatePedestal(blockPos, pedestalComponent.getMaxRadius(), pedestalComponent.isPerPlayer());
         ensureAnchor(accessor, pedestalComponent, playerData, blockPos);
-        rebuildDisplays(accessor, playerData, pedestalComponent, blockPos);
 
         Pair<ItemStack, HexSlot> held = PlayerUtils.getItemFromInventory(player, HexSlot.Both);
         ItemStack item = held.getFirst();
@@ -133,48 +131,5 @@ public class PedestalInteractionEvent {
             logger.atWarning().log("pedestal: ensureAnchor — spawnAnchorEntity returned null at %s", blockPos);
         }
         playerData.setAnchorEntityRef(anchorRef);
-    }
-
-    private static void rebuildDisplays(CommandBuffer<EntityStore> buffer, PedestalDataComponent playerData,
-            PedestalBlockComponent pedestal, Vector3i blockPos) {
-
-        PedestalState state = playerData.getState();
-        if (pedestal.isPerPlayer() && state != PedestalState.IDLE && state != null
-                && pedestal.getActivePlayerRefs().isEmpty()) {
-            logger.atWarning().log("pedestal: stale state %s with no active players at %s, resetting to IDLE",
-                    state, blockPos);
-            playerData.setState(PedestalState.IDLE);
-            return;
-        }
-
-        Vector3d anchorPos = PedestalEntity.getAnchorPosition(blockPos);
-
-        ItemStack storedBook = playerData.getStoredBook();
-        Ref<EntityStore> bookRef = playerData.getBookDisplayRef();
-        if (storedBook != null && !storedBook.isEmpty() && (bookRef == null || !bookRef.isValid())) {
-            Item bookItem = storedBook.getItem();
-            if (bookItem != null) {
-                Ref<EntityStore> newBookRef = PedestalEntity.spawnBookDisplay(
-                        buffer, pedestal, playerData, anchorPos, bookItem, playerData.getAnchorNodeRef());
-                playerData.setBookDisplayRef(newBookRef);
-            }
-        }
-
-        String essenceId = playerData.getEssence();
-        Ref<EntityStore> essenceRef = playerData.getEssenceDisplayRef();
-        if (essenceId != null && (essenceRef == null || !essenceRef.isValid())) {
-            Item essenceItem = Item.getAssetMap().getAsset(essenceId);
-            if (essenceItem != null) {
-                Ref<EntityStore> newEssenceRef = PedestalEntity.spawnEssenceDisplay(
-                        buffer, pedestal, playerData, anchorPos, essenceItem, pedestal.getReferenceHolder(), playerData.getAnchorNodeRef());
-                playerData.setEssenceDisplayRef(newEssenceRef);
-            }
-        }
-
-        if (state != PedestalState.IDLE && state != null) {
-            World world = buffer.getExternalData().getWorld();
-            PedestalSystem.updateState(buffer, pedestal, playerData, world, state);
-            ObeliskSystem.updateState(buffer, pedestal, world, state);
-        }
     }
 }

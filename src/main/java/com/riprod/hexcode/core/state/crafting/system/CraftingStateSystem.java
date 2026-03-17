@@ -12,14 +12,11 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
-import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
-import com.riprod.hexcode.core.common.hover.component.HoverableType;
 import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
 import com.riprod.hexcode.core.state.crafting.handlers.CraftingDragHandler;
-import com.riprod.hexcode.core.state.crafting.handlers.DetailsHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeRouter;
 import com.riprod.hexcode.core.state.crafting.utils.HoverStyleUtils;
 import com.riprod.hexcode.core.state.crafting.utils.LinkRenderer;
@@ -37,35 +34,12 @@ public class CraftingStateSystem {
             return InteractionState.Failed;
 
         Ref<EntityStore> hoveredRef = craftingComp.getHoveredRef();
-        if (hoveredRef == null || !hoveredRef.isValid()) {
+        if (hoveredRef == null || !hoveredRef.isValid())
             return InteractionState.Failed;
-        }
-
-        HoverableComponent hoverComp = buffer.getComponent(hoveredRef,
-                HoverableComponent.getComponentType());
-        if (hoverComp == null) {
-            return InteractionState.Failed;
-        }
 
         craftingComp.setDragTickCount(0);
 
-        PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(buffer, ref);
-        if (playerData == null) {
-            return InteractionState.Failed;
-        }
-
-        switch (hoverComp.getType()) {
-            case GLYPH:
-                Ref<EntityStore> headAnchor = CraftingDragHandler.startDrag(buffer, ref, hoveredRef);
-                craftingComp.setHeadAnchorRef(buffer, headAnchor);
-                craftingComp.setDraggingRef(hoveredRef);
-                return InteractionState.Finished;
-            case NODE:
-                return NodeRouter.enter(buffer, hoveredRef, ref);
-            default:
-                return InteractionState.Failed;
-        }
-
+        return NodeRouter.enter(buffer, hoveredRef, ref);
     }
 
     public static void tickInteraction(CommandBuffer<EntityStore> accessor, float dt, Ref<EntityStore> ref,
@@ -78,25 +52,10 @@ public class CraftingStateSystem {
         craftingComp.setDragTickCount(craftingComp.getDragTickCount() + 1);
 
         Ref<EntityStore> draggedRef = craftingComp.getDraggingRef();
-        if (draggedRef == null || !draggedRef.isValid()) {
-            return;
-        }
-
-        HoverableComponent hoverComp = accessor.getComponent(draggedRef,
-                HoverableComponent.getComponentType());
-        HoverableType draggingType = hoverComp != null ? hoverComp.getType() : null;
-
-        if (draggingType == null)
+        if (draggedRef == null || !draggedRef.isValid())
             return;
 
-        switch (draggingType) {
-            case GLYPH:
-                CraftingDragHandler.updateDrag(accessor, craftingComp.getHeadAnchorRef(), ref);
-                break;
-            case NODE:
-                NodeRouter.drag(accessor, craftingComp.getDraggingRef(), ref);
-                break;
-        }
+        NodeRouter.drag(accessor, draggedRef, ref);
     }
 
     public static InteractionState exitInteraction(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref) {
@@ -117,8 +76,9 @@ public class CraftingStateSystem {
             return InteractionState.Finished;
         }
 
-        InteractionState result = InteractionState.Finished;
+        CraftingDragHandler.endDrag(accessor, draggedRef, craftingComp.getHeadAnchorRef());
 
+        InteractionState result;
         if (isClick) {
             result = NodeRouter.click(accessor, draggedRef, ref);
         } else {
@@ -188,14 +148,6 @@ public class CraftingStateSystem {
         if (hoveredRef == null)
             return InteractionState.Finished;
 
-        InteractionState result = InteractionState.Finished;
-
-        HoverableComponent hover = accessor.getComponent(hoveredRef,
-                HoverableComponent.getComponentType());
-
-        if (hover != null && hover.getType() == HoverableType.NODE) 
-            result = NodeRouter.ability(accessor, hoveredRef, inputType, ref);
-            
-        return result;
+        return NodeRouter.ability(accessor, hoveredRef, inputType, ref);
     }
 }

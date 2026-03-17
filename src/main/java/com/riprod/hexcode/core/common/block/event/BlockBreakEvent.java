@@ -2,9 +2,14 @@ package com.riprod.hexcode.core.common.block.event;
 
 import javax.annotation.Nonnull;
 
+import java.util.List;
+import java.util.Set;
+
 import com.hypixel.hytale.component.Archetype;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
+import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.EntityEventSystem;
@@ -14,6 +19,10 @@ import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.block.component.UnbreakableBlockComponent;
+import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
+import com.riprod.hexcode.core.state.crafting.entity.AnchorEntity;
+import com.riprod.hexcode.core.state.crafting.utils.PedestalDataUtil;
 
 public class BlockBreakEvent extends EntityEventSystem<EntityStore, BreakBlockEvent> {
 
@@ -33,6 +42,51 @@ public class BlockBreakEvent extends EntityEventSystem<EntityStore, BreakBlockEv
                 pos.x, pos.y, pos.z);
         if (comp != null) {
             event.setCancelled(true);
+            return;
+        }
+
+        PedestalBlockComponent pedestal = BlockModule.getComponent(
+                PedestalBlockComponent.getComponentType(), world,
+                pos.x, pos.y, pos.z);
+        if (pedestal != null) {
+            cleanupPedestal(buffer, pedestal);
+        }
+    }
+
+    private static void cleanupPedestal(CommandBuffer<EntityStore> buffer, PedestalBlockComponent pedestal) {
+        Set<Ref<EntityStore>> activePlayers = pedestal.getActivePlayerRefs();
+        for (Ref<EntityStore> playerRef : activePlayers) {
+            if (playerRef == null || !playerRef.isValid())
+                continue;
+            PedestalDataComponent playerData = buffer.getComponent(playerRef,
+                    PedestalDataComponent.getComponentType());
+            if (playerData == null)
+                continue;
+
+            AnchorEntity.DespawnHexPreviews(buffer, pedestal, playerData);
+
+            List<Ref<EntityStore>> allRefs = playerData.getAllRefs();
+            for (Ref<EntityStore> ref : allRefs) {
+                if (ref != null && ref.isValid()) {
+                    buffer.tryRemoveEntity(ref, RemoveReason.REMOVE);
+                }
+            }
+        }
+
+        Ref<EntityStore> pedestalEntityRef = pedestal.getPedestalEntityRef();
+        if (pedestalEntityRef != null && pedestalEntityRef.isValid()) {
+            PedestalDataComponent sharedData = buffer.getComponent(pedestalEntityRef,
+                    PedestalDataComponent.getComponentType());
+            if (sharedData != null) {
+                AnchorEntity.DespawnHexPreviews(buffer, pedestal, sharedData);
+                List<Ref<EntityStore>> allRefs = sharedData.getAllRefs();
+                for (Ref<EntityStore> ref : allRefs) {
+                    if (ref != null && ref.isValid()) {
+                        buffer.tryRemoveEntity(ref, RemoveReason.REMOVE);
+                    }
+                }
+            }
+            buffer.tryRemoveEntity(pedestalEntityRef, RemoveReason.REMOVE);
         }
     }
 

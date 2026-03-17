@@ -73,14 +73,14 @@ public class AnchorEntity {
                                 GlyphComponent.getComponentType());
                         if (effect != null && effect.getNodeRef() != null
                                 && effect.getNodeRef().isValid()) {
-                            buffer.removeEntity(effect.getNodeRef(), RemoveReason.REMOVE);
+                            buffer.tryRemoveEntity(effect.getNodeRef(), RemoveReason.REMOVE);
                         }
-                        buffer.removeEntity(glyphRef, RemoveReason.REMOVE);
+                        buffer.tryRemoveEntity(glyphRef, RemoveReason.REMOVE);
                     }
                 }
             }
 
-            buffer.removeEntity(hexRef, RemoveReason.REMOVE);
+            buffer.tryRemoveEntity(hexRef, RemoveReason.REMOVE);
         }
 
         playerData.clearHexPreviewRefs();
