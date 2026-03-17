@@ -5,6 +5,7 @@ import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.protocol.InteractionState;
+import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public interface NodeInterface {
@@ -20,17 +21,8 @@ public interface NodeInterface {
   InteractionState click(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
       Ref<EntityStore> playerRef);
 
-  InteractionState ability1(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
-      Ref<EntityStore> playerRef);
-
-  InteractionState ability2(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
-      Ref<EntityStore> playerRef);
-
-  InteractionState ability3(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
-      Ref<EntityStore> playerRef);
-
-  Holder<EntityStore> spawnNode(CommandBuffer<EntityStore> accessor, Ref<EntityStore> parentRef, Vector3d position,
-      Ref<EntityStore> playerRef);
+  InteractionState ability(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
+      InteractionType inputType, Ref<EntityStore> playerRef);
 
   void despawn(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
       Ref<EntityStore> playerRef);

@@ -29,6 +29,7 @@ import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.handlers.CraftingDragHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.DetailsHandler;
+import com.riprod.hexcode.core.state.crafting.handlers.node.Container.ContainerNodeHandler;
 import com.riprod.hexcode.core.state.crafting.component.ObeliskBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
@@ -79,21 +80,16 @@ public class PedestalSystem {
         for (int i = 0; i < totalSlots; i++) {
             Vector3f offset = offsets.get(i);
 
+            Hex hex = null;
             if (i < hexes.size()) {
-                Ref<EntityStore> hexRef = AnchorEntity.spawnFilledSlot(buffer, hexes.get(i), anchorRef, anchorPos,
-                        offset, playerRef);
-                if (hexRef == null) {
-                    logger.atWarning().log("pedestal: spawnFilledSlot returned null for slot %d", i);
-                }
-                spawnedRefs.add(hexRef);
-            } else {
-                Ref<EntityStore> emptyRef = AnchorEntity.spawnEmptySlot(buffer, anchorRef, anchorPos, offset,
-                        playerRef);
-                if (emptyRef == null) {
-                    logger.atWarning().log("pedestal: spawnEmptySlot returned null for slot %d", i);
-                }
-                spawnedRefs.add(emptyRef);
+                hex = hexes.get(i);
             }
+            Ref<EntityStore> hexRef = ContainerNodeHandler.INSTANCE.spawnContainer(buffer, hex, anchorRef,
+                    anchorPos, offset, playerRef);
+            if (hexRef == null) {
+                logger.atWarning().log("pedestal: spawnFilledSlot returned null for slot %d", i);
+            }
+            spawnedRefs.add(hexRef);
         }
 
         playerData.setHexPreviewRefs(spawnedRefs);

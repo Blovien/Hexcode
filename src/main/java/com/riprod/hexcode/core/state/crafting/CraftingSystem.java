@@ -12,6 +12,7 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.InteractionState;
+import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -170,40 +171,16 @@ public class CraftingSystem extends HexcodeManager {
     }
 
     @Override
-    public InteractionState enterAbilityTwo(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref,
-            HexcasterComponent comp) {
-        PedestalBlockComponent pedestal = PedestalBlockUtil.resolvePedestal(ref, buffer);
+    public InteractionState enterAbility(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref,
+            HexcasterComponent comp, InteractionType inputType) {
+    
+        PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(accessor, ref);
 
-        PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(buffer, ref);
-
-        if (pedestal == null || playerData.getState() != PedestalState.CRAFTING) {
+        if (playerData.getState() != PedestalState.CRAFTING) {
             return InteractionState.Finished;
         }
 
-        HexcasterCraftingComponent craftingComp = buffer.getComponent(ref,
-                HexcasterCraftingComponent.getComponentType());
-        if (craftingComp == null)
-            return InteractionState.Finished;
-
-        Ref<EntityStore> hoveredRef = craftingComp.getHoveredRef();
-        if (hoveredRef == null)
-            return InteractionState.Finished;
-
-        HoverableComponent hover = buffer.getComponent(hoveredRef,
-                HoverableComponent.getComponentType());
-        if (hover == null)
-            return InteractionState.Finished;
-
-        if (hover.getType() == HoverableType.NODE) {
-            NodeRouter.ability(buffer, hoveredRef, ref);
-            return InteractionState.Finished;
-        }
-
-        if (hover.getType() != HoverableType.GLYPH) {
-            return InteractionState.Finished;
-        }
-
-        return InteractionState.Finished;
+        return CraftingStateSystem.enterAbility(accessor, ref, inputType);
     }
 
     @Override
@@ -226,144 +203,12 @@ public class CraftingSystem extends HexcodeManager {
     @Override
     public InteractionState exitInteraction(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref,
             HexcasterComponent comp) {
-        PedestalBlockComponent pedestal = PedestalBlockUtil.resolvePedestal(ref, accessor);
-
         PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(accessor, ref);
 
-        if (pedestal == null || playerData.getState() != PedestalState.CRAFTING) {
+        if (playerData.getState() != PedestalState.CRAFTING) {
             return InteractionState.Finished;
         }
-        Ref<EntityStore> playerRefFlag = pedestal.isPerPlayer() ? ref : null;
-
-        HexcasterCraftingComponent craftingComp = accessor.getComponent(ref,
-                HexcasterCraftingComponent.getComponentType());
-        if (craftingComp == null)
-            return InteractionState.Finished;
-
-        boolean isClick = craftingComp.getDragTickCount() < 10;
-
-        Ref<EntityStore> draggedRef = craftingComp.getDraggingRef();
-
-        if (draggedRef == null || !draggedRef.isValid()) {
-            craftingComp.setDraggingRef(null);
-            craftingComp.setHeadAnchorRef(accessor, null);
-            craftingComp.setDragTickCount(0);
-            return InteractionState.Finished;
-        }
-
-        HoverableComponent hoverComp = accessor.getComponent(draggedRef,
-                HoverableComponent.getComponentType());
-
-        if (hoverComp == null) {
-            craftingComp.setDraggingRef(null);
-            craftingComp.setHeadAnchorRef(accessor, null);
-            craftingComp.setDragTickCount(0);
-            return InteractionState.Finished;
-        }
-
-        InteractionState result = InteractionState.Finished;
-
-        switch (hoverComp.getType()) {
-            case GLYPH: {
-
-                if (isClick) {
-                    if (DetailsHandler.isOpenFor(accessor, playerData.getSlotNodeRefs(), draggedRef)) {
-                        DetailsHandler.closeDetails(accessor, playerData.getSlotNodeRefs());
-                        playerData.setSlotNodeRefs(null);
-                    } else {
-                        if (playerData.getSlotNodeRefs() != null
-                                && !playerData.getSlotNodeRefs().isEmpty()) {
-                            DetailsHandler.closeDetails(accessor, playerData.getSlotNodeRefs());
-                        }
-                        List<Ref<EntityStore>> slotRefs = DetailsHandler.openDetails(
-                                accessor, draggedRef, ref);
-                        playerData.setSlotNodeRefs(slotRefs);
-                    }
-
-                    // remove the head component if it's still there, since this is just a click,
-                    // not a drag
-                    if (draggedRef != null && draggedRef.isValid()) {
-                        accessor.tryRemoveComponent(draggedRef, MountedComponent.getComponentType());
-                    }
-                    Ref<EntityStore> headAnchorRef = craftingComp.getHeadAnchorRef();
-                    if (headAnchorRef != null && headAnchorRef.isValid()) {
-                        accessor.tryRemoveEntity(headAnchorRef, RemoveReason.REMOVE);
-                    }
-                    break;
-                }
-                CraftingDragHandler.endDrag(accessor, draggedRef, craftingComp.getHeadAnchorRef());
-
-                TransformComponent playerTransform = accessor.getComponent(ref,
-                        TransformComponent.getComponentType());
-                Ref<EntityStore> dropTargetRef = null;
-                if (playerTransform != null) {
-                    List<Ref<EntityStore>> nearby = HoverableUtils.getNearbyHoverables(accessor,
-                            playerTransform.getPosition(), 8.0);
-
-                    HiddenUtils.filterByOwner(accessor, nearby, ref);
-                    List<Ref<EntityStore>> filtered = new ArrayList<>(nearby.size());
-                    for (Ref<EntityStore> candidate : nearby) {
-                        if (!candidate.equals(draggedRef)) {
-                            filtered.add(candidate);
-                        }
-                    }
-                    dropTargetRef = HoverableUtils.getSmallestTarget(accessor, ref, filtered);
-                }
-
-                CraftingDropHandler.DropResult dResult = CraftingDropHandler.handleDrop(
-                        accessor, draggedRef, dropTargetRef);
-
-                Vector3f dropOffset = CraftingPositionUtil.lookToHexOffset(accessor, ref,
-                        playerData.getAnchorNodeRef(), 2.0f);
-                Vector3d dropWorldPos = CraftingPositionUtil.hexOffsetToWorld(accessor,
-                        playerData.getAnchorNodeRef(), dropOffset);
-
-                GlyphComponent effect = accessor.getComponent(draggedRef,
-                        GlyphComponent.getComponentType());
-                Vector3f rotation = effect != null ? effect.getRotation() : Vector3f.ZERO;
-
-                accessor.putComponent(draggedRef, TransformComponent.getComponentType(),
-                        new TransformComponent(dropWorldPos, rotation));
-
-                if (effect != null) {
-                    effect.getGlyph().setPosition(dropOffset);
-                }
-                updateNodePosition(accessor, draggedRef, dropWorldPos);
-
-                craftingComp.setDraggingRef(null);
-                craftingComp.setHeadAnchorRef(accessor, null);
-                craftingComp.setDragTickCount(0);
-                return InteractionState.Finished;
-            }
-            case NODE: {
-                if (isClick) {
-                    result = NodeRouter.click(accessor, draggedRef, ref);
-                }
-                result = NodeRouter.exit(accessor, draggedRef, ref);
-            }
-            default:
-                break;
-
-        }
-
-        craftingComp.setDraggingRef(null);
-        craftingComp.setHeadAnchorRef(accessor, null);
-        craftingComp.setDragTickCount(0);
-        return result;
-    }
-
-    private static void updateNodePosition(CommandBuffer<EntityStore> buffer,
-            Ref<EntityStore> glyphRef, Vector3d glyphWorldPos) {
-        GlyphComponent effect = buffer.getComponent(glyphRef,
-                GlyphComponent.getComponentType());
-        if (effect == null || effect.getNodeRef() == null)
-            return;
-        TransformComponent nodeTransform = buffer.getComponent(effect.getNodeRef(),
-                TransformComponent.getComponentType());
-        if (nodeTransform != null) {
-            nodeTransform.setPosition(new Vector3d(
-                    glyphWorldPos.x, glyphWorldPos.y, glyphWorldPos.z));
-        }
+        return CraftingStateSystem.exitInteraction(accessor, ref);
     }
 
     @Override

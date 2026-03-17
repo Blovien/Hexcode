@@ -6,6 +6,7 @@ import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.protocol.InteractionState;
+import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
@@ -32,7 +33,7 @@ public abstract class HexcodeManager {
                 tick0(ref, comp, dt, store, buffer);
         }
 
-        public InteractionState enterAbilityTwo(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref, HexcasterComponent comp) {
+        public InteractionState enterAbility(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref, HexcasterComponent comp, InteractionType inputType) {
                 return InteractionState.Finished;
         }
 

@@ -16,6 +16,7 @@ import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.DebugShape;
 import com.hypixel.hytale.protocol.InteractionState;
+import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
@@ -283,7 +284,8 @@ public class GlyphNodeHandler implements NodeInterface {
         });
     }
 
-    public Ref<EntityStore> spawnNode(CommandBuffer<EntityStore> accessor, Ref<EntityStore> parentRef, Vector3d rootPos,
+    public Holder<EntityStore> spawnNode(CommandBuffer<EntityStore> accessor, Ref<EntityStore> parentRef,
+            Vector3d rootPos,
             Ref<EntityStore> playerRef) {
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
 
@@ -322,8 +324,7 @@ public class GlyphNodeHandler implements NodeInterface {
         holder.addComponent(HoverableComponent.getComponentType(),
                 new HoverableComponent(HoverableType.NODE));
 
-        Ref<EntityStore> nodeRef = accessor.addEntity(holder, AddReason.SPAWN);
-        return nodeRef;
+        return holder;
     }
 
     @Override
@@ -361,5 +362,39 @@ public class GlyphNodeHandler implements NodeInterface {
         }
 
         return InteractionState.Finished;
+    }
+
+    @Override
+    public InteractionState ability(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
+            InteractionType inputType, Ref<EntityStore> playerRef) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'ability'");
+    }
+
+    @Override
+    public void despawn(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'despawn'");
+    }
+
+    @Override
+    public void hover(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
+        DebugComponent debug = accessor.getComponent(nodeRef, DebugComponent.getComponentType());
+        if (debug == null)
+            return;
+        debug.setScaleMultiplier(1.3f);
+        debug.setIntervalMultiplier(0.25f);
+        debug.setFadeMultiplier(0.25f);
+        debug.setTimer(0);
+    }
+
+    @Override
+    public void unhover(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
+        DebugComponent debug = accessor.getComponent(nodeRef, DebugComponent.getComponentType());
+        if (debug == null)
+            return;
+        debug.resetScaleMultiplier();
+        debug.resetFadeMultipler();
+        debug.resetIntervalMultiplier();
     }
 }

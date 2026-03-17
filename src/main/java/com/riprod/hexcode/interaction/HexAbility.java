@@ -58,7 +58,7 @@ public class HexAbility extends SimpleInteraction {
             return;
         }
 
-        ctx.getState().state = manager.enterAbilityTwo(commandBuffer, playerRef, hexcaster);
+        ctx.getState().state = manager.enterAbility(commandBuffer, playerRef, hexcaster, type);
     }
 
     @Override

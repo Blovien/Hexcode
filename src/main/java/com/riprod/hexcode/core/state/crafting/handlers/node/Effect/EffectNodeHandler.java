@@ -1,4 +1,4 @@
-package com.riprod.hexcode.core.state.crafting.handlers.node.Anchor;
+package com.riprod.hexcode.core.state.crafting.handlers.node.Effect;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,12 +15,15 @@ import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.DebugShape;
 import com.hypixel.hytale.protocol.InteractionState;
+import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.common.glyphs.utils.CreateGlyph;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
@@ -36,6 +39,8 @@ import com.riprod.hexcode.core.state.crafting.handlers.CraftingDragHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.CraftingDropHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.DetailsHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeInterface;
+import com.riprod.hexcode.core.state.crafting.handlers.node.NodeRouter;
+import com.riprod.hexcode.core.state.crafting.handlers.node.Glyph.GlyphNodeHandler;
 import com.riprod.hexcode.core.state.crafting.utils.CraftingPositionUtil;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalDataUtil;
 import com.riprod.hexcode.utils.CleanupUtils;
@@ -97,12 +102,12 @@ public class EffectNodeHandler implements NodeInterface {
 
         if (effect != null) {
             effect.getGlyph().setPosition(dropOffset);
-        }
-
-        TransformComponent nodeTransform = accessor.getComponent(effect.getNodeRef(),
-                TransformComponent.getComponentType());
-        if (nodeTransform != null) {
-            nodeTransform.setPosition(new Vector3d(dropWorldPos));
+        } else {
+            TransformComponent nodeTransform = accessor.getComponent(effect.getNodeRef(),
+                    TransformComponent.getComponentType());
+            if (nodeTransform != null) {
+                nodeTransform.setPosition(new Vector3d(dropWorldPos));
+            }
         }
 
         return InteractionState.Finished;
@@ -136,32 +141,27 @@ public class EffectNodeHandler implements NodeInterface {
         return InteractionState.Finished;
     }
 
-    @Override
-    public InteractionState ability1(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
-            Ref<EntityStore> playerRef) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'ability1'");
-    }
+    public Ref<EntityStore> spawnNode(CommandBuffer<EntityStore> accessor, Ref<EntityStore> parentRef,
+            Vector3d position, Ref<EntityStore> playerRef, GlyphComponent glyphComp) {
 
-    @Override
-    public InteractionState ability2(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
-            Ref<EntityStore> playerRef) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'ability2'");
-    }
+        Holder<EntityStore> glyphHolder = CreateGlyph.createGlyphHolder(accessor, glyphComp, position);
+        HiddenUtils.addHiddenToHolder(accessor, glyphHolder, playerRef);
+        Ref<EntityStore> glyphNodeRef = accessor.addEntity(glyphHolder, AddReason.SPAWN);
 
-    @Override
-    public InteractionState ability3(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
-            Ref<EntityStore> playerRef) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'ability3'");
-    }
+        Holder<EntityStore> glyphNode = GlyphNodeHandler.INSTANCE.spawnNode(accessor, glyphNodeRef, position,
+                playerRef);
+        glyphHolder.addComponent(HoverableComponent.getComponentType(),
+                new HoverableComponent(HoverableType.GLYPH));
 
-    @Override
-    public Holder<EntityStore> spawnNode(CommandBuffer<EntityStore> accessor, Ref<EntityStore> parentRef,
-            Vector3d position, Ref<EntityStore> playerRef) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'spawnNode'");
+        Ref<EntityStore> rootNodeRef = accessor.addEntity(glyphNode, AddReason.SPAWN);
+        glyphComp.setNodeRef(rootNodeRef);
+
+        glyphComp.setHexRef(parentRef);
+
+        glyphComp.setParentRef(playerRef);
+
+
+        return glyphNodeRef;
     }
 
     @Override
@@ -172,14 +172,30 @@ public class EffectNodeHandler implements NodeInterface {
 
     @Override
     public void hover(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'hover'");
+        DebugComponent debug = accessor.getComponent(nodeRef, DebugComponent.getComponentType());
+        if (debug == null)
+            return;
+        debug.setScaleMultiplier(1.3f);
+        debug.setIntervalMultiplier(0.25f);
+        debug.setFadeMultiplier(0.25f);
+        debug.setTimer(0);
     }
 
     @Override
     public void unhover(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
+        DebugComponent debug = accessor.getComponent(nodeRef, DebugComponent.getComponentType());
+        if (debug == null)
+            return;
+        debug.resetScaleMultiplier();
+        debug.resetFadeMultipler();
+        debug.resetIntervalMultiplier();
+    }
+
+    @Override
+    public InteractionState ability(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
+            InteractionType inputType, Ref<EntityStore> playerRef) {
         // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'unhover'");
+        throw new UnsupportedOperationException("Unimplemented method 'ability'");
     }
 
 }

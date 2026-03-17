@@ -37,6 +37,7 @@ import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
 import com.riprod.hexcode.core.state.crafting.constants.NodeType;
 import com.riprod.hexcode.core.state.crafting.entity.PedestalEntity;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeRouter;
+import com.riprod.hexcode.core.state.crafting.handlers.node.Effect.EffectNodeHandler;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalDataUtil;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.riprod.hexcode.core.state.drawing.component.DrawnShapeComponent;
@@ -188,8 +189,10 @@ public class DrawingSystem extends HexcodeManager {
       float lastPitch = points.getFloat(points.size() - 1);
       // unwrap yaw so it stays continuous across the ±180 boundary
       float dy = yaw - lastYaw;
-      if (dy > 180f) dy -= 360f;
-      else if (dy < -180f) dy += 360f;
+      if (dy > 180f)
+        dy -= 360f;
+      else if (dy < -180f)
+        dy += 360f;
       yaw = lastYaw + dy;
 
       float dp = pitch - lastPitch;
@@ -341,8 +344,12 @@ public class DrawingSystem extends HexcodeManager {
 
     HexComponent hexComp = accessor.getComponent(hexRef, HexComponent.getComponentType());
 
+    if (hexComp == null) {
+      LOGGER.atWarning().log("cannot spawn drawn glyph: no hex component on hex entity");
+      return;
+    }
+
     GlyphComponent glyphComponent = new GlyphComponent(glyph);
-    glyphComponent.setHexRef(hexRef);
 
     Vector3f rotation = spawnPos.getRotation();
     glyphComponent.setRotation(rotation);
@@ -350,31 +357,19 @@ public class DrawingSystem extends HexcodeManager {
 
     Vector3d worldPos = spawnPos.getPosition();
 
-    if (hexComp != null) {
-      TransformComponent hexTransform = accessor.getComponent(hexRef, TransformComponent.getComponentType());
-      if (hexTransform != null) {
-        Vector3d hexPos = hexTransform.getPosition();
-        glyph.setPosition(new Vector3f(
-            (float) (worldPos.x - hexPos.x),
-            (float) (worldPos.y - hexPos.y),
-            (float) (worldPos.z - hexPos.z)));
-      }
+    TransformComponent hexTransform = accessor.getComponent(hexRef, TransformComponent.getComponentType());
+    if (hexTransform != null) {
+      Vector3d hexPos = hexTransform.getPosition();
+      glyph.setPosition(new Vector3f(
+          (float) (worldPos.x - hexPos.x),
+          (float) (worldPos.y - hexPos.y),
+          (float) (worldPos.z - hexPos.z)));
     }
 
-    Holder<EntityStore> holder = CreateGlyph.createGlyphHolder(accessor, glyphComponent, worldPos);
-    HoverableUtils.ensureHoverable(holder, HoverableType.GLYPH);
-    HiddenUtils.addHiddenToHolder(accessor, holder, playerRef);
+    Ref<EntityStore> effectRef = EffectNodeHandler.INSTANCE.spawnNode(accessor, hexRef, worldPos, playerRef,
+        glyphComponent);
 
-    Ref<EntityStore> glyphRef = CreateGlyph.createEntity(accessor, holder);
-    glyphComponent.setSelfRef(glyphRef);
-
-    if (hexComp != null) {
-      hexComp.getHex().put(glyph.getId(), glyph);
-      hexComp.addChildGlyphRef(glyph.getId(), glyphRef);
-
-      Ref<EntityStore> nodeRef = NodeRouter.getHandler(NodeType.Glyph).spawnNode(accessor, glyphRef, worldPos,
-          playerRef);
-      glyphComponent.setNodeRef(nodeRef);
-    }
+    hexComp.addChildGlyphRef(glyph.getId(), effectRef);
+    hexComp.getHex().put(glyph.getId(), glyph);
   }
 }

@@ -12,12 +12,15 @@ import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.DebugShape;
 import com.hypixel.hytale.protocol.InteractionState;
+import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.common.glyphs.utils.CreateGlyph;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
@@ -29,8 +32,13 @@ import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
 import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 import com.riprod.hexcode.core.state.crafting.constants.NodeType;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeInterface;
+import com.riprod.hexcode.core.state.crafting.handlers.node.NodeRouter;
+import com.riprod.hexcode.core.state.crafting.handlers.node.Effect.EffectNodeHandler;
 import com.riprod.hexcode.utils.CleanupUtils;
 
+/**
+ * ParentRef = Root hex ref
+ */
 public class AnchorNodeHandler implements NodeInterface {
 
     private static final double ROOT_NODE_SCALE = 0.2;
@@ -107,8 +115,8 @@ public class AnchorNodeHandler implements NodeInterface {
         return InteractionState.Finished;
     }
 
-    public InteractionState ability3(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
-            Ref<EntityStore> playerRef) {
+    public InteractionState ability(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
+            InteractionType type, Ref<EntityStore> playerRef) {
 
         NodeComponent nodeComp = accessor.getComponent(nodeRef, NodeComponent.getComponentType());
         if (nodeComp == null) {
@@ -141,11 +149,12 @@ public class AnchorNodeHandler implements NodeInterface {
         return InteractionState.Finished;
     }
 
-    public Ref<EntityStore> spawnNode(CommandBuffer<EntityStore> buffer, Ref<EntityStore> parentRef, Vector3d rootPos,
+    public Ref<EntityStore> spawnNode(CommandBuffer<EntityStore> accessor, Ref<EntityStore> parentRef,
+            Vector3d rootPos,
             Ref<EntityStore> playerRef) {
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
 
-        HiddenUtils.addHiddenToHolder(buffer, holder, playerRef);
+        HiddenUtils.addHiddenToHolder(accessor, holder, playerRef);
 
         holder.addComponent(TransformComponent.getComponentType(),
                 new TransformComponent(rootPos, new Vector3f(0, 0, 0)));
@@ -162,7 +171,7 @@ public class AnchorNodeHandler implements NodeInterface {
                 new UUIDComponent(UUID.randomUUID()));
         holder.ensureComponent(EntityStore.REGISTRY.getNonSerializedComponentType());
 
-        int networkId = buffer.getExternalData().takeNextNetworkId();
+        int networkId = accessor.getExternalData().takeNextNetworkId();
         holder.addComponent(NetworkId.getComponentType(), new NetworkId(networkId));
 
         holder.addComponent(DebugComponent.getComponentType(),
@@ -171,7 +180,30 @@ public class AnchorNodeHandler implements NodeInterface {
         holder.addComponent(HoverableComponent.getComponentType(),
                 new HoverableComponent(HoverableType.NODE));
 
-        return buffer.addEntity(holder, AddReason.SPAWN);
+        // spawn the children of the hex
+        HexComponent hexComp = accessor.getComponent(parentRef, HexComponent.getComponentType());
+        Ref<EntityStore> nodeGlyph = accessor.addEntity(holder, AddReason.SPAWN);
+        
+        for (Glyph glyph : hexComp.getHex().getGlyphs()) {
+
+            Vector3f offset = glyph.getPosition();
+            Vector3d worldPos = new Vector3d(
+                    rootPos.x + offset.x,
+                    rootPos.y + offset.y,
+                    rootPos.z + offset.z);
+
+            GlyphComponent glyphComp = new GlyphComponent(glyph);
+
+
+
+            Ref<EntityStore> glyphRef = EffectNodeHandler.INSTANCE.spawnNode(accessor, nodeGlyph, worldPos,
+                    playerRef, glyphComp);
+
+            hexComp.addChildGlyphRef(glyph.getId(), glyphRef);
+        }
+
+
+        return nodeGlyph;
     }
 
     @Override
@@ -183,5 +215,32 @@ public class AnchorNodeHandler implements NodeInterface {
         craftingComp.setDraggingRef(null);
         craftingComp.setDragTickCount(0);
         return InteractionState.Finished;
+    }
+
+    @Override
+    public void despawn(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'despawn'");
+    }
+
+    @Override
+    public void hover(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
+        DebugComponent debug = accessor.getComponent(nodeRef, DebugComponent.getComponentType());
+        if (debug == null)
+            return;
+        debug.setScaleMultiplier(1.3f);
+        debug.setIntervalMultiplier(0.25f);
+        debug.setFadeMultiplier(0.25f);
+        debug.setTimer(0);
+    }
+
+    @Override
+    public void unhover(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
+        DebugComponent debug = accessor.getComponent(nodeRef, DebugComponent.getComponentType());
+        if (debug == null)
+            return;
+        debug.resetScaleMultiplier();
+        debug.resetFadeMultipler();
+        debug.resetIntervalMultiplier();
     }
 }

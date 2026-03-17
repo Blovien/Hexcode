@@ -10,15 +10,16 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.hypixel.hytale.server.core.entity.nameplate.Nameplate;
-import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.state.casting.utils.GlyphStyler;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.state.crafting.handlers.node.NodeRouter;
 
 public class HoverStyleUtils {
 
     private static final String HOVER_PARTICLE = "Object_Hover";
 
-    public static void unhover(CommandBuffer<EntityStore> accessor, Ref<EntityStore> unhoveredRef) {
+    public static void unhover(CommandBuffer<EntityStore> accessor, Ref<EntityStore> unhoveredRef,
+            Ref<EntityStore> playerRef) {
 
         if (unhoveredRef == null || !unhoveredRef.isValid())
             return;
@@ -39,28 +40,14 @@ public class HoverStyleUtils {
                 GlyphStyler.exitGlyphHover(accessor, prevEffect);
             }
                 break;
-            case NODE: {
-                DebugComponent debug = accessor.getComponent(unhoveredRef, DebugComponent.getComponentType());
-                if (debug == null)
-                    return;
-                debug.resetScaleMultiplier();
-                debug.resetFadeMultipler();
-                debug.resetIntervalMultiplier();
-            }
+            case NODE:
+                NodeRouter.unhover(accessor, unhoveredRef, playerRef);
                 break;
-            case CONTAINER: {
-                DebugComponent debug = accessor.getComponent(unhoveredRef, DebugComponent.getComponentType());
-                if (debug == null)
-                    return;
-
-                debug.resetIntervalMultiplier();
-                debug.resetFadeMultipler();
-                debug.resetScaleMultiplier();
-            }
         }
     }
 
-    public static void hover(CommandBuffer<EntityStore> accessor, Ref<EntityStore> hovered) {
+    public static void hover(CommandBuffer<EntityStore> accessor, Ref<EntityStore> hovered,
+            Ref<EntityStore> playerRef) {
         if (hovered == null || !hovered.isValid())
             return;
 
@@ -80,25 +67,9 @@ public class HoverStyleUtils {
                 GlyphStyler.enterGlyphHover(accessor, newEffect);
             }
                 break;
-            case NODE: {
-                DebugComponent debug = accessor.getComponent(hovered, DebugComponent.getComponentType());
-                if (debug == null)
-                    return;
-                debug.setScaleMultiplier(1.3f);
-                debug.setIntervalMultiplier(0.25f);
-                debug.setFadeMultiplier(0.25f);
-                debug.setTimer(0);
-            }
+            case NODE:
+                NodeRouter.hover(accessor, hovered, playerRef);
                 break;
-            case CONTAINER: {
-                DebugComponent debug = accessor.getComponent(hovered, DebugComponent.getComponentType());
-                if (debug == null)
-                    return;
-                debug.setScaleMultiplier(1.3f);
-                debug.setIntervalMultiplier(0.25f);
-                debug.setFadeMultiplier(0.25f);
-                debug.setTimer(0);
-            }
         }
     }
 
