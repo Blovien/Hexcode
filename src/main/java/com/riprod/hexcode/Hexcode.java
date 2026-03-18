@@ -24,6 +24,11 @@ import com.riprod.hexcode.core.common.hidden.component.HiddenComponent;
 import com.riprod.hexcode.core.common.hidden.system.HiddenFilterSystem;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.system.HoverableSpatialSystem;
+import com.riprod.hexcode.core.common.obelisk.component.ObeliskBlockComponent;
+import com.riprod.hexcode.core.common.pedestal.component.PedestalEntityComponent;
+import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.common.pedestal.events.PedestalBlockEvent;
+import com.riprod.hexcode.core.common.pedestal.events.PedestalTickEvent;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.common.effect.GlyphEffectSystem;
 import com.riprod.hexcode.core.common.utilities.system.DebugTickSystem;
@@ -41,13 +46,8 @@ import com.riprod.hexcode.core.state.casting.registery.CastingStyleRegistry;
 import com.riprod.hexcode.core.state.crafting.CraftingSystem;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
-import com.riprod.hexcode.core.state.crafting.component.ObeliskBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalAnchorComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
+import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
 import com.riprod.hexcode.core.state.crafting.component.SlotComponent;
-import com.riprod.hexcode.core.state.crafting.events.PedestalBlockEvent;
-import com.riprod.hexcode.core.state.crafting.events.PedestalTickEvent;
 import com.riprod.hexcode.core.state.drawing.DrawingSystem;
 import com.riprod.hexcode.core.state.drawing.component.HexcasterDrawingComponent;
 import com.riprod.hexcode.core.state.drawing.registry.ShapeAsset;
@@ -193,10 +193,10 @@ public class Hexcode extends JavaPlugin {
             HexcasterDrawingComponent::new);
     HexcasterDrawingComponent.setComponentType(drawingRootComponentType);
 
-    ComponentType<EntityStore, PedestalDataComponent> pedestalPlayerRootComponentType = entityStoreRegistry
-        .registerComponent(PedestalDataComponent.class, "PedestalDataComponent",
-            PedestalDataComponent.CODEC);
-    PedestalDataComponent.setComponentType(pedestalPlayerRootComponentType);
+    ComponentType<EntityStore, CraftingDataComponent> pedestalPlayerRootComponentType = entityStoreRegistry
+        .registerComponent(CraftingDataComponent.class, "PedestalDataComponent",
+            CraftingDataComponent.CODEC);
+    CraftingDataComponent.setComponentType(pedestalPlayerRootComponentType);
 
     ComponentType<EntityStore, NodeComponent> nodeComponentType = entityStoreRegistry
         .registerComponent(NodeComponent.class,
@@ -216,9 +216,9 @@ public class Hexcode extends JavaPlugin {
         .registerComponent(SlotComponent.class, SlotComponent::new);
     SlotComponent.setComponentType(slotComponentType);
 
-    ComponentType<EntityStore, PedestalAnchorComponent> pedestalComponentType = entityStoreRegistry
-        .registerComponent(PedestalAnchorComponent.class, PedestalAnchorComponent::new);
-    PedestalAnchorComponent.setComponentType(pedestalComponentType);
+    ComponentType<EntityStore, PedestalEntityComponent> pedestalComponentType = entityStoreRegistry
+        .registerComponent(PedestalEntityComponent.class, PedestalEntityComponent::new);
+    PedestalEntityComponent.setComponentType(pedestalComponentType);
 
     ComponentType<EntityStore, HoverableComponent> hoverableComponentType = entityStoreRegistry
         .registerComponent(HoverableComponent.class, HoverableComponent::new);

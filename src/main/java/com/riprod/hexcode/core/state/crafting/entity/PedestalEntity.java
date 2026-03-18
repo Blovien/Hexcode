@@ -27,9 +27,9 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
-import com.riprod.hexcode.core.state.crafting.component.PedestalAnchorComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
+import com.riprod.hexcode.core.common.pedestal.component.PedestalEntityComponent;
+import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
 import com.hypixel.hytale.logger.HytaleLogger;
 
 public class PedestalEntity {
@@ -64,9 +64,9 @@ public class PedestalEntity {
         int networkId = accessor.getExternalData().takeNextNetworkId();
         holder.addComponent(NetworkId.getComponentType(), new NetworkId(networkId));
 
-        PedestalAnchorComponent anchorComp = new PedestalAnchorComponent();
-        anchorComp.setPedestalLoc(blockPos);
-        holder.addComponent(PedestalAnchorComponent.getComponentType(), anchorComp);
+        PedestalEntityComponent pedestalEntity = new PedestalEntityComponent();
+        pedestalEntity.setPedestalLoc(blockPos);
+        holder.addComponent(PedestalEntityComponent.getComponentType(), pedestalEntity);
 
         ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset("Pedestal_Holder");
 
@@ -87,7 +87,7 @@ public class PedestalEntity {
     }
 
     public static Ref<EntityStore> spawnEssenceDisplay(CommandBuffer<EntityStore> accessor,
-            PedestalBlockComponent pedestal, PedestalDataComponent playerData,
+            PedestalBlockComponent pedestal, CraftingDataComponent playerData,
             Vector3d anchorPos, Item item,
             String anchorId, Ref<EntityStore> playerRef) {
 
@@ -116,7 +116,7 @@ public class PedestalEntity {
 
     public static Ref<EntityStore> spawnBookDisplay(CommandBuffer<EntityStore> accessor,
             PedestalBlockComponent pedestal,
-            PedestalDataComponent playerData, Vector3d anchorPos, Item item, Ref<EntityStore> playerRef) {
+            CraftingDataComponent playerData, Vector3d anchorPos, Item item, Ref<EntityStore> playerRef) {
 
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
 

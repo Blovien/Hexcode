@@ -1,4 +1,4 @@
-package com.riprod.hexcode.core.state.crafting.component;
+package com.riprod.hexcode.core.common.pedestal.component;
 
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
@@ -7,18 +7,18 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 import javax.annotation.Nonnull;
 
-public class PedestalAnchorComponent implements Component<EntityStore> {
+public class PedestalEntityComponent implements Component<EntityStore> {
 
-    private static ComponentType<EntityStore, PedestalAnchorComponent> componentType;
+    private static ComponentType<EntityStore, PedestalEntityComponent> componentType;
 
-    public PedestalAnchorComponent() {
+    public PedestalEntityComponent() {
     }
 
-    public static void setComponentType(ComponentType<EntityStore, PedestalAnchorComponent> type) {
+    public static void setComponentType(ComponentType<EntityStore, PedestalEntityComponent> type) {
         componentType = type;
     }
 
-    public static ComponentType<EntityStore, PedestalAnchorComponent> getComponentType() {
+    public static ComponentType<EntityStore, PedestalEntityComponent> getComponentType() {
         return componentType;
     }
 
@@ -34,8 +34,8 @@ public class PedestalAnchorComponent implements Component<EntityStore> {
 
     @Nonnull
     @Override
-    public PedestalAnchorComponent clone() {
-        PedestalAnchorComponent copy = new PedestalAnchorComponent();
+    public PedestalEntityComponent clone() {
+        PedestalEntityComponent copy = new PedestalEntityComponent();
         copy.pedestalLoc = this.pedestalLoc;
         return copy;
     }

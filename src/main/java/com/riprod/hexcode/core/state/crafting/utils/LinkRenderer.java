@@ -15,9 +15,9 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
+import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
+import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
 import com.riprod.hexcode.core.state.crafting.component.SlotComponent;
 import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 import com.riprod.hexcode.utils.VfxUtil;
@@ -26,7 +26,7 @@ public class LinkRenderer {
 
     private static final double LINK_THICKNESS = 0.05;
 
-    public static void renderLinks(CommandBuffer<EntityStore> accessor, PedestalDataComponent playerData,
+    public static void renderLinks(CommandBuffer<EntityStore> accessor, CraftingDataComponent playerData,
             PedestalBlockComponent pedestal, float dt, @Nullable Ref<EntityStore> playerRef) {
         Ref<EntityStore> hexRootRef = playerData.getAnchorRef();
         if (hexRootRef == null || !hexRootRef.isValid())

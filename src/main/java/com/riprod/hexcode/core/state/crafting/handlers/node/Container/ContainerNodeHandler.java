@@ -34,12 +34,15 @@ import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableType;
 import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
+import com.riprod.hexcode.core.common.obelisk.system.ObeliskSystem;
+import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.common.pedestal.events.PedestalSystem;
+import com.riprod.hexcode.core.common.pedestal.utils.PedestalBlockUtil;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.state.casting.utils.GlyphStyler;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
+import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
 import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 import com.riprod.hexcode.core.state.crafting.constants.NodeType;
 import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
@@ -49,10 +52,7 @@ import com.riprod.hexcode.core.state.crafting.handlers.node.NodeInterface;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeRouter;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Anchor.AnchorNodeHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Effect.EffectNodeHandler;
-import com.riprod.hexcode.core.state.crafting.system.ObeliskSystem;
-import com.riprod.hexcode.core.state.crafting.system.PedestalSystem;
-import com.riprod.hexcode.core.state.crafting.utils.PedestalBlockUtil;
-import com.riprod.hexcode.core.state.crafting.utils.PedestalDataUtil;
+import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
 import com.riprod.hexcode.utils.CleanupUtils;
 import com.riprod.hexcode.utils.GlyphMath;
 
@@ -151,7 +151,7 @@ public class ContainerNodeHandler implements NodeInterface {
         if (pedestal == null)
             return InteractionState.Failed;
 
-        PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(accessor, playerRef);
+        CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(accessor, playerRef);
         if (playerData == null)
             return InteractionState.Failed;
 

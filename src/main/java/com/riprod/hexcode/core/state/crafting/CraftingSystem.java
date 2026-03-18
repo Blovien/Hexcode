@@ -24,9 +24,10 @@ import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableType;
 import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
+import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.common.pedestal.utils.PedestalBlockUtil;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
+import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
 import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
 import com.riprod.hexcode.core.state.crafting.handlers.CraftingDragHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.DetailsHandler;
@@ -35,8 +36,7 @@ import com.riprod.hexcode.core.state.crafting.handlers.node.Slot.SlotNodeHandler
 import com.riprod.hexcode.core.state.crafting.system.CraftingStateSystem;
 import com.riprod.hexcode.core.state.crafting.utils.CraftingPositionUtil;
 import com.riprod.hexcode.core.state.crafting.utils.GravityUtil;
-import com.riprod.hexcode.core.state.crafting.utils.PedestalBlockUtil;
-import com.riprod.hexcode.core.state.crafting.utils.PedestalDataUtil;
+import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
 import com.riprod.hexcode.utils.CleanupUtils;
@@ -77,7 +77,7 @@ public class CraftingSystem extends HexcodeManager {
 
         HexcasterCraftingComponent craftingComp = buffer.getComponent(ref,
                 HexcasterCraftingComponent.getComponentType());
-        PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(buffer, ref);
+        CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(buffer, ref);
         if (craftingComp == null) {
             comp.clearCraftingState();
             return;
@@ -106,7 +106,7 @@ public class CraftingSystem extends HexcodeManager {
         craftingComp.clearCraftingState();
         comp.clearCraftingState();
 
-        PedestalDataUtil.dropContents(buffer, null, playerData, null);
+        CraftingDataUtil.dropContents(buffer, null, playerData, null);
 
         List<Ref<EntityStore>> allRefs = playerData.getAllRefs();
         allRefs.forEach(r -> {
@@ -151,7 +151,7 @@ public class CraftingSystem extends HexcodeManager {
     public InteractionState enterAbility(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref,
             HexcasterComponent comp, InteractionType inputType) {
 
-        PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(accessor, ref);
+        CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(accessor, ref);
 
         if (playerData.getState() != PedestalState.CRAFTING) {
             return InteractionState.Finished;
@@ -168,7 +168,7 @@ public class CraftingSystem extends HexcodeManager {
         if (pedestal == null)
             return InteractionState.NotFinished;
 
-        PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(buffer, ref);
+        CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(buffer, ref);
 
         if (playerData.getState() == PedestalState.CRAFTING) {
             CraftingStateSystem.tickInteraction(buffer, dt, ref, pedestal);
@@ -180,7 +180,7 @@ public class CraftingSystem extends HexcodeManager {
     @Override
     public InteractionState exitInteraction(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref,
             HexcasterComponent comp) {
-        PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(accessor, ref);
+        CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(accessor, ref);
 
         if (playerData.getState() != PedestalState.CRAFTING) {
             return InteractionState.Finished;
@@ -200,7 +200,7 @@ public class CraftingSystem extends HexcodeManager {
 
         Store<EntityStore> store = ref.getStore();
 
-        PedestalDataComponent playerData = store.getComponent(ref, PedestalDataComponent.getComponentType());
+        CraftingDataComponent playerData = store.getComponent(ref, CraftingDataComponent.getComponentType());
         if (playerData == null)
             return;
 

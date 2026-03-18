@@ -19,10 +19,10 @@ import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.block.component.UnbreakableBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
+import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
 import com.riprod.hexcode.core.state.crafting.entity.AnchorEntity;
-import com.riprod.hexcode.core.state.crafting.utils.PedestalDataUtil;
+import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
 
 public class BlockBreakEvent extends EntityEventSystem<EntityStore, BreakBlockEvent> {
 
@@ -58,8 +58,8 @@ public class BlockBreakEvent extends EntityEventSystem<EntityStore, BreakBlockEv
         for (Ref<EntityStore> playerRef : activePlayers) {
             if (playerRef == null || !playerRef.isValid())
                 continue;
-            PedestalDataComponent playerData = buffer.getComponent(playerRef,
-                    PedestalDataComponent.getComponentType());
+            CraftingDataComponent playerData = buffer.getComponent(playerRef,
+                    CraftingDataComponent.getComponentType());
             if (playerData == null)
                 continue;
 
@@ -75,8 +75,8 @@ public class BlockBreakEvent extends EntityEventSystem<EntityStore, BreakBlockEv
 
         Ref<EntityStore> pedestalEntityRef = pedestal.getPedestalEntityRef();
         if (pedestalEntityRef != null && pedestalEntityRef.isValid()) {
-            PedestalDataComponent sharedData = buffer.getComponent(pedestalEntityRef,
-                    PedestalDataComponent.getComponentType());
+            CraftingDataComponent sharedData = buffer.getComponent(pedestalEntityRef,
+                    CraftingDataComponent.getComponentType());
             if (sharedData != null) {
                 AnchorEntity.DespawnHexPreviews(buffer, pedestal, sharedData);
                 List<Ref<EntityStore>> allRefs = sharedData.getAllRefs();

@@ -13,14 +13,14 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
+import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
+import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
 import com.riprod.hexcode.core.state.crafting.handlers.CraftingDragHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeRouter;
 import com.riprod.hexcode.core.state.crafting.utils.HoverStyleUtils;
 import com.riprod.hexcode.core.state.crafting.utils.LinkRenderer;
-import com.riprod.hexcode.core.state.crafting.utils.PedestalDataUtil;
+import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
 
 public class CraftingStateSystem {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -132,7 +132,7 @@ public class CraftingStateSystem {
 
         HoverStyleUtils.hoverParticles(accessor, craftingComp.getHoveredRef(), dt, pedestal, ref);
 
-        PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(accessor, ref);
+        CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(accessor, ref);
         if (playerData != null) {
             LinkRenderer.renderLinks(accessor, playerData, pedestal, dt, playerRefFlag);
         }

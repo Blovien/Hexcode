@@ -1,4 +1,4 @@
-package com.riprod.hexcode.core.state.crafting.system;
+package com.riprod.hexcode.core.common.pedestal.events;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,20 +27,21 @@ import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexcaster.utils.PlayerUtils;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
+import com.riprod.hexcode.core.common.obelisk.component.ObeliskBlockComponent;
+import com.riprod.hexcode.core.common.obelisk.system.ObeliskSystem;
+import com.riprod.hexcode.core.common.obelisk.utils.ObeliskBlockUtil;
+import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.common.pedestal.utils.PedestalBlockUtil;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.handlers.CraftingDragHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.DetailsHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Container.ContainerNodeHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Slot.SlotNodeHandler;
-import com.riprod.hexcode.core.state.crafting.component.ObeliskBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
+import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
 import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
 import com.riprod.hexcode.core.state.crafting.entity.AnchorEntity;
 import com.riprod.hexcode.core.state.crafting.entity.PedestalEntity;
-import com.riprod.hexcode.core.state.crafting.utils.ObeliskBlockUtil;
-import com.riprod.hexcode.core.state.crafting.utils.PedestalBlockUtil;
-import com.riprod.hexcode.core.state.crafting.utils.PedestalDataUtil;
+import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalItemUtil;
 import com.riprod.hexcode.core.state.crafting.utils.RadialPositionUtil;
 import com.riprod.hexcode.state.HexState;
@@ -57,7 +58,7 @@ public class PedestalSystem {
 
     public static void SpawnHexPreviews(CommandBuffer<EntityStore> buffer, Ref<EntityStore> playerRef,
             PedestalBlockComponent pedestal,
-            PedestalDataComponent playerData) {
+            CraftingDataComponent playerData) {
 
         Integer totalSlots = playerData.getBookSlots();
         if (totalSlots == null || totalSlots <= 0) {
@@ -100,7 +101,7 @@ public class PedestalSystem {
     public static void enterCrafting(CommandBuffer<EntityStore> buffer, Ref<EntityStore> playerRef,
             PedestalBlockComponent pedestal, Ref<EntityStore> selectedAnchorNodeRef) {
 
-        PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(buffer, playerRef);
+        CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(buffer, playerRef);
 
         List<Ref<EntityStore>> refs = playerData.getHexPreviewRefs();
         if (refs == null || refs.isEmpty()) {
@@ -154,7 +155,7 @@ public class PedestalSystem {
     }
 
     public static void saveHexToBook(CommandBuffer<EntityStore> buffer, Ref<EntityStore> playerRef,
-            PedestalDataComponent playerData) {
+            CraftingDataComponent playerData) {
 
         int slotIndex = playerData.getActiveSlotIndex();
         if (slotIndex < 0) {
@@ -195,7 +196,7 @@ public class PedestalSystem {
     }
 
     public static void exitCrafting(CommandBuffer<EntityStore> buffer, Ref<EntityStore> playerRef,
-            PedestalBlockComponent pedestal, PedestalDataComponent playerData) {
+            PedestalBlockComponent pedestal, CraftingDataComponent playerData) {
 
         saveHexToBook(buffer, playerRef, playerData);
 
@@ -236,7 +237,7 @@ public class PedestalSystem {
 
     public static void handleEssencePlacement(CommandBuffer<EntityStore> buffer,
             Player player, ItemStack essenceItem, HexSlot slot,
-            PedestalBlockComponent pedestalComponent, PedestalDataComponent playerData,
+            PedestalBlockComponent pedestalComponent, CraftingDataComponent playerData,
             Vector3i blockPos) {
 
         Vector3d anchorPos = PedestalEntity.getAnchorPosition(blockPos);
@@ -259,7 +260,7 @@ public class PedestalSystem {
 
     public static void handleBookPlacement(CommandBuffer<EntityStore> buffer,
             Player player, ItemStack bookItem, HexSlot slot, PedestalBlockComponent pedestalComponent,
-            PedestalDataComponent playerData, Vector3i blockPos) {
+            CraftingDataComponent playerData, Vector3i blockPos) {
 
         Vector3d anchorPos = PedestalEntity.getAnchorPosition(blockPos);
 
@@ -283,7 +284,7 @@ public class PedestalSystem {
     public static void enterSelecting(PedestalBlockComponent pedestalComponent, Player player,
             World world, CommandBuffer<EntityStore> buffer) {
 
-        PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(buffer, player.getReference());
+        CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(buffer, player.getReference());
 
         if (playerData == null) {
             logger.atWarning().log("pedestal: enterSelecting aborted — playerData is null for player %s",
@@ -328,7 +329,7 @@ public class PedestalSystem {
             Player player, PedestalBlockComponent pedestalComponent,
             World world) {
 
-        PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(buffer, player.getReference());
+        CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(buffer, player.getReference());
 
         AnchorEntity.DespawnHexPreviews(buffer, pedestalComponent, playerData);
 
@@ -398,7 +399,7 @@ public class PedestalSystem {
         updateState(buffer, pedestalComponent, playerData, world, PedestalState.IDLE);
     }
 
-    public static void handleReady(CommandBuffer<EntityStore> accessor, PedestalDataComponent playerData,
+    public static void handleReady(CommandBuffer<EntityStore> accessor, CraftingDataComponent playerData,
             PedestalBlockComponent pedestal,
             World world) {
 
@@ -413,7 +414,7 @@ public class PedestalSystem {
     }
 
     public static void updateState(CommandBuffer<EntityStore> accessor, PedestalBlockComponent pedestal,
-            PedestalDataComponent playerData, World world,
+            CraftingDataComponent playerData, World world,
             PedestalState state) {
 
         Vector3i blockPos = pedestal.getLocation();
@@ -470,7 +471,7 @@ public class PedestalSystem {
         for (Ref<EntityStore> playerRef : activePlayers) {
             if (playerRef == null || !playerRef.isValid())
                 continue;
-            PedestalDataComponent data = PedestalDataUtil.getPedestalData(buffer, playerRef);
+            CraftingDataComponent data = CraftingDataUtil.getPedestalData(buffer, playerRef);
             if (data == null)
                 continue;
             switch (data.getState()) {

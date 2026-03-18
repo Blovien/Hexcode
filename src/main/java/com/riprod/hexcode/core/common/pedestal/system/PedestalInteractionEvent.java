@@ -1,4 +1,4 @@
-package com.riprod.hexcode.core.state.crafting.events;
+package com.riprod.hexcode.core.common.pedestal.system;
 
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
@@ -13,13 +13,13 @@ import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexcaster.utils.PlayerUtils;
-import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
+import com.riprod.hexcode.core.common.obelisk.system.ObeliskSystem;
+import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.common.pedestal.events.PedestalSystem;
+import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
 import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
 import com.riprod.hexcode.core.state.crafting.entity.PedestalEntity;
-import com.riprod.hexcode.core.state.crafting.system.ObeliskSystem;
-import com.riprod.hexcode.core.state.crafting.system.PedestalSystem;
-import com.riprod.hexcode.core.state.crafting.utils.PedestalDataUtil;
+import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalItemUtil;
 import com.riprod.hexcode.utils.HexSlot;
 
@@ -52,7 +52,7 @@ public class PedestalInteractionEvent {
             pedestalComponent.setLocation(blockPos);
         }
 
-        PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(accessor, playerRef,
+        CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(accessor, playerRef,
                 pedestalComponent.isPerPlayer());
         if (playerData == null)
             return;
@@ -126,7 +126,7 @@ public class PedestalInteractionEvent {
     }
 
     private static void ensureAnchor(CommandBuffer<EntityStore> buffer,
-            PedestalBlockComponent pedestal, PedestalDataComponent playerData, Vector3i blockPos) {
+            PedestalBlockComponent pedestal, CraftingDataComponent playerData, Vector3i blockPos) {
         Ref<EntityStore> anchorRef = playerData.getAnchorRef();
         if (anchorRef != null && anchorRef.isValid()) {
             return;

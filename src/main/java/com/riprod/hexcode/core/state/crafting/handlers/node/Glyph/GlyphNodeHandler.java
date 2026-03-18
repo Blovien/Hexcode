@@ -36,7 +36,7 @@ import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
+import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
 import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 import com.riprod.hexcode.core.state.crafting.constants.NodeType;
 import com.riprod.hexcode.core.state.crafting.handlers.DetailsHandler;
@@ -44,7 +44,7 @@ import com.riprod.hexcode.core.state.crafting.handlers.node.NodeInterface;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Slot.SlotNodeHandler;
 import com.riprod.hexcode.core.state.crafting.utils.CraftingGlyphRemover;
 import com.riprod.hexcode.core.state.crafting.utils.LinkRenderer;
-import com.riprod.hexcode.core.state.crafting.utils.PedestalDataUtil;
+import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
 
 public class GlyphNodeHandler implements NodeInterface {
     public static final GlyphNodeHandler INSTANCE = new GlyphNodeHandler();
@@ -334,7 +334,7 @@ public class GlyphNodeHandler implements NodeInterface {
 
         HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
                 HexcasterCraftingComponent.getComponentType());
-        PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(accessor, playerRef);
+        CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(accessor, playerRef);
         NodeComponent nodeComp = accessor.getComponent(node, NodeComponent.getComponentType());
 
         if (craftingComp == null || playerData == null || nodeComp == null) {

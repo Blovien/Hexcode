@@ -1,4 +1,4 @@
-package com.riprod.hexcode.core.state.crafting.component;
+package com.riprod.hexcode.core.common.pedestal.component;
 
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;

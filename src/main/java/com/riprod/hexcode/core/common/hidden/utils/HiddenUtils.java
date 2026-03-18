@@ -11,8 +11,8 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hidden.component.HiddenComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
-import com.riprod.hexcode.core.state.crafting.utils.PedestalDataUtil;
+import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
+import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
 
 public class HiddenUtils {
     private static HytaleLogger logger = HytaleLogger.forEnclosingClass();
@@ -46,7 +46,7 @@ public class HiddenUtils {
     public static void addHiddenToHolder(CommandBuffer<EntityStore> accessor, Holder<EntityStore> holder,
             Ref<EntityStore> playerRef) {
         if (playerRef != null && playerRef.isValid()) {
-            PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(accessor, playerRef);
+            CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(accessor, playerRef);
             if (playerData != null && playerData.isPerPlayer()) {
                 holder.addComponent(HiddenComponent.getComponentType(), new HiddenComponent(playerRef));
             }

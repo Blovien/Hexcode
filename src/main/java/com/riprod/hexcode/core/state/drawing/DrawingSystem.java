@@ -29,16 +29,16 @@ import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.hover.component.HoverableType;
 import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
+import com.riprod.hexcode.core.common.pedestal.component.PedestalEntityComponent;
+import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalAnchorComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
+import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
 import com.riprod.hexcode.core.state.crafting.constants.NodeType;
 import com.riprod.hexcode.core.state.crafting.entity.PedestalEntity;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeRouter;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Effect.EffectNodeHandler;
-import com.riprod.hexcode.core.state.crafting.utils.PedestalDataUtil;
+import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.riprod.hexcode.core.state.drawing.component.DrawnShapeComponent;
 import com.riprod.hexcode.core.state.drawing.component.HexcasterDrawingComponent;
@@ -84,7 +84,7 @@ public class DrawingSystem extends HexcodeManager {
       HexState nextState) {
 
     HexcasterDrawingComponent drawingComp = buffer.getComponent(ref, HexcasterDrawingComponent.getComponentType());
-    PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(buffer, ref);
+    CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(buffer, ref);
 
     List<DrawnShapeComponent> drawnShapes = drawingComp.getDrawnGlyphs();
     if (drawnShapes != null && !drawnShapes.isEmpty()) {
@@ -289,17 +289,17 @@ public class DrawingSystem extends HexcodeManager {
     if (anchorRef == null || !anchorRef.isValid()) {
       return null;
     }
-    PedestalAnchorComponent anchor = buffer.getComponent(anchorRef,
-        PedestalAnchorComponent.getComponentType());
-    if (anchor == null || anchor.getPedestalLoc() == null) {
+    PedestalEntityComponent pedestalEntity = buffer.getComponent(anchorRef,
+        PedestalEntityComponent.getComponentType());
+    if (pedestalEntity == null || pedestalEntity.getPedestalLoc() == null) {
       return null;
     }
     return BlockModule.getComponent(
         PedestalBlockComponent.getComponentType(),
         buffer.getExternalData().getWorld(),
-        anchor.getPedestalLoc().getX(),
-        anchor.getPedestalLoc().getY(),
-        anchor.getPedestalLoc().getZ());
+        pedestalEntity.getPedestalLoc().getX(),
+        pedestalEntity.getPedestalLoc().getY(),
+        pedestalEntity.getPedestalLoc().getZ());
   }
 
   private static Vector3d calculateDrawCenter(List<DrawnShapeComponent> drawnShapes) {
@@ -324,7 +324,7 @@ public class DrawingSystem extends HexcodeManager {
   }
 
   private static void spawnDrawnGlyph(CommandBuffer<EntityStore> accessor, Glyph glyph,
-      PedestalDataComponent playerData, Transform spawnPos, Ref<EntityStore> playerRef) {
+      CraftingDataComponent playerData, Transform spawnPos, Ref<EntityStore> playerRef) {
 
     Ref<EntityStore> anchorRef = playerData.getAnchorNodeRef();
     if (anchorRef == null || !anchorRef.isValid()) {

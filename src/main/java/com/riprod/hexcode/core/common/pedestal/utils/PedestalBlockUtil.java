@@ -1,4 +1,4 @@
-package com.riprod.hexcode.core.state.crafting.utils;
+package com.riprod.hexcode.core.common.pedestal.utils;
 
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
@@ -9,9 +9,9 @@ import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.common.pedestal.component.PedestalEntityComponent;
+import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalAnchorComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
 
 public class PedestalBlockUtil {
 
@@ -51,13 +51,13 @@ public class PedestalBlockUtil {
             return null;
         }
 
-        PedestalAnchorComponent anchor = buffer.getComponent(anchorRef,
-                PedestalAnchorComponent.getComponentType());
-        if (anchor == null || anchor.getPedestalLoc() == null) {
+        PedestalEntityComponent pedestalEntity = buffer.getComponent(anchorRef,
+                PedestalEntityComponent.getComponentType());
+        if (pedestalEntity == null || pedestalEntity.getPedestalLoc() == null) {
             return null;
         }
 
-        Vector3i pos = anchor.getPedestalLoc();
+        Vector3i pos = pedestalEntity.getPedestalLoc();
         return BlockModule.getComponent(
                 PedestalBlockComponent.getComponentType(),
                 buffer.getExternalData().getWorld(),

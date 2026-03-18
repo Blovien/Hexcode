@@ -12,7 +12,7 @@ import com.hypixel.hytale.server.core.entity.InteractionContext;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHandler;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.SimpleInteraction;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.state.crafting.events.PedestalInteractionEvent;
+import com.riprod.hexcode.core.common.pedestal.system.PedestalInteractionEvent;
 
 public class PedestalInteraction extends SimpleInteraction {
 

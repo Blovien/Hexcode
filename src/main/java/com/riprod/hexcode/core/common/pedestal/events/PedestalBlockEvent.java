@@ -1,4 +1,4 @@
-package com.riprod.hexcode.core.state.crafting.events;
+package com.riprod.hexcode.core.common.pedestal.events;
 
 import javax.annotation.Nonnull;
 
@@ -17,11 +17,11 @@ import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.block.component.UnbreakableBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
-import com.riprod.hexcode.core.state.crafting.system.ObeliskSystem;
-import com.riprod.hexcode.core.state.crafting.utils.PedestalDataUtil;
+import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
+import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
+import com.riprod.hexcode.core.common.obelisk.system.ObeliskSystem;
+import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.state.HexState;
 
 import java.util.Set;
@@ -67,11 +67,11 @@ public class PedestalBlockEvent extends EntityEventSystem<EntityStore, BreakBloc
         if (!pedestal.isPerPlayer()) { // if is not per player, drop the shared contents
             Ref<EntityStore> pedestalRef = pedestal.getPedestalEntityRef();
             if (pedestalRef != null && pedestalRef.isValid()) {
-                PedestalDataComponent playerData = buffer.getComponent(pedestal.getPedestalEntityRef(),
-                        PedestalDataComponent.getComponentType());
+                CraftingDataComponent playerData = buffer.getComponent(pedestal.getPedestalEntityRef(),
+                        CraftingDataComponent.getComponentType());
 
                 if (playerData != null) {
-                    PedestalDataUtil.dropContents(buffer, pedestal, playerData, pos);
+                    CraftingDataUtil.dropContents(buffer, pedestal, playerData, pos);
                 }
 
                 buffer.removeEntity(pedestalRef, RemoveReason.REMOVE);

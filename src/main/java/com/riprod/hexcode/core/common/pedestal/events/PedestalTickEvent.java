@@ -1,4 +1,4 @@
-package com.riprod.hexcode.core.state.crafting.events;
+package com.riprod.hexcode.core.common.pedestal.events;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,8 +19,8 @@ import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalAnchorComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.common.pedestal.component.PedestalEntityComponent;
+import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.entity.PedestalEntity;
 import com.riprod.hexcode.core.state.crafting.utils.PlayerLocationUtil;
 import com.riprod.hexcode.state.HexState;
@@ -35,19 +35,19 @@ public class PedestalTickEvent extends EntityTickingSystem<EntityStore> {
 
     @Override
     public Query<EntityStore> getQuery() {
-        return PedestalAnchorComponent.getComponentType();
+        return PedestalEntityComponent.getComponentType();
     }
 
     @Override
     public void tick(float dt, int index, ArchetypeChunk<EntityStore> accessor,
             @Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> buffer) {
 
-        PedestalAnchorComponent anchor = accessor.getComponent(index, PedestalAnchorComponent.getComponentType());
-        if (anchor == null || anchor.getPedestalLoc() == null) {
+        PedestalEntityComponent pedestalEntity = accessor.getComponent(index, PedestalEntityComponent.getComponentType());
+        if (pedestalEntity == null || pedestalEntity.getPedestalLoc() == null) {
             return;
         }
 
-        Vector3i pedestalPos = anchor.getPedestalLoc();
+        Vector3i pedestalPos = pedestalEntity.getPedestalLoc();
 
         PedestalBlockComponent pedestalBlock = BlockModule.getComponent(PedestalBlockComponent.getComponentType(),
                 buffer.getExternalData().getWorld(), pedestalPos.getX(), pedestalPos.getY(), pedestalPos.getZ());

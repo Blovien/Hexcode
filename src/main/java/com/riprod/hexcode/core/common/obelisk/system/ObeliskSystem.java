@@ -1,4 +1,4 @@
-package com.riprod.hexcode.core.state.crafting.system;
+package com.riprod.hexcode.core.common.obelisk.system;
 
 import java.util.List;
 import java.util.Set;
@@ -9,12 +9,12 @@ import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.block.component.UnbreakableBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
+import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.common.pedestal.utils.PedestalBlockUtil;
+import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
 import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.riprod.hexcode.core.state.crafting.utils.PedestalBlockUtil;
-import com.riprod.hexcode.core.state.crafting.utils.PedestalDataUtil;
+import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
 
 public class ObeliskSystem {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -126,7 +126,7 @@ public class ObeliskSystem {
         if (players == null) return false;
         for (Ref<EntityStore> playerRef : players) {
             if (playerRef == null || !playerRef.isValid()) continue;
-            PedestalDataComponent data = PedestalDataUtil.getPedestalData(buffer, playerRef);
+            CraftingDataComponent data = CraftingDataUtil.getPedestalData(buffer, playerRef);
             if (data != null && data.getState() == targetState) return true;
         }
         return false;

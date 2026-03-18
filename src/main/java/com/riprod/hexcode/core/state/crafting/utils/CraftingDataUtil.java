@@ -7,30 +7,30 @@ import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
+import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
 import com.hypixel.hytale.logger.HytaleLogger;
 
-public class PedestalDataUtil {
+public class CraftingDataUtil {
     private static final HytaleLogger logger = HytaleLogger.forEnclosingClass();
 
-    public static PedestalDataComponent getPedestalData(CommandBuffer<EntityStore> accessor,
+    public static CraftingDataComponent getPedestalData(CommandBuffer<EntityStore> accessor,
             Ref<EntityStore> playerRef) {
         return getPedestalData(accessor, playerRef, false);
     }
 
-    public static PedestalDataComponent getPedestalData(CommandBuffer<EntityStore> accessor,
+    public static CraftingDataComponent getPedestalData(CommandBuffer<EntityStore> accessor,
             Ref<EntityStore> playerRef, boolean perPlayer) {
 
-        PedestalDataComponent playerPedestalData = accessor.getComponent(playerRef,
-                PedestalDataComponent.getComponentType());
+        CraftingDataComponent playerPedestalData = accessor.getComponent(playerRef,
+                CraftingDataComponent.getComponentType());
         if (playerPedestalData != null) {
             return playerPedestalData;
         }
 
         if (perPlayer) {
-            playerPedestalData = new PedestalDataComponent();
-            accessor.addComponent(playerRef, PedestalDataComponent.getComponentType(), playerPedestalData);
+            playerPedestalData = new CraftingDataComponent();
+            accessor.addComponent(playerRef, CraftingDataComponent.getComponentType(), playerPedestalData);
             return playerPedestalData;
         }
 
@@ -46,18 +46,18 @@ public class PedestalDataUtil {
             return null;
         }
 
-        PedestalDataComponent anchorData = accessor.getComponent(pedestalEntityRef,
-                PedestalDataComponent.getComponentType());
+        CraftingDataComponent anchorData = accessor.getComponent(pedestalEntityRef,
+                CraftingDataComponent.getComponentType());
 
         if (anchorData == null) {
-            anchorData = new PedestalDataComponent();
-            accessor.addComponent(pedestalEntityRef, PedestalDataComponent.getComponentType(), anchorData);
+            anchorData = new CraftingDataComponent();
+            accessor.addComponent(pedestalEntityRef, CraftingDataComponent.getComponentType(), anchorData);
         }
         return anchorData;
     }
 
     public static void dropContents(CommandBuffer<EntityStore> buffer, PedestalBlockComponent pedestal,
-            PedestalDataComponent playerData, Vector3i pos) {
+            CraftingDataComponent playerData, Vector3i pos) {
 
         // remove and drop book
         ItemStack bookStack = playerData.getStoredBook();

@@ -20,10 +20,10 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import com.riprod.hexcode.utils.HexSlot;
 
-public class PedestalDataComponent implements Component<EntityStore> {
+public class CraftingDataComponent implements Component<EntityStore> {
 
-    public static final BuilderCodec<PedestalDataComponent> CODEC = BuilderCodec
-            .builder(PedestalDataComponent.class, PedestalDataComponent::new)
+    public static final BuilderCodec<CraftingDataComponent> CODEC = BuilderCodec
+            .builder(CraftingDataComponent.class, CraftingDataComponent::new)
             .append(new KeyedCodec<>("StoredBook", ItemStack.CODEC), (c, v) -> c.storedBook = v, c -> c.storedBook)
             .documentation(
                     "The book currently stored in the pedestal. Set at runtime when a player places a book on the pedestal")
@@ -36,17 +36,17 @@ public class PedestalDataComponent implements Component<EntityStore> {
             .add()
             .build();
 
-    private static ComponentType<EntityStore, PedestalDataComponent> componentType;
+    private static ComponentType<EntityStore, CraftingDataComponent> componentType;
 
-    public static void setComponentType(ComponentType<EntityStore, PedestalDataComponent> type) {
+    public static void setComponentType(ComponentType<EntityStore, CraftingDataComponent> type) {
         componentType = type;
     }
 
-    public static ComponentType<EntityStore, PedestalDataComponent> getComponentType() {
+    public static ComponentType<EntityStore, CraftingDataComponent> getComponentType() {
         return componentType;
     }
 
-    public PedestalDataComponent() {
+    public CraftingDataComponent() {
     }
 
     public void updatePedestal(Vector3i newLocation, int newRadius, boolean perPlayer) {
@@ -240,7 +240,7 @@ public class PedestalDataComponent implements Component<EntityStore> {
     @Nonnull
     @Override
     public Component<EntityStore> clone() {
-        PedestalDataComponent copy = new PedestalDataComponent();
+        CraftingDataComponent copy = new CraftingDataComponent();
         copy.storedBook = this.storedBook;
         copy.essenceItemId = this.essenceItemId;
         copy.bookSourceSlot = this.bookSourceSlot;

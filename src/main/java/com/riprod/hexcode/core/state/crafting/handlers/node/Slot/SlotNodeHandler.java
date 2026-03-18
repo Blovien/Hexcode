@@ -35,13 +35,13 @@ import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
+import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
 import com.riprod.hexcode.core.state.crafting.component.SlotComponent;
 import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 import com.riprod.hexcode.core.state.crafting.constants.NodeType;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeInterface;
 import com.riprod.hexcode.core.state.crafting.utils.LinkRenderer;
-import com.riprod.hexcode.core.state.crafting.utils.PedestalDataUtil;
+import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
 
 public class SlotNodeHandler implements NodeInterface {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -233,14 +233,14 @@ public class SlotNodeHandler implements NodeInterface {
 
     @Override
     public void despawn(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
-        PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(accessor, playerRef);
+        CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(accessor, playerRef);
 
         if (playerData == null)
             return;
         this.despawn(accessor, playerData);
     }
 
-    public void despawn(CommandBuffer<EntityStore> accessor, PedestalDataComponent playerData) {
+    public void despawn(CommandBuffer<EntityStore> accessor, CraftingDataComponent playerData) {
 
         if (playerData == null)
             return;

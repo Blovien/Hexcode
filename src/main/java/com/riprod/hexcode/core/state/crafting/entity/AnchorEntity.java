@@ -29,6 +29,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
 import com.riprod.hexcode.core.common.block.event.BlockBreakEvent;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableType;
+import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
@@ -38,8 +39,7 @@ import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.state.casting.utils.GlyphSpawner;
 import com.riprod.hexcode.core.state.casting.utils.GlyphStyler;
-import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
+import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
 import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 
 public class AnchorEntity {
@@ -50,7 +50,7 @@ public class AnchorEntity {
     private static final Box PREVIEW_BOUNDING_BOX = new Box(-0.25, -0.25, -0.25, 0.25, 0.25, 0.25);
 
     public static void DespawnHexPreviews(CommandBuffer<EntityStore> buffer, PedestalBlockComponent pedestal,
-            PedestalDataComponent playerData) {
+            CraftingDataComponent playerData) {
         List<Ref<EntityStore>> refs = playerData.getHexPreviewRefs();
         if (refs == null || refs.isEmpty()) {
             return;
