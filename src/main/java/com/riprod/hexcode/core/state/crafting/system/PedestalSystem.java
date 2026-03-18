@@ -31,6 +31,7 @@ import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingCompone
 import com.riprod.hexcode.core.state.crafting.handlers.CraftingDragHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.DetailsHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Container.ContainerNodeHandler;
+import com.riprod.hexcode.core.state.crafting.handlers.node.Slot.SlotNodeHandler;
 import com.riprod.hexcode.core.state.crafting.component.ObeliskBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
@@ -83,7 +84,7 @@ public class PedestalSystem {
 
             Hex hex = null;
             if (i < hexes.size()) {
-                hex = hexes.get(i);
+                hex = hexes.get(i).clone();
             }
             Ref<EntityStore> hexRef = ContainerNodeHandler.INSTANCE.spawnContainer(buffer, hex, anchorRef,
                     anchorPos, offset, playerRef);
@@ -189,18 +190,20 @@ public class PedestalSystem {
 
         bookComp.setHex(slotIndex, hex);
 
-        ItemStack updatedBook = PedestalItemUtil.saveHexBookComponent(playerData.getStoredBook(), bookComp);
-        playerData.setStoredBook(updatedBook);
+        playerData.setStoredBookComponent(bookComp);
+        logger.atInfo().log("pedestal: saved hex to book — slot=%d, hex=%s", slotIndex, hex);
     }
 
-    public static void enterSelectingFromCrafting(CommandBuffer<EntityStore> buffer, Ref<EntityStore> playerRef,
+    public static void exitCrafting(CommandBuffer<EntityStore> buffer, Ref<EntityStore> playerRef,
             PedestalBlockComponent pedestal, PedestalDataComponent playerData) {
 
         saveHexToBook(buffer, playerRef, playerData);
 
-        DetailsHandler.closeDetails(buffer, playerData.getSlotNodeRefs());
+        // cleanup slots
+        SlotNodeHandler.INSTANCE.despawn(buffer, playerData);
         playerData.setSlotNodeRefs(new ArrayList<>());
 
+        // cleanup dragging state
         HexcasterCraftingComponent craftingComp = buffer.getComponent(playerRef,
                 HexcasterCraftingComponent.getComponentType());
         if (craftingComp != null) {
@@ -216,20 +219,19 @@ public class PedestalSystem {
             playerData.setAnchorNodeRef(null);
         }
 
+        // Ref<EntityStore> anchorRef = playerData.getAnchorRef();
+        // if (anchorRef != null && anchorRef.isValid()) {
+        // buffer.tryRemoveEntity(anchorRef, RemoveReason.REMOVE);
+        // playerData.setAnchorEntityRef(null);
+        // }
+
         playerData.setActiveSlotIndex(-1);
 
         if (craftingComp != null) {
             craftingComp.clearCraftingState();
         }
 
-        SpawnHexPreviews(buffer, playerRef, pedestal, playerData);
-
-        World world = buffer.getExternalData().getWorld();
-        UnbreakableBlockComponent.unprotect(world, pedestal.getLocation());
-
-        updateState(buffer, pedestal, playerData, world, PedestalState.SELECTING);
-        ObeliskSystem.updateState(buffer, pedestal, world, PedestalState.SELECTING);
-        playerData.setState(PedestalState.SELECTING);
+        playerData.setState(PedestalState.SELECTING); // go to idle to transition out of crafting
     }
 
     public static void handleEssencePlacement(CommandBuffer<EntityStore> buffer,
@@ -306,9 +308,6 @@ public class PedestalSystem {
         List<Pair<Vector3i, ObeliskBlockComponent>> obeliskPairs = ObeliskBlockUtil
                 .getObelisks(pedestalComponent.getLocation(), pedestalComponent.getObeliskRange(), world);
 
-        logger.atInfo().log("pedestal: obelisk scan at %s range=%d found %d obelisks",
-                pedestalComponent.getLocation(), pedestalComponent.getObeliskRange(), obeliskPairs.size());
-
         if (obeliskPairs.size() > pedestalComponent.getMaxObelisks()) {
             obeliskPairs = obeliskPairs.subList(0, pedestalComponent.getMaxObelisks());
         }
@@ -317,7 +316,6 @@ public class PedestalSystem {
 
         for (Pair<Vector3i, ObeliskBlockComponent> obeliskPair : obeliskPairs) {
             obelisks.add(obeliskPair.getFirst());
-            logger.atInfo().log("pedestal: registered obelisk at %s", obeliskPair.getFirst());
         }
 
         List<Vector3i> removedObelisks = pedestalComponent.setActiveObelisks(obelisks);
@@ -352,7 +350,7 @@ public class PedestalSystem {
         }
         activePlayers.clear();
 
-        DetailsHandler.closeDetails(buffer, playerData.getSlotNodeRefs());
+        SlotNodeHandler.INSTANCE.despawn(buffer, playerData);
 
         Vector3i blockPos = pedestalComponent.getLocation();
 

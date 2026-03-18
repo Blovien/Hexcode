@@ -123,4 +123,9 @@ public class Hex {
         newHex.set(this.hexId);
         return newHex;
     }
+
+    @Override
+    public String toString() {
+        return "Hex{id=" + hexId + ", firstGlyphId=" + firstGlyphId + ", glyphs=" + hexGraph.values() + "}";
+    }
 }

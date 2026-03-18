@@ -54,7 +54,8 @@ public class PedestalInteractionEvent {
 
         PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(accessor, playerRef,
                 pedestalComponent.isPerPlayer());
-        if (playerData == null) return;
+        if (playerData == null)
+            return;
 
         playerData.updatePedestal(blockPos, pedestalComponent.getMaxRadius(), pedestalComponent.isPerPlayer());
         ensureAnchor(accessor, pedestalComponent, playerData, blockPos);
@@ -64,7 +65,8 @@ public class PedestalInteractionEvent {
         HexSlot slot = held.getSecond();
 
         if (PedestalItemUtil.isEssence(item) && playerData.getEssence() == null) {
-            PedestalSystem.handleEssencePlacement(accessor, player, item, slot, pedestalComponent, playerData, blockPos);
+            PedestalSystem.handleEssencePlacement(accessor, player, item, slot, pedestalComponent, playerData,
+                    blockPos);
             PedestalSystem.handleReady(accessor, playerData, pedestalComponent, world);
             ObeliskSystem.handleReady(accessor, pedestalComponent, world);
             return;
@@ -105,16 +107,20 @@ public class PedestalInteractionEvent {
             PedestalState state = playerData.getState();
             logger.atInfo().log("pedestal: hasBook && hasEssence, state=%s", state);
             if (state == PedestalState.CRAFTING) {
-                PedestalSystem.enterSelectingFromCrafting(accessor, playerRef, pedestalComponent, playerData);
+                PedestalSystem.exitCrafting(accessor, playerRef, pedestalComponent, playerData);
+                PedestalSystem.enterSelecting(pedestalComponent, player, world, accessor);
+                ObeliskSystem.enterSelecting(pedestalComponent, world, accessor);
             } else if (state == PedestalState.SELECTING) {
                 playerData.setState(PedestalState.IDLE);
                 PedestalSystem.enterIdle(accessor, player, pedestalComponent, world);
                 ObeliskSystem.enterIdle(accessor, pedestalComponent, world);
+
             } else {
                 logger.atInfo().log("pedestal: entering selecting + obelisk flow");
                 PedestalSystem.enterSelecting(pedestalComponent, player, world, accessor);
                 ObeliskSystem.enterSelecting(pedestalComponent, world, accessor);
                 playerData.setState(PedestalState.SELECTING);
+
             }
         }
     }

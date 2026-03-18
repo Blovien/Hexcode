@@ -235,4 +235,9 @@ public class GlyphComponent implements Component<EntityStore> {
         copy.flags = this.flags.isEmpty() ? EnumSet.noneOf(GlyphFlags.class) : EnumSet.copyOf(this.flags);
         return copy;
     }
+
+    @Override
+    public String toString() {
+        return String.format("GlyphComponent(Glyph=%s)", this.glyph);
+    }
 }

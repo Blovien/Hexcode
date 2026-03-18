@@ -1,0 +1,8 @@
+{
+  "Infinite": true,
+  "ApplicationEffects": {
+    "ModelVFXId": "Hexcode_Arcane",
+    "EntityBottomTint": "#7ec8ff",
+    "EntityTopTint": "#4a9edd"
+  }
+}

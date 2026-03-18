@@ -35,7 +35,6 @@ import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableType;
 import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
-import com.riprod.hexcode.core.state.casting.utils.GlyphSpawner;
 import com.riprod.hexcode.core.state.casting.utils.GlyphStyler;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
@@ -44,7 +43,7 @@ import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
 import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 import com.riprod.hexcode.core.state.crafting.constants.NodeType;
 import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
-import com.riprod.hexcode.core.state.crafting.entity.AnchorEntity;
+import com.riprod.hexcode.core.state.crafting.entity.GlyphSpawner;
 import com.riprod.hexcode.core.state.crafting.entity.PedestalEntity;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeInterface;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeRouter;
@@ -130,16 +129,17 @@ public class ContainerNodeHandler implements NodeInterface {
 
         String firstGlyphId = hex.getFirstGlyphId();
         Glyph firstGlyph = hex.get(firstGlyphId);
-        GlyphComponent firstGlyphComponent = new GlyphComponent(firstGlyph);
+        GlyphComponent firstGlyphComponent = new GlyphComponent(firstGlyph.clone());
 
+        Vector3f glyphRot = new Vector3f(PEDESTAL_GLYPH_PITCH, 0, GLYPH_DISPLAY_DISTANCE);
         firstGlyphComponent.setHexRef(hexRef);
         firstGlyphComponent.setParentRef(hexRef);
         firstGlyphComponent.setOffset(Vector3f.ZERO);
-        firstGlyphComponent.setRotation(new Vector3f(PEDESTAL_GLYPH_PITCH, 0, GLYPH_DISPLAY_DISTANCE));
+        firstGlyphComponent.setRotation(glyphRot);
         firstGlyphComponent.setScale(scaleMultiplier);
         hexComponent.setScale(scaleMultiplier);
 
-        GlyphSpawner.spawnGlyphs(accessor, hexComponent, firstGlyphComponent, globalPos, playerRef);
+        GlyphSpawner.spawnGlyphs(accessor, hexComponent, firstGlyphComponent, globalPos, glyphRot, playerRef);
         accessor.putComponent(hexRef, HexComponent.getComponentType(), hexComponent);
         return hexRef;
     }
@@ -155,6 +155,9 @@ public class ContainerNodeHandler implements NodeInterface {
         if (playerData == null)
             return InteractionState.Failed;
 
+        if (playerData.getState() != PedestalState.SELECTING)
+            return InteractionState.Failed; // only interact whilst in selecting state
+
         HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
                 HexcasterCraftingComponent.getComponentType());
         if (craftingComp == null)
@@ -162,6 +165,8 @@ public class ContainerNodeHandler implements NodeInterface {
 
         HexComponent hexComp = accessor.getComponent(node, HexComponent.getComponentType());
         boolean isFilled = hexComp != null && hexComp.getHex() != null;
+
+        Hex originalHex = null;
 
         if (isFilled) {
             int slotIndex = playerData.getHexPreviewRefs().indexOf(node);
@@ -183,23 +188,30 @@ public class ContainerNodeHandler implements NodeInterface {
 
             List<Hex> bookHexes = playerData.getHexes();
             if (slotIndex >= 0 && slotIndex < bookHexes.size()) {
-                HexComponent freshComp = new HexComponent(bookHexes.get(slotIndex));
+                Hex hex = bookHexes.get(slotIndex).clone();
+                HexComponent freshComp = new HexComponent(hex);
                 freshComp.setSelfRef(node);
                 freshComp.setRootRef(hexComp.getRootRef());
                 accessor.putComponent(node, HexComponent.getComponentType(), freshComp);
+                originalHex = hex;
             }
+
         } else {
             playerData.setActiveSlotIndex(playerData.getHexes().size());
 
-            HexComponent newHexComp = new HexComponent(new Hex());
+            originalHex = new Hex();
+            HexComponent newHexComp = new HexComponent(originalHex);
+
             newHexComp.setSelfRef(node);
             accessor.putComponent(node, HexComponent.getComponentType(), newHexComp);
+
         }
 
         PedestalSystem.enterCrafting(accessor, playerRef, pedestal, node);
         ObeliskSystem.enterCrafting(accessor, pedestal, node);
         playerData.setState(PedestalState.CRAFTING);
         craftingComp.setHoveredRef(null);
+        accessor.removeComponent(node, DebugComponent.getComponentType());
 
         Vector3d anchorPos = PedestalEntity.getAnchorPosition(pedestal.getLocation());
         Vector3d activePos = new Vector3d(
@@ -207,7 +219,7 @@ public class ContainerNodeHandler implements NodeInterface {
                 anchorPos.y + PedestalSystem.ACTIVE_HEX_OFFSET.y,
                 anchorPos.z + PedestalSystem.ACTIVE_HEX_OFFSET.z);
 
-        Ref<EntityStore> rootNodeRef = AnchorNodeHandler.INSTANCE.spawnNode(accessor,
+        Ref<EntityStore> rootNodeRef = AnchorNodeHandler.INSTANCE.spawnNode(accessor, originalHex,
                 node, activePos, playerRef);
         playerData.setAnchorNodeRef(rootNodeRef);
 
@@ -217,29 +229,29 @@ public class ContainerNodeHandler implements NodeInterface {
     @Override
     public InteractionState tick(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
             Ref<EntityStore> playerRef) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'tick'");
+
+        return InteractionState.Finished;
     }
 
     @Override
     public InteractionState exit(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
             Ref<EntityStore> playerRef) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'exit'");
+
+        return InteractionState.Finished;
     }
 
     @Override
     public InteractionState click(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
             Ref<EntityStore> playerRef) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'click'");
+
+        return InteractionState.Finished;
     }
 
     @Override
     public InteractionState ability(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
             InteractionType inputType, Ref<EntityStore> playerRef) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'ability'");
+
+        return InteractionState.Finished;
     }
 
     @Override

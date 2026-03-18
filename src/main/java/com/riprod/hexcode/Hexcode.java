@@ -25,6 +25,7 @@ import com.riprod.hexcode.core.common.hidden.system.HiddenFilterSystem;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.system.HoverableSpatialSystem;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
+import com.riprod.hexcode.core.common.effect.GlyphEffectSystem;
 import com.riprod.hexcode.core.common.utilities.system.DebugTickSystem;
 import com.riprod.hexcode.interaction.HexStateChange;
 import com.riprod.hexcode.interaction.HexHold;
@@ -284,6 +285,7 @@ public class Hexcode extends JavaPlugin {
     entityStoreRegistry.registerSystem(new PedestalBlockEvent());
     entityStoreRegistry.registerSystem(new BlockBreakEvent());
     entityStoreRegistry.registerSystem(new DebugTickSystem());
+    entityStoreRegistry.registerSystem(new GlyphEffectSystem());
 
     // Events
     this.getEventRegistry().registerGlobal(PlayerConnectEvent.class, Hexcode::onPlayerConnect);

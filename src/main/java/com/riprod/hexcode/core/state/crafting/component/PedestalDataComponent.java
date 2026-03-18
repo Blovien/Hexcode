@@ -32,9 +32,6 @@ public class PedestalDataComponent implements Component<EntityStore> {
                     c -> c.essenceItemId)
             .documentation(
                     "The essence item ID currently stored in the pedestal. Set at runtime when a player places a book on the pedestal")
-            .add()
-            .append(new KeyedCodec<>("State", new EnumCodec<>(PedestalState.class)),
-                    (c, v) -> c.blockState = v, c -> c.blockState)
             .documentation("The current state of the pedestal")
             .add()
             .build();
@@ -135,6 +132,14 @@ public class PedestalDataComponent implements Component<EntityStore> {
         }
 
         return storedBook.getFromMetadataOrNull(CasterInventory.METADATA_KEY_HEX_BOOK, HexBookComponent.CODEC);
+    }
+
+    public void setStoredBookComponent(HexBookComponent bookComponent) {
+        if (storedBook == null || storedBook.isEmpty()) {
+            return;
+        }
+        this.storedBook = storedBook.withMetadata(CasterInventory.METADATA_KEY_HEX_BOOK, HexBookComponent.CODEC,
+                bookComponent);
     }
 
     public Integer getBookSlots() {

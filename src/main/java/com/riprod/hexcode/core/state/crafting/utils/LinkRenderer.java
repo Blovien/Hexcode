@@ -29,7 +29,7 @@ public class LinkRenderer {
     public static void renderLinks(CommandBuffer<EntityStore> accessor, PedestalDataComponent playerData,
             PedestalBlockComponent pedestal, float dt, @Nullable Ref<EntityStore> playerRef) {
         Ref<EntityStore> hexRootRef = playerData.getAnchorRef();
-        if (hexRootRef == null)
+        if (hexRootRef == null || !hexRootRef.isValid())
             return;
 
         if (pedestal.getTickLength("LINK_RENDER") < 0) {

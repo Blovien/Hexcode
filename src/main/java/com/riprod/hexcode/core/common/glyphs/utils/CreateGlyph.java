@@ -1,12 +1,6 @@
 package com.riprod.hexcode.core.common.glyphs.utils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-
-import javax.annotation.Nullable;
 
 import com.hypixel.hytale.builtin.mounts.MountedComponent;
 import com.hypixel.hytale.component.AddReason;
@@ -18,10 +12,8 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.MountController;
-import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
-import com.hypixel.hytale.server.core.asset.type.model.config.ModelParticle;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
@@ -30,12 +22,9 @@ import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
-import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
-import com.riprod.hexcode.utils.GlyphMath;
 
 public class CreateGlyph {
   private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -68,14 +57,14 @@ public class CreateGlyph {
   }
 
   public static Holder<EntityStore> createGlyphHolder(ComponentAccessor<EntityStore> accessor, GlyphComponent glyph,
-      Vector3d parentPos) {
+      Vector3d parentPos, Vector3f parentRot) {
     Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
 
     holder.addComponent(GlyphComponent.getComponentType(), glyph);
 
     // Required components
     TransformComponent glyphTransform = new TransformComponent(parentPos,
-        new Vector3f(glyph.getPitch(), glyph.getYaw(), 0));
+        parentRot);
 
     holder.addComponent(TransformComponent.getComponentType(),
         glyphTransform);
@@ -102,6 +91,7 @@ public class CreateGlyph {
         new UUIDComponent(UUID.randomUUID()));
     holder.addComponent(BoundingBox.getComponentType(), new BoundingBox(model.getBoundingBox()));
     holder.addComponent(PersistentModel.getComponentType(), new PersistentModel(model.toReference()));
+    holder.ensureComponent(EffectControllerComponent.getComponentType());
     int networkId = accessor.getExternalData().takeNextNetworkId();
     holder.addComponent(NetworkId.getComponentType(), new NetworkId(networkId));
 
@@ -126,21 +116,12 @@ public class CreateGlyph {
    * @return
    */
   public static Ref<EntityStore> createGlyph(CommandBuffer<EntityStore> accessor, GlyphComponent glyph,
-      Vector3d parentPos, Ref<EntityStore> playerRef) {
+      Vector3d parentPos, Vector3f parentRot, Ref<EntityStore> playerRef) {
 
-    // Create the first glyph
-    Holder<EntityStore> holder = createGlyphHolder(accessor, glyph, parentPos);
+    Holder<EntityStore> holder = createGlyphHolder(accessor, glyph, parentPos, parentRot);
     HiddenUtils.addHiddenToHolder(accessor, holder, playerRef);
     Ref<EntityStore> ref = createEntity(accessor, holder);
-    glyph.setSelfRef(ref); // backwards reference
-
-    // effect logic
-    EntityEffect effect = GlyphStyleUtil.getGlyphEffect(glyph.getVolatility(), glyph.getEfficiency());
-    if (effect != null) {
-      EffectControllerComponent effectController = holder
-          .ensureAndGetComponent(EffectControllerComponent.getComponentType());
-      effectController.addEffect(ref, effect, accessor);
-    }
+    glyph.setSelfRef(ref);
 
     return ref;
   }

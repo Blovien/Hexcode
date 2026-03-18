@@ -306,4 +306,9 @@ public class Glyph {
         clone.type = this.type;
         return clone;
     }
+
+    @Override
+    public String toString() {
+        return glyphId;
+    }
 }

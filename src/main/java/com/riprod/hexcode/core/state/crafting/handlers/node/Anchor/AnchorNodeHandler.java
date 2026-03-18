@@ -21,6 +21,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.glyphs.utils.CreateGlyph;
+import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
@@ -162,7 +163,7 @@ public class AnchorNodeHandler implements NodeInterface {
         return InteractionState.Finished;
     }
 
-    public Ref<EntityStore> spawnNode(CommandBuffer<EntityStore> accessor, Ref<EntityStore> parentRef,
+    public Ref<EntityStore> spawnNode(CommandBuffer<EntityStore> accessor, Hex coreHex, Ref<EntityStore> parentRef,
             Vector3d rootPos,
             Ref<EntityStore> playerRef) {
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
@@ -196,8 +197,15 @@ public class AnchorNodeHandler implements NodeInterface {
         // spawn the children of the hex
         HexComponent hexComp = accessor.getComponent(parentRef, HexComponent.getComponentType());
         Ref<EntityStore> nodeGlyph = accessor.addEntity(holder, AddReason.SPAWN);
-        
-        for (Glyph glyph : hexComp.getHex().getGlyphs()) {
+
+        if (hexComp == null) {
+            return nodeGlyph;
+        }
+
+        List<Glyph> children = hexComp.getHex().getGlyphs();
+
+        // spawn the original glyphs from the original hex
+        for (Glyph glyph : children) {
 
             Vector3f offset = glyph.getPosition();
             Vector3d worldPos = new Vector3d(

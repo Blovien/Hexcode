@@ -45,7 +45,6 @@ public class ObeliskSystem {
         }
 
         List<Vector3i> obeliskPositions = pedestalComponent.getActiveObelisks();
-        LOGGER.atInfo().log("obelisk: enterSelecting — protecting %d obelisks", obeliskPositions.size());
         UnbreakableBlockComponent.protectBlocks(world, obeliskPositions);
 
         updateState(buffer, pedestalComponent, world, PedestalState.SELECTING);
@@ -101,12 +100,10 @@ public class ObeliskSystem {
         }
 
         List<Vector3i> obeliskPositions = pedestal.getActiveObelisks();
-        LOGGER.atInfo().log("obelisk: updateState to %s — %d obelisks in list", blockState, obeliskPositions.size());
 
         for (Vector3i obeliskPos : obeliskPositions) {
             if (obeliskPos == null)
                 continue;
-            LOGGER.atInfo().log("obelisk: changing block state at %s to %s", obeliskPos, blockState);
             PedestalBlockUtil.changeBlockState(world, obeliskPos, blockState);
         }
     }

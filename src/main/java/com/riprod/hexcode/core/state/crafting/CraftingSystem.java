@@ -31,8 +31,8 @@ import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
 import com.riprod.hexcode.core.state.crafting.handlers.CraftingDragHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.DetailsHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeRouter;
+import com.riprod.hexcode.core.state.crafting.handlers.node.Slot.SlotNodeHandler;
 import com.riprod.hexcode.core.state.crafting.system.CraftingStateSystem;
-import com.riprod.hexcode.core.state.crafting.system.SelectingStateSystem;
 import com.riprod.hexcode.core.state.crafting.utils.CraftingPositionUtil;
 import com.riprod.hexcode.core.state.crafting.utils.GravityUtil;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalBlockUtil;
@@ -83,7 +83,7 @@ public class CraftingSystem extends HexcodeManager {
             return;
         }
 
-        DetailsHandler.closeDetails(buffer, playerData.getSlotNodeRefs());
+        SlotNodeHandler.INSTANCE.despawn(buffer, playerData);
 
         CraftingDragHandler.endDrag(buffer, craftingComp.getDraggingRef(),
                 craftingComp.getHeadAnchorRef());
@@ -126,26 +126,17 @@ public class CraftingSystem extends HexcodeManager {
             return;
         }
 
-        PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(buffer, ref);
+        CraftingStateSystem.tickCrafting(buffer, dt, ref, pedestal);
 
-        switch (playerData.getState()) {
-            case SELECTING:
-                SelectingStateSystem.tickSelecting(buffer, dt, ref, pedestal, playerData);
-                break;
-            case CRAFTING:
-                CraftingStateSystem.tickCrafting(buffer, dt, ref, pedestal);
-                HexcasterCraftingComponent craftingComp = buffer.getComponent(ref,
-                        HexcasterCraftingComponent.getComponentType());
-                if (craftingComp != null && craftingComp.getDraggingRef() == null
-                        && craftingComp.getHeadAnchorRef() != null
-                        && craftingComp.getHeadAnchorRef().isValid()) {
+        // cleanup the head anchor if it exists but isn't being dragged (can happen if player leaves mid-drag)
+        HexcasterCraftingComponent craftingComp = buffer.getComponent(ref,
+                HexcasterCraftingComponent.getComponentType());
+        if (craftingComp != null && craftingComp.getDraggingRef() == null
+                && craftingComp.getHeadAnchorRef() != null
+                && craftingComp.getHeadAnchorRef().isValid()) {
 
-                    buffer.tryRemoveEntity(craftingComp.getHeadAnchorRef(), RemoveReason.REMOVE);
-                    craftingComp.setHeadAnchorRef(buffer, null);
-                }
-                break;
-            default:
-                break;
+            buffer.tryRemoveEntity(craftingComp.getHeadAnchorRef(), RemoveReason.REMOVE);
+            craftingComp.setHeadAnchorRef(buffer, null);
         }
     }
 
@@ -153,28 +144,13 @@ public class CraftingSystem extends HexcodeManager {
     public InteractionState enterInteraction(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref,
             HexcasterComponent comp) {
 
-        PedestalBlockComponent pedestal = PedestalBlockUtil.resolvePedestal(ref, buffer);
-        if (pedestal == null) {
-            return InteractionState.Failed;
-        }
-        PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(buffer, ref);
-
-        switch (playerData.getState()) {
-            case SELECTING:
-                return SelectingStateSystem.enterInteraction(ref, comp, buffer);
-            case CRAFTING:
-                return CraftingStateSystem.enterInteraction(ref, comp, buffer);
-            default:
-                break;
-        }
-
-        return InteractionState.Finished;
+        return CraftingStateSystem.enterInteraction(ref, comp, buffer);
     }
 
     @Override
     public InteractionState enterAbility(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref,
             HexcasterComponent comp, InteractionType inputType) {
-    
+
         PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(accessor, ref);
 
         if (playerData.getState() != PedestalState.CRAFTING) {

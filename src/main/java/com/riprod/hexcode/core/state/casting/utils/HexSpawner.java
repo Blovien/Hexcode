@@ -78,7 +78,7 @@ public class HexSpawner {
             hexComponent.setScale(scaleMultiplier);
 
             // spawns all of the children recursively and adds to the hexComponent reference
-            GlyphSpawner.spawnGlyphs(accessor, hexComponent, firstGlyphComponent, ownerPos);
+            GlyphSpawner.spawnGlyphs(accessor, hexComponent, firstGlyphComponent, ownerPos, rot);
         }
         return spawnedHexes;
 

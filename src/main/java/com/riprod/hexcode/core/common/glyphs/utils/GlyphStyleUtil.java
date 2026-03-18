@@ -6,9 +6,9 @@ public class GlyphStyleUtil {
     public static EntityEffect getGlyphEffect(float volatility, float efficiency) {
         float combinedScore = (volatility + efficiency) / 2f;
 
-        if (combinedScore >= 0.85f) {
+        if (combinedScore >= 0.95f) {
             return EntityEffect.getAssetMap().getAsset("Hexcode_Tint_Purple");
-        } else if (combinedScore >= 0.6f) {
+        } else if (combinedScore >= 0.75f) {
             return EntityEffect.getAssetMap().getAsset("Hexcode_Tint_Arcane");
         } else {
             return EntityEffect.getAssetMap().getAsset("Hexcode_Tint_Red");

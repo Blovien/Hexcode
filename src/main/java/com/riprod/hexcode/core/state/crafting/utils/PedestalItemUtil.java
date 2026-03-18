@@ -63,6 +63,7 @@ public class PedestalItemUtil {
 
     public static ItemStack saveHexBookComponent(ItemStack bookStack, HexBookComponent component) {
         if (bookStack == null || bookStack.isEmpty()) {
+            LOGGER.atWarning().log("cannot save HexBookComponent to empty ItemStack");
             return bookStack;
         }
         return bookStack.withMetadata(

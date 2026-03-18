@@ -1,51 +1,40 @@
 package com.riprod.hexcode.core.state.crafting.handlers.node.Effect;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
-
-import com.hypixel.hytale.builtin.mounts.MountedComponent;
 import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.component.RemoveReason;
-import com.hypixel.hytale.math.shape.Box;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
-import com.hypixel.hytale.protocol.DebugShape;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
-import com.hypixel.hytale.server.core.entity.UUIDComponent;
-import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
+import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
-import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.glyphs.utils.CreateGlyph;
-import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableType;
-import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
 import com.riprod.hexcode.core.state.casting.utils.GlyphStyler;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
 import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
-import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 import com.riprod.hexcode.core.state.crafting.constants.NodeType;
 import com.riprod.hexcode.core.state.crafting.handlers.CraftingDragHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.CraftingDropHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.DetailsHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeInterface;
-import com.riprod.hexcode.core.state.crafting.handlers.node.NodeRouter;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Glyph.GlyphNodeHandler;
+import com.riprod.hexcode.core.state.crafting.handlers.node.Slot.SlotNodeHandler;
 import com.riprod.hexcode.core.state.crafting.utils.CraftingPositionUtil;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalDataUtil;
-import com.riprod.hexcode.utils.CleanupUtils;
 
 public class EffectNodeHandler implements NodeInterface {
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     public static final EffectNodeHandler INSTANCE = new EffectNodeHandler();
 
     @Override
@@ -78,25 +67,14 @@ public class EffectNodeHandler implements NodeInterface {
     public InteractionState exit(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
             Ref<EntityStore> playerRef) {
 
+        HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
+                HexcasterCraftingComponent.getComponentType());
+
         PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(accessor, playerRef);
 
-        TransformComponent playerTransform = accessor.getComponent(playerRef,
-                TransformComponent.getComponentType());
-        Ref<EntityStore> dropTargetRef = null;
-        if (playerTransform != null) {
-            List<Ref<EntityStore>> nearby = HoverableUtils.getNearbyHoverables(accessor,
-                    playerTransform.getPosition(), 8.0);
+        Ref<EntityStore> dropTargetRef = craftingComp.getHoveredRef();
 
-            HiddenUtils.filterByOwner(accessor, nearby, playerRef);
-            List<Ref<EntityStore>> filtered = new ArrayList<>(nearby.size());
-            for (Ref<EntityStore> candidate : nearby) {
-                if (!candidate.equals(nodeRef)) {
-                    filtered.add(candidate);
-                }
-            }
-            dropTargetRef = HoverableUtils.getSmallestTarget(accessor, playerRef, filtered);
-        }
-
+        // handles linking logic
         CraftingDropHandler.DropResult dResult = CraftingDropHandler.handleDrop(
                 accessor, nodeRef, dropTargetRef);
 
@@ -107,13 +85,18 @@ public class EffectNodeHandler implements NodeInterface {
 
         GlyphComponent effect = accessor.getComponent(nodeRef,
                 GlyphComponent.getComponentType());
-        Vector3f rotation = effect != null ? effect.getRotation() : Vector3f.ZERO;
+
+        Ref<EntityStore> headAnchorRef = craftingComp.getHeadAnchorRef();
+        TransformComponent headTransform = accessor.getComponent(headAnchorRef, TransformComponent.getComponentType());
+        Vector3f playerRotation = headTransform.getRotation();
 
         accessor.putComponent(nodeRef, TransformComponent.getComponentType(),
-                new TransformComponent(dropWorldPos, rotation));
+                new TransformComponent(dropWorldPos, playerRotation));
 
         if (effect != null) {
-            effect.getGlyph().setPosition(dropOffset);
+            effect.setOffset(dropOffset);
+            effect.setRotation(playerRotation);
+            LOGGER.atInfo().log("effect node: dropped at offset %s world pos %s", dropOffset, dropWorldPos);
 
             Ref<EntityStore> graphNodeRef = effect.getNodeRef();
             if (graphNodeRef != null && graphNodeRef.isValid()) {
@@ -129,20 +112,36 @@ public class EffectNodeHandler implements NodeInterface {
     public InteractionState click(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
             Ref<EntityStore> playerRef) {
 
+        HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
+                HexcasterCraftingComponent.getComponentType());
+
         PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(accessor, playerRef);
 
         if (DetailsHandler.isOpenFor(accessor, playerData.getSlotNodeRefs(), nodeRef)) {
-            DetailsHandler.closeDetails(accessor, playerData.getSlotNodeRefs());
+            SlotNodeHandler.INSTANCE.despawn(accessor, playerData);
             playerData.setSlotNodeRefs(null);
         } else {
             if (playerData.getSlotNodeRefs() != null
                     && !playerData.getSlotNodeRefs().isEmpty()) {
-                DetailsHandler.closeDetails(accessor, playerData.getSlotNodeRefs());
+                SlotNodeHandler.INSTANCE.despawn(accessor, playerData);
             }
             List<Ref<EntityStore>> slotRefs = DetailsHandler.openDetails(
                     accessor, nodeRef, playerRef);
             playerData.setSlotNodeRefs(slotRefs);
         }
+
+        // reset position
+
+        Vector3f playerRotation = accessor.getComponent(playerRef, HeadRotation.getComponentType()).getRotation();
+
+        GlyphComponent effect = accessor.getComponent(nodeRef,
+                GlyphComponent.getComponentType());
+
+        Vector3d dropWorldPos = CraftingPositionUtil.hexOffsetToWorld(accessor,
+                playerData.getAnchorNodeRef(), effect.getOffset());
+
+        accessor.putComponent(nodeRef, TransformComponent.getComponentType(),
+                new TransformComponent(dropWorldPos, playerRotation));
 
         return InteractionState.Finished;
     }
@@ -151,7 +150,10 @@ public class EffectNodeHandler implements NodeInterface {
             Vector3d position, Ref<EntityStore> playerRef, GlyphComponent glyphComp,
             Ref<EntityStore> hexEntityRef) {
 
-        Holder<EntityStore> glyphHolder = CreateGlyph.createGlyphHolder(accessor, glyphComp, position);
+        Glyph glyph = glyphComp.getGlyph();
+        Vector3f glyphRot = new Vector3f(glyph.getRotation().getPitch(), glyph.getRotation().getYaw(), 0);
+        Holder<EntityStore> glyphHolder = CreateGlyph.createGlyphHolder(accessor, glyphComp, position, glyphRot);
+
         HiddenUtils.addHiddenToHolder(accessor, glyphHolder, playerRef);
         glyphHolder.addComponent(HoverableComponent.getComponentType(),
                 new HoverableComponent(HoverableType.NODE));
@@ -160,9 +162,10 @@ public class EffectNodeHandler implements NodeInterface {
         Ref<EntityStore> glyphNodeRef = accessor.addEntity(glyphHolder, AddReason.SPAWN);
         glyphComp.setSelfRef(glyphNodeRef);
 
-        Holder<EntityStore> glyphNode = GlyphNodeHandler.INSTANCE.spawnNode(accessor, glyphNodeRef, position,
+        Holder<EntityStore> glyphNodeHolder = GlyphNodeHandler.INSTANCE.spawnNode(accessor, glyphNodeRef, position,
                 playerRef);
-        Ref<EntityStore> graphNodeRef = accessor.addEntity(glyphNode, AddReason.SPAWN);
+
+        Ref<EntityStore> graphNodeRef = accessor.addEntity(glyphNodeHolder, AddReason.SPAWN);
         glyphComp.setNodeRef(graphNodeRef);
 
         glyphComp.setHexRef(hexEntityRef);
@@ -173,6 +176,19 @@ public class EffectNodeHandler implements NodeInterface {
 
     @Override
     public void despawn(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
+
+        GlyphComponent effect = accessor.getComponent(nodeRef,
+                GlyphComponent.getComponentType());
+        if (effect == null)
+            return;
+
+        Ref<EntityStore> graphNodeRef = effect.getNodeRef();
+
+        if (graphNodeRef == null || !graphNodeRef.isValid()) {
+            return;
+        }
+
+        GlyphNodeHandler.INSTANCE.despawn(accessor, graphNodeRef, playerRef);
     }
 
     @Override
@@ -192,8 +208,24 @@ public class EffectNodeHandler implements NodeInterface {
     }
 
     @Override
-    public InteractionState ability(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
+    public InteractionState ability(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
             InteractionType inputType, Ref<EntityStore> playerRef) {
+
+        if (inputType != InteractionType.Ability3) { // if not R - ignore
+            return InteractionState.Failed;
+        }
+
+        GlyphComponent effect = accessor.getComponent(nodeRef,
+                GlyphComponent.getComponentType());
+
+        Ref<EntityStore> graphNodeRef = effect.getNodeRef();
+        if (graphNodeRef == null || !graphNodeRef.isValid()) {
+            return InteractionState.Failed;
+        }
+
+        GlyphNodeHandler.INSTANCE.ability(accessor, graphNodeRef, inputType, playerRef); // let the node handle the
+                                                                                         // logic (it's the same)
+
         return InteractionState.Finished;
     }
 

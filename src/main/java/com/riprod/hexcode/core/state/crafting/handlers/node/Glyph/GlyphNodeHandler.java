@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
+import com.hypixel.hytale.builtin.mounts.MountedComponent;
 import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Holder;
@@ -17,6 +18,7 @@ import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.DebugShape;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
+import com.hypixel.hytale.protocol.MountController;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
@@ -39,6 +41,7 @@ import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 import com.riprod.hexcode.core.state.crafting.constants.NodeType;
 import com.riprod.hexcode.core.state.crafting.handlers.DetailsHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeInterface;
+import com.riprod.hexcode.core.state.crafting.handlers.node.Slot.SlotNodeHandler;
 import com.riprod.hexcode.core.state.crafting.utils.CraftingGlyphRemover;
 import com.riprod.hexcode.core.state.crafting.utils.LinkRenderer;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalDataUtil;
@@ -149,8 +152,13 @@ public class GlyphNodeHandler implements NodeInterface {
         return InteractionState.Finished;
     }
 
-    public InteractionState ability3(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
-            Ref<EntityStore> playerRef) {
+    @Override
+    public InteractionState ability(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
+            InteractionType inputType, Ref<EntityStore> playerRef) {
+
+        if (inputType != InteractionType.Ability3) { // if not R - ignore
+            return InteractionState.Failed;
+        }
 
         NodeComponent nodeComp = accessor.getComponent(nodeRef, NodeComponent.getComponentType());
         if (nodeComp == null) {
@@ -172,7 +180,6 @@ public class GlyphNodeHandler implements NodeInterface {
             if (hexComp != null) {
                 CraftingGlyphRemover.clearInputOutputConnections(glyph, hexComp.getHex());
             }
-            return InteractionState.Finished;
         }
 
         List<Ref<EntityStore>> outgoingRefs = nodeComp.getOutgoingRefs();
@@ -188,17 +195,7 @@ public class GlyphNodeHandler implements NodeInterface {
             return InteractionState.Finished;
         }
 
-        // step 3: nothing connected, remove the glyph
-        Ref<EntityStore> hexRootRef = effectComp.getHexRef();
-        HexComponent hexComp = accessor.getComponent(hexRootRef, HexComponent.getComponentType());
-        if (hexComp != null) {
-            CraftingGlyphRemover.clearInputOutputConnections(glyph, hexComp.getHex());
-            hexComp.getHex().remove(effectComp.getId());
-            hexComp.removeChildGlyph(effectComp.getId());
-        }
-
-        accessor.removeEntity(glyphRef, RemoveReason.REMOVE);
-        accessor.removeEntity(nodeRef, RemoveReason.REMOVE);
+        this.despawn(accessor, glyphRef, nodeRef, playerRef, effectComp);
         return InteractionState.Finished;
     }
 
@@ -324,6 +321,10 @@ public class GlyphNodeHandler implements NodeInterface {
         holder.addComponent(HoverableComponent.getComponentType(),
                 new HoverableComponent(HoverableType.NODE));
 
+        // mount the node to the parent entity so that it moves with it
+        holder.addComponent(MountedComponent.getComponentType(),
+                new MountedComponent(parentRef, Vector3f.ZERO, MountController.Minecart));
+
         return holder;
     }
 
@@ -349,11 +350,11 @@ public class GlyphNodeHandler implements NodeInterface {
                 GlyphComponent.getComponentType());
         if (effect != null && effect.getGlyph().getType() != GlyphType.Value) {
             if (DetailsHandler.isOpenFor(accessor, playerData.getSlotNodeRefs(), effectRef)) {
-                DetailsHandler.closeDetails(accessor, playerData.getSlotNodeRefs());
+                SlotNodeHandler.INSTANCE.despawn(accessor, playerData);
                 playerData.setSlotNodeRefs(null);
             } else {
                 if (playerData.getSlotNodeRefs() != null && !playerData.getSlotNodeRefs().isEmpty()) {
-                    DetailsHandler.closeDetails(accessor, playerData.getSlotNodeRefs());
+                    SlotNodeHandler.INSTANCE.despawn(accessor, playerData);
                 }
                 List<Ref<EntityStore>> slotRefs = DetailsHandler.openDetails(
                         accessor, effectRef, playerRef);
@@ -365,15 +366,63 @@ public class GlyphNodeHandler implements NodeInterface {
     }
 
     @Override
-    public InteractionState ability(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
-            InteractionType inputType, Ref<EntityStore> playerRef) {
-        return ability3(accessor, node, playerRef);
+    public void despawn(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
+
+        NodeComponent nodeComp = accessor.getComponent(nodeRef, NodeComponent.getComponentType());
+        if (nodeComp == null) {
+            return;
+        }
+
+        Ref<EntityStore> glyphRef = nodeComp.getParentEntity();
+        GlyphComponent effectComp = accessor.getComponent(glyphRef, GlyphComponent.getComponentType());
+        if (effectComp == null) {
+            return;
+        }
+
+        Glyph glyph = effectComp.getGlyph();
+
+        // step 1: if glyph has input/output connections, clear those first
+        if (!glyph.getInputs().isEmpty() || !glyph.getOutputs().isEmpty()) {
+            Ref<EntityStore> hexRootRef = effectComp.getHexRef();
+            HexComponent hexComp = accessor.getComponent(hexRootRef, HexComponent.getComponentType());
+            if (hexComp != null) {
+                CraftingGlyphRemover.clearInputOutputConnections(glyph, hexComp.getHex());
+            }
+        }
+
+        List<Ref<EntityStore>> outgoingRefs = nodeComp.getOutgoingRefs();
+        List<Ref<EntityStore>> incomingRefs = nodeComp.getIncomingRefs();
+
+        // step 2: if glyph has graph links, disconnect those
+        if ((outgoingRefs != null && !outgoingRefs.isEmpty())
+                || (incomingRefs != null && !incomingRefs.isEmpty())) {
+            removeOutgoingLinks(accessor, nodeComp, nodeRef, effectComp);
+            removeIncomingLinks(accessor, nodeComp, nodeRef, effectComp);
+            nodeComp.getOutgoingRefs().clear();
+            nodeComp.getIncomingRefs().clear();
+        }
+
+        this.despawn(accessor, glyphRef, nodeRef, playerRef, effectComp);
     }
 
-    @Override
-    public void despawn(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'despawn'");
+    public void despawn(CommandBuffer<EntityStore> accessor, Ref<EntityStore> glyphRef, Ref<EntityStore> nodeRef,
+            Ref<EntityStore> playerRef, GlyphComponent effectComp) {
+
+        Glyph glyph = effectComp.getGlyph();
+
+        // step 3: nothing connected, remove the glyph
+        Ref<EntityStore> hexRootRef = effectComp.getHexRef();
+        HexComponent hexComp = accessor.getComponent(hexRootRef, HexComponent.getComponentType());
+        if (hexComp != null) {
+            CraftingGlyphRemover.clearInputOutputConnections(glyph, hexComp.getHex());
+            hexComp.getHex().remove(effectComp.getId());
+            hexComp.removeChildGlyph(effectComp.getId());
+        }
+
+        // remove the slots as cleanup
+
+        accessor.removeEntity(glyphRef, RemoveReason.REMOVE);
+        accessor.removeEntity(nodeRef, RemoveReason.REMOVE);
     }
 
     @Override

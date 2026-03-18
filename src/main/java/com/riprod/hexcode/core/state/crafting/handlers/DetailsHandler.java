@@ -33,11 +33,11 @@ import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
 import com.riprod.hexcode.core.state.crafting.component.SlotComponent;
 import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 import com.riprod.hexcode.core.state.crafting.constants.NodeType;
+import com.riprod.hexcode.core.state.crafting.handlers.node.Slot.SlotNodeHandler;
 import com.riprod.hexcode.core.state.crafting.utils.RadialPositionUtil;
 
 public class DetailsHandler {
     private static final float SLOT_RADIUS = 0.6f;
-    private static final double SLOT_SCALE = 0.2;
 
     public static List<Ref<EntityStore>> openDetails(CommandBuffer<EntityStore> accessor,
             Ref<EntityStore> glyphRef, Ref<EntityStore> playerRef) {
@@ -64,8 +64,9 @@ public class DetailsHandler {
             Vector3f offset = offsets.get(idx++);
             SlotDefinition def = asset.getInputDef(key);
             String title = def != null ? def.getTitle() : key;
-            Ref<EntityStore> slotRef = spawnSlotEntity(accessor, offset,
+            Holder<EntityStore> slotHolder = SlotNodeHandler.INSTANCE.spawnSlot(accessor, offset,
                     glyphRef, new SlotComponent(key, GlyphSlotType.Input), playerRef, title);
+            Ref<EntityStore> slotRef = accessor.addEntity(slotHolder, AddReason.SPAWN);
             slotRefs.add(slotRef);
         }
 
@@ -73,8 +74,11 @@ public class DetailsHandler {
             Vector3f offset = offsets.get(idx++);
             SlotDefinition def = asset.getOutputDef(key);
             String title = def != null ? def.getTitle() : key;
-            Ref<EntityStore> slotRef = spawnSlotEntity(accessor, offset,
+            Holder<EntityStore> slotHolder = SlotNodeHandler.INSTANCE.spawnSlot(accessor, offset,
                     glyphRef, new SlotComponent(key, GlyphSlotType.Output), playerRef, title);
+
+            Ref<EntityStore> slotRef = accessor.addEntity(slotHolder, AddReason.SPAWN);
+
             slotRefs.add(slotRef);
         }
 
@@ -82,87 +86,18 @@ public class DetailsHandler {
         return slotRefs;
     }
 
-    private static Ref<EntityStore> spawnSlotEntity(CommandBuffer<EntityStore> accessor, Vector3f offset,
-            Ref<EntityStore> glyphRef, SlotComponent slotComp,
-            Ref<EntityStore> playerRef, String hintText) {
-
-        TransformComponent glyphTransform = accessor.getComponent(glyphRef,
-                TransformComponent.getComponentType());
-        if (glyphTransform == null)
-            return null;
-        Vector3d parentPos = glyphTransform.getPosition();
-
-        Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
-
-        HiddenUtils.addHiddenToHolder(accessor, holder, playerRef);
-
-        Vector3d slotPos = new Vector3d(
-                parentPos.x + offset.x,
-                parentPos.y + offset.y,
-                parentPos.z + offset.z);
-
-        Vector3f color = slotComp.getSlotType() == GlyphSlotType.Input ? CraftingColors.INPUT : CraftingColors.OUTPUT;
-
-        holder.addComponent(TransformComponent.getComponentType(),
-                new TransformComponent(slotPos, new Vector3f(0, 0, 0)));
-
-        holder.addComponent(SlotComponent.getComponentType(), slotComp);
-        holder.addComponent(DebugComponent.getComponentType(),
-                new DebugComponent(DebugShape.Cube, color, SLOT_SCALE, 2.0f));
-
-        Box slotBox = new Box(-SLOT_SCALE, -SLOT_SCALE, -SLOT_SCALE,
-                SLOT_SCALE, SLOT_SCALE, SLOT_SCALE);
-        holder.addComponent(BoundingBox.getComponentType(), new BoundingBox(slotBox));
-
-        holder.addComponent(UUIDComponent.getComponentType(),
-                new UUIDComponent(UUID.randomUUID()));
-        holder.ensureComponent(EntityStore.REGISTRY.getNonSerializedComponentType());
-
-        int networkId = accessor.getExternalData().takeNextNetworkId();
-        holder.addComponent(NetworkId.getComponentType(), new NetworkId(networkId));
-        HoverableComponent hoverable = new HoverableComponent(HoverableType.NODE);
-        hoverable.setHintText(hintText);
-        holder.addComponent(HoverableComponent.getComponentType(), hoverable);
-
-        holder.addComponent(NodeComponent.getComponentType(),
-                new NodeComponent(glyphRef, NodeType.Slot));
-
-        holder.addComponent(MountedComponent.getComponentType(),
-                new MountedComponent(glyphRef, offset, MountController.Minecart));
-
-        Ref<EntityStore> ref = accessor.addEntity(holder, AddReason.SPAWN);
-
-        return ref;
-    }
-
     public static boolean isOpenFor(CommandBuffer<EntityStore> accessor,
             List<Ref<EntityStore>> slotRefs, Ref<EntityStore> glyphRef) {
-        if (slotRefs == null || slotRefs.isEmpty() || glyphRef == null) return false;
+        if (slotRefs == null || slotRefs.isEmpty() || glyphRef == null)
+            return false;
         for (Ref<EntityStore> slotRef : slotRefs) {
-            if (slotRef == null || !slotRef.isValid()) continue;
+            if (slotRef == null || !slotRef.isValid())
+                continue;
             NodeComponent nodeComp = accessor.getComponent(slotRef, NodeComponent.getComponentType());
             if (nodeComp != null && glyphRef.equals(nodeComp.getParentEntity())) {
                 return true;
             }
         }
         return false;
-    }
-
-    public static void closeDetails(CommandBuffer<EntityStore> accessor,
-            List<Ref<EntityStore>> slotRefs) {
-        if (slotRefs == null) return;
-        for (Ref<EntityStore> ref : slotRefs) {
-            if (ref == null || !ref.isValid()) continue;
-            NodeComponent nodeComp = accessor.getComponent(ref, NodeComponent.getComponentType());
-            if (nodeComp != null && nodeComp.getParentEntity() != null && nodeComp.getParentEntity().isValid()) {
-                GlyphComponent glyphComp = accessor.getComponent(nodeComp.getParentEntity(),
-                        GlyphComponent.getComponentType());
-                if (glyphComp != null) {
-                    glyphComp.setDetailsOpen(false);
-                }
-            }
-            accessor.tryRemoveEntity(ref, RemoveReason.REMOVE);
-        }
-        slotRefs.clear();
     }
 }

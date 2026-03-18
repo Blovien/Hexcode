@@ -1,11 +1,14 @@
 package com.riprod.hexcode.core.state.crafting.handlers.node.Slot;
 
+import java.util.List;
 import java.util.UUID;
 
+import com.hypixel.hytale.builtin.mounts.MountedComponent;
 import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.math.shape.Box;
 import com.hypixel.hytale.math.vector.Transform;
 import com.hypixel.hytale.math.vector.Vector3d;
@@ -13,6 +16,7 @@ import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.DebugShape;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
+import com.hypixel.hytale.protocol.MountController;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
@@ -20,6 +24,7 @@ import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.TargetUtil;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.common.glyphs.utils.GlyphSlotType;
 import com.riprod.hexcode.core.common.glyphs.utils.GlyphType;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
@@ -30,11 +35,13 @@ import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
+import com.riprod.hexcode.core.state.crafting.component.PedestalDataComponent;
 import com.riprod.hexcode.core.state.crafting.component.SlotComponent;
 import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 import com.riprod.hexcode.core.state.crafting.constants.NodeType;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeInterface;
 import com.riprod.hexcode.core.state.crafting.utils.LinkRenderer;
+import com.riprod.hexcode.core.state.crafting.utils.PedestalDataUtil;
 
 public class SlotNodeHandler implements NodeInterface {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -88,20 +95,14 @@ public class SlotNodeHandler implements NodeInterface {
         HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
                 HexcasterCraftingComponent.getComponentType());
 
-        Ref<EntityStore> draggedRef = craftingComp.getDraggingRef();
-        if (draggedRef == null || !draggedRef.isValid()) {
-            craftingComp.setDraggingRef(null);
-            craftingComp.setDragTickCount(0);
-            return InteractionState.Failed;
-        }
-
-        NodeComponent draggedNodeComp = accessor.getComponent(draggedRef, NodeComponent.getComponentType());
+        NodeComponent draggedNodeComp = accessor.getComponent(nodeRef, NodeComponent.getComponentType());
         if (draggedNodeComp == null) {
             craftingComp.setDraggingRef(null);
             craftingComp.setDragTickCount(0);
             return InteractionState.Failed;
         }
 
+        // hovered always ignores the dragged entity
         Ref<EntityStore> dropTargetRef = craftingComp.getHoveredRef();
 
         if (dropTargetRef == null || !dropTargetRef.isValid()) {
@@ -125,7 +126,7 @@ public class SlotNodeHandler implements NodeInterface {
             return InteractionState.Finished;
         }
 
-        SlotComponent slotComp = accessor.getComponent(draggedRef, SlotComponent.getComponentType());
+        SlotComponent slotComp = accessor.getComponent(nodeRef, SlotComponent.getComponentType());
         if (slotComp == null) {
             craftingComp.setDraggingRef(null);
             craftingComp.setDragTickCount(0);
@@ -148,8 +149,13 @@ public class SlotNodeHandler implements NodeInterface {
         return InteractionState.Finished;
     }
 
-    public InteractionState ability3(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
-            Ref<EntityStore> playerRef) {
+    @Override
+    public InteractionState ability(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
+            InteractionType inputType, Ref<EntityStore> playerRef) {
+
+        if (inputType != InteractionType.Ability3) { // if not R - ignore
+            return InteractionState.Failed;
+        }
 
         NodeComponent nodeComp = accessor.getComponent(nodeRef, NodeComponent.getComponentType());
         if (nodeComp == null)
@@ -175,22 +181,37 @@ public class SlotNodeHandler implements NodeInterface {
         return InteractionState.Finished;
     }
 
-    public Holder<EntityStore> spawnNode(CommandBuffer<EntityStore> accessor, Ref<EntityStore> parentRef,
-            Vector3d rootPos, Ref<EntityStore> playerRef) {
+    public Holder<EntityStore> spawnSlot(CommandBuffer<EntityStore> accessor, Vector3f offset,
+            Ref<EntityStore> glyphRef, SlotComponent slotComp,
+            Ref<EntityStore> playerRef, String hintText) {
+
+        TransformComponent glyphTransform = accessor.getComponent(glyphRef,
+                TransformComponent.getComponentType());
+        if (glyphTransform == null)
+            return null;
+        Vector3d parentPos = glyphTransform.getPosition();
+
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
 
         HiddenUtils.addHiddenToHolder(accessor, holder, playerRef);
 
-        Vector3d nodePos = new Vector3d(rootPos.x, rootPos.y, rootPos.z);
+        Vector3d slotPos = new Vector3d(
+                parentPos.x + offset.x,
+                parentPos.y + offset.y,
+                parentPos.z + offset.z);
+
+        Vector3f color = slotComp.getSlotType() == GlyphSlotType.Input ? CraftingColors.INPUT : CraftingColors.OUTPUT;
+
         holder.addComponent(TransformComponent.getComponentType(),
-                new TransformComponent(nodePos, new Vector3f(0, 0, 0)));
+                new TransformComponent(slotPos, new Vector3f(0, 0, 0)));
 
-        NodeComponent node = new NodeComponent(parentRef, NodeType.Slot);
-        holder.addComponent(NodeComponent.getComponentType(), node);
+        holder.addComponent(SlotComponent.getComponentType(), slotComp);
+        holder.addComponent(DebugComponent.getComponentType(),
+                new DebugComponent(DebugShape.Cube, color, NODE_SCALE, 2.0f));
 
-        Box nodeBox = new Box(-NODE_SCALE, -NODE_SCALE, -NODE_SCALE,
+        Box slotBox = new Box(-NODE_SCALE, -NODE_SCALE, -NODE_SCALE,
                 NODE_SCALE, NODE_SCALE, NODE_SCALE);
-        holder.addComponent(BoundingBox.getComponentType(), new BoundingBox(nodeBox));
+        holder.addComponent(BoundingBox.getComponentType(), new BoundingBox(slotBox));
 
         holder.addComponent(UUIDComponent.getComponentType(),
                 new UUIDComponent(UUID.randomUUID()));
@@ -198,26 +219,50 @@ public class SlotNodeHandler implements NodeInterface {
 
         int networkId = accessor.getExternalData().takeNextNetworkId();
         holder.addComponent(NetworkId.getComponentType(), new NetworkId(networkId));
+        HoverableComponent hoverable = new HoverableComponent(HoverableType.NODE);
+        hoverable.setHintText(hintText);
+        holder.addComponent(HoverableComponent.getComponentType(), hoverable);
 
-        holder.addComponent(DebugComponent.getComponentType(),
-                new DebugComponent(DebugShape.Cube, CraftingColors.INPUT, NODE_SCALE, 2.0f, playerRef));
-        holder.addComponent(HoverableComponent.getComponentType(),
-                new HoverableComponent(HoverableType.NODE));
+        holder.addComponent(NodeComponent.getComponentType(),
+                new NodeComponent(glyphRef, NodeType.Slot));
 
+        holder.addComponent(MountedComponent.getComponentType(),
+                new MountedComponent(glyphRef, offset, MountController.Minecart));
         return holder;
     }
 
     @Override
-    public InteractionState ability(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
-            InteractionType inputType, Ref<EntityStore> playerRef) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'ability'");
+    public void despawn(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
+        PedestalDataComponent playerData = PedestalDataUtil.getPedestalData(accessor, playerRef);
+
+        if (playerData == null)
+            return;
+        this.despawn(accessor, playerData);
     }
 
-    @Override
-    public void despawn(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'despawn'");
+    public void despawn(CommandBuffer<EntityStore> accessor, PedestalDataComponent playerData) {
+
+        if (playerData == null)
+            return;
+
+        List<Ref<EntityStore>> slotRefs = playerData.getSlotNodeRefs();
+        if (slotRefs == null)
+            return;
+
+        for (Ref<EntityStore> ref : slotRefs) {
+            if (ref == null || !ref.isValid())
+                continue;
+            NodeComponent nodeComp = accessor.getComponent(ref, NodeComponent.getComponentType());
+            if (nodeComp != null && nodeComp.getParentEntity() != null && nodeComp.getParentEntity().isValid()) {
+                GlyphComponent glyphComp = accessor.getComponent(nodeComp.getParentEntity(),
+                        GlyphComponent.getComponentType());
+                if (glyphComp != null) {
+                    glyphComp.setDetailsOpen(false);
+                }
+            }
+            accessor.tryRemoveEntity(ref, RemoveReason.REMOVE);
+        }
+        slotRefs.clear();
     }
 
     @Override
