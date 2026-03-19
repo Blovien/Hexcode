@@ -1,13 +1,15 @@
 {
   "Parent": "Base_Glyph",
+  "Title": "Levitate",
+  "Description": "Reverses or nullifies gravity on targets for a duration",
   "GlyphType": "Effect",
   "ModelPath": "Glyph_Levitate",
   "BasePower": 1.0,
   "ManaConsumption": 10,
   "Inputs": {
-    "target": { "Title": "Target", "DefaultSlot": 1 },
-    "intensity": { "Title": "Intensity", "DefaultSlot": 2 },
-    "duration": { "Title": "Duration", "DefaultSlot": 3 }
+    "target": { "Title": "Target", "DefaultSlot": 1, "Description": "Variable containing the targets to affect" },
+    "intensity": { "Title": "Intensity", "DefaultSlot": 2, "Description": "Upward force strength, 0 for weightlessness" },
+    "duration": { "Title": "Duration", "DefaultSlot": 3, "Description": "How long the effect lasts in ticks" }
   },
   "ShapeStructure": [
     {

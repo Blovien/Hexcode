@@ -1,14 +1,16 @@
 {
   "Parent": "Base_Glyph",
+  "Title": "Anchor",
+  "Description": "Captures the current position of targets for later reference",
   "GlyphType": "Effect",
   "ModelPath": "Glyph_Anchor",
   "BasePower": 1.0,
   "ManaConsumption": 3,
   "Inputs": {
-    "target": { "Title": "Target", "DefaultSlot": 1 }
+    "target": { "Title": "Target", "DefaultSlot": 1, "Description": "Variable containing the targets to affect" }
   },
   "Outputs": {
-    "result": { "Title": "Result", "DefaultSlot": 2 }
+    "result": { "Title": "Result", "DefaultSlot": 2, "Description": "Variable slot to store the result" }
   },
   "ShapeStructure": [
     {

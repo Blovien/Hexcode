@@ -1,12 +1,14 @@
 {
   "Parent": "Base_Glyph",
+  "Title": "Swap",
+  "Description": "Exchanges positions between two variable arrays element-by-element",
   "GlyphType": "Effect",
   "ModelPath": "Glyph_Swap",
   "BasePower": 1.0,
   "ManaConsumption": 20,
   "Inputs": {
-    "a": { "Title": "A", "DefaultSlot": 1 },
-    "b": { "Title": "B", "DefaultSlot": 2 }
+    "a": { "Title": "A", "DefaultSlot": 1, "Description": "First operand" },
+    "b": { "Title": "B", "DefaultSlot": 2, "Description": "Second operand" }
   },
   "ShapeStructure": [
     {

@@ -1,13 +1,15 @@
 {
   "Parent": "Base_Glyph",
+  "Title": "Force",
+  "Description": "Applies directional force to all targets in a variable",
   "GlyphType": "Effect",
   "ModelPath": "Glyph_Force",
   "BasePower": 1.0,
   "ManaConsumption": 8,
   "Inputs": {
-    "target": { "Title": "Target", "DefaultSlot": 1 },
-    "direction": { "Title": "Direction", "DefaultSlot": 1 },
-    "magnitude": { "Title": "Magnitude", "DefaultSlot": 2 }
+    "target": { "Title": "Target", "DefaultSlot": 1, "Description": "Variable containing the targets to affect" },
+    "direction": { "Title": "Direction", "DefaultSlot": 1, "Description": "Direction vector for the effect" },
+    "magnitude": { "Title": "Magnitude", "DefaultSlot": 2, "Description": "Strength of the applied force" }
   },
   "ShapeStructure": [
     {

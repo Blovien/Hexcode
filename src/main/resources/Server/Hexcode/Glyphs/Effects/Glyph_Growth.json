@@ -1,12 +1,14 @@
 {
   "Parent": "Base_Glyph",
+  "Title": "Growth",
+  "Description": "Restores the natural state of targets: heals entities, grows crops, repairs blocks",
   "GlyphType": "Effect",
   "ModelPath": "Glyph_Growth",
   "BasePower": 1.0,
   "ManaConsumption": 12,
   "Inputs": {
-    "target": { "Title": "Target", "DefaultSlot": 1 },
-    "amount": { "Title": "Amount", "DefaultSlot": 2 }
+    "target": { "Title": "Target", "DefaultSlot": 1, "Description": "Variable containing the targets to affect" },
+    "amount": { "Title": "Amount", "DefaultSlot": 2, "Description": "Restoration strength" }
   },
   "ShapeStructure": [
     {

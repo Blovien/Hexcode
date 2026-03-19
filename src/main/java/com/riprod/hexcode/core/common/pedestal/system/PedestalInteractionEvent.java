@@ -13,7 +13,6 @@ import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexcaster.utils.PlayerUtils;
-import com.riprod.hexcode.core.common.obelisk.system.ObeliskSystem;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.common.pedestal.events.PedestalSystem;
 import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
@@ -68,14 +67,12 @@ public class PedestalInteractionEvent {
             PedestalSystem.handleEssencePlacement(accessor, player, item, slot, pedestalComponent, playerData,
                     blockPos);
             PedestalSystem.handleReady(accessor, playerData, pedestalComponent, world);
-            ObeliskSystem.handleReady(accessor, pedestalComponent, world);
             return;
         }
 
         if (PedestalItemUtil.isHexBook(item) && playerData.getStoredBook().isEmpty()) {
             PedestalSystem.handleBookPlacement(accessor, player, item, slot, pedestalComponent, playerData, blockPos);
             PedestalSystem.handleReady(accessor, playerData, pedestalComponent, world);
-            ObeliskSystem.handleReady(accessor, pedestalComponent, world);
             return;
         }
 
@@ -89,16 +86,12 @@ public class PedestalInteractionEvent {
 
         // partial state: return the lone item
         if (hasBook && !hasEssence) {
-            playerData.setState(PedestalState.IDLE);
             PedestalSystem.enterIdle(accessor, player, pedestalComponent, world);
-            ObeliskSystem.enterIdle(accessor, pedestalComponent, world);
             return;
         }
 
         if (hasEssence && !hasBook) {
-            playerData.setState(PedestalState.IDLE);
             PedestalSystem.enterIdle(accessor, player, pedestalComponent, world);
-            ObeliskSystem.enterIdle(accessor, pedestalComponent, world);
             return;
         }
 
@@ -109,18 +102,11 @@ public class PedestalInteractionEvent {
             if (state == PedestalState.CRAFTING) {
                 PedestalSystem.exitCrafting(accessor, playerRef, pedestalComponent, playerData);
                 PedestalSystem.enterSelecting(pedestalComponent, player, world, accessor);
-                ObeliskSystem.enterSelecting(pedestalComponent, world, accessor);
             } else if (state == PedestalState.SELECTING) {
-                playerData.setState(PedestalState.IDLE);
                 PedestalSystem.enterIdle(accessor, player, pedestalComponent, world);
-                ObeliskSystem.enterIdle(accessor, pedestalComponent, world);
-
             } else {
                 logger.atInfo().log("pedestal: entering selecting + obelisk flow");
                 PedestalSystem.enterSelecting(pedestalComponent, player, world, accessor);
-                ObeliskSystem.enterSelecting(pedestalComponent, world, accessor);
-                playerData.setState(PedestalState.SELECTING);
-
             }
         }
     }

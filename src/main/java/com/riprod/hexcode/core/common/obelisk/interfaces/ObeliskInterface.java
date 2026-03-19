@@ -3,10 +3,15 @@ package com.riprod.hexcode.core.common.obelisk.interfaces;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.hypixel.hytale.math.vector.Vector3i;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.obelisk.component.ObeliskBlockComponent;
+import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
 
 public interface ObeliskInterface {
+
+    default void onStateChange(CommandBuffer<EntityStore> buffer, ObeliskBlockComponent obelisk,
+            Vector3i obeliskPos, PedestalState previousState, PedestalState newState) {}
 
     default void onGlyphDrawn(CommandBuffer<EntityStore> buffer, Ref<EntityStore> playerRef,
             Glyph glyph, ObeliskBlockComponent obelisk) {}

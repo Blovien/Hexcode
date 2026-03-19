@@ -1,13 +1,15 @@
 {
   "Parent": "Base_Glyph",
+  "Title": "Erode",
+  "Description": "Weakens targets for a duration, increasing damage taken from all sources",
   "GlyphType": "Effect",
   "ModelPath": "Glyph_Erode",
   "BasePower": 1.0,
   "ManaConsumption": 10,
   "Inputs": {
-    "target": { "Title": "Target", "DefaultSlot": 1 },
-    "amount": { "Title": "Amount", "DefaultSlot": 2 },
-    "duration": { "Title": "Duration", "DefaultSlot": 3 }
+    "target": { "Title": "Target", "DefaultSlot": 1, "Description": "Variable containing the targets to affect" },
+    "amount": { "Title": "Amount", "DefaultSlot": 2, "Description": "Vulnerability increase per incoming hit" },
+    "duration": { "Title": "Duration", "DefaultSlot": 3, "Description": "How long the effect lasts in ticks" }
   },
   "ShapeStructure": [
     {

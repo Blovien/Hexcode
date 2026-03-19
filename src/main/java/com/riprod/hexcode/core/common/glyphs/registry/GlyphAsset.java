@@ -34,6 +34,8 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
     protected String id;
     protected String modelPath;
     protected String imagePath;
+    protected String title;
+    protected String description;
     protected float basePower = 1.0f;
     protected int manaConsumption = 10;
     protected ArrayList<DrawnShapeComponent> shapes = new ArrayList<>();
@@ -113,6 +115,14 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
         return this.outputs.size();
     }
 
+    public String getTitle() {
+        return this.title;
+    }
+
+    public String getDescription() {
+        return this.description;
+    }
+
     static {
         CODEC = buildCodec();
         VALIDATOR_CACHE = new ValidatorCache<>(new AssetKeyValidator<>(GlyphAsset::getAssetStore));
@@ -144,6 +154,14 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
                 .<String>appendInherited(new KeyedCodec<>("ImagePath", Codec.STRING),
                         (a, v) -> a.imagePath = v, a -> a.imagePath,
                         (a, p) -> a.imagePath = p.imagePath)
+                .add()
+                .<String>appendInherited(new KeyedCodec<>("Title", Codec.STRING),
+                        (a, v) -> a.title = v, a -> a.title,
+                        (a, p) -> a.title = p.title)
+                .add()
+                .<String>appendInherited(new KeyedCodec<>("Description", Codec.STRING),
+                        (a, v) -> a.description = v, a -> a.description,
+                        (a, p) -> a.description = p.description)
                 .add()
                 .<Integer>appendInherited(new KeyedCodec<>("ManaConsumption", Codec.INTEGER),
                         (a, v) -> a.manaConsumption = v, a -> a.manaConsumption,

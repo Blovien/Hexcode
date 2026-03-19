@@ -30,7 +30,8 @@
     "BlockEntity": {
       "Components": {
         "Hexcode_ObeliskBlock": {
-          "Power": 10
+          "Power": 10,
+          "HandlerId": "seeker"
         }
       }
     },

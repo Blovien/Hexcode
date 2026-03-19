@@ -49,11 +49,11 @@ public class VfxUtil {
   public static void particleAlongPath(String systemId, Vector3d source, Vector3d target,
       int count, ComponentAccessor<EntityStore> accessor) {
     if (count < 1) count = 1;
-    int steps = count + 2;
+    double phaseOffset = (double) flowPhase / (count * 4);
     Vector3d point = new Vector3d();
     for (int i = 0; i < count; i++) {
-      double t = (double) (i * 4 + flowPhase + 1) / (steps * 4);
-      if (t > 1.0) t -= 1.0;
+      double t = (double) i / count + phaseOffset;
+      if (t >= 1.0) t -= 1.0;
       point.x = source.x + (target.x - source.x) * t;
       point.y = source.y + (target.y - source.y) * t;
       point.z = source.z + (target.z - source.z) * t;

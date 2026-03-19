@@ -12,10 +12,35 @@ import com.riprod.hexcode.core.common.obelisk.component.ObeliskBlockComponent;
 import com.riprod.hexcode.core.common.obelisk.interfaces.ObeliskInterface;
 import com.riprod.hexcode.core.common.obelisk.registry.ObeliskHandlerRegistry;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
 
 public class ObeliskDispatcher {
 
     private ObeliskDispatcher() {
+    }
+
+    public static void dispatchStateChange(CommandBuffer<EntityStore> buffer,
+            PedestalBlockComponent pedestal, PedestalState previousState, PedestalState newState) {
+        List<Vector3i> obelisks = pedestal.getActiveObelisks();
+        if (obelisks.isEmpty()) return;
+
+        for (Vector3i pos : obelisks) {
+            if (pos == null) continue;
+
+            ObeliskBlockComponent obelisk = BlockModule.getComponent(
+                    ObeliskBlockComponent.getComponentType(),
+                    buffer.getExternalData().getWorld(),
+                    pos.x, pos.y, pos.z);
+            if (obelisk == null) continue;
+
+            String handlerId = obelisk.getHandlerId();
+            if (handlerId == null || handlerId.isEmpty()) continue;
+
+            ObeliskInterface handler = ObeliskHandlerRegistry.get(handlerId);
+            if (handler == null) continue;
+
+            handler.onStateChange(buffer, obelisk, pos, previousState, newState);
+        }
     }
 
     public static void dispatchGlyphDrawn(CommandBuffer<EntityStore> buffer,

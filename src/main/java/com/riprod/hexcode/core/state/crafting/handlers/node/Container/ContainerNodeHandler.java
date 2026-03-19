@@ -37,7 +37,7 @@ import com.riprod.hexcode.core.common.obelisk.system.ObeliskDispatcher;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableType;
 import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
-import com.riprod.hexcode.core.common.obelisk.system.ObeliskSystem;
+
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.common.pedestal.events.PedestalSystem;
 import com.riprod.hexcode.core.common.pedestal.utils.PedestalBlockUtil;
@@ -211,8 +211,6 @@ public class ContainerNodeHandler implements NodeInterface {
         }
 
         PedestalSystem.enterCrafting(accessor, playerRef, pedestal, node);
-        ObeliskSystem.enterCrafting(accessor, pedestal, node);
-        playerData.setState(PedestalState.CRAFTING);
         HexcodeEvents.fire(new EnterCraftingModeEvent(playerRef, originalHex, pedestal));
         ObeliskDispatcher.dispatchEnterCrafting(accessor, pedestal, playerRef);
         craftingComp.setHoveredRef(null);

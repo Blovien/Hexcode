@@ -38,11 +38,13 @@ import com.riprod.hexcode.builtin.glyphs.value.NumberValue;
 import com.riprod.hexcode.builtin.glyphs.value.PositionValue;
 import com.riprod.hexcode.builtin.glyphs.value.RotationValue;
 import com.riprod.hexcode.builtin.glyphs.value.VariableValue;
+import com.riprod.hexcode.builtin.obelisks.seeker.SeekerObelisk;
 import com.riprod.hexcode.builtin.styles.ArcStyle;
 import com.riprod.hexcode.builtin.styles.RingStyle;
 import com.riprod.hexcode.builtin.styles.SphereStyle;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphRegistry;
 import com.riprod.hexcode.core.common.glyphs.registry.HexValueRegistry;
+import com.riprod.hexcode.core.common.obelisk.registry.ObeliskHandlerRegistry;
 import com.riprod.hexcode.core.state.casting.registery.CastingStyleRegistry;
 
 public class BuiltinPlugin {
@@ -58,6 +60,7 @@ public class BuiltinPlugin {
         }
         RegisterGlyphs();
         RegisterStyles();
+        RegisterObelisks();
 
         initialized = true;
     }
@@ -125,6 +128,10 @@ public class BuiltinPlugin {
         HexValueRegistry.register("Glyph_Position", new PositionValue());
         HexValueRegistry.register("Glyph_Rotation", new RotationValue());
 
+    }
+
+    private static void RegisterObelisks() {
+        ObeliskHandlerRegistry.register("seeker", new SeekerObelisk());
     }
 
     private static void RegisterStyles() {

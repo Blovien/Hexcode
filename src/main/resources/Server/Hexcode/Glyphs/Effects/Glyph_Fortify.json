@@ -1,13 +1,15 @@
 {
   "Parent": "Base_Glyph",
+  "Title": "Fortify",
+  "Description": "Increases resilience of targets for a duration",
   "GlyphType": "Effect",
   "ModelPath": "Glyph_Fortify",
   "BasePower": 1.0,
   "ManaConsumption": 10,
   "Inputs": {
-    "target": { "Title": "Target", "DefaultSlot": 1 },
-    "amount": { "Title": "Amount", "DefaultSlot": 2 },
-    "duration": { "Title": "Duration", "DefaultSlot": 3 }
+    "target": { "Title": "Target", "DefaultSlot": 1, "Description": "Variable containing the targets to affect" },
+    "amount": { "Title": "Amount", "DefaultSlot": 2, "Description": "Damage reduction per incoming hit" },
+    "duration": { "Title": "Duration", "DefaultSlot": 3, "Description": "How long the effect lasts in ticks" }
   },
   "ShapeStructure": [
     {

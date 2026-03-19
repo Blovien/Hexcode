@@ -1,13 +1,15 @@
 {
   "Parent": "Base_Glyph",
+  "Title": "Divide",
+  "Description": "Divides one value by another",
   "GlyphType": "Effect",
   "ModelPath": "Glyph_Divide",
   "Inputs": {
-    "a": { "Title": "A", "DefaultSlot": 1 },
-    "b": { "Title": "B", "DefaultSlot": 2 }
+    "a": { "Title": "A", "DefaultSlot": 1, "Description": "First operand" },
+    "b": { "Title": "B", "DefaultSlot": 2, "Description": "Second operand" }
   },
   "Outputs": {
-    "result": { "Title": "Result", "DefaultSlot": 1 }
+    "result": { "Title": "Result", "DefaultSlot": 1, "Description": "Variable slot to store the result" }
   },
   "ShapeStructure": [
     {

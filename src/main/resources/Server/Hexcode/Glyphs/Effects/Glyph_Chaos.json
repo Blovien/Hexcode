@@ -1,16 +1,18 @@
 {
   "Parent": "Base_Glyph",
+  "Title": "Chaos",
+  "Description": "Generates a random number or randomly samples elements from a variable",
   "GlyphType": "Effect",
   "ModelPath": "Glyph_Chaos",
   "BasePower": 1.0,
   "ManaConsumption": 3,
   "Inputs": {
-    "source": { "Title": "Source", "DefaultSlot": 1 },
-    "min": { "Title": "Min", "DefaultSlot": 2 },
-    "max": { "Title": "Max", "DefaultSlot": 3 }
+    "source": { "Title": "Source", "DefaultSlot": 1, "Description": "Variable to sample from, or slot to store generated values" },
+    "min": { "Title": "Min", "DefaultSlot": 2, "Description": "Minimum value for random generation" },
+    "max": { "Title": "Max", "DefaultSlot": 3, "Description": "Maximum value for random generation" }
   },
   "Outputs": {
-    "result": { "Title": "Result", "DefaultSlot": 1 }
+    "result": { "Title": "Result", "DefaultSlot": 1, "Description": "Variable slot to store the result" }
   },
   "ShapeStructure": [
     {

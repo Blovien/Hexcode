@@ -1,13 +1,15 @@
 {
   "Parent": "Base_Glyph",
+  "Title": "Detonate",
+  "Description": "Radial force explosion pushing targets away from a center point",
   "GlyphType": "Effect",
   "ModelPath": "Glyph_Detonate",
   "BasePower": 1.0,
   "ManaConsumption": 15,
   "Inputs": {
-    "center": { "Title": "Center", "DefaultSlot": 1 },
-    "radius": { "Title": "Radius", "DefaultSlot": 2 },
-    "magnitude": { "Title": "Magnitude", "DefaultSlot": 3 }
+    "center": { "Title": "Center", "DefaultSlot": 1, "Description": "Position to center the effect around" },
+    "radius": { "Title": "Radius", "DefaultSlot": 2, "Description": "Radius of the area of effect" },
+    "magnitude": { "Title": "Magnitude", "DefaultSlot": 3, "Description": "Strength of the applied force" }
   },
   "ShapeStructure": [
     {

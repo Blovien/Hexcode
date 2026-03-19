@@ -1,14 +1,16 @@
 {
   "Parent": "Base_Glyph",
+  "Title": "Arc",
+  "Description": "Chain lightning that fires each child on the next chain target",
   "GlyphType": "Effect",
   "ModelPath": "Glyph_Arc",
   "BasePower": 1.0,
   "ManaConsumption": 20,
   "Inputs": {
-    "target": { "Title": "Target", "DefaultSlot": 1 }
+    "target": { "Title": "Target", "DefaultSlot": 1, "Description": "Variable containing the targets to affect" }
   },
   "Outputs": {
-    "result": { "Title": "Result", "DefaultSlot": 1 }
+    "result": { "Title": "Result", "DefaultSlot": 1, "Description": "Variable slot to store the result" }
   },
   "ShapeStructure": [
     {

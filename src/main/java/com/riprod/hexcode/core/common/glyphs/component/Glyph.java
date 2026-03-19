@@ -92,6 +92,10 @@ public class Glyph {
         return id;
     }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public Vector3f getPosition() {
         return relPosition;
     }

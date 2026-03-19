@@ -15,6 +15,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.utils.CreateGlyph;
 import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
@@ -115,6 +116,12 @@ public class EffectNodeHandler implements NodeInterface {
         HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
                 HexcasterCraftingComponent.getComponentType());
 
+        Ref<EntityStore> headAnchorRef = craftingComp.getHeadAnchorRef();
+        if (headAnchorRef != null && headAnchorRef.isValid()) {
+            // despawn it 
+            craftingComp.setHeadAnchorRef(accessor, null);
+        }
+
         CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(accessor, playerRef);
 
         if (DetailsHandler.isOpenFor(accessor, playerData.getSlotNodeRefs(), nodeRef)) {
@@ -155,8 +162,14 @@ public class EffectNodeHandler implements NodeInterface {
         Holder<EntityStore> glyphHolder = CreateGlyph.createGlyphHolder(accessor, glyphComp, position, glyphRot);
 
         HiddenUtils.addHiddenToHolder(accessor, glyphHolder, playerRef);
+        HoverableComponent hoverComp = new HoverableComponent(HoverableType.NODE);
+        try {
+            GlyphAsset glyphAsset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
+            hoverComp.setHintText(glyphAsset.getTitle());
+        } catch (Exception e) {
+        }
         glyphHolder.addComponent(HoverableComponent.getComponentType(),
-                new HoverableComponent(HoverableType.NODE));
+                hoverComp);
         glyphHolder.addComponent(NodeComponent.getComponentType(),
                 new NodeComponent(hexEntityRef, NodeType.Effect));
         Ref<EntityStore> glyphNodeRef = accessor.addEntity(glyphHolder, AddReason.SPAWN);

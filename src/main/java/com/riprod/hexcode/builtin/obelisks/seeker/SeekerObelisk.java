@@ -2,6 +2,8 @@ package com.riprod.hexcode.builtin.obelisks.seeker;
 
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.protocol.packets.interface_.CustomHud;
+import com.hypixel.hytale.protocol.packets.interface_.CustomUICommand;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -38,6 +40,6 @@ public class SeekerObelisk implements ObeliskInterface {
         Player player = buffer.getComponent(playerRef, Player.getComponentType());
         if (player == null) return;
 
-        player.getHudManager().setCustomHud(ref, null);
+        ref.getPacketHandler().writeNoCache(new CustomHud(true, new CustomUICommand[0]));
     }
 }

@@ -22,6 +22,7 @@ import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.obelisk.system.ObeliskSystem;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
 import com.riprod.hexcode.state.HexState;
 
 import java.util.Set;
@@ -97,7 +98,7 @@ public class PedestalBlockEvent extends EntityEventSystem<EntityStore, BreakBloc
         }
 
         UnbreakableBlockComponent.unprotect(world, pos);
-        ObeliskSystem.enterIdle(buffer, pedestal, world);
+        ObeliskSystem.updateState(buffer, pedestal, world, PedestalState.SELECTING, PedestalState.IDLE);
 
         LOGGER.atInfo().log("pedestal cleanup complete at %s", pos);
     }

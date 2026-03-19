@@ -18,6 +18,7 @@ import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexcaster.utils.CasterInventory;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
+import com.riprod.hexcode.core.common.hexes.utils.HexUtils;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffComponent;
 import com.riprod.hexcode.core.state.execution.component.PlayerHexRoot;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
@@ -84,6 +85,7 @@ public class ExecutionSystem extends HexcodeManager {
         }
 
         Hex hexClone = activeHex.clone();
+        HexUtils.validate(hexClone);
 
         SpellCastEvent spellCastEvent = HexcodeEvents.dispatch(new SpellCastEvent(ref, hexClone));
         if (spellCastEvent.isCancelled()) return InteractionState.Failed;

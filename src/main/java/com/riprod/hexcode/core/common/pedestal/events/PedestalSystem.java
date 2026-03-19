@@ -27,6 +27,7 @@ import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexcaster.utils.PlayerUtils;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
+import com.riprod.hexcode.core.common.hexes.utils.HexUtils;
 import com.riprod.hexcode.api.event.EnterSelectingEvent;
 import com.riprod.hexcode.api.event.HexcodeEvents;
 import com.riprod.hexcode.core.common.obelisk.system.ObeliskDispatcher;
@@ -185,6 +186,7 @@ public class PedestalSystem {
         }
 
         Hex hex = hexComp.getHex().clone();
+        HexUtils.compress(hex);
 
         HexBookComponent bookComp = playerData.getStoredBookComponent();
         if (bookComp == null) {
@@ -192,10 +194,17 @@ public class PedestalSystem {
             return;
         }
 
-        bookComp.setHex(slotIndex, hex);
+        if (hex.getGlyphs().isEmpty()) {
+            if (slotIndex < bookComp.getHexes().size()) {
+                bookComp.getHexes().remove(slotIndex);
+                logger.atInfo().log("pedestal: removed empty hex from book — slot=%d", slotIndex);
+            }
+        } else {
+            bookComp.setHex(slotIndex, hex);
+            logger.atInfo().log("pedestal: saved hex to book — slot=%d, hex=%s", slotIndex, hex);
+        }
 
         playerData.setStoredBookComponent(bookComp);
-        logger.atInfo().log("pedestal: saved hex to book — slot=%d, hex=%s", slotIndex, hex);
     }
 
     public static void exitCrafting(CommandBuffer<EntityStore> buffer, Ref<EntityStore> playerRef,
@@ -236,7 +245,6 @@ public class PedestalSystem {
             craftingComp.clearCraftingState();
         }
 
-        playerData.setState(PedestalState.SELECTING); // go to idle to transition out of crafting
     }
 
     public static void handleEssencePlacement(CommandBuffer<EntityStore> buffer,
@@ -324,7 +332,7 @@ public class PedestalSystem {
         }
 
         List<Vector3i> removedObelisks = pedestalComponent.setActiveObelisks(obelisks);
-        ObeliskSystem.CleanupObelisks(buffer, world, removedObelisks);
+        ObeliskSystem.cleanupObelisks(buffer, world, removedObelisks);
 
         updateState(buffer, pedestalComponent, playerData, world, PedestalState.SELECTING);
         HexcodeEvents.fire(new EnterSelectingEvent(player.getReference(), pedestalComponent.getLocation()));
@@ -422,39 +430,34 @@ public class PedestalSystem {
             CraftingDataComponent playerData, World world,
             PedestalState state) {
 
+        PedestalState previousState = playerData.getState();
+
         Vector3i blockPos = pedestal.getLocation();
 
-        String blockState = "Idle";
-        switch (state) {
-            case IDLE:
-                blockState = "Idle";
-                break;
-            case READY:
-                blockState = "Ready";
-                break;
-            case SELECTING:
-                blockState = "Selecting";
-                break;
-            case CRAFTING:
-                blockState = "Crafting";
-                break;
-        }
+        String blockState = switch (state) {
+            case IDLE -> "Idle";
+            case READY -> "Ready";
+            case SELECTING -> "Selecting";
+            case CRAFTING -> "Crafting";
+        };
+
+        boolean canSwitch = canSwitchState(accessor, pedestal, state);
+
+        playerData.setState(state);
 
         Ref<EntityStore> bookRef = playerData.getBookDisplayRef();
         if (bookRef != null && bookRef.isValid()) {
             AnimationUtils.playAnimation(bookRef, AnimationSlot.Action, blockState, accessor);
         }
 
-        // play essence animation
         Ref<EntityStore> essenceRef = playerData.getEssenceDisplayRef();
         if (essenceRef != null && essenceRef.isValid()) {
             AnimationUtils.playAnimation(essenceRef, AnimationSlot.Action, blockState, accessor);
         }
 
-        boolean canSwitch = canSwitchState(accessor, pedestal, state);
-
         if (canSwitch) {
             PedestalBlockUtil.changeBlockState(world, blockPos, blockState);
+            ObeliskSystem.updateState(accessor, pedestal, world, previousState, state);
         }
     }
 

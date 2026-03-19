@@ -69,7 +69,7 @@ public class CraftingStateSystem {
         if (craftingComp == null)
             return InteractionState.Finished;
 
-        boolean isClick = craftingComp.getDragTickCount() < 10;
+        boolean isClick = craftingComp.getDragTickCount() < 5;
 
         Ref<EntityStore> draggedRef = craftingComp.getDraggingRef();
 

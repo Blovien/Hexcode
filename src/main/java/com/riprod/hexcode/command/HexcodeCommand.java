@@ -9,10 +9,12 @@ import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayer
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.command.draw.DrawCommand;
-import com.riprod.hexcode.command.glyph.GlyphsCommand;
-import com.riprod.hexcode.command.hex.HexCommand;
-import com.riprod.hexcode.command.test.TestCommand;
+import com.riprod.hexcode.command.draw.DrawTrainCommand;
+import com.riprod.hexcode.command.glyph.GlyphsForgetCommand;
+import com.riprod.hexcode.command.glyph.GlyphsLearnCommand;
+import com.riprod.hexcode.command.glyph.GlyphsListCommand;
+import com.riprod.hexcode.command.hex.HexInspectCommand;
+import com.riprod.hexcode.command.hex.HexSerializeCommand;
 
 import javax.annotation.Nonnull;
 
@@ -22,10 +24,12 @@ public class HexcodeCommand extends AbstractPlayerCommand {
         this.setPermissionGroup(GameMode.Creative);
         addAliases("hc");
 
-        addSubCommand(new GlyphsCommand());
-        addSubCommand(new DrawCommand());
-        addSubCommand(new HexCommand());
-        addSubCommand(new TestCommand());
+        addSubCommand(new GlyphsLearnCommand());
+        addSubCommand(new GlyphsListCommand());
+        addSubCommand(new GlyphsForgetCommand());
+        addSubCommand(new HexInspectCommand());
+        addSubCommand(new HexSerializeCommand());
+        addSubCommand(new DrawTrainCommand());
     }
 
     @Override
@@ -36,11 +40,11 @@ public class HexcodeCommand extends AbstractPlayerCommand {
 
     private void showHelp(CommandContext ctx) {
         ctx.sendMessage(Message.raw("Hexcode Commands:"));
-        ctx.sendMessage(Message.raw("  /hexcode learn <glyphId> [accuracy] [speed] - Learn a glyph into held hexbook"));
-        ctx.sendMessage(
-                Message.raw("  /hexcode spawnGlyph [glyph_id] [scale] [mounted] - Spawn a glyph entity for testing"));
-        ctx.sendMessage(Message.raw("  /hexcode glyphs ... - Commands for managing glyphs in hexbooks"));
-        ctx.sendMessage(Message.raw("  /hexcode draw ... - Commands for drawing glyphs"));
-        ctx.sendMessage(Message.raw("  /hexcode hex inspect [--detailed] - Print the glyph tree on the held staff"));
+        ctx.sendMessage(Message.raw("/hexcode learn - Learn the glyph you are looking at"));
+        ctx.sendMessage(Message.raw("/hexcode list - List the glyphs you have"));
+        ctx.sendMessage(Message.raw("/hexcode forget - Forget the glyph you are looking at"));
+        ctx.sendMessage(Message.raw("/hexcode inspect - Print the glyph tree of the active hex on the held staff"));
+        ctx.sendMessage(Message.raw("/hexcode serialize - Print the serialized data of the active hex on the held staff"));
+        ctx.sendMessage(Message.raw("/hexcode train - Start a draw training session"));
     }
 }

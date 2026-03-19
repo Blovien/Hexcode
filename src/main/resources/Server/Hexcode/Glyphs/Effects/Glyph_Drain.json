@@ -1,11 +1,13 @@
 {
   "Parent": "Base_Glyph",
+  "Title": "Drain",
+  "Description": "Converts one resource pool to another on a single entity",
   "GlyphType": "Effect",
   "ModelPath": "Glyph_Drain",
   "BasePower": 1.0,
   "ManaConsumption": 5,
   "Inputs": {
-    "amount": { "Title": "Amount", "DefaultSlot": 1 }
+    "amount": { "Title": "Amount", "DefaultSlot": 1, "Description": "Amount of resource to convert" }
   },
   "ShapeStructure": [
     {

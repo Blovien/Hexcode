@@ -1,14 +1,16 @@
 {
   "Parent": "Base_Glyph",
+  "Title": "Shatter",
+  "Description": "Launches ice shard projectiles in a cone from a position",
   "GlyphType": "Effect",
   "ModelPath": "Glyph_Shatter",
   "BasePower": 1.0,
   "ManaConsumption": 20,
   "Inputs": {
-    "target": { "Title": "Target", "DefaultSlot": 1 }
+    "target": { "Title": "Target", "DefaultSlot": 1, "Description": "Variable containing the targets to affect" }
   },
   "Outputs": {
-    "result": { "Title": "Result", "DefaultSlot": 1 }
+    "result": { "Title": "Result", "DefaultSlot": 1, "Description": "Variable slot to store the result" }
   },
   "ShapeStructure": [
     {

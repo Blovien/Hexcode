@@ -1,16 +1,18 @@
 {
   "Parent": "Base_Glyph",
+  "Title": "Seek",
+  "Description": "Raycasts from an entity in a direction, storing the first hit",
   "GlyphType": "Effect",
   "ModelPath": "Glyph_Seek",
   "BasePower": 1.0,
   "ManaConsumption": 8,
   "Inputs": {
-    "entity": { "Title": "Entity", "DefaultSlot": 1 },
-    "rotation": { "Title": "Rotation", "DefaultSlot": 1 },
-    "distance": { "Title": "Distance", "DefaultSlot": 2 }
+    "entity": { "Title": "Entity", "DefaultSlot": 1, "Description": "Entity to raycast from" },
+    "rotation": { "Title": "Rotation", "DefaultSlot": 1, "Description": "Direction to cast the ray" },
+    "distance": { "Title": "Distance", "DefaultSlot": 2, "Description": "Maximum range in blocks" }
   },
   "Outputs": {
-    "result": { "Title": "Result", "DefaultSlot": 1 }
+    "result": { "Title": "Result", "DefaultSlot": 1, "Description": "Variable slot to store the result" }
   },
   "ShapeStructure": [
     {

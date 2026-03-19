@@ -1,0 +1,113 @@
+package com.riprod.hexcode.command.hex;
+
+import javax.annotation.Nonnull;
+
+import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.server.core.Message;
+import com.hypixel.hytale.server.core.command.system.CommandContext;
+import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
+import com.hypixel.hytale.server.core.command.system.arguments.system.RequiredArg;
+import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayerCommand;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.world.World;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.common.hexbook.component.HexBookComponent;
+import com.riprod.hexcode.core.common.hexcaster.utils.CasterInventory;
+import com.riprod.hexcode.core.common.hexes.component.Hex;
+import com.riprod.hexcode.core.common.hexes.utils.HexUtils;
+import com.riprod.hexcode.core.common.hexstaff.component.HexStaffComponent;
+import com.riprod.hexcode.utils.HexSlot;
+
+public class HexSerializeCommand extends AbstractPlayerCommand {
+
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+
+    public HexSerializeCommand() {
+        super("serialize", "import/export hex spells");
+        addAliases("s");
+        addSubCommand(new ExportCommand());
+        addSubCommand(new ImportCommand());
+    }
+
+    @Override
+    protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store,
+            @Nonnull Ref<EntityStore> playerEntityRef, @Nonnull PlayerRef playerRef, @Nonnull World world) {
+        send(playerRef, "usage: /hexcode serialize export");
+        send(playerRef, "usage: /hexcode serialize import <data>");
+    }
+
+    private static class ExportCommand extends AbstractPlayerCommand {
+
+        ExportCommand() {
+            super("export", "export the active hex on your staff");
+            addAliases("e");
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store,
+                @Nonnull Ref<EntityStore> playerEntityRef, @Nonnull PlayerRef playerRef, @Nonnull World world) {
+
+            HexStaffComponent staff = CasterInventory.getHexStaffComponent(store, playerEntityRef);
+            if (staff == null) {
+                send(playerRef, "you need to hold a hex staff");
+                return;
+            }
+
+            Hex hex = staff.getActiveHex();
+            if (hex == null) {
+                send(playerRef, "no hex selected on your staff");
+                return;
+            }
+
+            String data = HexUtils.serialize(hex);
+            send(playerRef, "exported hex:");
+            send(playerRef, data);
+        }
+    }
+
+    private static class ImportCommand extends AbstractPlayerCommand {
+
+        private final RequiredArg<String> dataArg;
+
+        ImportCommand() {
+            super("import", "import a hex into your book");
+            addAliases("i");
+            dataArg = withRequiredArg("data", "hex data string", ArgTypes.STRING);
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store,
+                @Nonnull Ref<EntityStore> playerEntityRef, @Nonnull PlayerRef playerRef, @Nonnull World world) {
+
+            String data = context.get(dataArg);
+
+            Hex hex = HexUtils.deserialize(data);
+            if (hex == null) {
+                send(playerRef, "invalid hex data — check that you copied the full string");
+                return;
+            }
+
+            HexBookComponent book = CasterInventory.getHexBookComponent(store, playerEntityRef);
+            if (book == null) {
+                send(playerRef, "you need to hold a hex book in your off hand");
+                return;
+            }
+
+            if (!book.canAddHex()) {
+                send(playerRef, "your hex book is full");
+                return;
+            }
+
+            book.addHex(hex);
+            CasterInventory.saveHexBookComponent(store, playerEntityRef, book);
+            send(playerRef, "imported hex into book slot " + book.getHexes().size());
+        }
+    }
+
+    private static void send(PlayerRef playerRef, String message) {
+        playerRef.sendMessage(Message.raw(message));
+        LOGGER.atInfo().log(message);
+    }
+}
