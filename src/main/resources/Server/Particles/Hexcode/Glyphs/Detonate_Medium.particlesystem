@@ -1,0 +1,12 @@
+{
+  "Spawners": [
+    { "SpawnerId": "Detonate_Flash", "PositionOffset": { "Y": 0 }, "StartDelay": 0 },
+    { "SpawnerId": "Detonate_Shockwave", "PositionOffset": { "Y": 0 }, "StartDelay": 0.02 },
+    { "SpawnerId": "Detonate_Sparks", "PositionOffset": { "Y": 0 }, "StartDelay": 0.02 },
+    { "SpawnerId": "Detonate_Smoke", "PositionOffset": { "Y": 0 }, "StartDelay": 0.05 }
+  ],
+  "LifeSpan": 2.0,
+  "CullDistance": 100,
+  "BoundingRadius": 8.0,
+  "IsImportant": true
+}

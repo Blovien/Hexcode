@@ -27,6 +27,8 @@ import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexcaster.utils.PlayerUtils;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
+import com.riprod.hexcode.api.event.EnterSelectingEvent;
+import com.riprod.hexcode.api.event.HexcodeEvents;
 import com.riprod.hexcode.core.common.obelisk.component.ObeliskBlockComponent;
 import com.riprod.hexcode.core.common.obelisk.system.ObeliskSystem;
 import com.riprod.hexcode.core.common.obelisk.utils.ObeliskBlockUtil;
@@ -323,6 +325,7 @@ public class PedestalSystem {
         ObeliskSystem.CleanupObelisks(buffer, world, removedObelisks);
 
         updateState(buffer, pedestalComponent, playerData, world, PedestalState.SELECTING);
+        HexcodeEvents.fire(new EnterSelectingEvent(player.getReference(), pedestalComponent.getLocation()));
     }
 
     public static void enterIdle(CommandBuffer<EntityStore> buffer,

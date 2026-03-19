@@ -19,6 +19,8 @@ import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.time.TimeResource;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.api.event.GlyphDrawnEvent;
+import com.riprod.hexcode.api.event.HexcodeEvents;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
@@ -100,6 +102,9 @@ public class DrawingSystem extends HexcodeManager {
         LOGGER.atInfo().log("Efficiency: %f | Volatility: %f", efficiency, volatility);
 
         Glyph glyph = new Glyph(matchedGlyph, volatility, efficiency);
+
+        // TODO: Obelisk on draw finish
+        HexcodeEvents.fire(new GlyphDrawnEvent(ref, glyph, drawnShapes, matchedGlyph));
 
         HeadRotation hRotation = buffer.getComponent(ref, HeadRotation.getComponentType());
         Vector3d spawnPos = calculateDrawCenter(drawnShapes);

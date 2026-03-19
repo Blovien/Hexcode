@@ -14,19 +14,8 @@ import java.util.Map;
 public class CastingStyleRegistry {
 
     private static final Map<String, CastingStyle> styles = new HashMap<>();
-    private static boolean initialized = false;
 
     private CastingStyleRegistry() {
-    }
-
-    public static void init() {
-        if (initialized) {
-            return;
-        }
-        register(new RingStyle());
-        register(new SphereStyle());
-        register(new ArcStyle());
-        initialized = true;
     }
 
     public static void register(@Nonnull CastingStyle style) {

@@ -9,6 +9,8 @@ import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.api.event.HexStateChangeEvent;
+import com.riprod.hexcode.api.event.HexcodeEvents;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 
 public class HexTick extends EntityTickingSystem<EntityStore> {
@@ -37,6 +39,8 @@ public class HexTick extends EntityTickingSystem<EntityStore> {
       }
 
       comp.applyState(pending);
+
+      HexcodeEvents.fire(new HexStateChangeEvent(ref, current, pending));
 
       HexcodeManager next = StateRouter.route(pending);
       if (next != null) {

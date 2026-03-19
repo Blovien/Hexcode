@@ -1,0 +1,9 @@
+{
+  "Spawners": [
+    { "SpawnerId": "Propel_Miss_Fizzle", "PositionOffset": { "Y": 0 }, "StartDelay": 0 }
+  ],
+  "LifeSpan": 0.5,
+  "CullDistance": 100,
+  "BoundingRadius": 3.0,
+  "IsImportant": true
+}

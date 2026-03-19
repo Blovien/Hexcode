@@ -300,7 +300,6 @@ public class Hexcode extends JavaPlugin {
     entityStoreRegistry.registerSystem(new HoverableSpatialSystem(hoverableSpatialResourceType));
 
     // Startups
-    CastingStyleRegistry.init();
     BuiltinPlugin.startup();
 
     LOGGER.atInfo().log("Hexcode setup complete!");

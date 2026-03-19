@@ -10,6 +10,8 @@ import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.api.event.HexcodeEvents;
+import com.riprod.hexcode.api.event.HoverChangeEvent;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
@@ -126,6 +128,7 @@ public class CraftingStateSystem {
             pedestal.setTickLength(HOVER_PARTICLE, 1f);
 
             HoverStyleUtils.hover(accessor, targetRef, ref);
+            HexcodeEvents.fire(new HoverChangeEvent(ref, targetRef, previousHovered));
         }
 
         Ref<EntityStore> playerRefFlag = pedestal.isPerPlayer() ? ref : null;
