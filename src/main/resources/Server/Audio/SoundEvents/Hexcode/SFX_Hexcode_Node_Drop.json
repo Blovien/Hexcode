@@ -1,0 +1,5 @@
+{
+  "Layers": [{"Files": ["Sounds/Hexcode/Crafting/Node/Drop/Node_Drop_01.ogg"]}],
+  "Volume": -3.0,
+  "Parent": "SFX_Attn_Moderate"
+}

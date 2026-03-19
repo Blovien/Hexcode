@@ -40,6 +40,27 @@ public class VfxUtil {
     sound(soundId, pos, accessor);
   }
 
+  private static int flowPhase = 0;
+
+  public static void advanceFlowPhase() {
+    flowPhase = (flowPhase + 1) % 4;
+  }
+
+  public static void particleAlongPath(String systemId, Vector3d source, Vector3d target,
+      int count, ComponentAccessor<EntityStore> accessor) {
+    if (count < 1) count = 1;
+    int steps = count + 2;
+    Vector3d point = new Vector3d();
+    for (int i = 0; i < count; i++) {
+      double t = (double) (i * 4 + flowPhase + 1) / (steps * 4);
+      if (t > 1.0) t -= 1.0;
+      point.x = source.x + (target.x - source.x) * t;
+      point.y = source.y + (target.y - source.y) * t;
+      point.z = source.z + (target.z - source.z) * t;
+      ParticleUtil.spawnParticleEffect(systemId, point, accessor);
+    }
+  }
+
   public static void line(ComponentAccessor<EntityStore> accessor, World world, Vector3d start, Vector3d end,
       Vector3f color,
       double thickness, float time, boolean fade) {

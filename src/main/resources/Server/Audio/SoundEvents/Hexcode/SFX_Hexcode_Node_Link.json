@@ -1,0 +1,10 @@
+{
+  "Layers": [{"Files": [
+    "Sounds/Hexcode/Crafting/Node/Link/Node_Link_01.ogg",
+    "Sounds/Hexcode/Crafting/Node/Link/Node_Link_02.ogg",
+    "Sounds/Hexcode/Crafting/Node/Link/Node_Link_03.ogg",
+    "Sounds/Hexcode/Crafting/Node/Link/Node_Link_04.ogg"
+  ]}],
+  "Volume": -2.0,
+  "Parent": "SFX_Attn_Moderate"
+}

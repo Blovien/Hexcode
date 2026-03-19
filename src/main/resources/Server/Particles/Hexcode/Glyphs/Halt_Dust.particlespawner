@@ -9,11 +9,11 @@
   "SpawnBurst": false,
   "EmitOffset": { "X": { "Min": 0, "Max": 0.4 }, "Y": { "Min": 0, "Max": 0.4 }, "Z": { "Min": 0, "Max": 0.4 } },
   "InitialVelocity": { "Yaw": { "Min": 0, "Max": 360 }, "Pitch": { "Min": 40, "Max": 80 }, "Speed": { "Min": 0.5, "Max": 1.5 } },
-  "UVOption": "RandomFlipUV",
   "Particle": {
     "Texture": "Particles/Textures/Smoke/Smoke_Smooth2.png",
     "FrameSize": { "Width": 64, "Height": 64 },
     "ScaleRatioConstraint": "OneToOne",
+    "UVOption": "RandomFlipUV",
     "Animation": {
       "0": { "Opacity": 0.4, "Color": "#ccbbff", "Scale": { "X": { "Min": 0.2, "Max": 0.2 }, "Y": { "Min": 0.2, "Max": 0.2 } } },
       "50": { "Opacity": 0.2, "Color": "#9966ff", "Scale": { "X": { "Min": 0.5, "Max": 0.5 }, "Y": { "Min": 0.5, "Max": 0.5 } } },

@@ -10,10 +10,10 @@
   "TotalParticles": { "Min": 12, "Max": 16 },
   "EmitOffset": { "X": { "Min": 0, "Max": 0.3 }, "Y": { "Min": 0, "Max": 0.3 }, "Z": { "Min": 0, "Max": 0.3 } },
   "InitialVelocity": { "Yaw": { "Min": 0, "Max": 360 }, "Pitch": { "Min": 20, "Max": 70 }, "Speed": { "Min": 2, "Max": 5 } },
-  "Attractors": {
+  "Attractors": [{
     "LinearAcceleration": { "Y": -3 },
     "DampingMultiplier": { "X": 0.9, "Y": 0.95, "Z": 0.9 }
-  },
+  }],
   "Particle": {
     "Texture": "Particles/Textures/Ice/Icepart.png",
     "FrameSize": { "Width": 32, "Height": 32 },

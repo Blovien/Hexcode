@@ -21,7 +21,6 @@
     "Texture": "Particles/Hexcode/Glyphs/glyph_ice.png",
     "FrameSize": { "Width": 32, "Height": 32 },
     "ScaleRatioConstraint": "OneToOne",
-    "Color": { "R": 120, "G": 180, "B": 255, "A": 255 },
     "Animation": {
       "0": {
         "Scale": {

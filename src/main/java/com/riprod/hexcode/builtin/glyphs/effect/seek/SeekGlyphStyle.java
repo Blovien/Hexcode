@@ -2,17 +2,18 @@ package com.riprod.hexcode.builtin.glyphs.effect.seek;
 
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.protocol.packets.buildertools.BuilderToolLaserPointer;
-import com.hypixel.hytale.server.core.universe.world.PlayerUtil;
+import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.utils.VfxUtil;
 
 public class SeekGlyphStyle {
 
-    private static final int ENTITY_HIT_COLOR = 0xFF44AA;
-    private static final int BLOCK_HIT_COLOR = 0x4400CC;
-    private static final int MISS_COLOR = 0x6633AA;
-    private static final int BEAM_DURATION_MS = 1500;
+    private static final Vector3f ENTITY_HIT_COLOR = new Vector3f(1.0f, 0.27f, 0.67f);
+    private static final Vector3f BLOCK_HIT_COLOR = new Vector3f(0.27f, 0.0f, 0.8f);
+    private static final Vector3f MISS_COLOR = new Vector3f(0.4f, 0.2f, 0.67f);
+    private static final double LINE_THICKNESS = 0.12;
+    private static final float LINE_DURATION = 1.5f;
 
     private SeekGlyphStyle() {
     }
@@ -23,18 +24,14 @@ public class SeekGlyphStyle {
 
     public static void render(Vector3d origin, Vector3d endPoint, HitType hitType,
             ComponentAccessor<EntityStore> accessor) {
-        int beamColor = switch (hitType) {
+        Vector3f beamColor = switch (hitType) {
             case ENTITY -> ENTITY_HIT_COLOR;
             case BLOCK -> BLOCK_HIT_COLOR;
             case MISS -> MISS_COLOR;
         };
 
-        BuilderToolLaserPointer beam = new BuilderToolLaserPointer(
-                0,
-                (float) origin.x, (float) origin.y, (float) origin.z,
-                (float) endPoint.x, (float) endPoint.y, (float) endPoint.z,
-                beamColor, BEAM_DURATION_MS);
-        PlayerUtil.broadcastPacketToPlayers(accessor, beam);
+        World world = accessor.getExternalData().getWorld();
+        VfxUtil.line(accessor, world, origin, endPoint, beamColor, LINE_THICKNESS, LINE_DURATION, true);
 
         if (hitType != HitType.MISS) {
             VfxUtil.effect("Seek_Impact", "SFX_Arrow_Frost_Hit", endPoint, accessor);

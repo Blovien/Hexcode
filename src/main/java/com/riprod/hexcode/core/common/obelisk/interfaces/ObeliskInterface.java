@@ -4,8 +4,22 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
+import com.riprod.hexcode.core.common.obelisk.component.ObeliskBlockComponent;
 
 public interface ObeliskInterface {
-    void onDrawFinish(CommandBuffer<EntityStore> accessor, Ref<EntityStore> playerRef, Glyph drawnGlyph);
-    void onDrawStart(CommandBuffer<EntityStore> accessor, Ref<EntityStore> playerRef);
+
+    default void onGlyphDrawn(CommandBuffer<EntityStore> buffer, Ref<EntityStore> playerRef,
+            Glyph glyph, ObeliskBlockComponent obelisk) {}
+
+    default void onEnterCrafting(CommandBuffer<EntityStore> buffer, Ref<EntityStore> playerRef,
+            ObeliskBlockComponent obelisk) {}
+
+    default void onExitCrafting(CommandBuffer<EntityStore> buffer, Ref<EntityStore> playerRef,
+            ObeliskBlockComponent obelisk) {}
+
+    default void onHover(CommandBuffer<EntityStore> buffer, Ref<EntityStore> playerRef,
+            Ref<EntityStore> hoveredRef, ObeliskBlockComponent obelisk) {}
+
+    default void onUnhover(CommandBuffer<EntityStore> buffer, Ref<EntityStore> playerRef,
+            Ref<EntityStore> unhoveredRef, ObeliskBlockComponent obelisk) {}
 }

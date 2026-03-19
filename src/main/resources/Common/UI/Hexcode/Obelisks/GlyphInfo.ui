@@ -1,0 +1,25 @@
+Group {
+  LayoutMode: Bottom;
+
+  Group #GlyphInfoPanel {
+    LayoutMode: Left;
+    Anchor: (Bottom: 80, Left: 20, Height: 40);
+
+    Group #AccentBar {
+      Background: #7b5cff;
+      Anchor: (Width: 3, Height: 40);
+    }
+
+    Group #Content {
+      Background: #0a0a14(0.85);
+      Anchor: (Left: 3, Height: 40);
+      Padding: (Left: 12, Right: 16, Vertical: 8);
+      LayoutMode: Left;
+
+      Label #GlyphName {
+        Style: (FontSize: 18, TextColor: #c4b5ff);
+        Text: "";
+      }
+    }
+  }
+}

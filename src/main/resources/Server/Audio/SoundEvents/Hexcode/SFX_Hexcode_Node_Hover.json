@@ -1,0 +1,13 @@
+{
+  "Layers": [{"Files": [
+    "Sounds/Hexcode/Crafting/Node/Hover/Node_Hover_01.ogg",
+    "Sounds/Hexcode/Crafting/Node/Hover/Node_Hover_02.ogg",
+    "Sounds/Hexcode/Crafting/Node/Hover/Node_Hover_03.ogg",
+    "Sounds/Hexcode/Crafting/Node/Hover/Node_Hover_04.ogg",
+    "Sounds/Hexcode/Crafting/Node/Hover/Node_Hover_05.ogg",
+    "Sounds/Hexcode/Crafting/Node/Hover/Node_Hover_06.ogg",
+    "Sounds/Hexcode/Crafting/Node/Hover/Node_Hover_07.ogg"
+  ]}],
+  "Volume": -8.0,
+  "Parent": "SFX_Attn_Quiet"
+}

@@ -12,6 +12,8 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.HexcodeEvents;
 import com.riprod.hexcode.api.event.HoverChangeEvent;
+import com.riprod.hexcode.core.common.obelisk.system.ObeliskDispatcher;
+import com.riprod.hexcode.core.common.pedestal.utils.PedestalBlockUtil;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
@@ -129,6 +131,12 @@ public class CraftingStateSystem {
 
             HoverStyleUtils.hover(accessor, targetRef, ref);
             HexcodeEvents.fire(new HoverChangeEvent(ref, targetRef, previousHovered));
+
+            PedestalBlockComponent ped = PedestalBlockUtil.resolvePedestal(ref, accessor);
+            if (ped != null) {
+                if (previousHovered != null) ObeliskDispatcher.dispatchUnhover(accessor, ped, ref, previousHovered);
+                if (targetRef != null) ObeliskDispatcher.dispatchHover(accessor, ped, ref, targetRef);
+            }
         }
 
         Ref<EntityStore> playerRefFlag = pedestal.isPerPlayer() ? ref : null;

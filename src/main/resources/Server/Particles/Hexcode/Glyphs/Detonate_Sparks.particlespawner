@@ -10,10 +10,10 @@
   "TotalParticles": { "Min": 20, "Max": 30 },
   "EmitOffset": { "X": { "Min": 0, "Max": 0.2 }, "Y": { "Min": 0, "Max": 0.2 }, "Z": { "Min": 0, "Max": 0.2 } },
   "InitialVelocity": { "Yaw": { "Min": 0, "Max": 360 }, "Pitch": { "Min": 0, "Max": 360 }, "Speed": { "Min": 5, "Max": 15 } },
-  "Attractors": {
+  "Attractors": [{
     "DampingMultiplier": { "X": 0.85, "Y": 0.85, "Z": 0.85 },
     "RadialImpulse": 0.2
-  },
+  }],
   "Particle": {
     "Texture": "Particles/Textures/Basic/Spark_Direction.png",
     "FrameSize": { "Width": 32, "Height": 32 },

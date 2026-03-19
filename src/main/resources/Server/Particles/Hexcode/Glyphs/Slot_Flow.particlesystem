@@ -1,0 +1,9 @@
+{
+  "Spawners": [
+    { "SpawnerId": "Slot_Flow" }
+  ],
+  "LifeSpan": 0.5,
+  "CullDistance": 50,
+  "BoundingRadius": 5.0,
+  "IsImportant": true
+}

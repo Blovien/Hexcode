@@ -29,6 +29,7 @@ import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.api.event.EnterSelectingEvent;
 import com.riprod.hexcode.api.event.HexcodeEvents;
+import com.riprod.hexcode.core.common.obelisk.system.ObeliskDispatcher;
 import com.riprod.hexcode.core.common.obelisk.component.ObeliskBlockComponent;
 import com.riprod.hexcode.core.common.obelisk.system.ObeliskSystem;
 import com.riprod.hexcode.core.common.obelisk.utils.ObeliskBlockUtil;
@@ -200,6 +201,7 @@ public class PedestalSystem {
     public static void exitCrafting(CommandBuffer<EntityStore> buffer, Ref<EntityStore> playerRef,
             PedestalBlockComponent pedestal, CraftingDataComponent playerData) {
 
+        ObeliskDispatcher.dispatchExitCrafting(buffer, pedestal, playerRef);
         saveHexToBook(buffer, playerRef, playerData);
 
         // cleanup slots

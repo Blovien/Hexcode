@@ -21,6 +21,7 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.GlyphDrawnEvent;
 import com.riprod.hexcode.api.event.HexcodeEvents;
+import com.riprod.hexcode.core.common.obelisk.system.ObeliskDispatcher;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
@@ -103,7 +104,10 @@ public class DrawingSystem extends HexcodeManager {
 
         Glyph glyph = new Glyph(matchedGlyph, volatility, efficiency);
 
-        // TODO: Obelisk on draw finish
+        PedestalBlockComponent pedestal = resolvePedestal(resolveAnchorRef(ref, buffer), buffer);
+        if (pedestal != null) {
+          ObeliskDispatcher.dispatchGlyphDrawn(buffer, pedestal, ref, glyph);
+        }
         HexcodeEvents.fire(new GlyphDrawnEvent(ref, glyph, drawnShapes, matchedGlyph));
 
         HeadRotation hRotation = buffer.getComponent(ref, HeadRotation.getComponentType());

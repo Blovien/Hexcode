@@ -22,6 +22,7 @@ public class MultiplyGlyph implements GlyphHandler {
         if (result != null) {
             Integer outputSlot = glyph.resolveOutput("result", hexContext);
             if (outputSlot != null) hexContext.setVariable(outputSlot, result);
+            else hexContext.setVariable(1, result); // default to slot 1 if no output specified
         }
 
         Executor.continueExecution(glyph.getNext(), hexContext);

@@ -9,9 +9,9 @@
   "SpawnBurst": true,
   "TotalParticles": { "Min": 12, "Max": 18 },
   "InitialVelocity": { "Yaw": { "Min": -30, "Max": 30 }, "Pitch": { "Min": -30, "Max": 30 }, "Speed": { "Min": 6, "Max": 14 } },
-  "Attractors": {
+  "Attractors": [{
     "DampingMultiplier": { "X": 0.8, "Y": 0.8, "Z": 0.8 }
-  },
+  }],
   "Particle": {
     "Texture": "Particles/Textures/Basic/Spark_Direction.png",
     "FrameSize": { "Width": 32, "Height": 32 },

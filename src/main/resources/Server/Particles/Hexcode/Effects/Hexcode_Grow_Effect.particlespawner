@@ -21,7 +21,6 @@
     "Texture": "Particles/Hexcode/Glyphs/glyph_basic.png",
     "FrameSize": { "Width": 32, "Height": 32 },
     "ScaleRatioConstraint": "OneToOne",
-    "Color": { "R": 80, "G": 220, "B": 80, "A": 255 },
     "Animation": {
       "0": {
         "Scale": {

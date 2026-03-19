@@ -45,6 +45,8 @@ public class LinkRenderer {
 
         World world = accessor.getExternalData().getWorld();
 
+        VfxUtil.advanceFlowPhase();
+
         LinkRenderer.renderAllLinks(accessor, hexComp, world, playerData.getAnchorNodeRef(), playerRef);
 
         renderSlotValueLinks(accessor, hexComp, world, playerData.getSlotNodeRefs(), playerRef);
@@ -69,6 +71,8 @@ public class LinkRenderer {
                 if (rootTransform != null && firstTransform != null) {
                     VfxUtil.line(accessor, world, rootTransform.getPosition(),
                             firstTransform.getPosition(), CraftingColors.ANCHOR, LINK_THICKNESS, 1f, false, playerRef);
+                    VfxUtil.particleAlongPath("Link_Flow", rootTransform.getPosition(),
+                            firstTransform.getPosition(), 3, accessor);
                 }
             }
         }
@@ -97,6 +101,8 @@ public class LinkRenderer {
 
                 VfxUtil.line(accessor, world, sourceTransform.getPosition(),
                         targetTransform.getPosition(), CraftingColors.GLYPH_LINK, LINK_THICKNESS, 1f, false, playerRef);
+                VfxUtil.particleAlongPath("Link_Flow", sourceTransform.getPosition(),
+                        targetTransform.getPosition(), 3, accessor);
             }
 
         }
@@ -140,6 +146,8 @@ public class LinkRenderer {
 
             VfxUtil.line(accessor, world, slotTransform.getPosition(),
                     valueTransform.getPosition(), CraftingColors.INPUT, LINK_THICKNESS, 1f, false, playerRef);
+            VfxUtil.particleAlongPath("Slot_Flow", slotTransform.getPosition(),
+                    valueTransform.getPosition(), 3, accessor);
         }
     }
 }

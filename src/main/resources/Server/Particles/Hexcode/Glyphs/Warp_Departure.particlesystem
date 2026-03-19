@@ -1,0 +1,11 @@
+{
+  "Spawners": [
+    { "SpawnerId": "Warp_Flash", "PositionOffset": { "Y": 0 }, "StartDelay": 0 },
+    { "SpawnerId": "Warp_Implosion", "PositionOffset": { "Y": 0 }, "StartDelay": 0.02 },
+    { "SpawnerId": "Warp_Dust", "PositionOffset": { "Y": 0 }, "StartDelay": 0.05 }
+  ],
+  "LifeSpan": 1.0,
+  "CullDistance": 100,
+  "BoundingRadius": 5.0,
+  "IsImportant": true
+}

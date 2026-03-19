@@ -19,6 +19,12 @@ public class ObeliskBlockComponent implements Component<ChunkStore> {
                 state -> state.power
             )
             .add()
+            .append(
+                new KeyedCodec<>("HandlerId", Codec.STRING),
+                (state, v) -> state.handlerId = v,
+                state -> state.handlerId
+            )
+            .add()
             .build();
 
     private static ComponentType<ChunkStore, ObeliskBlockComponent> componentType;
@@ -32,9 +38,14 @@ public class ObeliskBlockComponent implements Component<ChunkStore> {
     }
 
     private int power = 1;
+    private String handlerId = "";
 
     public int getPower() {
         return power;
+    }
+
+    public String getHandlerId() {
+        return handlerId;
     }
 
     @Nonnull
@@ -42,6 +53,7 @@ public class ObeliskBlockComponent implements Component<ChunkStore> {
     public Component<ChunkStore> clone() {
         ObeliskBlockComponent copy = new ObeliskBlockComponent();
         copy.power = this.power;
+        copy.handlerId = this.handlerId;
         return copy;
     }
 }
