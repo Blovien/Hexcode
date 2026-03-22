@@ -2,7 +2,7 @@
   "Parent": "Base_Glyph",
   "Title": "Divide",
   "Description": "Divides one value by another",
-  "GlyphType": "Effect",
+  "GlyphType": "Hybrid",
   "ModelPath": "Glyph_Divide",
   "Inputs": {
     "a": { "Title": "A", "DefaultSlot": 1, "Description": "First operand" },

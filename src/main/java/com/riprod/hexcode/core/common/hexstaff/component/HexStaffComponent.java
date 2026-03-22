@@ -23,6 +23,14 @@ public class HexStaffComponent implements Component<EntityStore> {
                     (c, v) -> c.hex = v,
                     c -> c.hex)
             .add()
+            .append(new KeyedCodec<>("CastCount", Codec.INTEGER),
+                    (c, v) -> c.castCount = v,
+                    c -> c.castCount)
+            .add()
+            .append(new KeyedCodec<>("StaffModifier", Codec.FLOAT),
+                    (c, v) -> c.staffModifier = v,
+                    c -> c.staffModifier)
+            .add()
             .build();
 
     private static ComponentType<EntityStore, HexStaffComponent> componentType;
@@ -31,12 +39,15 @@ public class HexStaffComponent implements Component<EntityStore> {
     private String styleId = "ring";
     @Nullable
     private Hex hex;
+    private int castCount = 0;
+    private float staffModifier = 1.0f;
 
     public HexStaffComponent() {
     }
 
     public HexStaffComponent(@Nonnull HexStaffAsset staffAsset) {
         this.styleId = staffAsset.getCastStyleId();
+        this.staffModifier = staffAsset.getStaffModifier();
     }
 
     public static void setComponentType(ComponentType<EntityStore, HexStaffComponent> type) {
@@ -69,12 +80,26 @@ public class HexStaffComponent implements Component<EntityStore> {
         return hex != null;
     }
 
+    public int getCastCount() {
+        return castCount;
+    }
+
+    public void incrementCastCount() {
+        this.castCount++;
+    }
+
+    public float getStaffModifier() {
+        return staffModifier;
+    }
+
     @Nonnull
     @Override
     public HexStaffComponent clone() {
         HexStaffComponent copy = new HexStaffComponent();
         copy.styleId = this.styleId;
         copy.hex = this.hex != null ? this.hex.clone() : null;
+        copy.castCount = this.castCount;
+        copy.staffModifier = this.staffModifier;
         return copy;
     }
 }

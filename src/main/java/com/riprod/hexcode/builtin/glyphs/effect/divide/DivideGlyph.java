@@ -1,23 +1,25 @@
 package com.riprod.hexcode.builtin.glyphs.effect.divide;
 
-import com.hypixel.hytale.logger.HytaleLogger;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
+import com.riprod.hexcode.core.common.glyphs.values.HexValInterface;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.utils.HexMathUtil;
 
-public class DivideGlyph implements GlyphHandler {
-    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+public class DivideGlyph implements GlyphHandler, HexValInterface {
     public static final String ID = "Glyph_Divide";
+
+    private HexVar compute(Glyph glyph, HexContext hexContext) {
+        HexVar a = glyph.resolveInput("a", hexContext);
+        HexVar b = glyph.resolveInput("b", hexContext);
+        return HexMathUtil.divide(a, b);
+    }
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar a = glyph.resolveInput("a", hexContext);
-        HexVar b = glyph.resolveInput("b", hexContext);
-
-        HexVar result = HexMathUtil.divide(a, b);
+        HexVar result = compute(glyph, hexContext);
 
         if (result != null) {
             Integer outputSlot = glyph.resolveOutput("result", hexContext);
@@ -25,5 +27,10 @@ public class DivideGlyph implements GlyphHandler {
         }
 
         Executor.continueExecution(glyph.getNext(), hexContext);
+    }
+
+    @Override
+    public HexVar getValue(Glyph glyph, HexContext hexContext) {
+        return compute(glyph, hexContext);
     }
 }

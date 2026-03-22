@@ -1,0 +1,10 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "Conjure_Trail"
+    }
+  ],
+  "CullDistance": 100,
+  "BoundingRadius": 10.0,
+  "IsImportant": true
+}

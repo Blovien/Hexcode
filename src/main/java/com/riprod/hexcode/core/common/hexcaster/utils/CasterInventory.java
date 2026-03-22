@@ -6,7 +6,7 @@ import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
-import com.hypixel.hytale.server.core.entity.entities.Player;
+import com.hypixel.hytale.server.core.inventory.InventoryComponent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexbook.component.HexBookAsset;
@@ -31,13 +31,11 @@ public class CasterInventory {
     @Nullable
     public static Pair<HexSlot, HexBookComponent> getHexBookComponent(ComponentAccessor<EntityStore> store,
             Ref<EntityStore> playerRef, HexSlot slot) {
-        Player player = store.getComponent(playerRef, Player.getComponentType());
-        if (player == null) {
-            LOGGER.atWarning().log("Player component not found for entity ref: " + playerRef);
+        Pair<ItemStack, HexSlot> inventoryPair = PlayerUtils.getItemFromInventory(store, playerRef, slot, true);
+        if (inventoryPair == null) {
+            LOGGER.atWarning().log("could not read inventory for entity ref: " + playerRef);
             return null;
         }
-
-        Pair<ItemStack, HexSlot> inventoryPair = PlayerUtils.getItemFromInventory(player, slot, true);
         slot = inventoryPair.getSecond();
         ItemStack inventoryItem = inventoryPair.getFirst();
 
@@ -66,7 +64,7 @@ public class CasterInventory {
         HexBookComponent newComponent = new HexBookComponent(bookAsset);
         ItemStack newStack = inventoryItem.withMetadata(METADATA_KEY_HEX_BOOK, HexBookComponent.CODEC, newComponent);
 
-        PlayerUtils.setHandItem(player, slot, newStack);
+        PlayerUtils.setHandItem(store, playerRef, slot, newStack);
 
         return new Pair<>(slot, newComponent);
     }
@@ -78,11 +76,10 @@ public class CasterInventory {
 
     public static void saveHexBookComponent(ComponentAccessor<EntityStore> store,
             Ref<EntityStore> playerRef, HexBookComponent component, HexSlot slot) {
-
-        Player player = store.getComponent(playerRef, Player.getComponentType());
-        ItemStack item = PlayerUtils.getHandItem(player, slot);
+        ItemStack item = PlayerUtils.getHandItem(store, playerRef, slot);
+        if (item == null || item.isEmpty()) return;
         ItemStack newStack = item.withMetadata(METADATA_KEY_HEX_BOOK, HexBookComponent.CODEC, component);
-        PlayerUtils.setHandItem(player, slot, newStack);
+        PlayerUtils.setHandItem(store, playerRef, slot, newStack);
     }
 
     public static boolean withHexBook(ComponentAccessor<EntityStore> store,
@@ -99,47 +96,35 @@ public class CasterInventory {
 
     public static void saveHexStaffComponent(ComponentAccessor<EntityStore> store,
             Ref<EntityStore> playerRef, HexStaffComponent component) {
-        Player player = store.getComponent(playerRef, Player.getComponentType());
-        ItemStack mainHandItem = PlayerUtils.getHandItem(player, HexSlot.MainHand);
+        ItemStack mainHandItem = PlayerUtils.getHandItem(store, playerRef, HexSlot.MainHand);
+        if (mainHandItem == null || mainHandItem.isEmpty()) return;
         ItemStack newStack = mainHandItem.withMetadata(METADATA_KEY_HEX_STAFF, HexStaffComponent.CODEC, component);
-        PlayerUtils.setHandItem(player, HexSlot.MainHand, newStack);
+        PlayerUtils.setHandItem(store, playerRef, HexSlot.MainHand, newStack);
     }
 
     @Nullable
     public static HexStaffComponent getHexStaffComponent(ComponentAccessor<EntityStore> store,
             Ref<EntityStore> playerRef) {
-        Player player = store.getComponent(playerRef, Player.getComponentType());
-        if (player == null) {
-            return null;
-        }
-        ItemStack mainHandItem = player.getInventory().getItemInHand();
+        ItemStack mainHandItem = InventoryComponent.getItemInHand(store, playerRef);
         if (mainHandItem == null || mainHandItem.isEmpty()) {
             return null;
         }
 
-        // Check if component already exists
         HexStaffComponent existingComponent = mainHandItem.getFromMetadataOrNull(METADATA_KEY_HEX_STAFF,
                 HexStaffComponent.CODEC);
         if (existingComponent != null) {
-            LOGGER.atInfo().log("Found existing HexStaffComponent in item metadata");
             return existingComponent;
         }
-        LOGGER.atInfo().log("Creating HexStaffComponent...");
 
-        // Check if this item is a registered HexStaff asset
         HexStaffAsset staffAsset = getHexStaffAsset(mainHandItem);
         if (staffAsset == null) {
-            LOGGER.atInfo().log("No HexStaff asset found for item in main hand");
             return null;
         }
 
-        // Create and initialize new component
         HexStaffComponent newComponent = new HexStaffComponent(staffAsset);
         ItemStack newStack = mainHandItem.withMetadata(METADATA_KEY_HEX_STAFF, HexStaffComponent.CODEC, newComponent);
 
-        // replace item
-        short activeSlot = player.getInventory().getActiveHotbarSlot();
-        player.getInventory().getHotbar().setItemStackForSlot(activeSlot, newStack);
+        PlayerUtils.setHandItem(store, playerRef, HexSlot.MainHand, newStack);
 
         return newComponent;
     }

@@ -91,8 +91,9 @@ public class EffectNodeHandler implements NodeInterface {
         TransformComponent headTransform = accessor.getComponent(headAnchorRef, TransformComponent.getComponentType());
         Vector3f playerRotation = headTransform.getRotation();
 
-        accessor.putComponent(nodeRef, TransformComponent.getComponentType(),
-                new TransformComponent(dropWorldPos, playerRotation));
+        TransformComponent nodeTransform = accessor.getComponent(nodeRef, TransformComponent.getComponentType());
+        nodeTransform.getPosition().assign(dropWorldPos);
+        nodeTransform.getRotation().assign(playerRotation);
 
         if (effect != null) {
             effect.setOffset(dropOffset);
@@ -101,8 +102,9 @@ public class EffectNodeHandler implements NodeInterface {
 
             Ref<EntityStore> graphNodeRef = effect.getNodeRef();
             if (graphNodeRef != null && graphNodeRef.isValid()) {
-                accessor.putComponent(graphNodeRef, TransformComponent.getComponentType(),
-                        new TransformComponent(dropWorldPos, Vector3f.ZERO));
+                TransformComponent graphTransform = accessor.getComponent(graphNodeRef, TransformComponent.getComponentType());
+                graphTransform.getPosition().assign(dropWorldPos);
+                graphTransform.getRotation().assign(Vector3f.ZERO);
             }
         }
 
@@ -147,8 +149,9 @@ public class EffectNodeHandler implements NodeInterface {
         Vector3d dropWorldPos = CraftingPositionUtil.hexOffsetToWorld(accessor,
                 playerData.getAnchorNodeRef(), effect.getOffset());
 
-        accessor.putComponent(nodeRef, TransformComponent.getComponentType(),
-                new TransformComponent(dropWorldPos, playerRotation));
+        TransformComponent clickTransform = accessor.getComponent(nodeRef, TransformComponent.getComponentType());
+        clickTransform.getPosition().assign(dropWorldPos);
+        clickTransform.getRotation().assign(playerRotation);
 
         return InteractionState.Finished;
     }

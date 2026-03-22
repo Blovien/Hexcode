@@ -19,6 +19,9 @@ public class RootGlyph implements Component<EntityStore> {
     private final List<PendingContinue> pendingContinues = new ArrayList<>();
     private boolean needsInitialExecution;
     private int externalWaiters;
+    private float powerModifier;
+    private float manaCostMultiplier = 1.0f;
+    private float volatilityMultiplier = 1.0f;
 
     public RootGlyph() {
     }
@@ -79,6 +82,30 @@ public class RootGlyph implements Component<EntityStore> {
         externalWaiters--;
     }
 
+    public float getPowerModifier() {
+        return powerModifier;
+    }
+
+    public void setPowerModifier(float powerModifier) {
+        this.powerModifier = powerModifier;
+    }
+
+    public float getManaCostMultiplier() {
+        return manaCostMultiplier;
+    }
+
+    public void setManaCostMultiplier(float manaCostMultiplier) {
+        this.manaCostMultiplier = manaCostMultiplier;
+    }
+
+    public float getVolatilityMultiplier() {
+        return volatilityMultiplier;
+    }
+
+    public void setVolatilityMultiplier(float volatilityMultiplier) {
+        this.volatilityMultiplier = volatilityMultiplier;
+    }
+
     @Nonnull
     @Override
     public RootGlyph clone() {
@@ -88,6 +115,9 @@ public class RootGlyph implements Component<EntityStore> {
         copy.pendingContinues.addAll(this.pendingContinues);
         copy.needsInitialExecution = this.needsInitialExecution;
         copy.externalWaiters = this.externalWaiters;
+        copy.powerModifier = this.powerModifier;
+        copy.manaCostMultiplier = this.manaCostMultiplier;
+        copy.volatilityMultiplier = this.volatilityMultiplier;
         return copy;
     }
 }

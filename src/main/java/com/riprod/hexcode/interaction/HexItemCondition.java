@@ -7,15 +7,17 @@ import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.codec.codecs.EnumCodec;
 import com.hypixel.hytale.component.CommandBuffer;
+import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.entity.InteractionContext;
-import com.hypixel.hytale.server.core.entity.entities.Player;
+import com.hypixel.hytale.server.core.inventory.InventoryComponent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHandler;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.SimpleInteraction;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.common.hexcaster.utils.PlayerUtils;
 import com.riprod.hexcode.utils.HexSlot;
 import com.riprod.hexcode.utils.HexStaffUtil;
 
@@ -79,29 +81,22 @@ public class HexItemCondition extends SimpleInteraction {
             return;
         }
 
-        Player player = buffer.getComponent(playerRef, Player.getComponentType());
-        if (player == null) {
-            ctx.getState().state = InteractionState.Failed;
-            super.tick0(firstRun, time, type, ctx, cooldown);
-            return;
-        }
-
-        boolean success = checkHexItems(player);
+        boolean success = checkHexItems(buffer, playerRef);
         ctx.getState().state = success ? InteractionState.Finished : InteractionState.Failed;
         super.tick0(firstRun, time, type, ctx, cooldown);
     }
 
-    private boolean checkHexItems(Player player) {
+    private boolean checkHexItems(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> ref) {
         HexSlot mode = checkMode != null ? checkMode : HexSlot.Both;
 
         switch (mode) {
             case MainHand:
-                return checkSlot(player.getInventory().getItemInHand(), mainHandItem);
+                return checkSlot(PlayerUtils.getHandItem(accessor, ref, HexSlot.MainHand), mainHandItem);
             case OffHand:
-                return checkSlot(player.getInventory().getUtilityItem(), offHandItem);
+                return checkSlot(PlayerUtils.getHandItem(accessor, ref, HexSlot.OffHand), offHandItem);
             case Both:
-                return checkSlot(player.getInventory().getItemInHand(), mainHandItem)
-                        && checkSlot(player.getInventory().getUtilityItem(), offHandItem);
+                return checkSlot(PlayerUtils.getHandItem(accessor, ref, HexSlot.MainHand), mainHandItem)
+                        && checkSlot(PlayerUtils.getHandItem(accessor, ref, HexSlot.OffHand), offHandItem);
             default:
                 return false;
         }

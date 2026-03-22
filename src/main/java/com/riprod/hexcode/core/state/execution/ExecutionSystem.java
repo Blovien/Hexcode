@@ -93,6 +93,9 @@ public class ExecutionSystem extends HexcodeManager {
         RootGlyph execComp = new RootGlyph();
         execComp.setHex(hexClone);
         execComp.setNeedsInitialExecution(true);
+        execComp.setPowerModifier(spellCastEvent.getPowerModifier());
+        execComp.setManaCostMultiplier(spellCastEvent.getManaCostMultiplier());
+        execComp.setVolatilityMultiplier(spellCastEvent.getVolatilityMultiplier());
 
         Holder<EntityStore> holder = buildHexEntityHolder(accessor, ref, execComp);
         Ref<EntityStore> hexEntityRef = accessor.addEntity(holder, AddReason.SPAWN);

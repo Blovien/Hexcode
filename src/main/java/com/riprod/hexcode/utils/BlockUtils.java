@@ -7,9 +7,12 @@ import javax.annotation.Nullable;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
+import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.modules.entity.teleport.Teleport;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -91,7 +94,14 @@ public class BlockUtils {
 
             TransformComponent tc = hexContext.getAccessor().getComponent(entityRef,
                     TransformComponent.getComponentType());
-            if (tc != null) {
+            if (tc == null) return;
+
+            Player player = hexContext.getAccessor().getComponent(entityRef, Player.getComponentType());
+            if (player != null) {
+                Vector3f rotation = tc.getRotation();
+                Teleport teleport = Teleport.createForPlayer(dest, rotation);
+                hexContext.getAccessor().addComponent(entityRef, Teleport.getComponentType(), teleport);
+            } else {
                 tc.setPosition(new Vector3d(dest.getX(), dest.getY(), dest.getZ()));
             }
         } else if (var instanceof BlockVar blockVar && blockVar.getAt(index) != null) {

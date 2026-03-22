@@ -20,6 +20,7 @@ public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
   protected String castStyleId;
   protected ModelParticle[] castingAuraParticles;
   protected ModelParticle[] craftingAuraParticles;
+  protected float staffModifier = 1.0f;
 
   public static AssetStore<String, HexStaffAsset, DefaultAssetMap<String, HexStaffAsset>> getAssetStore() {
     if (ASSET_STORE == null) {
@@ -53,6 +54,10 @@ public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
     return this.craftingAuraParticles;
   }
 
+  public float getStaffModifier() {
+    return this.staffModifier;
+  }
+
   public static final AssetBuilderCodec<String, HexStaffAsset> CODEC = AssetBuilderCodec.builder(
       HexStaffAsset.class,
       HexStaffAsset::new,
@@ -75,6 +80,11 @@ public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
           (a, v) -> a.craftingAuraParticles = v,
           a -> a.craftingAuraParticles,
           (a, p) -> a.craftingAuraParticles = p.craftingAuraParticles)
+      .add()
+      .<Float>appendInherited(new KeyedCodec<>("StaffModifier", Codec.FLOAT),
+          (a, v) -> a.staffModifier = v,
+          a -> a.staffModifier,
+          (a, p) -> a.staffModifier = p.staffModifier)
       .add()
       .build();
 

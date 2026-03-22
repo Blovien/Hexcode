@@ -1,0 +1,9 @@
+{
+  "Spawners": [
+    { "SpawnerId": "Conjure_Despawn" }
+  ],
+  "LifeSpan": 1.0,
+  "CullDistance": 100,
+  "BoundingRadius": 5.0,
+  "IsImportant": true
+}

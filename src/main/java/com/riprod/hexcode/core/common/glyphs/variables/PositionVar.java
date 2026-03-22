@@ -49,6 +49,28 @@ public class PositionVar extends HexVar {
         return positions.size();
     }
 
+    @Override
+    public double toScalar() {
+        return positions.isEmpty() ? 0 : positions.get(0).length();
+    }
+
+    @Override
+    public boolean equalTo(HexVar other) {
+        if (other instanceof PositionVar pb) {
+            return !positions.isEmpty() && !pb.positions.isEmpty() && positions.get(0).equals(pb.positions.get(0));
+        }
+        return super.equalTo(other);
+    }
+
+    @Override
+    public int compareTo(HexVar other) {
+        if (other instanceof PositionVar pb) {
+            if (positions.isEmpty() || pb.positions.isEmpty()) return 0;
+            return Double.compare(positions.get(0).length(), pb.positions.get(0).length());
+        }
+        return super.compareTo(other);
+    }
+
     public static final BuilderCodec<PositionVar> CODEC = BuilderCodec
             .builder(PositionVar.class, PositionVar::new, HexVar.BASE_CODEC)
             .append(new KeyedCodec<>("Positions", new ArrayCodec<>(Vector3d.CODEC, Vector3d[]::new)),

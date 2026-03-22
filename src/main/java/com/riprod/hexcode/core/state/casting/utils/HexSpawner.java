@@ -61,7 +61,9 @@ public class HexSpawner {
             spawnedHexes.add(hexRef);
 
             // getting the scale of the first glyph
-            int numGlyphs = hex.getGlyphs().size();
+            int numGlyphs = (int) hex.getGlyphs().stream()
+                    .filter(glyph -> glyph != null && glyph.getPrevious().size() > 0)
+                    .count();
             float scaleMultiplier = 1 + (numGlyphs * GlyphStyler.SCALE_PER_GLYPH); // increase scale by 5% per glyph
 
             // getting the first glyph

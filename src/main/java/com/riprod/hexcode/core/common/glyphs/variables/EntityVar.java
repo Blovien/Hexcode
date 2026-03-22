@@ -69,6 +69,25 @@ public class EntityVar extends HexVar {
         return entities.size();
     }
 
+    @Override
+    public double toScalar() {
+        return entities.size();
+    }
+
+    @Override
+    public int compareTo(HexVar other) {
+        if (other instanceof EntityVar bb) {
+            if (entities.isEmpty() || bb.entities.isEmpty())
+                return 0;
+            // if the lengths are not the same
+            if (entities.size() != bb.entities.size())
+                return Integer.compare(entities.size(), bb.entities.size());
+            // if the lengths are the same, compare the UUIDs of the first entities
+            return entities.get(0).getUuid().compareTo(bb.entities.get(0).getUuid());
+        }
+        return super.compareTo(other);
+    }
+
     public static final BuilderCodec<EntityVar> CODEC = BuilderCodec
             .builder(EntityVar.class, EntityVar::new, HexVar.BASE_CODEC)
             .append(new KeyedCodec<>("Entities", new ArrayCodec<>(PersistentRef.CODEC, PersistentRef[]::new)),

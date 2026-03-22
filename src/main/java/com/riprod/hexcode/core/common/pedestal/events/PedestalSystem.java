@@ -143,8 +143,9 @@ public class PedestalSystem {
                 anchorPos.x + ACTIVE_HEX_OFFSET.x,
                 anchorPos.y + ACTIVE_HEX_OFFSET.y,
                 anchorPos.z + ACTIVE_HEX_OFFSET.z);
-        buffer.putComponent(selectedAnchorNodeRef, TransformComponent.getComponentType(),
-                new TransformComponent(activePos, new Vector3f(0, 0, 0)));
+        TransformComponent anchorTransform = buffer.getComponent(selectedAnchorNodeRef, TransformComponent.getComponentType());
+        anchorTransform.getPosition().assign(activePos);
+        anchorTransform.getRotation().assign(0, 0, 0);
         if (buffer.getComponent(selectedAnchorNodeRef, MountedComponent.getComponentType()) != null) {
             buffer.removeComponent(selectedAnchorNodeRef, MountedComponent.getComponentType());
         }
@@ -267,7 +268,7 @@ public class PedestalSystem {
         playerData.setEssenceDisplayRef(newEssenceRef);
         playerData.setEssence(essenceItem.getItem().getId());
 
-        PlayerUtils.consumeOneFromHand(player, slot);
+        PlayerUtils.consumeOneFromHand(buffer, player.getReference(), slot);
     }
 
     public static void handleBookPlacement(CommandBuffer<EntityStore> buffer,
@@ -290,7 +291,7 @@ public class PedestalSystem {
         Ref<EntityStore> newBookDisplayRef = PedestalEntity.spawnBookDisplay(
                 buffer, pedestalComponent, playerData, anchorPos, bookItem.getItem(), playerRefFlag);
         playerData.setBookDisplayRef(newBookDisplayRef);
-        PlayerUtils.consumeOneFromHand(player, slot);
+        PlayerUtils.consumeOneFromHand(buffer, player.getReference(), slot);
     }
 
     public static void enterSelecting(PedestalBlockComponent pedestalComponent, Player player,
@@ -372,7 +373,7 @@ public class PedestalSystem {
 
         ItemStack bookStack = playerData.getStoredBook();
         if (bookStack != null && !bookStack.isEmpty()) {
-            PedestalItemUtil.returnBookToPlayer(player, bookStack, playerData.getBookSourceSlot());
+            PedestalItemUtil.returnBookToPlayer(buffer, player.getReference(), bookStack, playerData.getBookSourceSlot());
             playerData.setStoredBook(ItemStack.EMPTY);
         }
 
@@ -388,7 +389,7 @@ public class PedestalSystem {
             playerData.setEssenceDisplayRef(null);
         }
         if (!pedestalComponent.isConsumeEssence()) {
-            boolean returned = PedestalItemUtil.returnEssenceToPlayer(player, playerData.getEssence());
+            boolean returned = PedestalItemUtil.returnEssenceToPlayer(buffer, player.getReference(), playerData.getEssence());
             if (!returned && playerData.getEssence() != null) {
                 PedestalItemUtil.dropEssenceAtPosition(buffer, playerData.getEssence(), blockPos);
             }

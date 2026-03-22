@@ -1,8 +1,6 @@
 package com.riprod.hexcode;
 
 import com.riprod.hexcode.builtin.BuiltinPlugin;
-import com.riprod.hexcode.builtin.glyphs.effect.propel.PropelComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.propel.PropelTickSystem;
 import com.riprod.hexcode.command.HexcodeCommand;
 import com.riprod.hexcode.core.common.block.component.UnbreakableBlockComponent;
 import com.riprod.hexcode.core.common.block.event.BlockBreakEvent;
@@ -32,17 +30,8 @@ import com.riprod.hexcode.core.common.pedestal.events.PedestalTickEvent;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.common.effect.GlyphEffectSystem;
 import com.riprod.hexcode.core.common.utilities.system.DebugTickSystem;
-import com.riprod.hexcode.interaction.HexStateChange;
-import com.riprod.hexcode.interaction.HexHold;
-import com.riprod.hexcode.interaction.HexMode;
-import com.riprod.hexcode.interaction.HexModeExit;
-import com.riprod.hexcode.state.HexState;
-import com.riprod.hexcode.state.HexTick;
-import com.riprod.hexcode.state.HexcodeManager;
-import com.riprod.hexcode.state.StateRouter;
 import com.riprod.hexcode.core.state.casting.CastingSystem;
 import com.riprod.hexcode.core.state.casting.component.HexcasterCastingComponent;
-import com.riprod.hexcode.core.state.casting.registery.CastingStyleRegistry;
 import com.riprod.hexcode.core.state.crafting.CraftingSystem;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
@@ -56,10 +45,18 @@ import com.riprod.hexcode.core.state.execution.ExecutionSystem;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.core.state.execution.system.ExecutionTickSystem;
 import com.riprod.hexcode.core.state.idle.IdleSystem;
+import com.riprod.hexcode.interaction.HexStateChange;
+import com.riprod.hexcode.interaction.HexHold;
+import com.riprod.hexcode.interaction.HexMode;
+import com.riprod.hexcode.interaction.HexModeExit;
 import com.riprod.hexcode.interaction.HexStateBranch;
 import com.riprod.hexcode.interaction.HexAbility;
 import com.riprod.hexcode.interaction.HexItemCondition;
 import com.riprod.hexcode.interaction.PedestalInteraction;
+import com.riprod.hexcode.state.HexState;
+import com.riprod.hexcode.state.HexTick;
+import com.riprod.hexcode.state.HexcodeManager;
+import com.riprod.hexcode.state.StateRouter;
 import com.hypixel.hytale.assetstore.AssetRegistry;
 import com.hypixel.hytale.assetstore.map.DefaultAssetMap;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
@@ -86,18 +83,16 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class Hexcode extends JavaPlugin {
   private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
-  private static Hexcode instance;
+  private BuiltinPlugin builtinPlugin;
 
   public Hexcode(JavaPluginInit init) {
     super(init);
     LOGGER.atInfo().log("Hexcode spell-crafting mod v%s initializing...",
         this.getManifest().getVersion().toString());
-    instance = this;
+
+    builtinPlugin = new BuiltinPlugin(init);
   }
 
-  public static Hexcode get() {
-    return instance;
-  }
 
   @SuppressWarnings("null")
   @Override
@@ -208,10 +203,6 @@ public class Hexcode extends JavaPlugin {
         RootGlyph::new);
     RootGlyph.setComponentType(executionComponentType);
 
-    ComponentType<EntityStore, PropelComponent> propelComponentType = entityStoreRegistry
-        .registerComponent(PropelComponent.class, PropelComponent::new);
-    PropelComponent.setComponentType(propelComponentType);
-
     ComponentType<EntityStore, SlotComponent> slotComponentType = entityStoreRegistry
         .registerComponent(SlotComponent.class, SlotComponent::new);
     SlotComponent.setComponentType(slotComponentType);
@@ -280,7 +271,6 @@ public class Hexcode extends JavaPlugin {
     // Ticking Systems
     entityStoreRegistry.registerSystem(new HexTick());
     entityStoreRegistry.registerSystem(new ExecutionTickSystem());
-    entityStoreRegistry.registerSystem(new PropelTickSystem());
     entityStoreRegistry.registerSystem(new PedestalTickEvent());
     entityStoreRegistry.registerSystem(new PedestalBlockEvent());
     entityStoreRegistry.registerSystem(new BlockBreakEvent());
@@ -300,7 +290,7 @@ public class Hexcode extends JavaPlugin {
     entityStoreRegistry.registerSystem(new HoverableSpatialSystem(hoverableSpatialResourceType));
 
     // Startups
-    BuiltinPlugin.startup();
+    this.builtinPlugin.startup();
 
     LOGGER.atInfo().log("Hexcode setup complete!");
   }

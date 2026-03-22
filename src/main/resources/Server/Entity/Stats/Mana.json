@@ -16,7 +16,7 @@
           "Id": "Alive"
         },
         {
-          "Id": "Player"
+          "Id": "IsPlayer"
         },
         {
           "Id": "NoDamageTaken",
@@ -34,7 +34,7 @@
           "Id": "Alive"
         },
         {
-          "Id": "Player",
+          "Id": "CheckPlayerGameMode",
           "GameMode": "Creative"
         }
       ]

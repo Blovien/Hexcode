@@ -6,6 +6,45 @@
   "ModelPath": "Glyph_Conjure",
   "BasePower": 1.0,
   "ManaConsumption": 15,
+  "Inputs": {
+    "anchor": {
+      "Title": "Anchor",
+      "DefaultSlot": 1,
+      "Description": "Variable to sample from, or slot to store generated values"
+    },
+    "coordsA": {
+      "Title": "First Corner",
+      "DefaultSlot": 2,
+      "Description": "Variable to sample from, or slot to store generated values"
+    },
+    "coordsB": {
+      "Title": "Second Corner",
+      "DefaultSlot": 3,
+      "Description": "Minimum value for random generation"
+    },
+    "duration": {
+      "Title": "Duration",
+      "DefaultSlot": 4,
+      "Description": "Maximum value for random generation"
+    },
+    "interval": {
+      "Title": "Interval",
+      "DefaultSlot": 5,
+      "Description": "Interval between generated values"
+    }
+  },
+  "Outputs": {
+    "entity": {
+      "Title": "Target Entity Output",
+      "DefaultSlot": 1,
+      "Description": "Variable to store the targeted entity in"
+    },
+    "conjuration": {
+      "Title": "Conjuration Output",
+      "DefaultSlot": 2,
+      "Description": "Variable to store the conjured area in"
+    }
+  },
   "ShapeStructure": [
     {
       "ShapeId": "Anticircle",

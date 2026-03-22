@@ -49,6 +49,9 @@ public class HexUtils {
 
         for (Glyph glyph : glyphs) {
             hex.remove(glyph.getId());
+        }
+
+        for (Glyph glyph : glyphs) {
             glyph.setId(idMap.get(glyph.getId()));
 
             List<String> newNext = new ArrayList<>();

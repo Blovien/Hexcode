@@ -4,8 +4,10 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.protocol.ChangeVelocityType;
+import com.hypixel.hytale.server.core.entity.knockback.KnockbackComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
+import com.hypixel.hytale.server.core.modules.splitvelocity.VelocityConfig;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
@@ -24,12 +26,7 @@ public class ForceGlyph implements GlyphHandler {
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targets = glyph.resolveInput("target", hexContext);
-        LOGGER.atInfo().log("force glyph: target=%s (type=%s, size=%d)",
-                targets, targets != null ? targets.getClass().getSimpleName() : "null",
-                targets != null ? targets.size() : 0);
-
         if (targets == null || targets.size() == 0) {
-            LOGGER.atInfo().log("force glyph: no targets, skipping");
             Executor.continueExecution(glyph.getNext(), hexContext);
             return;
         }
@@ -41,7 +38,7 @@ public class ForceGlyph implements GlyphHandler {
         double magnitude = SpellVarUtil.resolveNumberOrDefault(magInput, DEFAULT_FORCE);
 
         if (dirInput instanceof PositionVar posVar && posVar.size() > 0) {
-            force = posVar.getAt(0).scale(magnitude);
+            force = new Vector3d(posVar.getAt(0)).scale(magnitude);
         } else {
             Vector3d direction = null;
             if (dirInput != null) {
@@ -61,13 +58,17 @@ public class ForceGlyph implements GlyphHandler {
 
                 try {
                     Velocity vel = hexContext.getAccessor().getComponent(ref, Velocity.getComponentType());
-                    vel.addInstruction(force, null, ChangeVelocityType.Add);
+                    if (vel != null) {
+                        vel.addInstruction(new Vector3d(force), new VelocityConfig(), ChangeVelocityType.Add);
+                    }
+
                     TransformComponent tc = hexContext.getAccessor().getComponent(ref, TransformComponent.getComponentType());
                     if (tc != null) {
                         ForceGlyphStyle.render(tc.getPosition(), force, hexContext.getAccessor());
                     }
                 } catch (Exception e) {
-                    LOGGER.atWarning().log("force glyph: could not apply force to entity " + entityVar.getAt(i).getUuid() + ": " + e.getMessage());
+                    LOGGER.atWarning().log("force glyph: could not apply force to entity %s: %s",
+                            entityVar.getAt(i).getUuid(), e.getMessage());
                 }
             }
         }

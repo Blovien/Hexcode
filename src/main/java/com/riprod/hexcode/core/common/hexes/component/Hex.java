@@ -39,12 +39,68 @@ public class Hex {
     }
 
     public void absorb(Hex other, String insertLocation) {
-        
-        // insertLocation -> otherHexEntry
+        int offset = this.hexGraph.size();
+        rekeyIncoming(other, offset);
+
         other.hexGraph.get(other.getFirstGlyphId()).setPrevious(new ArrayList<>(List.of(insertLocation)));
         hexGraph.get(insertLocation).addNext(other.getFirstGlyphId());
 
         hexGraph.putAll(other.hexGraph);
+    }
+
+    private static void rekeyIncoming(Hex hex, int offset) {
+        List<Glyph> glyphs = hex.getGlyphs();
+        if (glyphs.isEmpty()) return;
+
+        Map<String, String> idMap = new HashMap<>();
+        for (Glyph glyph : glyphs) {
+            idMap.put(glyph.getId(), String.valueOf(offset++));
+        }
+
+        for (Glyph glyph : glyphs) {
+            hex.remove(glyph.getId());
+        }
+
+        for (Glyph glyph : glyphs) {
+            glyph.setId(idMap.get(glyph.getId()));
+
+            List<String> newNext = new ArrayList<>();
+            for (String id : glyph.getNext()) {
+                String mapped = idMap.get(id);
+                if (mapped != null) newNext.add(mapped);
+            }
+            glyph.setNext(newNext);
+
+            List<String> newPrev = new ArrayList<>();
+            for (String id : glyph.getPrevious()) {
+                String mapped = idMap.get(id);
+                if (mapped != null) newPrev.add(mapped);
+            }
+            glyph.setPrevious(newPrev);
+
+            Map<String, String> newInputs = new HashMap<>();
+            for (Map.Entry<String, String> entry : glyph.getInputs().entrySet()) {
+                String mapped = idMap.get(entry.getValue());
+                if (mapped != null) newInputs.put(entry.getKey(), mapped);
+            }
+            glyph.getInputs().clear();
+            glyph.getInputs().putAll(newInputs);
+
+            Map<String, String> newOutputs = new HashMap<>();
+            for (Map.Entry<String, String> entry : glyph.getOutputs().entrySet()) {
+                String mapped = idMap.get(entry.getValue());
+                if (mapped != null) newOutputs.put(entry.getKey(), mapped);
+            }
+            glyph.getOutputs().clear();
+            glyph.getOutputs().putAll(newOutputs);
+
+            hex.put(glyph.getId(), glyph);
+        }
+
+        String oldFirstId = hex.getFirstGlyphId();
+        if (oldFirstId != null) {
+            hex.setFirstGlyphId(idMap.get(oldFirstId));
+        }
     }
 
     public Glyph get(String id) {

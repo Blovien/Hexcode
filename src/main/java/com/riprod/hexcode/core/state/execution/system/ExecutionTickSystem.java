@@ -56,6 +56,7 @@ public class ExecutionTickSystem extends EntityTickingSystem<EntityStore> {
             return;
         }
 
+        List<PendingContinue> ready = null;
         Iterator<PendingContinue> it = rootGlyph.getPendingContinues().iterator();
         while (it.hasNext()) {
             PendingContinue pending = it.next();
@@ -63,6 +64,13 @@ public class ExecutionTickSystem extends EntityTickingSystem<EntityStore> {
 
             if (pending.isReady()) {
                 it.remove();
+                if (ready == null) ready = new java.util.ArrayList<>();
+                ready.add(pending);
+            }
+        }
+
+        if (ready != null) {
+            for (PendingContinue pending : ready) {
                 Executor.continueExecution(pending.getGlyphIds(), pending.getExecutionContext());
             }
         }

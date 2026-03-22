@@ -49,6 +49,28 @@ public class RotationVar extends HexVar {
         return rotations.size();
     }
 
+    @Override
+    public double toScalar() {
+        return rotations.isEmpty() ? 0 : rotations.get(0).length();
+    }
+
+    @Override
+    public boolean equalTo(HexVar other) {
+        if (other instanceof RotationVar rb) {
+            return !rotations.isEmpty() && !rb.rotations.isEmpty() && rotations.get(0).equals(rb.rotations.get(0));
+        }
+        return super.equalTo(other);
+    }
+
+    @Override
+    public int compareTo(HexVar other) {
+        if (other instanceof RotationVar rb) {
+            if (rotations.isEmpty() || rb.rotations.isEmpty()) return 0;
+            return Double.compare(rotations.get(0).length(), rb.rotations.get(0).length());
+        }
+        return super.compareTo(other);
+    }
+
     public static final BuilderCodec<RotationVar> CODEC = BuilderCodec
             .builder(RotationVar.class, RotationVar::new, HexVar.BASE_CODEC)
             .append(new KeyedCodec<>("Rotations", new ArrayCodec<>(Vector3f.CODEC, Vector3f[]::new)),

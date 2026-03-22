@@ -13,6 +13,20 @@ public abstract class HexVar {
     public abstract List<?> getValues();
     public abstract int size();
 
+    public double toScalar() {
+        return size();
+    }
+
+    public boolean equalTo(HexVar other) {
+        if (other == null) return false;
+        return this.size() == other.size();
+    }
+
+    public int compareTo(HexVar other) {
+        if (other == null) return 1;
+        return Double.compare(this.toScalar(), other.toScalar());
+    }
+
     public void shuffleAndTrim(int count) {
         List<?> values = getValues();
         Collections.shuffle(values);

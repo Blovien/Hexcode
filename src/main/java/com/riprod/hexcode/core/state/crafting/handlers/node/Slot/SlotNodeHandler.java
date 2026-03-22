@@ -120,7 +120,8 @@ public class SlotNodeHandler implements NodeInterface {
 
         GlyphComponent targetGlyphComp = accessor.getComponent(targetGlyphRef,
                 GlyphComponent.getComponentType());
-        if (targetGlyphComp == null || targetGlyphComp.getGlyph().getType() != GlyphType.Value) {
+        GlyphType targetType = targetGlyphComp == null ? null : targetGlyphComp.getGlyph().getType();
+        if (targetType == null || (targetType != GlyphType.Value && targetType != GlyphType.Hybrid)) {
             craftingComp.setDraggingRef(null);
             craftingComp.setDragTickCount(0);
             return InteractionState.Finished;
@@ -137,9 +138,13 @@ public class SlotNodeHandler implements NodeInterface {
         GlyphComponent parentEffect = accessor.getComponent(parentEffectRef,
                 GlyphComponent.getComponentType());
         if (parentEffect != null) {
-            parentEffect.getGlyph().setInput(slotComp.getSlotKey(), targetGlyphComp.getId());
-            LOGGER.atInfo().log("slot: connected slot '%s' on %s to value glyph %s (id=%s)",
-                    slotComp.getSlotKey(), parentEffect.getGlyphId(),
+            if (slotComp.getSlotType() == GlyphSlotType.Input) {
+                parentEffect.getGlyph().setInput(slotComp.getSlotKey(), targetGlyphComp.getId());
+            } else {
+                parentEffect.getGlyph().setOutput(slotComp.getSlotKey(), targetGlyphComp.getId());
+            }
+            LOGGER.atInfo().log("slot: connected %s '%s' on %s to value glyph %s (id=%s)",
+                    slotComp.getSlotType(), slotComp.getSlotKey(), parentEffect.getGlyphId(),
                     targetGlyphComp.getGlyphId(), targetGlyphComp.getId());
         }
 
@@ -170,7 +175,11 @@ public class SlotNodeHandler implements NodeInterface {
         if (parentEffect == null)
             return InteractionState.Failed;
 
-        parentEffect.getGlyph().removeInput(slotComp.getSlotKey());
+        if (slotComp.getSlotType() == GlyphSlotType.Input) {
+            parentEffect.getGlyph().removeInput(slotComp.getSlotKey());
+        } else {
+            parentEffect.getGlyph().removeOutput(slotComp.getSlotKey());
+        }
 
         return InteractionState.Finished;
     }

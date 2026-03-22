@@ -1,0 +1,16 @@
+{
+  "TexturePath": "Trails/Arrow.png",
+  "LifeSpan": 200,
+  "Roll": 0,
+  "LightInfluence": 0,
+  "Start": {
+    "Color": "#55bbffaa",
+    "Width": 0.3
+  },
+  "End": {
+    "Color": "#2266aa44",
+    "Width": 0.05
+  },
+  "RenderMode": "BlendAdd",
+  "Smooth": true
+}

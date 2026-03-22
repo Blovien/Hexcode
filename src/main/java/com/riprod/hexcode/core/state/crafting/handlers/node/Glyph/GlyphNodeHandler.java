@@ -143,6 +143,16 @@ public class GlyphNodeHandler implements NodeInterface {
             if (sourceEffect != null && targetEffect != null) {
                 sourceEffect.getGlyph().addNext(targetEffect.getId());
                 targetEffect.getGlyph().addPrevious(sourceEffect.getId());
+
+                NodeComponent sourceNode = accessor.getComponent(nodeRef, NodeComponent.getComponentType());
+                Ref<EntityStore> targetNodeRef = targetEffect.getNodeRef();
+                if (sourceNode != null && targetNodeRef != null && targetNodeRef.isValid()) {
+                    NodeComponent targetNode = accessor.getComponent(targetNodeRef, NodeComponent.getComponentType());
+                    if (targetNode != null) {
+                        sourceNode.addOutgoingRef(targetNodeRef);
+                        targetNode.addIncomingRef(nodeRef);
+                    }
+                }
             }
         }
 
@@ -164,17 +174,18 @@ public class GlyphNodeHandler implements NodeInterface {
         if (nodeComp == null) {
             return InteractionState.Failed;
         }
-
+        
         Ref<EntityStore> glyphRef = nodeComp.getParentEntity();
         GlyphComponent effectComp = accessor.getComponent(glyphRef, GlyphComponent.getComponentType());
         if (effectComp == null) {
             return InteractionState.Failed;
         }
-
+        
         Glyph glyph = effectComp.getGlyph();
-
+        
         // step 1: if glyph has input/output connections, clear those first
-        if (!glyph.getInputs().isEmpty() || !glyph.getOutputs().isEmpty()) {
+        boolean hasInputs = glyph.getInputs() != null && !glyph.getInputs().isEmpty();
+        if (hasInputs) {
             Ref<EntityStore> hexRootRef = effectComp.getHexRef();
             HexComponent hexComp = accessor.getComponent(hexRootRef, HexComponent.getComponentType());
             if (hexComp != null) {
@@ -184,14 +195,17 @@ public class GlyphNodeHandler implements NodeInterface {
 
         List<Ref<EntityStore>> outgoingRefs = nodeComp.getOutgoingRefs();
         List<Ref<EntityStore>> incomingRefs = nodeComp.getIncomingRefs();
+        boolean hasLinks = (outgoingRefs != null && !outgoingRefs.isEmpty())
+                || (incomingRefs != null && !incomingRefs.isEmpty());
 
         // step 2: if glyph has graph links, disconnect those
-        if ((outgoingRefs != null && !outgoingRefs.isEmpty())
-                || (incomingRefs != null && !incomingRefs.isEmpty())) {
+        if (hasLinks) {
             removeOutgoingLinks(accessor, nodeComp, nodeRef, effectComp);
             removeIncomingLinks(accessor, nodeComp, nodeRef, effectComp);
             nodeComp.getOutgoingRefs().clear();
             nodeComp.getIncomingRefs().clear();
+        }
+        if (hasInputs || hasLinks) {
             return InteractionState.Finished;
         }
 
@@ -348,7 +362,7 @@ public class GlyphNodeHandler implements NodeInterface {
 
         GlyphComponent effect = accessor.getComponent(effectRef,
                 GlyphComponent.getComponentType());
-        if (effect != null && effect.getGlyph().getType() != GlyphType.Value) {
+        if (effect != null && effect.getGlyph().getType() != GlyphType.Value) { // hybrid and effect both open details
             if (DetailsHandler.isOpenFor(accessor, playerData.getSlotNodeRefs(), effectRef)) {
                 SlotNodeHandler.INSTANCE.despawn(accessor, playerData);
                 playerData.setSlotNodeRefs(null);
@@ -421,8 +435,8 @@ public class GlyphNodeHandler implements NodeInterface {
 
         // remove the slots as cleanup
 
-        accessor.removeEntity(glyphRef, RemoveReason.REMOVE);
-        accessor.removeEntity(nodeRef, RemoveReason.REMOVE);
+        accessor.tryRemoveEntity(glyphRef, RemoveReason.REMOVE);
+        accessor.tryRemoveEntity(nodeRef, RemoveReason.REMOVE);
     }
 
     @Override

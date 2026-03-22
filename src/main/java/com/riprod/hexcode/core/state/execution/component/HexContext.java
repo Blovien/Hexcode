@@ -27,6 +27,7 @@ public class HexContext {
     private ComponentAccessor<ChunkStore> chunkAccessor;
     private Hex hex;
     private Map<Integer, HexVar> variables;
+    private VolatilityTracker volatilityTracker;
 
     /** Initial HexContext object before initialization */
     public HexContext(HexRoot root, Hex hex) {
@@ -102,12 +103,20 @@ public class HexContext {
         this.variables.put(slot, value);
     }
 
+    public VolatilityTracker getVolatilityTracker() {
+        return volatilityTracker;
+    }
+
+    public void setVolatilityTracker(VolatilityTracker volatilityTracker) {
+        this.volatilityTracker = volatilityTracker;
+    }
+
     /** Utility Functions */
 
     public HexContext copy() {
-        // shallow copy everything except the variables map, which should be a deep copy
         HexContext copy = new HexContext(this.root, this.accessor, this.chunkAccessor, this.hex);
         copy.variables = new HashMap<>(this.variables);
+        copy.volatilityTracker = this.volatilityTracker;
         return copy;
     }
 
@@ -175,10 +184,9 @@ public class HexContext {
             .build();
 
     public HexContext clone() {
-
         HexContext copy = new HexContext(this.root, this.accessor, this.chunkAccessor, this.hex.clone());
         copy.variables = new HashMap<>(this.variables);
-
+        copy.volatilityTracker = this.volatilityTracker;
         return copy;
     }
 }

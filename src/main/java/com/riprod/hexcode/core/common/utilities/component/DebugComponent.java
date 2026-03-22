@@ -6,8 +6,10 @@ import javax.annotation.Nullable;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.DebugShape;
+import com.hypixel.hytale.server.core.modules.debug.DebugUtils;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class DebugComponent implements Component<EntityStore> {
@@ -24,12 +26,14 @@ public class DebugComponent implements Component<EntityStore> {
 
     private DebugShape shape;
     private Vector3f color;
-    private double scale;
+    private Vector3d scale;
     private float respawnInterval;
     private float timer;
     private float fadeMultiplier = 2.0f;
     private float intervalMultiplier = 1;
     private float scaleMultiplier = 1;
+    private float opacity = 0.8f;
+    private int flags = DebugUtils.FLAG_NO_WIREFRAME;
     private Ref<EntityStore> targetRef;
 
     public DebugComponent() {
@@ -37,10 +41,19 @@ public class DebugComponent implements Component<EntityStore> {
     }
 
     public DebugComponent(DebugShape shape, Vector3f color, double scale, float respawnInterval) {
-        this(shape, color, scale, respawnInterval, null);
+        this(shape, color, new Vector3d(scale, scale, scale), respawnInterval, null);
     }
 
     public DebugComponent(DebugShape shape, Vector3f color, double scale, float respawnInterval,
+            @Nullable Ref<EntityStore> targetRef) {
+        this(shape, color, new Vector3d(scale, scale, scale), respawnInterval, targetRef);
+    }
+
+    public DebugComponent(DebugShape shape, Vector3f color, Vector3d scale, float respawnInterval) {
+        this(shape, color, scale, respawnInterval, null);
+    }
+
+    public DebugComponent(DebugShape shape, Vector3f color, Vector3d scale, float respawnInterval,
             @Nullable Ref<EntityStore> targetRef) {
         this.shape = shape;
         this.color = color;
@@ -78,11 +91,18 @@ public class DebugComponent implements Component<EntityStore> {
         this.color = color;
     }
 
-    public double getScale() {
-        return scale * scaleMultiplier;
+    public Vector3d getScale() {
+        return new Vector3d(
+                scale.x * scaleMultiplier,
+                scale.y * scaleMultiplier,
+                scale.z * scaleMultiplier);
     }
 
     public void setScale(double scale) {
+        this.scale = new Vector3d(scale, scale, scale);
+    }
+
+    public void setScale(Vector3d scale) {
         this.scale = scale;
     }
 
@@ -130,6 +150,22 @@ public class DebugComponent implements Component<EntityStore> {
         this.intervalMultiplier = 1;
     }
 
+    public float getOpacity() {
+        return opacity;
+    }
+
+    public void setOpacity(float opacity) {
+        this.opacity = opacity;
+    }
+
+    public int getFlags() {
+        return flags;
+    }
+
+    public void setFlags(int flags) {
+        this.flags = flags;
+    }
+
     @Nullable
     public Ref<EntityStore> getTargetRef() {
         return targetRef;
@@ -142,12 +178,14 @@ public class DebugComponent implements Component<EntityStore> {
     @Nonnull
     @Override
     public DebugComponent clone() {
-        DebugComponent copy = new DebugComponent(this.shape, this.color, this.scale, this.respawnInterval,
-                this.targetRef);
+        DebugComponent copy = new DebugComponent(this.shape, this.color,
+                new Vector3d(this.scale), this.respawnInterval, this.targetRef);
         copy.timer = this.timer;
         copy.fadeMultiplier = this.fadeMultiplier;
         copy.intervalMultiplier = this.intervalMultiplier;
         copy.scaleMultiplier = this.scaleMultiplier;
+        copy.opacity = this.opacity;
+        copy.flags = this.flags;
         return copy;
     }
 }

@@ -1,0 +1,9 @@
+{
+  "Spawners": [
+    { "SpawnerId": "Conjure_Trigger" }
+  ],
+  "LifeSpan": 0.6,
+  "CullDistance": 100,
+  "BoundingRadius": 3.0,
+  "IsImportant": true
+}

@@ -67,11 +67,11 @@ public class DebugTickSystem extends EntityTickingSystem<EntityStore> {
             }
         }
 
-        double scale = debug.getScale();
+        Vector3d scale = debug.getScale();
         Matrix4d matrix = new Matrix4d();
         matrix.identity();
         matrix.translate(pos.x, pos.y, pos.z);
-        matrix.scale(scale, scale, scale);
+        matrix.scale(scale.x, scale.y, scale.z);
 
         Ref<EntityStore> targetRef = debug.getTargetRef();
         if (targetRef != null && targetRef.isValid()) {
@@ -81,12 +81,13 @@ public class DebugTickSystem extends EntityTickingSystem<EntityStore> {
                         debug.getShape(), matrix.asFloatData(),
                         new com.hypixel.hytale.protocol.Vector3f(
                                 debug.getColor().x, debug.getColor().y, debug.getColor().z),
-                        debug.getFadeTime(), true, null, 0.8f);
+                        debug.getFadeTime(), (byte) debug.getFlags(), null, debug.getOpacity());
                 playerRef.getPacketHandler().write(packet);
             }
         } else {
             World world = buffer.getExternalData().getWorld();
-            DebugUtils.add(world, debug.getShape(), matrix, debug.getColor(), debug.getFadeTime(), true);
+            DebugUtils.add(world, debug.getShape(), matrix, debug.getColor(), debug.getOpacity(),
+                    debug.getFadeTime(), debug.getFlags());
         }
     }
 }

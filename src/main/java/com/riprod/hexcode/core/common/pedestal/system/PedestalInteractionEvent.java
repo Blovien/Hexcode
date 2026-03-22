@@ -59,7 +59,7 @@ public class PedestalInteractionEvent {
         playerData.updatePedestal(blockPos, pedestalComponent.getMaxRadius(), pedestalComponent.isPerPlayer());
         ensureAnchor(accessor, pedestalComponent, playerData, blockPos);
 
-        Pair<ItemStack, HexSlot> held = PlayerUtils.getItemFromInventory(player, HexSlot.Both);
+        Pair<ItemStack, HexSlot> held = PlayerUtils.getItemFromInventory(accessor, playerRef, HexSlot.Both);
         ItemStack item = held.getFirst();
         HexSlot slot = held.getSecond();
 

@@ -127,11 +127,16 @@ public class ContainerNodeHandler implements NodeInterface {
 
         hexComponent.setSelfRef(hexRef);
 
-        int numGlyphs = hex.getGlyphs().size();
+        int numGlyphs = (int) hex.getGlyphs().stream()
+                .filter(glyph -> glyph != null && glyph.getPrevious().size() > 0)
+                .count();
+
         float scaleMultiplier = 1 + (numGlyphs * GlyphStyler.SCALE_PER_GLYPH);
 
         String firstGlyphId = hex.getFirstGlyphId();
-        Glyph firstGlyph = hex.get(firstGlyphId);
+        Glyph firstGlyph = firstGlyphId != null ? hex.get(firstGlyphId) : null;
+        if (firstGlyph == null)
+            return hexRef;
         GlyphComponent firstGlyphComponent = new GlyphComponent(firstGlyph.clone());
 
         Vector3f glyphRot = new Vector3f(PEDESTAL_GLYPH_PITCH, 0, GLYPH_DISPLAY_DISTANCE);

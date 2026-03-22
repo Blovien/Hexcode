@@ -3,6 +3,7 @@ package com.riprod.hexcode.builtin.glyphs.effect.seek;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.server.core.modules.debug.DebugUtils;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.utils.VfxUtil;
@@ -31,7 +32,7 @@ public class SeekGlyphStyle {
         };
 
         World world = accessor.getExternalData().getWorld();
-        VfxUtil.line(accessor, world, origin, endPoint, beamColor, LINE_THICKNESS, LINE_DURATION, true);
+        VfxUtil.line(accessor, world, origin, endPoint, beamColor, LINE_THICKNESS, LINE_DURATION, DebugUtils.FLAG_FADE);
 
         if (hitType != HitType.MISS) {
             VfxUtil.effect("Seek_Impact", "SFX_Arrow_Frost_Hit", endPoint, accessor);

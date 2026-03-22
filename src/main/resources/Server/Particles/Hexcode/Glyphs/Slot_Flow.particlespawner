@@ -16,42 +16,56 @@
   "Particle": {
     "Texture": "Particles/Textures/Basic/Ball2.png",
     "FrameSize": {
-      "Width": 32,
-      "Height": 32
+      "Width": 64,
+      "Height": 64
     },
     "ScaleRatioConstraint": "OneToOne",
     "Animation": {
       "0": {
-        "Opacity": 1,
-        "Color": "#44ccff",
+        "Opacity": 0.096,
+        "Color": "#4488dd",
         "Scale": {
           "X": {
-            "Min": 0.07,
-            "Max": 0.09
+            "Min": 0.03,
+            "Max": 0.03
           },
           "Y": {
-            "Min": 0.07,
-            "Max": 0.09
+            "Min": 0.03,
+            "Max": 0.03
           }
         }
       },
-      "50": {
+      "25": {
         "Opacity": 1,
-        "Color": "#33aadd",
+        "Color": "#4488dd",
         "Scale": {
           "X": {
-            "Min": 0.05,
+            "Min": 0.07,
             "Max": 0.07
           },
           "Y": {
-            "Min": 0.05,
+            "Min": 0.07,
+            "Max": 0.07
+          }
+        }
+      },
+      "75": {
+        "Opacity": 1,
+        "Color": "#4488dd",
+        "Scale": {
+          "X": {
+            "Min": 0.07,
+            "Max": 0.07
+          },
+          "Y": {
+            "Min": 0.07,
             "Max": 0.07
           }
         }
       },
       "100": {
-        "Opacity": 1,
-        "Color": "#2288aa",
+        "Opacity": 0.052,
+        "Color": "#2266aa",
         "Scale": {
           "X": {
             "Min": 0.03,
@@ -67,16 +81,16 @@
   },
   "EmitOffset": {
     "X": {
-      "Min": 0.2,
-      "Max": 0.2
+      "Min": 0.01,
+      "Max": 0.01
     },
     "Y": {
-      "Max": 0.2,
-      "Min": 0.2
+      "Max": 0.01,
+      "Min": 0.01
     },
     "Z": {
-      "Min": 0.2,
-      "Max": 0.2
+      "Max": 0.01,
+      "Min": 0.01
     }
   }
 }

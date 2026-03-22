@@ -4,7 +4,9 @@ import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.entity.entities.Player;
+import com.hypixel.hytale.server.core.inventory.InventoryComponent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
+import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -30,60 +32,74 @@ public class PlayerUtils {
         return new Vector3d(playerPos.x, playerPos.y + eyeHeight, playerPos.z);
     }
 
-    public static void consumeOneFromHand(Player player) {
-        consumeOneFromHand(player, HexSlot.MainHand);
-    }
-
-    public static void consumeOneFromHand(Player player, HexSlot slot) {
-        ItemStack current = getHandItem(player, slot);
+    public static void consumeOneFromHand(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> ref, HexSlot slot) {
+        ItemStack current = getHandItem(accessor, ref, slot);
         if (current == null || current.isEmpty()) {
             return;
         }
 
         if (current.getQuantity() <= 1) {
-            setHandItem(player, slot, ItemStack.EMPTY);
+            setHandItem(accessor, ref, slot, ItemStack.EMPTY);
         } else {
-            setHandItem(player, slot, current.withQuantity(current.getQuantity() - 1));
+            setHandItem(accessor, ref, slot, current.withQuantity(current.getQuantity() - 1));
         }
     }
 
-    public static Pair<ItemStack, HexSlot> getItemFromInventory(Player player, HexSlot slot) {
-        return getItemFromInventory(player, slot, false);
+    public static Pair<ItemStack, HexSlot> getItemFromInventory(ComponentAccessor<EntityStore> accessor,
+            Ref<EntityStore> ref, HexSlot slot) {
+        return getItemFromInventory(accessor, ref, slot, false);
     }
 
-    public static Pair<ItemStack, HexSlot> getItemFromInventory(Player player, HexSlot slot, boolean preferOffhand) {
+    public static Pair<ItemStack, HexSlot> getItemFromInventory(ComponentAccessor<EntityStore> accessor,
+            Ref<EntityStore> ref, HexSlot slot, boolean preferOffhand) {
         if (slot == HexSlot.MainHand) {
-            return new Pair<>(player.getInventory().getActiveHotbarItem(), HexSlot.MainHand);
+            return new Pair<>(getActiveHotbarItem(accessor, ref), HexSlot.MainHand);
         }
         if (slot == HexSlot.OffHand) {
-            return new Pair<>(player.getInventory().getUtilityItem(), HexSlot.OffHand);
+            return new Pair<>(getActiveUtilityItem(accessor, ref), HexSlot.OffHand);
         }
 
         HexSlot first = preferOffhand ? HexSlot.OffHand : HexSlot.MainHand;
         HexSlot second = preferOffhand ? HexSlot.MainHand : HexSlot.OffHand;
 
-        ItemStack item = getHandItem(player, first);
+        ItemStack item = getHandItem(accessor, ref, first);
         if (item == null || item.isEmpty()) {
-            return new Pair<>(getHandItem(player, second), second);
+            return new Pair<>(getHandItem(accessor, ref, second), second);
         }
         return new Pair<>(item, first);
     }
 
-    public static ItemStack getHandItem(Player player, HexSlot slot) {
+    public static ItemStack getHandItem(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> ref, HexSlot slot) {
         return slot == HexSlot.OffHand
-                ? player.getInventory().getUtilityItem()
-                : player.getInventory().getActiveHotbarItem();
+                ? getActiveUtilityItem(accessor, ref)
+                : getActiveHotbarItem(accessor, ref);
     }
 
-    public static void setHandItem(Player player, HexSlot slot, ItemStack item) {
+    public static void setHandItem(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> ref,
+            HexSlot slot, ItemStack item) {
         if (slot == HexSlot.OffHand) {
-            short s = player.getInventory().getActiveUtilitySlot();
-            // bypass slot filter — utility filter rejects empty/non-utility items
-            player.getInventory().getUtility().setItemStackForSlot(s, item, false);
+            InventoryComponent.Utility utility = accessor.getComponent(ref, InventoryComponent.Utility.getComponentType());
+            if (utility == null) return;
+            byte activeSlot = utility.getActiveSlot();
+            if (activeSlot < 0) return;
+            utility.getInventory().setItemStackForSlot(activeSlot, item, false);
         } else {
-            short s = player.getInventory().getActiveHotbarSlot();
-            player.getInventory().getHotbar().setItemStackForSlot(s, item);
+            InventoryComponent.Hotbar hotbar = accessor.getComponent(ref, InventoryComponent.Hotbar.getComponentType());
+            if (hotbar == null) return;
+            byte activeSlot = hotbar.getActiveSlot();
+            if (activeSlot < 0) return;
+            hotbar.getInventory().setItemStackForSlot(activeSlot, item);
         }
+    }
+
+    private static ItemStack getActiveHotbarItem(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> ref) {
+        InventoryComponent.Hotbar hotbar = accessor.getComponent(ref, InventoryComponent.Hotbar.getComponentType());
+        return hotbar != null ? hotbar.getActiveItem() : null;
+    }
+
+    private static ItemStack getActiveUtilityItem(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> ref) {
+        InventoryComponent.Utility utility = accessor.getComponent(ref, InventoryComponent.Utility.getComponentType());
+        return utility != null ? utility.getActiveItem() : null;
     }
 
 }

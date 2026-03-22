@@ -10,7 +10,7 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.math.vector.Vector3i;
-import com.hypixel.hytale.server.core.entity.entities.Player;
+import com.hypixel.hytale.server.core.inventory.InventoryComponent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.entity.item.ItemComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -70,23 +70,28 @@ public class PedestalItemUtil {
                 CasterInventory.METADATA_KEY_HEX_BOOK, HexBookComponent.CODEC, component);
     }
 
-    public static void returnBookToPlayer(Player player, ItemStack bookStack) {
-        returnBookToPlayer(player, bookStack, HexSlot.MainHand);
+    public static void returnBookToPlayer(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> ref,
+            ItemStack bookStack) {
+        returnBookToPlayer(accessor, ref, bookStack, HexSlot.MainHand);
     }
 
-    public static void returnBookToPlayer(Player player, ItemStack bookStack, HexSlot slot) {
+    public static void returnBookToPlayer(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> ref,
+            ItemStack bookStack, HexSlot slot) {
         if (bookStack == null || bookStack.isEmpty()) {
             return;
         }
-        PlayerUtils.setHandItem(player, slot, bookStack);
+        PlayerUtils.setHandItem(accessor, ref, slot, bookStack);
     }
 
-    public static boolean returnEssenceToPlayer(Player player, @Nullable String essenceItemId) {
+    public static boolean returnEssenceToPlayer(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> ref,
+            @Nullable String essenceItemId) {
         if (essenceItemId == null) {
             return false;
         }
+        InventoryComponent.Hotbar hotbar = accessor.getComponent(ref, InventoryComponent.Hotbar.getComponentType());
+        if (hotbar == null) return false;
         ItemStack essenceStack = new ItemStack(essenceItemId, 1);
-        return player.getInventory().getHotbar().addItemStack(essenceStack).succeeded();
+        return hotbar.getInventory().addItemStack(essenceStack).succeeded();
     }
 
     @Nullable

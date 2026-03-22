@@ -40,9 +40,46 @@ public class HexMathUtil {
         return a;
     }
 
+    // --- negate ---
+
+    public static HexVar negate(HexVar a) {
+        if (a instanceof NumberVar na) return negateNumber(na);
+        if (a instanceof PositionVar pa) return negatePosition(pa);
+        if (a instanceof RotationVar ra) return negateRotation(ra);
+        LOGGER.atWarning().log("negate: unsupported type " + a.getClass().getSimpleName());
+        return a;
+    }
+
+    private static NumberVar negateNumber(NumberVar a) {
+        List<Double> result = new ArrayList<>(a.size());
+        for (int i = 0; i < a.size(); i++) {
+            result.add(-a.getAt(i));
+        }
+        return new NumberVar(result);
+    }
+
+    private static PositionVar negatePosition(PositionVar a) {
+        List<Vector3d> result = new ArrayList<>(a.size());
+        for (int i = 0; i < a.size(); i++) {
+            Vector3d v = a.getAt(i);
+            result.add(new Vector3d(-v.x, -v.y, -v.z));
+        }
+        return new PositionVar(result);
+    }
+
+    private static RotationVar negateRotation(RotationVar a) {
+        List<Vector3f> result = new ArrayList<>(a.size());
+        for (int i = 0; i < a.size(); i++) {
+            Vector3f v = a.getAt(i);
+            result.add(new Vector3f(-v.x, -v.y, -v.z));
+        }
+        return new RotationVar(result);
+    }
+
     // --- subtract ---
 
     public static HexVar subtract(HexVar a, HexVar b) {
+        if (a == null || b == null) return a;
         if (a instanceof NumberVar na && b instanceof NumberVar nb) return subtractNumbers(na, nb);
         if (a instanceof PositionVar pa && b instanceof PositionVar pb) return subtractPositions(pa, pb);
         if (a instanceof RotationVar ra && b instanceof RotationVar rb) return subtractRotations(ra, rb);
@@ -308,6 +345,23 @@ public class HexMathUtil {
             if (!toRemove.contains(pos)) result.add(pos);
         }
         return new BlockVar(result);
+    }
+
+    // --- comparisons ---
+
+    public static boolean isEqual(HexVar a, HexVar b) {
+        if (a == null || b == null) return false;
+        return a.equalTo(b);
+    }
+
+    public static boolean isGreater(HexVar a, HexVar b) {
+        if (a == null || b == null) return false;
+        return a.compareTo(b) > 0;
+    }
+
+    public static boolean isLess(HexVar a, HexVar b) {
+        if (a == null || b == null) return false;
+        return a.compareTo(b) < 0;
     }
 
     // --- functional interfaces ---

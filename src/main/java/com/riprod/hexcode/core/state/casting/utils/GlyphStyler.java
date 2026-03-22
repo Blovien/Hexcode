@@ -23,9 +23,9 @@ import com.riprod.hexcode.utils.GlyphMath;
 public class GlyphStyler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
-    public static final float SCALE_PER_GLYPH = 0.20f; // increase scale by 5% per glyph
+    public static final float SCALE_PER_GLYPH = 0.15f; // increase scale by 5% per glyph
     public static final float SCALE_SINGLE_GLYPH = 0.45f; // if only 1 glyph, make it slightly smaller to avoid clipping
-    public static final float SCALE_MULTIPLIER = 0.5f;
+    public static final float SCALE_MULTIPLIER = 0.3f;
 
     private static final float HOVER_SCALE = 1.2f;
 
@@ -41,7 +41,8 @@ public class GlyphStyler {
             return;
         }
 
-        if (previous == hoveredHex) return;
+        if (previous == hoveredHex)
+            return;
 
         if (previous != null) {
             exitHexHover(accessor, previous);
@@ -59,7 +60,8 @@ public class GlyphStyler {
 
         GlyphComponent previous = castingComp.getHoveredGlyph();
 
-        if (previous == hoveredGlyph) return;
+        if (previous == hoveredGlyph)
+            return;
 
         if (previous != null) {
             exitGlyphHover(accessor, previous);
@@ -171,7 +173,9 @@ public class GlyphStyler {
     public static void UpdateHexTree(CommandBuffer<EntityStore> accessor, HexComponent hexComponent,
             GlyphComponent parentGlyph) {
 
-        int numGlyphs = hexComponent.getHex().getGlyphs().size();
+        int numGlyphs = (int) hexComponent.getGlyphs().stream()
+                    .filter(glyph -> glyph != null && glyph.getPrevious().size() > 0)
+                    .count();
 
         float scaleMultiplier = 1 + (numGlyphs * SCALE_PER_GLYPH); // increase scale by 5% per glyph
 
@@ -197,11 +201,13 @@ public class GlyphStyler {
 
         if (children != null && !children.isEmpty()) {
 
-            List<Vector3f> childRotations = GlyphMath.getChildRotations(children.size(), parentGlyph.getScale(), parentGlyph.getRotation().getZ());
+            List<Vector3f> childRotations = GlyphMath.getChildRotations(children.size(), parentGlyph.getScale(),
+                    parentGlyph.getRotation().getZ());
 
             float scaleAmount = parentGlyph.getScale() * SCALE_MULTIPLIER;
             if (children.size() == 1) {
-                scaleAmount = parentGlyph.getScale() * SCALE_SINGLE_GLYPH; // if only 1 child, make it slightly smaller to avoid
+                scaleAmount = parentGlyph.getScale() * SCALE_SINGLE_GLYPH; // if only 1 child, make it slightly smaller
+                                                                           // to avoid
                 // clipping
             }
 

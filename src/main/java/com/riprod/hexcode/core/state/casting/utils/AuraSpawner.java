@@ -11,8 +11,6 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.universe.world.ParticleUtil;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
-import it.unimi.dsi.fastutil.objects.ObjectList;
-
 public class AuraSpawner {
 
     private static final String AURA_PARTICLE = "Mist_Spawner";
@@ -27,7 +25,7 @@ public class AuraSpawner {
 
         SpatialResource<Ref<EntityStore>, EntityStore> playerSpatialResource = accessor
                 .getResource(EntityModule.get().getPlayerSpatialResourceType());
-        ObjectList<Ref<EntityStore>> results = SpatialResource.getThreadLocalReferenceList();
+        List<Ref<EntityStore>> results = SpatialResource.getThreadLocalReferenceList();
         playerSpatialResource.getSpatialStructure().collect(position, 15.0, results);
 
         ParticleUtil.spawnParticleEffect(AURA_PARTICLE, position, entityRef, results, accessor);
@@ -42,7 +40,7 @@ public class AuraSpawner {
 
         SpatialResource<Ref<EntityStore>, EntityStore> playerSpatialResource = accessor
                 .getResource(EntityModule.get().getPlayerSpatialResourceType());
-        ObjectList<Ref<EntityStore>> results = SpatialResource.getThreadLocalReferenceList();
+        List<Ref<EntityStore>> results = SpatialResource.getThreadLocalReferenceList();
         playerSpatialResource.getSpatialStructure().collect(position, 15.0, results);
 
         ParticleUtil.spawnParticleEffect(MIST_PARTICLE, position, entityRef, results, accessor);

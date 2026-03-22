@@ -26,6 +26,79 @@ public class SpellVarUtil {
     private SpellVarUtil() {
     }
 
+    public static boolean isVectorVar(@Nullable HexVar var) {
+        return var instanceof PositionVar || var instanceof RotationVar || var instanceof EntityVar;
+    }
+
+    @Nullable
+    public static Vector3d resolveAsPosition(@Nullable HexVar var,
+            @Nonnull ComponentAccessor<EntityStore> accessor) {
+        if (var == null || var.size() == 0) return null;
+        if (var instanceof PositionVar posVar) return posVar.getAt(0);
+        if (var instanceof RotationVar rotVar) {
+            Vector3f r = rotVar.getAt(0);
+            return new Vector3d(r.getYaw(), r.getPitch());
+        }
+        return resolvePosition(var, accessor);
+    }
+
+    @Nullable
+    public static Vector3f resolveAsRotation(@Nullable HexVar var,
+            @Nonnull ComponentAccessor<EntityStore> accessor) {
+        if (var == null || var.size() == 0) return null;
+        if (var instanceof RotationVar rotVar) return rotVar.getAt(0);
+        if (var instanceof PositionVar posVar) {
+            Vector3d p = posVar.getAt(0);
+            return new Vector3f((float) p.getX(), (float) p.getY(), (float) p.getZ());
+        }
+        if (var instanceof EntityVar entityVar) {
+            Ref<EntityStore> entityRef = entityVar.getRef(0, accessor);
+            if (entityRef == null || !entityRef.isValid()) return null;
+            try {
+                HeadRotation headRot = accessor.getComponent(entityRef, HeadRotation.getComponentType());
+                if (headRot != null) return headRot.getRotation();
+            } catch (Exception e) {
+                // no head rotation, fall back to transform
+            }
+            return accessor.getComponent(entityRef, TransformComponent.getComponentType()).getRotation();
+        }
+        return null;
+    }
+
+    public static double resolvePositionAxis(@Nullable HexVar var, int axis,
+            @Nonnull ComponentAccessor<EntityStore> accessor) {
+        if (var == null) return 0.0;
+        if (isVectorVar(var)) {
+            Vector3d pos = resolveAsPosition(var, accessor);
+            if (pos == null) return 0.0;
+            return switch (axis) {
+                case 0 -> pos.getX();
+                case 1 -> pos.getY();
+                case 2 -> pos.getZ();
+                default -> 0.0;
+            };
+        }
+        Double num = resolveNumber(var);
+        return num != null ? num : 0.0;
+    }
+
+    public static double resolveRotationAxis(@Nullable HexVar var, int axis,
+            @Nonnull ComponentAccessor<EntityStore> accessor) {
+        if (var == null) return 0.0;
+        if (isVectorVar(var)) {
+            Vector3f rot = resolveAsRotation(var, accessor);
+            if (rot == null) return 0.0;
+            return switch (axis) {
+                case 0 -> rot.getX();
+                case 1 -> rot.getY();
+                case 2 -> rot.getZ();
+                default -> 0.0;
+            };
+        }
+        Double num = resolveNumber(var);
+        return num != null ? num : 0.0;
+    }
+
     @Nullable
     public static Vector3d resolvePosition(@Nonnull HexVar var,
             @Nonnull ComponentAccessor<EntityStore> accessor) {
@@ -40,7 +113,7 @@ public class SpellVarUtil {
         if (var instanceof EntityVar entityVar) {
             Ref<EntityStore> entityRef = entityVar.getRef(index, accessor);
             if (entityRef != null && entityRef.isValid()) {
-                return accessor.getComponent(entityRef, TransformComponent.getComponentType()).getPosition();
+                return accessor.getComponent(entityRef, TransformComponent.getComponentType()).getPosition().clone();
             }
         }
         if (var instanceof BlockVar blockVar && blockVar.getAt(index) != null) {

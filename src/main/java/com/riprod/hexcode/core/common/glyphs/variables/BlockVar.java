@@ -48,6 +48,30 @@ public class BlockVar extends HexVar {
         return positions.size();
     }
 
+    @Override
+    public double toScalar() {
+        if (positions.isEmpty()) return 0;
+        Vector3i v = positions.get(0);
+        return Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+    }
+
+    @Override
+    public boolean equalTo(HexVar other) {
+        if (other instanceof BlockVar bb) {
+            return !positions.isEmpty() && !bb.positions.isEmpty() && positions.get(0).equals(bb.positions.get(0));
+        }
+        return super.equalTo(other);
+    }
+
+    @Override
+    public int compareTo(HexVar other) {
+        if (other instanceof BlockVar bb) {
+            if (positions.isEmpty() || bb.positions.isEmpty()) return 0;
+            return Double.compare(this.toScalar(), bb.toScalar());
+        }
+        return super.compareTo(other);
+    }
+
     public static final BuilderCodec<BlockVar> CODEC = BuilderCodec
             .builder(BlockVar.class, BlockVar::new, HexVar.BASE_CODEC)
             .append(new KeyedCodec<>("Positions", new ArrayCodec<>(Vector3i.CODEC, Vector3i[]::new)),

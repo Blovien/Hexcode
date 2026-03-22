@@ -2,8 +2,12 @@ package com.riprod.hexcode.utils;
 
 import javax.annotation.Nullable;
 
+import java.util.List;
+
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.spatial.SpatialResource;
+import com.hypixel.hytale.server.core.modules.entity.EntityModule;
 import com.hypixel.hytale.math.matrix.Matrix4d;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
@@ -63,13 +67,13 @@ public class VfxUtil {
 
   public static void line(ComponentAccessor<EntityStore> accessor, World world, Vector3d start, Vector3d end,
       Vector3f color,
-      double thickness, float time, boolean fade) {
-    line(accessor, world, start, end, color, thickness, time, fade, null);
+      double thickness, float time, int flags) {
+    line(accessor, world, start, end, color, thickness, time, flags, null);
   }
 
   public static void line(ComponentAccessor<EntityStore> accessor, World world, Vector3d start, Vector3d end,
       Vector3f color,
-      double thickness, float time, boolean fade, @Nullable Ref<EntityStore> ref) {
+      double thickness, float time, int flags, @Nullable Ref<EntityStore> ref) {
     double dirX = end.x - start.x;
     double dirY = end.y - start.y;
     double dirZ = end.z - start.z;
@@ -87,7 +91,7 @@ public class VfxUtil {
     matrix.translate(0.0, length / 2.0, 0.0);
     matrix.scale(thickness, length, thickness);
     if (ref == null || !ref.isValid()) {
-      DebugUtils.add(world, DebugShape.Cube, matrix, color, 1.0f, time, fade);
+      DebugUtils.add(world, DebugShape.Cube, matrix, color, 0.7f, time, DebugUtils.FLAG_NO_WIREFRAME);
       return;
     }
 
@@ -97,7 +101,7 @@ public class VfxUtil {
           DebugShape.Cube, matrix.asFloatData(),
           new com.hypixel.hytale.protocol.Vector3f(
               color.x, color.y, color.z),
-          time, true, null, 1.0f);
+          time, (byte) DebugUtils.FLAG_NO_WIREFRAME, null, 0.7f);
       playerRef.getPacketHandler().write(packet);
     }
   }

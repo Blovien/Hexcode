@@ -1,5 +1,10 @@
 package com.riprod.hexcode.builtin;
 
+import com.hypixel.hytale.component.ComponentRegistryProxy;
+import com.hypixel.hytale.component.ComponentType;
+import com.hypixel.hytale.server.core.plugin.JavaPlugin;
+import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.builtin.glyphs.effect.add.AddGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.anchor.AnchorGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.arc.ArcGlyph;
@@ -7,10 +12,13 @@ import com.riprod.hexcode.builtin.glyphs.effect.bolt.BoltGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.chaos.ChaosGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.combust.CombustGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.conjure.ConjureGlyph;
+import com.riprod.hexcode.builtin.glyphs.effect.conjure.ConjureTickSystem;
+import com.riprod.hexcode.builtin.glyphs.effect.conjure.ConjureZoneComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.delay.DelayGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.detonate.DetonateGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.divide.DivideGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.drain.DrainGlyph;
+import com.riprod.hexcode.builtin.glyphs.effect.equal.EqualGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.erode.ErodeGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.excavate.ExcavateGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.force.ForceGlyph;
@@ -18,13 +26,17 @@ import com.riprod.hexcode.builtin.glyphs.effect.fortify.FortifyGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.freeze.FreezeGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.gather.GatherGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.glaciate.GlaciateGlyph;
+import com.riprod.hexcode.builtin.glyphs.effect.greater.GreaterGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.growth.GrowthGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.halt.HaltGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.ignite.IgniteGlyph;
+import com.riprod.hexcode.builtin.glyphs.effect.less.LessGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.levitate.LevitateGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.multiply.MultiplyGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.nullify.NullifyGlyph;
+import com.riprod.hexcode.builtin.glyphs.effect.propel.PropelComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.propel.PropelGlyph;
+import com.riprod.hexcode.builtin.glyphs.effect.propel.PropelTickSystem;
 import com.riprod.hexcode.builtin.glyphs.effect.rupture.RuptureGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.seek.SeekGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.self.SelfGlyph;
@@ -47,25 +59,28 @@ import com.riprod.hexcode.core.common.glyphs.registry.HexValueRegistry;
 import com.riprod.hexcode.core.common.obelisk.registry.ObeliskHandlerRegistry;
 import com.riprod.hexcode.core.state.casting.registery.CastingStyleRegistry;
 
-public class BuiltinPlugin {
+public class BuiltinPlugin extends JavaPlugin {
 
-    private static boolean initialized = false;
+    private boolean initialized = false;
 
-    private BuiltinPlugin() {
+    public BuiltinPlugin(JavaPluginInit init) {
+        super(init);
     }
 
-    public static void startup() {
+    public void startup() {
         if (initialized) {
             return;
         }
         RegisterGlyphs();
         RegisterStyles();
         RegisterObelisks();
+        RegisterComponents();
+        RegisterSystems();
 
         initialized = true;
     }
 
-    private static void RegisterGlyphs() {
+    private void RegisterGlyphs() {
 
         // Tier 1
         GlyphRegistry.register("Glyph_Self", new SelfGlyph());
@@ -88,7 +103,6 @@ public class BuiltinPlugin {
         GlyphRegistry.register("Glyph_Levitate", new LevitateGlyph());
         GlyphRegistry.register("Glyph_Anchor", new AnchorGlyph());
 
-
         // Tier 3
         GlyphRegistry.register("Glyph_Ignite", new IgniteGlyph());
         GlyphRegistry.register("Glyph_Combust", new CombustGlyph());
@@ -103,11 +117,37 @@ public class BuiltinPlugin {
         GlyphRegistry.register("Glyph_Excavate", new ExcavateGlyph());
         GlyphRegistry.register("Glyph_Warp", new WarpGlyph());
         GlyphRegistry.register("Glyph_Swap", new SwapGlyph());
-        GlyphRegistry.register("Glyph_Multiply", new MultiplyGlyph());
-        GlyphRegistry.register("Glyph_Add", new AddGlyph());
-        GlyphRegistry.register("Glyph_Subtract", new SubtractGlyph());
-        GlyphRegistry.register("Glyph_Divide", new DivideGlyph());
-        // Values
+        // hybrid: math glyphs (effect chain + value resolution)
+        MultiplyGlyph multiply = new MultiplyGlyph();
+        GlyphRegistry.register("Glyph_Multiply", multiply);
+        HexValueRegistry.register("Glyph_Multiply", multiply);
+
+        AddGlyph add = new AddGlyph();
+        GlyphRegistry.register("Glyph_Add", add);
+        HexValueRegistry.register("Glyph_Add", add);
+
+        SubtractGlyph subtract = new SubtractGlyph();
+        GlyphRegistry.register("Glyph_Subtract", subtract);
+        HexValueRegistry.register("Glyph_Subtract", subtract);
+
+        DivideGlyph divide = new DivideGlyph();
+        GlyphRegistry.register("Glyph_Divide", divide);
+        HexValueRegistry.register("Glyph_Divide", divide);
+
+        GlyphRegistry.register("Glyph_Equal", new EqualGlyph());
+        GlyphRegistry.register("Glyph_Greater", new GreaterGlyph());
+        GlyphRegistry.register("Glyph_Less", new LessGlyph());
+
+        // hybrid: constructor glyphs (effect chain + value resolution)
+        PositionValue position = new PositionValue();
+        GlyphRegistry.register("Glyph_Position", position);
+        HexValueRegistry.register("Glyph_Position", position);
+
+        RotationValue rotation = new RotationValue();
+        GlyphRegistry.register("Glyph_Rotation", rotation);
+        HexValueRegistry.register("Glyph_Rotation", rotation);
+
+        // values
         HexValueRegistry.register("Number_1", new NumberValue(1));
         HexValueRegistry.register("Number_2", new NumberValue(2));
         HexValueRegistry.register("Number_3", new NumberValue(3));
@@ -125,19 +165,36 @@ public class BuiltinPlugin {
         HexValueRegistry.register("Number_15", new NumberValue(15));
         HexValueRegistry.register("Number_16", new NumberValue(16));
         HexValueRegistry.register("Glyph_Variable", new VariableValue());
-        HexValueRegistry.register("Glyph_Position", new PositionValue());
-        HexValueRegistry.register("Glyph_Rotation", new RotationValue());
 
     }
 
-    private static void RegisterObelisks() {
+    private void RegisterObelisks() {
         ObeliskHandlerRegistry.register("seeker", new SeekerObelisk());
     }
 
-    private static void RegisterStyles() {
+    private void RegisterStyles() {
         CastingStyleRegistry.register(new ArcStyle());
         CastingStyleRegistry.register(new RingStyle());
         CastingStyleRegistry.register(new SphereStyle());
+    }
 
+    private void RegisterComponents() {
+        ComponentRegistryProxy<EntityStore> entityStoreRegistry = this.getEntityStoreRegistry();
+
+        // Propel Component
+        ComponentType<EntityStore, PropelComponent> propelComponentType = entityStoreRegistry
+                .registerComponent(PropelComponent.class, PropelComponent::new);
+        PropelComponent.setComponentType(propelComponentType);
+
+        ComponentType<EntityStore, ConjureZoneComponent> conjureZoneType = entityStoreRegistry
+                .registerComponent(ConjureZoneComponent.class, ConjureZoneComponent::new);
+        ConjureZoneComponent.setComponentType(conjureZoneType);
+    }
+
+    private void RegisterSystems() {
+        ComponentRegistryProxy<EntityStore> entityStoreRegistry = this.getEntityStoreRegistry();
+        
+        entityStoreRegistry.registerSystem(new PropelTickSystem());
+        entityStoreRegistry.registerSystem(new ConjureTickSystem());
     }
 }

@@ -18,7 +18,9 @@ import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
 import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
+import com.riprod.hexcode.core.common.glyphs.utils.GlyphSlotType;
 import com.riprod.hexcode.core.state.crafting.component.SlotComponent;
+import com.hypixel.hytale.server.core.modules.debug.DebugUtils;
 import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 import com.riprod.hexcode.utils.VfxUtil;
 
@@ -54,7 +56,7 @@ public class LinkRenderer {
 
     public static void renderActiveLink(ComponentAccessor<EntityStore> accessor,
             World world, Vector3d source, Vector3d target, Vector3f color) {
-        VfxUtil.line(accessor, world, source, target, color, LINK_THICKNESS, 0.04f, false);
+        VfxUtil.line(accessor, world, source, target, color, LINK_THICKNESS, 0.04f, DebugUtils.FLAG_NONE);
     }
 
     public static void renderAllLinks(ComponentAccessor<EntityStore> accessor,
@@ -70,7 +72,7 @@ public class LinkRenderer {
                         TransformComponent.getComponentType());
                 if (rootTransform != null && firstTransform != null) {
                     VfxUtil.line(accessor, world, rootTransform.getPosition(),
-                            firstTransform.getPosition(), CraftingColors.ANCHOR, LINK_THICKNESS, 1f, false, playerRef);
+                            firstTransform.getPosition(), CraftingColors.ANCHOR, LINK_THICKNESS, 1f, DebugUtils.FLAG_NONE, playerRef);
                     VfxUtil.particleAlongPath("Link_Flow", rootTransform.getPosition(),
                             firstTransform.getPosition(), 3, accessor);
                 }
@@ -100,7 +102,7 @@ public class LinkRenderer {
                     continue;
 
                 VfxUtil.line(accessor, world, sourceTransform.getPosition(),
-                        targetTransform.getPosition(), CraftingColors.GLYPH_LINK, LINK_THICKNESS, 1f, false, playerRef);
+                        targetTransform.getPosition(), CraftingColors.GLYPH_LINK, LINK_THICKNESS, 1f, DebugUtils.FLAG_NONE, playerRef);
                 VfxUtil.particleAlongPath("Link_Flow", sourceTransform.getPosition(),
                         targetTransform.getPosition(), 3, accessor);
             }
@@ -131,7 +133,10 @@ public class LinkRenderer {
             if (glyphComp == null)
                 continue;
 
-            String valueGlyphId = glyphComp.getGlyph().getInputs().get(slotComp.getSlotKey());
+            boolean isOutput = slotComp.getSlotType() == GlyphSlotType.Output;
+            String valueGlyphId = isOutput
+                    ? glyphComp.getGlyph().getOutputs().get(slotComp.getSlotKey())
+                    : glyphComp.getGlyph().getInputs().get(slotComp.getSlotKey());
             if (valueGlyphId == null)
                 continue;
 
@@ -144,8 +149,9 @@ public class LinkRenderer {
             if (slotTransform == null || valueTransform == null)
                 continue;
 
+            Vector3f color = isOutput ? CraftingColors.OUTPUT : CraftingColors.INPUT;
             VfxUtil.line(accessor, world, slotTransform.getPosition(),
-                    valueTransform.getPosition(), CraftingColors.INPUT, LINK_THICKNESS, 1f, false, playerRef);
+                    valueTransform.getPosition(), color, LINK_THICKNESS, 1f, DebugUtils.FLAG_NONE, playerRef);
             VfxUtil.particleAlongPath("Slot_Flow", slotTransform.getPosition(),
                     valueTransform.getPosition(), 3, accessor);
         }

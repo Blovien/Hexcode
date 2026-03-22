@@ -48,6 +48,28 @@ public class NumberVar extends HexVar {
         return numbers.size();
     }
 
+    @Override
+    public double toScalar() {
+        return numbers.isEmpty() ? 0 : numbers.get(0);
+    }
+
+    @Override
+    public boolean equalTo(HexVar other) {
+        if (other instanceof NumberVar nb) {
+            return !numbers.isEmpty() && !nb.numbers.isEmpty() && numbers.get(0).equals(nb.numbers.get(0));
+        }
+        return super.equalTo(other);
+    }
+
+    @Override
+    public int compareTo(HexVar other) {
+        if (other instanceof NumberVar nb) {
+            if (numbers.isEmpty() || nb.numbers.isEmpty()) return 0;
+            return Double.compare(numbers.get(0), nb.numbers.get(0));
+        }
+        return super.compareTo(other);
+    }
+
     public static final BuilderCodec<NumberVar> CODEC = BuilderCodec
             .builder(NumberVar.class, NumberVar::new, HexVar.BASE_CODEC)
             .append(

@@ -26,8 +26,6 @@ import com.riprod.hexcode.core.common.hover.component.HoverableType;
 import com.riprod.hexcode.core.common.hover.system.HoverableSpatialSystem;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
 
-import it.unimi.dsi.fastutil.objects.ObjectList;
-
 public class HoverableUtils {
 
     public static List<Ref<EntityStore>> getNearbyHoverables(CommandBuffer<EntityStore> accessor, Vector3d position,
@@ -35,7 +33,7 @@ public class HoverableUtils {
         SpatialResource<Ref<EntityStore>, EntityStore> spatial = accessor
                 .getResource(HoverableSpatialSystem.getResourceType());
 
-        ObjectList<Ref<EntityStore>> results = SpatialResource.getThreadLocalReferenceList();
+        List<Ref<EntityStore>> results = SpatialResource.getThreadLocalReferenceList();
         spatial.getSpatialStructure().collect(position, range, results);
 
         return results;

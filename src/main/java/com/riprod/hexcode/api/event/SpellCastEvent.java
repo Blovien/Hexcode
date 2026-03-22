@@ -10,6 +10,9 @@ public class SpellCastEvent extends CancellableEcsEvent implements IEvent<Void> 
 
     private final Ref<EntityStore> casterRef;
     private final Hex hex;
+    private float powerModifier = 0.0f;
+    private float manaCostMultiplier = 1.0f;
+    private float volatilityMultiplier = 1.0f;
 
     public SpellCastEvent(Ref<EntityStore> casterRef, Hex hex) {
         this.casterRef = casterRef;
@@ -22,5 +25,29 @@ public class SpellCastEvent extends CancellableEcsEvent implements IEvent<Void> 
 
     public Hex getHex() {
         return hex;
+    }
+
+    public float getPowerModifier() {
+        return powerModifier;
+    }
+
+    public void setPowerModifier(float powerModifier) {
+        this.powerModifier = powerModifier;
+    }
+
+    public float getManaCostMultiplier() {
+        return manaCostMultiplier;
+    }
+
+    public void setManaCostMultiplier(float manaCostMultiplier) {
+        this.manaCostMultiplier = manaCostMultiplier;
+    }
+
+    public float getVolatilityMultiplier() {
+        return volatilityMultiplier;
+    }
+
+    public void setVolatilityMultiplier(float volatilityMultiplier) {
+        this.volatilityMultiplier = volatilityMultiplier;
     }
 }

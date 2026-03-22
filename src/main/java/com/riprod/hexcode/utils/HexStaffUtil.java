@@ -1,12 +1,12 @@
 package com.riprod.hexcode.utils;
 
+import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.server.core.inventory.Inventory;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.hypixel.hytale.server.core.entity.entities.Player;
+import com.riprod.hexcode.core.common.hexcaster.utils.PlayerUtils;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -154,130 +154,30 @@ public class HexStaffUtil {
      * @return true if the player has both staff in main hand and book in offhand
      */
     public static boolean hasHexcodeEquipment(Store<EntityStore> store, Ref<EntityStore> playerRef) {
-        Player player = store.getComponent(playerRef, Player.getComponentType());
-        if (player == null) {
-            return false;
-        }
-        return hasHexcodeEquipment(player.getInventory());
+        return hasHexcodeEquipment((ComponentAccessor<EntityStore>) store, playerRef);
     }
 
-    /**
-     * Check if the inventory has the required Hexcode equipment:
-     * - Hex Staff in main hand (hotbar active slot)
-     * - Hex Book in offhand (utility slot)
-     *
-     * @param inventory The player's inventory
-     * @return true if staff is in main hand and book is in offhand
-     */
-    public static boolean hasHexcodeEquipment(Inventory inventory) {
-        if (inventory == null) {
-            return false;
-        }
-        return hasHexStaffInMainHand(inventory) && hasHexBookInOffhand(inventory);
+    public static boolean hasHexcodeEquipment(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> playerRef) {
+        ItemStack mainHand = PlayerUtils.getHandItem(accessor, playerRef, HexSlot.MainHand);
+        ItemStack offHand = PlayerUtils.getHandItem(accessor, playerRef, HexSlot.OffHand);
+        return isHexStaff(mainHand) && isHexBook(offHand);
     }
 
-    /**
-     * Check if the player has a Hex Staff in their main hand (hotbar active slot).
-     *
-     * @param inventory The player's inventory
-     * @return true if there's a Hex Staff in main hand
-     */
-    public static boolean hasHexStaffInMainHand(Inventory inventory) {
-        if (inventory == null) {
-            return false;
-        }
-        ItemStack mainHandItem = inventory.getItemInHand();
-        return isHexStaff(mainHandItem);
+    @Nullable
+    public static ItemStack getHexStaffFromMainHand(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> ref) {
+        ItemStack mainHandItem = PlayerUtils.getHandItem(accessor, ref, HexSlot.MainHand);
+        return isHexStaff(mainHandItem) ? mainHandItem : null;
     }
 
-    /**
-     * Check if the player has a Hex Book in their offhand (utility slot).
-     *
-     * @param inventory The player's inventory
-     * @return true if there's a Hex Book in offhand
-     */
-    public static boolean hasHexBookInOffhand(Inventory inventory) {
-        if (inventory == null) {
-            return false;
-        }
-        ItemStack utilityItem = inventory.getUtilityItem();
-        return isHexBook(utilityItem);
+    @Nullable
+    public static ItemStack getHexBookFromOffhand(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> ref) {
+        ItemStack utilityItem = PlayerUtils.getHandItem(accessor, ref, HexSlot.OffHand);
+        return isHexBook(utilityItem) ? utilityItem : null;
     }
 
-    /**
-     * Get the Hex Staff from the player's main hand.
-     *
-     * @param inventory The player's inventory
-     * @return The Hex Staff item stack, or null if not equipped
-     */
-    public static ItemStack getHexStaffFromMainHand(Inventory inventory) {
-        if (inventory == null) {
-            return null;
-        }
-        ItemStack mainHandItem = inventory.getItemInHand();
-        if (isHexStaff(mainHandItem)) {
-            return mainHandItem;
-        }
-        return null;
-    }
-
-    /**
-     * Get the Hex Book from the player's offhand.
-     *
-     * @param inventory The player's inventory
-     * @return The Hex Book item stack, or null if not equipped
-     */
-    public static ItemStack getHexBookFromOffhand(Inventory inventory) {
-        if (inventory == null) {
-            return null;
-        }
-        ItemStack utilityItem = inventory.getUtilityItem();
-        if (isHexBook(utilityItem)) {
-            return utilityItem;
-        }
-        return null;
-    }
- 
-    /**
-     * Get the Hex Book from the player's mainhand.
-     *
-     * @param inventory The player's inventory
-     * @return The Hex Book item stack, or null if not equipped
-     */
-    public static ItemStack getHexBookFromMainHand(Inventory inventory) {
-        if (inventory == null) {
-            return null;
-        }
-        ItemStack mainHandItem = inventory.getItemInHand();
-        if (isHexBook(mainHandItem)) {
-            return mainHandItem;
-        }
-        return null;
-    }
-
-    // ========== Deprecated methods for backwards compatibility ==========
-
-    /**
-     * @deprecated Use {@link #hasHexStaffInMainHand(Inventory)} instead
-     */
-    @Deprecated
-    public static boolean hasHexStaffInOffhand(Store<EntityStore> store, Ref<EntityStore> playerRef) {
-        return hasHexcodeEquipment(store, playerRef);
-    }
-
-    /**
-     * @deprecated Use {@link #hasHexcodeEquipment(Inventory)} instead
-     */
-    @Deprecated
-    public static boolean hasHexStaffInOffhand(Inventory inventory) {
-        return hasHexcodeEquipment(inventory);
-    }
-
-    /**
-     * @deprecated Use {@link #getHexStaffFromMainHand(Inventory)} instead
-     */
-    @Deprecated
-    public static ItemStack getHexStaffFromOffhand(Inventory inventory) {
-        return getHexStaffFromMainHand(inventory);
+    @Nullable
+    public static ItemStack getHexBookFromMainHand(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> ref) {
+        ItemStack mainHandItem = PlayerUtils.getHandItem(accessor, ref, HexSlot.MainHand);
+        return isHexBook(mainHandItem) ? mainHandItem : null;
     }
 }

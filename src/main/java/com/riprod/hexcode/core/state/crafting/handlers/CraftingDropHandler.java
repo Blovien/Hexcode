@@ -7,6 +7,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.glyphs.utils.GlyphType;
+import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
 
 import javax.annotation.Nullable;
 
@@ -34,9 +35,11 @@ public class CraftingDropHandler {
         GlyphComponent targetEffect = accessor.getComponent(targetRef,
                 GlyphComponent.getComponentType());
 
-        if (draggedType == GlyphType.Effect && targetEffect != null
-                && targetEffect.getGlyph().getType() == GlyphType.Effect) {
-            linkGlyphs(draggedEffect, targetEffect);
+        boolean draggedCanChain = draggedType == GlyphType.Effect || draggedType == GlyphType.Hybrid;
+        GlyphType targetType = targetEffect != null ? targetEffect.getGlyph().getType() : null;
+        boolean targetCanChain = targetType == GlyphType.Effect || targetType == GlyphType.Hybrid;
+        if (draggedCanChain && targetCanChain) {
+            linkGlyphs(accessor, draggedEffect, targetEffect);
             offsetToAvoidOverlap(accessor, draggedRef, targetRef);
             return DropResult.LINKED;
         }
@@ -44,9 +47,22 @@ public class CraftingDropHandler {
         return DropResult.IGNORED;
     }
 
-    private static void linkGlyphs(GlyphComponent source, GlyphComponent target) {
+    private static void linkGlyphs(CommandBuffer<EntityStore> accessor,
+            GlyphComponent source, GlyphComponent target) {
         source.getGlyph().addNext(target.getId());
         target.getGlyph().addPrevious(source.getId());
+
+        Ref<EntityStore> sourceNodeRef = source.getNodeRef();
+        Ref<EntityStore> targetNodeRef = target.getNodeRef();
+        if (sourceNodeRef != null && sourceNodeRef.isValid()
+                && targetNodeRef != null && targetNodeRef.isValid()) {
+            NodeComponent sourceNode = accessor.getComponent(sourceNodeRef, NodeComponent.getComponentType());
+            NodeComponent targetNode = accessor.getComponent(targetNodeRef, NodeComponent.getComponentType());
+            if (sourceNode != null && targetNode != null) {
+                sourceNode.addOutgoingRef(targetNodeRef);
+                targetNode.addIncomingRef(sourceNodeRef);
+            }
+        }
     }
 
     private static void offsetToAvoidOverlap(CommandBuffer<EntityStore> accessor,
