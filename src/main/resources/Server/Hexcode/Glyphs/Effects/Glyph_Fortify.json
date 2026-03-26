@@ -9,7 +9,7 @@
   "Inputs": {
     "target": { "Title": "Target", "DefaultSlot": 1, "Description": "Variable containing the targets to affect" },
     "amount": { "Title": "Amount", "DefaultSlot": 2, "Description": "Damage reduction per incoming hit" },
-    "duration": { "Title": "Duration", "DefaultSlot": 3, "Description": "How long the effect lasts in ticks" }
+    "duration": { "Title": "Duration", "DefaultSlot": 3, "Description": "How long the effect lasts in seconds" }
   },
   "ShapeStructure": [
     {

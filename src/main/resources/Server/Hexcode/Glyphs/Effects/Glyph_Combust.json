@@ -5,12 +5,11 @@
   "GlyphType": "Effect",
   "ModelPath": "Glyph_Combust",
   "BasePower": 1.0,
-  "ManaConsumption": 25,
+  "ManaConsumption": 30,
   "Inputs": {
-    "target": { "Title": "Target", "DefaultSlot": 1, "Description": "Variable containing the targets to affect" }
-  },
-  "Outputs": {
-    "result": { "Title": "Result", "DefaultSlot": 1, "Description": "Variable slot to store the result" }
+    "center": { "Title": "Center", "DefaultSlot": 1, "Description": "Position to center the explosion. Defaults to caster position" },
+    "radius": { "Title": "Radius", "DefaultValue": 3, "Description": "Radius of the fire explosion" },
+    "magnitude": { "Title": "Magnitude", "DefaultValue": 10, "Description": "Strength of the explosion force and damage" }
   },
   "ShapeStructure": [
     {

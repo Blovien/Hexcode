@@ -28,6 +28,7 @@ public class HexContext {
     private Hex hex;
     private Map<Integer, HexVar> variables;
     private VolatilityTracker volatilityTracker;
+    private HexColors colors;
 
     /** Initial HexContext object before initialization */
     public HexContext(HexRoot root, Hex hex) {
@@ -111,12 +112,21 @@ public class HexContext {
         this.volatilityTracker = volatilityTracker;
     }
 
+    public HexColors getColors() {
+        return colors;
+    }
+
+    public void setColors(HexColors colors) {
+        this.colors = colors;
+    }
+
     /** Utility Functions */
 
     public HexContext copy() {
         HexContext copy = new HexContext(this.root, this.accessor, this.chunkAccessor, this.hex);
         copy.variables = new HashMap<>(this.variables);
         copy.volatilityTracker = this.volatilityTracker;
+        if (this.colors != null) copy.colors = this.colors.clone();
         return copy;
     }
 
@@ -181,12 +191,21 @@ public class HexContext {
                         return strKeyed;
                     })
             .add()
+            .append(new KeyedCodec<>("VolatilityTracker", VolatilityTracker.CODEC),
+                    (c, v) -> c.volatilityTracker = v,
+                    c -> c.volatilityTracker)
+             .add()
+             .append(new KeyedCodec<>("HexColors", HexColors.CODEC),
+                    (c, v) -> c.colors = v,
+                    c -> c.colors)
+             .add()
             .build();
 
     public HexContext clone() {
         HexContext copy = new HexContext(this.root, this.accessor, this.chunkAccessor, this.hex.clone());
         copy.variables = new HashMap<>(this.variables);
         copy.volatilityTracker = this.volatilityTracker;
+        if (this.colors != null) copy.colors = this.colors.clone();
         return copy;
     }
 }

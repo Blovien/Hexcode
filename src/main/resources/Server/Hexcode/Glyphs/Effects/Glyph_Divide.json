@@ -4,9 +4,11 @@
   "Description": "Divides one value by another",
   "GlyphType": "Hybrid",
   "ModelPath": "Glyph_Divide",
+  "BasePower": 0,
+  "ManaConsumption": 0,
   "Inputs": {
-    "a": { "Title": "A", "DefaultSlot": 1, "Description": "First operand" },
-    "b": { "Title": "B", "DefaultSlot": 2, "Description": "Second operand" }
+    "a": { "Title": "A", "DefaultValue": 0, "Description": "First operand" },
+    "b": { "Title": "B", "DefaultValue": 1, "Description": "Second operand" }
   },
   "Outputs": {
     "result": { "Title": "Result", "DefaultSlot": 1, "Description": "Variable slot to store the result" }

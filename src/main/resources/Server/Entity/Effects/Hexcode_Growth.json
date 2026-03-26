@@ -1,0 +1,13 @@
+{
+  "StatModifiers": {
+    "Health": 1
+  },
+  "ValueType": "Percent",
+  "OverlapBehavior": "Overwrite",
+  "Duration": 30,
+  "DamageCalculatorCooldown": 4,
+  "ApplicationEffects": {
+    "EntityBottomTint": "#336633",
+    "EntityTopTint": "#66AA66"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "Duration": 5.0,
+  "Debuff": false,
+  "OverlapBehavior": "Overwrite",
+  "ApplicationEffects": {
+    "EntityBottomTint": "#9966CC",
+    "EntityTopTint": "#CC99FF",
+    "WorldSoundEventId": "SFX_Weapon_Charge_Swing"
+  }
+}

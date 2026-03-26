@@ -11,6 +11,7 @@ import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.validation.ValidatorCache;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelParticle;
+import com.riprod.hexcode.core.state.execution.component.HexColors;
 
 public class HexBookAsset implements JsonAssetWithMap<String, DefaultAssetMap<String, HexBookAsset>> {
     public static final AssetBuilderCodec<String, HexBookAsset> CODEC;
@@ -23,6 +24,7 @@ public class HexBookAsset implements JsonAssetWithMap<String, DefaultAssetMap<St
     protected int maxGlyphs = 10;
     protected ModelParticle[] castingAuraParticles;
     protected ModelParticle[] craftingAuraParticles;
+    protected HexColors colors;
 
     public static AssetStore<String, HexBookAsset, DefaultAssetMap<String, HexBookAsset>> getAssetStore() {
         if (ASSET_STORE == null) {
@@ -60,6 +62,10 @@ public class HexBookAsset implements JsonAssetWithMap<String, DefaultAssetMap<St
         return this.craftingAuraParticles;
     }
 
+    public HexColors getColors() {
+        return this.colors;
+    }
+
     static {
         CODEC = AssetBuilderCodec
                 .builder(HexBookAsset.class, HexBookAsset::new, Codec.STRING,
@@ -81,6 +87,11 @@ public class HexBookAsset implements JsonAssetWithMap<String, DefaultAssetMap<St
                         (a, v) -> a.craftingAuraParticles = v,
                         a -> a.craftingAuraParticles,
                         (a, p) -> a.craftingAuraParticles = p.craftingAuraParticles)
+                .add()
+                .appendInherited(new KeyedCodec<>("Colors", HexColors.CODEC),
+                        (a, v) -> a.colors = v,
+                        a -> a.colors,
+                        (a, p) -> { if (p.colors != null) a.colors = p.colors.clone(); })
                 .add()
                 .build();
         VALIDATOR_CACHE = new ValidatorCache<>(new AssetKeyValidator<>(HexBookAsset::getAssetStore));

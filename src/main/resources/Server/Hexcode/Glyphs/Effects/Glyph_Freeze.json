@@ -8,10 +8,7 @@
   "ManaConsumption": 25,
   "Inputs": {
     "target": { "Title": "Target", "DefaultSlot": 1, "Description": "Variable containing the targets to affect" },
-    "duration": { "Title": "Duration", "DefaultSlot": 2, "Description": "Duration of the freeze effect in seconds" }
-  },
-  "Outputs": {
-    "result": { "Title": "Result", "DefaultSlot": 1, "Description": "Variable slot to store the result" }
+    "duration": { "Title": "Duration", "DefaultValue": 3, "Description": "Duration of the freeze effect in seconds" }
   },
   "ShapeStructure": [
     {

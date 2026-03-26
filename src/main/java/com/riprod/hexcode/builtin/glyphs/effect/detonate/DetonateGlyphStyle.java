@@ -3,6 +3,7 @@ package com.riprod.hexcode.builtin.glyphs.effect.detonate;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.state.execution.component.HexColors;
 import com.riprod.hexcode.utils.VfxUtil;
 
 public class DetonateGlyphStyle {
@@ -10,7 +11,8 @@ public class DetonateGlyphStyle {
     private DetonateGlyphStyle() {
     }
 
-    public static void render(Vector3d center, double radius, CommandBuffer<EntityStore> accessor) {
+    public static void render(Vector3d center, double radius, HexColors colors,
+            CommandBuffer<EntityStore> accessor) {
         String particle;
         if (radius <= 3.0) {
             particle = "Detonate_Small";

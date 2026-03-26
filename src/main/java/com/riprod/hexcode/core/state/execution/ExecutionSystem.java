@@ -96,6 +96,7 @@ public class ExecutionSystem extends HexcodeManager {
         execComp.setPowerModifier(spellCastEvent.getPowerModifier());
         execComp.setManaCostMultiplier(spellCastEvent.getManaCostMultiplier());
         execComp.setVolatilityMultiplier(spellCastEvent.getVolatilityMultiplier());
+        
 
         Holder<EntityStore> holder = buildHexEntityHolder(accessor, ref, execComp);
         Ref<EntityStore> hexEntityRef = accessor.addEntity(holder, AddReason.SPAWN);

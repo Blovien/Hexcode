@@ -7,9 +7,9 @@
   "BasePower": 1.0,
   "ManaConsumption": 8,
   "Inputs": {
-    "entity": { "Title": "Entity", "DefaultSlot": 1, "Description": "Entity to raycast from" },
-    "rotation": { "Title": "Rotation", "DefaultSlot": 1, "Description": "Direction to cast the ray" },
-    "distance": { "Title": "Distance", "DefaultSlot": 2, "Description": "Maximum range in blocks" }
+    "entity": { "Title": "Source", "DefaultSlot": 1, "Description": "Entity to raycast from" },
+    "rotation": { "Title": "Direction", "DefaultSlot": 1, "Description": "Aim direction override, defaults to source entity's look direction" },
+    "distance": { "Title": "Distance", "DefaultValue": 32, "Description": "Maximum range in blocks" }
   },
   "Outputs": {
     "result": { "Title": "Result", "DefaultSlot": 1, "Description": "Variable slot to store the result" }

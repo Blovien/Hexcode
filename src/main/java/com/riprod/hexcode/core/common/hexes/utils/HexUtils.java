@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphRegistry;
@@ -39,10 +40,11 @@ public class HexUtils {
         List<Glyph> glyphs = hex.getGlyphs();
         if (glyphs.isEmpty()) return;
 
+        String prefix = String.format("%04x", ThreadLocalRandom.current().nextInt(0x10000));
         Map<String, String> idMap = new HashMap<>();
         int counter = 0;
         for (Glyph glyph : glyphs) {
-            idMap.put(glyph.getId(), String.valueOf(counter++));
+            idMap.put(glyph.getId(), prefix + "-" + counter++);
         }
 
         String oldFirstId = hex.getFirstGlyphId();

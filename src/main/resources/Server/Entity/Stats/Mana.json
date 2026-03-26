@@ -7,9 +7,9 @@
   "ResetType": "MaxValue",
   "Regenerating": [
     {
-      "$Comment": "Mana regeneration for players",
-      "Interval": 0.5,
-      "Amount": 2,
+      "$Comment": "Mana regeneration for players - very slow, forces drain usage in combat",
+      "Interval": 2.0,
+      "Amount": 1,
       "RegenType": "Additive",
       "Conditions": [
         {
@@ -20,7 +20,7 @@
         },
         {
           "Id": "NoDamageTaken",
-          "Delay": 3
+          "Delay": 30
         }
       ]
     },

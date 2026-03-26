@@ -9,7 +9,7 @@
   "Inputs": {
     "target": { "Title": "Target", "DefaultSlot": 1, "Description": "Variable containing the targets to affect" },
     "direction": { "Title": "Direction", "DefaultSlot": 1, "Description": "Direction vector for the effect" },
-    "magnitude": { "Title": "Magnitude", "DefaultSlot": 2, "Description": "Strength of the applied force" }
+    "magnitude": { "Title": "Magnitude", "DefaultValue": 1, "Description": "Strength of the applied force" }
   },
   "ShapeStructure": [
     {

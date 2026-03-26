@@ -4,17 +4,16 @@
   "Description": "Subtracts one value from another",
   "GlyphType": "Hybrid",
   "ModelPath": "Glyph_Subtract",
+  "BasePower": 0,
+  "ManaConsumption": 0,
   "Inputs": {
-    "a": { "Title": "A", "DefaultSlot": 1, "Description": "First operand" },
-    "b": { "Title": "B", "DefaultSlot": 2, "Description": "Second operand" }
+    "a": { "Title": "A", "Description": "First operand" },
+    "b": { "Title": "B", "Description": "Second operand" }
   },
   "Outputs": {
     "result": { "Title": "Result", "DefaultSlot": 1, "Description": "Variable slot to store the result" }
   },
   "ShapeStructure": [
-    {
-      "ShapeId": "Antiline",
-      "Size": 1.0
-    }
+    { "ShapeId": "Antiline", "Size": 1.0 }
   ]
 }

@@ -10,27 +10,25 @@
     "anchor": {
       "Title": "Anchor",
       "DefaultSlot": 1,
-      "Description": "Variable to sample from, or slot to store generated values"
+      "Description": "Center position or entity for the zone"
     },
     "coordsA": {
       "Title": "First Corner",
-      "DefaultSlot": 2,
-      "Description": "Variable to sample from, or slot to store generated values"
+      "Description": "First corner offset from anchor"
     },
     "coordsB": {
       "Title": "Second Corner",
-      "DefaultSlot": 3,
-      "Description": "Minimum value for random generation"
+      "Description": "Second corner offset from anchor"
     },
     "duration": {
       "Title": "Duration",
-      "DefaultSlot": 4,
-      "Description": "Maximum value for random generation"
+      "DefaultValue": 5,
+      "Description": "Duration of the conjured zone in seconds"
     },
     "interval": {
       "Title": "Interval",
-      "DefaultSlot": 5,
-      "Description": "Interval between generated values"
+      "DefaultValue": -1,
+      "Description": "Interval between executions, -1 for none"
     }
   },
   "Outputs": {

@@ -5,7 +5,7 @@
   "GlyphType": "Effect",
   "ModelPath": "Glyph_Growth",
   "BasePower": 1.0,
-  "ManaConsumption": 12,
+  "ManaConsumption": 22,
   "Inputs": {
     "target": { "Title": "Target", "DefaultSlot": 1, "Description": "Variable containing the targets to affect" },
     "amount": { "Title": "Amount", "DefaultSlot": 2, "Description": "Restoration strength" }

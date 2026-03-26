@@ -1,0 +1,10 @@
+{
+  "Duration": 1.0,
+  "OverlapBehavior": "Overwrite",
+  "ApplicationEffects": {
+    "ModelVFXId": "Hexcode_Arcane",
+    "EntityBottomTint": "#88ccff",
+    "EntityTopTint": "#ffffff",
+    "WorldSoundEventId": "SFX_Staff_Fire_Shoot"
+  }
+}

@@ -58,6 +58,12 @@ public class Executor {
             return;
         }
 
+        VolatilityTracker tracker = hexContext.getVolatilityTracker();
+        if (tracker != null && tracker.isFizzled()) {
+            LOGGER.atInfo().log("hex fizzled — halting execution");
+            return;
+        }
+
         if (nextGlyphs.size() == 1) {
             String nextId = nextGlyphs.get(0);
             Glyph nextNode = hexContext.getGlyph(nextId);

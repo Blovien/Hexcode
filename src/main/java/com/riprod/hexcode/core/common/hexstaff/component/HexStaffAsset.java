@@ -11,6 +11,7 @@ import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.validation.ValidatorCache;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelParticle;
+import com.riprod.hexcode.core.state.execution.component.HexColors;
 
 public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<String, HexStaffAsset>> {
   private static AssetStore<String, HexStaffAsset, DefaultAssetMap<String, HexStaffAsset>> ASSET_STORE;
@@ -21,6 +22,7 @@ public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
   protected ModelParticle[] castingAuraParticles;
   protected ModelParticle[] craftingAuraParticles;
   protected float staffModifier = 1.0f;
+  protected HexColors colors;
 
   public static AssetStore<String, HexStaffAsset, DefaultAssetMap<String, HexStaffAsset>> getAssetStore() {
     if (ASSET_STORE == null) {
@@ -58,6 +60,10 @@ public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
     return this.staffModifier;
   }
 
+  public HexColors getColors() {
+    return this.colors;
+  }
+
   public static final AssetBuilderCodec<String, HexStaffAsset> CODEC = AssetBuilderCodec.builder(
       HexStaffAsset.class,
       HexStaffAsset::new,
@@ -85,6 +91,11 @@ public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
           (a, v) -> a.staffModifier = v,
           a -> a.staffModifier,
           (a, p) -> a.staffModifier = p.staffModifier)
+      .add()
+      .appendInherited(new KeyedCodec<>("Colors", HexColors.CODEC),
+          (a, v) -> a.colors = v,
+          a -> a.colors,
+          (a, p) -> { if (p.colors != null) a.colors = p.colors.clone(); })
       .add()
       .build();
 

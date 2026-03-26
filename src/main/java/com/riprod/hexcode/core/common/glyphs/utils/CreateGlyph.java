@@ -70,15 +70,17 @@ public class CreateGlyph {
         glyphTransform);
 
     // asset logic
+    
     GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
-
     if (asset == null) {
-      throw new IllegalArgumentException("Unknown glyph ID: " + glyph.getGlyphId());
+      LOGGER.atWarning().log("Unknown glyph ID: " + glyph.getGlyphId());
+      return holder;
     }
 
     ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(asset.getModelPath());
     if (modelAsset == null) {
-      throw new IllegalArgumentException("Unknown model asset: " + asset.getModelPath());
+      LOGGER.atWarning().log("Unknown model asset: " + asset.getModelPath());
+      return holder;
     }
 
     Model model = Model.createScaledModel(modelAsset, glyph.getScale());

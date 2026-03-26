@@ -3,6 +3,7 @@ package com.riprod.hexcode.builtin.glyphs.effect.warp;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.universe.world.World;
+import com.riprod.hexcode.builtin.glyphs.effect.warp.style.WarpStyle;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
@@ -46,7 +47,7 @@ public class WarpGlyph implements GlyphHandler {
             Vector3d departurePos = SpellVarUtil.resolvePositionAt(targets, i, hexContext.getAccessor());
             BlockUtils.moveToDestination(targets, i, destination, world, hexContext);
             if (departurePos != null) {
-                WarpGlyphStyle.render(departurePos, destination, hexContext.getAccessor());
+                WarpStyle.render(departurePos, destination, hexContext.getColors(), hexContext.getAccessor());
             }
         }
 

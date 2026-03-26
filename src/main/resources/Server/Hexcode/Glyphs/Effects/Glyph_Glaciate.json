@@ -7,10 +7,11 @@
   "BasePower": 1.0,
   "ManaConsumption": 22,
   "Inputs": {
-    "target": { "Title": "Target", "DefaultSlot": 1, "Description": "Variable containing the targets to affect" }
+    "target": { "Title": "Target", "DefaultSlot": 1, "Description": "Variable containing the targets to affect" },
+    "height": { "Title": "Height", "DefaultValue": 10, "Description": "Height above target to spawn the ice block" }
   },
   "Outputs": {
-    "result": { "Title": "Result", "DefaultSlot": 1, "Description": "Variable slot to store the result" }
+    "result": { "Title": "Result", "DefaultSlot": 1, "Description": "Variable slot to store the spawned ice entity" }
   },
   "ShapeStructure": [
     {

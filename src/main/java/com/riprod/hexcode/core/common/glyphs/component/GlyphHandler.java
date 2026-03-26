@@ -22,6 +22,7 @@ public interface GlyphHandler {
         if (tracker == null) return true;
         boolean passed = tracker.rollAndIncrement(glyph);
         if (!passed) {
+            tracker.setFizzled(true);
             LOGGER.atInfo().log("glyph %s fizzled: rolled %.3f against %.3f chance (cast #%d, type count %d)",
                     glyph.getGlyphId(), tracker.getLastRoll(), tracker.getLastChance(),
                     tracker.getCastCount(),

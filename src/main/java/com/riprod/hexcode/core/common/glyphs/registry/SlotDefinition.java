@@ -1,23 +1,26 @@
 package com.riprod.hexcode.core.common.glyphs.registry;
 
+import javax.annotation.Nullable;
+
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 
 public class SlotDefinition {
     private String title;
-    private int defaultSlot;
+    private Integer defaultSlot;
+    private Double defaultValue;
     private String description;
 
     public SlotDefinition() {
     }
 
-    public SlotDefinition(String title, int defaultSlot) {
+    public SlotDefinition(String title, Integer defaultSlot) {
         this.title = title;
         this.defaultSlot = defaultSlot;
     }
 
-    public SlotDefinition(String title, int defaultSlot, String description) {
+    public SlotDefinition(String title, Integer defaultSlot, String description) {
         this.title = title;
         this.defaultSlot = defaultSlot;
         this.description = description;
@@ -27,8 +30,14 @@ public class SlotDefinition {
         return title;
     }
 
-    public int getDefaultSlot() {
+    @Nullable
+    public Integer getDefaultSlot() {
         return defaultSlot;
+    }
+
+    @Nullable
+    public Double getDefaultValue() {
+        return defaultValue;
     }
 
     public String getDescription() {
@@ -42,6 +51,9 @@ public class SlotDefinition {
             .add()
             .append(new KeyedCodec<>("DefaultSlot", Codec.INTEGER),
                     (s, v) -> s.defaultSlot = v, s -> s.defaultSlot)
+            .add()
+            .append(new KeyedCodec<>("DefaultValue", Codec.DOUBLE),
+                    (s, v) -> s.defaultValue = v, s -> s.defaultValue)
             .add()
             .append(new KeyedCodec<>("Description", Codec.STRING),
                     (s, v) -> s.description = v, s -> s.description)

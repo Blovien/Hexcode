@@ -12,6 +12,7 @@ import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.TargetUtil;
+import com.riprod.hexcode.builtin.glyphs.effect.seek.style.SeekStyle;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
@@ -24,12 +25,11 @@ import com.riprod.hexcode.utils.SpellVarUtil;
 public class SeekGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     public static final String ID = "Glyph_Seek";
-    private static final double DEFAULT_BEAM_LENGTH = 32;
-
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar posVar = glyph.resolveInput("entity", hexContext);
-        HexVar rotVar = glyph.resolveInputOrDefault("rotation", hexContext, posVar);
+        HexVar rotVar = glyph.resolveInput("rotation", hexContext);
+        if (rotVar == null) rotVar = posVar;
 
         if (posVar == null) {
             LOGGER.atWarning().log("seek glyph: no source provided");
@@ -55,7 +55,7 @@ public class SeekGlyph implements GlyphHandler {
 
         int beamLength = (int) SpellVarUtil.resolveNumberOrDefault(
                 glyph.resolveInput("distance", hexContext),
-                DEFAULT_BEAM_LENGTH).doubleValue();
+                32.0).doubleValue();
 
         Vector3f rotation = Vector3f.lookAt(direction);
         Transform transform = new Transform(origin, rotation);
@@ -86,7 +86,7 @@ public class SeekGlyph implements GlyphHandler {
         Integer outputSlot = glyph.resolveOutput("result", hexContext);
         LOGGER.atInfo().log("seek: outputSlot=%s (null means using default)", outputSlot);
         Vector3d endPoint;
-        SeekGlyphStyle.HitType hitType;
+        SeekStyle.HitType hitType;
 
         if (entityHit != null && entityHitDistSq < blockHitDistSq) {
             UUIDComponent uuidComp = hexContext.getAccessor().getComponent(entityHit, UUIDComponent.getComponentType());
@@ -99,18 +99,18 @@ public class SeekGlyph implements GlyphHandler {
             }
             endPoint = hexContext.getAccessor().getComponent(entityHit,
                     TransformComponent.getComponentType()).getPosition();
-            hitType = SeekGlyphStyle.HitType.ENTITY;
+            hitType = SeekStyle.HitType.ENTITY;
         } else if (blockHitLocation != null) {
             BlockVar resultVar = new BlockVar(new ArrayList<>(List.of(blockHitLocation.toVector3i())));
             if (outputSlot != null) hexContext.setVariable(outputSlot, resultVar);
             endPoint = blockHitLocation;
-            hitType = SeekGlyphStyle.HitType.BLOCK;
+            hitType = SeekStyle.HitType.BLOCK;
         } else {
             endPoint = new Vector3d(origin).add(new Vector3d(direction).scale(beamLength));
-            hitType = SeekGlyphStyle.HitType.MISS;
+            hitType = SeekStyle.HitType.MISS;
         }
 
-        SeekGlyphStyle.render(origin, endPoint, hitType, hexContext.getAccessor());
+        SeekStyle.render(origin, endPoint, hitType, hexContext.getColors(), hexContext.getAccessor());
 
         Executor.continueExecution(glyph.getNext(), hexContext);
     }
