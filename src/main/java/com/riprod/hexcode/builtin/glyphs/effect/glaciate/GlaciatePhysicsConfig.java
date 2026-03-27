@@ -1,5 +1,6 @@
 package com.riprod.hexcode.builtin.glyphs.effect.glaciate;
 
+import com.hypixel.hytale.protocol.RotationMode;
 import com.hypixel.hytale.server.core.modules.projectile.config.StandardPhysicsConfig;
 
 public class GlaciatePhysicsConfig extends StandardPhysicsConfig {
@@ -9,7 +10,7 @@ public class GlaciatePhysicsConfig extends StandardPhysicsConfig {
     private GlaciatePhysicsConfig() {
         this.gravity = 20;
         this.bounceCount = -1;
-        this.bounciness = 0;
+        this.bounciness = 0.3;
         this.sticksVertically = false;
         this.computeYaw = false;
         this.computePitch = false;

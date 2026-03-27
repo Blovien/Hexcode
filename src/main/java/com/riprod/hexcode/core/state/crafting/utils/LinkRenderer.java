@@ -47,9 +47,13 @@ public class LinkRenderer {
 
         World world = accessor.getExternalData().getWorld();
 
+        Vector3f glyphLinkColor = playerData.getGlyphColor();
+        com.hypixel.hytale.protocol.Color glyphParticleColor = playerData.getGlyphProtocolColor();
+
         VfxUtil.advanceFlowPhase();
 
-        LinkRenderer.renderAllLinks(accessor, hexComp, world, playerData.getAnchorNodeRef(), playerRef);
+        LinkRenderer.renderAllLinks(accessor, hexComp, world, playerData.getAnchorNodeRef(),
+                playerRef, glyphLinkColor, glyphParticleColor);
 
         renderSlotValueLinks(accessor, hexComp, world, playerData.getSlotNodeRefs(), playerRef);
     }
@@ -60,7 +64,9 @@ public class LinkRenderer {
     }
 
     public static void renderAllLinks(ComponentAccessor<EntityStore> accessor,
-            HexComponent hexComp, World world, Ref<EntityStore> rootNodeRef, @Nullable Ref<EntityStore> playerRef) {
+            HexComponent hexComp, World world, Ref<EntityStore> rootNodeRef,
+            @Nullable Ref<EntityStore> playerRef, Vector3f glyphLinkColor,
+            @Nullable com.hypixel.hytale.protocol.Color glyphParticleColor) {
 
         String firstId = hexComp.getHex().getFirstGlyphId();
         if (rootNodeRef != null && rootNodeRef.isValid() && firstId != null) {
@@ -102,9 +108,14 @@ public class LinkRenderer {
                     continue;
 
                 VfxUtil.line(accessor, world, sourceTransform.getPosition(),
-                        targetTransform.getPosition(), CraftingColors.GLYPH_LINK, LINK_THICKNESS, 1f, DebugUtils.FLAG_NONE, playerRef);
-                VfxUtil.particleAlongPath("Link_Flow", sourceTransform.getPosition(),
-                        targetTransform.getPosition(), 3, accessor);
+                        targetTransform.getPosition(), glyphLinkColor, LINK_THICKNESS, 1f, DebugUtils.FLAG_NONE, playerRef);
+                if (glyphParticleColor != null) {
+                    VfxUtil.particleAlongPath("Link_Flow", sourceTransform.getPosition(),
+                            targetTransform.getPosition(), 3, glyphParticleColor, playerRef, accessor);
+                } else {
+                    VfxUtil.particleAlongPath("Link_Flow", sourceTransform.getPosition(),
+                            targetTransform.getPosition(), 3, accessor);
+                }
             }
 
         }

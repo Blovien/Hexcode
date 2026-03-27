@@ -59,25 +59,22 @@ public class PedestalInteractionEvent {
         playerData.updatePedestal(blockPos, pedestalComponent.getMaxRadius(), pedestalComponent.isPerPlayer());
         ensureAnchor(accessor, pedestalComponent, playerData, blockPos);
 
-        Pair<ItemStack, HexSlot> held = PlayerUtils.getItemFromInventory(accessor, playerRef, HexSlot.Both);
-        ItemStack item = held.getFirst();
-        HexSlot slot = held.getSecond();
+        Pair<ItemStack, ItemStack> held = PlayerUtils.getItemFromHands(accessor, playerRef);
+        ItemStack mainHand = held.getFirst();
+        ItemStack utilityHand = held.getSecond();
 
-        if (PedestalItemUtil.isEssence(item) && playerData.getEssence() == null) {
-            PedestalSystem.handleEssencePlacement(accessor, player, item, slot, pedestalComponent, playerData,
+        if (PedestalItemUtil.anyEssence(mainHand, utilityHand) && playerData.getEssence() == null) {
+            Pair<ItemStack, HexSlot> essence = PedestalItemUtil.getEssence(mainHand, utilityHand);
+            PedestalSystem.handleEssencePlacement(accessor, player, essence.getFirst(), essence.getSecond(), pedestalComponent, playerData,
                     blockPos);
             PedestalSystem.handleReady(accessor, playerData, pedestalComponent, world);
             return;
         }
 
-        if (PedestalItemUtil.isHexBook(item) && playerData.getStoredBook().isEmpty()) {
-            PedestalSystem.handleBookPlacement(accessor, player, item, slot, pedestalComponent, playerData, blockPos);
+        if (PedestalItemUtil.anyHexBook(mainHand, utilityHand) && playerData.getStoredBook().isEmpty()) {
+            Pair<ItemStack, HexSlot> book = PedestalItemUtil.getHexBook(mainHand, utilityHand);
+            PedestalSystem.handleBookPlacement(accessor, player, book.getFirst(), book.getSecond(), pedestalComponent, playerData, blockPos);
             PedestalSystem.handleReady(accessor, playerData, pedestalComponent, world);
-            return;
-        }
-
-        // holding a relevant item the pedestal can't accept
-        if (!PedestalItemUtil.isEmptyHand(item)) {
             return;
         }
 

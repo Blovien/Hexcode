@@ -113,6 +113,15 @@ public class CastingSystem extends HexcodeManager {
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
 
         HexcasterCastingComponent castingComp = buffer.getComponent(ref, HexcasterCastingComponent.getComponentType());
+
+        // despawn head anchor if not dragging a hex
+        Ref<EntityStore> headAnchor = castingComp.getHeadAnchorRef();
+        if (castingComp.getDraggingHex() == null && headAnchor != null && headAnchor.isValid()) {
+            buffer.tryRemoveComponent(headAnchor, MountedComponent.getComponentType());
+            buffer.tryRemoveEntity(headAnchor, RemoveReason.REMOVE);
+            castingComp.setHeadAnchorRef(null);
+        }
+
         Ref<EntityStore> castingRootRef = castingComp.getCastingRootRef();
 
         TransformComponent transform = buffer.getComponent(ref, TransformComponent.getComponentType());
@@ -126,14 +135,6 @@ public class CastingSystem extends HexcodeManager {
 
         if (activeHexes == null || castingRootRef == null || !castingRootRef.isValid()) {
             return;
-        }
-
-        // Despawn head anchor if not dragging a hex
-        Ref<EntityStore> headAnchor = castingComp.getHeadAnchorRef();
-        if (castingComp.getDraggingHex() == null && headAnchor != null && headAnchor.isValid()) {
-            buffer.tryRemoveComponent(headAnchor, MountedComponent.getComponentType());
-            buffer.tryRemoveEntity(headAnchor, RemoveReason.REMOVE);
-            castingComp.setHeadAnchorRef(null);
         }
 
         GlyphPositioner.PositionGlyphs(buffer, ref, ownerPos, castingRootRef);

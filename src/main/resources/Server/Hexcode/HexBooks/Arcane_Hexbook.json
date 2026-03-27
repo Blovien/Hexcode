@@ -5,7 +5,12 @@
     {
       "SystemId": "Shock_Spawner",
       "TargetEntityPart": "Self",
-      "TargetNodeName": ""
+      "TargetNodeName": "",
+      "Color": "#0D47A1"
     }
-  ]
+  ],
+  "Colors": {
+    "PrimaryColor": "#0D47A1",
+    "SecondaryColor": "#42A5F5"
+  }
 }

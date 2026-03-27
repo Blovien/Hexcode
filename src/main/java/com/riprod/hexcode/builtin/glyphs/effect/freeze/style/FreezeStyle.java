@@ -16,14 +16,14 @@ public class FreezeStyle {
 
     public static void renderFreeze(Vector3d pos, HexColors colors,
             CommandBuffer<EntityStore> accessor) {
-        VfxUtil.particle("Effect_Snow", pos, accessor);
-        VfxUtil.particle("Effect_Snow_Impact", pos, accessor);
+        VfxUtil.particle("Freeze_Snow", pos, accessor);
+        VfxUtil.particle("Freeze_Impact", pos, accessor);
         VfxUtil.sound("SFX_Ice_Build", pos, accessor);
     }
 
     public static void renderMelt(Vector3d pos, HexColors colors,
             CommandBuffer<EntityStore> accessor) {
-        VfxUtil.particle("Effect_Snow", pos, accessor);
+        VfxUtil.particle("Freeze_Snow", pos, accessor);
         VfxUtil.sound("SFX_Ice_Break", pos, accessor);
     }
 

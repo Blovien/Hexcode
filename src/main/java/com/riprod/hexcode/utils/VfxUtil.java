@@ -11,6 +11,7 @@ import com.hypixel.hytale.server.core.modules.entity.EntityModule;
 import com.hypixel.hytale.math.matrix.Matrix4d;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.protocol.Color;
 import com.hypixel.hytale.protocol.DebugShape;
 import com.hypixel.hytale.protocol.SoundCategory;
 import com.hypixel.hytale.protocol.packets.player.DisplayDebug;
@@ -65,6 +66,23 @@ public class VfxUtil {
     }
   }
 
+  public static void particleAlongPath(String systemId, Vector3d source, Vector3d target,
+      int count, Color color, @Nullable Ref<EntityStore> playerRef,
+      ComponentAccessor<EntityStore> accessor) {
+    if (count < 1) count = 1;
+    double phaseOffset = (double) flowPhase / (count * 4);
+    List<Ref<EntityStore>> targets = playerRef != null ? List.of(playerRef) : List.of();
+    Vector3d point = new Vector3d();
+    for (int i = 0; i < count; i++) {
+      double t = (double) i / count + phaseOffset;
+      if (t >= 1.0) t -= 1.0;
+      point.x = source.x + (target.x - source.x) * t;
+      point.y = source.y + (target.y - source.y) * t;
+      point.z = source.z + (target.z - source.z) * t;
+      ParticleUtil.spawnParticleEffect(systemId, point, 0.0f, 0.0f, 0.0f, 1.0f, color, targets, accessor);
+    }
+  }
+
   public static void line(ComponentAccessor<EntityStore> accessor, World world, Vector3d start, Vector3d end,
       Vector3f color,
       double thickness, float time, int flags) {
@@ -95,13 +113,15 @@ public class VfxUtil {
       return;
     }
 
+    int allFlags = flags | DebugUtils.FLAG_NO_WIREFRAME;
+
     PlayerRef playerRef = accessor.getComponent(ref, PlayerRef.getComponentType());
     if (playerRef != null) {
       DisplayDebug packet = new DisplayDebug(
           DebugShape.Cube, matrix.asFloatData(),
           new com.hypixel.hytale.protocol.Vector3f(
               color.x, color.y, color.z),
-          time, (byte) DebugUtils.FLAG_NO_WIREFRAME, null, 0.7f);
+          time, (byte) allFlags, null, 0.7f);
       playerRef.getPacketHandler().write(packet);
     }
   }

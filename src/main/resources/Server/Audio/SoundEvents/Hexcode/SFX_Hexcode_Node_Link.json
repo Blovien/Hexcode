@@ -5,6 +5,6 @@
     "Sounds/Hexcode/Crafting/Node/Link/Node_Link_03.ogg",
     "Sounds/Hexcode/Crafting/Node/Link/Node_Link_04.ogg"
   ]}],
-  "Volume": -2.0,
-  "Parent": "SFX_Attn_Moderate"
+  "Volume": -8.0,
+  "Parent": "SFX_Attn_Quiet"
 }

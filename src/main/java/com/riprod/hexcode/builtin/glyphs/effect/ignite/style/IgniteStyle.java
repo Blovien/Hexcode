@@ -13,7 +13,7 @@ public class IgniteStyle {
 
     public static void render(Vector3d pos, HexColors colors,
             ComponentAccessor<EntityStore> accessor) {
-        VfxUtil.particle("Effect_Fire", pos, accessor);
+        VfxUtil.particle("Ignite_Fire", pos, accessor);
         VfxUtil.sound("SFX_Staff_Flame_Fireball_Impact", pos, accessor);
     }
 }

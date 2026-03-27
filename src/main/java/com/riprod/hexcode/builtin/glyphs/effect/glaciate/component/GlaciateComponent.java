@@ -16,6 +16,7 @@ public class GlaciateComponent implements Component<EntityStore> {
     private static ComponentType<EntityStore, GlaciateComponent> componentType;
 
     private float lifetime;
+    private float initialLifetime;
     private float damageRadius;
     private float damageMultiplier;
     private Set<UUID> hitEntities;
@@ -33,6 +34,7 @@ public class GlaciateComponent implements Component<EntityStore> {
         this.hitEntities = new HashSet<>();
         this.firstBranchIds = firstBranchIds;
         this.firedFirstBranch = false;
+        this.initialLifetime = lifetime;
     }
 
     public static void setComponentType(ComponentType<EntityStore, GlaciateComponent> type) {
@@ -45,6 +47,10 @@ public class GlaciateComponent implements Component<EntityStore> {
 
     public float getLifetime() {
         return lifetime;
+    }
+
+    public float getInitialLifetime() {
+        return initialLifetime;
     }
 
     public void decrementLifetime(float dt) {
@@ -86,6 +92,7 @@ public class GlaciateComponent implements Component<EntityStore> {
         copy.hitEntities = this.hitEntities != null ? new HashSet<>(this.hitEntities) : new HashSet<>();
         copy.firstBranchIds = this.firstBranchIds;
         copy.firedFirstBranch = this.firedFirstBranch;
+        copy.initialLifetime = this.initialLifetime;
         return copy;
     }
 }

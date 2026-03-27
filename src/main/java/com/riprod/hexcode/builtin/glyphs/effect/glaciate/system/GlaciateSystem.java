@@ -19,6 +19,7 @@ import com.hypixel.hytale.server.core.modules.entity.damage.DamageCause;
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageSystems;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
+import com.hypixel.hytale.server.core.modules.projectile.config.StandardPhysicsProvider;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.TargetUtil;
@@ -67,9 +68,16 @@ public class GlaciateSystem extends EntityTickingSystem<EntityStore> {
                 return;
             }
 
-            if (!glaciate.firedFirstBranch() && glaciate.getFirstBranchIds() != null) {
+            if (!glaciate.firedFirstBranch() && glaciate.getFirstBranchIds() != null
+                        && glaciate.getLifetime() <= glaciate.getInitialLifetime() * 0.99) {
                 fireFirstBranch(glaciate, signal, entityRef, buffer);
                 glaciate.markFirstBranchFired();
+            }
+
+            StandardPhysicsProvider physics = chunk.getComponent(index,
+                    StandardPhysicsProvider.getComponentType());
+            if (physics != null && physics.getState() == StandardPhysicsProvider.STATE.INACTIVE) {
+                physics.setState(StandardPhysicsProvider.STATE.ACTIVE);
             }
 
             Velocity vel = chunk.getComponent(index, Velocity.getComponentType());

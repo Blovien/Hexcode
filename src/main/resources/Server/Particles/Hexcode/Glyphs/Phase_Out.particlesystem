@@ -1,0 +1,10 @@
+{
+  "Spawners": [
+    { "SpawnerId": "Phase_Out_Wisps", "PositionOffset": { "Y": 0 }, "StartDelay": 0 },
+    { "SpawnerId": "Phase_Out_Sparks", "PositionOffset": { "Y": 0 }, "StartDelay": 0 }
+  ],
+  "LifeSpan": 1.5,
+  "CullDistance": 100,
+  "BoundingRadius": 5.0,
+  "IsImportant": true
+}

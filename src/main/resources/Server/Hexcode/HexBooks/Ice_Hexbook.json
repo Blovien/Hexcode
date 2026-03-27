@@ -1,11 +1,16 @@
 {
-  "ItemId": "Life_Hexbook",
-  "MaxGlyphs": 4,
+  "ItemId": "Ice_Hexbook",
+  "MaxGlyphs": 6,
   "CastingAuraParticles": [
     {
       "SystemId": "Shock_Spawner",
       "TargetEntityPart": "Self",
-      "TargetNodeName": ""
+      "TargetNodeName": "",
+      "Color": "#0277BD"
     }
-  ]
+  ],
+  "Colors": {
+    "PrimaryColor": "#0277BD",
+    "SecondaryColor": "#4FC3F7"
+  }
 }

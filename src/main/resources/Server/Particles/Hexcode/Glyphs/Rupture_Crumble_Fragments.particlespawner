@@ -1,0 +1,25 @@
+{
+  "RenderMode": "Erosion",
+  "ParticleRotationInfluence": "BillboardVelocity",
+  "LinearFiltering": true,
+  "LightInfluence": 0,
+  "MaxConcurrentParticles": 15,
+  "ParticleLifeSpan": { "Min": 0.8, "Max": 1.2 },
+  "SpawnRate": { "Min": 15, "Max": 15 },
+  "SpawnBurst": true,
+  "TotalParticles": { "Min": 10, "Max": 15 },
+  "InitialVelocity": { "Yaw": { "Min": 0, "Max": 360 }, "Pitch": { "Min": 60, "Max": 90 }, "Speed": { "Min": 1, "Max": 2 } },
+  "Attractors": [{
+    "LinearAcceleration": { "Y": -12 }
+  }],
+  "Particle": {
+    "Texture": "Particles/Textures/Earth/Fragment_Earth_GS.png",
+    "FrameSize": { "Width": 32, "Height": 32 },
+    "ScaleRatioConstraint": "OneToOne",
+    "Animation": {
+      "0": { "Opacity": 1.0, "Color": "#8b6914", "Scale": { "X": { "Min": 0.2, "Max": 0.4 }, "Y": { "Min": 0.2, "Max": 0.4 } }, "FrameIndex": { "Min": 0, "Max": 3 } },
+      "80": { "Opacity": 0.5, "Color": "#6b5520" },
+      "100": { "Opacity": 0, "Color": "#5a4a2a", "Scale": { "X": { "Min": 0.1, "Max": 0.15 }, "Y": { "Min": 0.1, "Max": 0.15 } } }
+    }
+  }
+}

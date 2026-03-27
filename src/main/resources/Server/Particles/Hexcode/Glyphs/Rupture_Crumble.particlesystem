@@ -1,0 +1,10 @@
+{
+  "Spawners": [
+    { "SpawnerId": "Rupture_Crumble_Fragments", "PositionOffset": { "Y": 0 }, "StartDelay": 0 },
+    { "SpawnerId": "Rupture_Crumble_Dust", "PositionOffset": { "Y": 0 }, "StartDelay": 0.2 }
+  ],
+  "LifeSpan": 2.0,
+  "CullDistance": 100,
+  "BoundingRadius": 6.0,
+  "IsImportant": true
+}

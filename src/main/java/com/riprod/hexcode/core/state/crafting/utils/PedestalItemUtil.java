@@ -20,6 +20,8 @@ import com.riprod.hexcode.core.common.hexcaster.utils.CasterInventory;
 import com.riprod.hexcode.core.common.hexcaster.utils.PlayerUtils;
 import com.riprod.hexcode.utils.HexSlot;
 
+import io.sentry.util.Pair;
+
 public class PedestalItemUtil {
 
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -31,8 +33,36 @@ public class PedestalItemUtil {
         return item.getItem().getId().contains("Essence");
     }
 
+    public static boolean anyEssence(@Nullable ItemStack mainHand, @Nullable ItemStack offHand) {
+        return isEssence(mainHand) || isEssence(offHand);
+    }
+
+    public static Pair<ItemStack, HexSlot> getEssence(@Nullable ItemStack mainHand, @Nullable ItemStack offHand) {
+        if (isEssence(mainHand)) {
+            return new Pair<>(mainHand, HexSlot.MainHand);
+        } else if (isEssence(offHand)) {
+            return new Pair<>(offHand, HexSlot.OffHand);
+        } else {
+            return null;
+        }
+    }
+
     public static boolean isHexBook(@Nullable ItemStack item) {
         return CasterInventory.getHexBookAsset(item) != null;
+    }
+
+    public static boolean anyHexBook(@Nullable ItemStack mainHand, @Nullable ItemStack offHand) {
+        return isHexBook(mainHand) || isHexBook(offHand);
+    }
+
+    public static Pair<ItemStack, HexSlot> getHexBook(@Nullable ItemStack mainHand, @Nullable ItemStack offHand) {
+        if (isHexBook(offHand)) {
+            return new Pair<>(offHand, HexSlot.OffHand);
+        } else if (isHexBook(mainHand)) {
+            return new Pair<>(mainHand, HexSlot.MainHand);
+        } else {
+            return null;
+        }
     }
 
     public static boolean isEmptyHand(@Nullable ItemStack item) {

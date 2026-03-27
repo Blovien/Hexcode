@@ -33,7 +33,8 @@ public class ForceGlyph implements GlyphHandler {
     @Override
     public boolean resolveMana(Glyph glyph, HexContext hexContext) {
         GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
-        if (asset == null) return true;
+        if (asset == null)
+            return true;
 
         double power = computeForcePower(glyph, hexContext);
 
@@ -112,7 +113,8 @@ public class ForceGlyph implements GlyphHandler {
         if (targets instanceof EntityVar entityVar) {
             for (int i = 0; i < entityVar.size(); i++) {
                 Ref<EntityStore> ref = entityVar.getRef(i, hexContext.getAccessor());
-                if (ref == null || !ref.isValid()) continue;
+                if (ref == null || !ref.isValid())
+                    continue;
 
                 try {
                     Velocity vel = hexContext.getAccessor().getComponent(ref, Velocity.getComponentType());
@@ -120,9 +122,14 @@ public class ForceGlyph implements GlyphHandler {
                         vel.addInstruction(new Vector3d(force), new VelocityConfig(), ChangeVelocityType.Add);
                     }
 
-                    TransformComponent tc = hexContext.getAccessor().getComponent(ref, TransformComponent.getComponentType());
+                    LOGGER.atInfo().log("force glyph: applied force %s to entity %s",
+                            force, entityVar.getAt(i).getUuid());
+
+                    TransformComponent tc = hexContext.getAccessor().getComponent(ref,
+                            TransformComponent.getComponentType());
                     if (tc != null) {
-                        ForceGlyphStyle.render(tc.getPosition(), force, hexContext.getColors(), hexContext.getAccessor());
+                        ForceGlyphStyle.render(tc.getPosition(), force, hexContext.getColors(),
+                                hexContext.getAccessor());
                     }
                 } catch (Exception e) {
                     LOGGER.atWarning().log("force glyph: could not apply force to entity %s: %s",

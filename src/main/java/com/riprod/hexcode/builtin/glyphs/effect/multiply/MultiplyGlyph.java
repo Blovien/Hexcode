@@ -2,14 +2,18 @@ package com.riprod.hexcode.builtin.glyphs.effect.multiply;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+import com.hypixel.hytale.math.vector.Vector3d;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.values.HexValInterface;
+import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 import com.riprod.hexcode.utils.HexMathUtil;
+import com.riprod.hexcode.utils.SpellVarUtil;
 
 public class MultiplyGlyph implements GlyphHandler, HexValInterface {
     public static final String ID = "Glyph_Multiply";
@@ -38,6 +42,16 @@ public class MultiplyGlyph implements GlyphHandler, HexValInterface {
     private HexVar compute(Glyph glyph, HexContext hexContext) {
         HexVar a = glyph.resolveInput("a", hexContext);
         HexVar b = glyph.resolveInput("b", hexContext);
+
+        if (a instanceof EntityVar) {
+            Vector3d aPos = SpellVarUtil.resolveAsPosition(a, hexContext.getAccessor());
+            a = new PositionVar(aPos);
+        }
+        if (b instanceof EntityVar) {
+            Vector3d bPos = SpellVarUtil.resolveAsPosition(b, hexContext.getAccessor());
+            b = new PositionVar(bPos);
+        }
+
         return HexMathUtil.multiply(a, b);
     }
 
