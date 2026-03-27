@@ -4,33 +4,17 @@
   "Description": "Adds two values together",
   "GlyphType": "Hybrid",
   "ModelPath": "Glyph_Add",
+  "BasePower": 0,
+  "ManaConsumption": 0,
   "Inputs": {
-    "a": {
-      "Title": "A",
-      "DefaultSlot": 1,
-      "Description": "First operand"
-    },
-    "b": {
-      "Title": "B",
-      "DefaultSlot": 2,
-      "Description": "Second operand"
-    }
+    "a": { "Title": "A", "DefaultValue": 0, "Description": "First operand" },
+    "b": { "Title": "B", "DefaultValue": 0, "Description": "Second operand" }
   },
   "Outputs": {
-    "result": {
-      "Title": "Result",
-      "DefaultSlot": 1,
-      "Description": "Variable slot to store the result"
-    }
+    "result": { "Title": "Result", "DefaultSlot": 1, "Description": "Variable slot to store the result" }
   },
   "ShapeStructure": [
-    {
-      "ShapeId": "Line",
-      "Size": 1.0
-    },
-    {
-      "ShapeId": "Antiline",
-      "Size": 1.0
-    }
+    { "ShapeId": "Line", "Size": 1.0 },
+    { "ShapeId": "Antiline", "Size": 1.0 }
   ]
 }

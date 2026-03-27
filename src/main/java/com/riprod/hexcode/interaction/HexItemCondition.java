@@ -18,10 +18,12 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHa
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.SimpleInteraction;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexcaster.utils.PlayerUtils;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.riprod.hexcode.utils.HexSlot;
 import com.riprod.hexcode.utils.HexStaffUtil;
 
 public class HexItemCondition extends SimpleInteraction {
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     public enum HexItemType {
         HexStaff,
@@ -66,24 +68,28 @@ public class HexItemCondition extends SimpleInteraction {
     @Override
     protected void tick0(boolean firstRun, float time, @Nonnull InteractionType type,
             @Nonnull InteractionContext ctx, @Nonnull CooldownHandler cooldown) {
+        try {
+            CommandBuffer<EntityStore> buffer = ctx.getCommandBuffer();
+            if (buffer == null) {
+                ctx.getState().state = InteractionState.Failed;
+                super.tick0(firstRun, time, type, ctx, cooldown);
+                return;
+            }
 
-        CommandBuffer<EntityStore> buffer = ctx.getCommandBuffer();
-        if (buffer == null) {
-            ctx.getState().state = InteractionState.Failed;
+            Ref<EntityStore> playerRef = ctx.getEntity();
+            if (playerRef == null || !playerRef.isValid()) {
+                ctx.getState().state = InteractionState.Failed;
+                super.tick0(firstRun, time, type, ctx, cooldown);
+                return;
+            }
+
+            boolean success = checkHexItems(buffer, playerRef);
+            ctx.getState().state = success ? InteractionState.Finished : InteractionState.Failed;
             super.tick0(firstRun, time, type, ctx, cooldown);
-            return;
-        }
-
-        Ref<EntityStore> playerRef = ctx.getEntity();
-        if (playerRef == null || !playerRef.isValid()) {
+        } catch (Exception e) {
+            LOGGER.atSevere().log("[hexcode] HexItemCondition failed: %s", e.getMessage());
             ctx.getState().state = InteractionState.Failed;
-            super.tick0(firstRun, time, type, ctx, cooldown);
-            return;
         }
-
-        boolean success = checkHexItems(buffer, playerRef);
-        ctx.getState().state = success ? InteractionState.Finished : InteractionState.Failed;
-        super.tick0(firstRun, time, type, ctx, cooldown);
     }
 
     private boolean checkHexItems(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> ref) {

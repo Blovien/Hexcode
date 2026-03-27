@@ -1,4 +1,8 @@
 {
   "ItemId": "Hex_Book",
-  "MaxGlyphs": 8
+  "MaxGlyphs": 8,
+  "Colors": {
+    "PrimaryColor": "#8D6E63",
+    "SecondaryColor": "#BCAAA4"
+  }
 }

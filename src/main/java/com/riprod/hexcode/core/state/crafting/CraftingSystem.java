@@ -121,13 +121,6 @@ public class CraftingSystem extends HexcodeManager {
     public void tick0(Ref<EntityStore> ref, HexcasterComponent comp, float dt,
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
 
-        PedestalBlockComponent pedestal = PedestalBlockUtil.resolvePedestal(ref, buffer);
-        if (pedestal == null) {
-            return;
-        }
-
-        CraftingStateSystem.tickCrafting(buffer, dt, ref, pedestal);
-
         // cleanup the head anchor if it exists but isn't being dragged (can happen if player leaves mid-drag)
         HexcasterCraftingComponent craftingComp = buffer.getComponent(ref,
                 HexcasterCraftingComponent.getComponentType());
@@ -135,9 +128,17 @@ public class CraftingSystem extends HexcodeManager {
                 && craftingComp.getHeadAnchorRef() != null
                 && craftingComp.getHeadAnchorRef().isValid()) {
 
+            buffer.tryRemoveComponent(craftingComp.getHeadAnchorRef(), MountedComponent.getComponentType());
             buffer.tryRemoveEntity(craftingComp.getHeadAnchorRef(), RemoveReason.REMOVE);
             craftingComp.setHeadAnchorRef(buffer, null);
         }
+
+        PedestalBlockComponent pedestal = PedestalBlockUtil.resolvePedestal(ref, buffer);
+        if (pedestal == null) {
+            return;
+        }
+
+        CraftingStateSystem.tickCrafting(buffer, dt, ref, pedestal);
     }
 
     @Override
@@ -199,6 +200,14 @@ public class CraftingSystem extends HexcodeManager {
             return;
 
         Store<EntityStore> store = ref.getStore();
+
+        HexcasterCraftingComponent craftingComp = store.getComponent(ref, HexcasterCraftingComponent.getComponentType());
+        if (craftingComp != null) {
+            Ref<EntityStore> headAnchor = craftingComp.getHeadAnchorRef();
+            if (headAnchor != null && headAnchor.isValid()) {
+                store.removeEntity(headAnchor, RemoveReason.REMOVE);
+            }
+        }
 
         CraftingDataComponent playerData = store.getComponent(ref, CraftingDataComponent.getComponentType());
         if (playerData == null)

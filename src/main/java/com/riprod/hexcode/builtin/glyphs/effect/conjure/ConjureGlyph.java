@@ -1,6 +1,8 @@
 package com.riprod.hexcode.builtin.glyphs.effect.conjure;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import com.hypixel.hytale.component.AddReason;
@@ -14,7 +16,6 @@ import com.hypixel.hytale.protocol.DebugShape;
 import com.hypixel.hytale.server.core.modules.debug.DebugUtils;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
-import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.PropComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.hitboxcollision.HitboxCollision;
@@ -24,18 +25,20 @@ import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
-import com.hypixel.hytale.server.core.modules.physics.component.PhysicsValues;
 import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
+import com.hypixel.hytale.server.core.modules.projectile.ProjectileModule;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.builtin.glyphs.effect.conjure.component.ConjureZoneComponent;
+import com.riprod.hexcode.builtin.glyphs.effect.conjure.style.ConjureStyle;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
-import com.riprod.hexcode.core.common.glyphs.variables.NumberVar;
 import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
+import com.riprod.hexcode.core.state.execution.component.HexSignal;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
@@ -79,14 +82,10 @@ public class ConjureGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar defaultCoordsA = new PositionVar(new Vector3d(0, 0, 0));
-        HexVar defaultCoordsB = new PositionVar(new Vector3d(0, 0, 0));
-        HexVar defaultDurationVar = new NumberVar(5);
-        HexVar defaultIntervalVar = new NumberVar(-1);
-        HexVar coordsAVar = glyph.resolveInputOrDefault(INPUTS.COORDS_A.getSlotName(), hexContext, defaultCoordsA);
-        HexVar coordsBVar = glyph.resolveInputOrDefault(INPUTS.COORDS_B.getSlotName(), hexContext, defaultCoordsB);
-        HexVar durationVar = glyph.resolveInputOrDefault(INPUTS.DURATION.getSlotName(), hexContext, defaultDurationVar);
-        HexVar intervalVar = glyph.resolveInputOrDefault(INPUTS.INTERVAL.getSlotName(), hexContext, defaultIntervalVar);
+        HexVar coordsAVar = glyph.resolveInputOrDefault(INPUTS.COORDS_A.getSlotName(), hexContext, new PositionVar(new Vector3d(0.5, 0.5, 0.5)));
+        HexVar coordsBVar = glyph.resolveInputOrDefault(INPUTS.COORDS_B.getSlotName(), hexContext, new PositionVar(new Vector3d(-0.5, -0.5, -0.5)));
+        HexVar durationVar = glyph.resolveInput(INPUTS.DURATION.getSlotName(), hexContext);
+        HexVar intervalVar = glyph.resolveInput(INPUTS.INTERVAL.getSlotName(), hexContext);
         HexVar anchorVar = glyph.resolveInput(INPUTS.ANCHOR.getSlotName(), hexContext);
 
         if (anchorVar == null) {
@@ -107,7 +106,6 @@ public class ConjureGlyph implements GlyphHandler {
             return;
         }
 
-        // relative (PositionVar) = offset from anchor, absolute (EntityVar) = world position
         Vector3d cornerA;
         Vector3d cornerB;
         if (coordsAVar instanceof PositionVar) {
@@ -143,36 +141,59 @@ public class ConjureGlyph implements GlyphHandler {
         Integer conjurationOutputSlot = glyph.resolveOutput(OUTPUTS.CONJURATION.getSlotName(), hexContext);
 
         List<String> allNext = glyph.getNext();
+        List<String> firstBranch = !allNext.isEmpty() ? List.of(allNext.get(0)) : null;
         List<String> zoneNext = allNext.size() > 1
                 ? List.copyOf(allNext.subList(1, allNext.size()))
                 : List.of();
 
-        float respawnInterval = Math.min(durationSeconds, 0.5f);
-
         ConjureZoneComponent zoneComp = new ConjureZoneComponent(
-                halfExtents, interval, durationSeconds,
-                hexContext.copy(), zoneNext,
-                entityOutputSlot, conjurationOutputSlot,
-                hexContext.getRoot().getRootEntityRef(), glyph);
+                halfExtents, interval, durationSeconds, firstBranch);
+
+        Map<String, Integer> outputSlots = new HashMap<>();
+        if (entityOutputSlot != null) {
+            outputSlots.put("entity", entityOutputSlot);
+        }
+        if (conjurationOutputSlot != null) {
+            outputSlots.put("conjuration", conjurationOutputSlot);
+        }
+
+        HexSignal signal = new HexSignal(
+                hexContext.copy(), hexContext.getRoot().getRootEntityRef(),
+                glyph, zoneNext, outputSlots.isEmpty() ? null : outputSlots);
 
         UUID zoneUuid = UUID.randomUUID();
+        Vector3f debugColor = ConjureStyle.resolveColor(hexContext.getColors());
+
+        HitboxCollisionConfig collisionConfig = HitboxCollisionConfig.getAssetMap()
+                .getAsset(HARD_COLLISION_ID);
 
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
         holder.addComponent(TransformComponent.getComponentType(),
                 new TransformComponent(new Vector3d(center), new Vector3f()));
         holder.addComponent(UUIDComponent.getComponentType(), new UUIDComponent(zoneUuid));
         holder.ensureComponent(PropComponent.getComponentType());
+        holder.ensureComponent(ProjectileModule.get().getProjectileComponentType());
         holder.addComponent(NetworkId.getComponentType(),
                 new NetworkId(hexContext.getAccessor().getExternalData().takeNextNetworkId()));
-        DebugComponent debugComp = new DebugComponent(DebugShape.Cube,
-                new Vector3f(0.2f, 0.6f, 1.0f), size, 0.1f);
+        DebugComponent debugComp = new DebugComponent(DebugShape.Cube, debugColor, size, 0.1f);
         debugComp.setOpacity(0.3f);
         debugComp.setIntervalMultiplier(0.01f);
         debugComp.setFlags(DebugUtils.FLAG_NO_WIREFRAME);
         holder.addComponent(DebugComponent.getComponentType(), debugComp);
+        holder.addComponent(BoundingBox.getComponentType(),
+                new BoundingBox(Box.horizontallyCentered(halfExtents.x * 2, halfExtents.y * 2, halfExtents.z * 2)));
         holder.addComponent(Velocity.getComponentType(), new Velocity());
 
+        if (collisionConfig != null) {
+            holder.addComponent(HitboxCollision.getComponentType(),
+                    new HitboxCollision(collisionConfig));
+        }
+
+        ConjurePhysicsConfig.INSTANCE.apply(holder, hexContext.getCasterRef(),
+                new Vector3d(0, 0, 0), hexContext.getAccessor(), false);
+
         holder.addComponent(ConjureZoneComponent.getComponentType(), zoneComp);
+        holder.addComponent(HexSignal.getComponentType(), signal);
 
         ModelAsset anchorAsset = ModelAsset.getAssetMap().getAsset("Conjured_Anchor");
         if (anchorAsset != null) {
@@ -185,7 +206,7 @@ public class ConjureGlyph implements GlyphHandler {
         Ref<EntityStore> zoneRef = hexContext.getAccessor().addEntity(holder, AddReason.SPAWN);
         zoneComp.setZoneRef(zoneRef);
 
-        ConjureGlyphStyle.renderSpawn(center, hexContext.getAccessor());
+        ConjureStyle.renderSpawn(center, hexContext.getColors(), hexContext.getAccessor());
 
         EntityVar zoneEntityVar = new EntityVar(zoneUuid, zoneRef);
         if (entityOutputSlot != null) {
@@ -201,8 +222,5 @@ public class ConjureGlyph implements GlyphHandler {
             execComp.incrementExternalWaiters();
         }
 
-        if (!allNext.isEmpty()) {
-            Executor.continueExecution(List.of(allNext.get(0)), hexContext);
-        }
     }
 }

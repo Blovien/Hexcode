@@ -9,9 +9,11 @@ import com.hypixel.hytale.component.spatial.SpatialSystem;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 
 public class HoverableSpatialSystem extends SpatialSystem<EntityStore> {
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     private static ResourceType<EntityStore, SpatialResource<Ref<EntityStore>, EntityStore>> resourceType;
 
@@ -34,6 +36,11 @@ public class HoverableSpatialSystem extends SpatialSystem<EntityStore> {
 
     @Override
     public Vector3d getPosition(ArchetypeChunk<EntityStore> chunk, int index) {
-        return chunk.getComponent(index, TransformComponent.getComponentType()).getPosition();
+        try {
+            return chunk.getComponent(index, TransformComponent.getComponentType()).getPosition();
+        } catch (Exception e) {
+            LOGGER.atSevere().log("[hexcode] HoverableSpatialSystem.getPosition failed: %s", e.getMessage());
+            return new Vector3d(0, 0, 0);
+        }
     }
 }

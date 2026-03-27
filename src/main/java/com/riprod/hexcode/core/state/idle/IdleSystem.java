@@ -11,6 +11,7 @@ import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
+import com.riprod.hexcode.utils.CleanupUtils;
 
 public class IdleSystem extends HexcodeManager {
 
@@ -24,6 +25,10 @@ public class IdleSystem extends HexcodeManager {
                 HexcasterCraftingComponent craftingComp = buffer.getComponent(ref,
                                 HexcasterCraftingComponent.getComponentType());
                 if (craftingComp != null) {
+                        Ref<EntityStore> headAnchor = craftingComp.getHeadAnchorRef();
+                        if (headAnchor != null && headAnchor.isValid()) {
+                                CleanupUtils.safeRemoveEntity(buffer, headAnchor);
+                        }
                         craftingComp.clearCraftingState();
                         buffer.removeComponent(ref, HexcasterCraftingComponent.getComponentType());
                 }

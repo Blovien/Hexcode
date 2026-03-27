@@ -222,8 +222,8 @@ public class GlyphStyler {
                 styledGlyphs.add(child.getId());
 
                 child.setScale(scaleAmount);
-                child.setRotation(childRotation); // match rotation of parent
-                child.setOffset(GlyphMath.toMountOffset(childRotation, parentGlyph.getRotation()));
+                child.setRotation(childRotation);
+                child.setVisualOffset(GlyphMath.toMountOffset(childRotation, parentGlyph.getRotation()));
 
                 GlyphStyler.updateScale(accessor, childRef, child.getScale());
                 GlyphStyler.updateMountPosition(accessor, child, child.getOffset());

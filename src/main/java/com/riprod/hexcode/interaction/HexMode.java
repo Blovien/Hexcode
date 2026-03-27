@@ -63,48 +63,52 @@ public class HexMode extends ChargingInteraction {
     @Override
     protected void tick0(boolean firstRun, float dt, @Nonnull InteractionType type,
             @Nonnull InteractionContext ctx, @Nonnull CooldownHandler cooldown) {
+        try {
+            if (targetState == null) {
+                ctx.getState().state = InteractionState.Failed;
+                return;
+            }
 
-        if (targetState == null) {
+            CommandBuffer<EntityStore> commandBuffer = ctx.getCommandBuffer();
+            if (commandBuffer == null) {
+                ctx.getState().state = InteractionState.Failed;
+                return;
+            }
+
+            Ref<EntityStore> playerRef = ctx.getEntity();
+            if (playerRef == null || !playerRef.isValid()) {
+                ctx.getState().state = InteractionState.Failed;
+                return;
+            }
+
+            HexcasterComponent hexcaster = commandBuffer.getComponent(playerRef, HexcasterComponent.getComponentType());
+            if (hexcaster == null) {
+                ctx.getState().state = InteractionState.Failed;
+                return;
+            }
+
+            if (hexcaster.getState() != targetState) {
+                LOGGER.atInfo().log("hexmode: state mismatch, current=%s target=%s", hexcaster.getState(), targetState);
+                ctx.getState().state = InteractionState.Finished;
+                return;
+            }
+
+            HexcodeManager manager = StateRouter.route(targetState);
+            if (manager == null) {
+                ctx.getState().state = InteractionState.Finished;
+                return;
+            }
+
+            if (firstRun) {
+                ctx.getState().state = manager.enterInteraction(commandBuffer, playerRef, hexcaster);
+            } else {
+                ctx.getState().state = manager.tickInteraction(commandBuffer, playerRef, dt, hexcaster);
+            }
+
+            super.tick0(firstRun, dt, type, ctx, cooldown);
+        } catch (Exception e) {
+            LOGGER.atSevere().log("[hexcode] HexMode failed: %s", e.getMessage());
             ctx.getState().state = InteractionState.Failed;
-            return;
         }
-
-        CommandBuffer<EntityStore> commandBuffer = ctx.getCommandBuffer();
-        if (commandBuffer == null) {
-            ctx.getState().state = InteractionState.Failed;
-            return;
-        }
-
-        Ref<EntityStore> playerRef = ctx.getEntity();
-        if (playerRef == null || !playerRef.isValid()) {
-            ctx.getState().state = InteractionState.Failed;
-            return;
-        }
-
-        HexcasterComponent hexcaster = commandBuffer.getComponent(playerRef, HexcasterComponent.getComponentType());
-        if (hexcaster == null) {
-            ctx.getState().state = InteractionState.Failed;
-            return;
-        }
-
-        if (hexcaster.getState() != targetState) {
-            LOGGER.atInfo().log("hexmode: state mismatch, current=%s target=%s", hexcaster.getState(), targetState);
-            ctx.getState().state = InteractionState.Finished;
-            return;
-        }
-
-        HexcodeManager manager = StateRouter.route(targetState);
-        if (manager == null) {
-            ctx.getState().state = InteractionState.Finished;
-            return;
-        }
-
-        if (firstRun) {
-            ctx.getState().state = manager.enterInteraction(commandBuffer, playerRef, hexcaster);
-        } else {
-            ctx.getState().state = manager.tickInteraction(commandBuffer, playerRef, dt, hexcaster);
-        }
-
-        super.tick0(firstRun, dt, type, ctx, cooldown);
     }
 }

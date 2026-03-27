@@ -1,15 +1,15 @@
 {
   "$Comment": "Hexcode Mana stat - overrides base Mana.json which has Max=0",
-  "InitialValue": 100,
+  "InitialValue": 500,
   "Min": 0,
-  "Max": 100,
+  "Max": 1000,
   "Shared": true,
   "ResetType": "MaxValue",
   "Regenerating": [
     {
-      "$Comment": "Mana regeneration for players",
-      "Interval": 0.5,
-      "Amount": 2,
+      "$Comment": "Mana regeneration for players - very slow, forces drain usage in combat",
+      "Interval": 2.0,
+      "Amount": 1,
       "RegenType": "Additive",
       "Conditions": [
         {
@@ -20,14 +20,14 @@
         },
         {
           "Id": "NoDamageTaken",
-          "Delay": 3
+          "Delay": 30
         }
       ]
     },
     {
       "$Comment": "Fast mana regen in creative mode",
       "Interval": 0.2,
-      "Amount": 10,
+      "Amount": 50,
       "RegenType": "Additive",
       "Conditions": [
         {

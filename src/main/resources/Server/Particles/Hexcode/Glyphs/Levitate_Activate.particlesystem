@@ -1,0 +1,10 @@
+{
+  "Spawners": [
+    { "SpawnerId": "Levitate_Flash", "PositionOffset": { "Y": 0 }, "StartDelay": 0 },
+    { "SpawnerId": "Levitate_Updraft", "PositionOffset": { "Y": -0.5 }, "StartDelay": 0.02 }
+  ],
+  "LifeSpan": 1.0,
+  "CullDistance": 100,
+  "BoundingRadius": 5.0,
+  "IsImportant": true
+}

@@ -1,16 +1,19 @@
 {
   "Parent": "Base_Glyph",
   "Title": "Rupture",
-  "Description": "Disrupts terrain creating difficult ground and spike formations",
+  "Description": "Disrupts terrain creating spike formations that damage entities in the area",
   "GlyphType": "Effect",
   "ModelPath": "Glyph_Rupture",
   "BasePower": 1.0,
   "ManaConsumption": 22,
   "Inputs": {
-    "target": { "Title": "Target", "DefaultSlot": 1, "Description": "Variable containing the targets to affect" }
+    "target": { "Title": "Target", "DefaultSlot": 1, "Description": "Center position or entity for the rupture area" },
+    "radius": { "Title": "Radius", "DefaultSlot": 2, "Description": "Radius of the rupture area in blocks" },
+    "damage": { "Title": "Damage", "DefaultSlot": 3, "Description": "Spike damage per hit" },
+    "duration": { "Title": "Duration", "DefaultSlot": 4, "Description": "Duration in ticks before spikes despawn" }
   },
   "Outputs": {
-    "result": { "Title": "Result", "DefaultSlot": 1, "Description": "Variable slot to store the result" }
+    "result": { "Title": "Result", "DefaultSlot": 1, "Description": "Center position of the rupture" }
   },
   "ShapeStructure": [
     {

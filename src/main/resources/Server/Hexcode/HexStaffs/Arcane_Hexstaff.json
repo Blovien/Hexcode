@@ -2,6 +2,7 @@
   "Parent": "Base_Staff",
   "ItemId": "Arcane_Hexstaff",
   "CastStyleId": "ring",
+  "StaffModifier": 0.65,
   "CastingAuraParticles": [
     {
       "SystemId": "Alternative_Rune_System",
@@ -13,7 +14,8 @@
       "SystemId": "Mist_Spawner",
       "PositionOffset": {
         "Y": -1.5
-      }
+      },
+      "Color": "#0D47A1"
     },
     {
       "SystemId": "Ring_Spawner"
@@ -24,5 +26,9 @@
         "Y": -1.5
       }
     }
-  ]
+  ],
+  "Colors": {
+    "PrimaryColor": "#0D47A1",
+    "SecondaryColor": "#42A5F5"
+  }
 }

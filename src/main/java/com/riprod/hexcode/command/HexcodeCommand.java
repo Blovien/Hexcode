@@ -16,9 +16,12 @@ import com.riprod.hexcode.command.glyph.GlyphsListCommand;
 import com.riprod.hexcode.command.hex.HexInspectCommand;
 import com.riprod.hexcode.command.hex.HexSerializeCommand;
 
+import com.hypixel.hytale.logger.HytaleLogger;
+
 import javax.annotation.Nonnull;
 
 public class HexcodeCommand extends AbstractPlayerCommand {
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     public HexcodeCommand() {
         super("hexcode", "Hexcode spell-crafting mod commands");
         this.setPermissionGroup(GameMode.Creative);
@@ -35,7 +38,11 @@ public class HexcodeCommand extends AbstractPlayerCommand {
     @Override
     protected void execute(@Nonnull CommandContext ctx, Store<EntityStore> store, Ref<EntityStore> ref,
             PlayerRef playerRef, World world) {
-        showHelp(ctx);
+        try {
+            showHelp(ctx);
+        } catch (Exception e) {
+            LOGGER.atSevere().log("[hexcode] HexcodeCommand failed: %s", e.getMessage());
+        }
     }
 
     private void showHelp(CommandContext ctx) {

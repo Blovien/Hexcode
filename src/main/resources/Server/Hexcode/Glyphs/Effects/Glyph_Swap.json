@@ -5,7 +5,7 @@
   "GlyphType": "Effect",
   "ModelPath": "Glyph_Swap",
   "BasePower": 1.0,
-  "ManaConsumption": 20,
+  "ManaConsumption": 15,
   "Inputs": {
     "a": { "Title": "A", "DefaultSlot": 1, "Description": "First operand" },
     "b": { "Title": "B", "DefaultSlot": 2, "Description": "Second operand" }

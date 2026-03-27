@@ -69,6 +69,12 @@ public class PlayerUtils {
         return new Pair<>(item, first);
     }
 
+    public static Pair<ItemStack, ItemStack> getItemFromHands(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> ref) {
+        ItemStack mainHand = getActiveHotbarItem(accessor, ref);
+        ItemStack offHand = getActiveUtilityItem(accessor, ref);
+        return new Pair<>(mainHand, offHand);
+    }
+
     public static ItemStack getHandItem(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> ref, HexSlot slot) {
         return slot == HexSlot.OffHand
                 ? getActiveUtilityItem(accessor, ref)

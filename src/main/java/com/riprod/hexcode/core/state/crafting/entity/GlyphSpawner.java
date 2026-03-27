@@ -60,7 +60,7 @@ public class GlyphSpawner {
             Vector3f offset = GlyphMath.toMountOffset(childRotation, childGlyph.getRotation());
             float yOffset = childGlyphComponent.getScale() * GLYPH_HEIGHT_MULTIPLIER;
             Vector3f scaledOffset = new Vector3f(offset).add(0, 0, yOffset);
-            childGlyphComponent.setOffset(scaledOffset);
+            childGlyphComponent.setVisualOffset(scaledOffset);
             
             // ref setup
             childGlyphComponent.setParentRef(glyph.getSelfRef());

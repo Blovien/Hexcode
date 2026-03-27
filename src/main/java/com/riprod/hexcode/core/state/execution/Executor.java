@@ -7,7 +7,10 @@ import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphRegistry;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.hexcaster.utils.CasterInventory;
+import com.riprod.hexcode.core.common.hexcaster.utils.PlayerUtils;
+import com.riprod.hexcode.core.common.hexstaff.component.HexStaffAsset;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffComponent;
+import com.riprod.hexcode.utils.HexSlot;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.PendingContinue;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
@@ -47,6 +50,12 @@ public class Executor {
 
             staff.incrementCastCount();
             CasterInventory.saveHexStaffComponent(hexContext.getAccessor(), hexContext.getCasterRef(), staff);
+
+            HexStaffAsset staffAsset = CasterInventory.getHexStaffAsset(
+                    PlayerUtils.getHandItem(hexContext.getAccessor(), hexContext.getCasterRef(), HexSlot.MainHand));
+            if (staffAsset != null && staffAsset.getColors() != null) {
+                hexContext.setColors(staffAsset.getColors().clone());
+            }
         }
 
         continueExecution(nextGlyphs, hexContext);
@@ -55,6 +64,12 @@ public class Executor {
     public static void continueExecution(List<String> nextGlyphs, HexContext hexContext) {
 
         if (nextGlyphs.isEmpty()) {
+            return;
+        }
+
+        VolatilityTracker tracker = hexContext.getVolatilityTracker();
+        if (tracker != null && tracker.isFizzled()) {
+            LOGGER.atInfo().log("hex fizzled — halting execution");
             return;
         }
 

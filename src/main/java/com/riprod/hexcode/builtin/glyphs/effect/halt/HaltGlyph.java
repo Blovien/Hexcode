@@ -11,6 +11,7 @@ import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.builtin.glyphs.effect.halt.style.HaltStyle;
 import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 
@@ -42,7 +43,7 @@ public class HaltGlyph implements GlyphHandler {
 
                     TransformComponent tc = hexContext.getAccessor().getComponent(ref, TransformComponent.getComponentType());
                     if (tc != null) {
-                        HaltGlyphStyle.render(tc.getPosition(), hexContext.getAccessor());
+                        HaltStyle.render(tc.getPosition(), hexContext.getColors(), hexContext.getAccessor());
                     }
                 } catch (Exception e) {
                     LOGGER.atWarning().log("halt glyph: could not halt entity %s: %s",

@@ -14,13 +14,12 @@ import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
+import com.riprod.hexcode.builtin.glyphs.effect.ignite.style.IgniteStyle;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
 public class IgniteGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     public static final String ID = "Glyph_Ignite";
-
-    private static final double DEFAULT_DURATION = 5.0;
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
@@ -32,11 +31,11 @@ public class IgniteGlyph implements GlyphHandler {
         }
 
         double duration = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("duration", hexContext), DEFAULT_DURATION);
+                glyph.resolveInput("duration", hexContext), 5.0);
 
         EntityEffect burnEffect = EntityEffect.getAssetMap().getAsset("Burn");
         if (burnEffect == null) {
-            LOGGER.atWarning().log("ignite glyph: Burn effect asset not found");
+            LOGGER.atWarning().log("ignite: burn effect asset not found");
             Executor.continueExecution(glyph.getNext(), hexContext);
             return;
         }
@@ -59,10 +58,10 @@ public class IgniteGlyph implements GlyphHandler {
                     TransformComponent tc = accessor.getComponent(ref,
                             TransformComponent.getComponentType());
                     if (tc != null) {
-                        IgniteGlyphStyle.render(tc.getPosition(), accessor);
+                        IgniteStyle.render(tc.getPosition(), hexContext.getColors(), accessor);
                     }
                 } catch (Exception e) {
-                    LOGGER.atWarning().log("ignite glyph: failed on entity %s: %s",
+                    LOGGER.atWarning().log("ignite: failed on entity %s: %s",
                             entityVar.getAt(i).getUuid(), e.getMessage());
                 }
             }

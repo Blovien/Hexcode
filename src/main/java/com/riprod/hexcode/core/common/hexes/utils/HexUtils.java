@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphRegistry;
@@ -26,7 +27,17 @@ public class HexUtils {
         fixFirstGlyphId(hex);
         repairAsymmetricLinks(hex);
     }
-    
+
+    public static void repair(Hex hex) {
+        List<Glyph> glyphs = hex.getGlyphs();
+        if (glyphs.isEmpty()) return;
+
+        cleanDanglingLinks(hex);
+        cleanDanglingSlots(hex);
+        fixFirstGlyphId(hex);
+        repairAsymmetricLinks(hex);
+    }
+
     public static void compress(Hex hex) {
         cleanDanglingLinks(hex);
         cleanDanglingSlots(hex);
@@ -39,10 +50,11 @@ public class HexUtils {
         List<Glyph> glyphs = hex.getGlyphs();
         if (glyphs.isEmpty()) return;
 
+        String prefix = String.format("%04x", ThreadLocalRandom.current().nextInt(0x10000));
         Map<String, String> idMap = new HashMap<>();
         int counter = 0;
         for (Glyph glyph : glyphs) {
-            idMap.put(glyph.getId(), String.valueOf(counter++));
+            idMap.put(glyph.getId(), prefix + "-" + counter++);
         }
 
         String oldFirstId = hex.getFirstGlyphId();
@@ -94,11 +106,17 @@ public class HexUtils {
     }
 
     public static String serialize(Hex hex) {
-        return HexSerializer.serialize(hex);
+        return com.riprod.hexcode.core.common.hexes.codec.HexCodec.serialize(hex);
+    }
+
+    public static com.riprod.hexcode.core.common.hexes.codec.DecodeResult deserializeWithResult(String data) {
+        return com.riprod.hexcode.core.common.hexes.codec.HexCodec.deserialize(data);
     }
 
     public static Hex deserialize(String data) {
-        return HexSerializer.deserialize(data);
+        com.riprod.hexcode.core.common.hexes.codec.DecodeResult result =
+                com.riprod.hexcode.core.common.hexes.codec.HexCodec.deserialize(data);
+        return result.getHex();
     }
 
     private static void removeUnregisteredGlyphs(Hex hex) {
@@ -210,4 +228,5 @@ public class HexUtils {
             }
         }
     }
+
 }

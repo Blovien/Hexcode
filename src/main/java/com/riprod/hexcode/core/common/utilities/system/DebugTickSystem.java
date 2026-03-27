@@ -18,9 +18,11 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 
 public class DebugTickSystem extends EntityTickingSystem<EntityStore> {
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     @Override
     public Query<EntityStore> getQuery() {
@@ -31,63 +33,67 @@ public class DebugTickSystem extends EntityTickingSystem<EntityStore> {
     public void tick(float dt, int index, @Nonnull ArchetypeChunk<EntityStore> chunk,
             @Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> buffer) {
 
-        DebugComponent debug = chunk.getComponent(index, DebugComponent.getComponentType());
-        if (debug == null) {
-            return;
-        }
+        try {
+            DebugComponent debug = chunk.getComponent(index, DebugComponent.getComponentType());
+            if (debug == null) {
+                return;
+            }
 
-        debug.setTimer(debug.getTimer() - dt);
-        if (debug.getTimer() > 0) {
-            return;
-        }
+            debug.setTimer(debug.getTimer() - dt);
+            if (debug.getTimer() > 0) {
+                return;
+            }
 
-        debug.setTimer(debug.getRespawnInterval());
+            debug.setTimer(debug.getRespawnInterval());
 
-        TransformComponent transform = chunk.getComponent(index, TransformComponent.getComponentType());
-        if (transform == null) {
-            return;
-        }
+            TransformComponent transform = chunk.getComponent(index, TransformComponent.getComponentType());
+            if (transform == null) {
+                return;
+            }
 
-        Vector3d pos = transform.getPosition();
+            Vector3d pos = transform.getPosition();
 
-        MountedComponent mount = chunk.getComponent(index, MountedComponent.getComponentType());
-        if (mount != null) {
-            Ref<EntityStore> parentRef = mount.getMountedToEntity();
-            if (parentRef != null && parentRef.isValid()) {
-                TransformComponent parentTransform = store.getComponent(parentRef,
-                        TransformComponent.getComponentType());
-                if (parentTransform != null) {
-                    Vector3d parentPos = parentTransform.getPosition();
-                    Vector3f offset = mount.getAttachmentOffset();
-                    pos = new Vector3d(
-                            parentPos.x + offset.getX(),
-                            parentPos.y + offset.getY(),
-                            parentPos.z + offset.getZ());
+            MountedComponent mount = chunk.getComponent(index, MountedComponent.getComponentType());
+            if (mount != null) {
+                Ref<EntityStore> parentRef = mount.getMountedToEntity();
+                if (parentRef != null && parentRef.isValid()) {
+                    TransformComponent parentTransform = store.getComponent(parentRef,
+                            TransformComponent.getComponentType());
+                    if (parentTransform != null) {
+                        Vector3d parentPos = parentTransform.getPosition();
+                        Vector3f offset = mount.getAttachmentOffset();
+                        pos = new Vector3d(
+                                parentPos.x + offset.getX(),
+                                parentPos.y + offset.getY(),
+                                parentPos.z + offset.getZ());
+                    }
                 }
             }
-        }
 
-        Vector3d scale = debug.getScale();
-        Matrix4d matrix = new Matrix4d();
-        matrix.identity();
-        matrix.translate(pos.x, pos.y, pos.z);
-        matrix.scale(scale.x, scale.y, scale.z);
+            Vector3d scale = debug.getScale();
+            Matrix4d matrix = new Matrix4d();
+            matrix.identity();
+            matrix.translate(pos.x, pos.y, pos.z);
+            matrix.scale(scale.x, scale.y, scale.z);
 
-        Ref<EntityStore> targetRef = debug.getTargetRef();
-        if (targetRef != null && targetRef.isValid()) {
-            PlayerRef playerRef = store.getComponent(targetRef, PlayerRef.getComponentType());
-            if (playerRef != null) {
-                DisplayDebug packet = new DisplayDebug(
-                        debug.getShape(), matrix.asFloatData(),
-                        new com.hypixel.hytale.protocol.Vector3f(
-                                debug.getColor().x, debug.getColor().y, debug.getColor().z),
-                        debug.getFadeTime(), (byte) debug.getFlags(), null, debug.getOpacity());
-                playerRef.getPacketHandler().write(packet);
+            Ref<EntityStore> targetRef = debug.getTargetRef();
+            if (targetRef != null && targetRef.isValid()) {
+                PlayerRef playerRef = store.getComponent(targetRef, PlayerRef.getComponentType());
+                if (playerRef != null) {
+                    DisplayDebug packet = new DisplayDebug(
+                            debug.getShape(), matrix.asFloatData(),
+                            new com.hypixel.hytale.protocol.Vector3f(
+                                    debug.getColor().x, debug.getColor().y, debug.getColor().z),
+                            debug.getFadeTime(), (byte) debug.getFlags(), null, debug.getOpacity());
+                    playerRef.getPacketHandler().write(packet);
+                }
+            } else {
+                World world = buffer.getExternalData().getWorld();
+                DebugUtils.add(world, debug.getShape(), matrix, debug.getColor(), debug.getOpacity(),
+                        debug.getFadeTime(), debug.getFlags());
             }
-        } else {
-            World world = buffer.getExternalData().getWorld();
-            DebugUtils.add(world, debug.getShape(), matrix, debug.getColor(), debug.getOpacity(),
-                    debug.getFadeTime(), debug.getFlags());
+        } catch (Exception e) {
+            LOGGER.atSevere().log("[hexcode] DebugTickSystem failed: %s", e.getMessage());
         }
     }
 }

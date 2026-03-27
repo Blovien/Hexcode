@@ -1,0 +1,45 @@
+{
+  "RenderMode": "Erosion",
+  "ParticleRotationInfluence": "BillboardVelocity",
+  "LinearFiltering": false,
+  "MaxConcurrentParticles": 12,
+  "ParticleLifeSpan": { "Min": 0.5, "Max": 0.7 },
+  "SpawnRate": { "Min": 20.0, "Max": 20.0 },
+  "TotalParticles": { "Min": 8, "Max": 12 },
+  "SpawnBurst": true,
+  "InitialVelocity": {
+    "Speed": { "Min": 3.0, "Max": 5.0 },
+    "Yaw": { "Min": -180.0, "Max": 180.0 }
+  },
+  "EmitOffset": {
+    "X": { "Min": -0.4, "Max": 0.4 },
+    "Z": { "Min": -0.4, "Max": 0.4 },
+    "Y": { "Min": 0.0, "Max": 0.1 }
+  },
+  "Particle": {
+    "Texture": "Particles/Textures/Ice/Iceshard_Spikes.png",
+    "ScaleRatioConstraint": "OneToOne",
+    "UVOption": "RandomFlipU",
+    "FrameSize": { "Width": 32, "Height": 64 },
+    "Animation": {
+      "0": { "Scale": { "X": { "Min": 0.3, "Max": 0.5 } }, "Color": "#ffffff", "FrameIndex": { "Min": 0, "Max": 3 }, "Opacity": 1.0 },
+      "80": { "Opacity": 0.8, "Scale": { "X": { "Min": 0.6, "Max": 0.7 } } },
+      "100": { "Color": "#99cdff", "Opacity": 0.0, "Scale": { "X": { "Min": 0.5, "Max": 0.6 } } }
+    },
+    "InitialAnimationFrame": {
+      "Opacity": 1.0,
+      "Color": "#ffffff",
+      "Scale": { "X": { "Min": -0.8, "Max": -0.4 } },
+      "FrameIndex": { "Min": 0, "Max": 3 }
+    }
+  },
+  "Attractors": [
+    {
+      "DampingMultiplier": { "Y": 0.01 },
+      "RadialImpulse": 0.2,
+      "LinearImpulse": { "Y": 0.2 }
+    }
+  ],
+  "UseEmitDirection": false,
+  "Shape": "Sphere"
+}

@@ -28,6 +28,7 @@ import com.hypixel.hytale.server.core.util.TargetUtil;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.utils.GlyphType;
+import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
@@ -42,7 +43,6 @@ import com.riprod.hexcode.core.state.crafting.constants.NodeType;
 import com.riprod.hexcode.core.state.crafting.handlers.DetailsHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeInterface;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Slot.SlotNodeHandler;
-import com.riprod.hexcode.core.state.crafting.utils.CraftingGlyphRemover;
 import com.riprod.hexcode.core.state.crafting.utils.LinkRenderer;
 import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
 
@@ -102,9 +102,11 @@ public class GlyphNodeHandler implements NodeInterface {
                 look.getPosition().z + look.getDirection().z * 5);
 
         if (nodeTransform != null) {
+            CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(accessor, playerRef);
+            Vector3f color = playerData != null ? playerData.getGlyphColor() : CraftingColors.GLYPH_LINK;
             LinkRenderer.renderActiveLink(accessor, accessor.getExternalData().getWorld(),
                     nodeTransform.getPosition(), targetPoint,
-                    CraftingColors.GLYPH_LINK);
+                    color);
         }
         return InteractionState.Finished;
     }
@@ -174,38 +176,43 @@ public class GlyphNodeHandler implements NodeInterface {
         if (nodeComp == null) {
             return InteractionState.Failed;
         }
-        
+
         Ref<EntityStore> glyphRef = nodeComp.getParentEntity();
         GlyphComponent effectComp = accessor.getComponent(glyphRef, GlyphComponent.getComponentType());
         if (effectComp == null) {
             return InteractionState.Failed;
         }
-        
+
         Glyph glyph = effectComp.getGlyph();
-        
+
         // step 1: if glyph has input/output connections, clear those first
         boolean hasInputs = glyph.getInputs() != null && !glyph.getInputs().isEmpty();
-        if (hasInputs) {
-            Ref<EntityStore> hexRootRef = effectComp.getHexRef();
-            HexComponent hexComp = accessor.getComponent(hexRootRef, HexComponent.getComponentType());
-            if (hexComp != null) {
-                CraftingGlyphRemover.clearInputOutputConnections(glyph, hexComp.getHex());
-            }
+        boolean hasOutputs = glyph.getOutputs() != null && !glyph.getOutputs().isEmpty();
+        boolean hasSlots = (hasInputs || hasOutputs);
+        Ref<EntityStore> hexRootRef = effectComp.getHexRef();
+        HexComponent hexComp = accessor.getComponent(hexRootRef, HexComponent.getComponentType());
+        if (hasSlots && hexComp != null) {
+            clearInputOutputConnections(effectComp, hexComp);
         }
 
-        List<Ref<EntityStore>> outgoingRefs = nodeComp.getOutgoingRefs();
-        List<Ref<EntityStore>> incomingRefs = nodeComp.getIncomingRefs();
-        boolean hasLinks = (outgoingRefs != null && !outgoingRefs.isEmpty())
-                || (incomingRefs != null && !incomingRefs.isEmpty());
+        // step 2: if a glyph has next/previous connections, disconnect those too
+        boolean hasNext = glyph.getNext() != null && !glyph.getNext().isEmpty();
+        boolean hasPrevious = glyph.getPrevious() != null && !glyph.getPrevious().isEmpty();
+        boolean hasRelations = (hasNext || hasPrevious);
+        if (hasRelations && hexComp != null) {
+            clearNextPreviousConnections(effectComp, hexComp);
+        }
 
-        // step 2: if glyph has graph links, disconnect those
+        boolean hasIncomingRefs = nodeComp.getIncomingRefs() != null && !nodeComp.getIncomingRefs().isEmpty();
+        boolean hasOutgoingRefs = nodeComp.getOutgoingRefs() != null && !nodeComp.getOutgoingRefs().isEmpty();
+        boolean hasLinks = (hasIncomingRefs || hasOutgoingRefs);
+
+        // step 3: if node has entity links to other nodes, remove those as well
         if (hasLinks) {
-            removeOutgoingLinks(accessor, nodeComp, nodeRef, effectComp);
-            removeIncomingLinks(accessor, nodeComp, nodeRef, effectComp);
-            nodeComp.getOutgoingRefs().clear();
-            nodeComp.getIncomingRefs().clear();
+            removeIncomingOutgoingLinks(accessor, nodeComp, nodeRef);
         }
-        if (hasInputs || hasLinks) {
+
+        if (hasInputs == true || hasLinks == true || hasRelations == true) {
             return InteractionState.Finished;
         }
 
@@ -213,91 +220,98 @@ public class GlyphNodeHandler implements NodeInterface {
         return InteractionState.Finished;
     }
 
-    private void removeOutgoingLinks(CommandBuffer<EntityStore> accessor, NodeComponent nodeComp,
-            Ref<EntityStore> nodeRef,
-            GlyphComponent effectComp) {
+    private void removeIncomingOutgoingLinks(CommandBuffer<EntityStore> accessor, NodeComponent nodeComp,
+            Ref<EntityStore> nodeRef) {
 
         nodeComp.getOutgoingRefs().forEach(outRef -> {
 
             NodeComponent outNodeComp = accessor.getComponent(outRef, NodeComponent.getComponentType());
             if (outNodeComp == null) {
-                // error state - there should always be a node component on the outgoing refs of
-                // an anchor node
-                return;
-            }
-            Ref<EntityStore> outGlyphRef = outNodeComp.getParentEntity();
-
-            if (!outGlyphRef.isValid() || outGlyphRef == null) {
-                // error state - there should always be a valid parent entity ref on the
-                // outgoing node components of an anchor node of the effect
-                return;
-            }
-
-            GlyphComponent outEffectComp = accessor.getComponent(outGlyphRef, GlyphComponent.getComponentType());
-            if (outEffectComp == null) {
-                // error state - there should always be an effect component on the outgoing refs
-                // of an anchor node
-                return;
-            }
-
-            Glyph glyph = outEffectComp.getGlyph();
-
-            if (glyph.getType() == GlyphType.Value) {
-                // cannot connect a value glyph to the root. This is an error state.
                 return;
             }
 
             // remove the links
             outNodeComp.removeIncomingRef(nodeRef);
-            glyph.getPrevious().remove(effectComp.getId());
-            effectComp.getGlyph().getNext().remove(outEffectComp.getId());
         });
-    }
 
-    private void removeIncomingLinks(CommandBuffer<EntityStore> accessor, NodeComponent nodeComp,
-            Ref<EntityStore> nodeRef,
-            GlyphComponent effectComp) {
+        nodeComp.getOutgoingRefs().clear();
 
         nodeComp.getIncomingRefs().forEach(outRef -> {
 
             NodeComponent outNodeComp = accessor.getComponent(outRef, NodeComponent.getComponentType());
             if (outNodeComp == null) {
-                // error state - there should always be a node component on the outgoing refs of
-                // an anchor node
-                return;
-            }
-            Ref<EntityStore> outGlyphRef = outNodeComp.getParentEntity();
-
-            if (!outGlyphRef.isValid() || outGlyphRef == null) {
-                // error state - there should always be a valid parent entity ref on the
-                // outgoing node components of an anchor node of the effect
                 return;
             }
 
-            GlyphComponent outEffectComp = accessor.getComponent(outGlyphRef, GlyphComponent.getComponentType());
-            if (outEffectComp == null) {
-                // error state - there should always be an effect component on the outgoing refs
-                // of an anchor node
-                return;
-            }
-
-            Glyph glyph = outEffectComp.getGlyph();
-
-            if (glyph.getType() == GlyphType.Value) {
-                // cannot connect a value glyph to the root. This is an error state.
-                return;
-            }
-
-            // remove the links
             outNodeComp.removeOutgoingRef(nodeRef);
-            glyph.getNext().remove(effectComp.getId());
-            effectComp.getGlyph().getPrevious().remove(outEffectComp.getId());
         });
+        nodeComp.getIncomingRefs().clear();
+    }
+
+    public static void clearInputOutputConnections(GlyphComponent glyphComp, HexComponent hexComp) {
+        if (glyphComp == null || hexComp == null) {
+            return;
+        }
+
+        Glyph glyph = glyphComp.getGlyph();
+        Hex hex = hexComp.getHex();
+
+        // clear all input links
+        for (String inputId : glyph.getInputs().values()) {
+            Glyph inputGlyph = hex.get(inputId);
+            if (inputGlyph != null) {
+                inputGlyph.getOutputs().values().removeIf(v -> v.equals(glyph.getId()));
+            }
+        }
+
+        // clear all output links
+        for (String outputId : glyph.getOutputs().values()) {
+            Glyph outputGlyph = hex.get(outputId);
+            if (outputGlyph != null) {
+                outputGlyph.getInputs().values().removeIf(v -> v.equals(glyph.getId()));
+            }
+        }
+
+        glyph.getInputs().clear();
+        glyph.getOutputs().clear();
+    }
+
+    public static void clearNextPreviousConnections(GlyphComponent glyphComp, HexComponent hexComp) {
+        if (glyphComp == null || hexComp == null) {
+            return;
+        }
+
+        Glyph glyph = glyphComp.getGlyph();
+        Hex hex = hexComp.getHex();
+
+        // clear all input links
+        for (String nextId : glyph.getNext()) {
+            Glyph nextGlyph = hex.get(nextId);
+            if (nextGlyph != null) {
+                nextGlyph.getPrevious().removeIf(v -> v.equals(glyph.getId()));
+            }
+        }
+
+        // clear all output links
+        for (String previousId : glyph.getPrevious()) {
+            Glyph previousGlyph = hex.get(previousId);
+            if (previousGlyph != null) {
+                previousGlyph.getNext().removeIf(v -> v.equals(glyph.getId()));
+            }
+        }
+
+        glyph.getPrevious().clear();
+        glyph.getNext().clear();
     }
 
     public Holder<EntityStore> spawnNode(CommandBuffer<EntityStore> accessor, Ref<EntityStore> parentRef,
             Vector3d rootPos,
             Ref<EntityStore> playerRef) {
+
+        CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(accessor, playerRef);
+
+        Vector3f glyphColor = playerData != null ? playerData.getGlyphColor() : CraftingColors.GLYPH_LINK;
+
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
 
         HiddenUtils.addHiddenToHolder(accessor, holder, playerRef);
@@ -330,7 +344,7 @@ public class GlyphNodeHandler implements NodeInterface {
         // PersistentModel(model.toReference()));
 
         holder.addComponent(DebugComponent.getComponentType(),
-                new DebugComponent(DebugShape.Sphere, CraftingColors.GLYPH_LINK,
+                new DebugComponent(DebugShape.Sphere, glyphColor,
                         NODE_SCALE * 2.5, 2.0f, playerRef));
         holder.addComponent(HoverableComponent.getComponentType(),
                 new HoverableComponent(HoverableType.NODE));
@@ -393,28 +407,7 @@ public class GlyphNodeHandler implements NodeInterface {
             return;
         }
 
-        Glyph glyph = effectComp.getGlyph();
-
-        // step 1: if glyph has input/output connections, clear those first
-        if (!glyph.getInputs().isEmpty() || !glyph.getOutputs().isEmpty()) {
-            Ref<EntityStore> hexRootRef = effectComp.getHexRef();
-            HexComponent hexComp = accessor.getComponent(hexRootRef, HexComponent.getComponentType());
-            if (hexComp != null) {
-                CraftingGlyphRemover.clearInputOutputConnections(glyph, hexComp.getHex());
-            }
-        }
-
-        List<Ref<EntityStore>> outgoingRefs = nodeComp.getOutgoingRefs();
-        List<Ref<EntityStore>> incomingRefs = nodeComp.getIncomingRefs();
-
-        // step 2: if glyph has graph links, disconnect those
-        if ((outgoingRefs != null && !outgoingRefs.isEmpty())
-                || (incomingRefs != null && !incomingRefs.isEmpty())) {
-            removeOutgoingLinks(accessor, nodeComp, nodeRef, effectComp);
-            removeIncomingLinks(accessor, nodeComp, nodeRef, effectComp);
-            nodeComp.getOutgoingRefs().clear();
-            nodeComp.getIncomingRefs().clear();
-        }
+        removeIncomingOutgoingLinks(accessor, nodeComp, nodeRef);
 
         this.despawn(accessor, glyphRef, nodeRef, playerRef, effectComp);
     }
@@ -422,21 +415,23 @@ public class GlyphNodeHandler implements NodeInterface {
     public void despawn(CommandBuffer<EntityStore> accessor, Ref<EntityStore> glyphRef, Ref<EntityStore> nodeRef,
             Ref<EntityStore> playerRef, GlyphComponent effectComp) {
 
-        Glyph glyph = effectComp.getGlyph();
-
-        // step 3: nothing connected, remove the glyph
         Ref<EntityStore> hexRootRef = effectComp.getHexRef();
         HexComponent hexComp = accessor.getComponent(hexRootRef, HexComponent.getComponentType());
         if (hexComp != null) {
-            CraftingGlyphRemover.clearInputOutputConnections(glyph, hexComp.getHex());
+            clearInputOutputConnections(effectComp, hexComp);
+            clearNextPreviousConnections(effectComp, hexComp);
+        }
+
+        if (hexComp != null) {
             hexComp.getHex().remove(effectComp.getId());
             hexComp.removeChildGlyph(effectComp.getId());
         }
 
         // remove the slots as cleanup
-
         accessor.tryRemoveEntity(glyphRef, RemoveReason.REMOVE);
         accessor.tryRemoveEntity(nodeRef, RemoveReason.REMOVE);
+
+        SlotNodeHandler.INSTANCE.despawn(accessor, effectComp.getHexRef(), playerRef);
     }
 
     @Override

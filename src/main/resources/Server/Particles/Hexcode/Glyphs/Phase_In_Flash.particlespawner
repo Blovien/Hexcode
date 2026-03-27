@@ -1,0 +1,20 @@
+{
+  "RenderMode": "BlendAdd",
+  "ParticleRotationInfluence": "Billboard",
+  "LinearFiltering": true,
+  "LightInfluence": 0,
+  "MaxConcurrentParticles": 5,
+  "ParticleLifeSpan": { "Min": 0.15, "Max": 0.25 },
+  "SpawnBurst": true,
+  "TotalParticles": { "Min": 3, "Max": 5 },
+  "Particle": {
+    "Texture": "Particles/Textures/Basic/Flash_Spritesheet2.png",
+    "FrameSize": { "Width": 128, "Height": 128 },
+    "ScaleRatioConstraint": "OneToOne",
+    "UVOption": "None",
+    "Animation": {
+      "0": { "FrameIndex": { "Min": 0, "Max": 3 }, "Opacity": 1.0, "Color": "#ffffff", "Scale": { "X": { "Min": 0.5, "Max": 0.8 }, "Y": { "Min": 0.5, "Max": 0.8 } } },
+      "100": { "Opacity": 0, "Color": "#3232ff", "Scale": { "X": { "Min": 0.2, "Max": 0.3 }, "Y": { "Min": 0.2, "Max": 0.3 } } }
+    }
+  }
+}

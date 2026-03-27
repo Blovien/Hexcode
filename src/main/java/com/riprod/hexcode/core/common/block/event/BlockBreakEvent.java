@@ -22,9 +22,11 @@ import com.riprod.hexcode.core.common.block.component.UnbreakableBlockComponent;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
 import com.riprod.hexcode.core.state.crafting.entity.AnchorEntity;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
 
 public class BlockBreakEvent extends EntityEventSystem<EntityStore, BreakBlockEvent> {
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     public BlockBreakEvent() {
         super(BreakBlockEvent.class);
@@ -34,22 +36,26 @@ public class BlockBreakEvent extends EntityEventSystem<EntityStore, BreakBlockEv
     public void handle(int index, @Nonnull ArchetypeChunk<EntityStore> chunk,
             @Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> buffer,
             @Nonnull BreakBlockEvent event) {
-        Vector3i pos = event.getTargetBlock();
-        World world = buffer.getExternalData().getWorld();
+        try {
+            Vector3i pos = event.getTargetBlock();
+            World world = buffer.getExternalData().getWorld();
 
-        UnbreakableBlockComponent comp = BlockModule.getComponent(
-                UnbreakableBlockComponent.getComponentType(), world,
-                pos.x, pos.y, pos.z);
-        if (comp != null) {
-            event.setCancelled(true);
-            return;
-        }
+            UnbreakableBlockComponent comp = BlockModule.getComponent(
+                    UnbreakableBlockComponent.getComponentType(), world,
+                    pos.x, pos.y, pos.z);
+            if (comp != null) {
+                event.setCancelled(true);
+                return;
+            }
 
-        PedestalBlockComponent pedestal = BlockModule.getComponent(
-                PedestalBlockComponent.getComponentType(), world,
-                pos.x, pos.y, pos.z);
-        if (pedestal != null) {
-            cleanupPedestal(buffer, pedestal);
+            PedestalBlockComponent pedestal = BlockModule.getComponent(
+                    PedestalBlockComponent.getComponentType(), world,
+                    pos.x, pos.y, pos.z);
+            if (pedestal != null) {
+                cleanupPedestal(buffer, pedestal);
+            }
+        } catch (Exception e) {
+            LOGGER.atSevere().log("[hexcode] BlockBreakEvent failed: %s", e.getMessage());
         }
     }
 

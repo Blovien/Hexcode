@@ -4,17 +4,22 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
+import com.hypixel.hytale.codec.Codec;
+import com.hypixel.hytale.codec.KeyedCodec;
+import com.hypixel.hytale.codec.builder.BuilderCodec;
+import com.hypixel.hytale.codec.codecs.map.MapCodec;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 
 public class VolatilityTracker {
-    private final Map<String, Integer> glyphTypeCounts = new HashMap<>();
-    private final int castCount;
-    private final float staffModifier;
-    private final float powerModifier;
-    private final float volatilityMultiplier;
-    private final float manaCostMultiplier;
-    private float lastChance;
-    private float lastRoll;
+    private Map<String, Integer> glyphTypeCounts = new HashMap<>();
+    private Integer castCount;
+    private Float staffModifier;
+    private Float powerModifier;
+    private Float volatilityMultiplier;
+    private Float manaCostMultiplier;
+    private Float lastChance;
+    private Float lastRoll;
+    private volatile boolean fizzled;
 
     public VolatilityTracker(int castCount, float staffModifier,
             float powerModifier, float volatilityMultiplier, float manaCostMultiplier) {
@@ -23,6 +28,14 @@ public class VolatilityTracker {
         this.powerModifier = powerModifier;
         this.volatilityMultiplier = volatilityMultiplier;
         this.manaCostMultiplier = manaCostMultiplier;
+    }
+
+    public VolatilityTracker() {
+        this.castCount = 0;
+        this.staffModifier = 1.0f;
+        this.powerModifier = 0f;
+        this.volatilityMultiplier = 1.0f;
+        this.manaCostMultiplier = 1.0f;
     }
 
     public float computeSuccessChance(Glyph glyph) {
@@ -79,4 +92,40 @@ public class VolatilityTracker {
     public float getVolatilityMultiplier() {
         return volatilityMultiplier;
     }
+
+    public boolean isFizzled() {
+        return fizzled;
+    }
+
+    public void setFizzled(boolean fizzled) {
+        this.fizzled = fizzled;
+    }
+
+    public static final BuilderCodec<VolatilityTracker> CODEC = BuilderCodec
+            .builder(VolatilityTracker.class, VolatilityTracker::new)
+            .append(new KeyedCodec<>("CastCount", Codec.INTEGER),
+                    (c, v) -> c.castCount = v,
+                    (c) -> c.castCount)
+            .add()
+            .append(new KeyedCodec<>("StaffModifier", Codec.FLOAT),
+                    (c, v) -> c.staffModifier = v,
+                    (c) -> c.staffModifier)
+            .add()
+            .append(new KeyedCodec<>("PowerModifier", Codec.FLOAT),
+                    (c, v) -> c.powerModifier = v,
+                    (c) -> c.powerModifier)
+            .add()
+            .append(new KeyedCodec<>("VolatilityMultiplier", Codec.FLOAT),
+                    (c, v) -> c.volatilityMultiplier = v,
+                    (c) -> c.volatilityMultiplier)
+            .add()
+            .append(new KeyedCodec<>("ManaCostMultiplier", Codec.FLOAT),
+                    (c, v) -> c.manaCostMultiplier = v,
+                    (c) -> c.manaCostMultiplier)
+            .add()
+            .append(new KeyedCodec<>("GlyphTypeCounts", new MapCodec<>(Codec.INTEGER, HashMap::new, false)),
+                    (c, v) -> c.glyphTypeCounts = v,
+                    c -> c.glyphTypeCounts)
+            .add()
+            .build();
 }

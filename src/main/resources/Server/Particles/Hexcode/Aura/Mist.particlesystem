@@ -1,0 +1,8 @@
+{
+  "Spawners": [
+    { "SpawnerId": "Mist", "StartDelay": 0 }
+  ],
+  "LifeSpan": 3.0,
+  "CullDistance": 50,
+  "BoundingRadius": 5.0
+}

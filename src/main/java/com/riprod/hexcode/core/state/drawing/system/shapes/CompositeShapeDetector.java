@@ -34,10 +34,15 @@ public class CompositeShapeDetector implements ShapeDetector {
 
         for (ShapeDetector detector : detectors) {
             futures.add(CompletableFuture.supplyAsync(() -> {
-                long startNanos = System.nanoTime();
-                DrawnShapeComponent result = detector.detect(points, minYaw, maxYaw, minPitch, maxPitch);
-                long elapsedNanos = System.nanoTime() - startNanos;
-                return new TimedResult(detector.getName(), result, elapsedNanos);
+                try {
+                    long startNanos = System.nanoTime();
+                    DrawnShapeComponent result = detector.detect(points, minYaw, maxYaw, minPitch, maxPitch);
+                    long elapsedNanos = System.nanoTime() - startNanos;
+                    return new TimedResult(detector.getName(), result, elapsedNanos);
+                } catch (Exception e) {
+                    LOGGER.atSevere().log("[hexcode] shape detector %s failed: %s", detector.getName(), e.getMessage());
+                    return new TimedResult(detector.getName(), null, 0);
+                }
             }, executor));
         }
 
@@ -61,6 +66,9 @@ public class CompositeShapeDetector implements ShapeDetector {
         }
         LOGGER.atInfo().log(resultSb.toString());
 
+        if (results.isEmpty() || results.getFirst().result == null) {
+            return null;
+        }
         return results.getFirst().result;
     }
 

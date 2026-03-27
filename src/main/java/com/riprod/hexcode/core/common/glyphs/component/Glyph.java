@@ -21,6 +21,7 @@ import com.riprod.hexcode.core.common.glyphs.registry.SlotDefinition;
 import com.riprod.hexcode.core.common.glyphs.utils.GlyphType;
 import com.riprod.hexcode.core.common.glyphs.values.HexValInterface;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.common.glyphs.variables.NumberVar;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
@@ -130,7 +131,9 @@ public class Glyph {
             if (asset == null) return null;
             SlotDefinition def = asset.getInputDef(key);
             if (def == null) return null;
-            return hexContext.getVariable(def.getDefaultSlot());
+            if (def.getDefaultValue() != null) return new NumberVar(def.getDefaultValue());
+            if (def.getDefaultSlot() != null) return hexContext.getVariable(def.getDefaultSlot());
+            return null;
         }
 
         Glyph valueGlyph = hexContext.gethex().get(valueGlyphId);

@@ -18,6 +18,11 @@ import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
+import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.protocol.Color;
+import com.riprod.hexcode.core.common.hexbook.component.HexBookAsset;
+import com.riprod.hexcode.core.state.execution.component.HexColors;
+import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 import com.riprod.hexcode.utils.HexSlot;
 
 public class CraftingDataComponent implements Component<EntityStore> {
@@ -61,6 +66,8 @@ public class CraftingDataComponent implements Component<EntityStore> {
 
     // transient
     private HexSlot bookSourceSlot = HexSlot.MainHand;
+    private Vector3f cachedGlyphColor = null;
+    private Color cachedGlyphProtocolColor = null;
 
     // per player
     private PedestalState blockState = PedestalState.IDLE;
@@ -124,6 +131,22 @@ public class CraftingDataComponent implements Component<EntityStore> {
 
     public void setStoredBook(ItemStack storedBook) {
         this.storedBook = storedBook;
+        this.cachedGlyphColor = null;
+        this.cachedGlyphProtocolColor = null;
+        HexBookAsset bookAsset = CasterInventory.getHexBookAsset(storedBook);
+        if (bookAsset != null && bookAsset.getColors() != null
+                && bookAsset.getColors().getPrimaryColor() != null) {
+            this.cachedGlyphProtocolColor = bookAsset.getColors().getPrimaryColor();
+            this.cachedGlyphColor = HexColors.toVector3f(this.cachedGlyphProtocolColor);
+        }
+    }
+
+    public Vector3f getGlyphColor() {
+        return cachedGlyphColor != null ? cachedGlyphColor : CraftingColors.GLYPH_LINK;
+    }
+
+    public Color getGlyphProtocolColor() {
+        return cachedGlyphProtocolColor;
     }
 
     public HexBookComponent getStoredBookComponent() {
@@ -255,6 +278,8 @@ public class CraftingDataComponent implements Component<EntityStore> {
         copy.slotNodeRefs = new ArrayList<>(this.slotNodeRefs);
         copy.anchorNodeRef = this.anchorNodeRef;
         copy.activeSlotIndex = this.activeSlotIndex;
+        copy.cachedGlyphColor = this.cachedGlyphColor;
+        copy.cachedGlyphProtocolColor = this.cachedGlyphProtocolColor;
         return copy;
     }
 }

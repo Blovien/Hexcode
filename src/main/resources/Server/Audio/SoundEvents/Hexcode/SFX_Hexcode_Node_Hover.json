@@ -8,6 +8,6 @@
     "Sounds/Hexcode/Crafting/Node/Hover/Node_Hover_06.ogg",
     "Sounds/Hexcode/Crafting/Node/Hover/Node_Hover_07.ogg"
   ]}],
-  "Volume": -8.0,
-  "Parent": "SFX_Attn_Quiet"
+  "Volume": -14.0,
+  "Parent": "SFX_Attn_VeryQuiet"
 }

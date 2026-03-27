@@ -1,0 +1,9 @@
+{
+  "Spawners": [
+    { "SpawnerId": "Delay_Shimmer_Sparks", "StartDelay": 0 }
+  ],
+  "LifeSpan": 1.0,
+  "CullDistance": 100,
+  "BoundingRadius": 3.0,
+  "IsImportant": true
+}

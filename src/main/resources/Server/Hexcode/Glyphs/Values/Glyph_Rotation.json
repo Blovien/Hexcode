@@ -5,9 +5,9 @@
   "GlyphType": "Hybrid",
   "ModelPath": "Glyph_Rotation",
   "Inputs": {
-    "x": { "Title": "X", "DefaultSlot": 1, "Description": "X component" },
-    "y": { "Title": "Y", "DefaultSlot": 2, "Description": "Y component" },
-    "z": { "Title": "Z", "DefaultSlot": 3, "Description": "Z component" }
+    "x": { "Title": "X", "Description": "X component" },
+    "y": { "Title": "Y", "Description": "Y component" },
+    "z": { "Title": "Z", "Description": "Z component" }
   },
   "Outputs": {
     "result": { "Title": "Result", "DefaultSlot": 1, "Description": "Variable slot to store the rotation" }

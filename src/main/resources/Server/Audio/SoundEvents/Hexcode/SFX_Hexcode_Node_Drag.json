@@ -1,5 +1,5 @@
 {
   "Layers": [{"Files": ["Sounds/Hexcode/Crafting/Node/Drag/Node_Drag_01.ogg"]}],
-  "Volume": -5.0,
-  "Parent": "SFX_Attn_Quiet"
+  "Volume": -12.0,
+  "Parent": "SFX_Attn_VeryQuiet"
 }

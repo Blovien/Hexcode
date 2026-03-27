@@ -1,0 +1,9 @@
+{
+  "Spawners": [
+    { "SpawnerId": "Drain_Channel_Wisps", "StartDelay": 0 }
+  ],
+  "LifeSpan": 1.0,
+  "CullDistance": 100,
+  "BoundingRadius": 3.0,
+  "IsImportant": true
+}

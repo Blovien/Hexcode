@@ -7,6 +7,6 @@
       "Looping": true
     }
   ],
-  "Volume": -3.0,
-  "Parent": "SFX_Attn_Moderate"
+  "Volume": -12.0,
+  "Parent": "SFX_Attn_VeryQuiet"
 }

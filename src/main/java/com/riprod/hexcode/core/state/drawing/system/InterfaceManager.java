@@ -171,7 +171,7 @@ public class InterfaceManager {
     for (int i = 0; i < points.size() - 1; i++) {
       Vector3d a = points.get(i);
       Vector3d b = points.get(i + 1);
-      VfxUtil.line(accessor, world, a, b, lineColor, 0.1, 5.0f, DebugUtils.FLAG_FADE, playerRef);
+      VfxUtil.line(accessor, world, a, b, lineColor, 0.01, 5.0f, DebugUtils.FLAG_FADE, playerRef);
     }
   }
 

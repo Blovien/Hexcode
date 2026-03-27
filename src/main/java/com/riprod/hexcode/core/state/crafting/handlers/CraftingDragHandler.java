@@ -52,6 +52,7 @@ public class CraftingDragHandler {
             accessor.tryRemoveComponent(entityRef, MountedComponent.getComponentType());
         }
         if (headAnchorRef != null && headAnchorRef.isValid()) {
+            accessor.tryRemoveComponent(headAnchorRef, MountedComponent.getComponentType());
             accessor.tryRemoveEntity(headAnchorRef, RemoveReason.REMOVE);
         }
     }

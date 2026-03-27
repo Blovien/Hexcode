@@ -26,7 +26,6 @@ import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
 import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
 import com.riprod.hexcode.core.state.crafting.constants.NodeType;
 import com.riprod.hexcode.core.state.crafting.handlers.CraftingDragHandler;
-import com.riprod.hexcode.core.state.crafting.handlers.CraftingDropHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.DetailsHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeInterface;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Glyph.GlyphNodeHandler;
@@ -72,12 +71,6 @@ public class EffectNodeHandler implements NodeInterface {
                 HexcasterCraftingComponent.getComponentType());
 
         CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(accessor, playerRef);
-
-        Ref<EntityStore> dropTargetRef = craftingComp.getHoveredRef();
-
-        // handles linking logic
-        CraftingDropHandler.DropResult dResult = CraftingDropHandler.handleDrop(
-                accessor, nodeRef, dropTargetRef);
 
         Vector3f dropOffset = CraftingPositionUtil.lookToHexOffset(accessor, playerRef,
                 playerData.getAnchorNodeRef(), 2.0f);

@@ -1,7 +1,7 @@
 {
   "Parent": "Template_HexStaff",
   "TranslationProperties": {
-    "Name": "server.items.Hex_Staff_Front.name"
+    "Name": "server.items.Hex_Ice_Staff.name"
   },
   "Categories": [
     "Items.Weapons"

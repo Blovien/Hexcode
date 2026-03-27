@@ -42,23 +42,27 @@ public class PedestalTickEvent extends EntityTickingSystem<EntityStore> {
     public void tick(float dt, int index, ArchetypeChunk<EntityStore> accessor,
             @Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> buffer) {
 
-        PedestalEntityComponent pedestalEntity = accessor.getComponent(index, PedestalEntityComponent.getComponentType());
-        if (pedestalEntity == null || pedestalEntity.getPedestalLoc() == null) {
-            return;
-        }
+        try {
+            PedestalEntityComponent pedestalEntity = accessor.getComponent(index, PedestalEntityComponent.getComponentType());
+            if (pedestalEntity == null || pedestalEntity.getPedestalLoc() == null) {
+                return;
+            }
 
-        Vector3i pedestalPos = pedestalEntity.getPedestalLoc();
+            Vector3i pedestalPos = pedestalEntity.getPedestalLoc();
 
-        PedestalBlockComponent pedestalBlock = BlockModule.getComponent(PedestalBlockComponent.getComponentType(),
-                buffer.getExternalData().getWorld(), pedestalPos.getX(), pedestalPos.getY(), pedestalPos.getZ());
+            PedestalBlockComponent pedestalBlock = BlockModule.getComponent(PedestalBlockComponent.getComponentType(),
+                    buffer.getExternalData().getWorld(), pedestalPos.getX(), pedestalPos.getY(), pedestalPos.getZ());
 
-        if (pedestalBlock == null) {
-            return;
-        }
+            if (pedestalBlock == null) {
+                return;
+            }
 
-        if (!pedestalBlock.isPerPlayer()) { // tick if not per player and not idle
-            Ref<EntityStore> anchorRef = accessor.getReferenceTo(index);
-            tickPlayerDetection(buffer, store, dt, pedestalBlock, anchorRef);
+            if (!pedestalBlock.isPerPlayer()) { // tick if not per player and not idle
+                Ref<EntityStore> anchorRef = accessor.getReferenceTo(index);
+                tickPlayerDetection(buffer, store, dt, pedestalBlock, anchorRef);
+            }
+        } catch (Exception e) {
+            LOGGER.atSevere().log("[hexcode] PedestalTickEvent failed: %s", e.getMessage());
         }
     }
 

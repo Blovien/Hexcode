@@ -1,0 +1,10 @@
+{
+  "Duration": 5.0,
+  "Debuff": true,
+  "OverlapBehavior": "Overwrite",
+  "ApplicationEffects": {
+    "EntityBottomTint": "#665533",
+    "EntityTopTint": "#998866",
+    "WorldSoundEventId": "SFX_Avatar_Powers_Disable"
+  }
+}
