@@ -13,7 +13,7 @@
     "RadialImpulse": 1.5
   }],
   "Particle": {
-    "Texture": "Particles/Textures/Basic/Smoke.png",
+    "Texture": "Particles/Textures/Smoke/Smoke.png",
     "FrameSize": { "Width": 64, "Height": 64 },
     "ScaleRatioConstraint": "OneToOne",
     "UVOption": "RandomFlipUV",

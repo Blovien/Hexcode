@@ -27,7 +27,17 @@ public class HexUtils {
         fixFirstGlyphId(hex);
         repairAsymmetricLinks(hex);
     }
-    
+
+    public static void repair(Hex hex) {
+        List<Glyph> glyphs = hex.getGlyphs();
+        if (glyphs.isEmpty()) return;
+
+        cleanDanglingLinks(hex);
+        cleanDanglingSlots(hex);
+        fixFirstGlyphId(hex);
+        repairAsymmetricLinks(hex);
+    }
+
     public static void compress(Hex hex) {
         cleanDanglingLinks(hex);
         cleanDanglingSlots(hex);
@@ -96,11 +106,17 @@ public class HexUtils {
     }
 
     public static String serialize(Hex hex) {
-        return HexSerializer.serialize(hex);
+        return com.riprod.hexcode.core.common.hexes.codec.HexCodec.serialize(hex);
+    }
+
+    public static com.riprod.hexcode.core.common.hexes.codec.DecodeResult deserializeWithResult(String data) {
+        return com.riprod.hexcode.core.common.hexes.codec.HexCodec.deserialize(data);
     }
 
     public static Hex deserialize(String data) {
-        return HexSerializer.deserialize(data);
+        com.riprod.hexcode.core.common.hexes.codec.DecodeResult result =
+                com.riprod.hexcode.core.common.hexes.codec.HexCodec.deserialize(data);
+        return result.getHex();
     }
 
     private static void removeUnregisteredGlyphs(Hex hex) {
@@ -212,4 +228,5 @@ public class HexUtils {
             }
         }
     }
+
 }

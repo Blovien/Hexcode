@@ -14,7 +14,7 @@
     "LinearAcceleration": { "Y": 0.02 }
   }],
   "Particle": {
-    "Texture": "Particles/Textures/Basic/Smoke_Dense.png",
+    "Texture": "Particles/Textures/Smoke/Smoke_Dense.png",
     "FrameSize": { "Width": 32, "Height": 32 },
     "ScaleRatioConstraint": "OneToOne",
     "Animation": {

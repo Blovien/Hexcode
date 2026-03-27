@@ -13,7 +13,7 @@
     "LinearAcceleration": { "Y": -12 }
   }],
   "Particle": {
-    "Texture": "Particles/Textures/Earth/Fragment_Earth_GS.png",
+    "Texture": "Particles/Textures/Shapes/Fragment_Earth_GS.png",
     "FrameSize": { "Width": 32, "Height": 32 },
     "ScaleRatioConstraint": "OneToOne",
     "Animation": {

@@ -15,6 +15,8 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.common.hexcaster.utils.CasterInventory;
+import com.riprod.hexcode.core.common.hexes.codec.DecodeIssue;
+import com.riprod.hexcode.core.common.hexes.codec.DecodeResult;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.utils.HexUtils;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffComponent;
@@ -83,10 +85,20 @@ public class HexSerializeCommand extends AbstractPlayerCommand {
 
             String data = context.get(dataArg);
 
-            Hex hex = HexUtils.deserialize(data);
-            if (hex == null) {
+            DecodeResult result = HexUtils.deserializeWithResult(data);
+            if (result.getHex() == null) {
                 send(playerRef, "invalid hex data — check that you copied the full string");
+                for (DecodeIssue issue : result.getIssues()) {
+                    send(playerRef, "  " + issue);
+                }
                 return;
+            }
+
+            Hex hex = result.getHex();
+            for (DecodeIssue issue : result.getIssues()) {
+                if (issue.getSeverity() != DecodeIssue.Severity.INFO) {
+                    send(playerRef, "  " + issue);
+                }
             }
 
             HexBookComponent book = CasterInventory.getHexBookComponent(store, playerEntityRef);

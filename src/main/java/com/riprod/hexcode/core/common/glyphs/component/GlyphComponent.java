@@ -42,6 +42,7 @@ public class GlyphComponent implements Component<EntityStore> {
     private Set<GlyphFlags> flags = EnumSet.noneOf(GlyphFlags.class);
     private float scale = 1f;
     private Ref<EntityStore> nodeRef;
+    private Vector3f visualOffset;
 
     // for the codec - do not use
     public GlyphComponent() {
@@ -161,15 +162,22 @@ public class GlyphComponent implements Component<EntityStore> {
     }
 
     public Vector3f getOffset() {
-        return this.glyph.getPosition();
+        return this.visualOffset != null ? this.visualOffset : this.glyph.getPosition();
     }
 
     public void setOffset(Vector3f offset) {
         this.glyph.setPosition(offset);
+        this.visualOffset = offset;
     }
 
     public void setOffset(float x, float y, float z) {
-        this.glyph.setPosition(new Vector3f(x, y, z));
+        Vector3f v = new Vector3f(x, y, z);
+        this.glyph.setPosition(v);
+        this.visualOffset = v;
+    }
+
+    public void setVisualOffset(Vector3f offset) {
+        this.visualOffset = offset;
     }
 
     public void addNext(String nextId) {
@@ -233,6 +241,7 @@ public class GlyphComponent implements Component<EntityStore> {
         copy.hexRef = this.hexRef;
         copy.nodeRef = this.nodeRef;
         copy.flags = this.flags.isEmpty() ? EnumSet.noneOf(GlyphFlags.class) : EnumSet.copyOf(this.flags);
+        copy.visualOffset = this.visualOffset;
         return copy;
     }
 

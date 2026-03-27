@@ -5,9 +5,9 @@
   "GlyphType": "Hybrid",
   "ModelPath": "Glyph_Position",
   "Inputs": {
-    "x": { "Title": "X", "DefaultValue": 0, "Description": "X component" },
-    "y": { "Title": "Y", "DefaultValue": 0, "Description": "Y component" },
-    "z": { "Title": "Z", "DefaultValue": 0, "Description": "Z component" }
+    "x": { "Title": "X", "Description": "X component" },
+    "y": { "Title": "Y", "Description": "Y component" },
+    "z": { "Title": "Z", "Description": "Z component" }
   },
   "Outputs": {
     "result": { "Title": "Result", "DefaultSlot": 1, "Description": "Variable slot to store the position" }

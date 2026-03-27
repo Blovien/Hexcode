@@ -21,6 +21,7 @@ import java.util.zip.InflaterInputStream;
 
 import javax.annotation.Nullable;
 
+import com.hypixel.hytale.math.vector.Vector3f;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.utils.GlyphType;
@@ -29,13 +30,16 @@ import com.riprod.hexcode.core.common.hexes.component.Hex;
 public class HexSerializer {
 
     private static final String PREFIX = "hexcode:";
-    private static final int FORMAT_VERSION = 2;
+    private static final int FORMAT_VERSION = 3;
+
+    public static final int FLAG_HAS_POSITIONS = 0x01;
 
     private static final int SLOT_EMPTY = 0x00;
     private static final int INLINE_NUMBER_BASE = 0x01;
     private static final int INLINE_VARIABLE = 0x11;
     private static final int INLINE_POSITION = 0x12;
     private static final int INLINE_ROTATION = 0x13;
+    private static final int REF_ESCAPE = 0x7F;
     private static final int REF_FLAG = 0x80;
 
     private static final String STR_PREFIX_GLYPH = "Glyph_";
@@ -44,12 +48,18 @@ public class HexSerializer {
     private static final int PFX_GLYPH = 1;
     private static final int PFX_NUMBER = 2;
 
+    @Deprecated
     public static String serialize(Hex hex) {
+        return serialize(hex, 0);
+    }
+
+    @Deprecated
+    public static String serialize(Hex hex, int flags) {
         Hex clone = hex.clone();
         HexUtils.validate(clone);
         HexUtils.compress(clone);
 
-        byte[] raw = encode(clone);
+        byte[] raw = encode(clone, flags);
         if (raw == null) return null;
 
         byte[] compressed = deflate(raw);
@@ -92,7 +102,7 @@ public class HexSerializer {
     // --- encode ---
 
     @Nullable
-    private static byte[] encode(Hex hex) {
+    private static byte[] encode(Hex hex, int flags) {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
              DataOutputStream out = new DataOutputStream(baos)) {
 
@@ -100,18 +110,28 @@ public class HexSerializer {
             if (allGlyphs.isEmpty()) return null;
 
             List<Glyph> effects = new ArrayList<>();
-            Map<String, Glyph> values = new LinkedHashMap<>();
-            Set<String> inlinable = new HashSet<>();
+            Map<String, Glyph> valuesById = new LinkedHashMap<>();
 
             for (Glyph g : allGlyphs) {
                 if (g.getType() == GlyphType.Value) {
-                    values.put(g.getId(), g);
+                    valuesById.put(g.getId(), g);
                 } else {
                     effects.add(g);
                 }
             }
-            for (Glyph v : values.values()) {
-                if (getInlineCode(v.getGlyphId()) >= 0) inlinable.add(v.getId());
+
+            Map<String, List<String>> assetInstances = new HashMap<>();
+            for (Glyph v : valuesById.values()) {
+                assetInstances.computeIfAbsent(v.getGlyphId(), k -> new ArrayList<>()).add(v.getId());
+            }
+            Set<String> inlinable = new HashSet<>();
+            for (var entry : assetInstances.entrySet()) {
+                if (entry.getValue().size() != 1) continue;
+                if (getInlineCode(entry.getKey()) < 0) continue;
+                Glyph v = valuesById.get(entry.getValue().get(0));
+                if (v.getInputs().isEmpty() && v.getOutputs().isEmpty()) {
+                    inlinable.add(v.getId());
+                }
             }
 
             List<Glyph> ordered = topoSort(hex, effects);
@@ -119,7 +139,7 @@ public class HexSerializer {
             for (int i = 0; i < ordered.size(); i++) eIdx.put(ordered.get(i).getId(), i);
 
             List<Glyph> extValues = new ArrayList<>();
-            for (Glyph v : values.values()) {
+            for (Glyph v : valuesById.values()) {
                 if (!inlinable.contains(v.getId())) extValues.add(v);
             }
             Map<String, Integer> vIdx = new HashMap<>();
@@ -138,29 +158,30 @@ public class HexSerializer {
             int firstGlyphIdx = (firstId != null && eIdx.containsKey(firstId)) ? eIdx.get(firstId) : 0;
 
             out.writeByte(FORMAT_VERSION);
-            out.writeByte(ordered.size());
-            out.writeByte(extValues.size());
-            out.writeByte(firstGlyphIdx);
+            out.writeByte(flags);
+            writeVarint(out, ordered.size());
+            writeVarint(out, extValues.size());
+            writeVarint(out, firstGlyphIdx);
 
-            out.writeByte(palette.size());
+            writeVarint(out, palette.size());
             for (String id : palette) writePrefixed(out, id);
 
             for (int i = 0; i < ordered.size(); i++) {
                 Glyph g = ordered.get(i);
-                out.writeByte(palIdx.get(g.getGlyphId()));
-
-                int vol = Math.round(clamp01(g.getVolatility()) * 15f);
-                int eff = Math.round(clamp01(g.getEfficiency()) * 15f);
-                out.writeByte((vol << 4) | eff);
-
+                writeVarint(out, palIdx.get(g.getGlyphId()));
+                writeVolEff(out, g);
                 writeNextLinks(out, g, i, eIdx);
-                writeSlots(out, g.getInputs(), g.getGlyphId(), true, eIdx, vIdx, inlinable, values);
-                writeSlots(out, g.getOutputs(), g.getGlyphId(), false, eIdx, vIdx, inlinable, values);
+                writeSlots(out, g.getInputs(), g.getGlyphId(), true, eIdx, vIdx, inlinable, valuesById);
+                writeSlots(out, g.getOutputs(), g.getGlyphId(), false, eIdx, vIdx, inlinable, valuesById);
+                if ((flags & FLAG_HAS_POSITIONS) != 0) writePosition(out, g.getPosition());
             }
 
             for (Glyph v : extValues) {
-                out.writeByte(palIdx.get(v.getGlyphId()));
-                writeSlots(out, v.getInputs(), v.getGlyphId(), true, eIdx, vIdx, inlinable, values);
+                writeVarint(out, palIdx.get(v.getGlyphId()));
+                writeVolEff(out, v);
+                writeSlots(out, v.getInputs(), v.getGlyphId(), true, eIdx, vIdx, inlinable, valuesById);
+                writeSlots(out, v.getOutputs(), v.getGlyphId(), false, eIdx, vIdx, inlinable, valuesById);
+                if ((flags & FLAG_HAS_POSITIONS) != 0) writePosition(out, v.getPosition());
             }
 
             out.flush();
@@ -170,31 +191,46 @@ public class HexSerializer {
         }
     }
 
+    private static void writeVolEff(DataOutputStream out, Glyph g) throws Exception {
+        out.writeByte(Math.round(clamp01(g.getVolatility()) * 100f));
+        out.writeByte(Math.round(clamp01(g.getEfficiency()) * 100f));
+    }
+
+    private static void writePosition(DataOutputStream out, Vector3f p) throws Exception {
+        out.writeByte(clampSByte(Math.round(p.x * 10f)));
+        out.writeByte(clampSByte(Math.round(p.y * 10f)));
+        out.writeByte(clampSByte(Math.round(p.z * 10f)));
+    }
+
     private static void writeNextLinks(DataOutputStream out, Glyph g, int myIdx,
             Map<String, Integer> eIdx) throws Exception {
         List<String> next = g.getNext();
-        boolean isEnd = next.isEmpty();
+
+        if (next.isEmpty()) {
+            writeVarint(out, 0);
+            return;
+        }
+
         boolean isImplicit = next.size() == 1
                 && eIdx.containsKey(next.get(0))
                 && eIdx.get(next.get(0)) == myIdx + 1;
 
-        if (isEnd) {
-            out.writeByte(0);
-        } else if (isImplicit) {
-            out.writeByte(1);
-        } else {
-            out.writeByte(next.size() + 1);
-            for (String nid : next) {
-                Integer idx = eIdx.get(nid);
-                out.writeByte(idx != null ? idx : 0);
-            }
+        if (isImplicit) {
+            writeVarint(out, 1);
+            return;
+        }
+
+        writeVarint(out, next.size() + 1);
+        for (String nid : next) {
+            Integer idx = eIdx.get(nid);
+            writeVarint(out, idx != null ? idx : 0);
         }
     }
 
     private static void writeSlots(DataOutputStream out, Map<String, String> slots,
             String glyphAssetId, boolean isInput,
             Map<String, Integer> eIdx, Map<String, Integer> vIdx,
-            Set<String> inlinable, Map<String, Glyph> values) throws Exception {
+            Set<String> inlinable, Map<String, Glyph> valuesById) throws Exception {
 
         GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyphAssetId);
         List<String> assetKeys = asset != null
@@ -203,7 +239,7 @@ public class HexSerializer {
 
         for (String key : assetKeys) {
             String targetId = slots.get(key);
-            writeSlotValue(out, targetId, eIdx, vIdx, inlinable, values);
+            writeSlotValue(out, targetId, eIdx, vIdx, inlinable, valuesById);
         }
 
         List<String> extraKeys = new ArrayList<>();
@@ -211,16 +247,16 @@ public class HexSerializer {
             if (!assetKeys.contains(key)) extraKeys.add(key);
         }
 
-        out.writeByte(extraKeys.size());
+        writeVarint(out, extraKeys.size());
         for (String key : extraKeys) {
             writePrefixed(out, key);
-            writeSlotValue(out, slots.get(key), eIdx, vIdx, inlinable, values);
+            writeSlotValue(out, slots.get(key), eIdx, vIdx, inlinable, valuesById);
         }
     }
 
     private static void writeSlotValue(DataOutputStream out, @Nullable String targetId,
             Map<String, Integer> eIdx, Map<String, Integer> vIdx,
-            Set<String> inlinable, Map<String, Glyph> values) throws Exception {
+            Set<String> inlinable, Map<String, Glyph> valuesById) throws Exception {
 
         if (targetId == null) {
             out.writeByte(SLOT_EMPTY);
@@ -228,14 +264,24 @@ public class HexSerializer {
         }
 
         if (inlinable.contains(targetId)) {
-            Glyph v = values.get(targetId);
+            Glyph v = valuesById.get(targetId);
             out.writeByte(getInlineCode(v.getGlyphId()));
             return;
         }
 
         Integer idx = eIdx.get(targetId);
         if (idx == null) idx = vIdx.get(targetId);
-        out.writeByte(idx != null ? (REF_FLAG | idx) : SLOT_EMPTY);
+        if (idx == null) {
+            out.writeByte(SLOT_EMPTY);
+            return;
+        }
+
+        if (idx < REF_ESCAPE) {
+            out.writeByte(REF_FLAG | idx);
+        } else {
+            out.writeByte(REF_FLAG | REF_ESCAPE);
+            writeVarint(out, idx);
+        }
     }
 
     // --- decode ---
@@ -246,11 +292,12 @@ public class HexSerializer {
             int version = in.readUnsignedByte();
             if (version != FORMAT_VERSION) return null;
 
-            int effectCount = in.readUnsignedByte();
-            int extValueCount = in.readUnsignedByte();
-            int firstIdx = in.readUnsignedByte();
+            int flags = in.readUnsignedByte();
+            int effectCount = readVarint(in);
+            int extValueCount = readVarint(in);
+            int firstIdx = readVarint(in);
 
-            int paletteSize = in.readUnsignedByte();
+            int paletteSize = readVarint(in);
             List<String> palette = new ArrayList<>();
             for (int i = 0; i < paletteSize; i++) palette.add(readPrefixed(in));
 
@@ -261,36 +308,54 @@ public class HexSerializer {
             for (int i = 0; i < effectCount; i++) {
                 Glyph g = new Glyph();
                 g.setId(String.valueOf(i));
-                String assetId = palette.get(in.readUnsignedByte());
-                setGlyphFields(g, assetId, GlyphType.Effect);
+                String assetId = palette.get(readVarint(in));
+                setGlyphFromAsset(g, assetId, GlyphType.Effect);
 
-                int volEff = in.readUnsignedByte();
-                g.setVolatility((volEff >> 4) / 15f);
-                g.setEfficiency((volEff & 0x0F) / 15f);
+                g.setVolatility(in.readUnsignedByte() / 100f);
+                g.setEfficiency(in.readUnsignedByte() / 100f);
 
-                int nextFlag = in.readUnsignedByte();
+                int nextFlag = readVarint(in);
                 if (nextFlag == 0) {
                     g.setNext(new ArrayList<>());
                 } else if (nextFlag == 1) {
-                    g.setNext(new ArrayList<>(List.of(String.valueOf(i + 1))));
+                    if (i + 1 < effectCount) {
+                        g.setNext(new ArrayList<>(List.of(String.valueOf(i + 1))));
+                    } else {
+                        g.setNext(new ArrayList<>());
+                    }
                 } else {
                     int count = nextFlag - 1;
                     List<String> next = new ArrayList<>();
-                    for (int n = 0; n < count; n++) next.add(String.valueOf(in.readUnsignedByte()));
+                    for (int n = 0; n < count; n++) next.add(String.valueOf(readVarint(in)));
                     g.setNext(next);
                 }
 
                 readSlots(in, g.getInputs(), assetId, true, glyphs, inlinedCache, totalNodes);
                 readSlots(in, g.getOutputs(), assetId, false, glyphs, inlinedCache, totalNodes);
+
+                if ((flags & FLAG_HAS_POSITIONS) != 0) {
+                    g.setPosition(readPosition(in));
+                }
+
                 glyphs.add(g);
             }
 
             for (int i = 0; i < extValueCount; i++) {
                 Glyph g = new Glyph();
                 g.setId(String.valueOf(effectCount + i));
-                String assetId = palette.get(in.readUnsignedByte());
-                setGlyphFields(g, assetId, GlyphType.Value);
+                String assetId = palette.get(readVarint(in));
+                setGlyphFromAsset(g, assetId, GlyphType.Value);
+
+                g.setVolatility(in.readUnsignedByte() / 100f);
+                g.setEfficiency(in.readUnsignedByte() / 100f);
+
                 readSlots(in, g.getInputs(), assetId, true, glyphs, inlinedCache, totalNodes);
+                readSlots(in, g.getOutputs(), assetId, false, glyphs, inlinedCache, totalNodes);
+
+                if ((flags & FLAG_HAS_POSITIONS) != 0) {
+                    g.setPosition(readPosition(in));
+                }
+
                 glyphs.add(g);
             }
 
@@ -300,9 +365,13 @@ public class HexSerializer {
             for (Glyph g : glyphs) hex.put(g.getId(), g);
             hex.setFirstGlyphId(String.valueOf(firstIdx));
 
-            HexUtils.validate(hex);
+            HexUtils.repair(hex);
             return hex;
         }
+    }
+
+    private static Vector3f readPosition(DataInputStream in) throws Exception {
+        return new Vector3f(in.readByte() / 10f, in.readByte() / 10f, in.readByte() / 10f);
     }
 
     private static void readSlots(DataInputStream in, Map<String, String> slots,
@@ -319,7 +388,7 @@ public class HexSerializer {
             if (ref != null) slots.put(key, ref);
         }
 
-        int extraCount = in.readUnsignedByte();
+        int extraCount = readVarint(in);
         for (int i = 0; i < extraCount; i++) {
             String key = readPrefixed(in);
             String ref = readSlotValue(in, glyphs, inlinedCache, totalNodes);
@@ -335,7 +404,9 @@ public class HexSerializer {
         if (b == SLOT_EMPTY) return null;
 
         if ((b & REF_FLAG) != 0) {
-            return String.valueOf(b & 0x7F);
+            int idx = b & 0x7F;
+            if (idx == REF_ESCAPE) idx = readVarint(in);
+            return String.valueOf(idx);
         }
 
         String assetId = inlineCodeToAsset(b);
@@ -348,7 +419,7 @@ public class HexSerializer {
         int newIdx = totalNodes + inlinedCache.size();
         Glyph v = new Glyph();
         v.setId(String.valueOf(newIdx));
-        setGlyphFields(v, assetId, GlyphType.Value);
+        setGlyphFromAsset(v, assetId, GlyphType.Value);
         inlinedCache.put(assetId, v);
         return v.getId();
     }
@@ -387,7 +458,11 @@ public class HexSerializer {
 
     // --- glyph field helpers ---
 
-    private static void setGlyphFields(Glyph g, String assetId, GlyphType type) {
+    private static void setGlyphFromAsset(Glyph g, String assetId, GlyphType fallback) {
+        GlyphType type = fallback;
+        GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(assetId);
+        if (asset != null) type = asset.getGlyphType();
+
         try {
             java.lang.reflect.Field f = Glyph.class.getDeclaredField("glyphId");
             f.setAccessible(true);
@@ -447,7 +522,10 @@ public class HexSerializer {
             suffix = str;
         }
         byte[] bytes = suffix.getBytes(StandardCharsets.UTF_8);
-        out.writeByte((pfx << 6) | (bytes.length & 0x3F));
+        if (bytes.length > 63) {
+            throw new IllegalArgumentException("prefixed string suffix exceeds 63 bytes: " + str);
+        }
+        out.writeByte((pfx << 6) | bytes.length);
         out.write(bytes);
     }
 
@@ -463,6 +541,28 @@ public class HexSerializer {
             case PFX_NUMBER -> STR_PREFIX_NUMBER + suffix;
             default -> suffix;
         };
+    }
+
+    // --- varint ---
+
+    private static void writeVarint(DataOutputStream out, int value) throws Exception {
+        while ((value & ~0x7F) != 0) {
+            out.writeByte((value & 0x7F) | 0x80);
+            value >>>= 7;
+        }
+        out.writeByte(value);
+    }
+
+    private static int readVarint(DataInputStream in) throws Exception {
+        int value = 0;
+        int shift = 0;
+        int b;
+        do {
+            b = in.readUnsignedByte();
+            value |= (b & 0x7F) << shift;
+            shift += 7;
+        } while ((b & 0x80) != 0);
+        return value;
     }
 
     // --- compression ---
@@ -492,11 +592,15 @@ public class HexSerializer {
 
     private static String computeChecksum(String data) {
         CRC32 crc = new CRC32();
-        crc.update(data.getBytes());
+        crc.update(data.getBytes(StandardCharsets.UTF_8));
         return String.format("%08x", crc.getValue()).substring(0, 4);
     }
 
     private static float clamp01(float v) {
         return Math.min(1f, Math.max(0f, v));
+    }
+
+    private static int clampSByte(int v) {
+        return Math.min(127, Math.max(-128, v));
     }
 }

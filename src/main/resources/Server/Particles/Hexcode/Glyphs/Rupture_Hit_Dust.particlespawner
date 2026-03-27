@@ -10,7 +10,7 @@
   "TotalParticles": { "Min": 3, "Max": 5 },
   "InitialVelocity": { "Yaw": { "Min": 0, "Max": 360 }, "Pitch": { "Min": 30, "Max": 90 }, "Speed": { "Min": 0.3, "Max": 0.8 } },
   "Particle": {
-    "Texture": "Particles/Textures/Basic/Smoke_Cartoon.png",
+    "Texture": "Particles/Textures/Smoke/Smoke_Cartoon.png",
     "ScaleRatioConstraint": "OneToOne",
     "UVOption": "RandomFlipUV",
     "Animation": {
