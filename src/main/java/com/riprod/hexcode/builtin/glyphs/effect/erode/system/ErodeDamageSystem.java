@@ -33,14 +33,18 @@ public class ErodeDamageSystem extends DamageEventSystem {
     public void handle(int index, @Nonnull ArchetypeChunk<EntityStore> chunk,
             @Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> buffer,
             @Nonnull Damage damage) {
-        ErodeComponent erode = chunk.getComponent(index, ErodeComponent.getComponentType());
-        if (erode == null) return;
+        try {
+            ErodeComponent erode = chunk.getComponent(index, ErodeComponent.getComponentType());
+            if (erode == null) return;
 
-        float original = damage.getAmount();
-        float amplified = original * (1.0f + erode.getVulnerabilityMultiplier());
-        damage.setAmount(amplified);
+            float original = damage.getAmount();
+            float amplified = original * (1.0f + erode.getVulnerabilityMultiplier());
+            damage.setAmount(amplified);
 
-        LOGGER.atInfo().log("erode: amplified damage %.2f -> %.2f (%.0f%% vulnerability)",
-                original, amplified, erode.getVulnerabilityMultiplier() * 100);
+            LOGGER.atInfo().log("erode: amplified damage %.2f -> %.2f (%.0f%% vulnerability)",
+                    original, amplified, erode.getVulnerabilityMultiplier() * 100);
+        } catch (Exception e) {
+            LOGGER.atSevere().log("[hexcode] ErodeDamageSystem failed: %s", e.getMessage());
+        }
     }
 }

@@ -39,29 +39,33 @@ public class RuptureTickSystem extends EntityTickingSystem<EntityStore> {
     @Override
     public void tick(float dt, int index, ArchetypeChunk<EntityStore> chunk,
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
-        RuptureComponent rupture = chunk.getComponent(index, RuptureComponent.getComponentType());
-        Ref<EntityStore> entityRef = chunk.getReferenceTo(index);
+        try {
+            RuptureComponent rupture = chunk.getComponent(index, RuptureComponent.getComponentType());
+            Ref<EntityStore> entityRef = chunk.getReferenceTo(index);
 
-        if (rupture == null) {
+            if (rupture == null) {
+                removeEntity(entityRef, buffer);
+                return;
+            }
+
+            rupture.incrementElapsed();
+
+            if (!rupture.isExpired()) {
+                processDamage(rupture, buffer);
+                return;
+            }
+
+            HexSignal signal = buffer.getComponent(entityRef, HexSignal.getComponentType());
+
+            removeSpikes(rupture, buffer);
+            continueExecution(signal, buffer);
             removeEntity(entityRef, buffer);
-            return;
+
+            LOGGER.atInfo().log("rupture: expired after %d ticks, removed %d spikes",
+                    rupture.getDurationTicks(), rupture.getSpikes().size());
+        } catch (Exception e) {
+            LOGGER.atSevere().log("[hexcode] RuptureTickSystem failed: %s", e.getMessage());
         }
-
-        rupture.incrementElapsed();
-
-        if (!rupture.isExpired()) {
-            processDamage(rupture, buffer);
-            return;
-        }
-
-        HexSignal signal = buffer.getComponent(entityRef, HexSignal.getComponentType());
-
-        removeSpikes(rupture, buffer);
-        continueExecution(signal, buffer);
-        removeEntity(entityRef, buffer);
-
-        LOGGER.atInfo().log("rupture: expired after %d ticks, removed %d spikes",
-                rupture.getDurationTicks(), rupture.getSpikes().size());
     }
 
     private void processDamage(RuptureComponent rupture, CommandBuffer<EntityStore> buffer) {

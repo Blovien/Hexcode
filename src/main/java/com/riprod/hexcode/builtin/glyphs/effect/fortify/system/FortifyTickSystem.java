@@ -24,23 +24,27 @@ public class FortifyTickSystem extends EntityTickingSystem<EntityStore> {
     @Override
     public void tick(float dt, int index, ArchetypeChunk<EntityStore> chunk,
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
-        FortifyComponent fortify = chunk.getComponent(index, FortifyComponent.getComponentType());
-        if (fortify == null) return;
+        try {
+            FortifyComponent fortify = chunk.getComponent(index, FortifyComponent.getComponentType());
+            if (fortify == null) return;
 
-        if (!fortify.tick(dt)) return;
+            if (!fortify.tick(dt)) return;
 
-        Ref<EntityStore> ref = chunk.getReferenceTo(index);
+            Ref<EntityStore> ref = chunk.getReferenceTo(index);
 
-        EffectControllerComponent controller = buffer.getComponent(
-                ref, EffectControllerComponent.getComponentType());
-        if (controller != null) {
-            int effectIndex = EntityEffect.getAssetMap().getIndex(FORTIFY_EFFECT_ID);
-            if (effectIndex != Integer.MIN_VALUE) {
-                controller.removeEffect(ref, effectIndex, buffer);
+            EffectControllerComponent controller = buffer.getComponent(
+                    ref, EffectControllerComponent.getComponentType());
+            if (controller != null) {
+                int effectIndex = EntityEffect.getAssetMap().getIndex(FORTIFY_EFFECT_ID);
+                if (effectIndex != Integer.MIN_VALUE) {
+                    controller.removeEffect(ref, effectIndex, buffer);
+                }
             }
-        }
 
-        buffer.removeComponent(ref, FortifyComponent.getComponentType());
-        LOGGER.atInfo().log("fortify: effect expired on entity");
+            buffer.removeComponent(ref, FortifyComponent.getComponentType());
+            LOGGER.atInfo().log("fortify: effect expired on entity");
+        } catch (Exception e) {
+            LOGGER.atSevere().log("[hexcode] FortifyTickSystem failed: %s", e.getMessage());
+        }
     }
 }

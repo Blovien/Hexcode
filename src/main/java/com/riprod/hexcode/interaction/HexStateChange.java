@@ -14,9 +14,11 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHa
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.SimpleInteraction;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.riprod.hexcode.state.HexState;
 
 public class HexStateChange extends SimpleInteraction {
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     @Nonnull
     public static final BuilderCodec<HexStateChange> CODEC = BuilderCodec
@@ -37,33 +39,37 @@ public class HexStateChange extends SimpleInteraction {
     @Override
     protected void tick0(boolean firstRun, float time, @Nonnull InteractionType type,
             @Nonnull InteractionContext ctx, @Nonnull CooldownHandler cooldown) {
+        try {
+            if (firstRun) {
+                CommandBuffer<EntityStore> commandBuffer = ctx.getCommandBuffer();
+                if (commandBuffer == null) {
+                    ctx.getState().state = InteractionState.Failed;
+                    return;
+                }
 
-        if (firstRun) {
-            CommandBuffer<EntityStore> commandBuffer = ctx.getCommandBuffer();
-            if (commandBuffer == null) {
-                ctx.getState().state = InteractionState.Failed;
+                Ref<EntityStore> playerRef = ctx.getEntity();
+                if (playerRef == null || !playerRef.isValid()) {
+                    ctx.getState().state = InteractionState.Failed;
+                    return;
+                }
+
+                HexcasterComponent hexcaster = commandBuffer.getComponent(playerRef, HexcasterComponent.getComponentType());
+                if (hexcaster == null) {
+                    ctx.getState().state = InteractionState.Failed;
+                    return;
+                }
+
+                hexcaster.requestStateChange(targetState);
+                ctx.getState().state = InteractionState.Finished;
+                super.tick0(firstRun, time, type, ctx, cooldown);
                 return;
             }
 
-            Ref<EntityStore> playerRef = ctx.getEntity();
-            if (playerRef == null || !playerRef.isValid()) {
-                ctx.getState().state = InteractionState.Failed;
-                return;
-            }
-
-            HexcasterComponent hexcaster = commandBuffer.getComponent(playerRef, HexcasterComponent.getComponentType());
-            if (hexcaster == null) {
-                ctx.getState().state = InteractionState.Failed;
-                return;
-            }
-
-            hexcaster.requestStateChange(targetState);
             ctx.getState().state = InteractionState.Finished;
-            super.tick0(firstRun, time, type, ctx, cooldown);
-            return;
+        } catch (Exception e) {
+            LOGGER.atSevere().log("[hexcode] HexStateChange failed: %s", e.getMessage());
+            ctx.getState().state = InteractionState.Failed;
         }
-
-        ctx.getState().state = InteractionState.Finished;
     }
 
     @Override

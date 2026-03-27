@@ -9,19 +9,24 @@ import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.math.shape.Box;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.DebugShape;
 import com.hypixel.hytale.server.core.modules.debug.DebugUtils;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
+import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
 import com.hypixel.hytale.server.core.modules.entity.component.PropComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.modules.entity.hitboxcollision.HitboxCollision;
+import com.hypixel.hytale.server.core.modules.entity.hitboxcollision.HitboxCollisionConfig;
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
+import com.hypixel.hytale.server.core.modules.projectile.ProjectileModule;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.builtin.glyphs.effect.conjure.component.ConjureZoneComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.conjure.style.ConjureStyle;
@@ -40,6 +45,7 @@ import com.riprod.hexcode.utils.SpellVarUtil;
 public class ConjureGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     public static final String ID = "Glyph_Conjure";
+    private static final String HARD_COLLISION_ID = "Hexcode_Conjure_HardCollision";
 
     public enum INPUTS {
         ANCHOR("anchor"),
@@ -135,12 +141,13 @@ public class ConjureGlyph implements GlyphHandler {
         Integer conjurationOutputSlot = glyph.resolveOutput(OUTPUTS.CONJURATION.getSlotName(), hexContext);
 
         List<String> allNext = glyph.getNext();
+        List<String> firstBranch = !allNext.isEmpty() ? List.of(allNext.get(0)) : null;
         List<String> zoneNext = allNext.size() > 1
                 ? List.copyOf(allNext.subList(1, allNext.size()))
                 : List.of();
 
         ConjureZoneComponent zoneComp = new ConjureZoneComponent(
-                halfExtents, interval, durationSeconds);
+                halfExtents, interval, durationSeconds, firstBranch);
 
         Map<String, Integer> outputSlots = new HashMap<>();
         if (entityOutputSlot != null) {
@@ -157,11 +164,15 @@ public class ConjureGlyph implements GlyphHandler {
         UUID zoneUuid = UUID.randomUUID();
         Vector3f debugColor = ConjureStyle.resolveColor(hexContext.getColors());
 
+        HitboxCollisionConfig collisionConfig = HitboxCollisionConfig.getAssetMap()
+                .getAsset(HARD_COLLISION_ID);
+
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
         holder.addComponent(TransformComponent.getComponentType(),
                 new TransformComponent(new Vector3d(center), new Vector3f()));
         holder.addComponent(UUIDComponent.getComponentType(), new UUIDComponent(zoneUuid));
         holder.ensureComponent(PropComponent.getComponentType());
+        holder.ensureComponent(ProjectileModule.get().getProjectileComponentType());
         holder.addComponent(NetworkId.getComponentType(),
                 new NetworkId(hexContext.getAccessor().getExternalData().takeNextNetworkId()));
         DebugComponent debugComp = new DebugComponent(DebugShape.Cube, debugColor, size, 0.1f);
@@ -169,7 +180,17 @@ public class ConjureGlyph implements GlyphHandler {
         debugComp.setIntervalMultiplier(0.01f);
         debugComp.setFlags(DebugUtils.FLAG_NO_WIREFRAME);
         holder.addComponent(DebugComponent.getComponentType(), debugComp);
+        holder.addComponent(BoundingBox.getComponentType(),
+                new BoundingBox(Box.horizontallyCentered(halfExtents.x * 2, halfExtents.y * 2, halfExtents.z * 2)));
         holder.addComponent(Velocity.getComponentType(), new Velocity());
+
+        if (collisionConfig != null) {
+            holder.addComponent(HitboxCollision.getComponentType(),
+                    new HitboxCollision(collisionConfig));
+        }
+
+        ConjurePhysicsConfig.INSTANCE.apply(holder, hexContext.getCasterRef(),
+                new Vector3d(0, 0, 0), hexContext.getAccessor(), false);
 
         holder.addComponent(ConjureZoneComponent.getComponentType(), zoneComp);
         holder.addComponent(HexSignal.getComponentType(), signal);
@@ -201,8 +222,5 @@ public class ConjureGlyph implements GlyphHandler {
             execComp.incrementExternalWaiters();
         }
 
-        if (!allNext.isEmpty()) {
-            Executor.continueExecution(List.of(allNext.get(0)), hexContext);
-        }
     }
 }

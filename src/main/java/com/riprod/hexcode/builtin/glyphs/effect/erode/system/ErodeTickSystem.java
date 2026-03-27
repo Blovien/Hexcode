@@ -24,23 +24,27 @@ public class ErodeTickSystem extends EntityTickingSystem<EntityStore> {
     @Override
     public void tick(float dt, int index, ArchetypeChunk<EntityStore> chunk,
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
-        ErodeComponent erode = chunk.getComponent(index, ErodeComponent.getComponentType());
-        if (erode == null) return;
+        try {
+            ErodeComponent erode = chunk.getComponent(index, ErodeComponent.getComponentType());
+            if (erode == null) return;
 
-        if (!erode.tick(dt)) return;
+            if (!erode.tick(dt)) return;
 
-        Ref<EntityStore> ref = chunk.getReferenceTo(index);
+            Ref<EntityStore> ref = chunk.getReferenceTo(index);
 
-        EffectControllerComponent controller = buffer.getComponent(
-                ref, EffectControllerComponent.getComponentType());
-        if (controller != null) {
-            int effectIndex = EntityEffect.getAssetMap().getIndex(ERODE_EFFECT_ID);
-            if (effectIndex != Integer.MIN_VALUE) {
-                controller.removeEffect(ref, effectIndex, buffer);
+            EffectControllerComponent controller = buffer.getComponent(
+                    ref, EffectControllerComponent.getComponentType());
+            if (controller != null) {
+                int effectIndex = EntityEffect.getAssetMap().getIndex(ERODE_EFFECT_ID);
+                if (effectIndex != Integer.MIN_VALUE) {
+                    controller.removeEffect(ref, effectIndex, buffer);
+                }
             }
-        }
 
-        buffer.removeComponent(ref, ErodeComponent.getComponentType());
-        LOGGER.atInfo().log("erode: effect expired on entity");
+            buffer.removeComponent(ref, ErodeComponent.getComponentType());
+            LOGGER.atInfo().log("erode: effect expired on entity");
+        } catch (Exception e) {
+            LOGGER.atSevere().log("[hexcode] ErodeTickSystem failed: %s", e.getMessage());
+        }
     }
 }

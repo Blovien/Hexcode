@@ -4,6 +4,7 @@ import javax.annotation.Nonnull;
 
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
+import com.hypixel.hytale.server.core.modules.physics.component.PhysicsValues;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.state.execution.component.HexColors;
 
@@ -22,14 +23,17 @@ public class LevitateComponent implements Component<EntityStore> {
     private float intensity;
     private float remainingDuration;
     private HexColors colors;
+    private PhysicsValues originalPhysicsValues;
 
     public LevitateComponent() {
     }
 
-    public LevitateComponent(float intensity, float remainingDuration, HexColors colors) {
+    public LevitateComponent(float intensity, float remainingDuration, HexColors colors,
+            PhysicsValues originalPhysicsValues) {
         this.intensity = intensity;
         this.remainingDuration = remainingDuration;
         this.colors = colors;
+        this.originalPhysicsValues = originalPhysicsValues;
     }
 
     public float getIntensity() {
@@ -56,6 +60,14 @@ public class LevitateComponent implements Component<EntityStore> {
         this.colors = colors;
     }
 
+    public PhysicsValues getOriginalPhysicsValues() {
+        return originalPhysicsValues;
+    }
+
+    public void setOriginalPhysicsValues(PhysicsValues originalPhysicsValues) {
+        this.originalPhysicsValues = originalPhysicsValues;
+    }
+
     public boolean tick(float dt) {
         remainingDuration -= dt;
         return remainingDuration <= 0;
@@ -64,6 +76,8 @@ public class LevitateComponent implements Component<EntityStore> {
     @Nonnull
     @Override
     public LevitateComponent clone() {
-        return new LevitateComponent(intensity, remainingDuration, colors);
+        PhysicsValues clonedPhysics = originalPhysicsValues != null
+                ? new PhysicsValues(originalPhysicsValues) : null;
+        return new LevitateComponent(intensity, remainingDuration, colors, clonedPhysics);
     }
 }

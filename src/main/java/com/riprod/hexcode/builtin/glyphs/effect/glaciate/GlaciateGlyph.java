@@ -27,12 +27,16 @@ import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.common.glyphs.variables.NumberVar;
+import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
+import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.HexSignal;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -43,9 +47,9 @@ public class GlaciateGlyph implements GlyphHandler {
     private static final String ICE_MODEL = "Glaciate_Ice";
     private static final float ICE_SCALE = 2.0f;
     private static final double DEFAULT_HEIGHT = 10.0;
-    private static final float DEFAULT_PERSIST_DURATION = 5.0f;
-    private static final float DEFAULT_DAMAGE = 8.0f;
+    private static final double DEFAULT_DURATION = 5.0;
     private static final float DEFAULT_DAMAGE_RADIUS = 2.0f;
+    private static final float DEFAULT_DAMAGE_MULTIPLIER = 1.0f;
     private static final String HARD_COLLISION_CONFIG = "Hexcode_Glaciate_HardCollision";
 
     @Override
@@ -56,9 +60,10 @@ public class GlaciateGlyph implements GlyphHandler {
             return;
         }
 
-        double height = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("height", hexContext), DEFAULT_HEIGHT);
-        if (height <= 0) height = DEFAULT_HEIGHT;
+        HexVar offsetVar = glyph.resolveInput("offset", hexContext);
+        double duration = SpellVarUtil.resolveNumberOrDefault(
+                glyph.resolveInput("duration", hexContext), DEFAULT_DURATION);
+        if (duration <= 0) duration = DEFAULT_DURATION;
 
         Integer outputSlot = glyph.resolveOutput("result", hexContext);
 
@@ -75,13 +80,41 @@ public class GlaciateGlyph implements GlyphHandler {
             Vector3d targetPos = SpellVarUtil.resolvePositionAt(targetVar, i, hexContext.getAccessor());
             if (targetPos == null) continue;
 
-            Vector3d spawnPos = new Vector3d(targetPos).add(new Vector3d(0, height, 0));
-            spawnIceBlock(glyph, hexContext, spawnPos, outputSlot, modelAsset, collisionConfig);
+            Vector3d spawnPos = resolveSpawnPosition(targetPos, offsetVar, hexContext);
+            spawnIceBlock(glyph, hexContext, spawnPos, outputSlot, (float) duration,
+                    modelAsset, collisionConfig);
         }
     }
 
+    private Vector3d resolveSpawnPosition(Vector3d targetPos, HexVar offsetVar, HexContext hexContext) {
+        if (offsetVar == null) {
+            return new Vector3d(targetPos).add(new Vector3d(0, DEFAULT_HEIGHT, 0));
+        }
+
+        // entity input → absolute position (entity's world position)
+        if (offsetVar instanceof EntityVar) {
+            Vector3d absPos = SpellVarUtil.resolvePosition(offsetVar, hexContext.getAccessor());
+            if (absPos != null) return absPos;
+            return new Vector3d(targetPos).add(new Vector3d(0, DEFAULT_HEIGHT, 0));
+        }
+
+        // position input → relative offset from target
+        if (offsetVar instanceof PositionVar posVar && posVar.size() > 0) {
+            return new Vector3d(targetPos).add(new Vector3d(posVar.getAt(0)));
+        }
+
+        // number input → height shorthand (0, number, 0)
+        if (offsetVar instanceof NumberVar) {
+            double height = SpellVarUtil.resolveNumberOrDefault(offsetVar, DEFAULT_HEIGHT);
+            return new Vector3d(targetPos).add(new Vector3d(0, height, 0));
+        }
+
+        return new Vector3d(targetPos).add(new Vector3d(0, DEFAULT_HEIGHT, 0));
+    }
+
     private void spawnIceBlock(Glyph glyph, HexContext hexContext, Vector3d spawnPos,
-            Integer outputSlot, ModelAsset modelAsset, HitboxCollisionConfig collisionConfig) {
+            Integer outputSlot, float duration,
+            ModelAsset modelAsset, HitboxCollisionConfig collisionConfig) {
         Model model = Model.createScaledModel(modelAsset, ICE_SCALE);
         Vector3f rotation = new Vector3f();
 
@@ -107,17 +140,21 @@ public class GlaciateGlyph implements GlyphHandler {
                     new HitboxCollision(collisionConfig));
         }
 
+        List<String> allNext = glyph.getNext();
+        List<String> firstBranch = !allNext.isEmpty() ? List.of(allNext.get(0)) : null;
+        List<String> entryNext = allNext.size() > 1
+                ? List.copyOf(allNext.subList(1, allNext.size()))
+                : List.of();
+
         Map<String, Integer> outputSlots = new HashMap<>();
         if (outputSlot != null) outputSlots.put("result", outputSlot);
 
         holder.addComponent(HexSignal.getComponentType(),
                 new HexSignal(hexContext.copy(), hexContext.getRoot().getRootEntityRef(),
-                        glyph, glyph.getNext(), outputSlots));
+                        glyph, entryNext, outputSlots));
         holder.addComponent(GlaciateComponent.getComponentType(),
-                new GlaciateComponent(DEFAULT_PERSIST_DURATION,
-                        DEFAULT_DAMAGE_RADIUS, DEFAULT_DAMAGE));
-
-        
+                new GlaciateComponent(duration, DEFAULT_DAMAGE_RADIUS, DEFAULT_DAMAGE_MULTIPLIER,
+                        firstBranch));
 
         GlaciatePhysicsConfig.INSTANCE.apply(holder, hexContext.getCasterRef(),
                 Vector3d.ZERO, hexContext.getAccessor(), false);
@@ -135,7 +172,5 @@ public class GlaciateGlyph implements GlyphHandler {
         }
 
         GlaciateStyle.renderSpawn(spawnPos, hexContext.getColors(), hexContext.getAccessor());
-        LOGGER.atInfo().log("glaciate: spawned ice block at %.1f, %.1f, %.1f",
-                spawnPos.x, spawnPos.y, spawnPos.z);
     }
 }

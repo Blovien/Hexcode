@@ -27,7 +27,7 @@ hytale {
 
     // uncomment if you want to develop your mod against the pre-release version of the game.
     //
-    updateChannel = "pre-release"
+    // updateChannel = "pre-release"
 }
 
 java {
@@ -93,35 +93,58 @@ idea {
     }
 }
 
-val syncAssets = tasks.register<Copy>("syncAssets") {
+val linkedDirs = listOf("Server")
+
+val unlinkAssets = tasks.register("unlinkAssets") {
+    doFirst {
+        val buildRes = layout.buildDirectory.dir("resources/main").get().asFile
+        linkedDirs.forEach { dir ->
+            val buildDir = File(buildRes, dir)
+            if (buildDir.exists()) {
+                val isSymlink = ProcessBuilder("test", "-L", buildDir.absolutePath)
+                    .start().waitFor() == 0
+                if (isSymlink) {
+                    ProcessBuilder("rm", buildDir.absolutePath)
+                        .inheritIO().start().waitFor()
+                    logger.lifecycle("Unlinked ${buildDir.toPath()}")
+                }
+            }
+        }
+    }
+}
+
+tasks.named("processResources") {
+    dependsOn(unlinkAssets)
+}
+
+tasks.register("linkAssets") {
     group = "hytale"
-    description = "Automatically syncs assets from Build back to Source after server stops."
-
-    // Take from the temporary build folder (Where the game saved changes)
-    from(layout.buildDirectory.dir("resources/main"))
-
-    // Copy into your actual project source (Where your code lives)
-    into("src/main/resources")
-
-    // IMPORTANT: Protect the manifest template from being overwritten
-    exclude("manifest.json")
-
-    // If a file exists, overwrite it with the new version from the game
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    description = "Replaces built asset dirs with symlinks to source for live editing."
+    dependsOn("jar")
 
     doLast {
-        println("✅ Assets successfully synced from Game to Source Code!")
+        val buildRes = layout.buildDirectory.dir("resources/main").get().asFile
+        val srcRes = file("src/main/resources")
+
+        linkedDirs.forEach { dir ->
+            val srcDir = File(srcRes, dir)
+            val buildDir = File(buildRes, dir)
+            if (srcDir.exists()) {
+                if (buildDir.exists()) {
+                    ProcessBuilder("rm", "-rf", buildDir.absolutePath)
+                        .inheritIO().start().waitFor()
+                }
+                ProcessBuilder("ln", "-s", srcDir.absolutePath, buildDir.absolutePath)
+                    .inheritIO().start().waitFor()
+                logger.lifecycle("Linked ${buildDir.toPath()} -> ${srcDir.toPath()}")
+            }
+        }
     }
 }
 
 afterEvaluate {
-    // Now Gradle will find it, because the plugin has finished working
     val targetTask = tasks.findByName("runServer") ?: tasks.findByName("server")
-
     if (targetTask != null) {
-        targetTask.finalizedBy(syncAssets)
-        logger.lifecycle("✅ specific task '${targetTask.name}' hooked for auto-sync.")
-    } else {
-        logger.warn("⚠️ Could not find 'runServer' or 'server' task to hook auto-sync into.")
+        targetTask.dependsOn("linkAssets")
     }
 }

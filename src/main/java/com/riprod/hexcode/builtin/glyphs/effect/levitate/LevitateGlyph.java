@@ -7,6 +7,7 @@ import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffec
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.OverlapBehavior;
 import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.modules.physics.component.PhysicsValues;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.builtin.glyphs.effect.levitate.component.LevitateComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.levitate.style.LevitateStyle;
@@ -30,6 +31,8 @@ public class LevitateGlyph implements GlyphHandler {
     private static final double DEFAULT_DURATION = 100.0;
     private static final double MAX_INTENSITY = 10.0;
     private static final double MAX_DURATION = 600.0;
+    // high drag for weightless mode — near-zero terminal velocity
+    private static final double WEIGHTLESS_DRAG = 50.0;
 
     @Override
     public boolean resolveMana(Glyph glyph, HexContext hexContext) {
@@ -98,6 +101,10 @@ public class LevitateGlyph implements GlyphHandler {
             Ref<EntityStore> ref = entityVar.getRef(i, accessor);
             if (ref == null || !ref.isValid()) continue;
 
+            PhysicsValues currentPhysics = accessor.getComponent(ref, PhysicsValues.getComponentType());
+            PhysicsValues originalCopy = currentPhysics != null
+                    ? new PhysicsValues(currentPhysics) : null;
+
             LevitateComponent existing = accessor.getComponent(ref, LevitateComponent.getComponentType());
             if (existing != null) {
                 existing.setIntensity(intensity);
@@ -105,7 +112,15 @@ public class LevitateGlyph implements GlyphHandler {
                 existing.setColors(hexContext.getColors());
             } else {
                 accessor.addComponent(ref, LevitateComponent.getComponentType(),
-                        new LevitateComponent(intensity, durationSeconds, hexContext.getColors()));
+                        new LevitateComponent(intensity, durationSeconds,
+                                hexContext.getColors(), originalCopy));
+            }
+
+            if (currentPhysics != null) {
+                double mass = currentPhysics.getMass();
+                double drag = intensity <= 0 ? WEIGHTLESS_DRAG : currentPhysics.getDragCoefficient();
+                PhysicsValues levitatePhysics = new PhysicsValues(mass, drag, true);
+                accessor.putComponent(ref, PhysicsValues.getComponentType(), levitatePhysics);
             }
 
             if (levitateEffect != null) {

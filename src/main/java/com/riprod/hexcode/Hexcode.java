@@ -301,33 +301,45 @@ public class Hexcode extends JavaPlugin {
   }
 
   private static void onPlayerConnect(PlayerConnectEvent event) {
-    Holder<EntityStore> holder = event.getHolder();
-    HexcasterComponent comp = holder.ensureAndGetComponent(HexcasterComponent.getComponentType());
+    try {
+      Holder<EntityStore> holder = event.getHolder();
+      HexcasterComponent comp = holder.ensureAndGetComponent(HexcasterComponent.getComponentType());
 
-    for (HexcodeManager manager : StateRouter.allManagers()) {
-      manager.onPlayerJoin(holder, comp);
+      for (HexcodeManager manager : StateRouter.allManagers()) {
+        manager.onPlayerJoin(holder, comp);
+      }
+    } catch (Exception e) {
+      LOGGER.atSevere().log("[hexcode] onPlayerConnect failed: %s", e.getMessage());
     }
   }
 
   private static void onPlayerDisconnect(PlayerDisconnectEvent event) {
-    PlayerRef playerRef = event.getPlayerRef();
-    Ref<EntityStore> ref = playerRef.getReference();
-    if (ref != null) {
-      Store<EntityStore> store = ref.getStore();
-      World world = store.getExternalData().getWorld();
-      world.execute(() -> {
-        if (ref.isValid()) {
-          HexcasterComponent hexcaster = store.getComponent(ref,
-              HexcasterComponent.getComponentType());
-          if (hexcaster != null && hexcaster.getState() != HexState.IDLE) {
-            hexcaster.requestStateChange(HexState.IDLE);
-          }
-        }
+    try {
+      PlayerRef playerRef = event.getPlayerRef();
+      Ref<EntityStore> ref = playerRef.getReference();
+      if (ref != null) {
+        Store<EntityStore> store = ref.getStore();
+        World world = store.getExternalData().getWorld();
+        world.execute(() -> {
+          try {
+            if (ref.isValid()) {
+              HexcasterComponent hexcaster = store.getComponent(ref,
+                  HexcasterComponent.getComponentType());
+              if (hexcaster != null && hexcaster.getState() != HexState.IDLE) {
+                hexcaster.requestStateChange(HexState.IDLE);
+              }
+            }
 
-        for (HexcodeManager manager : StateRouter.allManagers()) {
-          manager.onPlayerLeave(playerRef);
-        }
-      });
+            for (HexcodeManager manager : StateRouter.allManagers()) {
+              manager.onPlayerLeave(playerRef);
+            }
+          } catch (Exception e) {
+            LOGGER.atSevere().log("[hexcode] onPlayerDisconnect world.execute failed: %s", e.getMessage());
+          }
+        });
+      }
+    } catch (Exception e) {
+      LOGGER.atSevere().log("[hexcode] onPlayerDisconnect failed: %s", e.getMessage());
     }
   }
 }

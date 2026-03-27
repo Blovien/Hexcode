@@ -36,29 +36,33 @@ public class PhaseTickSystem extends EntityTickingSystem<EntityStore> {
     @Override
     public void tick(float dt, int index, ArchetypeChunk<EntityStore> chunk,
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
-        PhaseComponent phase = chunk.getComponent(index, PhaseComponent.getComponentType());
-        Ref<EntityStore> entityRef = chunk.getReferenceTo(index);
+        try {
+            PhaseComponent phase = chunk.getComponent(index, PhaseComponent.getComponentType());
+            Ref<EntityStore> entityRef = chunk.getReferenceTo(index);
 
-        if (phase == null) {
+            if (phase == null) {
+                removeEntity(entityRef, buffer);
+                return;
+            }
+
+            phase.incrementElapsed();
+
+            if (!phase.isExpired()) {
+                return;
+            }
+
+            HexSignal signal = buffer.getComponent(entityRef, HexSignal.getComponentType());
+
+            World world = buffer.getExternalData().getWorld();
+            restoreBlocks(phase, signal, world, buffer);
+            continueExecution(signal, buffer);
             removeEntity(entityRef, buffer);
-            return;
+
+            LOGGER.atInfo().log("phase: restored %d blocks after %d ticks",
+                    phase.getPhasedBlocks().size(), phase.getDurationTicks());
+        } catch (Exception e) {
+            LOGGER.atSevere().log("[hexcode] PhaseTickSystem failed: %s", e.getMessage());
         }
-
-        phase.incrementElapsed();
-
-        if (!phase.isExpired()) {
-            return;
-        }
-
-        HexSignal signal = buffer.getComponent(entityRef, HexSignal.getComponentType());
-
-        World world = buffer.getExternalData().getWorld();
-        restoreBlocks(phase, signal, world, buffer);
-        continueExecution(signal, buffer);
-        removeEntity(entityRef, buffer);
-
-        LOGGER.atInfo().log("phase: restored %d blocks after %d ticks",
-                phase.getPhasedBlocks().size(), phase.getDurationTicks());
     }
 
     private void restoreBlocks(PhaseComponent phase, HexSignal signal, World world,

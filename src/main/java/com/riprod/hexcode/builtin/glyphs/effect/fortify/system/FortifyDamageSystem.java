@@ -34,14 +34,18 @@ public class FortifyDamageSystem extends DamageEventSystem {
     public void handle(int index, @Nonnull ArchetypeChunk<EntityStore> chunk,
             @Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> buffer,
             @Nonnull Damage damage) {
-        FortifyComponent fortify = chunk.getComponent(index, FortifyComponent.getComponentType());
-        if (fortify == null) return;
+        try {
+            FortifyComponent fortify = chunk.getComponent(index, FortifyComponent.getComponentType());
+            if (fortify == null) return;
 
-        float original = damage.getAmount();
-        float reduced = Math.max(MIN_DAMAGE_FLOOR, original - fortify.getDamageReduction());
-        damage.setAmount(reduced);
+            float original = damage.getAmount();
+            float reduced = Math.max(MIN_DAMAGE_FLOOR, original - fortify.getDamageReduction());
+            damage.setAmount(reduced);
 
-        LOGGER.atInfo().log("fortify: reduced damage %.2f -> %.2f (%.2f flat reduction)",
-                original, reduced, fortify.getDamageReduction());
+            LOGGER.atInfo().log("fortify: reduced damage %.2f -> %.2f (%.2f flat reduction)",
+                    original, reduced, fortify.getDamageReduction());
+        } catch (Exception e) {
+            LOGGER.atSevere().log("[hexcode] FortifyDamageSystem failed: %s", e.getMessage());
+        }
     }
 }

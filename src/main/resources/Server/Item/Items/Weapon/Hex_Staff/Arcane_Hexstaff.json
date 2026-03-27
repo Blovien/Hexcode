@@ -1,7 +1,7 @@
 {
   "Parent": "Template_HexStaff",
   "TranslationProperties": {
-    "Name": "server.items.Weapon_Staff_Cobalt.name"
+    "Name": "server.items.Arcane_Hexstaff.name"
   },
   "Categories": [
     "Items.Weapons"

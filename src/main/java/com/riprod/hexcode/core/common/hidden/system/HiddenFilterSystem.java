@@ -20,9 +20,11 @@ import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.entity.tracker.EntityTrackerSystems;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.riprod.hexcode.core.common.hidden.component.HiddenComponent;
 
 public class HiddenFilterSystem extends EntityTickingSystem<EntityStore> {
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     @Nonnull
     private final Set<Dependency<EntityStore>> dependencies = Collections.singleton(
@@ -49,24 +51,28 @@ public class HiddenFilterSystem extends EntityTickingSystem<EntityStore> {
     @Override
     public void tick(float dt, int index, @Nonnull ArchetypeChunk<EntityStore> archetypeChunk,
             @Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> commandBuffer) {
-        EntityTrackerSystems.EntityViewer viewer = archetypeChunk.getComponent(index,
-                EntityTrackerSystems.EntityViewer.getComponentType());
-        if (viewer == null)
-            return;
+        try {
+            EntityTrackerSystems.EntityViewer viewer = archetypeChunk.getComponent(index,
+                    EntityTrackerSystems.EntityViewer.getComponentType());
+            if (viewer == null)
+                return;
 
-        Ref<EntityStore> playerRef = archetypeChunk.getReferenceTo(index);
+            Ref<EntityStore> playerRef = archetypeChunk.getReferenceTo(index);
 
-        Iterator<Ref<EntityStore>> it = viewer.visible.iterator();
-        while (it.hasNext()) {
-            Ref<EntityStore> ref = it.next();
-            HiddenComponent hidden = commandBuffer.getComponent(ref, HiddenComponent.getComponentType());
-            if (hidden == null)
-                continue;
-            Ref<EntityStore> owner = hidden.getOwnerRef();
-            if (owner != null && !owner.equals(playerRef)) {
-                viewer.hiddenCount++;
-                it.remove();
+            Iterator<Ref<EntityStore>> it = viewer.visible.iterator();
+            while (it.hasNext()) {
+                Ref<EntityStore> ref = it.next();
+                HiddenComponent hidden = commandBuffer.getComponent(ref, HiddenComponent.getComponentType());
+                if (hidden == null)
+                    continue;
+                Ref<EntityStore> owner = hidden.getOwnerRef();
+                if (owner != null && !owner.equals(playerRef)) {
+                    viewer.hiddenCount++;
+                    it.remove();
+                }
             }
+        } catch (Exception e) {
+            LOGGER.atSevere().log("[hexcode] HiddenFilterSystem failed: %s", e.getMessage());
         }
     }
 }

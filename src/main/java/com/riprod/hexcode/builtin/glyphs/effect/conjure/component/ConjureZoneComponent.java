@@ -1,6 +1,7 @@
 package com.riprod.hexcode.builtin.glyphs.effect.conjure.component;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
@@ -30,17 +31,22 @@ public class ConjureZoneComponent implements Component<EntityStore> {
     private Set<Ref<EntityStore>> lastOccupants;
     private Set<Ref<EntityStore>> newOccupants;
     private Ref<EntityStore> zoneRef;
+    private List<String> firstBranchIds;
+    private boolean firedFirstBranch;
 
     public ConjureZoneComponent() {
     }
 
-    public ConjureZoneComponent(Vector3d halfExtents, float interval, float remainingLifetime) {
+    public ConjureZoneComponent(Vector3d halfExtents, float interval, float remainingLifetime,
+            List<String> firstBranchIds) {
         this.halfExtents = halfExtents;
         this.interval = interval;
         this.intervalTimer = interval;
         this.remainingLifetime = remainingLifetime;
         this.lastOccupants = new HashSet<>();
         this.newOccupants = new HashSet<>();
+        this.firstBranchIds = firstBranchIds;
+        this.firedFirstBranch = false;
     }
 
     public Vector3d getHalfExtents() {
@@ -91,6 +97,18 @@ public class ConjureZoneComponent implements Component<EntityStore> {
         this.zoneRef = zoneRef;
     }
 
+    public List<String> getFirstBranchIds() {
+        return firstBranchIds;
+    }
+
+    public boolean firedFirstBranch() {
+        return firedFirstBranch;
+    }
+
+    public void markFirstBranchFired() {
+        this.firedFirstBranch = true;
+    }
+
     @Nonnull
     @Override
     public ConjureZoneComponent clone() {
@@ -102,6 +120,8 @@ public class ConjureZoneComponent implements Component<EntityStore> {
         copy.lastOccupants = new HashSet<>();
         copy.newOccupants = new HashSet<>();
         copy.zoneRef = this.zoneRef;
+        copy.firstBranchIds = this.firstBranchIds;
+        copy.firedFirstBranch = this.firedFirstBranch;
         return copy;
     }
 }

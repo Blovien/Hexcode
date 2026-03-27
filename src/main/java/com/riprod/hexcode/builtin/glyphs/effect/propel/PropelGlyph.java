@@ -46,6 +46,7 @@ public class PropelGlyph implements GlyphHandler {
     Integer outputSlot = glyph.resolveOutput("result", hexContext);
 
     HexVar sourceVar = glyph.resolveInput("source", hexContext);
+    HexVar directionVar = glyph.resolveInput("direction", hexContext);
 
     if (sourceVar == null) {
       LOGGER.atWarning().log("propel: no source provided");
@@ -55,18 +56,18 @@ public class PropelGlyph implements GlyphHandler {
 
     Vector3d spawnPos = SpellVarUtil.resolveEyePosition(sourceVar, hexContext.getAccessor());
     if (spawnPos == null) {
-      spawnPos = SpellVarUtil.resolveEyePosition(
-          hexContext.getVariable(1), hexContext.getAccessor());
+      spawnPos = SpellVarUtil.resolveAsPosition(
+          sourceVar, hexContext.getAccessor());
     }
     if (spawnPos == null) {
       LOGGER.atWarning().log("propel: could not resolve spawn position");
       return;
     }
 
-    Vector3d direction = SpellVarUtil.resolveDirection(sourceVar, spawnPos, hexContext.getAccessor());
+    Vector3d direction = SpellVarUtil.resolveDirection(directionVar, spawnPos, hexContext.getAccessor());
     if (direction == null) {
       direction = SpellVarUtil.resolveDirection(
-          hexContext.getVariable(1), spawnPos, hexContext.getAccessor());
+          directionVar, spawnPos, hexContext.getAccessor());
     }
     if (direction == null) {
       LOGGER.atWarning().log("propel: could not resolve direction");

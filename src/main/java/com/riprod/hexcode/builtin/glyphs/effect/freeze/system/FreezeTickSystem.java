@@ -30,29 +30,33 @@ public class FreezeTickSystem extends EntityTickingSystem<EntityStore> {
     @Override
     public void tick(float dt, int index, ArchetypeChunk<EntityStore> chunk,
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
-        FreezeComponent freeze = chunk.getComponent(index, FreezeComponent.getComponentType());
-        Ref<EntityStore> entityRef = chunk.getReferenceTo(index);
+        try {
+            FreezeComponent freeze = chunk.getComponent(index, FreezeComponent.getComponentType());
+            Ref<EntityStore> entityRef = chunk.getReferenceTo(index);
 
-        if (freeze == null) {
+            if (freeze == null) {
+                removeEntity(entityRef, buffer);
+                return;
+            }
+
+            freeze.incrementElapsed();
+
+            if (!freeze.isExpired()) {
+                return;
+            }
+
+            HexSignal signal = buffer.getComponent(entityRef, HexSignal.getComponentType());
+
+            World world = buffer.getExternalData().getWorld();
+            restoreBlocks(freeze, signal, world, buffer);
+            decrementWaiters(signal, buffer);
             removeEntity(entityRef, buffer);
-            return;
+
+            LOGGER.atInfo().log("freeze: restored %d blocks after %d ticks",
+                    freeze.getFrozenBlocks().size(), freeze.getDurationTicks());
+        } catch (Exception e) {
+            LOGGER.atSevere().log("[hexcode] FreezeTickSystem failed: %s", e.getMessage());
         }
-
-        freeze.incrementElapsed();
-
-        if (!freeze.isExpired()) {
-            return;
-        }
-
-        HexSignal signal = buffer.getComponent(entityRef, HexSignal.getComponentType());
-
-        World world = buffer.getExternalData().getWorld();
-        restoreBlocks(freeze, signal, world, buffer);
-        decrementWaiters(signal, buffer);
-        removeEntity(entityRef, buffer);
-
-        LOGGER.atInfo().log("freeze: restored %d blocks after %d ticks",
-                freeze.getFrozenBlocks().size(), freeze.getDurationTicks());
     }
 
     private void restoreBlocks(FreezeComponent freeze, HexSignal signal, World world,

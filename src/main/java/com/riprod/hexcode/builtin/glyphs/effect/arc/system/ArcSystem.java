@@ -38,20 +38,24 @@ public class ArcSystem extends EntityTickingSystem<EntityStore> {
     @Override
     public void tick(float dt, int index, ArchetypeChunk<EntityStore> chunk,
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
-        ArcComponent arc = chunk.getComponent(index, ArcComponent.getComponentType());
-        Ref<EntityStore> entityRef = chunk.getReferenceTo(index);
+        try {
+            ArcComponent arc = chunk.getComponent(index, ArcComponent.getComponentType());
+            Ref<EntityStore> entityRef = chunk.getReferenceTo(index);
 
-        if (arc == null) return;
+            if (arc == null) return;
 
-        if (!arc.hasFired()) {
-            fireBranch(arc, entityRef, buffer);
-            return;
+            if (!arc.hasFired()) {
+                fireBranch(arc, entityRef, buffer);
+                return;
+            }
+
+            float timer = arc.incrementTimer(dt);
+            if (timer < arc.getDelay()) return;
+
+            jump(arc, entityRef, buffer);
+        } catch (Exception e) {
+            LOGGER.atSevere().log("[hexcode] ArcSystem failed: %s", e.getMessage());
         }
-
-        float timer = arc.incrementTimer(dt);
-        if (timer < arc.getDelay()) return;
-
-        jump(arc, entityRef, buffer);
     }
 
     private void fireBranch(ArcComponent arc, Ref<EntityStore> entityRef,

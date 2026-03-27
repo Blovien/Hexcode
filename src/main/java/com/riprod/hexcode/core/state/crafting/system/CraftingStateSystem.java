@@ -80,14 +80,14 @@ public class CraftingStateSystem {
             return InteractionState.Finished;
         }
 
-        CraftingDragHandler.endDrag(accessor, draggedRef, craftingComp.getHeadAnchorRef());
-
         InteractionState result;
         if (isClick) {
             result = NodeRouter.click(accessor, draggedRef, ref);
         } else {
             result = NodeRouter.exit(accessor, draggedRef, ref);
         }
+
+        CraftingDragHandler.endDrag(accessor, draggedRef, craftingComp.getHeadAnchorRef());
 
         craftingComp.setDraggingRef(null);
         craftingComp.setHeadAnchorRef(accessor, null);

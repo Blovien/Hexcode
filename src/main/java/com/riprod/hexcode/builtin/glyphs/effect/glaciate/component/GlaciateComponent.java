@@ -1,5 +1,10 @@
 package com.riprod.hexcode.builtin.glyphs.effect.glaciate.component;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
 import javax.annotation.Nonnull;
 
 import com.hypixel.hytale.component.Component;
@@ -10,21 +15,24 @@ public class GlaciateComponent implements Component<EntityStore> {
 
     private static ComponentType<EntityStore, GlaciateComponent> componentType;
 
-    private GlaciateState state;
-    private float persistDuration;
-    private float persistTimer;
+    private float lifetime;
     private float damageRadius;
-    private float baseDamage;
+    private float damageMultiplier;
+    private Set<UUID> hitEntities;
+    private List<String> firstBranchIds;
+    private boolean firedFirstBranch;
 
     public GlaciateComponent() {
     }
 
-    public GlaciateComponent(float persistDuration, float damageRadius, float baseDamage) {
-        this.state = GlaciateState.FALLING;
-        this.persistDuration = persistDuration;
-        this.persistTimer = persistDuration;
+    public GlaciateComponent(float lifetime, float damageRadius, float damageMultiplier,
+            List<String> firstBranchIds) {
+        this.lifetime = lifetime;
         this.damageRadius = damageRadius;
-        this.baseDamage = baseDamage;
+        this.damageMultiplier = damageMultiplier;
+        this.hitEntities = new HashSet<>();
+        this.firstBranchIds = firstBranchIds;
+        this.firedFirstBranch = false;
     }
 
     public static void setComponentType(ComponentType<EntityStore, GlaciateComponent> type) {
@@ -35,43 +43,49 @@ public class GlaciateComponent implements Component<EntityStore> {
         return componentType;
     }
 
-    public GlaciateState getState() {
-        return state;
+    public float getLifetime() {
+        return lifetime;
     }
 
-    public void setState(GlaciateState state) {
-        this.state = state;
-    }
-
-    public float getPersistDuration() {
-        return persistDuration;
-    }
-
-    public float getPersistTimer() {
-        return persistTimer;
-    }
-
-    public void decrementPersistTimer(float dt) {
-        this.persistTimer -= dt;
+    public void decrementLifetime(float dt) {
+        this.lifetime -= dt;
     }
 
     public float getDamageRadius() {
         return damageRadius;
     }
 
-    public float getBaseDamage() {
-        return baseDamage;
+    public float getDamageMultiplier() {
+        return damageMultiplier;
+    }
+
+    public Set<UUID> getHitEntities() {
+        if (hitEntities == null) hitEntities = new HashSet<>();
+        return hitEntities;
+    }
+
+    public List<String> getFirstBranchIds() {
+        return firstBranchIds;
+    }
+
+    public boolean firedFirstBranch() {
+        return firedFirstBranch;
+    }
+
+    public void markFirstBranchFired() {
+        this.firedFirstBranch = true;
     }
 
     @Nonnull
     @Override
     public GlaciateComponent clone() {
         GlaciateComponent copy = new GlaciateComponent();
-        copy.state = this.state;
-        copy.persistDuration = this.persistDuration;
-        copy.persistTimer = this.persistTimer;
+        copy.lifetime = this.lifetime;
         copy.damageRadius = this.damageRadius;
-        copy.baseDamage = this.baseDamage;
+        copy.damageMultiplier = this.damageMultiplier;
+        copy.hitEntities = this.hitEntities != null ? new HashSet<>(this.hitEntities) : new HashSet<>();
+        copy.firstBranchIds = this.firstBranchIds;
+        copy.firedFirstBranch = this.firedFirstBranch;
         return copy;
     }
 }

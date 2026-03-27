@@ -18,9 +18,11 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.riprod.hexcode.state.StateRouter;
 
 public class HexModeExit extends SimpleInteraction {
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     @Nonnull
     public static final BuilderCodec<HexModeExit> CODEC = BuilderCodec
@@ -41,46 +43,50 @@ public class HexModeExit extends SimpleInteraction {
     @Override
     protected void tick0(boolean firstRun, float time, @Nonnull InteractionType type,
             @Nonnull InteractionContext ctx, @Nonnull CooldownHandler cooldown) {
+        try {
+            if (targetState == null) {
+                ctx.getState().state = InteractionState.Failed;
+                return;
+            }
 
-        if (targetState == null) {
+            CommandBuffer<EntityStore> commandBuffer = ctx.getCommandBuffer();
+            if (commandBuffer == null) {
+                ctx.getState().state = InteractionState.Failed;
+                return;
+            }
+
+            Ref<EntityStore> playerRef = ctx.getEntity();
+            if (playerRef == null || !playerRef.isValid()) {
+                ctx.getState().state = InteractionState.Failed;
+                return;
+            }
+
+            HexcasterComponent hexcaster = commandBuffer.getComponent(playerRef, HexcasterComponent.getComponentType());
+            if (hexcaster == null) {
+                ctx.getState().state = InteractionState.Failed;
+                return;
+            }
+
+            if (hexcaster.getState() != targetState) {
+                ctx.getState().state = InteractionState.Finished;
+                return;
+            }
+
+            HexcodeManager manager = StateRouter.route(targetState);
+            if (manager == null) {
+                ctx.getState().state = InteractionState.Finished;
+                return;
+            }
+
+            if (firstRun) {
+                ctx.getState().state = manager.exitInteraction(commandBuffer, playerRef, hexcaster);
+            }
+
+            super.tick0(firstRun, time, type, ctx, cooldown);
+        } catch (Exception e) {
+            LOGGER.atSevere().log("[hexcode] HexModeExit failed: %s", e.getMessage());
             ctx.getState().state = InteractionState.Failed;
-            return;
         }
-
-        CommandBuffer<EntityStore> commandBuffer = ctx.getCommandBuffer();
-        if (commandBuffer == null) {
-            ctx.getState().state = InteractionState.Failed;
-            return;
-        }
-
-        Ref<EntityStore> playerRef = ctx.getEntity();
-        if (playerRef == null || !playerRef.isValid()) {
-            ctx.getState().state = InteractionState.Failed;
-            return;
-        }
-
-        HexcasterComponent hexcaster = commandBuffer.getComponent(playerRef, HexcasterComponent.getComponentType());
-        if (hexcaster == null) {
-            ctx.getState().state = InteractionState.Failed;
-            return;
-        }
-
-        if (hexcaster.getState() != targetState) {
-            ctx.getState().state = InteractionState.Finished;
-            return;
-        }
-
-        HexcodeManager manager = StateRouter.route(targetState);
-        if (manager == null) {
-            ctx.getState().state = InteractionState.Finished;
-            return;
-        }
-
-        if (firstRun) {
-            ctx.getState().state = manager.exitInteraction(commandBuffer, playerRef, hexcaster);
-        }
-
-        super.tick0(firstRun, time, type, ctx, cooldown);
     }
 
     @Override

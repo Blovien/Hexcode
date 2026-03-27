@@ -8,8 +8,9 @@ public class GlaciatePhysicsConfig extends StandardPhysicsConfig {
 
     private GlaciatePhysicsConfig() {
         this.gravity = 20;
-        this.bounceCount = 0;
-        this.sticksVertically = true;
+        this.bounceCount = -1;
+        this.bounciness = 0;
+        this.sticksVertically = false;
         this.computeYaw = false;
         this.computePitch = false;
         this.terminalVelocityAir = 50.0;

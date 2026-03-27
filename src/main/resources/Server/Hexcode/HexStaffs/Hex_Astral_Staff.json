@@ -1,5 +1,28 @@
 {
   "Parent": "Base_Staff",
   "ItemId": "Hex_Astral_Staff",
-  "CastStyleId": "sphere"
+  "CastStyleId": "sphere",
+  "StaffModifier": 0.85,
+  "CastingAuraParticles": [
+    {
+      "SystemId": "Alternative_Rune_System",
+      "PositionOffset": {
+        "Y": 2.5
+      }
+    },
+    {
+      "SystemId": "Mist_Spawner",
+      "PositionOffset": {
+        "Y": -1.5
+      },
+      "Color": "#7B1FA2"
+    },
+    {
+      "SystemId": "Ring_Spawner"
+    }
+  ],
+  "Colors": {
+    "PrimaryColor": "#7B1FA2",
+    "SecondaryColor": "#CE93D8"
+  }
 }

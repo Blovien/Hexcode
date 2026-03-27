@@ -13,20 +13,19 @@ public class GlaciateStyle {
 
     public static void renderSpawn(Vector3d pos, HexColors colors,
             ComponentAccessor<EntityStore> accessor) {
-        VfxUtil.particle("Effect_Snow", pos, accessor);
+        VfxUtil.particle("Glaciate_Spawn", pos, accessor);
         VfxUtil.sound("SFX_Ice_Build", pos, accessor);
     }
 
     public static void renderImpact(Vector3d pos, HexColors colors,
             ComponentAccessor<EntityStore> accessor) {
-        VfxUtil.particle("Effect_Snow_Impact", pos, accessor);
-        VfxUtil.particle("Effect_Snow", pos, accessor);
+        VfxUtil.particle("Glaciate_Impact", pos, accessor);
         VfxUtil.sound("SFX_Arrow_Frost_Hit", pos, accessor);
     }
 
     public static void renderMelt(Vector3d pos, HexColors colors,
             ComponentAccessor<EntityStore> accessor) {
-        VfxUtil.particle("Effect_Snow", pos, accessor);
+        VfxUtil.particle("Glaciate_Melt", pos, accessor);
         VfxUtil.sound("SFX_Ice_Break", pos, accessor);
     }
 }

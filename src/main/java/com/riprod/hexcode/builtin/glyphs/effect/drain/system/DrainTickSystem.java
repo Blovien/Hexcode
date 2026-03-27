@@ -32,85 +32,89 @@ public class DrainTickSystem extends EntityTickingSystem<EntityStore> {
     @Override
     public void tick(float dt, int index, ArchetypeChunk<EntityStore> chunk,
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
-        DrainComponent drain = chunk.getComponent(index, DrainComponent.getComponentType());
-        Ref<EntityStore> entityRef = chunk.getReferenceTo(index);
+        try {
+            DrainComponent drain = chunk.getComponent(index, DrainComponent.getComponentType());
+            Ref<EntityStore> entityRef = chunk.getReferenceTo(index);
 
-        if (drain == null || drain.isEmpty()) return;
+            if (drain == null || drain.isEmpty()) return;
 
-        EntityStatMap statMap = buffer.getComponent(entityRef, EntityStatMap.getComponentType());
-        if (statMap == null) {
-            cleanupAll(drain, entityRef, buffer);
-            return;
-        }
-
-        TransformComponent tc = buffer.getComponent(entityRef, TransformComponent.getComponentType());
-
-        Iterator<DrainEntry> it = drain.getEntries().iterator();
-        while (it.hasNext()) {
-            DrainEntry entry = it.next();
-
-            if (shouldStop(entry, statMap)) {
-                completeEntry(entry, buffer);
-                it.remove();
-                continue;
+            EntityStatMap statMap = buffer.getComponent(entityRef, EntityStatMap.getComponentType());
+            if (statMap == null) {
+                cleanupAll(drain, entityRef, buffer);
+                return;
             }
 
-            EntityStatValue sourceStat = statMap.get(entry.getSourceStatIndex());
-            if (sourceStat == null) {
-                completeEntry(entry, buffer);
-                it.remove();
-                continue;
-            }
+            TransformComponent tc = buffer.getComponent(entityRef, TransformComponent.getComponentType());
 
-            float drainAmount = entry.getDrainPerTick();
+            Iterator<DrainEntry> it = drain.getEntries().iterator();
+            while (it.hasNext()) {
+                DrainEntry entry = it.next();
 
-            // clamp hp drain to leave 1 hp
-            if (entry.getSourceStatIndex() == DefaultEntityStatTypes.getHealth()) {
-                float maxDrainable = sourceStat.get() - 1.0f;
-                if (maxDrainable <= 0) {
+                if (shouldStop(entry, statMap)) {
                     completeEntry(entry, buffer);
                     it.remove();
                     continue;
                 }
-                drainAmount = Math.min(drainAmount, maxDrainable);
-            } else {
-                drainAmount = Math.min(drainAmount, sourceStat.get());
-            }
 
-            if (drainAmount <= 0) {
-                completeEntry(entry, buffer);
-                it.remove();
-                continue;
-            }
+                EntityStatValue sourceStat = statMap.get(entry.getSourceStatIndex());
+                if (sourceStat == null) {
+                    completeEntry(entry, buffer);
+                    it.remove();
+                    continue;
+                }
 
-            // drain source
-            statMap.subtractStatValue(entry.getSourceStatIndex(), drainAmount);
+                float drainAmount = entry.getDrainPerTick();
 
-            // convert and add to mana
-            float converted = drainAmount * entry.getConversionRate();
-            int manaIndex = DefaultEntityStatTypes.getMana();
-            EntityStatValue manaStat = statMap.get(manaIndex);
-            if (manaStat != null) {
-                float manaRoom = manaStat.getMax() - manaStat.get();
-                converted = Math.min(converted, manaRoom);
-                if (converted > 0) {
-                    statMap.addStatValue(manaIndex, converted);
+                // clamp hp drain to leave 1 hp
+                if (entry.getSourceStatIndex() == DefaultEntityStatTypes.getHealth()) {
+                    float maxDrainable = sourceStat.get() - 1.0f;
+                    if (maxDrainable <= 0) {
+                        completeEntry(entry, buffer);
+                        it.remove();
+                        continue;
+                    }
+                    drainAmount = Math.min(drainAmount, maxDrainable);
+                } else {
+                    drainAmount = Math.min(drainAmount, sourceStat.get());
+                }
+
+                if (drainAmount <= 0) {
+                    completeEntry(entry, buffer);
+                    it.remove();
+                    continue;
+                }
+
+                // drain source
+                statMap.subtractStatValue(entry.getSourceStatIndex(), drainAmount);
+
+                // convert and add to mana
+                float converted = drainAmount * entry.getConversionRate();
+                int manaIndex = DefaultEntityStatTypes.getMana();
+                EntityStatValue manaStat = statMap.get(manaIndex);
+                if (manaStat != null) {
+                    float manaRoom = manaStat.getMax() - manaStat.get();
+                    converted = Math.min(converted, manaRoom);
+                    if (converted > 0) {
+                        statMap.addStatValue(manaIndex, converted);
+                    }
+                }
+
+                entry.addDrained(drainAmount);
+                entry.decrementTicks();
+
+                if (tc != null) {
+                    DrainStyle.renderTick(tc.getPosition(), entry.getColors(), buffer);
                 }
             }
 
-            entry.addDrained(drainAmount);
-            entry.decrementTicks();
-
-            if (tc != null) {
-                DrainStyle.renderTick(tc.getPosition(), entry.getColors(), buffer);
+            if (drain.isEmpty()) {
+                if (tc != null) {
+                    DrainStyle.renderComplete(tc.getPosition(), null, buffer);
+                }
+                buffer.removeComponent(entityRef, DrainComponent.getComponentType());
             }
-        }
-
-        if (drain.isEmpty()) {
-            if (tc != null) {
-                DrainStyle.renderComplete(tc.getPosition(), null, buffer);
-            }
-            buffer.removeComponent(entityRef, DrainComponent.getComponentType());
+        } catch (Exception e) {
+            LOGGER.atSevere().log("[hexcode] DrainTickSystem failed: %s", e.getMessage());
         }
     }
 

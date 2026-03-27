@@ -29,27 +29,31 @@ public class GlyphEffectSystem extends RefSystem<EntityStore> {
     public void onEntityAdded(@Nonnull Ref<EntityStore> ref, @Nonnull AddReason reason,
             @Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> buffer) {
 
-        GlyphComponent glyph = store.getComponent(ref, GlyphComponent.getComponentType());
-        if (glyph == null) {
-            logger.atInfo().log("GlyphEffectSystem: Entity %s has no GlyphComponent", ref);
-            return;
-        }
+        try {
+            GlyphComponent glyph = store.getComponent(ref, GlyphComponent.getComponentType());
+            if (glyph == null) {
+                logger.atInfo().log("GlyphEffectSystem: Entity %s has no GlyphComponent", ref);
+                return;
+            }
 
-        EntityEffect effect = GlyphStyleUtil.getGlyphEffect(glyph.getVolatility(), glyph.getEfficiency());
-        if (effect == null) {
-            logger.atInfo().log("GlyphEffectSystem: No effect found for volatility %s and efficiency %s",
-                    glyph.getVolatility(), glyph.getEfficiency());
-            return;
-        }
+            EntityEffect effect = GlyphStyleUtil.getGlyphEffect(glyph.getVolatility(), glyph.getEfficiency());
+            if (effect == null) {
+                logger.atInfo().log("GlyphEffectSystem: No effect found for volatility %s and efficiency %s",
+                        glyph.getVolatility(), glyph.getEfficiency());
+                return;
+            }
 
-        EffectControllerComponent effectController = store.getComponent(ref,
-                EffectControllerComponent.getComponentType());
-        if (effectController == null) {
-            logger.atInfo().log("GlyphEffectSystem: Entity %s - %s has no EffectControllerComponent", glyph, effect.getId());
-            return;
-        }
+            EffectControllerComponent effectController = store.getComponent(ref,
+                    EffectControllerComponent.getComponentType());
+            if (effectController == null) {
+                logger.atInfo().log("GlyphEffectSystem: Entity %s - %s has no EffectControllerComponent", glyph, effect.getId());
+                return;
+            }
 
-        effectController.addEffect(ref, effect, buffer);
+            effectController.addEffect(ref, effect, buffer);
+        } catch (Exception e) {
+            logger.atSevere().log("[hexcode] GlyphEffectSystem.onEntityAdded failed: %s", e.getMessage());
+        }
     }
 
     @Override

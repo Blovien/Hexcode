@@ -24,34 +24,38 @@ public class HexTick extends EntityTickingSystem<EntityStore> {
   @Override
   public void tick(float dt, int index, ArchetypeChunk<EntityStore> chunk,
       Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
-    HexcasterComponent comp = chunk.getComponent(index,
-        HexcasterComponent.getComponentType());
+    try {
+      HexcasterComponent comp = chunk.getComponent(index,
+          HexcasterComponent.getComponentType());
 
-    Ref<EntityStore> ref = chunk.getReferenceTo(index);
+      Ref<EntityStore> ref = chunk.getReferenceTo(index);
 
-    HexState pending = comp.consumePendingState();
-    if (pending != null) {
-      HexState current = comp.getState();
-      LOGGER.atInfo().log("%s -> %s", current, pending);
-      HexcodeManager old = StateRouter.route(current);
-      if (old != null) {
-        old.lastTick(ref, comp, store, buffer, pending);
+      HexState pending = comp.consumePendingState();
+      if (pending != null) {
+        HexState current = comp.getState();
+        LOGGER.atInfo().log("%s -> %s", current, pending);
+        HexcodeManager old = StateRouter.route(current);
+        if (old != null) {
+          old.lastTick(ref, comp, store, buffer, pending);
+        }
+
+        comp.applyState(pending);
+
+        HexcodeEvents.fire(new HexStateChangeEvent(ref, current, pending));
+
+        HexcodeManager next = StateRouter.route(pending);
+        if (next != null) {
+          next.firstTick(ref, comp, store, buffer, current);
+          return;
+        }
       }
 
-      comp.applyState(pending);
-
-      HexcodeEvents.fire(new HexStateChangeEvent(ref, current, pending));
-
-      HexcodeManager next = StateRouter.route(pending);
-      if (next != null) {
-        next.firstTick(ref, comp, store, buffer, current);
-        return;
+      HexcodeManager manager = StateRouter.route(comp.getState());
+      if (manager != null) {
+        manager.tick(ref, comp, dt, store, buffer);
       }
-    }
-
-    HexcodeManager manager = StateRouter.route(comp.getState());
-    if (manager != null) {
-      manager.tick(ref, comp, dt, store, buffer);
+    } catch (Exception e) {
+      LOGGER.atSevere().log("[hexcode] HexTick failed: %s", e.getMessage());
     }
   }
 }
