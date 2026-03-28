@@ -63,7 +63,7 @@ public class DrainTickSystem extends EntityTickingSystem<EntityStore> {
                     continue;
                 }
 
-                float drainAmount = entry.getDrainPerTick();
+                float drainAmount = entry.getDrainPerSecond() * dt;
 
                 // clamp hp drain to leave 1 hp
                 if (entry.getSourceStatIndex() == DefaultEntityStatTypes.getHealth()) {
@@ -100,7 +100,7 @@ public class DrainTickSystem extends EntityTickingSystem<EntityStore> {
                 }
 
                 entry.addDrained(drainAmount);
-                entry.decrementTicks();
+                entry.tick(dt);
 
                 if (tc != null) {
                     DrainStyle.renderTick(tc.getPosition(), entry.getColors(), buffer);
@@ -119,7 +119,7 @@ public class DrainTickSystem extends EntityTickingSystem<EntityStore> {
     }
 
     private boolean shouldStop(DrainEntry entry, EntityStatMap statMap) {
-        if (entry.getTicksRemaining() <= 0) return true;
+        if (entry.isExpired()) return true;
 
         EntityStatValue sourceStat = statMap.get(entry.getSourceStatIndex());
         if (sourceStat == null) return true;

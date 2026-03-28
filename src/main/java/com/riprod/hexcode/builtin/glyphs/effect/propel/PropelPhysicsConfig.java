@@ -4,11 +4,13 @@ import com.hypixel.hytale.server.core.modules.projectile.config.StandardPhysicsC
 
 public class PropelPhysicsConfig extends StandardPhysicsConfig {
 
-    public static final PropelPhysicsConfig INSTANCE = new PropelPhysicsConfig();
+    public PropelPhysicsConfig() {
+        this(0, 0);
+    }
 
-    private PropelPhysicsConfig() {
-        this.gravity = 0;
-        this.bounceCount = 0;
+    public PropelPhysicsConfig(double gravity, int bounces) {
+        this.gravity = gravity;
+        this.bounceCount = bounces;
         this.sticksVertically = true;
         this.computeYaw = true;
         this.computePitch = true;

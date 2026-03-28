@@ -5,10 +5,18 @@
   "GlyphType": "Effect",
   "ModelPath": "Glyph_Warp",
   "BasePower": 1.0,
-  "ManaConsumption": 40,
+  "ManaConsumption": 10,
   "Inputs": {
-    "target": { "Title": "Target", "DefaultSlot": 1, "Description": "Variable containing the targets to affect" },
-    "destination": { "Title": "Destination", "DefaultSlot": 2, "Description": "Position to teleport to" }
+    "target": {
+      "Title": "Target",
+      "DefaultSlot": 1,
+      "Description": "Variable containing the targets to affect"
+    },
+    "destination": {
+      "Title": "Destination",
+      "DefaultSlot": 2,
+      "Description": "Position to teleport to"
+    }
   },
   "ShapeStructure": [
     {

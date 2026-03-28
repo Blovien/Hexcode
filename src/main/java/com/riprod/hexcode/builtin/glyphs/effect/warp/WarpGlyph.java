@@ -6,15 +6,55 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.riprod.hexcode.builtin.glyphs.effect.warp.style.WarpStyle;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
+import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
+import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 import com.riprod.hexcode.utils.BlockUtils;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
 public class WarpGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     public static final String ID = "Glyph_Warp";
+
+    @Override
+    public boolean resolveMana(Glyph glyph, HexContext hexContext) {
+        GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
+        if (asset == null) return true;
+
+        HexVar targets = glyph.resolveInput("target", hexContext);
+        HexVar destInput = glyph.resolveInput("destination", hexContext);
+        if (targets == null || targets.size() == 0 || destInput == null || destInput.size() == 0) {
+            return true;
+        }
+
+        Vector3d destination = SpellVarUtil.resolvePosition(destInput, hexContext.getAccessor());
+        if (destination == null) {
+            return true;
+        }
+
+        double totalDistance = 0.0;
+        for (int i = 0; i < targets.size(); i++) {
+            Vector3d departurePos = SpellVarUtil.resolvePositionAt(targets, i, hexContext.getAccessor());
+            if (departurePos == null) {
+                continue;
+            }
+
+            double dx = destination.getX() - departurePos.getX();
+            double dy = destination.getY() - departurePos.getY();
+            double dz = destination.getZ() - departurePos.getZ();
+            totalDistance += Math.sqrt(dx * dx + dy * dy + dz * dz);
+        }
+
+        float baseCost = asset.getManaConsumption()
+                * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
+
+        VolatilityTracker tracker = hexContext.getVolatilityTracker();
+        float castMultiplier = (tracker != null) ? tracker.getManaCostMultiplier() : 1.0f;
+        float finalCost = (float) (baseCost * castMultiplier * totalDistance);
+        return hexContext.getRoot().tryConsumeMana(finalCost, hexContext.getAccessor());
+    }
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {

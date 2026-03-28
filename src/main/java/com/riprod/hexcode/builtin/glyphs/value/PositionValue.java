@@ -4,6 +4,7 @@ import com.hypixel.hytale.math.vector.Vector3d;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.values.HexValInterface;
+import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.state.execution.Executor;
@@ -23,7 +24,8 @@ public class PositionValue implements GlyphHandler, HexValInterface {
             HexVar single = xVar != null ? xVar : (yVar != null ? yVar : zVar);
             if (SpellVarUtil.isVectorVar(single)) {
                 Vector3d pos = SpellVarUtil.resolveAsPosition(single, hexContext.getAccessor());
-                return pos != null ? new PositionVar(pos) : null;
+                if (pos == null) return null;
+                return new PositionVar(pos, single instanceof EntityVar);
             }
         }
 

@@ -25,15 +25,32 @@ public class SwapGlyph implements GlyphHandler {
 
         HexVar varsA = glyph.resolveInput("a", hexContext);
         HexVar varsB = glyph.resolveInput("b", hexContext);
-        int pairCount = (varsA != null && varsB != null)
-                ? Math.min(varsA.size(), varsB.size()) : 1;
+        if (varsA == null || varsB == null || varsA.size() == 0 || varsB.size() == 0) {
+            return true;
+        }
+
+        int pairCount = Math.min(varsA.size(), varsB.size());
+        double totalDistance = 0.0;
+        for (int i = 0; i < pairCount; i++) {
+            Vector3d posA = SpellVarUtil.resolvePositionAt(varsA, i, hexContext.getAccessor());
+            Vector3d posB = SpellVarUtil.resolvePositionAt(varsB, i, hexContext.getAccessor());
+            if (posA == null || posB == null) {
+                continue;
+            }
+
+            double dx = posA.getX() - posB.getX();
+            double dy = posA.getY() - posB.getY();
+            double dz = posA.getZ() - posB.getZ();
+            double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            totalDistance += distance * 2.0;
+        }
 
         float baseCost = asset.getManaConsumption()
                 * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
 
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
         float castMultiplier = (tracker != null) ? tracker.getManaCostMultiplier() : 1.0f;
-        float finalCost = baseCost * castMultiplier * Math.max(1, pairCount);
+        float finalCost = (float) (baseCost * castMultiplier * totalDistance);
 
         return hexContext.getRoot().tryConsumeMana(finalCost, hexContext.getAccessor());
     }

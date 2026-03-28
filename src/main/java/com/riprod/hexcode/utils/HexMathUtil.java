@@ -64,7 +64,7 @@ public class HexMathUtil {
             Vector3d v = a.getAt(i);
             result.add(new Vector3d(-v.x, -v.y, -v.z));
         }
-        return new PositionVar(result);
+        return new PositionVar(result, false);
     }
 
     private static RotationVar negateRotation(RotationVar a) {
@@ -161,41 +161,44 @@ public class HexMathUtil {
     // --- position operations ---
 
     private static PositionVar addPositions(PositionVar a, PositionVar b) {
-        return zipPositions(a, b, (va, vb) -> new Vector3d(va).add(vb));
+        return zipPositions(a, b, (va, vb) -> new Vector3d(va).add(vb),
+                a.isAbsolute() || b.isAbsolute());
     }
 
     private static PositionVar subtractPositions(PositionVar a, PositionVar b) {
-        return zipPositions(a, b, (va, vb) -> new Vector3d(va).subtract(vb));
+        return zipPositions(a, b, (va, vb) -> new Vector3d(va).subtract(vb),
+                a.isAbsolute() && !b.isAbsolute());
     }
 
     private static PositionVar multiplyPositions(PositionVar a, PositionVar b) {
-        return zipPositions(a, b, (va, vb) -> new Vector3d(va).scale(vb));
+        return zipPositions(a, b, (va, vb) -> new Vector3d(va).scale(vb), false);
     }
 
     private static PositionVar dividePositions(PositionVar a, PositionVar b) {
         return zipPositions(a, b, (va, vb) -> new Vector3d(
                 vb.x != 0 ? va.x / vb.x : va.x,
                 vb.y != 0 ? va.y / vb.y : va.y,
-                vb.z != 0 ? va.z / vb.z : va.z));
+                vb.z != 0 ? va.z / vb.z : va.z), false);
     }
 
     private static PositionVar addPositionNumber(PositionVar a, NumberVar b) {
-        return mapPositionScalar(a, b, (pos, s) -> new Vector3d(pos).add(s));
+        return mapPositionScalar(a, b, (pos, s) -> new Vector3d(pos).add(s), a.isAbsolute());
     }
 
     private static PositionVar subtractPositionNumber(PositionVar a, NumberVar b) {
-        return mapPositionScalar(a, b, (pos, s) -> new Vector3d(pos).subtract(s));
+        return mapPositionScalar(a, b, (pos, s) -> new Vector3d(pos).subtract(s), a.isAbsolute());
     }
 
     private static PositionVar multiplyPositionNumber(PositionVar a, NumberVar b) {
-        return mapPositionScalar(a, b, (pos, s) -> new Vector3d(pos).scale(s));
+        return mapPositionScalar(a, b, (pos, s) -> new Vector3d(pos).scale(s), false);
     }
 
     private static PositionVar dividePositionNumber(PositionVar a, NumberVar b) {
-        return mapPositionScalar(a, b, (pos, s) -> s != 0 ? new Vector3d(pos).scale(1.0 / s) : new Vector3d(pos));
+        return mapPositionScalar(a, b, (pos, s) -> s != 0 ? new Vector3d(pos).scale(1.0 / s) : new Vector3d(pos), false);
     }
 
-    private static PositionVar zipPositions(PositionVar a, PositionVar b, Vec3dBinaryOp op) {
+    private static PositionVar zipPositions(PositionVar a, PositionVar b, Vec3dBinaryOp op,
+            boolean absolute) {
         boolean broadcastA = a.size() == 1 && b.size() > 1;
         boolean broadcastB = b.size() == 1 && a.size() > 1;
 
@@ -214,10 +217,11 @@ public class HexMathUtil {
             }
         }
 
-        return new PositionVar(result);
+        return new PositionVar(result, absolute);
     }
 
-    private static PositionVar mapPositionScalar(PositionVar a, NumberVar b, Vec3dScalarOp op) {
+    private static PositionVar mapPositionScalar(PositionVar a, NumberVar b, Vec3dScalarOp op,
+            boolean absolute) {
         boolean broadcastB = b.size() == 1;
         int maxSize = a.size();
         List<Vector3d> result = new ArrayList<>(maxSize);
@@ -231,7 +235,7 @@ public class HexMathUtil {
             }
         }
 
-        return new PositionVar(result);
+        return new PositionVar(result, absolute);
     }
 
     // --- rotation operations ---

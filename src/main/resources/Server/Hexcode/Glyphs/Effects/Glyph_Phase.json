@@ -19,14 +19,14 @@
     },
     "intensity": {
       "Title": "Intensity",
-      "DefaultValue": 5,
+      "DefaultValue": 20,
       "Description": "Maximum block hardness that can be phased"
     }
   },
   "Outputs": {
     "phased": {
       "Title": "Phased",
-      "DefaultSlot": 2,
+      "DefaultSlot": 1,
       "Description": "Block positions that were successfully phased"
     }
   },

@@ -7,9 +7,21 @@
   "BasePower": 1.0,
   "ManaConsumption": 15,
   "Inputs": {
-    "center": { "Title": "Center", "DefaultSlot": 1, "Description": "Position to center the effect around" },
-    "radius": { "Title": "Radius", "DefaultValue": 5, "Description": "Radius of the area of effect" },
-    "magnitude": { "Title": "Magnitude", "DefaultValue": 10, "Description": "Strength of the applied force" }
+    "center": {
+      "Title": "Center",
+      "DefaultSlot": 1,
+      "Description": "Position to center the effect around"
+    },
+    "radius": {
+      "Title": "Radius",
+      "DefaultValue": 5,
+      "Description": "Radius of the area of effect"
+    },
+    "magnitude": {
+      "Title": "Magnitude",
+      "DefaultValue": 15,
+      "Description": "Strength of the applied force"
+    }
   },
   "ShapeStructure": [
     {

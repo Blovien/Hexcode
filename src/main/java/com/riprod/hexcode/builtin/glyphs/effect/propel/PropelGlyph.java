@@ -47,6 +47,9 @@ public class PropelGlyph implements GlyphHandler {
 
     HexVar sourceVar = glyph.resolveInput("source", hexContext);
     HexVar directionVar = glyph.resolveInput("direction", hexContext);
+    HexVar speedVar = glyph.resolveInput("speed", hexContext);
+    HexVar gravityVar = glyph.resolveInput("gravity", hexContext);
+    HexVar bouncesVar = glyph.resolveInput("bounces", hexContext);
 
     if (sourceVar == null) {
       LOGGER.atWarning().log("propel: no source provided");
@@ -77,9 +80,17 @@ public class PropelGlyph implements GlyphHandler {
     spawnPos.add(new Vector3d(direction).scale(1.5));
 
     double speed = SpellVarUtil.resolveNumberOrDefault(
-        glyph.resolveInput("speed", hexContext), 30.0);
+        speedVar, 30.0);
     if (speed <= 0)
       speed = 30.0;
+
+    double gravity = SpellVarUtil.resolveNumberOrDefault(
+        gravityVar, 0.0);
+
+    int bounces = SpellVarUtil.resolveNumberOrDefault(
+        bouncesVar, 0.0).intValue();
+    if (bounces < 0)
+      bounces = 0;
 
     Vector3f rotation = new Vector3f();
     rotation.setYaw((float) Math.atan2(-direction.x, direction.z));
@@ -105,7 +116,7 @@ public class PropelGlyph implements GlyphHandler {
     holder.addComponent(Velocity.getComponentType(), new Velocity());
 
     Vector3d launchVelocity = new Vector3d(direction).scale(speed);
-    PropelPhysicsConfig.INSTANCE.apply(holder, hexContext.getCasterRef(), launchVelocity,
+    new PropelPhysicsConfig(gravity, bounces).apply(holder, hexContext.getCasterRef(), launchVelocity,
         hexContext.getAccessor(), false);
 
     Map<String, Integer> outputSlots = new HashMap<>();

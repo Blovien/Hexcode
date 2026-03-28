@@ -7,12 +7,26 @@
   "BasePower": 1.0,
   "ManaConsumption": 3,
   "Inputs": {
-    "source": { "Title": "Source", "DefaultSlot": 1, "Description": "Variable to sample from, or slot to store generated values" },
-    "min": { "Title": "Min", "DefaultSlot": 2, "Description": "Minimum value for random generation" },
-    "max": { "Title": "Max", "DefaultSlot": 3, "Description": "Maximum value for random generation" }
+    "source": {
+      "Title": "Source",
+      "DefaultSlot": 1,
+      "Description": "Variable to sample from, or slot to store generated values"
+    },
+    "min": {
+      "Title": "Min",
+      "Description": "Minimum value to generate between"
+    },
+    "max": {
+      "Title": "Max",
+      "Description": "Maximum value to generate between"
+    }
   },
   "Outputs": {
-    "result": { "Title": "Result", "DefaultSlot": 1, "Description": "Variable slot to store the result" }
+    "result": {
+      "Title": "Result",
+      "DefaultSlot": 1,
+      "Description": "Variable slot to store the result"
+    }
   },
   "ShapeStructure": [
     {

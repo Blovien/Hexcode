@@ -146,7 +146,7 @@ public class GrowthGlyph implements GlyphHandler {
 
         double duration = SpellVarUtil.resolveNumberOrDefault(
                 glyph.resolveInput("duration", hexContext), DEFAULT_DURATION);
-        float durationSeconds = (float) (duration / 20.0);
+        float durationSeconds = (float) duration;
 
         for (int i = 0; i < entityVar.size(); i++) {
             Ref<EntityStore> ref = entityVar.getRef(i, accessor);

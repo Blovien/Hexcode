@@ -7,12 +7,38 @@
   "BasePower": 1.0,
   "ManaConsumption": 10,
   "Inputs": {
-    "source": { "Title": "Source", "DefaultSlot": 1, "Description": "Entity to launch the projectile from" },
-    "direction": { "Title": "Direction", "DefaultSlot": 1, "Description": "Launch direction, defaults to source entity's look direction" },
-    "speed": { "Title": "Speed", "DefaultValue": 30, "Description": "Speed of the projectile" }
+    "source": {
+      "Title": "Source",
+      "DefaultSlot": 1,
+      "Description": "Entity to launch the projectile from"
+    },
+    "direction": {
+      "Title": "Direction",
+      "DefaultSlot": 1,
+      "Description": "Launch direction, defaults to source entity's look direction"
+    },
+    "speed": {
+      "Title": "Speed",
+      "DefaultValue": 30,
+      "Description": "Speed of the projectile"
+    },
+    "gravity": {
+      "Title": "Gravity",
+      "DefaultValue": 0,
+      "Description": "The amount that gravity affects the projectile"
+    },
+    "bounces": {
+      "Title": "Bounces",
+      "Description": "The number of bounces the projectile will have",
+      "DefaultValue": 0
+    }
   },
   "Outputs": {
-    "result": { "Title": "Result", "DefaultSlot": 1, "Description": "Variable slot to store the result" }
+    "result": {
+      "Title": "Result",
+      "DefaultSlot": 1,
+      "Description": "Variable slot to store the result"
+    }
   },
   "ShapeStructure": [
     {

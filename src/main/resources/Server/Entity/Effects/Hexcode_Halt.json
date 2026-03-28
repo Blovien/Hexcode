@@ -1,0 +1,11 @@
+{
+  "Duration": 1.0,
+  "Debuff": true,
+  "OverlapBehavior": "Overwrite",
+  "ApplicationEffects": {
+    "HorizontalSpeedMultiplier": 0.0,
+    "MovementEffects": {
+      "DisableAll": true
+    }
+  }
+}

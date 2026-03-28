@@ -48,7 +48,7 @@ public class RuptureTickSystem extends EntityTickingSystem<EntityStore> {
                 return;
             }
 
-            rupture.incrementElapsed();
+            rupture.incrementElapsed(dt);
 
             if (!rupture.isExpired()) {
                 processDamage(rupture, buffer);
@@ -61,8 +61,8 @@ public class RuptureTickSystem extends EntityTickingSystem<EntityStore> {
             continueExecution(signal, buffer);
             removeEntity(entityRef, buffer);
 
-            LOGGER.atInfo().log("rupture: expired after %d ticks, removed %d spikes",
-                    rupture.getDurationTicks(), rupture.getSpikes().size());
+            LOGGER.atInfo().log("rupture: expired after %.1fs, removed %d spikes",
+                    rupture.getDurationSeconds(), rupture.getSpikes().size());
         } catch (Exception e) {
             LOGGER.atSevere().log("[hexcode] RuptureTickSystem failed: %s", e.getMessage());
         }

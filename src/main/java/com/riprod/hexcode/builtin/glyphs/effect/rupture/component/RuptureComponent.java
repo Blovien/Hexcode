@@ -18,25 +18,25 @@ public class RuptureComponent implements Component<EntityStore> {
     private static ComponentType<EntityStore, RuptureComponent> componentType;
 
     private List<SpikeEntry> spikes;
-    private int durationTicks;
-    private int elapsedTicks;
+    private float durationSeconds;
+    private float elapsedSeconds;
     private float spikeDamage;
-    private int damageCooldownTicks;
-    private Map<UUID, Integer> lastDamageTickMap;
+    private float damageCooldownSeconds;
+    private Map<UUID, Float> lastDamageTimeMap;
     private Vector3d center;
     private double radius;
 
     public RuptureComponent() {
     }
 
-    public RuptureComponent(List<SpikeEntry> spikes, int durationTicks, float spikeDamage,
-            int damageCooldownTicks, Vector3d center, double radius) {
+    public RuptureComponent(List<SpikeEntry> spikes, float durationSeconds, float spikeDamage,
+            float damageCooldownSeconds, Vector3d center, double radius) {
         this.spikes = spikes;
-        this.durationTicks = durationTicks;
-        this.elapsedTicks = 0;
+        this.durationSeconds = durationSeconds;
+        this.elapsedSeconds = 0;
         this.spikeDamage = spikeDamage;
-        this.damageCooldownTicks = damageCooldownTicks;
-        this.lastDamageTickMap = new HashMap<>();
+        this.damageCooldownSeconds = damageCooldownSeconds;
+        this.lastDamageTimeMap = new HashMap<>();
         this.center = center;
         this.radius = radius;
     }
@@ -53,20 +53,20 @@ public class RuptureComponent implements Component<EntityStore> {
         return spikes;
     }
 
-    public int getDurationTicks() {
-        return durationTicks;
+    public float getDurationSeconds() {
+        return durationSeconds;
     }
 
-    public int getElapsedTicks() {
-        return elapsedTicks;
+    public float getElapsedSeconds() {
+        return elapsedSeconds;
     }
 
-    public void incrementElapsed() {
-        elapsedTicks++;
+    public void incrementElapsed(float dt) {
+        elapsedSeconds += dt;
     }
 
     public boolean isExpired() {
-        return elapsedTicks >= durationTicks;
+        return elapsedSeconds >= durationSeconds;
     }
 
     public float getSpikeDamage() {
@@ -82,13 +82,13 @@ public class RuptureComponent implements Component<EntityStore> {
     }
 
     public boolean canDamageTarget(UUID targetId) {
-        Integer lastTick = lastDamageTickMap.get(targetId);
-        if (lastTick == null) return true;
-        return (elapsedTicks - lastTick) >= damageCooldownTicks;
+        Float lastTime = lastDamageTimeMap.get(targetId);
+        if (lastTime == null) return true;
+        return (elapsedSeconds - lastTime) >= damageCooldownSeconds;
     }
 
     public void recordDamage(UUID targetId) {
-        lastDamageTickMap.put(targetId, elapsedTicks);
+        lastDamageTimeMap.put(targetId, elapsedSeconds);
     }
 
     @Nonnull
@@ -96,11 +96,11 @@ public class RuptureComponent implements Component<EntityStore> {
     public RuptureComponent clone() {
         RuptureComponent copy = new RuptureComponent();
         copy.spikes = this.spikes != null ? new ArrayList<>(this.spikes) : null;
-        copy.durationTicks = this.durationTicks;
-        copy.elapsedTicks = this.elapsedTicks;
+        copy.durationSeconds = this.durationSeconds;
+        copy.elapsedSeconds = this.elapsedSeconds;
         copy.spikeDamage = this.spikeDamage;
-        copy.damageCooldownTicks = this.damageCooldownTicks;
-        copy.lastDamageTickMap = this.lastDamageTickMap != null ? new HashMap<>(this.lastDamageTickMap) : null;
+        copy.damageCooldownSeconds = this.damageCooldownSeconds;
+        copy.lastDamageTimeMap = this.lastDamageTimeMap != null ? new HashMap<>(this.lastDamageTimeMap) : null;
         copy.center = this.center;
         copy.radius = this.radius;
         return copy;

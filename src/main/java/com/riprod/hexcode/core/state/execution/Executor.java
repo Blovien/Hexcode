@@ -121,14 +121,14 @@ public class Executor {
         }
     }
 
-    public static void delayContinuation(List<String> nextGlyphs, HexContext hexContext, int delayTicks) {
+    public static void delayContinuation(List<String> nextGlyphs, HexContext hexContext, float delaySeconds) {
         RootGlyph rootGlyph = hexContext.getAccessor().getComponent(
                 hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
 
         PendingContinue pending = new PendingContinue(
                 nextGlyphs,
                 hexContext,
-                delayTicks);
+                delaySeconds);
         rootGlyph.addPendingContinue(pending);
     }
 }

@@ -39,7 +39,6 @@ public class FreezeGlyph implements GlyphHandler {
     public static final String ID = "Glyph_Freeze";
 
     private static final double DEFAULT_DURATION = 3.0;
-    private static final int TICKS_PER_SECOND = 20;
 
     // -- volatility tuning --
     // every N seconds of duration adds an extra volatility roll
@@ -114,7 +113,7 @@ public class FreezeGlyph implements GlyphHandler {
         double duration = SpellVarUtil.resolveNumberOrDefault(
                 glyph.resolveInput("duration", hexContext), DEFAULT_DURATION);
 
-        EntityEffect freezeEffect = EntityEffect.getAssetMap().getAsset("Freeze");
+        EntityEffect freezeEffect = EntityEffect.getAssetMap().getAsset("Hexcode_Freeze");
         if (freezeEffect == null) {
             LOGGER.atWarning().log("freeze: Freeze effect asset not found");
             Executor.continueExecution(glyph.getNext(), hexContext);
@@ -153,8 +152,7 @@ public class FreezeGlyph implements GlyphHandler {
         }
 
         if (!frozenBlocks.isEmpty()) {
-            int durationTicks = (int) (duration * TICKS_PER_SECOND);
-            spawnFreezeTracker(hexContext, frozenBlocks, durationTicks, accessor);
+            spawnFreezeTracker(hexContext, frozenBlocks, (float) duration, accessor);
         }
 
         Executor.continueExecution(glyph.getNext(), hexContext);
@@ -179,7 +177,7 @@ public class FreezeGlyph implements GlyphHandler {
     }
 
     private void spawnFreezeTracker(HexContext hexContext, List<FrozenBlock> frozenBlocks,
-            int durationTicks, CommandBuffer<EntityStore> accessor) {
+            float durationSeconds, CommandBuffer<EntityStore> accessor) {
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
         holder.ensureComponent(UUIDComponent.getComponentType());
         holder.addComponent(NetworkId.getComponentType(),
@@ -188,7 +186,7 @@ public class FreezeGlyph implements GlyphHandler {
                 new HexSignal(hexContext.copy(), hexContext.getRoot().getRootEntityRef(),
                         null, null, null));
         holder.addComponent(FreezeComponent.getComponentType(),
-                new FreezeComponent(frozenBlocks, durationTicks));
+                new FreezeComponent(frozenBlocks, durationSeconds));
 
         accessor.addEntity(holder, AddReason.SPAWN);
 

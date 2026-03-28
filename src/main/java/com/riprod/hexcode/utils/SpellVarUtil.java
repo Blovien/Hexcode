@@ -165,15 +165,21 @@ public class SpellVarUtil {
         if (var instanceof RotationVar rotVar && rotVar.getValues().get(0) != null) {
             return new Vector3d(rotVar.getValues().get(0).getYaw(), rotVar.getValues().get(0).getPitch());
         }
+        if (var instanceof PositionVar posVar && posVar.size() > 0) {
+            if (posVar.isAbsolute()) {
+                if (sourcePosition != null) {
+                    return Vector3d.directionTo(sourcePosition, posVar.getAt(0));
+                }
+                return null;
+            }
+            return new Vector3d(posVar.getAt(0)).normalize();
+        }
         if (sourcePosition != null) {
             if (var instanceof BlockVar blockVar && blockVar.getValues().get(0) != null) {
                 Vector3d blockCenter = new Vector3d(blockVar.getValues().get(0).x + 0.5,
                         blockVar.getValues().get(0).y + 0.5,
                         blockVar.getValues().get(0).z + 0.5);
                 return Vector3d.directionTo(sourcePosition, blockCenter);
-            }
-            if (var instanceof PositionVar posVar && posVar.getValues().get(0) != null) {
-                return Vector3d.directionTo(sourcePosition, posVar.getValues().get(0));
             }
         }
         return null;

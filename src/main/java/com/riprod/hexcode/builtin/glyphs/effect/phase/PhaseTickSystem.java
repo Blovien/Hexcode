@@ -13,6 +13,8 @@ import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3i;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
+import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.damage.Damage;
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageCause;
@@ -45,7 +47,7 @@ public class PhaseTickSystem extends EntityTickingSystem<EntityStore> {
                 return;
             }
 
-            phase.incrementElapsed();
+            phase.incrementElapsed(dt);
 
             if (!phase.isExpired()) {
                 return;
@@ -59,7 +61,7 @@ public class PhaseTickSystem extends EntityTickingSystem<EntityStore> {
             removeEntity(entityRef, buffer);
 
             LOGGER.atInfo().log("phase: restored %d blocks after %d ticks",
-                    phase.getPhasedBlocks().size(), phase.getDurationTicks());
+                    phase.getPhasedBlocks().size(), phase.getDurationSeconds());
         } catch (Exception e) {
             LOGGER.atSevere().log("[hexcode] PhaseTickSystem failed: %s", e.getMessage());
         }
@@ -72,7 +74,10 @@ public class PhaseTickSystem extends EntityTickingSystem<EntityStore> {
             Vector3d blockCenter = new Vector3d(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5);
 
             applyCrushDamage(pos, blockCenter, buffer);
-            world.setBlock(pos.x, pos.y, pos.z, block.getBlockTypeId());
+            int blockId = BlockType.getAssetMap().getIndex(block.getBlockTypeId());
+            BlockType blockType = BlockType.getAssetMap().getAsset(blockId);
+            world.getChunk(ChunkUtil.indexChunkFromBlock(pos.x, pos.z))
+                    .setBlock(pos.x, pos.y, pos.z, blockId, blockType, block.getRotationIndex(), 0, 0);
             if (signal != null && signal.getPrimary() != null) {
                 PhaseStyle.renderPhaseIn(blockCenter, signal.getPrimary().getHexContext().getColors(), buffer);
             }

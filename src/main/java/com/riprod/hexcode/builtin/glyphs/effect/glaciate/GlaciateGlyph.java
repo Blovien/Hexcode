@@ -15,6 +15,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel;
 import com.hypixel.hytale.server.core.modules.entity.component.PropComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
 import com.hypixel.hytale.server.core.modules.entity.hitboxcollision.HitboxCollision;
 import com.hypixel.hytale.server.core.modules.entity.hitboxcollision.HitboxCollisionConfig;
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
@@ -91,19 +92,17 @@ public class GlaciateGlyph implements GlyphHandler {
             return new Vector3d(targetPos).add(new Vector3d(0, DEFAULT_HEIGHT, 0));
         }
 
-        // entity input → absolute position (entity's world position)
         if (offsetVar instanceof EntityVar) {
             Vector3d absPos = SpellVarUtil.resolvePosition(offsetVar, hexContext.getAccessor());
             if (absPos != null) return absPos;
             return new Vector3d(targetPos).add(new Vector3d(0, DEFAULT_HEIGHT, 0));
         }
 
-        // position input → relative offset from target
         if (offsetVar instanceof PositionVar posVar && posVar.size() > 0) {
+            if (posVar.isAbsolute()) return new Vector3d(posVar.getAt(0));
             return new Vector3d(targetPos).add(new Vector3d(posVar.getAt(0)));
         }
 
-        // number input → height shorthand (0, number, 0)
         if (offsetVar instanceof NumberVar) {
             double height = SpellVarUtil.resolveNumberOrDefault(offsetVar, DEFAULT_HEIGHT);
             return new Vector3d(targetPos).add(new Vector3d(0, height, 0));
@@ -133,6 +132,7 @@ public class GlaciateGlyph implements GlyphHandler {
                 new NetworkId(hexContext.getAccessor().getExternalData().takeNextNetworkId()));
         holder.ensureComponent(PropComponent.getComponentType());
         holder.ensureComponent(ProjectileModule.get().getProjectileComponentType());
+        holder.ensureComponent(EffectControllerComponent.getComponentType());
         holder.addComponent(Velocity.getComponentType(), new Velocity());
 
         if (collisionConfig != null) {

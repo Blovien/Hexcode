@@ -13,7 +13,6 @@ import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
-import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
@@ -65,19 +64,14 @@ public class ForceGlyph implements GlyphHandler {
         HexVar magInput = glyph.resolveInput("magnitude", hexContext);
         double magnitude = SpellVarUtil.resolveNumberOrDefault(magInput, 20.0);
 
-        Vector3d force;
-        if (dirInput instanceof PositionVar posVar && posVar.size() > 0) {
-            force = new Vector3d(posVar.getAt(0)).scale(magnitude);
-        } else {
-            Vector3d direction = null;
-            if (dirInput != null) {
-                direction = SpellVarUtil.resolveDirection(dirInput, null, hexContext.getAccessor());
-            }
-            if (direction == null) {
-                direction = new Vector3d(0, 1, 0);
-            }
-            force = new Vector3d(direction).scale(magnitude);
+        Vector3d direction = null;
+        if (dirInput != null) {
+            direction = SpellVarUtil.resolveDirection(dirInput, null, hexContext.getAccessor());
         }
+        if (direction == null) {
+            direction = new Vector3d(0, 1, 0);
+        }
+        Vector3d force = new Vector3d(direction).scale(magnitude);
 
         return Math.abs(force.getX()) + Math.abs(force.getY()) + Math.abs(force.getZ());
     }
@@ -92,23 +86,7 @@ public class ForceGlyph implements GlyphHandler {
 
         HexVar dirInput = glyph.resolveInput("direction", hexContext);
         HexVar magInput = glyph.resolveInput("magnitude", hexContext);
-
-        Vector3d force;
         double magnitude = SpellVarUtil.resolveNumberOrDefault(magInput, 20.0);
-
-        if (dirInput instanceof PositionVar posVar && posVar.size() > 0) {
-            force = new Vector3d(posVar.getAt(0)).scale(magnitude);
-        } else {
-            Vector3d direction = null;
-            if (dirInput != null) {
-                direction = SpellVarUtil.resolveDirection(dirInput, null, hexContext.getAccessor());
-            }
-            if (direction == null) {
-                direction = new Vector3d(0, 1, 0);
-            }
-
-            force = new Vector3d(direction).scale(magnitude);
-        }
 
         if (targets instanceof EntityVar entityVar) {
             for (int i = 0; i < entityVar.size(); i++) {
@@ -117,20 +95,28 @@ public class ForceGlyph implements GlyphHandler {
                     continue;
 
                 try {
+                    TransformComponent tc = hexContext.getAccessor().getComponent(ref,
+                            TransformComponent.getComponentType());
+                    if (tc == null) continue;
+
+                    Vector3d targetPos = tc.getPosition();
+                    Vector3d direction = null;
+                    if (dirInput != null) {
+                        direction = SpellVarUtil.resolveDirection(dirInput, targetPos,
+                                hexContext.getAccessor());
+                    }
+                    if (direction == null) {
+                        direction = new Vector3d(0, 1, 0);
+                    }
+                    Vector3d force = new Vector3d(direction).scale(magnitude);
+
                     Velocity vel = hexContext.getAccessor().getComponent(ref, Velocity.getComponentType());
                     if (vel != null) {
                         vel.addInstruction(new Vector3d(force), new VelocityConfig(), ChangeVelocityType.Add);
                     }
 
-                    LOGGER.atInfo().log("force glyph: applied force %s to entity %s",
-                            force, entityVar.getAt(i).getUuid());
-
-                    TransformComponent tc = hexContext.getAccessor().getComponent(ref,
-                            TransformComponent.getComponentType());
-                    if (tc != null) {
-                        ForceGlyphStyle.render(tc.getPosition(), force, hexContext.getColors(),
-                                hexContext.getAccessor());
-                    }
+                    ForceGlyphStyle.render(targetPos, force, hexContext.getColors(),
+                            hexContext.getAccessor());
                 } catch (Exception e) {
                     LOGGER.atWarning().log("force glyph: could not apply force to entity %s: %s",
                             entityVar.getAt(i).getUuid(), e.getMessage());

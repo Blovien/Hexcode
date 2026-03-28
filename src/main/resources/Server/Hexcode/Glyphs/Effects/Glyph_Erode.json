@@ -7,9 +7,21 @@
   "BasePower": 1.0,
   "ManaConsumption": 10,
   "Inputs": {
-    "target": { "Title": "Target", "DefaultSlot": 1, "Description": "Variable containing the targets to affect" },
-    "amount": { "Title": "Amount", "DefaultSlot": 2, "Description": "Vulnerability increase per incoming hit" },
-    "duration": { "Title": "Duration", "DefaultSlot": 3, "Description": "How long the effect lasts in seconds" }
+    "target": {
+      "Title": "Target",
+      "DefaultSlot": 1,
+      "Description": "Variable containing the targets to affect"
+    },
+    "amount": {
+      "Title": "Amount",
+      "Description": "Vulnerability increase per incoming hit",
+      "DefaultValue": 15
+    },
+    "duration": {
+      "Title": "Duration",
+      "DefaultSlot": 6,
+      "Description": "How long the effect lasts in seconds"
+    }
   },
   "ShapeStructure": [
     {

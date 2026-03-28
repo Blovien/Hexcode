@@ -26,9 +26,9 @@ public class DrainGlyph implements GlyphHandler, HexValInterface {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     public static final String ID = "Glyph_Drain";
 
-    private static final float HP_TO_MANA_RATE = 1.0f;
-    private static final float STAMINA_TO_MANA_RATE = 0.15f;
-    private static final int DEFAULT_DURATION = 20;
+    private static final float HP_TO_MANA_RATE = 1.5f;
+    private static final float STAMINA_TO_MANA_RATE = 0.2f;
+    private static final float DEFAULT_DURATION = 1.0f;
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
@@ -60,8 +60,10 @@ public class DrainGlyph implements GlyphHandler, HexValInterface {
             conversionRate = STAMINA_TO_MANA_RATE;
             drainPercent = SpellVarUtil.resolveNumberOrDefault(staminaInput, 0.0);
         } else {
-            Executor.continueExecution(glyph.getNext(), hexContext);
-            return;
+            // default to using health if no specific stat is provided
+            sourceStatIndex = DefaultEntityStatTypes.getHealth();
+            conversionRate = HP_TO_MANA_RATE;
+            drainPercent = 15.0f;
         }
 
         if (drainPercent <= 0) {
@@ -101,10 +103,9 @@ public class DrainGlyph implements GlyphHandler, HexValInterface {
         }
 
         HexVar durationVar = glyph.resolveInput("duration", hexContext);
-        int duration = DEFAULT_DURATION;
+        float duration = DEFAULT_DURATION;
         if (durationVar != null) {
-            Double durationVal = SpellVarUtil.resolveNumberOrDefault(durationVar, (double) DEFAULT_DURATION);
-            duration = Math.max(1, durationVal.intValue());
+            duration = Math.max(0.01f, SpellVarUtil.resolveNumberOrDefault(durationVar, (double) DEFAULT_DURATION).floatValue());
         }
 
         HexColors colors = hexContext.getColors();

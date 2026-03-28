@@ -26,7 +26,7 @@ public class DetonateGlyph implements GlyphHandler {
     private static final double MIN_KNOCKBACK_OFFSET = 0.1;
     private static final float BASE_DAMAGE = 2.0f;
     private static final float DAMAGE_SCALE = 0.2f;
-    private static final float VOLATILITY_HARSHNESS = 0.5f;
+    private static final float VOLATILITY_HARSHNESS = 0.9f;
 
     @Override
     public boolean resolveVolatility(Glyph glyph, HexContext hexContext) {

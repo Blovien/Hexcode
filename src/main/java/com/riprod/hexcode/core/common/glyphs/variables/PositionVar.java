@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.codec.codecs.array.ArrayCodec;
@@ -11,6 +12,7 @@ import com.hypixel.hytale.math.vector.Vector3d;
 
 public class PositionVar extends HexVar {
     private List<Vector3d> positions = new ArrayList<>();
+    private boolean absolute;
 
     public PositionVar() {
     }
@@ -19,9 +21,24 @@ public class PositionVar extends HexVar {
         this.positions = positions;
     }
 
+    public PositionVar(List<Vector3d> positions, boolean absolute) {
+        this.positions = positions;
+        this.absolute = absolute;
+    }
+
     public PositionVar(Vector3d position) {
         this.positions = new ArrayList<>();
         this.positions.add(position);
+    }
+
+    public PositionVar(Vector3d position, boolean absolute) {
+        this.positions = new ArrayList<>();
+        this.positions.add(position);
+        this.absolute = absolute;
+    }
+
+    public boolean isAbsolute() {
+        return absolute;
     }
 
     public List<Vector3d> getValues() {
@@ -76,6 +93,10 @@ public class PositionVar extends HexVar {
             .append(new KeyedCodec<>("Positions", new ArrayCodec<>(Vector3d.CODEC, Vector3d[]::new)),
                     (v, pos) -> v.positions = new ArrayList<>(Arrays.asList(pos)),
                     v -> v.positions.toArray(Vector3d[]::new))
+            .add()
+            .append(new KeyedCodec<>("Absolute", Codec.BOOLEAN),
+                    (v, abs) -> v.absolute = abs,
+                    v -> v.absolute)
             .add()
             .build();
 

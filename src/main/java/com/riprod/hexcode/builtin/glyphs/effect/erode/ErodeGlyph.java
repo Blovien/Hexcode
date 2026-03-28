@@ -150,7 +150,7 @@ public class ErodeGlyph implements GlyphHandler {
         double duration = SpellVarUtil.resolveNumberOrDefault(
                 glyph.resolveInput("duration", hexContext), DEFAULT_DURATION);
         float vulnerabilityMultiplier = (float) (amount * VULNERABILITY_SCALE);
-        float durationSeconds = (float) (duration / 20.0);
+        float durationSeconds = (float) duration;
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
 

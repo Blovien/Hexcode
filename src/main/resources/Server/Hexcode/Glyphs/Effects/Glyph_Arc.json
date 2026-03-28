@@ -7,12 +7,28 @@
   "BasePower": 1.0,
   "ManaConsumption": 20,
   "Inputs": {
-    "target": { "Title": "Target", "DefaultSlot": 1, "Description": "Variable containing the targets to affect" },
-    "jump": { "Title": "Jump", "DefaultValue": 15, "Description": "Number of blocks to jump" },
-    "delay": { "Title": "Delay", "DefaultValue": 0.75, "Description": "Seconds between each arc jump" }
+    "target": {
+      "Title": "Target",
+      "DefaultSlot": 1,
+      "Description": "Variable containing the targets to affect"
+    },
+    "jump": {
+      "Title": "Jump",
+      "DefaultValue": 15,
+      "Description": "Number of blocks to jump"
+    },
+    "delay": {
+      "Title": "Delay",
+      "DefaultValue": 0.25,
+      "Description": "Seconds between each arc jump"
+    }
   },
   "Outputs": {
-    "result": { "Title": "Result", "DefaultSlot": 1, "Description": "Variable slot to store the result" }
+    "result": {
+      "Title": "Result",
+      "DefaultSlot": 1,
+      "Description": "Variable slot to store the result"
+    }
   },
   "ShapeStructure": [
     {

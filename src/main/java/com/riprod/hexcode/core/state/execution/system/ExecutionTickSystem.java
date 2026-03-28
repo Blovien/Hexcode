@@ -63,7 +63,7 @@ public class ExecutionTickSystem extends EntityTickingSystem<EntityStore> {
             Iterator<PendingContinue> it = rootGlyph.getPendingContinues().iterator();
             while (it.hasNext()) {
                 PendingContinue pending = it.next();
-                pending.tick();
+                pending.tick(dt);
 
                 if (pending.isReady()) {
                     it.remove();

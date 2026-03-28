@@ -45,11 +45,11 @@ public class MultiplyGlyph implements GlyphHandler, HexValInterface {
 
         if (a instanceof EntityVar) {
             Vector3d aPos = SpellVarUtil.resolveAsPosition(a, hexContext.getAccessor());
-            a = new PositionVar(aPos);
+            a = new PositionVar(aPos, true);
         }
         if (b instanceof EntityVar) {
             Vector3d bPos = SpellVarUtil.resolveAsPosition(b, hexContext.getAccessor());
-            b = new PositionVar(bPos);
+            b = new PositionVar(bPos, true);
         }
 
         return HexMathUtil.multiply(a, b);

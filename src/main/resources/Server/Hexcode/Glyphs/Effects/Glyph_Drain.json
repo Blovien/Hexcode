@@ -5,12 +5,26 @@
   "GlyphType": "Hybrid",
   "ModelPath": "Glyph_Drain",
   "BasePower": 1.0,
-  "ManaConsumption": 5,
+  "ManaConsumption": 0,
   "Inputs": {
-    "hp": { "Title": "HP", "Description": "Drain HP → Mana (1:1)" },
-    "stamina": { "Title": "Stamina", "Description": "Drain Stamina → Mana (lossy)" },
-    "target": { "Title": "Target", "Description": "Entity to drain", "DefaultSlot": 1 },
-    "duration": { "Title": "Duration", "Description": "Seconds to channel over", "DefaultValue": 1 }
+    "hp": {
+      "Title": "HP",
+      "Description": "Drain HP > Mana (1:1)"
+    },
+    "stamina": {
+      "Title": "Stamina",
+      "Description": "Drain Stamina > Mana (lossy)"
+    },
+    "target": {
+      "Title": "Target",
+      "Description": "Entity to drain. Filter slot for Mana",
+      "DefaultSlot": 1
+    },
+    "duration": {
+      "Title": "Duration",
+      "Description": "Seconds to channel over",
+      "DefaultValue": 5
+    }
   },
   "ShapeStructure": [
     {

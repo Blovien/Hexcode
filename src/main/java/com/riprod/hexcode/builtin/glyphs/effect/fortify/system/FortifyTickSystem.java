@@ -28,7 +28,15 @@ public class FortifyTickSystem extends EntityTickingSystem<EntityStore> {
             FortifyComponent fortify = chunk.getComponent(index, FortifyComponent.getComponentType());
             if (fortify == null) return;
 
-            if (!fortify.tick(dt)) return;
+            boolean manaConsumed = true;
+
+            // periodicall reduce mana based on fortify level
+            if (fortify.shouldConsumeMana()) {
+                float finalCost = fortify.getManaCost();
+                manaConsumed = fortify.getHexContext().getRoot().tryConsumeMana(finalCost, buffer);
+            }
+
+            if (!fortify.tick(dt) && manaConsumed) return;
 
             Ref<EntityStore> ref = chunk.getReferenceTo(index);
 
@@ -40,6 +48,8 @@ public class FortifyTickSystem extends EntityTickingSystem<EntityStore> {
                     controller.removeEffect(ref, effectIndex, buffer);
                 }
             }
+
+            
 
             buffer.removeComponent(ref, FortifyComponent.getComponentType());
             LOGGER.atInfo().log("fortify: effect expired on entity");

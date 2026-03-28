@@ -14,16 +14,16 @@ public class FreezeComponent implements Component<EntityStore> {
     private static ComponentType<EntityStore, FreezeComponent> componentType;
 
     private List<FrozenBlock> frozenBlocks;
-    private int durationTicks;
-    private int elapsedTicks;
+    private float durationSeconds;
+    private float elapsedSeconds;
 
     public FreezeComponent() {
     }
 
-    public FreezeComponent(List<FrozenBlock> frozenBlocks, int durationTicks) {
+    public FreezeComponent(List<FrozenBlock> frozenBlocks, float durationSeconds) {
         this.frozenBlocks = frozenBlocks;
-        this.durationTicks = durationTicks;
-        this.elapsedTicks = 0;
+        this.durationSeconds = durationSeconds;
+        this.elapsedSeconds = 0;
     }
 
     public static void setComponentType(ComponentType<EntityStore, FreezeComponent> type) {
@@ -38,20 +38,20 @@ public class FreezeComponent implements Component<EntityStore> {
         return frozenBlocks;
     }
 
-    public int getDurationTicks() {
-        return durationTicks;
+    public float getDurationSeconds() {
+        return durationSeconds;
     }
 
-    public int getElapsedTicks() {
-        return elapsedTicks;
+    public float getElapsedSeconds() {
+        return elapsedSeconds;
     }
 
-    public void incrementElapsed() {
-        elapsedTicks++;
+    public void incrementElapsed(float dt) {
+        elapsedSeconds += dt;
     }
 
     public boolean isExpired() {
-        return elapsedTicks >= durationTicks;
+        return elapsedSeconds >= durationSeconds;
     }
 
     @Nonnull
@@ -59,8 +59,8 @@ public class FreezeComponent implements Component<EntityStore> {
     public FreezeComponent clone() {
         FreezeComponent copy = new FreezeComponent();
         copy.frozenBlocks = this.frozenBlocks != null ? new ArrayList<>(this.frozenBlocks) : null;
-        copy.durationTicks = this.durationTicks;
-        copy.elapsedTicks = this.elapsedTicks;
+        copy.durationSeconds = this.durationSeconds;
+        copy.elapsedSeconds = this.elapsedSeconds;
         return copy;
     }
 }

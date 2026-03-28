@@ -7,7 +7,8 @@
   "BasePower": 1.0,
   "ManaConsumption": 5,
   "Inputs": {
-    "target": { "Title": "Target", "DefaultSlot": 1, "Description": "Variable containing the targets to affect" }
+    "target": { "Title": "Target", "DefaultSlot": 1, "Description": "Variable containing the targets to affect" },
+    "duration": { "Title": "Duration", "DefaultSlot": 0, "Description": "Duration in seconds to sustain halt (0 = instant one-shot)" }
   },
   "ShapeStructure": [
     {

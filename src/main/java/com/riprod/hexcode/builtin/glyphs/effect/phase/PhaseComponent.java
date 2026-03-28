@@ -14,16 +14,16 @@ public class PhaseComponent implements Component<EntityStore> {
     private static ComponentType<EntityStore, PhaseComponent> componentType;
 
     private List<PhasedBlock> phasedBlocks;
-    private int durationTicks;
-    private int elapsedTicks;
+    private float durationSeconds;
+    private float elapsedDelta;
 
     public PhaseComponent() {
     }
 
-    public PhaseComponent(List<PhasedBlock> phasedBlocks, int durationTicks) {
+    public PhaseComponent(List<PhasedBlock> phasedBlocks, float durationSeconds) {
         this.phasedBlocks = phasedBlocks;
-        this.durationTicks = durationTicks;
-        this.elapsedTicks = 0;
+        this.durationSeconds = durationSeconds;
+        this.elapsedDelta = 0;
     }
 
     public static void setComponentType(ComponentType<EntityStore, PhaseComponent> type) {
@@ -38,20 +38,20 @@ public class PhaseComponent implements Component<EntityStore> {
         return phasedBlocks;
     }
 
-    public int getDurationTicks() {
-        return durationTicks;
+    public float getDurationSeconds() {
+        return durationSeconds;
     }
 
-    public int getElapsedTicks() {
-        return elapsedTicks;
+    public float getElapsedDelta() {
+        return elapsedDelta;
     }
 
-    public void incrementElapsed() {
-        elapsedTicks++;
+    public void incrementElapsed(float dt) {
+        elapsedDelta += dt;
     }
 
     public boolean isExpired() {
-        return elapsedTicks >= durationTicks;
+        return elapsedDelta >= durationSeconds;
     }
 
     @Nonnull
@@ -59,8 +59,8 @@ public class PhaseComponent implements Component<EntityStore> {
     public PhaseComponent clone() {
         PhaseComponent copy = new PhaseComponent();
         copy.phasedBlocks = this.phasedBlocks != null ? new ArrayList<>(this.phasedBlocks) : null;
-        copy.durationTicks = this.durationTicks;
-        copy.elapsedTicks = this.elapsedTicks;
+        copy.durationSeconds = this.durationSeconds;
+        copy.elapsedDelta = this.elapsedDelta;
         return copy;
     }
 }

@@ -162,9 +162,9 @@ public class PhaseGlyph implements GlyphHandler {
             hexContext.setVariable(outputSlot, new BlockVar(positions));
         }
 
-        spawnPhaseEntity(glyph, hexContext, phasedBlocks, (int) duration, accessor);
+        spawnPhaseEntity(glyph, hexContext, phasedBlocks, (float) duration, accessor);
 
-        LOGGER.atInfo().log("phase: phased %d blocks for %d ticks", phasedBlocks.size(), (int) duration);
+        LOGGER.atInfo().log("phase: phased %d blocks for %d ticks", phasedBlocks.size(), duration);
     }
 
     private List<PhasedBlock> collectAndPhaseBlocks(HexVar targets, double intensity,
@@ -223,7 +223,7 @@ public class PhaseGlyph implements GlyphHandler {
     }
 
     private void spawnPhaseEntity(Glyph glyph, HexContext hexContext,
-            List<PhasedBlock> phasedBlocks, int durationTicks,
+            List<PhasedBlock> phasedBlocks, float durationSeconds,
             CommandBuffer<EntityStore> accessor) {
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
         holder.ensureComponent(UUIDComponent.getComponentType());
@@ -233,7 +233,7 @@ public class PhaseGlyph implements GlyphHandler {
                 new HexSignal(hexContext.copy(), hexContext.getRoot().getRootEntityRef(),
                         glyph, glyph.getNext(), null));
         holder.addComponent(PhaseComponent.getComponentType(),
-                new PhaseComponent(phasedBlocks, durationTicks));
+                new PhaseComponent(phasedBlocks, durationSeconds));
 
         accessor.addEntity(holder, AddReason.SPAWN);
 

@@ -50,10 +50,10 @@ public class SubtractGlyph implements GlyphHandler, HexValInterface {
 
         if (a instanceof EntityVar && !(b instanceof EntityVar)) {
             Vector3d aPos = SpellVarUtil.resolveAsPosition(a, hexContext.getAccessor());
-            a = new PositionVar(aPos);
+            a = new PositionVar(aPos, true);
         } else if (b instanceof EntityVar && !(a instanceof EntityVar)) {
             Vector3d bPos = SpellVarUtil.resolveAsPosition(b, hexContext.getAccessor());
-            b = new PositionVar(bPos);
+            b = new PositionVar(bPos, true);
         }
 
         return HexMathUtil.subtract(a, b);

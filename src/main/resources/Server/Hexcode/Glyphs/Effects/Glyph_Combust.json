@@ -7,9 +7,21 @@
   "BasePower": 1.0,
   "ManaConsumption": 30,
   "Inputs": {
-    "center": { "Title": "Center", "DefaultSlot": 1, "Description": "Position to center the explosion. Defaults to caster position" },
-    "radius": { "Title": "Radius", "DefaultValue": 3, "Description": "Radius of the fire explosion" },
-    "magnitude": { "Title": "Magnitude", "DefaultValue": 10, "Description": "Strength of the explosion force and damage" }
+    "center": {
+      "Title": "Center",
+      "DefaultSlot": 1,
+      "Description": "Position to center the explosion. Defaults to caster position"
+    },
+    "radius": {
+      "Title": "Radius",
+      "DefaultValue": 2,
+      "Description": "Radius of the fire explosion"
+    },
+    "magnitude": {
+      "Title": "Magnitude",
+      "DefaultValue": 10,
+      "Description": "Strength of the explosion force and damage"
+    }
   },
   "ShapeStructure": [
     {

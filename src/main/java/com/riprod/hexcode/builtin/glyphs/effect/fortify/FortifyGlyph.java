@@ -40,7 +40,7 @@ public class FortifyGlyph implements GlyphHandler {
 
     private static final String FORTIFY_EFFECT_ID = "Hexcode_Fortify";
     private static final double DEFAULT_AMOUNT = 5.0;
-    private static final double DEFAULT_DURATION = 100.0;
+    private static final double DEFAULT_DURATION = 20.0;
     private static final double MIN_AMOUNT = 1.0;
     private static final double MAX_AMOUNT = 20.0;
     private static final float REDUCTION_SCALE = 0.5f;
@@ -49,12 +49,11 @@ public class FortifyGlyph implements GlyphHandler {
     @Override
     public boolean resolveMana(Glyph glyph, HexContext hexContext) {
         GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
-        if (asset == null) return true;
+        if (asset == null)
+            return true;
 
         double amount = SpellVarUtil.resolveNumberOrDefault(
                 glyph.resolveInput("amount", hexContext), DEFAULT_AMOUNT);
-        double duration = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("duration", hexContext), DEFAULT_DURATION);
         HexVar targets = glyph.resolveInput("target", hexContext);
         int targetCount = (targets != null) ? Math.max(1, targets.size()) : 1;
 
@@ -65,8 +64,7 @@ public class FortifyGlyph implements GlyphHandler {
         float castMultiplier = (tracker != null) ? tracker.getManaCostMultiplier() : 1.0f;
 
         float amountScale = (float) (amount / DEFAULT_AMOUNT);
-        float durationScale = (float) (duration / DEFAULT_DURATION);
-        float finalCost = baseCost * castMultiplier * amountScale * durationScale * targetCount;
+        float finalCost = baseCost * castMultiplier * amountScale * targetCount;
 
         boolean consumed = hexContext.getRoot().tryConsumeMana(finalCost, hexContext.getAccessor());
         if (!consumed) {
@@ -78,7 +76,8 @@ public class FortifyGlyph implements GlyphHandler {
     @Override
     public boolean resolveVolatility(Glyph glyph, HexContext hexContext) {
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
-        if (tracker == null) return true;
+        if (tracker == null)
+            return true;
 
         double amount = SpellVarUtil.resolveNumberOrDefault(
                 glyph.resolveInput("amount", hexContext), DEFAULT_AMOUNT);
@@ -115,15 +114,19 @@ public class FortifyGlyph implements GlyphHandler {
 
         for (int i = 0; i < blockVar.size(); i++) {
             Vector3i pos = blockVar.getAt(i);
-            if (pos == null) continue;
+            if (pos == null)
+                continue;
             int blockId = world.getBlock(pos.x, pos.y, pos.z);
-            if (blockId == BlockType.EMPTY_ID) continue;
+            if (blockId == BlockType.EMPTY_ID)
+                continue;
 
             BlockType blockType = BlockType.getAssetMap().getAsset(blockId);
-            if (blockType == null) continue;
+            if (blockType == null)
+                continue;
 
             BlockGathering gathering = blockType.getGathering();
-            if (gathering == null) continue;
+            if (gathering == null)
+                continue;
 
             var breaking = gathering.getBreaking();
             if (breaking != null) {
@@ -148,12 +151,11 @@ public class FortifyGlyph implements GlyphHandler {
         double duration = SpellVarUtil.resolveNumberOrDefault(
                 glyph.resolveInput("duration", hexContext), DEFAULT_DURATION);
         float damageReduction = (float) (amount * REDUCTION_SCALE);
-        float durationSeconds = (float) (duration / 20.0);
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
 
         if (targets instanceof EntityVar entityVar) {
-            applyToEntities(entityVar, damageReduction, durationSeconds, hexContext, accessor);
+            applyToEntities(glyph, entityVar, damageReduction, (float) duration, hexContext, accessor);
         } else if (targets instanceof BlockVar blockVar) {
             applyToBlocks(blockVar, amount, hexContext, accessor);
         }
@@ -161,7 +163,7 @@ public class FortifyGlyph implements GlyphHandler {
         Executor.continueExecution(glyph.getNext(), hexContext);
     }
 
-    private void applyToEntities(EntityVar entityVar, float damageReduction,
+    private void applyToEntities(Glyph glyph, EntityVar entityVar, float damageReduction,
             float durationSeconds, HexContext hexContext, CommandBuffer<EntityStore> accessor) {
         EntityEffect fortifyEffect = EntityEffect.getAssetMap().getAsset(FORTIFY_EFFECT_ID);
         if (fortifyEffect == null) {
@@ -171,15 +173,23 @@ public class FortifyGlyph implements GlyphHandler {
 
         for (int i = 0; i < entityVar.size(); i++) {
             Ref<EntityStore> ref = entityVar.getRef(i, accessor);
-            if (ref == null || !ref.isValid()) continue;
+            if (ref == null || !ref.isValid())
+                continue;
 
             FortifyComponent existing = accessor.getComponent(ref, FortifyComponent.getComponentType());
             if (existing != null) {
                 existing.setDamageReduction(damageReduction);
                 existing.setRemainingDuration(durationSeconds);
             } else {
+                GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
+                VolatilityTracker tracker = hexContext.getVolatilityTracker();
+                float castMultiplier = (tracker != null) ? tracker.getManaCostMultiplier() : 1.0f;
+                float baseCost = ((asset != null) ? asset.getManaConsumption() : 1.0f)
+                        * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
+
+                float manaCost = baseCost * castMultiplier * damageReduction;
                 accessor.addComponent(ref, FortifyComponent.getComponentType(),
-                        new FortifyComponent(damageReduction, durationSeconds));
+                        new FortifyComponent(damageReduction, durationSeconds, hexContext.clone(), manaCost));
             }
 
             EffectControllerComponent controller = accessor.getComponent(
@@ -203,8 +213,8 @@ public class FortifyGlyph implements GlyphHandler {
             HexContext hexContext, CommandBuffer<EntityStore> accessor) {
         World world = accessor.getExternalData().getWorld();
         ChunkStore chunkStore = world.getChunkStore();
-        ComponentType<ChunkStore, BlockHealthChunk> bhcType =
-                BlockHealthModule.get().getBlockHealthChunkComponentType();
+        ComponentType<ChunkStore, BlockHealthChunk> bhcType = BlockHealthModule.get()
+                .getBlockHealthChunkComponentType();
 
         TimeResource timeResource = world.getEntityStore().getStore()
                 .getResource(TimeResource.getResourceType());
@@ -213,17 +223,21 @@ public class FortifyGlyph implements GlyphHandler {
 
         for (int i = 0; i < blockVar.size(); i++) {
             Vector3i pos = blockVar.getAt(i);
-            if (pos == null) continue;
+            if (pos == null)
+                continue;
 
             int blockId = world.getBlock(pos.x, pos.y, pos.z);
-            if (blockId == BlockType.EMPTY_ID) continue;
+            if (blockId == BlockType.EMPTY_ID)
+                continue;
 
             long chunkIndex = ChunkUtil.indexChunkFromBlock(pos.x, pos.z);
             Ref<ChunkStore> chunkRef = chunkStore.getChunkReference(chunkIndex);
-            if (chunkRef == null || !chunkRef.isValid()) continue;
+            if (chunkRef == null || !chunkRef.isValid())
+                continue;
 
             BlockHealthChunk bhc = chunkStore.getStore().getComponent(chunkRef, bhcType);
-            if (bhc == null) continue;
+            if (bhc == null)
+                continue;
 
             bhc.damageBlock(now, world, pos, -healAmount);
 

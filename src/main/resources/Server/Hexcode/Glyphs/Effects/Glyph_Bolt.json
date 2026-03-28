@@ -7,11 +7,23 @@
   "BasePower": 1.0,
   "ManaConsumption": 15,
   "Inputs": {
-    "target": { "Title": "Target", "DefaultSlot": 1, "Description": "Variable containing the targets to affect" },
-    "power": { "Title": "Power", "DefaultValue": 5, "Description": "Damage or power level of the bolt" }
+    "target": {
+      "Title": "Target",
+      "DefaultSlot": 1,
+      "Description": "Variable containing the targets to affect"
+    },
+    "power": {
+      "Title": "Power",
+      "DefaultValue": 15,
+      "Description": "Damage or power level of the bolt"
+    }
   },
   "Outputs": {
-    "result": { "Title": "Result", "DefaultSlot": 1, "Description": "Variable slot to store the result" }
+    "result": {
+      "Title": "Result",
+      "DefaultSlot": 1,
+      "Description": "Variable slot to store the result"
+    }
   },
   "ShapeStructure": [
     {

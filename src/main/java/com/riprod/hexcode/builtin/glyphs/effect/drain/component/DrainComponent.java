@@ -1,7 +1,6 @@
 package com.riprod.hexcode.builtin.glyphs.effect.drain.component;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -57,22 +56,22 @@ public class DrainComponent implements Component<EntityStore> {
         private final float conversionRate;
         private final float totalDrainAmount;
         private float drainedSoFar;
-        private final float drainPerTick;
-        private int ticksRemaining;
+        private final float drainPerSecond;
+        private float remainingSeconds;
         private final HexContext hexContext;
         private final List<String> nextGlyphIds;
         private final Ref<EntityStore> hexEntityRef;
         private final HexColors colors;
 
         public DrainEntry(int sourceStatIndex, float conversionRate, float totalDrainAmount,
-                int durationTicks, HexContext hexContext, List<String> nextGlyphIds,
+                float durationSeconds, HexContext hexContext, List<String> nextGlyphIds,
                 Ref<EntityStore> hexEntityRef, HexColors colors) {
             this.sourceStatIndex = sourceStatIndex;
             this.conversionRate = conversionRate;
             this.totalDrainAmount = totalDrainAmount;
             this.drainedSoFar = 0f;
-            this.drainPerTick = totalDrainAmount / durationTicks;
-            this.ticksRemaining = durationTicks;
+            this.drainPerSecond = durationSeconds > 0 ? totalDrainAmount / durationSeconds : totalDrainAmount;
+            this.remainingSeconds = durationSeconds;
             this.hexContext = hexContext;
             this.nextGlyphIds = nextGlyphIds;
             this.hexEntityRef = hexEntityRef;
@@ -99,16 +98,20 @@ public class DrainComponent implements Component<EntityStore> {
             drainedSoFar += amount;
         }
 
-        public float getDrainPerTick() {
-            return drainPerTick;
+        public float getDrainPerSecond() {
+            return drainPerSecond;
         }
 
-        public int getTicksRemaining() {
-            return ticksRemaining;
+        public float getRemainingSeconds() {
+            return remainingSeconds;
         }
 
-        public void decrementTicks() {
-            ticksRemaining--;
+        public void tick(float dt) {
+            remainingSeconds -= dt;
+        }
+
+        public boolean isExpired() {
+            return remainingSeconds <= 0;
         }
 
         public HexContext getHexContext() {
@@ -130,7 +133,7 @@ public class DrainComponent implements Component<EntityStore> {
         @Nonnull
         public DrainEntry clone() {
             DrainEntry copy = new DrainEntry(sourceStatIndex, conversionRate, totalDrainAmount,
-                    ticksRemaining, hexContext != null ? hexContext.copy() : null,
+                    remainingSeconds, hexContext != null ? hexContext.copy() : null,
                     new ArrayList<>(nextGlyphIds), hexEntityRef, colors);
             copy.drainedSoFar = this.drainedSoFar;
             return copy;

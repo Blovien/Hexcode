@@ -1,19 +1,18 @@
 package com.riprod.hexcode.core.state.execution.component;
 
 import java.util.List;
-import java.util.UUID;
 
 public class PendingContinue {
     private final List<String> glyphIds;
     private final HexContext executionContext;
-    private final int delayTicks;
-    private int elapsedTicks;
+    private final float delaySeconds;
+    private float elapsedSeconds;
 
-    public PendingContinue(List<String> glyphIds, HexContext executionContext, int delayTicks) {
+    public PendingContinue(List<String> glyphIds, HexContext executionContext, float delaySeconds) {
         this.glyphIds = glyphIds;
         this.executionContext = executionContext;
-        this.delayTicks = delayTicks;
-        this.elapsedTicks = 0;
+        this.delaySeconds = delaySeconds;
+        this.elapsedSeconds = 0;
     }
 
     public List<String> getGlyphIds() {
@@ -25,10 +24,10 @@ public class PendingContinue {
     }
 
     public boolean isReady() {
-        return elapsedTicks >= delayTicks;
+        return elapsedSeconds >= delaySeconds;
     }
 
-    public void tick() {
-        elapsedTicks++;
+    public void tick(float dt) {
+        elapsedSeconds += dt;
     }
 }

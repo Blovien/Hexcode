@@ -46,18 +46,14 @@ public class RuptureGlyph implements GlyphHandler {
     private static final float SPIKE_SCALE = 0.5f;
 
     private static final double DEFAULT_RADIUS = 3.0;
-    private static final double MIN_RADIUS = 1.0;
-    private static final double MAX_RADIUS = 8.0;
-
     private static final double DEFAULT_DAMAGE = 8.0;
-    private static final double MIN_DAMAGE = 2.0;
-    private static final double MAX_DAMAGE = 25.0;
+    private static final double DEFAULT_DURATION = 5.0;
 
-    private static final double DEFAULT_DURATION = 100.0;
-    private static final double MIN_DURATION = 40.0;
-    private static final double MAX_DURATION = 400.0;
+    private static final double RADIUS_THRESHOLD = 8.0;
+    private static final double DAMAGE_THRESHOLD = 25.0;
+    private static final double DURATION_THRESHOLD = 20.0;
 
-    private static final int DAMAGE_COOLDOWN_TICKS = 20;
+    private static final float DAMAGE_COOLDOWN_SECONDS = 1.0f;
     private static final int MAX_SPIKES = 64;
     private static final int GROUND_SCAN_RANGE = 3;
     private static final float DENSITY = 0.5f;
@@ -65,14 +61,13 @@ public class RuptureGlyph implements GlyphHandler {
     @Override
     public boolean resolveMana(Glyph glyph, HexContext hexContext) {
         GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
-        if (asset == null) return true;
+        if (asset == null)
+            return true;
 
-        double radius = clamp(SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("radius", hexContext), DEFAULT_RADIUS),
-                MIN_RADIUS, MAX_RADIUS);
-        double duration = clamp(SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("duration", hexContext), DEFAULT_DURATION),
-                MIN_DURATION, MAX_DURATION);
+        double radius = Math.max(0, SpellVarUtil.resolveNumberOrDefault(
+                glyph.resolveInput("radius", hexContext), DEFAULT_RADIUS));
+        double duration = Math.max(0, SpellVarUtil.resolveNumberOrDefault(
+                glyph.resolveInput("duration", hexContext), DEFAULT_DURATION));
 
         float baseCost = asset.getManaConsumption()
                 * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
@@ -80,8 +75,8 @@ public class RuptureGlyph implements GlyphHandler {
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
         float castMultiplier = (tracker != null) ? tracker.getManaCostMultiplier() : 1.0f;
 
-        float radiusScale = (float) Math.pow(radius / DEFAULT_RADIUS, 2.0);
-        float durationScale = (float) (duration / DEFAULT_DURATION);
+        float radiusScale = (float) harshScale(radius, DEFAULT_RADIUS, RADIUS_THRESHOLD, 2.0);
+        float durationScale = (float) harshScale(duration, DEFAULT_DURATION, DURATION_THRESHOLD, 1.5);
         float finalCost = baseCost * castMultiplier * radiusScale * durationScale;
 
         boolean consumed = hexContext.getRoot().tryConsumeMana(finalCost, hexContext.getAccessor());
@@ -94,17 +89,17 @@ public class RuptureGlyph implements GlyphHandler {
     @Override
     public boolean resolveVolatility(Glyph glyph, HexContext hexContext) {
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
-        if (tracker == null) return true;
+        if (tracker == null)
+            return true;
 
-        double radius = clamp(SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("radius", hexContext), DEFAULT_RADIUS),
-                MIN_RADIUS, MAX_RADIUS);
-        double damage = clamp(SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("damage", hexContext), DEFAULT_DAMAGE),
-                MIN_DAMAGE, MAX_DAMAGE);
+        double radius = Math.max(0, SpellVarUtil.resolveNumberOrDefault(
+                glyph.resolveInput("radius", hexContext), DEFAULT_RADIUS));
+        double damage = Math.max(0, SpellVarUtil.resolveNumberOrDefault(
+                glyph.resolveInput("damage", hexContext), DEFAULT_DAMAGE));
 
         int extraRolls = Math.max(0,
-                (int) (radius / DEFAULT_RADIUS + damage / DEFAULT_DAMAGE) - 1);
+                (int) (harshScale(radius, DEFAULT_RADIUS, RADIUS_THRESHOLD, 2.0)
+                        + harshScale(damage, DEFAULT_DAMAGE, DAMAGE_THRESHOLD, 2.0)) - 1);
 
         if (!tracker.rollAndIncrement(glyph)) {
             LOGGER.atInfo().log("rupture: fizzled on primary volatility roll");
@@ -126,17 +121,15 @@ public class RuptureGlyph implements GlyphHandler {
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
         World world = accessor.getExternalData().getWorld();
 
-        double radius = clamp(SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("radius", hexContext), DEFAULT_RADIUS),
-                MIN_RADIUS, MAX_RADIUS);
-        double damage = clamp(SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("damage", hexContext), DEFAULT_DAMAGE),
-                MIN_DAMAGE, MAX_DAMAGE);
-        double duration = clamp(SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("duration", hexContext), DEFAULT_DURATION),
-                MIN_DURATION, MAX_DURATION);
+        double radius = Math.max(0, SpellVarUtil.resolveNumberOrDefault(
+                glyph.resolveInput("radius", hexContext), DEFAULT_RADIUS));
+        double damage = Math.max(0, SpellVarUtil.resolveNumberOrDefault(
+                glyph.resolveInput("damage", hexContext), DEFAULT_DAMAGE));
+        double duration = Math.max(0, SpellVarUtil.resolveNumberOrDefault(
+                glyph.resolveInput("duration", hexContext), DEFAULT_DURATION));
 
-        Vector3d center = resolveCenter(glyph, hexContext, accessor);
+        Vector3d center = SpellVarUtil.resolvePosition(
+                glyph.resolveInput("target", hexContext), accessor);
         if (center == null) {
             LOGGER.atInfo().log("rupture: could not resolve center position");
             return;
@@ -158,17 +151,21 @@ public class RuptureGlyph implements GlyphHandler {
 
         for (int dx = -intRadius; dx <= intRadius && spikes.size() < MAX_SPIKES; dx++) {
             for (int dz = -intRadius; dz <= intRadius && spikes.size() < MAX_SPIKES; dz++) {
-                if (dx * dx + dz * dz > radius * radius) continue;
+                if (dx * dx + dz * dz > radius * radius)
+                    continue;
 
                 long hash = (dx * 73856093L ^ dz * 19349663L ^ seed) & 0xFFFFFFFFL;
-                if ((hash % 100) >= (long) (DENSITY * 100)) continue;
+                if ((hash % 100) >= (long) (DENSITY * 100))
+                    continue;
 
                 int worldX = centerBlockX + dx;
                 int worldZ = centerBlockZ + dz;
 
                 int groundY = findGround(world, worldX, centerBlockY, worldZ);
-                if (groundY < 0) continue;
-                if (Math.abs(groundY - centerBlockY) > 2) continue;
+                if (groundY < 0)
+                    continue;
+                if (Math.abs(groundY - centerBlockY) > 2)
+                    continue;
 
                 Vector3d spikePos = new Vector3d(worldX + 0.5, groundY + 1.0, worldZ + 0.5);
 
@@ -190,38 +187,16 @@ public class RuptureGlyph implements GlyphHandler {
 
         Integer outputSlot = glyph.resolveOutput("result", hexContext);
         if (outputSlot != null) {
-            hexContext.setVariable(outputSlot, new PositionVar(new Vector3d(center)));
+            hexContext.setVariable(outputSlot, new PositionVar(new Vector3d(center), true));
         }
 
-        spawnTrackerEntity(glyph, hexContext, spikes, (int) duration,
+        spawnTrackerEntity(glyph, hexContext, spikes, (float) duration,
                 (float) damage, center, radius, accessor);
 
         RuptureStyle.renderSeismicBurst(center, hexContext.getColors(), accessor);
 
-        LOGGER.atInfo().log("rupture: spawned %d spikes, radius=%.1f, duration=%d ticks",
-                spikes.size(), radius, (int) duration);
-    }
-
-    private Vector3d resolveCenter(Glyph glyph, HexContext hexContext,
-            CommandBuffer<EntityStore> accessor) {
-        HexVar targetVar = glyph.resolveInput("target", hexContext);
-        if (targetVar != null && targetVar.size() > 0) {
-            if (targetVar instanceof PositionVar) {
-                return SpellVarUtil.resolvePosition(targetVar, accessor);
-            }
-            if (targetVar instanceof EntityVar) {
-                Vector3d pos = SpellVarUtil.resolvePosition(targetVar, accessor);
-                if (pos != null) return pos;
-            }
-        }
-
-        Ref<EntityStore> casterRef = hexContext.getCasterRef();
-        if (casterRef == null || !casterRef.isValid()) return null;
-
-        TransformComponent tc = accessor.getComponent(casterRef, TransformComponent.getComponentType());
-        if (tc == null) return null;
-
-        return tc.getPosition().clone();
+        LOGGER.atInfo().log("rupture: spawned %d spikes, radius=%.1f, duration=%.1fs",
+                spikes.size(), radius, duration);
     }
 
     private int findGround(World world, int x, int centerY, int z) {
@@ -258,7 +233,7 @@ public class RuptureGlyph implements GlyphHandler {
     }
 
     private void spawnTrackerEntity(Glyph glyph, HexContext hexContext,
-            List<SpikeEntry> spikes, int durationTicks, float spikeDamage,
+            List<SpikeEntry> spikes, float durationSeconds, float spikeDamage,
             Vector3d center, double radius, CommandBuffer<EntityStore> accessor) {
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
         holder.ensureComponent(UUIDComponent.getComponentType());
@@ -268,8 +243,8 @@ public class RuptureGlyph implements GlyphHandler {
                 new HexSignal(hexContext.copy(), hexContext.getRoot().getRootEntityRef(),
                         glyph, glyph.getNext(), null));
         holder.addComponent(RuptureComponent.getComponentType(),
-                new RuptureComponent(spikes, durationTicks, spikeDamage,
-                        DAMAGE_COOLDOWN_TICKS, center, radius));
+                new RuptureComponent(spikes, durationSeconds, spikeDamage,
+                        DAMAGE_COOLDOWN_SECONDS, center, radius));
 
         accessor.addEntity(holder, AddReason.SPAWN);
 
@@ -280,7 +255,11 @@ public class RuptureGlyph implements GlyphHandler {
         }
     }
 
-    private static double clamp(double value, double min, double max) {
-        return Math.max(min, Math.min(max, value));
+    private static double harshScale(double value, double reference, double threshold, double exponent) {
+        double ratio = value / reference;
+        if (value <= threshold) return ratio;
+        double base = threshold / reference;
+        double excess = (value - threshold) / reference;
+        return base + excess * Math.pow(value / threshold, exponent);
     }
 }

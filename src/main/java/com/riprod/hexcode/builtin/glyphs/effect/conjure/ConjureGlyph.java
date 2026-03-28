@@ -18,6 +18,7 @@ import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
 import com.hypixel.hytale.server.core.modules.entity.component.PropComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
 import com.hypixel.hytale.server.core.modules.entity.hitboxcollision.HitboxCollision;
 import com.hypixel.hytale.server.core.modules.entity.hitboxcollision.HitboxCollisionConfig;
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
@@ -106,15 +107,12 @@ public class ConjureGlyph implements GlyphHandler {
             return;
         }
 
-        Vector3d cornerA;
-        Vector3d cornerB;
-        if (coordsAVar instanceof PositionVar) {
-            cornerA = new Vector3d(anchorPos).add(coordsA);
-            cornerB = new Vector3d(anchorPos).add(coordsB);
-        } else {
-            cornerA = coordsA;
-            cornerB = coordsB;
-        }
+        boolean absA = (coordsAVar instanceof PositionVar pa && pa.isAbsolute())
+                || !(coordsAVar instanceof PositionVar);
+        boolean absB = (coordsBVar instanceof PositionVar pb && pb.isAbsolute())
+                || !(coordsBVar instanceof PositionVar);
+        Vector3d cornerA = absA ? coordsA : new Vector3d(anchorPos).add(coordsA);
+        Vector3d cornerB = absB ? coordsB : new Vector3d(anchorPos).add(coordsB);
 
         Vector3d min = new Vector3d(
                 Math.min(cornerA.x, cornerB.x),
@@ -173,6 +171,7 @@ public class ConjureGlyph implements GlyphHandler {
         holder.addComponent(UUIDComponent.getComponentType(), new UUIDComponent(zoneUuid));
         holder.ensureComponent(PropComponent.getComponentType());
         holder.ensureComponent(ProjectileModule.get().getProjectileComponentType());
+        holder.ensureComponent(EffectControllerComponent.getComponentType());
         holder.addComponent(NetworkId.getComponentType(),
                 new NetworkId(hexContext.getAccessor().getExternalData().takeNextNetworkId()));
         DebugComponent debugComp = new DebugComponent(DebugShape.Cube, debugColor, size, 0.1f);

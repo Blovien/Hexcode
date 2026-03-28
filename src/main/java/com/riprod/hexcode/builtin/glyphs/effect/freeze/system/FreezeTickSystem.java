@@ -39,7 +39,7 @@ public class FreezeTickSystem extends EntityTickingSystem<EntityStore> {
                 return;
             }
 
-            freeze.incrementElapsed();
+            freeze.incrementElapsed(dt);
 
             if (!freeze.isExpired()) {
                 return;
@@ -52,8 +52,8 @@ public class FreezeTickSystem extends EntityTickingSystem<EntityStore> {
             decrementWaiters(signal, buffer);
             removeEntity(entityRef, buffer);
 
-            LOGGER.atInfo().log("freeze: restored %d blocks after %d ticks",
-                    freeze.getFrozenBlocks().size(), freeze.getDurationTicks());
+            LOGGER.atInfo().log("freeze: restored %d blocks after %.1fs",
+                    freeze.getFrozenBlocks().size(), freeze.getDurationSeconds());
         } catch (Exception e) {
             LOGGER.atSevere().log("[hexcode] FreezeTickSystem failed: %s", e.getMessage());
         }

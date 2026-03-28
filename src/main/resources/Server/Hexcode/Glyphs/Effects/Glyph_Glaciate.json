@@ -7,12 +7,28 @@
   "BasePower": 1.0,
   "ManaConsumption": 22,
   "Inputs": {
-    "target": { "Title": "Target", "DefaultSlot": 1, "Description": "Where to spawn the ice block" },
-    "offset": { "Title": "Offset", "DefaultValue": 10, "Description": "Spawn offset: number=height, position=relative offset, entity=absolute position" },
-    "duration": { "Title": "Duration", "DefaultValue": 5, "Description": "How long the ice block persists" }
+    "target": {
+      "Title": "Target",
+      "DefaultSlot": 1,
+      "Description": "Where to spawn the ice block"
+    },
+    "offset": {
+      "Title": "Offset",
+      "DefaultValue": 5,
+      "Description": "Spawn offset: number=height, position=relative offset, entity=absolute position"
+    },
+    "duration": {
+      "Title": "Duration",
+      "DefaultValue": 15,
+      "Description": "How long the ice block persists"
+    }
   },
   "Outputs": {
-    "result": { "Title": "Result", "DefaultSlot": 1, "Description": "Spawned ice entity reference" }
+    "result": {
+      "Title": "Result",
+      "DefaultSlot": 1,
+      "Description": "Spawned ice entity reference"
+    }
   },
   "ShapeStructure": [
     {

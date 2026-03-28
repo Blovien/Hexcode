@@ -7,9 +7,21 @@
   "BasePower": 1.0,
   "ManaConsumption": 10,
   "Inputs": {
-    "target": { "Title": "Target", "DefaultSlot": 1, "Description": "Variable containing the targets to affect" },
-    "amount": { "Title": "Amount", "DefaultSlot": 2, "Description": "Damage reduction per incoming hit" },
-    "duration": { "Title": "Duration", "DefaultSlot": 3, "Description": "How long the effect lasts in seconds" }
+    "target": {
+      "Title": "Target",
+      "DefaultSlot": 1,
+      "Description": "Variable containing the targets to affect"
+    },
+    "amount": {
+      "Title": "Amount",
+      "DefaultSlot": 15,
+      "Description": "Damage reduction per incoming hit"
+    },
+    "duration": {
+      "Title": "Duration",
+      "Description": "How long the effect lasts in seconds",
+      "DefaultValue": 200
+    }
   },
   "ShapeStructure": [
     {

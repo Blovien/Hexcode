@@ -51,14 +51,12 @@ public class SeekGlyph implements GlyphHandler {
             return;
         }
 
-        origin.add(new Vector3d(direction).scale(1.5));
-
         int beamLength = (int) SpellVarUtil.resolveNumberOrDefault(
                 glyph.resolveInput("distance", hexContext),
                 32.0).doubleValue();
 
         Vector3f rotation = Vector3f.lookAt(direction);
-        Transform transform = new Transform(origin, rotation);
+        Transform transform = new Transform(new Vector3d(origin), rotation);
 
         Vector3d blockHitLocation = TargetUtil.getTargetLocation(transform, blockId -> blockId != 0,
                 beamLength, hexContext.getAccessor());
@@ -83,8 +81,9 @@ public class SeekGlyph implements GlyphHandler {
             }
         }
 
+        Vector3d beamOrigin = new Vector3d(origin).add(new Vector3d(direction).scale(1.5));
+
         Integer outputSlot = glyph.resolveOutput("result", hexContext);
-        LOGGER.atInfo().log("seek: outputSlot=%s (null means using default)", outputSlot);
         Vector3d endPoint;
         SeekStyle.HitType hitType;
 
@@ -93,9 +92,6 @@ public class SeekGlyph implements GlyphHandler {
             EntityVar resultVar = new EntityVar(EntityVar.createRef(uuidComp.getUuid(), entityHit));
             if (outputSlot != null) {
                 hexContext.setVariable(outputSlot, resultVar);
-                LOGGER.atInfo().log("seek: wrote entity %s to slot %d", uuidComp.getUuid(), outputSlot);
-            } else {
-                LOGGER.atWarning().log("seek: outputSlot is null, entity result NOT stored");
             }
             endPoint = hexContext.getAccessor().getComponent(entityHit,
                     TransformComponent.getComponentType()).getPosition();
@@ -110,7 +106,7 @@ public class SeekGlyph implements GlyphHandler {
             hitType = SeekStyle.HitType.MISS;
         }
 
-        SeekStyle.render(origin, endPoint, hitType, hexContext.getColors(), hexContext.getAccessor());
+        SeekStyle.render(beamOrigin, endPoint, hitType, hexContext.getColors(), hexContext.getAccessor());
 
         Executor.continueExecution(glyph.getNext(), hexContext);
     }

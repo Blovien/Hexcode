@@ -61,6 +61,8 @@ import com.riprod.hexcode.builtin.glyphs.effect.rupture.system.RuptureTickSystem
 import com.riprod.hexcode.builtin.glyphs.effect.seek.SeekGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.self.SelfGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.shatter.ShatterGlyph;
+import com.riprod.hexcode.builtin.glyphs.effect.shatter.component.ShatterComponent;
+import com.riprod.hexcode.builtin.glyphs.effect.shatter.system.ShatterSystem;
 import com.riprod.hexcode.builtin.glyphs.effect.smelt.SmeltGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.subtract.SubtractGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.swap.SwapGlyph;
@@ -256,6 +258,10 @@ public class BuiltinPlugin extends JavaPlugin {
         ComponentType<EntityStore, GlaciateComponent> glaciateComponentType = entityStoreRegistry
                 .registerComponent(GlaciateComponent.class, GlaciateComponent::new);
         GlaciateComponent.setComponentType(glaciateComponentType);
+
+        ComponentType<EntityStore, ShatterComponent> shatterComponentType = entityStoreRegistry
+                .registerComponent(ShatterComponent.class, ShatterComponent::new);
+        ShatterComponent.setComponentType(shatterComponentType);
     }
 
     private void RegisterSystems() {
@@ -274,5 +280,6 @@ public class BuiltinPlugin extends JavaPlugin {
         entityStoreRegistry.registerSystem(new FreezeTickSystem());
         entityStoreRegistry.registerSystem(new RuptureTickSystem());
         entityStoreRegistry.registerSystem(new GlaciateSystem());
+        entityStoreRegistry.registerSystem(new ShatterSystem());
     }
 }
