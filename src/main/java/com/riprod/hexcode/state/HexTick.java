@@ -55,7 +55,7 @@ public class HexTick extends EntityTickingSystem<EntityStore> {
         manager.tick(ref, comp, dt, store, buffer);
       }
     } catch (Exception e) {
-      LOGGER.atSevere().log("[hexcode] HexTick failed: %s", e.getMessage());
+      LOGGER.atSevere().withCause(e).log("[hexcode] HexTick failed: %s", e.getMessage());
     }
   }
 }

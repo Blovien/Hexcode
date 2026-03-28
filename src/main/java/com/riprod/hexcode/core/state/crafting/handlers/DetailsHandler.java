@@ -63,9 +63,13 @@ public class DetailsHandler {
         for (String key : inputKeys) {
             Vector3f offset = offsets.get(idx++);
             SlotDefinition def = asset.getInputDef(key);
+            SlotComponent slotComp = new SlotComponent(key, GlyphSlotType.Input);
             String title = def != null ? def.getTitle() : key;
+            String description = def != null ? def.getDescription() : "";
+            slotComp.setSlotTitle(title);
+            slotComp.setSlotDescription(description);
             Holder<EntityStore> slotHolder = SlotNodeHandler.INSTANCE.spawnSlot(accessor, offset,
-                    glyphRef, new SlotComponent(key, GlyphSlotType.Input), playerRef, title);
+                    glyphRef, slotComp, playerRef);
             Ref<EntityStore> slotRef = accessor.addEntity(slotHolder, AddReason.SPAWN);
             slotRefs.add(slotRef);
         }
@@ -74,8 +78,12 @@ public class DetailsHandler {
             Vector3f offset = offsets.get(idx++);
             SlotDefinition def = asset.getOutputDef(key);
             String title = def != null ? def.getTitle() : key;
+            String description = def != null ? def.getDescription() : "";
+            SlotComponent slotComp = new SlotComponent(key, GlyphSlotType.Output);
+            slotComp.setSlotTitle(title);
+            slotComp.setSlotDescription(description);
             Holder<EntityStore> slotHolder = SlotNodeHandler.INSTANCE.spawnSlot(accessor, offset,
-                    glyphRef, new SlotComponent(key, GlyphSlotType.Output), playerRef, title);
+                    glyphRef, slotComp, playerRef);
 
             Ref<EntityStore> slotRef = accessor.addEntity(slotHolder, AddReason.SPAWN);
 

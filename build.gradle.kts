@@ -94,6 +94,7 @@ idea {
 }
 
 val linkedDirs = listOf("Server")
+val syncBackDirs = listOf("Common")
 
 val unlinkAssets = tasks.register("unlinkAssets") {
     doFirst {
@@ -142,9 +143,33 @@ tasks.register("linkAssets") {
     }
 }
 
+tasks.register("syncBackAssets") {
+    group = "hytale"
+    description = "Copies non-symlinked build asset dirs back to source."
+
+    doLast {
+        val buildRes = layout.buildDirectory.dir("resources/main").get().asFile
+        val srcRes = file("src/main/resources")
+
+        syncBackDirs.forEach { dir ->
+            val buildDir = File(buildRes, dir)
+            val srcDir = File(srcRes, dir)
+            if (buildDir.exists() && buildDir.isDirectory) {
+                val isSymlink = ProcessBuilder("test", "-L", buildDir.absolutePath)
+                    .start().waitFor() == 0
+                if (!isSymlink) {
+                    buildDir.copyRecursively(srcDir, overwrite = true)
+                    logger.lifecycle("Synced back ${buildDir.toPath()} -> ${srcDir.toPath()}")
+                }
+            }
+        }
+    }
+}
+
 afterEvaluate {
     val targetTask = tasks.findByName("runServer") ?: tasks.findByName("server")
     if (targetTask != null) {
         targetTask.dependsOn("linkAssets")
+        targetTask.finalizedBy("syncBackAssets")
     }
 }

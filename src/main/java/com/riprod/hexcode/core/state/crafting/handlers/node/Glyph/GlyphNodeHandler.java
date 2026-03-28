@@ -34,10 +34,12 @@ import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableType;
 import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
+import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.common.pedestal.utils.PedestalBlockUtil;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
-import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
+import com.riprod.hexcode.core.state.crafting.component.CraftingData;
 import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 import com.riprod.hexcode.core.state.crafting.constants.NodeType;
 import com.riprod.hexcode.core.state.crafting.handlers.DetailsHandler;
@@ -102,7 +104,9 @@ public class GlyphNodeHandler implements NodeInterface {
                 look.getPosition().z + look.getDirection().z * 5);
 
         if (nodeTransform != null) {
-            CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(accessor, playerRef);
+            PedestalBlockComponent blockComp = PedestalBlockUtil.resolvePedestal(playerRef, accessor);
+            CraftingData playerData = blockComp != null ? blockComp.getCraftingDataComponent() : null;
+
             Vector3f color = playerData != null ? playerData.getGlyphColor() : CraftingColors.GLYPH_LINK;
             LinkRenderer.renderActiveLink(accessor, accessor.getExternalData().getWorld(),
                     nodeTransform.getPosition(), targetPoint,
@@ -308,13 +312,12 @@ public class GlyphNodeHandler implements NodeInterface {
             Vector3d rootPos,
             Ref<EntityStore> playerRef) {
 
-        CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(accessor, playerRef);
+        PedestalBlockComponent blockComp = PedestalBlockUtil.resolvePedestal(playerRef, accessor);
+        CraftingData playerData = blockComp != null ? blockComp.getCraftingDataComponent() : null;
 
         Vector3f glyphColor = playerData != null ? playerData.getGlyphColor() : CraftingColors.GLYPH_LINK;
 
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
-
-        HiddenUtils.addHiddenToHolder(accessor, holder, playerRef);
 
         Vector3d nodePos = new Vector3d(rootPos.x, rootPos.y, rootPos.z);
         holder.addComponent(TransformComponent.getComponentType(),
@@ -345,7 +348,7 @@ public class GlyphNodeHandler implements NodeInterface {
 
         holder.addComponent(DebugComponent.getComponentType(),
                 new DebugComponent(DebugShape.Sphere, glyphColor,
-                        NODE_SCALE * 2.5, 2.0f, playerRef));
+                        NODE_SCALE * 2.5, 2.0f));
         holder.addComponent(HoverableComponent.getComponentType(),
                 new HoverableComponent(HoverableType.NODE));
 
@@ -362,7 +365,10 @@ public class GlyphNodeHandler implements NodeInterface {
 
         HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
                 HexcasterCraftingComponent.getComponentType());
-        CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(accessor, playerRef);
+
+        PedestalBlockComponent blockComp = PedestalBlockUtil.resolvePedestal(playerRef, accessor);
+        CraftingData playerData = blockComp != null ? blockComp.getCraftingDataComponent() : null;
+
         NodeComponent nodeComp = accessor.getComponent(node, NodeComponent.getComponentType());
 
         if (craftingComp == null || playerData == null || nodeComp == null) {

@@ -19,7 +19,7 @@ import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
-import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
+import com.riprod.hexcode.core.state.crafting.component.CraftingData;
 import com.riprod.hexcode.core.state.crafting.handlers.CraftingDragHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeRouter;
 import com.riprod.hexcode.core.state.crafting.utils.HoverStyleUtils;
@@ -115,8 +115,6 @@ public class CraftingStateSystem {
             nearby.remove(draggedRef); // remove the dragged ref from the hovered list
         }
 
-        HiddenUtils.filterByOwner(accessor, nearby, ref);
-
         Ref<EntityStore> targetRef = HoverableUtils.getSmallestTarget(accessor, ref, nearby);
 
         Ref<EntityStore> previousHovered = craftingComp.getHoveredRef();
@@ -134,22 +132,25 @@ public class CraftingStateSystem {
 
             PedestalBlockComponent ped = PedestalBlockUtil.resolvePedestal(ref, accessor);
             if (ped != null) {
-                if (previousHovered != null) ObeliskDispatcher.dispatchUnhover(accessor, ped, ref, previousHovered);
-                if (targetRef != null) ObeliskDispatcher.dispatchHover(accessor, ped, ref, targetRef);
+                if (previousHovered != null)
+                    ObeliskDispatcher.dispatchUnhover(accessor, ped, ref, previousHovered);
+                if (targetRef != null)
+                    ObeliskDispatcher.dispatchHover(accessor, ped, ref, targetRef);
             }
         }
 
-        Ref<EntityStore> playerRefFlag = pedestal.isPerPlayer() ? ref : null;
+        HoverStyleUtils.hoverParticles(accessor, craftingComp.getHoveredRef(), dt, pedestal);
 
-        HoverStyleUtils.hoverParticles(accessor, craftingComp.getHoveredRef(), dt, pedestal, ref);
+        PedestalBlockComponent blockComp = PedestalBlockUtil.resolvePedestal(ref, accessor);
+        CraftingData playerData = blockComp != null ? blockComp.getCraftingDataComponent() : null;
 
-        CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(accessor, ref);
         if (playerData != null) {
-            LinkRenderer.renderLinks(accessor, playerData, pedestal, dt, playerRefFlag);
+            LinkRenderer.renderLinks(accessor, playerData, pedestal, dt);
         }
     }
 
-    public static InteractionState enterAbility(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref, InteractionType inputType) {
+    public static InteractionState enterAbility(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref,
+            InteractionType inputType) {
         HexcasterCraftingComponent craftingComp = accessor.getComponent(ref,
                 HexcasterCraftingComponent.getComponentType());
         if (craftingComp == null)

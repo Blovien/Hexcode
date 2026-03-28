@@ -1,29 +1,29 @@
 {
-  "Icon": "Icons/ItemCategories/Hexcode.png",
+  "Icon": "Icons/ItemCategories/Misc.png",
   "Order": 4,
   "Children": [
     {
       "Id": "Pedestals",
       "Name": "hexcode.ui.itemcategory.pedestals",
-      "Icon": "Icons/ItemCategories/Hexcode_Pedestals.png",
+      "Icon": "Icons/ItemCategories/Blocks.png",
       "Order": 0
     },
     {
       "Id": "Obelisks",
       "Name": "hexcode.ui.itemcategory.obelisks",
-      "Icon": "Icons/ItemCategories/Hexcode_Obelisks.png",
+      "Icon": "Icons/ItemCategories/Blocks.png",
       "Order": 1
     },
     {
       "Id": "Staves",
       "Name": "hexcode.ui.itemcategory.staves",
-      "Icon": "Icons/ItemCategories/Hexcode_Staves.png",
+      "Icon": "Icons/ItemCategories/Items-Weapons.png",
       "Order": 2
     },
     {
       "Id": "Books",
       "Name": "hexcode.ui.itemcategory.books",
-      "Icon": "Icons/ItemCategories/Hexcode_Books.png",
+      "Icon": "Icons/ItemCategories/Items-Recipe.png",
       "Order": 3
     }
   ]

@@ -19,8 +19,6 @@ public class IdleSystem extends HexcodeManager {
         public void firstTick(Ref<EntityStore> ref, HexcasterComponent comp,
                         Store<EntityStore> store, CommandBuffer<EntityStore> buffer,
                         HexState previousState) {
-                comp.clearDrawingState();
-                comp.clearCraftingState();
 
                 HexcasterCraftingComponent craftingComp = buffer.getComponent(ref,
                                 HexcasterCraftingComponent.getComponentType());

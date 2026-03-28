@@ -9,7 +9,6 @@ import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.common.pedestal.component.PedestalEntityComponent;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 
@@ -46,18 +45,7 @@ public class PedestalBlockUtil {
             return null;
         }
 
-        Ref<EntityStore> anchorRef = craftingComp.getPedestalEntityRef();
-        if (anchorRef == null || !anchorRef.isValid()) {
-            return null;
-        }
-
-        PedestalEntityComponent pedestalEntity = buffer.getComponent(anchorRef,
-                PedestalEntityComponent.getComponentType());
-        if (pedestalEntity == null || pedestalEntity.getPedestalLoc() == null) {
-            return null;
-        }
-
-        Vector3i pos = pedestalEntity.getPedestalLoc();
+        Vector3i pos = craftingComp.getPedestalLocation();
         return BlockModule.getComponent(
                 PedestalBlockComponent.getComponentType(),
                 buffer.getExternalData().getWorld(),

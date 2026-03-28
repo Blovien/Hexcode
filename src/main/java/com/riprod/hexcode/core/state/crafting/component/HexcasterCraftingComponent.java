@@ -1,7 +1,5 @@
 package com.riprod.hexcode.core.state.crafting.component;
 
-import java.util.ArrayList;
-import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -9,6 +7,7 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.utils.CleanupUtils;
 
@@ -27,7 +26,7 @@ public class HexcasterCraftingComponent implements Component<EntityStore> {
         return componentType;
     }
 
-    private Ref<EntityStore> pedestalEntityRef;
+    private Vector3i pedestalLocation;
     private Ref<EntityStore> headAnchorRef;
 
     // dragging and grabbing
@@ -36,17 +35,12 @@ public class HexcasterCraftingComponent implements Component<EntityStore> {
 
     private int dragTickCount;
 
-    public Ref<EntityStore> getPedestalEntityRef() {
-        return pedestalEntityRef;
+    public Vector3i getPedestalLocation() {
+        return pedestalLocation;
     }
 
-    public void setPedestalEntityRef(CommandBuffer<EntityStore> accessor, @Nullable Ref<EntityStore> pedestalRef) {
-        CleanupUtils.safeRemoveEntity(accessor, this.pedestalEntityRef);
-        this.pedestalEntityRef = pedestalRef;
-    }
-
-    public void setPedestalEntityRef(@Nullable Ref<EntityStore> pedestalRef) {
-        this.pedestalEntityRef = pedestalRef;
+    public void setPedestalLocation(Vector3i pedestalLocation) {
+        this.pedestalLocation = pedestalLocation;
     }
 
     @Nullable
@@ -102,7 +96,7 @@ public class HexcasterCraftingComponent implements Component<EntityStore> {
     @Override
     public HexcasterCraftingComponent clone() {
         HexcasterCraftingComponent copy = new HexcasterCraftingComponent();
-        copy.pedestalEntityRef = this.pedestalEntityRef;
+        copy.pedestalLocation = this.pedestalLocation;
         copy.headAnchorRef = this.headAnchorRef;
         copy.draggingRef = this.draggingRef;
         copy.hoveredRef = this.hoveredRef;

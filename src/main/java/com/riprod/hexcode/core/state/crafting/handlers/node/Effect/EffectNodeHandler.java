@@ -20,10 +20,12 @@ import com.riprod.hexcode.core.common.glyphs.utils.CreateGlyph;
 import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableType;
+import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.common.pedestal.utils.PedestalBlockUtil;
 import com.riprod.hexcode.core.state.casting.utils.GlyphStyler;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
-import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
+import com.riprod.hexcode.core.state.crafting.component.CraftingData;
 import com.riprod.hexcode.core.state.crafting.constants.NodeType;
 import com.riprod.hexcode.core.state.crafting.handlers.CraftingDragHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.DetailsHandler;
@@ -70,7 +72,14 @@ public class EffectNodeHandler implements NodeInterface {
         HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
                 HexcasterCraftingComponent.getComponentType());
 
-        CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(accessor, playerRef);
+        PedestalBlockComponent blockComp = PedestalBlockUtil.resolvePedestal(playerRef, accessor);
+        if (blockComp == null) {
+            return InteractionState.Finished;
+        }
+        CraftingData playerData = blockComp.getCraftingDataComponent();
+        if (playerData == null) {
+            return InteractionState.Finished;
+        }
 
         Vector3f dropOffset = CraftingPositionUtil.lookToHexOffset(accessor, playerRef,
                 playerData.getAnchorNodeRef(), 2.0f);
@@ -95,7 +104,8 @@ public class EffectNodeHandler implements NodeInterface {
 
             Ref<EntityStore> graphNodeRef = effect.getNodeRef();
             if (graphNodeRef != null && graphNodeRef.isValid()) {
-                TransformComponent graphTransform = accessor.getComponent(graphNodeRef, TransformComponent.getComponentType());
+                TransformComponent graphTransform = accessor.getComponent(graphNodeRef,
+                        TransformComponent.getComponentType());
                 graphTransform.getPosition().assign(dropWorldPos);
                 graphTransform.getRotation().assign(Vector3f.ZERO);
             }
@@ -113,11 +123,18 @@ public class EffectNodeHandler implements NodeInterface {
 
         Ref<EntityStore> headAnchorRef = craftingComp.getHeadAnchorRef();
         if (headAnchorRef != null && headAnchorRef.isValid()) {
-            // despawn it 
+            // despawn it
             craftingComp.setHeadAnchorRef(accessor, null);
         }
 
-        CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(accessor, playerRef);
+        PedestalBlockComponent blockComp = PedestalBlockUtil.resolvePedestal(playerRef, accessor);
+        if (blockComp == null) {
+            return InteractionState.Finished;
+        }
+        CraftingData playerData = blockComp.getCraftingDataComponent();
+        if (playerData == null) {
+            return InteractionState.Finished;
+        }
 
         if (DetailsHandler.isOpenFor(accessor, playerData.getSlotNodeRefs(), nodeRef)) {
             SlotNodeHandler.INSTANCE.despawn(accessor, playerData);
@@ -157,11 +174,13 @@ public class EffectNodeHandler implements NodeInterface {
         Vector3f glyphRot = new Vector3f(glyph.getRotation().getPitch(), glyph.getRotation().getYaw(), 0);
         Holder<EntityStore> glyphHolder = CreateGlyph.createGlyphHolder(accessor, glyphComp, position, glyphRot);
 
-        HiddenUtils.addHiddenToHolder(accessor, glyphHolder, playerRef);
         HoverableComponent hoverComp = new HoverableComponent(HoverableType.NODE);
         try {
             GlyphAsset glyphAsset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
-            hoverComp.setHintText(glyphAsset.getTitle());
+            hoverComp.setHintText("title", glyphAsset.getTitle());
+            hoverComp.setHintText("description", glyphAsset.getDescription());
+            hoverComp.setHintText("extra", "V " + Math.round(glyph.getVolatility() * 100.0) / 100.0 + " | E "
+                    + Math.round(glyph.getEfficiency() * 100.0) / 100.0);
         } catch (Exception e) {
         }
         glyphHolder.addComponent(HoverableComponent.getComponentType(),

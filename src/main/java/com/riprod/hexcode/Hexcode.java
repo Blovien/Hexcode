@@ -23,10 +23,9 @@ import com.riprod.hexcode.core.common.hidden.system.HiddenFilterSystem;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.system.HoverableSpatialSystem;
 import com.riprod.hexcode.core.common.obelisk.component.ObeliskBlockComponent;
-import com.riprod.hexcode.core.common.pedestal.component.PedestalEntityComponent;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.common.pedestal.events.PedestalBlockEvent;
-import com.riprod.hexcode.core.common.pedestal.events.PedestalTickEvent;
+import com.riprod.hexcode.core.common.pedestal.events.PedestalPlaceEvent;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.common.effect.GlyphEffectSystem;
 import com.riprod.hexcode.core.common.utilities.system.DebugTickSystem;
@@ -35,7 +34,6 @@ import com.riprod.hexcode.core.state.casting.component.HexcasterCastingComponent
 import com.riprod.hexcode.core.state.crafting.CraftingSystem;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
-import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
 import com.riprod.hexcode.core.state.crafting.component.SlotComponent;
 import com.riprod.hexcode.core.state.drawing.DrawingSystem;
 import com.riprod.hexcode.core.state.drawing.component.HexcasterDrawingComponent;
@@ -188,11 +186,6 @@ public class Hexcode extends JavaPlugin {
             HexcasterDrawingComponent::new);
     HexcasterDrawingComponent.setComponentType(drawingRootComponentType);
 
-    ComponentType<EntityStore, CraftingDataComponent> pedestalPlayerRootComponentType = entityStoreRegistry
-        .registerComponent(CraftingDataComponent.class, "PedestalDataComponent",
-            CraftingDataComponent.CODEC);
-    CraftingDataComponent.setComponentType(pedestalPlayerRootComponentType);
-
     ComponentType<EntityStore, NodeComponent> nodeComponentType = entityStoreRegistry
         .registerComponent(NodeComponent.class,
             NodeComponent::new);
@@ -206,10 +199,6 @@ public class Hexcode extends JavaPlugin {
     ComponentType<EntityStore, SlotComponent> slotComponentType = entityStoreRegistry
         .registerComponent(SlotComponent.class, SlotComponent::new);
     SlotComponent.setComponentType(slotComponentType);
-
-    ComponentType<EntityStore, PedestalEntityComponent> pedestalComponentType = entityStoreRegistry
-        .registerComponent(PedestalEntityComponent.class, PedestalEntityComponent::new);
-    PedestalEntityComponent.setComponentType(pedestalComponentType);
 
     ComponentType<EntityStore, HoverableComponent> hoverableComponentType = entityStoreRegistry
         .registerComponent(HoverableComponent.class, HoverableComponent::new);
@@ -242,6 +231,8 @@ public class Hexcode extends JavaPlugin {
         .registerComponent(UnbreakableBlockComponent.class, UnbreakableBlockComponent::new);
     UnbreakableBlockComponent.setComponentType(unbreakableComponentType);
 
+    chunkStoreRegistry.registerSystem(new PedestalPlaceEvent());
+
     // Glyph Var Variables
     HexVar.CODEC.register("Entity", EntityVar.class, EntityVar.CODEC);
     HexVar.CODEC.register("Block", BlockVar.class, BlockVar.CODEC);
@@ -271,7 +262,6 @@ public class Hexcode extends JavaPlugin {
     // Ticking Systems
     entityStoreRegistry.registerSystem(new HexTick());
     entityStoreRegistry.registerSystem(new ExecutionTickSystem());
-    entityStoreRegistry.registerSystem(new PedestalTickEvent());
     entityStoreRegistry.registerSystem(new PedestalBlockEvent());
     entityStoreRegistry.registerSystem(new BlockBreakEvent());
     entityStoreRegistry.registerSystem(new DebugTickSystem());

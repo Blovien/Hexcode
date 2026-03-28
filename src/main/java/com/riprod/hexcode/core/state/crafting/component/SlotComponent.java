@@ -29,6 +29,8 @@ public class SlotComponent implements Component<EntityStore> {
     }
 
     private String slotKey;
+    private String slotTitle;
+    private String slotDescription;
     private GlyphSlotType slotType;
     private boolean isHovered = false;
     private NodeType nodeType;
@@ -57,6 +59,22 @@ public class SlotComponent implements Component<EntityStore> {
         this.nodeType = nodeType;
     }
 
+    public String getSlotTitle() {
+        return slotTitle;
+    }
+
+    public void setSlotTitle(String slotTitle) {
+        this.slotTitle = slotTitle;
+    }
+
+    public String getSlotDescription() {
+        return slotDescription;
+    }
+
+    public void setSlotDescription(String slotDescription) {
+        this.slotDescription = slotDescription;
+    }
+
     @Nonnull
     @Override
     public SlotComponent clone() {
@@ -65,6 +83,8 @@ public class SlotComponent implements Component<EntityStore> {
         copy.slotType = this.slotType;
         copy.isHovered = this.isHovered;
         copy.nodeType = this.nodeType;
+        copy.slotTitle = this.slotTitle;
+        copy.slotDescription = this.slotDescription;
         return copy;
     }
 }

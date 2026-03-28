@@ -5,59 +5,18 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
+import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
+import com.riprod.hexcode.core.state.crafting.component.CraftingData;
 import com.hypixel.hytale.logger.HytaleLogger;
 
 public class CraftingDataUtil {
     private static final HytaleLogger logger = HytaleLogger.forEnclosingClass();
 
-    public static CraftingDataComponent getPedestalData(CommandBuffer<EntityStore> accessor,
-            Ref<EntityStore> playerRef) {
-        return getPedestalData(accessor, playerRef, false);
-    }
-
-    public static CraftingDataComponent getPedestalData(CommandBuffer<EntityStore> accessor,
-            Ref<EntityStore> playerRef, boolean perPlayer) {
-
-        CraftingDataComponent playerPedestalData = accessor.getComponent(playerRef,
-                CraftingDataComponent.getComponentType());
-        if (playerPedestalData != null) {
-            return playerPedestalData;
-        }
-
-        if (perPlayer) {
-            playerPedestalData = new CraftingDataComponent();
-            accessor.addComponent(playerRef, CraftingDataComponent.getComponentType(), playerPedestalData);
-            return playerPedestalData;
-        }
-
-        HexcasterCraftingComponent playerData = accessor.getComponent(playerRef,
-                HexcasterCraftingComponent.getComponentType());
-        if (playerData == null) {
-            logger.atWarning().log("pedestal: getPedestalData — no HexcasterCraftingComponent on player");
-            return null;
-        }
-        Ref<EntityStore> pedestalEntityRef = playerData.getPedestalEntityRef();
-        if (pedestalEntityRef == null || !pedestalEntityRef.isValid()) {
-            logger.atWarning().log("pedestal: getPedestalData — pedestalEntityRef null or invalid");
-            return null;
-        }
-
-        CraftingDataComponent anchorData = accessor.getComponent(pedestalEntityRef,
-                CraftingDataComponent.getComponentType());
-
-        if (anchorData == null) {
-            anchorData = new CraftingDataComponent();
-            accessor.addComponent(pedestalEntityRef, CraftingDataComponent.getComponentType(), anchorData);
-        }
-        return anchorData;
-    }
-
     public static void dropContents(CommandBuffer<EntityStore> buffer, PedestalBlockComponent pedestal,
-            CraftingDataComponent playerData, Vector3i pos) {
+            CraftingData playerData, Vector3i pos) {
 
         // remove and drop book
         ItemStack bookStack = playerData.getStoredBook();

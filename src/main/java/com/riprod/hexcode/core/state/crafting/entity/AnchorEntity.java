@@ -39,7 +39,7 @@ import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.state.casting.utils.GlyphSpawner;
 import com.riprod.hexcode.core.state.casting.utils.GlyphStyler;
-import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
+import com.riprod.hexcode.core.state.crafting.component.CraftingData;
 import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 
 public class AnchorEntity {
@@ -49,8 +49,16 @@ public class AnchorEntity {
     private static final float PEDESTAL_GLYPH_PITCH = (float) (-Math.PI / 2);
     private static final Box PREVIEW_BOUNDING_BOX = new Box(-0.25, -0.25, -0.25, 0.25, 0.25, 0.25);
 
+    private static void safeRemoveEntity(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref) {
+        if (ref == null || !ref.isValid()) {
+            return;
+        }
+        buffer.tryRemoveComponent(ref, MountedComponent.getComponentType());
+        buffer.tryRemoveEntity(ref, RemoveReason.REMOVE);
+    }
+
     public static void DespawnHexPreviews(CommandBuffer<EntityStore> buffer, PedestalBlockComponent pedestal,
-            CraftingDataComponent playerData) {
+            CraftingData playerData) {
         List<Ref<EntityStore>> refs = playerData.getHexPreviewRefs();
         if (refs == null || refs.isEmpty()) {
             return;
@@ -62,25 +70,33 @@ public class AnchorEntity {
                 continue;
             }
 
-            HexComponent hexComp = buffer.getComponent(hexRef, HexComponent.getComponentType());
-            if (hexComp != null) {
-                Map<String, Ref<EntityStore>> childRefs = hexComp.getChildGlyphRefs();
-                if (childRefs != null) {
-                    for (Ref<EntityStore> glyphRef : childRefs.values()) {
-                        if (glyphRef == null || !glyphRef.isValid())
-                            continue;
-                        GlyphComponent effect = buffer.getComponent(glyphRef,
-                                GlyphComponent.getComponentType());
-                        if (effect != null && effect.getNodeRef() != null
-                                && effect.getNodeRef().isValid()) {
-                            buffer.tryRemoveEntity(effect.getNodeRef(), RemoveReason.REMOVE);
+            try {
+                HexComponent hexComp = buffer.getComponent(hexRef, HexComponent.getComponentType());
+                if (hexComp != null) {
+                    Map<String, Ref<EntityStore>> childRefs = hexComp.getChildGlyphRefs();
+                    if (childRefs != null) {
+                        for (Ref<EntityStore> glyphRef : childRefs.values()) {
+                            if (glyphRef == null || !glyphRef.isValid())
+                                continue;
+                            GlyphComponent effect = buffer.getComponent(glyphRef,
+                                    GlyphComponent.getComponentType());
+                            if (effect != null && effect.getNodeRef() != null
+                                    && effect.getNodeRef().isValid()) {
+                                safeRemoveEntity(buffer, effect.getNodeRef());
+                            }
+                            if (glyphRef.isValid()) {
+                                safeRemoveEntity(buffer, glyphRef);
+                            }
                         }
-                        buffer.tryRemoveEntity(glyphRef, RemoveReason.REMOVE);
                     }
                 }
-            }
 
-            buffer.tryRemoveEntity(hexRef, RemoveReason.REMOVE);
+                if (hexRef.isValid()) {
+                    safeRemoveEntity(buffer, hexRef);
+                }
+            } catch (Exception e) {
+                logger.atWarning().log("pedestal: failed to despawn hex preview %d: %s", i, e.getMessage());
+            }
         }
 
         playerData.clearHexPreviewRefs();

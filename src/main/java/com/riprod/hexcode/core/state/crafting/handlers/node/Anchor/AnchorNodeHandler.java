@@ -35,7 +35,7 @@ import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
 import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 import com.riprod.hexcode.core.state.crafting.constants.NodeType;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeInterface;
-import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
+import com.riprod.hexcode.core.state.crafting.component.CraftingData;
 import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Effect.EffectNodeHandler;
 
@@ -167,8 +167,6 @@ public class AnchorNodeHandler implements NodeInterface {
             Ref<EntityStore> playerRef) {
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
 
-        HiddenUtils.addHiddenToHolder(accessor, holder, playerRef);
-
         holder.addComponent(TransformComponent.getComponentType(),
                 new TransformComponent(rootPos, new Vector3f(0, 0, 0)));
 
@@ -189,7 +187,7 @@ public class AnchorNodeHandler implements NodeInterface {
 
         holder.addComponent(DebugComponent.getComponentType(),
                 new DebugComponent(DebugShape.Sphere, CraftingColors.ANCHOR,
-                        ROOT_NODE_SCALE * 2.5, 2.0f, playerRef));
+                        ROOT_NODE_SCALE * 2.5, 2.0f));
         holder.addComponent(HoverableComponent.getComponentType(),
                 new HoverableComponent(HoverableType.NODE));
 

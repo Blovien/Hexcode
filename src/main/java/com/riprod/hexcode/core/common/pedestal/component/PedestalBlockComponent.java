@@ -14,6 +14,8 @@ import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.state.crafting.component.CraftingData;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -74,8 +76,8 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
             .documentation(
                     "A model that has the animations for the items (book/essence). Used for customizing the animation displays.")
             .add()
-            .append(new KeyedCodec<>("Location", Vector3i.CODEC), (c, v) -> c.location = v, c -> c.location)
-            .documentation("The location of the pedestal in the world.")
+            .append(new KeyedCodec<>("RuntimeData", CraftingData.CODEC), (c, v) -> c.craftingDataComponent = v, c -> c.craftingDataComponent)
+            .documentation("Data that is set at runtime. Generally this can be ignored.")
             .add()
             .build();
 
@@ -99,26 +101,22 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
     protected Vector3f bookOffset = new Vector3f(0f, 0.3f, 0f);
     private boolean consumeEssence = false;
     // transient
-    private Vector3i location = null;
     private Map<String, Float> lastTickMap = new HashMap<>();
     private List<Vector3i> obeliskLocations = new ArrayList<>();
     private Set<Ref<EntityStore>> activePlayerRefs = new HashSet<>();
-    private Ref<EntityStore> pedestalEntityRef;
+    private CraftingData craftingDataComponent = null;
 
-    public void setLocation(Vector3i location) {
-        this.location = location;
+    public CraftingData getCraftingDataComponent() {
+        return craftingDataComponent;
+    }
+
+    public void setCraftingDataComponent(CraftingData craftingDataComponent) {
+        this.craftingDataComponent = craftingDataComponent;
     }
 
     public Vector3i getLocation() {
-        return location;
-    }
-
-    public void setPedestalEntityRef(Ref<EntityStore> pedestalEntityRef) {
-        this.pedestalEntityRef = pedestalEntityRef;
-    }
-
-    public Ref<EntityStore> getPedestalEntityRef() {
-        return pedestalEntityRef;
+        if (craftingDataComponent == null) return null;
+        return craftingDataComponent.getPedestalLocation();
     }
 
     public boolean isConsumeEssence() {
@@ -176,6 +174,10 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
         this.obeliskLocations.add(obeliskLoc);
     }
 
+    public boolean removeObelisk(Vector3i obeliskLoc) {
+        return this.obeliskLocations.remove(obeliskLoc);
+    }
+
     // style
     public Vector3f getBookOffset() {
         return this.bookOffset;
@@ -218,7 +220,7 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
         copy.activePlayerRefs = new HashSet<>(this.activePlayerRefs);
         copy.bookOffset = this.bookOffset;
         copy.essenceOffset = this.essenceOffset;
-        copy.location = this.location != null ? this.location.clone() : null;
+        copy.craftingDataComponent = this.craftingDataComponent != null ? this.craftingDataComponent.clone() : null;
         copy.animationSetMap = this.animationSetMap;
         copy.lastTickMap = new HashMap<>(this.lastTickMap);
         copy.obeliskLocations = new ArrayList<>(this.obeliskLocations);

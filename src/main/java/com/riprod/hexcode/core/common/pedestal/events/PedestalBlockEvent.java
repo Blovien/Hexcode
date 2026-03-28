@@ -16,9 +16,10 @@ import com.hypixel.hytale.server.core.event.events.ecs.BreakBlockEvent;
 import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.common.block.component.UnbreakableBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
+import com.hypixel.hytale.server.core.inventory.ItemStack;
+import com.riprod.hexcode.core.state.crafting.component.CraftingData;
 import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
+import com.riprod.hexcode.core.state.crafting.utils.PedestalItemUtil;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.obelisk.system.ObeliskSystem;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
@@ -66,39 +67,46 @@ public class PedestalBlockEvent extends EntityEventSystem<EntityStore, BreakBloc
             }
             activePlayers.clear();
 
-            if (!pedestal.isPerPlayer()) { // if is not per player, drop the shared contents
-                Ref<EntityStore> pedestalRef = pedestal.getPedestalEntityRef();
-                if (pedestalRef != null && pedestalRef.isValid()) {
-                    CraftingDataComponent playerData = buffer.getComponent(pedestal.getPedestalEntityRef(),
-                            CraftingDataComponent.getComponentType());
+            CraftingData pedestalData = pedestal.getCraftingDataComponent();
+            if (pedestalData != null) {
 
-                    if (playerData != null) {
-                        CraftingDataUtil.dropContents(buffer, pedestal, playerData, pos);
+                Ref<EntityStore> ownerRef = pedestalData.getOwnerRef();
+                boolean ownerValid = ownerRef != null && ownerRef.isValid();
+
+                ItemStack bookStack = pedestalData.getStoredBook();
+                if (bookStack != null && !bookStack.isEmpty()) {
+                    if (ownerValid) {
+                        PedestalItemUtil.returnBookToPlayer(buffer, ownerRef, bookStack,
+                                pedestalData.getBookSourceSlot());
+                    } else {
+                        PedestalItemUtil.dropBookAtPosition(buffer, bookStack, pos);
                     }
+                }
 
-                    buffer.removeEntity(pedestalRef, RemoveReason.REMOVE);
+                String essenceId = pedestalData.getEssence();
+                if (!pedestal.isConsumeEssence() && essenceId != null) {
+                    boolean returned = ownerValid
+                            && PedestalItemUtil.returnEssenceToPlayer(buffer, ownerRef, essenceId);
+                    if (!returned) {
+                        PedestalItemUtil.dropEssenceAtPosition(buffer, essenceId, pos);
+                    }
+                }
+
+                Ref<EntityStore> bookRef = pedestalData.getBookDisplayRef();
+                if (bookRef != null && bookRef.isValid()) {
+                    buffer.removeEntity(bookRef, RemoveReason.REMOVE);
+                }
+                Ref<EntityStore> essenceRef = pedestalData.getEssenceDisplayRef();
+                if (essenceRef != null && essenceRef.isValid()) {
+                    buffer.removeEntity(essenceRef, RemoveReason.REMOVE);
+                }
+
+                Ref<EntityStore> anchorRef = pedestalData.getAnchorRef();
+                if (anchorRef != null && anchorRef.isValid()) {
+                    buffer.removeEntity(anchorRef, RemoveReason.REMOVE);
                 }
             }
 
-            Set<Ref<EntityStore>> playerRefs = pedestal.getActivePlayerRefs();
-
-            if (playerRefs != null && !playerRefs.isEmpty()) {
-                playerRefs.forEach(playerRef -> {
-
-                    if (pedestal.isPerPlayer()) {
-                        HexcasterComponent hexcaster = buffer.getComponent(playerRef,
-                                HexcasterComponent.getComponentType());
-                        if (hexcaster == null)
-                            return;
-
-                        // Transition to idle for per-player cleaup logic
-                        hexcaster.requestStateChange(HexState.IDLE);
-                    }
-                });
-                playerRefs.clear();
-            }
-
-            UnbreakableBlockComponent.unprotect(world, pos);
             ObeliskSystem.updateState(buffer, pedestal, world, PedestalState.SELECTING, PedestalState.IDLE);
 
             LOGGER.atInfo().log("pedestal cleanup complete at %s", pos);

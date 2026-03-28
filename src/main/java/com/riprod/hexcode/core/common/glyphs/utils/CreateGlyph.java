@@ -121,7 +121,6 @@ public class CreateGlyph {
       Vector3d parentPos, Vector3f parentRot, Ref<EntityStore> playerRef) {
 
     Holder<EntityStore> holder = createGlyphHolder(accessor, glyph, parentPos, parentRot);
-    HiddenUtils.addHiddenToHolder(accessor, holder, playerRef);
     Ref<EntityStore> ref = createEntity(accessor, holder);
     glyph.setSelfRef(ref);
 

@@ -1,5 +1,8 @@
 package com.riprod.hexcode.core.common.hover.component;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.annotation.Nonnull;
 
 import com.hypixel.hytale.component.Component;
@@ -34,7 +37,7 @@ public class HoverableComponent implements Component<EntityStore> {
     private HoverableType entityType = HoverableType.CONTAINER;
     private Ref<EntityStore> rootRef = null;
     private Ref<EntityStore> ownerRef = null;
-    private String hintText = null;
+    private Map<String, String> tooltipText = new HashMap<>();
 
     public HoverableType getType() {
         return entityType;
@@ -60,12 +63,16 @@ public class HoverableComponent implements Component<EntityStore> {
         this.ownerRef = ownerRef;
     }
 
-    public String getHintText() {
-        return hintText;
+    public String getHintText(String key) {
+        return tooltipText.get(key);
     }
 
-    public void setHintText(String hintText) {
-        this.hintText = hintText;
+    public void setHintText(String key, String hintText) {
+        this.tooltipText.put(key, hintText);
+    }
+
+    public Map<String, String> getAllHintText() {
+        return tooltipText;
     }
 
     @Nonnull
@@ -75,7 +82,7 @@ public class HoverableComponent implements Component<EntityStore> {
         copy.rootRef = this.rootRef;
         copy.entityType = this.entityType;
         copy.ownerRef = this.ownerRef;
-        copy.hintText = this.hintText;
+        copy.tooltipText = new HashMap<>(this.tooltipText);
         return copy;
     }
 }

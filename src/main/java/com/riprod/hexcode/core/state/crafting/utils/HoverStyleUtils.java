@@ -1,6 +1,5 @@
 package com.riprod.hexcode.core.state.crafting.utils;
 
-import java.util.List;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.vector.Vector3d;
@@ -28,7 +27,6 @@ public class HoverStyleUtils {
         if (hoveredComponent == null)
             return;
 
-        clearHint(accessor, unhoveredRef, hoveredComponent);
         NodeRouter.unhover(accessor, unhoveredRef, playerRef);
     }
 
@@ -42,12 +40,11 @@ public class HoverStyleUtils {
         if (hoveredComponent == null)
             return;
 
-        showHint(accessor, hovered, hoveredComponent);
         NodeRouter.hover(accessor, hovered, playerRef);
     }
 
     public static void hoverParticles(CommandBuffer<EntityStore> accessor, Ref<EntityStore> hovered, float dt,
-            PedestalBlockComponent pedestal, Ref<EntityStore> playerRef) {
+            PedestalBlockComponent pedestal) {
         if (hovered == null || !hovered.isValid())
             return;
 
@@ -66,28 +63,6 @@ public class HoverStyleUtils {
         if (transform == null)
             return;
         Vector3d pos = transform.getPosition();
-        ParticleUtil.spawnParticleEffect(HOVER_PARTICLE, pos, hovered,
-                List.of(playerRef), accessor);
-    }
-
-    private static void showHint(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref,
-            HoverableComponent hoverable) {
-        String text = hoverable.getHintText();
-        if (text == null)
-            return;
-        Nameplate nameplate = accessor.getComponent(ref, Nameplate.getComponentType());
-        if (nameplate == null)
-            return;
-        nameplate.setText(text);
-    }
-
-    private static void clearHint(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref,
-            HoverableComponent hoverable) {
-        if (hoverable.getHintText() == null)
-            return;
-        Nameplate nameplate = accessor.getComponent(ref, Nameplate.getComponentType());
-        if (nameplate == null)
-            return;
-        nameplate.setText("");
+        ParticleUtil.spawnParticleEffect(HOVER_PARTICLE, pos, accessor);
     }
 }

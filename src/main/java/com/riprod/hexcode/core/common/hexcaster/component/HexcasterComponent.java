@@ -10,7 +10,6 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.state.HexState;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -63,7 +62,6 @@ public class HexcasterComponent implements Component<EntityStore> {
     private String trainingShapeId = null;
 
     // Crafting Mode
-    private Ref<EntityStore> pendingPedestalRef = null;
     private Map<String, Float> lastTickMap = new HashMap<>();
 
     public HexcasterComponent() {
@@ -82,24 +80,6 @@ public class HexcasterComponent implements Component<EntityStore> {
         this.trailRef = null;
         this.lastParticleSpawnMillis = 0;
         this.drawStartTimeMillis = 0;
-    }
-
-    public Ref<EntityStore> getPendingPedestalRef() {
-        return pendingPedestalRef;
-    }
-
-    public void setPendingPedestalRef(@Nullable Ref<EntityStore> ref) {
-        this.pendingPedestalRef = ref;
-    }
-
-    public Ref<EntityStore> consumePendingPedestalRef() {
-        Ref<EntityStore> ref = this.pendingPedestalRef;
-        this.pendingPedestalRef = null;
-        return ref;
-    }
-
-    public void clearCraftingState() {
-        this.pendingPedestalRef = null;
     }
 
     /** @deprecated */
@@ -158,7 +138,6 @@ public class HexcasterComponent implements Component<EntityStore> {
         copy.trailRef = this.trailRef;
         copy.lastParticleSpawnMillis = this.lastParticleSpawnMillis;
         copy.drawStartTimeMillis = this.drawStartTimeMillis;
-        copy.pendingPedestalRef = this.pendingPedestalRef;
         copy.trainingShapeId = this.trainingShapeId;
         copy.lastTickMap = new HashMap<>(this.lastTickMap);
         return copy;

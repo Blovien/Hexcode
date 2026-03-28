@@ -8,10 +8,9 @@ import javax.annotation.Nullable;
 import com.hypixel.hytale.builtin.mounts.MountedComponent;
 import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.CommandBuffer;
-import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.component.RemoveReason;
+import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.math.vector.Vector3i;
@@ -20,16 +19,13 @@ import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
-import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
-import com.riprod.hexcode.core.common.pedestal.component.PedestalEntityComponent;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
+import com.riprod.hexcode.core.state.crafting.component.CraftingData;
 import com.hypixel.hytale.logger.HytaleLogger;
 
 public class PedestalEntity {
@@ -40,60 +36,49 @@ public class PedestalEntity {
         return new Vector3d(blockPos.x + 0.5, blockPos.y + 1.0, blockPos.z + 0.5);
     }
 
-    public static Ref<EntityStore> spawnAnchorEntity(ComponentAccessor<EntityStore> accessor,
-            Vector3i blockPos) {
-
+    @Nullable
+    public static Holder<EntityStore> buildAnchorHolder(Store<EntityStore> store, Vector3i blockPos) {
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
-
         Vector3d anchorPos = getAnchorPosition(blockPos);
-
-        if (anchorPos == null) {
-            logger.atWarning().log("pedestal spawnAnchorEntity: could not calculate anchor position for blockPos=%s",
-                    blockPos);
-            return null;
-        }
 
         holder.addComponent(TransformComponent.getComponentType(),
                 new TransformComponent(anchorPos, new Vector3f(0, 0, 0)));
-
         holder.addComponent(UUIDComponent.getComponentType(),
                 new UUIDComponent(UUID.randomUUID()));
-
         holder.ensureComponent(EntityStore.REGISTRY.getNonSerializedComponentType());
 
-        int networkId = accessor.getExternalData().takeNextNetworkId();
+        int networkId = store.getExternalData().takeNextNetworkId();
         holder.addComponent(NetworkId.getComponentType(), new NetworkId(networkId));
 
-        PedestalEntityComponent pedestalEntity = new PedestalEntityComponent();
-        pedestalEntity.setPedestalLoc(blockPos);
-        holder.addComponent(PedestalEntityComponent.getComponentType(), pedestalEntity);
-
         ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset("Pedestal_Holder");
-
         if (modelAsset == null) {
-            logger.atWarning().log("pedestal spawnAnchorEntity: no ModelAsset for id=Pedestal_Holder");
+            logger.atWarning().log("pedestal buildAnchorHolder: no ModelAsset for id=Pedestal_Holder");
             return null;
         }
 
         Model model = Model.createScaledModel(modelAsset, 1.0f);
+        holder.addComponent(ModelComponent.getComponentType(), new ModelComponent(model));
+        holder.addComponent(PersistentModel.getComponentType(), new PersistentModel(model.toReference()));
 
-        holder.addComponent(ModelComponent.getComponentType(),
-                new ModelComponent(model));
+        return holder;
+    }
 
-        holder.addComponent(PersistentModel.getComponentType(),
-                new PersistentModel(model.toReference()));
+    public static Ref<EntityStore> spawnAnchorEntity(CommandBuffer<EntityStore> accessor,
+            Vector3i blockPos) {
 
+        Holder<EntityStore> holder = buildAnchorHolder(accessor.getStore(), blockPos);
+        if (holder == null) {
+            return null;
+        }
         return accessor.addEntity(holder, AddReason.SPAWN);
     }
 
     public static Ref<EntityStore> spawnEssenceDisplay(CommandBuffer<EntityStore> accessor,
-            PedestalBlockComponent pedestal, CraftingDataComponent playerData,
+            PedestalBlockComponent pedestal, CraftingData playerData,
             Vector3d anchorPos, Item item,
             String anchorId, Ref<EntityStore> playerRef) {
 
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
-
-        HiddenUtils.addHiddenToHolder(accessor, holder, playerRef);
 
         holder.addComponent(TransformComponent.getComponentType(),
                 new TransformComponent(anchorPos, new Vector3f(0, 0, 0)));
@@ -116,11 +101,9 @@ public class PedestalEntity {
 
     public static Ref<EntityStore> spawnBookDisplay(CommandBuffer<EntityStore> accessor,
             PedestalBlockComponent pedestal,
-            CraftingDataComponent playerData, Vector3d anchorPos, Item item, Ref<EntityStore> playerRef) {
+            CraftingData playerData, Vector3d anchorPos, Item item, Ref<EntityStore> playerRef) {
 
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
-
-        HiddenUtils.addHiddenToHolder(accessor, holder, playerRef);
 
         holder.addComponent(TransformComponent.getComponentType(),
                 new TransformComponent(anchorPos, new Vector3f(0, 0, 0)));

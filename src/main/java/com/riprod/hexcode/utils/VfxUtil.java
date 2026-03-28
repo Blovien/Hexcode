@@ -53,12 +53,14 @@ public class VfxUtil {
 
   public static void particleAlongPath(String systemId, Vector3d source, Vector3d target,
       int count, ComponentAccessor<EntityStore> accessor) {
-    if (count < 1) count = 1;
+    if (count < 1)
+      count = 1;
     double phaseOffset = (double) flowPhase / (count * 4);
     Vector3d point = new Vector3d();
     for (int i = 0; i < count; i++) {
       double t = (double) i / count + phaseOffset;
-      if (t >= 1.0) t -= 1.0;
+      if (t >= 1.0)
+        t -= 1.0;
       point.x = source.x + (target.x - source.x) * t;
       point.y = source.y + (target.y - source.y) * t;
       point.z = source.z + (target.z - source.z) * t;
@@ -69,17 +71,25 @@ public class VfxUtil {
   public static void particleAlongPath(String systemId, Vector3d source, Vector3d target,
       int count, Color color, @Nullable Ref<EntityStore> playerRef,
       ComponentAccessor<EntityStore> accessor) {
-    if (count < 1) count = 1;
+    if (count < 1)
+      count = 1;
     double phaseOffset = (double) flowPhase / (count * 4);
-    List<Ref<EntityStore>> targets = playerRef != null ? List.of(playerRef) : List.of();
+
+    SpatialResource<Ref<EntityStore>, EntityStore> playerSpatialResource = accessor
+        .getResource(EntityModule.get().getPlayerSpatialResourceType());
+    List<Ref<EntityStore>> playerRefs = SpatialResource.getThreadLocalReferenceList();
+    playerSpatialResource.getSpatialStructure().collect(source, (double) 25.0F, playerRefs);
+
     Vector3d point = new Vector3d();
     for (int i = 0; i < count; i++) {
       double t = (double) i / count + phaseOffset;
-      if (t >= 1.0) t -= 1.0;
+      if (t >= 1.0)
+        t -= 1.0;
       point.x = source.x + (target.x - source.x) * t;
       point.y = source.y + (target.y - source.y) * t;
       point.z = source.z + (target.z - source.z) * t;
-      ParticleUtil.spawnParticleEffect(systemId, point, 0.0f, 0.0f, 0.0f, 1.0f, color, targets, accessor);
+
+      ParticleUtil.spawnParticleEffect(systemId, point, 0.0f, 0.0f, 0.0f, 1.0f, color, playerRefs, accessor);
     }
   }
 
@@ -108,12 +118,13 @@ public class VfxUtil {
     matrix.rotateAxis(angleX, 1.0, 0.0, 0.0, tmp);
     matrix.translate(0.0, length / 2.0, 0.0);
     matrix.scale(thickness, length, thickness);
+    int allFlags = flags | DebugUtils.FLAG_NO_WIREFRAME;
+
     if (ref == null || !ref.isValid()) {
-      DebugUtils.add(world, DebugShape.Cube, matrix, color, 0.7f, time, DebugUtils.FLAG_NO_WIREFRAME);
+      DebugUtils.add(world, DebugShape.Cube, matrix, color, 0.7f, time, allFlags);
       return;
     }
 
-    int allFlags = flags | DebugUtils.FLAG_NO_WIREFRAME;
 
     PlayerRef playerRef = accessor.getComponent(ref, PlayerRef.getComponentType());
     if (playerRef != null) {

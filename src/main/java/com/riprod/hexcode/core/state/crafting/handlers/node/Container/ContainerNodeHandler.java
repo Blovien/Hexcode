@@ -45,7 +45,7 @@ import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.state.casting.utils.GlyphStyler;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
-import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
+import com.riprod.hexcode.core.state.crafting.component.CraftingData;
 import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 import com.riprod.hexcode.core.state.crafting.constants.NodeType;
 import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
@@ -58,11 +58,10 @@ import com.riprod.hexcode.core.state.crafting.handlers.node.Effect.EffectNodeHan
 import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
 import com.riprod.hexcode.utils.CleanupUtils;
 import com.riprod.hexcode.utils.GlyphMath;
+import com.hypixel.hytale.logger.HytaleLogger;
 
-/**
- * ParentRef = Pedestal anchor entity ref
- */
 public class ContainerNodeHandler implements NodeInterface {
+    private static final HytaleLogger logger = HytaleLogger.forEnclosingClass();
 
     public static final ContainerNodeHandler INSTANCE = new ContainerNodeHandler();
 
@@ -96,8 +95,6 @@ public class ContainerNodeHandler implements NodeInterface {
             holder.addComponent(NetworkId.getComponentType(), new NetworkId(networkId));
         }
 
-        HiddenUtils.addHiddenToHolder(accessor, holder, playerRef);
-
         ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset("Selection_Anchor");
 
         if (modelAsset == null) {
@@ -117,7 +114,7 @@ public class ContainerNodeHandler implements NodeInterface {
         holder.addComponent(NodeComponent.getComponentType(), new NodeComponent(anchorRef, NodeType.Container));
         holder.addComponent(DebugComponent.getComponentType(),
                 new DebugComponent(DebugShape.Sphere, isEmpty ? CraftingColors.EMPTY_SLOT : CraftingColors.FILLED_SLOT,
-                        0.5, 2.0f, playerRef));
+                        0.5, 2.0f));
 
         Ref<EntityStore> hexRef = CreateHex.createEntity(accessor, holder);
         if (isEmpty || hex == null) {
@@ -156,15 +153,27 @@ public class ContainerNodeHandler implements NodeInterface {
     public InteractionState enter(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
             Ref<EntityStore> playerRef) {
         PedestalBlockComponent pedestal = PedestalBlockUtil.resolvePedestal(playerRef, accessor);
-        if (pedestal == null)
+        if (pedestal == null) {
+            logger.atWarning().log("container enter: pedestal is null");
             return InteractionState.Failed;
+        }
 
-        CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(accessor, playerRef);
-        if (playerData == null)
+        CraftingData playerData = pedestal.getCraftingDataComponent();
+        if (playerData == null) {
+            logger.atWarning().log("container enter: playerData is null");
             return InteractionState.Failed;
+        }
 
-        if (playerData.getState() != PedestalState.SELECTING)
-            return InteractionState.Failed; // only interact whilst in selecting state
+        if (!playerData.isOwner(playerRef)) {
+            logger.atWarning().log("container enter: not owner — ownerRef=%s, playerRef=%s, same=%s",
+                    playerData.getOwnerRef(), playerRef, playerData.getOwnerRef() == playerRef);
+            return InteractionState.Failed;
+        }
+
+        if (playerData.getState() != PedestalState.SELECTING) {
+            logger.atWarning().log("container enter: wrong state=%s", playerData.getState());
+            return InteractionState.Failed;
+        }
 
         HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
                 HexcasterCraftingComponent.getComponentType());
@@ -221,7 +230,7 @@ public class ContainerNodeHandler implements NodeInterface {
         craftingComp.setHoveredRef(null);
         accessor.removeComponent(node, DebugComponent.getComponentType());
 
-        Vector3d anchorPos = PedestalEntity.getAnchorPosition(pedestal.getLocation());
+        Vector3d anchorPos = PedestalEntity.getAnchorPosition(pedestal.getCraftingDataComponent().getPedestalLocation());
         Vector3d activePos = new Vector3d(
                 anchorPos.x + PedestalSystem.ACTIVE_HEX_OFFSET.x,
                 anchorPos.y + PedestalSystem.ACTIVE_HEX_OFFSET.y,

@@ -30,11 +30,13 @@ import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableType;
 import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
+import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.common.pedestal.utils.PedestalBlockUtil;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
-import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
+import com.riprod.hexcode.core.state.crafting.component.CraftingData;
 import com.riprod.hexcode.core.state.crafting.component.SlotComponent;
 import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 import com.riprod.hexcode.core.state.crafting.constants.NodeType;
@@ -191,7 +193,7 @@ public class SlotNodeHandler implements NodeInterface {
 
     public Holder<EntityStore> spawnSlot(CommandBuffer<EntityStore> accessor, Vector3f offset,
             Ref<EntityStore> glyphRef, SlotComponent slotComp,
-            Ref<EntityStore> playerRef, String hintText) {
+            Ref<EntityStore> playerRef) {
 
         TransformComponent glyphTransform = accessor.getComponent(glyphRef,
                 TransformComponent.getComponentType());
@@ -200,8 +202,6 @@ public class SlotNodeHandler implements NodeInterface {
         Vector3d parentPos = glyphTransform.getPosition();
 
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
-
-        HiddenUtils.addHiddenToHolder(accessor, holder, playerRef);
 
         Vector3d slotPos = new Vector3d(
                 parentPos.x + offset.x,
@@ -228,7 +228,8 @@ public class SlotNodeHandler implements NodeInterface {
         int networkId = accessor.getExternalData().takeNextNetworkId();
         holder.addComponent(NetworkId.getComponentType(), new NetworkId(networkId));
         HoverableComponent hoverable = new HoverableComponent(HoverableType.NODE);
-        hoverable.setHintText(hintText);
+        hoverable.setHintText("title", slotComp.getSlotTitle());
+        hoverable.setHintText("description", slotComp.getSlotDescription());
         holder.addComponent(HoverableComponent.getComponentType(), hoverable);
 
         holder.addComponent(NodeComponent.getComponentType(),
@@ -241,14 +242,18 @@ public class SlotNodeHandler implements NodeInterface {
 
     @Override
     public void despawn(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
-        CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(accessor, playerRef);
+        PedestalBlockComponent blockComp = PedestalBlockUtil.resolvePedestal(playerRef, accessor);
+        if (blockComp == null) {
+            return;
+        }
+        CraftingData playerData = blockComp.getCraftingDataComponent();
 
         if (playerData == null)
             return;
         this.despawn(accessor, playerData);
     }
 
-    public void despawn(CommandBuffer<EntityStore> accessor, CraftingDataComponent playerData) {
+    public void despawn(CommandBuffer<EntityStore> accessor, CraftingData playerData) {
 
         if (playerData == null)
             return;

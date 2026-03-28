@@ -9,6 +9,7 @@ import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
+import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.common.hexcaster.utils.CasterInventory;
@@ -25,10 +26,10 @@ import com.riprod.hexcode.core.state.execution.component.HexColors;
 import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 import com.riprod.hexcode.utils.HexSlot;
 
-public class CraftingDataComponent implements Component<EntityStore> {
+public class CraftingData {
 
-    public static final BuilderCodec<CraftingDataComponent> CODEC = BuilderCodec
-            .builder(CraftingDataComponent.class, CraftingDataComponent::new)
+    public static final BuilderCodec<CraftingData> CODEC = BuilderCodec
+            .builder(CraftingData.class, CraftingData::new)
             .append(new KeyedCodec<>("StoredBook", ItemStack.CODEC), (c, v) -> c.storedBook = v, c -> c.storedBook)
             .documentation(
                     "The book currently stored in the pedestal. Set at runtime when a player places a book on the pedestal")
@@ -39,25 +40,20 @@ public class CraftingDataComponent implements Component<EntityStore> {
                     "The essence item ID currently stored in the pedestal. Set at runtime when a player places a book on the pedestal")
             .documentation("The current state of the pedestal")
             .add()
+            .append(new KeyedCodec<>("Location", Vector3i.CODEC), (c, v) -> c.pedestalLocation = v, c -> c.pedestalLocation)
+            .documentation("The location of the pedestal in the world.")
+            .add()
             .build();
 
-    private static ComponentType<EntityStore, CraftingDataComponent> componentType;
-
-    public static void setComponentType(ComponentType<EntityStore, CraftingDataComponent> type) {
-        componentType = type;
+    public CraftingData() {
     }
 
-    public static ComponentType<EntityStore, CraftingDataComponent> getComponentType() {
-        return componentType;
-    }
-
-    public CraftingDataComponent() {
-    }
-
-    public void updatePedestal(Vector3i newLocation, int newRadius, boolean perPlayer) {
-        this.pedestalLocation = newLocation;
-        this.pedestalRadius = newRadius;
-        this.pedestalPerPlayer = perPlayer;
+    public CraftingData(Vector3i pedestalLocation) {
+        this.pedestalLocation = pedestalLocation;
+        this.blockState = PedestalState.IDLE;
+        this.anchorNodeRef = null;
+        this.bookDisplayRef = null;
+        this.essenceDisplayRef = null;
     }
 
     // persistent
@@ -69,15 +65,14 @@ public class CraftingDataComponent implements Component<EntityStore> {
     private Vector3f cachedGlyphColor = null;
     private Color cachedGlyphProtocolColor = null;
 
-    // per player
+    // pedestal state
     private PedestalState blockState = PedestalState.IDLE;
     private Ref<EntityStore> bookDisplayRef;
     private Ref<EntityStore> essenceDisplayRef;
     private List<Ref<EntityStore>> hexPreviewRefs = new ArrayList<>();
     private Ref<EntityStore> anchorRef = null;
     private Vector3i pedestalLocation = null;
-    private int pedestalRadius = 3;
-    private boolean pedestalPerPlayer = false;
+    private Ref<EntityStore> ownerRef = null;
     private List<Ref<EntityStore>> slotNodeRefs = new ArrayList<>();
     private Ref<EntityStore> anchorNodeRef;
     private int activeSlotIndex = -1;
@@ -248,38 +243,43 @@ public class CraftingDataComponent implements Component<EntityStore> {
         this.activeSlotIndex = activeSlotIndex;
     }
 
-    public boolean isPerPlayer() {
-        return pedestalPerPlayer;
+    public Ref<EntityStore> getOwnerRef() {
+        return ownerRef;
+    }
+
+    public void setOwnerRef(Ref<EntityStore> ownerRef) {
+        this.ownerRef = ownerRef;
+    }
+
+    public boolean isOwner(Ref<EntityStore> playerRef) {
+        return ownerRef != null && ownerRef.equals(playerRef);
+    }
+
+    public void setPedestalLocation(Vector3i pedestalLocation) {
+        this.pedestalLocation = pedestalLocation;
     }
 
     public Vector3i getPedestalLocation() {
         return pedestalLocation;
     }
 
-    public int getPedestalRadius() {
-        return pedestalRadius;
-    }
-
-    @Nonnull
-    @Override
-    public Component<EntityStore> clone() {
-        CraftingDataComponent copy = new CraftingDataComponent();
+    public CraftingData clone() {
+        CraftingData copy = new CraftingData();
         copy.storedBook = this.storedBook;
         copy.essenceItemId = this.essenceItemId;
         copy.bookSourceSlot = this.bookSourceSlot;
+        copy.cachedGlyphColor = this.cachedGlyphColor != null ? this.cachedGlyphColor.clone() : null;
+        copy.cachedGlyphProtocolColor = this.cachedGlyphProtocolColor;
         copy.blockState = this.blockState;
         copy.bookDisplayRef = this.bookDisplayRef;
         copy.essenceDisplayRef = this.essenceDisplayRef;
-        copy.hexPreviewRefs = new ArrayList<>(this.hexPreviewRefs);
+        copy.hexPreviewRefs = this.hexPreviewRefs != null ? new ArrayList<>(this.hexPreviewRefs) : new ArrayList<>();
         copy.anchorRef = this.anchorRef;
-        copy.pedestalLocation = this.pedestalLocation;
-        copy.pedestalRadius = this.pedestalRadius;
-        copy.pedestalPerPlayer = this.pedestalPerPlayer;
-        copy.slotNodeRefs = new ArrayList<>(this.slotNodeRefs);
+        copy.pedestalLocation = this.pedestalLocation != null ? this.pedestalLocation.clone() : null;
+        copy.ownerRef = this.ownerRef;
+        copy.slotNodeRefs = this.slotNodeRefs != null ? new ArrayList<>(this.slotNodeRefs) : new ArrayList<>();
         copy.anchorNodeRef = this.anchorNodeRef;
         copy.activeSlotIndex = this.activeSlotIndex;
-        copy.cachedGlyphColor = this.cachedGlyphColor;
-        copy.cachedGlyphProtocolColor = this.cachedGlyphProtocolColor;
         return copy;
     }
 }

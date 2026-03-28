@@ -3,24 +3,26 @@ package com.riprod.hexcode.core.common.pedestal.system;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.protocol.BlockPosition;
-import com.hypixel.hytale.server.core.asset.type.item.config.Item;
+import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexcaster.utils.PlayerUtils;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.common.pedestal.events.PedestalSystem;
-import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
+import com.riprod.hexcode.core.state.crafting.component.CraftingData;
+import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
-import com.riprod.hexcode.core.state.crafting.entity.PedestalEntity;
 import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalItemUtil;
+import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.utils.HexSlot;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
 
 import io.sentry.util.Pair;
 
@@ -28,6 +30,15 @@ public class PedestalInteractionEvent {
     private static HytaleLogger logger = HytaleLogger.forEnclosingClass();
 
     public static void HandleInteraction(CommandBuffer<EntityStore> accessor, Ref<EntityStore> playerRef,
+            BlockPosition targetBlock) {
+        try {
+            handleInteractionInternal(accessor, playerRef, targetBlock);
+        } catch (Exception e) {
+            logger.atSevere().withCause(e).log("pedestal interaction failed at %s", targetBlock);
+        }
+    }
+
+    private static void handleInteractionInternal(CommandBuffer<EntityStore> accessor, Ref<EntityStore> playerRef,
             BlockPosition targetBlock) {
 
         Vector3i blockPos = new Vector3i(targetBlock.x, targetBlock.y, targetBlock.z);
@@ -47,17 +58,47 @@ public class PedestalInteractionEvent {
             return;
         }
 
-        if (pedestalComponent.getLocation() == null || !pedestalComponent.getLocation().equals(blockPos)) {
-            pedestalComponent.setLocation(blockPos);
+        CraftingData playerData = pedestalComponent.getCraftingDataComponent();
+        if (playerData == null) {
+            logger.atWarning().log("pedestal interaction: no CraftingData at %s", blockPos);
+            return;
         }
 
-        CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(accessor, playerRef,
-                pedestalComponent.isPerPlayer());
-        if (playerData == null)
-            return;
+        if (playerData.getOwnerRef() == null || !playerData.getOwnerRef().isValid()) {
+            playerData.setOwnerRef(playerRef);
+        }
 
-        playerData.updatePedestal(blockPos, pedestalComponent.getMaxRadius(), pedestalComponent.isPerPlayer());
-        ensureAnchor(accessor, pedestalComponent, playerData, blockPos);
+        // access control
+        Ref<EntityStore> ownerRef = playerData.getOwnerRef();
+        boolean hasOwner = ownerRef != null && ownerRef.isValid();
+        boolean isOwner = hasOwner && ownerRef.equals(playerRef);
+
+        if (hasOwner && !isOwner) {
+            if (pedestalComponent.isPerPlayer()) {
+                PlayerRef pr = accessor.getComponent(playerRef, PlayerRef.getComponentType());
+                if (pr != null) {
+                    pr.sendMessage(Message.raw("This pedestal is already in use!"));
+                }
+                return;
+            }
+
+            // collaborative mode: non-owner joins as collaborator
+            PedestalState state = playerData.getState();
+            if (state == PedestalState.CRAFTING || state == PedestalState.SELECTING) {
+                joinAsCollaborator(accessor, playerRef, pedestalComponent, playerData);
+                return;
+            }
+
+            PlayerRef pr = accessor.getComponent(playerRef, PlayerRef.getComponentType());
+            if (pr != null) {
+                pr.sendMessage(Message.raw("Waiting for the owner to finish setting up the pedestal."));
+            }
+            return;
+        }
+
+        if (!hasOwner) {
+            playerData.setOwnerRef(playerRef);
+        }
 
         Pair<ItemStack, ItemStack> held = PlayerUtils.getItemFromHands(accessor, playerRef);
         ItemStack mainHand = held.getFirst();
@@ -81,7 +122,6 @@ public class PedestalInteractionEvent {
         boolean hasEssence = playerData.getEssence() != null;
         boolean hasBook = playerData.getStoredBook() != null && !playerData.getStoredBook().isEmpty();
 
-        // partial state: return the lone item
         if (hasBook && !hasEssence) {
             PedestalSystem.enterIdle(accessor, player, pedestalComponent, world);
             return;
@@ -92,7 +132,6 @@ public class PedestalInteractionEvent {
             return;
         }
 
-        // both items present: tiered step-back
         if (hasBook && hasEssence) {
             PedestalState state = playerData.getState();
             logger.atInfo().log("pedestal: hasBook && hasEssence, state=%s", state);
@@ -108,17 +147,23 @@ public class PedestalInteractionEvent {
         }
     }
 
-    private static void ensureAnchor(CommandBuffer<EntityStore> buffer,
-            PedestalBlockComponent pedestal, CraftingDataComponent playerData, Vector3i blockPos) {
-        Ref<EntityStore> anchorRef = playerData.getAnchorRef();
-        if (anchorRef != null && anchorRef.isValid()) {
-            return;
+    private static void joinAsCollaborator(CommandBuffer<EntityStore> accessor, Ref<EntityStore> playerRef,
+            PedestalBlockComponent pedestalComponent, CraftingData playerData) {
+
+        HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
+                HexcasterCraftingComponent.getComponentType());
+        if (craftingComp == null) {
+            craftingComp = new HexcasterCraftingComponent();
+            accessor.putComponent(playerRef, HexcasterCraftingComponent.getComponentType(), craftingComp);
+        }
+        craftingComp.setPedestalLocation(playerData.getPedestalLocation());
+
+        HexcasterComponent hexcaster = accessor.getComponent(playerRef, HexcasterComponent.getComponentType());
+        if (hexcaster != null) {
+            hexcaster.requestStateChange(HexState.CRAFTING);
         }
 
-        anchorRef = PedestalEntity.spawnAnchorEntity(buffer, blockPos);
-        if (anchorRef == null) {
-            logger.atWarning().log("pedestal: ensureAnchor — spawnAnchorEntity returned null at %s", blockPos);
-        }
-        playerData.setAnchorEntityRef(anchorRef);
+        pedestalComponent.addDetectedPlayer(accessor, playerRef);
     }
+
 }

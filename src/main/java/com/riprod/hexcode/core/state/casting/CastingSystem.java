@@ -92,6 +92,9 @@ public class CastingSystem extends HexcodeManager {
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer,
             HexState nextState) {
         HexcasterCastingComponent castingComp = buffer.getComponent(ref, HexcasterCastingComponent.getComponentType());
+        if (castingComp == null) {
+            return;
+        }
 
         cleanupEntities(buffer, castingComp);
 
@@ -113,8 +116,11 @@ public class CastingSystem extends HexcodeManager {
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
 
         HexcasterCastingComponent castingComp = buffer.getComponent(ref, HexcasterCastingComponent.getComponentType());
+        if (castingComp == null) {
+            comp.requestStateChange(HexState.IDLE);
+            return;
+        }
 
-        // despawn head anchor if not dragging a hex
         Ref<EntityStore> headAnchor = castingComp.getHeadAnchorRef();
         if (castingComp.getDraggingHex() == null && headAnchor != null && headAnchor.isValid()) {
             buffer.tryRemoveComponent(headAnchor, MountedComponent.getComponentType());

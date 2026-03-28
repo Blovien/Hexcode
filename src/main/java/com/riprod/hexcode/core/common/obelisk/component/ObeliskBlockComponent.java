@@ -7,6 +7,8 @@ import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 
+import com.hypixel.hytale.math.vector.Vector3i;
+
 import javax.annotation.Nonnull;
 
 public class ObeliskBlockComponent implements Component<ChunkStore> {
@@ -39,6 +41,7 @@ public class ObeliskBlockComponent implements Component<ChunkStore> {
 
     private int power = 1;
     private String handlerId = "";
+    private Vector3i registeredPedestalLoc = null;
 
     public int getPower() {
         return power;
@@ -46,6 +49,22 @@ public class ObeliskBlockComponent implements Component<ChunkStore> {
 
     public String getHandlerId() {
         return handlerId;
+    }
+
+    public Vector3i getRegisteredPedestalLoc() {
+        return registeredPedestalLoc;
+    }
+
+    public void setRegisteredPedestalLoc(Vector3i loc) {
+        this.registeredPedestalLoc = loc;
+    }
+
+    public boolean isRegistered() {
+        return registeredPedestalLoc != null;
+    }
+
+    public void clearRegistration() {
+        this.registeredPedestalLoc = null;
     }
 
     @Nonnull

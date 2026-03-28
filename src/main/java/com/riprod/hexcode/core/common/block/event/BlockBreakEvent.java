@@ -19,8 +19,11 @@ import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.block.component.UnbreakableBlockComponent;
+import com.riprod.hexcode.core.common.obelisk.component.ObeliskBlockComponent;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
+import com.riprod.hexcode.core.common.pedestal.utils.PedestalBlockUtil;
+import com.riprod.hexcode.core.state.crafting.component.CraftingData;
+import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.entity.AnchorEntity;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
@@ -54,6 +57,13 @@ public class BlockBreakEvent extends EntityEventSystem<EntityStore, BreakBlockEv
             if (pedestal != null) {
                 cleanupPedestal(buffer, pedestal);
             }
+
+            ObeliskBlockComponent obelisk = BlockModule.getComponent(
+                    ObeliskBlockComponent.getComponentType(), world,
+                    pos.x, pos.y, pos.z);
+            if (obelisk != null) {
+                handleObeliskBreak(world, obelisk, pos);
+            }
         } catch (Exception e) {
             LOGGER.atSevere().log("[hexcode] BlockBreakEvent failed: %s", e.getMessage());
         }
@@ -64,36 +74,40 @@ public class BlockBreakEvent extends EntityEventSystem<EntityStore, BreakBlockEv
         for (Ref<EntityStore> playerRef : activePlayers) {
             if (playerRef == null || !playerRef.isValid())
                 continue;
-            CraftingDataComponent playerData = buffer.getComponent(playerRef,
-                    CraftingDataComponent.getComponentType());
+            HexcasterCraftingComponent playerData = buffer.getComponent(playerRef,
+                    HexcasterCraftingComponent.getComponentType());
             if (playerData == null)
                 continue;
 
-            AnchorEntity.DespawnHexPreviews(buffer, pedestal, playerData);
+            playerData.setPedestalLocation(null);
+            buffer.tryRemoveComponent(playerRef, HexcasterCraftingComponent.getComponentType());
+        }
 
-            List<Ref<EntityStore>> allRefs = playerData.getAllRefs();
+        CraftingData pedestalData = pedestal.getCraftingDataComponent();
+        if (pedestalData != null) {
+            AnchorEntity.DespawnHexPreviews(buffer, pedestal, pedestalData);
+            List<Ref<EntityStore>> allRefs = pedestalData.getAllRefs();
             for (Ref<EntityStore> ref : allRefs) {
                 if (ref != null && ref.isValid()) {
                     buffer.tryRemoveEntity(ref, RemoveReason.REMOVE);
                 }
             }
         }
+    }
 
-        Ref<EntityStore> pedestalEntityRef = pedestal.getPedestalEntityRef();
-        if (pedestalEntityRef != null && pedestalEntityRef.isValid()) {
-            CraftingDataComponent sharedData = buffer.getComponent(pedestalEntityRef,
-                    CraftingDataComponent.getComponentType());
-            if (sharedData != null) {
-                AnchorEntity.DespawnHexPreviews(buffer, pedestal, sharedData);
-                List<Ref<EntityStore>> allRefs = sharedData.getAllRefs();
-                for (Ref<EntityStore> ref : allRefs) {
-                    if (ref != null && ref.isValid()) {
-                        buffer.tryRemoveEntity(ref, RemoveReason.REMOVE);
-                    }
-                }
-            }
-            buffer.tryRemoveEntity(pedestalEntityRef, RemoveReason.REMOVE);
+    private static void handleObeliskBreak(World world, ObeliskBlockComponent obelisk, Vector3i pos) {
+        Vector3i pedestalLoc = obelisk.getRegisteredPedestalLoc();
+        if (pedestalLoc == null) {
+            return;
         }
+
+        PedestalBlockComponent pedestal = BlockModule.getComponent(
+                PedestalBlockComponent.getComponentType(), world,
+                pedestalLoc.x, pedestalLoc.y, pedestalLoc.z);
+        if (pedestal != null) {
+            pedestal.removeObelisk(pos);
+        }
+        obelisk.clearRegistration();
     }
 
     @Override
