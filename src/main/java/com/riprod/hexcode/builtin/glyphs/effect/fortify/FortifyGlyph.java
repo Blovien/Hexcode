@@ -54,8 +54,6 @@ public class FortifyGlyph implements GlyphHandler {
 
         double amount = SpellVarUtil.resolveNumberOrDefault(
                 glyph.resolveInput("amount", hexContext), DEFAULT_AMOUNT);
-        HexVar targets = glyph.resolveInput("target", hexContext);
-        int targetCount = (targets != null) ? Math.max(1, targets.size()) : 1;
 
         float baseCost = asset.getManaConsumption()
                 * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
@@ -64,7 +62,7 @@ public class FortifyGlyph implements GlyphHandler {
         float castMultiplier = (tracker != null) ? tracker.getManaCostMultiplier() : 1.0f;
 
         float amountScale = (float) (amount / DEFAULT_AMOUNT);
-        float finalCost = baseCost * castMultiplier * amountScale * targetCount;
+        float finalCost = baseCost * castMultiplier * amountScale;
 
         boolean consumed = hexContext.getRoot().tryConsumeMana(finalCost, hexContext.getAccessor());
         if (!consumed) {
@@ -109,38 +107,32 @@ public class FortifyGlyph implements GlyphHandler {
 
     private int computeBlockVolatilityRolls(BlockVar blockVar, float amountFactor,
             HexContext hexContext) {
+        Vector3i pos = blockVar.getValue();
+        if (pos == null) return 0;
+
         World world = hexContext.getAccessor().getExternalData().getWorld();
-        int maxQuality = 0;
+        int blockId = world.getBlock(pos.x, pos.y, pos.z);
+        if (blockId == BlockType.EMPTY_ID) return 0;
 
-        for (int i = 0; i < blockVar.size(); i++) {
-            Vector3i pos = blockVar.getAt(i);
-            if (pos == null)
-                continue;
-            int blockId = world.getBlock(pos.x, pos.y, pos.z);
-            if (blockId == BlockType.EMPTY_ID)
-                continue;
+        BlockType blockType = BlockType.getAssetMap().getAsset(blockId);
+        if (blockType == null) return 0;
 
-            BlockType blockType = BlockType.getAssetMap().getAsset(blockId);
-            if (blockType == null)
-                continue;
+        BlockGathering gathering = blockType.getGathering();
+        if (gathering == null) return 0;
 
-            BlockGathering gathering = blockType.getGathering();
-            if (gathering == null)
-                continue;
-
-            var breaking = gathering.getBreaking();
-            if (breaking != null) {
-                maxQuality = Math.max(maxQuality, breaking.getQuality());
-            }
+        int quality = 0;
+        var breaking = gathering.getBreaking();
+        if (breaking != null) {
+            quality = breaking.getQuality();
         }
 
-        return (int) ((1 + maxQuality) * amountFactor) - 1;
+        return (int) ((1 + quality) * amountFactor) - 1;
     }
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targets = glyph.resolveInput("target", hexContext);
-        if (targets == null || targets.size() == 0) {
+        if (targets == null) {
             Executor.continueExecution(glyph.getNext(), hexContext);
             return;
         }
@@ -165,86 +157,77 @@ public class FortifyGlyph implements GlyphHandler {
 
     private void applyToEntities(Glyph glyph, EntityVar entityVar, float damageReduction,
             float durationSeconds, HexContext hexContext, CommandBuffer<EntityStore> accessor) {
+        Ref<EntityStore> ref = entityVar.getRef(accessor);
+        if (ref == null || !ref.isValid()) return;
+
         EntityEffect fortifyEffect = EntityEffect.getAssetMap().getAsset(FORTIFY_EFFECT_ID);
         if (fortifyEffect == null) {
             LOGGER.atWarning().log("fortify: %s effect asset not found", FORTIFY_EFFECT_ID);
             return;
         }
 
-        for (int i = 0; i < entityVar.size(); i++) {
-            Ref<EntityStore> ref = entityVar.getRef(i, accessor);
-            if (ref == null || !ref.isValid())
-                continue;
+        FortifyComponent existing = accessor.getComponent(ref, FortifyComponent.getComponentType());
+        if (existing != null) {
+            existing.setDamageReduction(damageReduction);
+            existing.setRemainingDuration(durationSeconds);
+        } else {
+            GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
+            VolatilityTracker tracker = hexContext.getVolatilityTracker();
+            float castMultiplier = (tracker != null) ? tracker.getManaCostMultiplier() : 1.0f;
+            float baseCost = ((asset != null) ? asset.getManaConsumption() : 1.0f)
+                    * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
 
-            FortifyComponent existing = accessor.getComponent(ref, FortifyComponent.getComponentType());
-            if (existing != null) {
-                existing.setDamageReduction(damageReduction);
-                existing.setRemainingDuration(durationSeconds);
-            } else {
-                GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
-                VolatilityTracker tracker = hexContext.getVolatilityTracker();
-                float castMultiplier = (tracker != null) ? tracker.getManaCostMultiplier() : 1.0f;
-                float baseCost = ((asset != null) ? asset.getManaConsumption() : 1.0f)
-                        * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
-
-                float manaCost = baseCost * castMultiplier * damageReduction;
-                accessor.addComponent(ref, FortifyComponent.getComponentType(),
-                        new FortifyComponent(damageReduction, durationSeconds, hexContext.clone(), manaCost));
-            }
-
-            EffectControllerComponent controller = accessor.getComponent(
-                    ref, EffectControllerComponent.getComponentType());
-            if (controller != null) {
-                controller.addEffect(ref, fortifyEffect, durationSeconds,
-                        OverlapBehavior.OVERWRITE, accessor);
-            }
-
-            TransformComponent tc = accessor.getComponent(ref, TransformComponent.getComponentType());
-            if (tc != null) {
-                FortifyStyle.renderEntityHit(tc.getPosition(), hexContext.getColors(), accessor);
-            }
-
-            LOGGER.atInfo().log("fortify: applied %.2f flat reduction for %.1fs to entity",
-                    damageReduction, durationSeconds);
+            float manaCost = baseCost * castMultiplier * damageReduction;
+            accessor.addComponent(ref, FortifyComponent.getComponentType(),
+                    new FortifyComponent(damageReduction, durationSeconds, hexContext.clone(), manaCost));
         }
+
+        EffectControllerComponent controller = accessor.getComponent(
+                ref, EffectControllerComponent.getComponentType());
+        if (controller != null) {
+            controller.addEffect(ref, fortifyEffect, durationSeconds,
+                    OverlapBehavior.OVERWRITE, accessor);
+        }
+
+        TransformComponent tc = accessor.getComponent(ref, TransformComponent.getComponentType());
+        if (tc != null) {
+            FortifyStyle.renderEntityHit(tc.getPosition(), hexContext.getColors(), accessor);
+        }
+
+        LOGGER.atInfo().log("fortify: applied %.2f flat reduction for %.1fs to entity",
+                damageReduction, durationSeconds);
     }
 
     private void applyToBlocks(BlockVar blockVar, double amount,
             HexContext hexContext, CommandBuffer<EntityStore> accessor) {
+        Vector3i pos = blockVar.getValue();
+        if (pos == null) return;
+
         World world = accessor.getExternalData().getWorld();
+        int blockId = world.getBlock(pos.x, pos.y, pos.z);
+        if (blockId == BlockType.EMPTY_ID) return;
+
         ChunkStore chunkStore = world.getChunkStore();
         ComponentType<ChunkStore, BlockHealthChunk> bhcType = BlockHealthModule.get()
                 .getBlockHealthChunkComponentType();
+
+        long chunkIndex = ChunkUtil.indexChunkFromBlock(pos.x, pos.z);
+        Ref<ChunkStore> chunkRef = chunkStore.getChunkReference(chunkIndex);
+        if (chunkRef == null || !chunkRef.isValid()) return;
+
+        BlockHealthChunk bhc = chunkStore.getStore().getComponent(chunkRef, bhcType);
+        if (bhc == null) return;
 
         TimeResource timeResource = world.getEntityStore().getStore()
                 .getResource(TimeResource.getResourceType());
         Instant now = timeResource.getNow();
         float healAmount = (float) (amount * BLOCK_HEAL_SCALE);
 
-        for (int i = 0; i < blockVar.size(); i++) {
-            Vector3i pos = blockVar.getAt(i);
-            if (pos == null)
-                continue;
+        bhc.damageBlock(now, world, pos, -healAmount);
 
-            int blockId = world.getBlock(pos.x, pos.y, pos.z);
-            if (blockId == BlockType.EMPTY_ID)
-                continue;
+        Vector3d blockCenter = new Vector3d(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5);
+        FortifyStyle.renderBlockHit(blockCenter, hexContext.getColors(), accessor);
 
-            long chunkIndex = ChunkUtil.indexChunkFromBlock(pos.x, pos.z);
-            Ref<ChunkStore> chunkRef = chunkStore.getChunkReference(chunkIndex);
-            if (chunkRef == null || !chunkRef.isValid())
-                continue;
-
-            BlockHealthChunk bhc = chunkStore.getStore().getComponent(chunkRef, bhcType);
-            if (bhc == null)
-                continue;
-
-            bhc.damageBlock(now, world, pos, -healAmount);
-
-            Vector3d blockCenter = new Vector3d(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5);
-            FortifyStyle.renderBlockHit(blockCenter, hexContext.getColors(), accessor);
-
-            LOGGER.atInfo().log("fortify: healed block at %s by %.2f", pos, healAmount);
-        }
+        LOGGER.atInfo().log("fortify: healed block at %s by %.2f", pos, healAmount);
     }
 }

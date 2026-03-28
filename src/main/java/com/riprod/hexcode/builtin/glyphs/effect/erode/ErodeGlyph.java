@@ -57,8 +57,6 @@ public class ErodeGlyph implements GlyphHandler {
                 glyph.resolveInput("amount", hexContext), DEFAULT_AMOUNT);
         double duration = SpellVarUtil.resolveNumberOrDefault(
                 glyph.resolveInput("duration", hexContext), DEFAULT_DURATION);
-        HexVar targets = glyph.resolveInput("target", hexContext);
-        int targetCount = (targets != null) ? Math.max(1, targets.size()) : 1;
 
         float baseCost = asset.getManaConsumption()
                 * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
@@ -68,7 +66,7 @@ public class ErodeGlyph implements GlyphHandler {
 
         float amountScale = (float) (amount / DEFAULT_AMOUNT);
         float durationScale = (float) (duration / DEFAULT_DURATION);
-        float finalCost = baseCost * castMultiplier * amountScale * durationScale * targetCount;
+        float finalCost = baseCost * castMultiplier * amountScale * durationScale;
 
         boolean consumed = hexContext.getRoot().tryConsumeMana(finalCost, hexContext.getAccessor());
         if (!consumed) {
@@ -112,34 +110,32 @@ public class ErodeGlyph implements GlyphHandler {
 
     private int computeBlockVolatilityRolls(BlockVar blockVar, float amountFactor,
             HexContext hexContext) {
+        Vector3i pos = blockVar.getValue();
+        if (pos == null) return 0;
+
         World world = hexContext.getAccessor().getExternalData().getWorld();
-        int maxQuality = 0;
+        int blockId = world.getBlock(pos.x, pos.y, pos.z);
+        if (blockId == BlockType.EMPTY_ID) return 0;
 
-        for (int i = 0; i < blockVar.size(); i++) {
-            Vector3i pos = blockVar.getAt(i);
-            if (pos == null) continue;
-            int blockId = world.getBlock(pos.x, pos.y, pos.z);
-            if (blockId == BlockType.EMPTY_ID) continue;
+        BlockType blockType = BlockType.getAssetMap().getAsset(blockId);
+        if (blockType == null) return 0;
 
-            BlockType blockType = BlockType.getAssetMap().getAsset(blockId);
-            if (blockType == null) continue;
+        BlockGathering gathering = blockType.getGathering();
+        if (gathering == null) return 0;
 
-            BlockGathering gathering = blockType.getGathering();
-            if (gathering == null) continue;
-
-            var breaking = gathering.getBreaking();
-            if (breaking != null) {
-                maxQuality = Math.max(maxQuality, breaking.getQuality());
-            }
+        int quality = 0;
+        var breaking = gathering.getBreaking();
+        if (breaking != null) {
+            quality = breaking.getQuality();
         }
 
-        return (int) ((1 + maxQuality) * amountFactor) - 1;
+        return (int) ((1 + quality) * amountFactor) - 1;
     }
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targets = glyph.resolveInput("target", hexContext);
-        if (targets == null || targets.size() == 0) {
+        if (targets == null) {
             Executor.continueExecution(glyph.getNext(), hexContext);
             return;
         }
@@ -165,79 +161,75 @@ public class ErodeGlyph implements GlyphHandler {
 
     private void applyToEntities(EntityVar entityVar, float vulnerabilityMultiplier,
             float durationSeconds, HexContext hexContext, CommandBuffer<EntityStore> accessor) {
+        Ref<EntityStore> ref = entityVar.getRef(accessor);
+        if (ref == null || !ref.isValid()) return;
+
         EntityEffect erodeEffect = EntityEffect.getAssetMap().getAsset(ERODE_EFFECT_ID);
         if (erodeEffect == null) {
             LOGGER.atWarning().log("erode: %s effect asset not found", ERODE_EFFECT_ID);
             return;
         }
 
-        for (int i = 0; i < entityVar.size(); i++) {
-            Ref<EntityStore> ref = entityVar.getRef(i, accessor);
-            if (ref == null || !ref.isValid()) continue;
-
-            ErodeComponent existing = accessor.getComponent(ref, ErodeComponent.getComponentType());
-            if (existing != null) {
-                existing.setVulnerabilityMultiplier(vulnerabilityMultiplier);
-                existing.setRemainingDuration(durationSeconds);
-            } else {
-                accessor.addComponent(ref, ErodeComponent.getComponentType(),
-                        new ErodeComponent(vulnerabilityMultiplier, durationSeconds));
-            }
-
-            EffectControllerComponent controller = accessor.getComponent(
-                    ref, EffectControllerComponent.getComponentType());
-            if (controller != null) {
-                controller.addEffect(ref, erodeEffect, durationSeconds,
-                        OverlapBehavior.OVERWRITE, accessor);
-            }
-
-            TransformComponent tc = accessor.getComponent(ref, TransformComponent.getComponentType());
-            if (tc != null) {
-                ErodeStyle.renderEntityHit(tc.getPosition(), hexContext.getColors(), accessor);
-            }
-
-            LOGGER.atInfo().log("erode: applied %.0f%% vulnerability for %.1fs to entity",
-                    vulnerabilityMultiplier * 100, durationSeconds);
+        ErodeComponent existing = accessor.getComponent(ref, ErodeComponent.getComponentType());
+        if (existing != null) {
+            existing.setVulnerabilityMultiplier(vulnerabilityMultiplier);
+            existing.setRemainingDuration(durationSeconds);
+        } else {
+            accessor.addComponent(ref, ErodeComponent.getComponentType(),
+                    new ErodeComponent(vulnerabilityMultiplier, durationSeconds));
         }
+
+        EffectControllerComponent controller = accessor.getComponent(
+                ref, EffectControllerComponent.getComponentType());
+        if (controller != null) {
+            controller.addEffect(ref, erodeEffect, durationSeconds,
+                    OverlapBehavior.OVERWRITE, accessor);
+        }
+
+        TransformComponent tc = accessor.getComponent(ref, TransformComponent.getComponentType());
+        if (tc != null) {
+            ErodeStyle.renderEntityHit(tc.getPosition(), hexContext.getColors(), accessor);
+        }
+
+        LOGGER.atInfo().log("erode: applied %.0f%% vulnerability for %.1fs to entity",
+                vulnerabilityMultiplier * 100, durationSeconds);
     }
 
     private void applyToBlocks(BlockVar blockVar, double amount, float durationSeconds,
             HexContext hexContext, CommandBuffer<EntityStore> accessor) {
+        Vector3i pos = blockVar.getValue();
+        if (pos == null) return;
+
         World world = accessor.getExternalData().getWorld();
+        int blockId = world.getBlock(pos.x, pos.y, pos.z);
+        if (blockId == BlockType.EMPTY_ID) return;
+
         ChunkStore chunkStore = world.getChunkStore();
         ComponentType<ChunkStore, BlockHealthChunk> bhcType =
                 BlockHealthModule.get().getBlockHealthChunkComponentType();
+
+        long chunkIndex = ChunkUtil.indexChunkFromBlock(pos.x, pos.z);
+        Ref<ChunkStore> chunkRef = chunkStore.getChunkReference(chunkIndex);
+        if (chunkRef == null || !chunkRef.isValid()) return;
+
+        BlockHealthChunk bhc = chunkStore.getStore().getComponent(chunkRef, bhcType);
+        if (bhc == null) return;
 
         TimeResource timeResource = world.getEntityStore().getStore()
                 .getResource(TimeResource.getResourceType());
         Instant now = timeResource.getNow();
         float damage = (float) (amount * BLOCK_DAMAGE_SCALE);
 
-        for (int i = 0; i < blockVar.size(); i++) {
-            Vector3i pos = blockVar.getAt(i);
-            if (pos == null) continue;
+        BlockHealth result = bhc.damageBlock(now, world, pos, damage);
 
-            int blockId = world.getBlock(pos.x, pos.y, pos.z);
-            if (blockId == BlockType.EMPTY_ID) continue;
-
-            long chunkIndex = ChunkUtil.indexChunkFromBlock(pos.x, pos.z);
-            Ref<ChunkStore> chunkRef = chunkStore.getChunkReference(chunkIndex);
-            if (chunkRef == null || !chunkRef.isValid()) continue;
-
-            BlockHealthChunk bhc = chunkStore.getStore().getComponent(chunkRef, bhcType);
-            if (bhc == null) continue;
-
-            BlockHealth result = bhc.damageBlock(now, world, pos, damage);
-
-            if (!result.isDestroyed() && result.getHealth() <= FRAGILE_HP_THRESHOLD) {
-                bhc.makeBlockFragile(pos, durationSeconds);
-            }
-
-            Vector3d blockCenter = new Vector3d(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5);
-            ErodeStyle.renderBlockHit(blockCenter, hexContext.getColors(), accessor);
-
-            LOGGER.atInfo().log("erode: damaged block at %s (hp=%.2f, fragile=%s)",
-                    pos, result.getHealth(), result.getHealth() <= FRAGILE_HP_THRESHOLD);
+        if (!result.isDestroyed() && result.getHealth() <= FRAGILE_HP_THRESHOLD) {
+            bhc.makeBlockFragile(pos, durationSeconds);
         }
+
+        Vector3d blockCenter = new Vector3d(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5);
+        ErodeStyle.renderBlockHit(blockCenter, hexContext.getColors(), accessor);
+
+        LOGGER.atInfo().log("erode: damaged block at %s (hp=%.2f, fragile=%s)",
+                pos, result.getHealth(), result.getHealth() <= FRAGILE_HP_THRESHOLD);
     }
 }

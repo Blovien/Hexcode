@@ -27,15 +27,12 @@ public class ResonateGlyph implements GlyphHandler {
         GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
         if (asset == null) return true;
 
-        HexVar targets = glyph.resolveInput("target", hexContext);
-        int targetCount = (targets != null) ? Math.max(1, targets.size()) : 1;
-
         float baseCost = asset.getManaConsumption()
                 * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
 
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
         float castMultiplier = (tracker != null) ? tracker.getManaCostMultiplier() : 1.0f;
-        float finalCost = baseCost * castMultiplier * targetCount;
+        float finalCost = baseCost * castMultiplier;
 
         return hexContext.getRoot().tryConsumeMana(finalCost, hexContext.getAccessor());
     }
@@ -43,8 +40,8 @@ public class ResonateGlyph implements GlyphHandler {
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targetVar = glyph.resolveInput("target", hexContext);
-        if (targetVar == null || targetVar.size() == 0) {
-            LOGGER.atInfo().log("resonate: no targets");
+        if (!(targetVar instanceof EntityVar entityVar)) {
+            LOGGER.atInfo().log("resonate: targets must be entities with hex signals");
             return;
         }
 
@@ -55,41 +52,33 @@ public class ResonateGlyph implements GlyphHandler {
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
 
-        if (!(targetVar instanceof EntityVar entityVar)) {
-            LOGGER.atInfo().log("resonate: targets must be entities with hex signals");
+        Ref<EntityStore> ref = entityVar.getRef(accessor);
+        if (ref == null || !ref.isValid()) return;
+
+        HexSignal signal = accessor.getComponent(ref, HexSignal.getComponentType());
+        if (signal == null) {
+            Vector3d pos = resolvePosition(ref, accessor);
+            if (pos != null) ResonateStyle.renderNoSignal(pos, hexContext.getColors(), accessor);
+            LOGGER.atInfo().log("resonate: target has no hex signal, skipping");
             return;
         }
 
-        for (int i = 0; i < entityVar.size(); i++) {
-            Ref<EntityStore> ref = entityVar.getRef(i, accessor);
-            if (ref == null || !ref.isValid()) continue;
-
-            HexSignal signal = accessor.getComponent(ref, HexSignal.getComponentType());
-            if (signal == null) {
-                Vector3d pos = resolvePosition(ref, accessor);
-                if (pos != null) ResonateStyle.renderNoSignal(pos, hexContext.getColors(), accessor);
-                LOGGER.atInfo().log("resonate: target has no hex signal, skipping");
-                continue;
-            }
-
-            if (signal.getEntries().size() >= MAX_ENTRIES) {
-                LOGGER.atInfo().log("resonate: signal already at max entries (%d), skipping", MAX_ENTRIES);
-                continue;
-            }
-
-            // append a new entry — resonate caster's context and children, resonate caster pays
-            HexSignal.SignalEntry newEntry = new HexSignal.SignalEntry(
-                    hexContext.copy(),
-                    hexContext.getRoot().getRootEntityRef(),
-                    glyph,
-                    glyph.getNext(),
-                    null);
-            signal.addEntry(newEntry);
-
-            Vector3d pos = resolvePosition(ref, accessor);
-            if (pos != null) ResonateStyle.renderResonate(pos, hexContext.getColors(), accessor);
-            LOGGER.atInfo().log("resonate: appended signal entry (%d total)", signal.getEntries().size());
+        if (signal.getEntries().size() >= MAX_ENTRIES) {
+            LOGGER.atInfo().log("resonate: signal already at max entries (%d), skipping", MAX_ENTRIES);
+            return;
         }
+
+        HexSignal.SignalEntry newEntry = new HexSignal.SignalEntry(
+                hexContext.copy(),
+                hexContext.getRoot().getRootEntityRef(),
+                glyph,
+                glyph.getNext(),
+                null);
+        signal.addEntry(newEntry);
+
+        Vector3d pos = resolvePosition(ref, accessor);
+        if (pos != null) ResonateStyle.renderResonate(pos, hexContext.getColors(), accessor);
+        LOGGER.atInfo().log("resonate: appended signal entry (%d total)", signal.getEntries().size());
 
         // resonate does not call continueExecution — children are the injected payload
     }

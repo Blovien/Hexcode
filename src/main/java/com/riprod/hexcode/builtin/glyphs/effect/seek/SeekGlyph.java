@@ -1,8 +1,5 @@
 package com.riprod.hexcode.builtin.glyphs.effect.seek;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Transform;
@@ -69,8 +66,8 @@ public class SeekGlyph implements GlyphHandler {
             blockHitDistSq = new Vector3d(origin).subtract(blockHitLocation).squaredLength();
         }
 
-        if (posVar instanceof EntityVar entityVar && entityVar.size() > 0) {
-            Ref<EntityStore> sourceRef = entityVar.getRef(0, hexContext.getAccessor());
+        if (posVar instanceof EntityVar entityVar) {
+            Ref<EntityStore> sourceRef = entityVar.getRef(hexContext.getAccessor());
             if (sourceRef != null && sourceRef.isValid()) {
                 entityHit = TargetUtil.getTargetEntity(sourceRef, (float) beamLength, hexContext.getAccessor());
                 if (entityHit != null) {
@@ -97,7 +94,7 @@ public class SeekGlyph implements GlyphHandler {
                     TransformComponent.getComponentType()).getPosition();
             hitType = SeekStyle.HitType.ENTITY;
         } else if (blockHitLocation != null) {
-            BlockVar resultVar = new BlockVar(new ArrayList<>(List.of(blockHitLocation.toVector3i())));
+            BlockVar resultVar = new BlockVar(blockHitLocation.toVector3i());
             if (outputSlot != null) hexContext.setVariable(outputSlot, resultVar);
             endPoint = blockHitLocation;
             hitType = SeekStyle.HitType.BLOCK;

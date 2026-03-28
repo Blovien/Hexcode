@@ -72,9 +72,6 @@ public class HaltGlyph implements GlyphHandler {
         double duration = SpellVarUtil.resolveNumberOrDefault(
                 glyph.resolveInput("duration", hexContext), DEFAULT_DURATION);
 
-        HexVar targets = glyph.resolveInput("target", hexContext);
-        int targetCount = (targets != null) ? Math.max(targets.size(), 1) : 1;
-
         float baseCost = asset.getManaConsumption()
                 * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
 
@@ -82,13 +79,13 @@ public class HaltGlyph implements GlyphHandler {
 
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
         float castMultiplier = (tracker != null) ? tracker.getManaCostMultiplier() : 1.0f;
-        float finalCost = (float) (baseCost * castMultiplier * durationMultiplier * targetCount);
+        float finalCost = (float) (baseCost * castMultiplier * durationMultiplier);
 
         boolean consumed = hexContext.getRoot().tryConsumeMana(finalCost, hexContext.getAccessor());
         if (!consumed) {
             float currentMana = hexContext.getRoot().getCurrentMana(hexContext.getAccessor());
-            LOGGER.atInfo().log("halt: needs %.1f mana (duration=%.1f, targets=%d), has %.1f",
-                    finalCost, duration, targetCount, currentMana);
+            LOGGER.atInfo().log("halt: needs %.1f mana (duration=%.1f), has %.1f",
+                    finalCost, duration, currentMana);
         }
         return consumed;
     }
@@ -96,8 +93,14 @@ public class HaltGlyph implements GlyphHandler {
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targets = glyph.resolveInput("target", hexContext);
+        if (!(targets instanceof EntityVar entityVar)) {
+            Executor.continueExecution(glyph.getNext(), hexContext);
+            return;
+        }
 
-        if (targets == null || targets.size() == 0) {
+        CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
+        Ref<EntityStore> ref = entityVar.getRef(accessor);
+        if (ref == null || !ref.isValid()) {
             Executor.continueExecution(glyph.getNext(), hexContext);
             return;
         }
@@ -105,46 +108,33 @@ public class HaltGlyph implements GlyphHandler {
         double duration = SpellVarUtil.resolveNumberOrDefault(
                 glyph.resolveInput("duration", hexContext), DEFAULT_DURATION);
 
-        CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
+        try {
+            KnockbackComponent kb = new KnockbackComponent();
+            kb.setVelocity(new Vector3d(0, 0, 0));
+            kb.setVelocityType(ChangeVelocityType.Set);
+            kb.setDuration(0.0f);
+            accessor.putComponent(ref, KnockbackComponent.getComponentType(), kb);
 
-        if (targets instanceof EntityVar entityVar) {
-            EntityEffect haltEffect = null;
             if (duration > 0) {
-                haltEffect = EntityEffect.getAssetMap().getAsset(HALT_EFFECT_ID);
-                if (haltEffect == null) {
+                EntityEffect haltEffect = EntityEffect.getAssetMap().getAsset(HALT_EFFECT_ID);
+                if (haltEffect != null) {
+                    EffectControllerComponent controller = accessor.getComponent(
+                            ref, EffectControllerComponent.getComponentType());
+                    if (controller != null) {
+                        controller.addEffect(ref, haltEffect, (float) duration,
+                                OverlapBehavior.OVERWRITE, accessor);
+                    }
+                } else {
                     LOGGER.atWarning().log("halt: %s effect asset not found", HALT_EFFECT_ID);
                 }
             }
 
-            for (int i = 0; i < entityVar.size(); i++) {
-                Ref<EntityStore> ref = entityVar.getRef(i, accessor);
-                if (ref == null || !ref.isValid()) continue;
-
-                try {
-                    KnockbackComponent kb = new KnockbackComponent();
-                    kb.setVelocity(new Vector3d(0, 0, 0));
-                    kb.setVelocityType(ChangeVelocityType.Set);
-                    kb.setDuration(0.0f);
-                    accessor.putComponent(ref, KnockbackComponent.getComponentType(), kb);
-
-                    if (haltEffect != null) {
-                        EffectControllerComponent controller = accessor.getComponent(
-                                ref, EffectControllerComponent.getComponentType());
-                        if (controller != null) {
-                            controller.addEffect(ref, haltEffect, (float) duration,
-                                    OverlapBehavior.OVERWRITE, accessor);
-                        }
-                    }
-
-                    TransformComponent tc = accessor.getComponent(ref, TransformComponent.getComponentType());
-                    if (tc != null) {
-                        HaltStyle.render(tc.getPosition(), hexContext.getColors(), accessor);
-                    }
-                } catch (Exception e) {
-                    LOGGER.atWarning().log("halt: could not halt entity %s: %s",
-                            entityVar.getAt(i).getUuid(), e.getMessage());
-                }
+            TransformComponent tc = accessor.getComponent(ref, TransformComponent.getComponentType());
+            if (tc != null) {
+                HaltStyle.render(tc.getPosition(), hexContext.getColors(), accessor);
             }
+        } catch (Exception e) {
+            LOGGER.atWarning().log("halt: could not halt entity: %s", e.getMessage());
         }
 
         Executor.continueExecution(glyph.getNext(), hexContext);

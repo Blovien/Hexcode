@@ -1,7 +1,5 @@
 package com.riprod.hexcode.builtin.glyphs.effect.detonate;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import com.hypixel.hytale.component.CommandBuffer;
@@ -78,58 +76,52 @@ public class DetonateGlyph implements GlyphHandler {
         double radius = SpellVarUtil.resolveNumberOrDefault(glyph.resolveInput("radius", hexContext), 5.0);
         double mag = SpellVarUtil.resolveNumberOrDefault(glyph.resolveInput("magnitude", hexContext), 10.0);
 
-        if (centerVar == null || centerVar.size() == 0) {
+        if (centerVar == null) {
             Executor.continueExecution(glyph.getNext(), hexContext);
             return;
         }
 
-        List<Vector3d> centers = new ArrayList<>();
-        for (int i = 0; i < centerVar.size(); i++) {
-            Vector3d pos = SpellVarUtil.resolvePositionAt(centerVar, i, hexContext.getAccessor());
-            if (pos != null)
-                centers.add(pos);
-        }
-
-        if (centers.isEmpty()) {
-            Vector3d casterPos = SpellVarUtil.resolvePosition(
+        Vector3d center = SpellVarUtil.resolvePosition(centerVar, hexContext.getAccessor());
+        if (center == null) {
+            center = SpellVarUtil.resolvePosition(
                     hexContext.getVariable(1), hexContext.getAccessor());
-            if (casterPos != null)
-                centers.add(casterPos);
+        }
+        if (center == null) {
+            Executor.continueExecution(glyph.getNext(), hexContext);
+            return;
         }
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
         float damage = BASE_DAMAGE + (float) mag * DAMAGE_SCALE;
 
-        for (Vector3d center : centers) {
-            Vector3d explosionCenter = new Vector3d(center).add(0, MIN_KNOCKBACK_OFFSET, 0);
+        Vector3d explosionCenter = new Vector3d(center).add(0, MIN_KNOCKBACK_OFFSET, 0);
 
-            ExplosionConfig config = new ExplosionConfig() {
-                {
-                    damageEntities = true;
-                    damageBlocks = false;
-                    entityDamageRadius = (float) radius;
-                    entityDamage = damage;
-                    entityDamageFalloff = 1.0f;
-                    knockback = new PointKnockback() {
-                        {
-                            force = (float) mag;
-                            velocityY = (float) (mag * 0.3);
-                            duration = 0;
-                        }
-                    };
-                }
-            };
+        ExplosionConfig config = new ExplosionConfig() {
+            {
+                damageEntities = true;
+                damageBlocks = false;
+                entityDamageRadius = (float) radius;
+                entityDamage = damage;
+                entityDamageFalloff = 1.0f;
+                knockback = new PointKnockback() {
+                    {
+                        force = (float) mag;
+                        velocityY = (float) (mag * 0.3);
+                        duration = 0;
+                    }
+                };
+            }
+        };
 
-            ExplosionUtils.performExplosion(
-                    new Damage.EnvironmentSource("hex_detonate"),
-                    explosionCenter,
-                    config,
-                    null,
-                    accessor,
-                    hexContext.getChunkAccessor());
+        ExplosionUtils.performExplosion(
+                new Damage.EnvironmentSource("hex_detonate"),
+                explosionCenter,
+                config,
+                null,
+                accessor,
+                hexContext.getChunkAccessor());
 
-            DetonateGlyphStyle.render(center, radius, hexContext.getColors(), accessor);
-        }
+        DetonateGlyphStyle.render(center, radius, hexContext.getColors(), accessor);
 
         Executor.continueExecution(glyph.getNext(), hexContext);
     }

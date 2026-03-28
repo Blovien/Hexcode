@@ -1,36 +1,28 @@
 package com.riprod.hexcode.core.common.glyphs.variables;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
 
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
-import com.hypixel.hytale.codec.codecs.array.ArrayCodec;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.entity.reference.PersistentRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class EntityVar extends HexVar {
-    private List<PersistentRef> entities = new ArrayList<>();
+    private PersistentRef entity;
 
     public EntityVar() {
     }
 
-    public EntityVar(List<PersistentRef> entities) {
-        this.entities = entities;
-    }
-
     public EntityVar(PersistentRef entity) {
-        this.entities = new ArrayList<>(List.of(entity));
+        this.entity = entity;
     }
 
     public EntityVar(UUID entityId, Ref<EntityStore> ref) {
-        this.entities = new ArrayList<>(List.of(createRef(entityId, ref)));
+        this.entity = createRef(entityId, ref);
     }
 
     public static PersistentRef createRef(UUID entityId, Ref<EntityStore> ref) {
@@ -39,60 +31,51 @@ public class EntityVar extends HexVar {
         return persistent;
     }
 
-    public List<PersistentRef> getValues() {
-        return entities;
-    }
-
-    public PersistentRef getAt(int index) {
-        return entities.get(index);
+    public PersistentRef getValue() {
+        return entity;
     }
 
     @Nullable
-    public Ref<EntityStore> getRef(int index, ComponentAccessor<EntityStore> accessor) {
-        return entities.get(index).getEntity(accessor);
-    }
-
-    public void addEntity(PersistentRef entity) {
-        this.entities.add(entity);
-    }
-
-    public void addEntity(UUID entityId, Ref<EntityStore> ref) {
-        this.entities.add(createRef(entityId, ref));
-    }
-
-    public void removeEntity(UUID entityId) {
-        this.entities.removeIf(e -> entityId.equals(e.getUuid()));
+    public Ref<EntityStore> getRef(ComponentAccessor<EntityStore> accessor) {
+        if (entity == null) return null;
+        return entity.getEntity(accessor);
     }
 
     @Override
-    public int size() {
-        return entities.size();
+    public Object getRawValue() {
+        return entity;
     }
 
     @Override
     public double toScalar() {
-        return entities.size();
+        return entity != null ? 1.0 : 0.0;
+    }
+
+    @Override
+    public boolean equalTo(HexVar other) {
+        if (other instanceof EntityVar ev) {
+            if (entity == null || ev.entity == null) return entity == ev.entity;
+            return entity.getUuid().equals(ev.entity.getUuid());
+        }
+        return super.equalTo(other);
     }
 
     @Override
     public int compareTo(HexVar other) {
-        if (other instanceof EntityVar bb) {
-            if (entities.isEmpty() || bb.entities.isEmpty())
-                return 0;
-            // if the lengths are not the same
-            if (entities.size() != bb.entities.size())
-                return Integer.compare(entities.size(), bb.entities.size());
-            // if the lengths are the same, compare the UUIDs of the first entities
-            return entities.get(0).getUuid().compareTo(bb.entities.get(0).getUuid());
+        if (other instanceof EntityVar ev) {
+            if (entity == null && ev.entity == null) return 0;
+            if (entity == null) return -1;
+            if (ev.entity == null) return 1;
+            return entity.getUuid().compareTo(ev.entity.getUuid());
         }
         return super.compareTo(other);
     }
 
     public static final BuilderCodec<EntityVar> CODEC = BuilderCodec
             .builder(EntityVar.class, EntityVar::new, HexVar.BASE_CODEC)
-            .append(new KeyedCodec<>("Entities", new ArrayCodec<>(PersistentRef.CODEC, PersistentRef[]::new)),
-                    (v, refs) -> v.entities = new ArrayList<>(Arrays.asList(refs)),
-                    v -> v.entities.toArray(PersistentRef[]::new))
+            .append(new KeyedCodec<>("Entity", PersistentRef.CODEC),
+                    (v, ref) -> v.entity = ref,
+                    v -> v.entity)
             .add()
             .build();
 

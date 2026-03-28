@@ -25,7 +25,7 @@ public class WarpGlyph implements GlyphHandler {
 
         HexVar targets = glyph.resolveInput("target", hexContext);
         HexVar destInput = glyph.resolveInput("destination", hexContext);
-        if (targets == null || targets.size() == 0 || destInput == null || destInput.size() == 0) {
+        if (targets == null || destInput == null) {
             return true;
         }
 
@@ -34,25 +34,22 @@ public class WarpGlyph implements GlyphHandler {
             return true;
         }
 
-        double totalDistance = 0.0;
-        for (int i = 0; i < targets.size(); i++) {
-            Vector3d departurePos = SpellVarUtil.resolvePositionAt(targets, i, hexContext.getAccessor());
-            if (departurePos == null) {
-                continue;
-            }
-
-            double dx = destination.getX() - departurePos.getX();
-            double dy = destination.getY() - departurePos.getY();
-            double dz = destination.getZ() - departurePos.getZ();
-            totalDistance += Math.sqrt(dx * dx + dy * dy + dz * dz);
+        Vector3d departurePos = SpellVarUtil.resolvePosition(targets, hexContext.getAccessor());
+        if (departurePos == null) {
+            return true;
         }
+
+        double dx = destination.getX() - departurePos.getX();
+        double dy = destination.getY() - departurePos.getY();
+        double dz = destination.getZ() - departurePos.getZ();
+        double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
         float baseCost = asset.getManaConsumption()
                 * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
 
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
         float castMultiplier = (tracker != null) ? tracker.getManaCostMultiplier() : 1.0f;
-        float finalCost = (float) (baseCost * castMultiplier * totalDistance);
+        float finalCost = (float) (baseCost * castMultiplier * distance);
         return hexContext.getRoot().tryConsumeMana(finalCost, hexContext.getAccessor());
     }
 
@@ -61,7 +58,7 @@ public class WarpGlyph implements GlyphHandler {
         HexVar targets = glyph.resolveInput("target", hexContext);
         HexVar destInput = glyph.resolveInput("destination", hexContext);
 
-        if (destInput == null || destInput.size() == 0) {
+        if (destInput == null) {
             LOGGER.atWarning().log("warp glyph: no destination provided");
             Executor.continueExecution(glyph.getNext(), hexContext);
             return;
@@ -75,7 +72,7 @@ public class WarpGlyph implements GlyphHandler {
             return;
         }
 
-        if (targets == null || targets.size() == 0) {
+        if (targets == null) {
             LOGGER.atWarning().log("warp glyph: no targets to warp");
             Executor.continueExecution(glyph.getNext(), hexContext);
             return;
@@ -83,12 +80,10 @@ public class WarpGlyph implements GlyphHandler {
 
         World world = hexContext.getAccessor().getExternalData().getWorld();
 
-        for (int i = 0; i < targets.size(); i++) {
-            Vector3d departurePos = SpellVarUtil.resolvePositionAt(targets, i, hexContext.getAccessor());
-            BlockUtils.moveToDestination(targets, i, destination, world, hexContext);
-            if (departurePos != null) {
-                WarpStyle.render(departurePos, destination, hexContext.getColors(), hexContext.getAccessor());
-            }
+        Vector3d departurePos = SpellVarUtil.resolvePosition(targets, hexContext.getAccessor());
+        BlockUtils.moveToDestination(targets, destination, world, hexContext);
+        if (departurePos != null) {
+            WarpStyle.render(departurePos, destination, hexContext.getColors(), hexContext.getAccessor());
         }
 
         Executor.continueExecution(glyph.getNext(), hexContext);

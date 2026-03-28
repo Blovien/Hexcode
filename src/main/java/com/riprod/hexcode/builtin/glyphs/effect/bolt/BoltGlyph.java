@@ -41,7 +41,7 @@ public class BoltGlyph implements GlyphHandler {
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar target = glyph.resolveInput("target", hexContext);
-        if (target == null || target.size() == 0) {
+        if (target == null) {
             LOGGER.atWarning().log("bolt: no target provided");
             return;
         }
@@ -76,7 +76,7 @@ public class BoltGlyph implements GlyphHandler {
             CommandBuffer<EntityStore> accessor, Ref<EntityStore> casterRef,
             Vector3d sourcePos, World world, Vector3f color, Integer outputSlot) {
 
-        Ref<EntityStore> targetRef = entityVar.getRef(0, accessor);
+        Ref<EntityStore> targetRef = entityVar.getRef(accessor);
         if (targetRef == null || !targetRef.isValid()) {
             LOGGER.atWarning().log("bolt: entity target ref invalid");
             return;
@@ -113,7 +113,7 @@ public class BoltGlyph implements GlyphHandler {
             CommandBuffer<EntityStore> accessor, Ref<EntityStore> casterRef,
             Vector3d sourcePos, World world, Vector3f color, Integer outputSlot) {
 
-        Vector3i blockPos = blockVar.getAt(0);
+        Vector3i blockPos = blockVar.getValue();
         if (blockPos == null) {
             LOGGER.atWarning().log("bolt: block target position is null");
             return;

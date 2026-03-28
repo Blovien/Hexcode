@@ -19,25 +19,16 @@ public class ChaosGlyph implements GlyphHandler {
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         Integer outVarIndex = glyph.resolveOutput("result", hexContext);
-        HexVar variable = outVarIndex != null ? hexContext.getVariable(outVarIndex) : null;
         HexVar minValVar = glyph.resolveInput("min", hexContext);
         HexVar maxValVar = glyph.resolveInput("max", hexContext);
-        int minVal = (int) Math.round(SpellVarUtil.resolveNumber(minValVar));
 
-        if (maxValVar != null && outVarIndex != null) {
+        if (outVarIndex != null && minValVar != null && maxValVar != null) {
+            int minVal = (int) Math.round(SpellVarUtil.resolveNumber(minValVar));
             int maxVal = (int) Math.round(SpellVarUtil.resolveNumber(maxValVar));
-            int randomValue = ThreadLocalRandom.current().nextInt(minVal, (int) maxVal + 1);
+            int randomValue = ThreadLocalRandom.current().nextInt(minVal, maxVal + 1);
             hexContext.setVariable(outVarIndex, new NumberVar(randomValue));
-            LOGGER.atInfo().log("Casted Chaos with range [" + minVal + ", " + maxVal + "], set variable " + outVarIndex
-                    + " to " + randomValue);
-        } else {
-            if (minVal > 0 && variable != null && variable.size() >= minVal) {
-                variable.shuffleAndTrim(minVal);
-                LOGGER.atInfo().log("Casted Chaos selecting " + minVal + " random items from variable " + outVarIndex);
-            } else {
-                LOGGER.atInfo().log("Casted Chaos item-select mode skipped for variable " + outVarIndex + " (requested "
-                        + minVal + ", available " + variable.size() + ")");
-            }
+            LOGGER.atInfo().log("chaos: range [%d, %d], result=%d -> slot %d",
+                    minVal, maxVal, randomValue, outVarIndex);
         }
 
         Executor.continueExecution(glyph.getNext(), hexContext);

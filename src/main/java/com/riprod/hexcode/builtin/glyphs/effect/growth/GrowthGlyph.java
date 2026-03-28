@@ -66,9 +66,6 @@ public class GrowthGlyph implements GlyphHandler {
 
         double amount = SpellVarUtil.resolveNumberOrDefault(
                 glyph.resolveInput("amount", hexContext), DEFAULT_AMOUNT);
-        HexVar targets = glyph.resolveInput("target", hexContext);
-        int targetCount = (targets != null) ? Math.max(1, targets.size()) : 1;
-
         float baseCost = asset.getManaConsumption()
                 * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
 
@@ -76,7 +73,7 @@ public class GrowthGlyph implements GlyphHandler {
         float castMultiplier = (tracker != null) ? tracker.getManaCostMultiplier() : 1.0f;
 
         float amountScale = (float) (amount / DEFAULT_AMOUNT);
-        float finalCost = baseCost * castMultiplier * amountScale * targetCount * 1.5f;
+        float finalCost = baseCost * castMultiplier * amountScale * 1.5f;
 
         boolean consumed = hexContext.getRoot().tryConsumeMana(finalCost, hexContext.getAccessor());
         if (!consumed) {
@@ -90,24 +87,9 @@ public class GrowthGlyph implements GlyphHandler {
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
         if (tracker == null) return true;
 
-        double amount = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("amount", hexContext), DEFAULT_AMOUNT);
-        HexVar targets = glyph.resolveInput("target", hexContext);
-
-        float amountFactor = (float) (amount / DEFAULT_AMOUNT);
-        int targetCount = (targets != null) ? Math.max(1, targets.size()) : 1;
-
         if (!tracker.rollAndIncrement(glyph)) {
             LOGGER.atInfo().log("growth: fizzled on primary volatility roll");
             return false;
-        }
-
-        int extraRolls = (int) ((targetCount - 1) * amountFactor);
-        for (int i = 0; i < extraRolls; i++) {
-            if (!tracker.rollAndIncrement(glyph)) {
-                LOGGER.atInfo().log("growth: fizzled on extra volatility roll %d/%d", i + 1, extraRolls);
-                return false;
-            }
         }
 
         return true;
@@ -116,7 +98,7 @@ public class GrowthGlyph implements GlyphHandler {
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targets = glyph.resolveInput("target", hexContext);
-        if (targets == null || targets.size() == 0) {
+        if (targets == null) {
             Executor.continueExecution(glyph.getNext(), hexContext);
             return;
         }
@@ -128,16 +110,19 @@ public class GrowthGlyph implements GlyphHandler {
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
 
         if (targets instanceof EntityVar entityVar) {
-            applyToEntities(entityVar, amount, glyph, hexContext, accessor);
+            applyToEntity(entityVar, amount, glyph, hexContext, accessor);
         } else if (targets instanceof BlockVar blockVar) {
-            applyToBlocks(blockVar, amount, hexContext, accessor);
+            applyToBlock(blockVar, amount, hexContext, accessor);
         }
 
         Executor.continueExecution(glyph.getNext(), hexContext);
     }
 
-    private void applyToEntities(EntityVar entityVar, double amount,
+    private void applyToEntity(EntityVar entityVar, double amount,
             Glyph glyph, HexContext hexContext, CommandBuffer<EntityStore> accessor) {
+        Ref<EntityStore> ref = entityVar.getRef(accessor);
+        if (ref == null || !ref.isValid()) return;
+
         EntityEffect growthEffect = EntityEffect.getAssetMap().getAsset(GROWTH_EFFECT_ID);
         if (growthEffect == null) {
             LOGGER.atWarning().log("growth: %s effect asset not found", GROWTH_EFFECT_ID);
@@ -148,47 +133,39 @@ public class GrowthGlyph implements GlyphHandler {
                 glyph.resolveInput("duration", hexContext), DEFAULT_DURATION);
         float durationSeconds = (float) duration;
 
-        for (int i = 0; i < entityVar.size(); i++) {
-            Ref<EntityStore> ref = entityVar.getRef(i, accessor);
-            if (ref == null || !ref.isValid()) continue;
-
-            EffectControllerComponent controller = accessor.getComponent(
-                    ref, EffectControllerComponent.getComponentType());
-            if (controller != null) {
-                controller.addEffect(ref, growthEffect, durationSeconds,
-                        OverlapBehavior.OVERWRITE, accessor);
-            }
-
-            TransformComponent tc = accessor.getComponent(ref, TransformComponent.getComponentType());
-            if (tc != null) {
-                GrowthStyle.renderEntityHit(tc.getPosition(), hexContext.getColors(), accessor);
-            }
-
-            LOGGER.atInfo().log("growth: applied regen buff for %.1fs to entity", durationSeconds);
+        EffectControllerComponent controller = accessor.getComponent(
+                ref, EffectControllerComponent.getComponentType());
+        if (controller != null) {
+            controller.addEffect(ref, growthEffect, durationSeconds,
+                    OverlapBehavior.OVERWRITE, accessor);
         }
+
+        TransformComponent tc = accessor.getComponent(ref, TransformComponent.getComponentType());
+        if (tc != null) {
+            GrowthStyle.renderEntityHit(tc.getPosition(), hexContext.getColors(), accessor);
+        }
+
+        LOGGER.atInfo().log("growth: applied regen buff for %.1fs to entity", durationSeconds);
     }
 
-    private void applyToBlocks(BlockVar blockVar, double amount,
+    private void applyToBlock(BlockVar blockVar, double amount,
             HexContext hexContext, CommandBuffer<EntityStore> accessor) {
+        Vector3i pos = blockVar.getValue();
+        if (pos == null) return;
+
         World world = accessor.getExternalData().getWorld();
+        int blockId = world.getBlock(pos.x, pos.y, pos.z);
+        if (blockId == BlockType.EMPTY_ID) return;
 
-        for (int i = 0; i < blockVar.size(); i++) {
-            Vector3i pos = blockVar.getAt(i);
-            if (pos == null) continue;
+        BlockType blockType = BlockType.getAssetMap().getAsset(blockId);
+        if (blockType == null) return;
 
-            int blockId = world.getBlock(pos.x, pos.y, pos.z);
-            if (blockId == BlockType.EMPTY_ID) continue;
+        if (tryAdvanceGrowth(world, pos, blockType, amount, hexContext, accessor)) {
+            return;
+        }
 
-            BlockType blockType = BlockType.getAssetMap().getAsset(blockId);
-            if (blockType == null) continue;
-
-            if (tryAdvanceGrowth(world, pos, blockType, amount, hexContext, accessor)) {
-                continue;
-            }
-
-            if (isGrassDirtBlock(blockType)) {
-                applyBonemeal(world, pos, amount, hexContext, accessor);
-            }
+        if (isGrassDirtBlock(blockType)) {
+            applyBonemeal(world, pos, amount, hexContext, accessor);
         }
     }
 

@@ -1,6 +1,5 @@
 package com.riprod.hexcode.builtin.glyphs.effect.combust;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.hypixel.hytale.component.CommandBuffer;
@@ -78,9 +77,9 @@ public class CombustGlyph implements GlyphHandler {
         double magnitude = SpellVarUtil.resolveNumberOrDefault(
                 glyph.resolveInput("magnitude", hexContext), DEFAULT_MAGNITUDE);
 
-        List<Vector3d> centers = resolveCenters(centerVar, hexContext);
-        if (centers.isEmpty()) {
-            LOGGER.atInfo().log("combust: no centers resolved, skipping");
+        Vector3d center = resolveCenter(centerVar, hexContext);
+        if (center == null) {
+            LOGGER.atInfo().log("combust: no center resolved, skipping");
             Executor.continueExecution(glyph.getNext(), hexContext);
             return;
         }
@@ -93,44 +92,33 @@ public class CombustGlyph implements GlyphHandler {
             LOGGER.atWarning().log("combust: %s effect asset not found", BURN_EFFECT_ID);
         }
 
-        for (Vector3d center : centers) {
-            center.add(0, CENTER_Y_OFFSET, 0);
+        center.add(0, CENTER_Y_OFFSET, 0);
 
-            performExplosion(center, radius, magnitude, accessor, hexContext);
-            destroySoftBlocks(world, center, radius);
+        performExplosion(center, radius, magnitude, accessor, hexContext);
+        destroySoftBlocks(world, center, radius);
 
-            if (burnEffect != null) {
-                applyBurn(accessor, center, radius, burnEffect);
-            }
-
-            if (magnitude >= LAVA_THRESHOLD) {
-                placeLava(world, center);
-                CombustStyle.renderLava(accessor, center, hexContext.getColors());
-            }
-
-            CombustStyle.renderExplosion(accessor, center, radius, hexContext.getColors());
+        if (burnEffect != null) {
+            applyBurn(accessor, center, radius, burnEffect);
         }
+
+        if (magnitude >= LAVA_THRESHOLD) {
+            placeLava(world, center);
+            CombustStyle.renderLava(accessor, center, hexContext.getColors());
+        }
+
+        CombustStyle.renderExplosion(accessor, center, radius, hexContext.getColors());
 
         Executor.continueExecution(glyph.getNext(), hexContext);
     }
 
-    private List<Vector3d> resolveCenters(HexVar centerVar, HexContext hexContext) {
-        List<Vector3d> centers = new ArrayList<>();
-
-        if (centerVar != null && centerVar.size() > 0) {
-            for (int i = 0; i < centerVar.size(); i++) {
-                Vector3d pos = SpellVarUtil.resolvePositionAt(centerVar, i, hexContext.getAccessor());
-                if (pos != null) centers.add(pos);
-            }
+    private Vector3d resolveCenter(HexVar centerVar, HexContext hexContext) {
+        if (centerVar != null) {
+            Vector3d pos = SpellVarUtil.resolvePosition(centerVar, hexContext.getAccessor());
+            if (pos != null) return pos;
         }
 
-        if (centers.isEmpty()) {
-            Vector3d casterPos = SpellVarUtil.resolvePosition(
-                    hexContext.getVariable(1), hexContext.getAccessor());
-            if (casterPos != null) centers.add(casterPos);
-        }
-
-        return centers;
+        return SpellVarUtil.resolvePosition(
+                hexContext.getVariable(1), hexContext.getAccessor());
     }
 
     private void performExplosion(Vector3d center, double radius, double magnitude,

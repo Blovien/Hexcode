@@ -25,7 +25,7 @@ public class IgniteGlyph implements GlyphHandler {
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targets = glyph.resolveInput("target", hexContext);
 
-        if (targets == null || targets.size() == 0) {
+        if (targets == null) {
             Executor.continueExecution(glyph.getNext(), hexContext);
             return;
         }
@@ -43,26 +43,23 @@ public class IgniteGlyph implements GlyphHandler {
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
 
         if (targets instanceof EntityVar entityVar) {
-            for (int i = 0; i < entityVar.size(); i++) {
-                Ref<EntityStore> ref = entityVar.getRef(i, accessor);
-                if (ref == null || !ref.isValid()) continue;
-
+            Ref<EntityStore> ref = entityVar.getRef(accessor);
+            if (ref != null && ref.isValid()) {
                 try {
                     EffectControllerComponent controller = accessor.getComponent(
                             ref, EffectControllerComponent.getComponentType());
-                    if (controller == null) continue;
+                    if (controller != null) {
+                        controller.addEffect(ref, burnEffect, (float) duration,
+                                OverlapBehavior.OVERWRITE, accessor);
 
-                    controller.addEffect(ref, burnEffect, (float) duration,
-                            OverlapBehavior.OVERWRITE, accessor);
-
-                    TransformComponent tc = accessor.getComponent(ref,
-                            TransformComponent.getComponentType());
-                    if (tc != null) {
-                        IgniteStyle.render(tc.getPosition(), hexContext.getColors(), accessor);
+                        TransformComponent tc = accessor.getComponent(ref,
+                                TransformComponent.getComponentType());
+                        if (tc != null) {
+                            IgniteStyle.render(tc.getPosition(), hexContext.getColors(), accessor);
+                        }
                     }
                 } catch (Exception e) {
-                    LOGGER.atWarning().log("ignite: failed on entity %s: %s",
-                            entityVar.getAt(i).getUuid(), e.getMessage());
+                    LOGGER.atWarning().log("ignite: failed on entity: %s", e.getMessage());
                 }
             }
         }

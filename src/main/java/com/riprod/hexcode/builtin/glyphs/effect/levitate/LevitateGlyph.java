@@ -43,8 +43,6 @@ public class LevitateGlyph implements GlyphHandler {
                 glyph.resolveInput("intensity", hexContext), DEFAULT_INTENSITY);
         double duration = SpellVarUtil.resolveNumberOrDefault(
                 glyph.resolveInput("duration", hexContext), DEFAULT_DURATION);
-        HexVar targets = glyph.resolveInput("target", hexContext);
-        int targetCount = (targets != null) ? Math.max(1, targets.size()) : 1;
 
         float baseCost = asset.getManaConsumption()
                 * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
@@ -54,7 +52,7 @@ public class LevitateGlyph implements GlyphHandler {
 
         float intensityScale = (float) Math.max(1.0, intensity / Math.max(1.0, DEFAULT_INTENSITY));
         float durationScale = (float) (duration / DEFAULT_DURATION);
-        float finalCost = baseCost * castMultiplier * intensityScale * durationScale * targetCount;
+        float finalCost = baseCost * castMultiplier * intensityScale * durationScale;
 
         boolean consumed = hexContext.getRoot().tryConsumeMana(finalCost, hexContext.getAccessor());
         if (!consumed) {
@@ -66,7 +64,10 @@ public class LevitateGlyph implements GlyphHandler {
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targets = glyph.resolveInput("target", hexContext);
-        if (targets == null || targets.size() == 0) {
+        if (!(targets instanceof EntityVar entityVar)) {
+            if (targets instanceof BlockVar) {
+                LOGGER.atInfo().log("levitate: block targets not yet implemented");
+            }
             Executor.continueExecution(glyph.getNext(), hexContext);
             return;
         }
@@ -80,65 +81,56 @@ public class LevitateGlyph implements GlyphHandler {
         float durationSeconds = (float) duration;
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
-
-        if (targets instanceof EntityVar entityVar) {
-            applyToEntities(entityVar, (float) intensity, durationSeconds, hexContext, accessor);
-        } else if (targets instanceof BlockVar) {
-            LOGGER.atInfo().log("levitate: block targets not yet implemented");
-        }
+        applyToEntity(entityVar, (float) intensity, durationSeconds, hexContext, accessor);
 
         Executor.continueExecution(glyph.getNext(), hexContext);
     }
 
-    private void applyToEntities(EntityVar entityVar, float intensity,
+    private void applyToEntity(EntityVar entityVar, float intensity,
             float durationSeconds, HexContext hexContext, CommandBuffer<EntityStore> accessor) {
+        Ref<EntityStore> ref = entityVar.getRef(accessor);
+        if (ref == null || !ref.isValid()) return;
+
+        PhysicsValues currentPhysics = accessor.getComponent(ref, PhysicsValues.getComponentType());
+        PhysicsValues originalCopy = currentPhysics != null
+                ? new PhysicsValues(currentPhysics) : null;
+
+        LevitateComponent existing = accessor.getComponent(ref, LevitateComponent.getComponentType());
+        if (existing != null) {
+            existing.setIntensity(intensity);
+            existing.setRemainingDuration(durationSeconds);
+            existing.setColors(hexContext.getColors());
+        } else {
+            accessor.addComponent(ref, LevitateComponent.getComponentType(),
+                    new LevitateComponent(intensity, durationSeconds,
+                            hexContext.getColors(), originalCopy));
+        }
+
+        if (currentPhysics != null) {
+            double mass = currentPhysics.getMass();
+            double drag = intensity <= 0 ? WEIGHTLESS_DRAG : currentPhysics.getDragCoefficient();
+            PhysicsValues levitatePhysics = new PhysicsValues(mass, drag, true);
+            accessor.putComponent(ref, PhysicsValues.getComponentType(), levitatePhysics);
+        }
+
         EntityEffect levitateEffect = EntityEffect.getAssetMap().getAsset(LEVITATE_EFFECT_ID);
-        if (levitateEffect == null) {
+        if (levitateEffect != null) {
+            EffectControllerComponent controller = accessor.getComponent(
+                    ref, EffectControllerComponent.getComponentType());
+            if (controller != null) {
+                controller.addEffect(ref, levitateEffect, durationSeconds,
+                        OverlapBehavior.OVERWRITE, accessor);
+            }
+        } else {
             LOGGER.atWarning().log("levitate: %s effect asset not found", LEVITATE_EFFECT_ID);
         }
 
-        for (int i = 0; i < entityVar.size(); i++) {
-            Ref<EntityStore> ref = entityVar.getRef(i, accessor);
-            if (ref == null || !ref.isValid()) continue;
-
-            PhysicsValues currentPhysics = accessor.getComponent(ref, PhysicsValues.getComponentType());
-            PhysicsValues originalCopy = currentPhysics != null
-                    ? new PhysicsValues(currentPhysics) : null;
-
-            LevitateComponent existing = accessor.getComponent(ref, LevitateComponent.getComponentType());
-            if (existing != null) {
-                existing.setIntensity(intensity);
-                existing.setRemainingDuration(durationSeconds);
-                existing.setColors(hexContext.getColors());
-            } else {
-                accessor.addComponent(ref, LevitateComponent.getComponentType(),
-                        new LevitateComponent(intensity, durationSeconds,
-                                hexContext.getColors(), originalCopy));
-            }
-
-            if (currentPhysics != null) {
-                double mass = currentPhysics.getMass();
-                double drag = intensity <= 0 ? WEIGHTLESS_DRAG : currentPhysics.getDragCoefficient();
-                PhysicsValues levitatePhysics = new PhysicsValues(mass, drag, true);
-                accessor.putComponent(ref, PhysicsValues.getComponentType(), levitatePhysics);
-            }
-
-            if (levitateEffect != null) {
-                EffectControllerComponent controller = accessor.getComponent(
-                        ref, EffectControllerComponent.getComponentType());
-                if (controller != null) {
-                    controller.addEffect(ref, levitateEffect, durationSeconds,
-                            OverlapBehavior.OVERWRITE, accessor);
-                }
-            }
-
-            TransformComponent tc = accessor.getComponent(ref, TransformComponent.getComponentType());
-            if (tc != null) {
-                LevitateStyle.renderActivation(tc.getPosition(), hexContext.getColors(), accessor);
-            }
-
-            LOGGER.atInfo().log("levitate: applied intensity=%.1f for %.1fs to entity",
-                    intensity, durationSeconds);
+        TransformComponent tc = accessor.getComponent(ref, TransformComponent.getComponentType());
+        if (tc != null) {
+            LevitateStyle.renderActivation(tc.getPosition(), hexContext.getColors(), accessor);
         }
+
+        LOGGER.atInfo().log("levitate: applied intensity=%.1f for %.1fs to entity",
+                intensity, durationSeconds);
     }
 }

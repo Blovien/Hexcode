@@ -1,63 +1,38 @@
 package com.riprod.hexcode.core.common.glyphs.variables;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
-import com.hypixel.hytale.codec.codecs.array.ArrayCodec;
 import com.hypixel.hytale.math.vector.Vector3f;
 
 public class RotationVar extends HexVar {
-    private List<Vector3f> rotations = new ArrayList<>();
+    private Vector3f rotation;
 
     public RotationVar() {
     }
 
-    public RotationVar(List<Vector3f> rotations) {
-        this.rotations = rotations;
+    public RotationVar(Vector3f rotation) {
+        this.rotation = rotation;
     }
 
-    public RotationVar(Vector3f singleRotation) {
-        this.rotations = new ArrayList<>();
-        this.rotations.add(singleRotation);
-    }
-
-    public List<Vector3f> getValues() {
-        return rotations;
-    }
-
-    public void setRotations(List<Vector3f> rotations) {
-        this.rotations = rotations;
-    }
-
-    public Vector3f getAt(int index) {
-        return rotations.get(index);
-    }
-
-    public void addRotation(Vector3f rotation) {
-        this.rotations.add(rotation);
-    }
-
-    public void removeRotation(Vector3f rotation) {
-        this.rotations.remove(rotation);
+    public Vector3f getValue() {
+        return rotation;
     }
 
     @Override
-    public int size() {
-        return rotations.size();
+    public Object getRawValue() {
+        return rotation;
     }
 
     @Override
     public double toScalar() {
-        return rotations.isEmpty() ? 0 : rotations.get(0).length();
+        return rotation == null ? 0 : rotation.length();
     }
 
     @Override
     public boolean equalTo(HexVar other) {
         if (other instanceof RotationVar rb) {
-            return !rotations.isEmpty() && !rb.rotations.isEmpty() && rotations.get(0).equals(rb.rotations.get(0));
+            if (rotation == null || rb.rotation == null) return rotation == rb.rotation;
+            return rotation.equals(rb.rotation);
         }
         return super.equalTo(other);
     }
@@ -65,17 +40,19 @@ public class RotationVar extends HexVar {
     @Override
     public int compareTo(HexVar other) {
         if (other instanceof RotationVar rb) {
-            if (rotations.isEmpty() || rb.rotations.isEmpty()) return 0;
-            return Double.compare(rotations.get(0).length(), rb.rotations.get(0).length());
+            if (rotation == null && rb.rotation == null) return 0;
+            if (rotation == null) return -1;
+            if (rb.rotation == null) return 1;
+            return Double.compare(rotation.length(), rb.rotation.length());
         }
         return super.compareTo(other);
     }
 
     public static final BuilderCodec<RotationVar> CODEC = BuilderCodec
             .builder(RotationVar.class, RotationVar::new, HexVar.BASE_CODEC)
-            .append(new KeyedCodec<>("Rotations", new ArrayCodec<>(Vector3f.CODEC, Vector3f[]::new)),
-                    (v, rots) -> v.rotations = new ArrayList<>(Arrays.asList(rots)),
-                    v -> v.rotations.toArray(Vector3f[]::new))
+            .append(new KeyedCodec<>("Rotation", Vector3f.CODEC),
+                    (v, rot) -> v.rotation = rot,
+                    v -> v.rotation)
             .add()
             .build();
 

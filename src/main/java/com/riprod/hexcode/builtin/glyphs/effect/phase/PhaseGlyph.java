@@ -45,9 +45,6 @@ public class PhaseGlyph implements GlyphHandler {
         GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
         if (asset == null) return true;
 
-        HexVar targets = glyph.resolveInput("target", hexContext);
-        int targetCount = (targets != null) ? Math.max(1, targets.size()) : 1;
-
         double duration = clamp(SpellVarUtil.resolveNumberOrDefault(
                 glyph.resolveInput("duration", hexContext), DEFAULT_DURATION),
                 MIN_DURATION, MAX_DURATION);
@@ -58,9 +55,8 @@ public class PhaseGlyph implements GlyphHandler {
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
         float castMultiplier = (tracker != null) ? tracker.getManaCostMultiplier() : 1.0f;
 
-        float blockScale = (float) (targetCount / 5.0);
         float durationScale = (float) Math.pow(duration / DEFAULT_DURATION, 1.5);
-        float finalCost = baseCost * castMultiplier * blockScale * durationScale;
+        float finalCost = baseCost * castMultiplier * durationScale;
 
         boolean consumed = hexContext.getRoot().tryConsumeMana(finalCost, hexContext.getAccessor());
         if (!consumed) {
@@ -106,21 +102,20 @@ public class PhaseGlyph implements GlyphHandler {
         World world = hexContext.getAccessor().getExternalData().getWorld();
         int maxQuality = 0;
 
-        for (int i = 0; i < blockVar.size(); i++) {
-            Vector3i pos = blockVar.getAt(i);
-            if (pos == null) continue;
+        Vector3i pos = blockVar.getValue();
+        if (pos != null) {
             int blockId = world.getBlock(pos.x, pos.y, pos.z);
-            if (blockId == BlockType.EMPTY_ID) continue;
-
-            BlockType blockType = BlockType.getAssetMap().getAsset(blockId);
-            if (blockType == null) continue;
-
-            BlockGathering gathering = blockType.getGathering();
-            if (gathering == null) continue;
-
-            var breaking = gathering.getBreaking();
-            if (breaking != null) {
-                maxQuality = Math.max(maxQuality, breaking.getQuality());
+            if (blockId != BlockType.EMPTY_ID) {
+                BlockType blockType = BlockType.getAssetMap().getAsset(blockId);
+                if (blockType != null) {
+                    BlockGathering gathering = blockType.getGathering();
+                    if (gathering != null) {
+                        var breaking = gathering.getBreaking();
+                        if (breaking != null) {
+                            maxQuality = breaking.getQuality();
+                        }
+                    }
+                }
             }
         }
 
@@ -131,7 +126,7 @@ public class PhaseGlyph implements GlyphHandler {
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targets = glyph.resolveInput("target", hexContext);
-        if (targets == null || targets.size() == 0) {
+        if (targets == null) {
             LOGGER.atInfo().log("phase: no targets provided");
             return;
         }
@@ -146,66 +141,54 @@ public class PhaseGlyph implements GlyphHandler {
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
         World world = accessor.getExternalData().getWorld();
 
-        List<PhasedBlock> phasedBlocks = collectAndPhaseBlocks(targets, intensity, world, hexContext, accessor);
-
-        if (phasedBlocks.isEmpty()) {
-            LOGGER.atInfo().log("phase: no blocks could be phased");
+        Vector3i pos = resolveBlockPosition(targets, hexContext);
+        if (pos == null) {
+            LOGGER.atInfo().log("phase: could not resolve block position");
             return;
         }
 
+        int blockId = world.getBlock(pos.x, pos.y, pos.z);
+        if (blockId == BlockType.EMPTY_ID) {
+            LOGGER.atInfo().log("phase: target block is empty");
+            return;
+        }
+
+        BlockType blockType = BlockType.getAssetMap().getAsset(blockId);
+        if (blockType == null) return;
+
+        int quality = getBlockQuality(blockType);
+        if (quality > intensity) {
+            LOGGER.atInfo().log("phase: block quality %d exceeds intensity %.1f", quality, intensity);
+            return;
+        }
+
+        String typeId = blockType.getId();
+        int rotationIndex = world.getBlockRotationIndex(pos.x, pos.y, pos.z);
+
+        List<PhasedBlock> phasedBlocks = new ArrayList<>();
+        phasedBlocks.add(new PhasedBlock(pos, typeId, rotationIndex));
+
+        world.setBlock(pos.x, pos.y, pos.z, "Empty");
+
+        Vector3d blockCenter = new Vector3d(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5);
+        PhaseStyle.renderPhaseOut(blockCenter, hexContext.getColors(), accessor);
+
         Integer outputSlot = glyph.resolveOutput("phased", hexContext);
         if (outputSlot != null) {
-            List<Vector3i> positions = new ArrayList<>();
-            for (PhasedBlock pb : phasedBlocks) {
-                positions.add(pb.getPosition());
-            }
-            hexContext.setVariable(outputSlot, new BlockVar(positions));
+            hexContext.setVariable(outputSlot, new BlockVar(pos));
         }
 
         spawnPhaseEntity(glyph, hexContext, phasedBlocks, (float) duration, accessor);
 
-        LOGGER.atInfo().log("phase: phased %d blocks for %d ticks", phasedBlocks.size(), duration);
+        LOGGER.atInfo().log("phase: phased block for %.1f seconds", duration);
     }
 
-    private List<PhasedBlock> collectAndPhaseBlocks(HexVar targets, double intensity,
-            World world, HexContext hexContext, CommandBuffer<EntityStore> accessor) {
-        List<PhasedBlock> phased = new ArrayList<>();
-
-        int count = targets.size();
-        for (int i = 0; i < count; i++) {
-            Vector3i pos = resolveBlockPosition(targets, i, hexContext, accessor);
-            if (pos == null) continue;
-
-            int blockId = world.getBlock(pos.x, pos.y, pos.z);
-            if (blockId == BlockType.EMPTY_ID) continue;
-
-            BlockType blockType = BlockType.getAssetMap().getAsset(blockId);
-            if (blockType == null) continue;
-
-            int quality = getBlockQuality(blockType);
-            if (quality > intensity) continue;
-
-            String typeId = blockType.getId();
-            int rotationIndex = world.getBlockRotationIndex(pos.x, pos.y, pos.z);
-
-            phased.add(new PhasedBlock(pos, typeId, rotationIndex));
-
-            world.setBlock(pos.x, pos.y, pos.z, "Empty");
-
-            Vector3d blockCenter = new Vector3d(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5);
-            PhaseStyle.renderPhaseOut(blockCenter, hexContext.getColors(), accessor);
-        }
-
-        return phased;
-    }
-
-    private Vector3i resolveBlockPosition(HexVar targets, int index,
-            HexContext hexContext, CommandBuffer<EntityStore> accessor) {
+    private Vector3i resolveBlockPosition(HexVar targets, HexContext hexContext) {
         if (targets instanceof BlockVar blockVar) {
-            return blockVar.getAt(index);
+            return blockVar.getValue();
         }
-        if (targets instanceof PositionVar) {
-            Vector3d pos = SpellVarUtil.resolvePositionAt(targets, index, accessor);
+        if (targets instanceof PositionVar posVar) {
+            Vector3d pos = posVar.getValue();
             if (pos != null) {
                 return new Vector3i((int) Math.floor(pos.x), (int) Math.floor(pos.y),
                         (int) Math.floor(pos.z));

@@ -37,15 +37,12 @@ public class InterfereGlyph implements GlyphHandler {
         GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
         if (asset == null) return true;
 
-        HexVar targets = glyph.resolveInput("target", hexContext);
-        int targetCount = (targets != null) ? Math.max(1, targets.size()) : 1;
-
         float baseCost = asset.getManaConsumption()
                 * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
 
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
         float castMultiplier = (tracker != null) ? tracker.getManaCostMultiplier() : 1.0f;
-        float finalCost = baseCost * castMultiplier * targetCount;
+        float finalCost = baseCost * castMultiplier;
 
         return hexContext.getRoot().tryConsumeMana(finalCost, hexContext.getAccessor());
     }
@@ -53,7 +50,7 @@ public class InterfereGlyph implements GlyphHandler {
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targetVar = glyph.resolveInput("target", hexContext);
-        if (targetVar == null || targetVar.size() == 0) {
+        if (targetVar == null) {
             LOGGER.atInfo().log("interfere: no targets");
             return;
         }
@@ -61,20 +58,17 @@ public class InterfereGlyph implements GlyphHandler {
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
 
         if (targetVar instanceof EntityVar entityVar) {
-            for (int i = 0; i < entityVar.size(); i++) {
-                Ref<EntityStore> ref = entityVar.getRef(i, accessor);
-                if (ref == null || !ref.isValid()) continue;
+            Ref<EntityStore> ref = entityVar.getRef(accessor);
+            if (ref == null || !ref.isValid()) return;
 
-                Vector3d pos = resolvePosition(ref, accessor);
+            Vector3d pos = resolvePosition(ref, accessor);
 
-                HexSignal signal = accessor.getComponent(ref, HexSignal.getComponentType());
-                if (signal != null && signal.getPrimary() != null) {
-                    hijackSignal(signal, glyph, hexContext);
-                    if (pos != null) InterfereStyle.renderHijack(pos, hexContext.getColors(), accessor);
-                    LOGGER.atInfo().log("interfere: hijacked hex signal");
-                    continue;
-                }
-
+            HexSignal signal = accessor.getComponent(ref, HexSignal.getComponentType());
+            if (signal != null && signal.getPrimary() != null) {
+                hijackSignal(signal, glyph, hexContext);
+                if (pos != null) InterfereStyle.renderHijack(pos, hexContext.getColors(), accessor);
+                LOGGER.atInfo().log("interfere: hijacked hex signal");
+            } else {
                 int stripped = stripBuffs(ref, accessor);
                 if (stripped > 0 && pos != null) {
                     InterfereStyle.renderStrip(pos, hexContext.getColors(), accessor);
@@ -84,11 +78,9 @@ public class InterfereGlyph implements GlyphHandler {
         }
 
         if (targetVar instanceof BlockVar blockVar) {
-            for (int i = 0; i < blockVar.size(); i++) {
-                Vector3d blockCenter = SpellVarUtil.resolvePositionAt(targetVar, i, accessor);
-                if (blockCenter != null) {
-                    InterfereStyle.renderBlockStrip(blockCenter, hexContext.getColors(), accessor);
-                }
+            Vector3d blockCenter = SpellVarUtil.resolvePosition(targetVar, accessor);
+            if (blockCenter != null) {
+                InterfereStyle.renderBlockStrip(blockCenter, hexContext.getColors(), accessor);
             }
         }
 

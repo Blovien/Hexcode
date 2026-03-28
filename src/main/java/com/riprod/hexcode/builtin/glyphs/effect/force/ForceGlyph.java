@@ -37,9 +37,6 @@ public class ForceGlyph implements GlyphHandler {
 
         double power = computeForcePower(glyph, hexContext);
 
-        HexVar targets = glyph.resolveInput("target", hexContext);
-        int targetCount = (targets != null) ? Math.max(targets.size(), 1) : 1;
-
         double powerMultiplier = Math.max(MANA_MIN_MULTIPLIER,
                 Math.pow(power / MANA_REFERENCE_POWER, MANA_POWER_EXPONENT));
 
@@ -48,13 +45,13 @@ public class ForceGlyph implements GlyphHandler {
 
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
         float castMultiplier = (tracker != null) ? tracker.getManaCostMultiplier() : 1.0f;
-        float finalCost = (float) (baseCost * castMultiplier * powerMultiplier * targetCount);
+        float finalCost = (float) (baseCost * castMultiplier * powerMultiplier);
 
         boolean consumed = hexContext.getRoot().tryConsumeMana(finalCost, hexContext.getAccessor());
         if (!consumed) {
             float currentMana = hexContext.getRoot().getCurrentMana(hexContext.getAccessor());
-            LOGGER.atInfo().log("glyph force: needs %.1f mana (power=%.1f, targets=%d), has %.1f",
-                    finalCost, power, targetCount, currentMana);
+            LOGGER.atInfo().log("glyph force: needs %.1f mana (power=%.1f), has %.1f",
+                    finalCost, power, currentMana);
         }
         return consumed;
     }
@@ -79,7 +76,13 @@ public class ForceGlyph implements GlyphHandler {
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targets = glyph.resolveInput("target", hexContext);
-        if (targets == null || targets.size() == 0) {
+        if (!(targets instanceof EntityVar entityVar)) {
+            Executor.continueExecution(glyph.getNext(), hexContext);
+            return;
+        }
+
+        Ref<EntityStore> ref = entityVar.getRef(hexContext.getAccessor());
+        if (ref == null || !ref.isValid()) {
             Executor.continueExecution(glyph.getNext(), hexContext);
             return;
         }
@@ -88,40 +91,31 @@ public class ForceGlyph implements GlyphHandler {
         HexVar magInput = glyph.resolveInput("magnitude", hexContext);
         double magnitude = SpellVarUtil.resolveNumberOrDefault(magInput, 20.0);
 
-        if (targets instanceof EntityVar entityVar) {
-            for (int i = 0; i < entityVar.size(); i++) {
-                Ref<EntityStore> ref = entityVar.getRef(i, hexContext.getAccessor());
-                if (ref == null || !ref.isValid())
-                    continue;
-
-                try {
-                    TransformComponent tc = hexContext.getAccessor().getComponent(ref,
-                            TransformComponent.getComponentType());
-                    if (tc == null) continue;
-
-                    Vector3d targetPos = tc.getPosition();
-                    Vector3d direction = null;
-                    if (dirInput != null) {
-                        direction = SpellVarUtil.resolveDirection(dirInput, targetPos,
-                                hexContext.getAccessor());
-                    }
-                    if (direction == null) {
-                        direction = new Vector3d(0, 1, 0);
-                    }
-                    Vector3d force = new Vector3d(direction).scale(magnitude);
-
-                    Velocity vel = hexContext.getAccessor().getComponent(ref, Velocity.getComponentType());
-                    if (vel != null) {
-                        vel.addInstruction(new Vector3d(force), new VelocityConfig(), ChangeVelocityType.Add);
-                    }
-
-                    ForceGlyphStyle.render(targetPos, force, hexContext.getColors(),
+        try {
+            TransformComponent tc = hexContext.getAccessor().getComponent(ref,
+                    TransformComponent.getComponentType());
+            if (tc != null) {
+                Vector3d targetPos = tc.getPosition();
+                Vector3d direction = null;
+                if (dirInput != null) {
+                    direction = SpellVarUtil.resolveDirection(dirInput, targetPos,
                             hexContext.getAccessor());
-                } catch (Exception e) {
-                    LOGGER.atWarning().log("force glyph: could not apply force to entity %s: %s",
-                            entityVar.getAt(i).getUuid(), e.getMessage());
                 }
+                if (direction == null) {
+                    direction = new Vector3d(0, 1, 0);
+                }
+                Vector3d force = new Vector3d(direction).scale(magnitude);
+
+                Velocity vel = hexContext.getAccessor().getComponent(ref, Velocity.getComponentType());
+                if (vel != null) {
+                    vel.addInstruction(new Vector3d(force), new VelocityConfig(), ChangeVelocityType.Add);
+                }
+
+                ForceGlyphStyle.render(targetPos, force, hexContext.getColors(),
+                        hexContext.getAccessor());
             }
+        } catch (Exception e) {
+            LOGGER.atWarning().log("force glyph: could not apply force to entity: %s", e.getMessage());
         }
 
         Executor.continueExecution(glyph.getNext(), hexContext);

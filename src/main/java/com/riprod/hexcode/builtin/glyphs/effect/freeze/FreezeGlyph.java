@@ -34,6 +34,7 @@ import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
+
 public class FreezeGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     public static final String ID = "Glyph_Freeze";
@@ -78,9 +79,6 @@ public class FreezeGlyph implements GlyphHandler {
         GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
         if (asset == null) return true;
 
-        HexVar targets = glyph.resolveInput("target", hexContext);
-        int targetCount = (targets != null) ? Math.max(targets.size(), 1) : 1;
-
         double duration = SpellVarUtil.resolveNumberOrDefault(
                 glyph.resolveInput("duration", hexContext), DEFAULT_DURATION);
         float durationScale = (float) (duration / MANA_REFERENCE_DURATION);
@@ -90,13 +88,13 @@ public class FreezeGlyph implements GlyphHandler {
 
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
         float castMultiplier = (tracker != null) ? tracker.getManaCostMultiplier() : 1.0f;
-        float finalCost = baseCost * castMultiplier * durationScale * targetCount;
+        float finalCost = baseCost * castMultiplier * durationScale;
 
         boolean consumed = hexContext.getRoot().tryConsumeMana(finalCost, hexContext.getAccessor());
         if (!consumed) {
             float currentMana = hexContext.getRoot().getCurrentMana(hexContext.getAccessor());
-            LOGGER.atInfo().log("freeze: needs %.1f mana (duration=%.1f, targets=%d), has %.1f",
-                    finalCost, duration, targetCount, currentMana);
+            LOGGER.atInfo().log("freeze: needs %.1f mana (duration=%.1f), has %.1f",
+                    finalCost, duration, currentMana);
         }
         return consumed;
     }
@@ -105,7 +103,7 @@ public class FreezeGlyph implements GlyphHandler {
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targets = glyph.resolveInput("target", hexContext);
 
-        if (targets == null || targets.size() == 0) {
+        if (targets == null) {
             Executor.continueExecution(glyph.getNext(), hexContext);
             return;
         }
@@ -125,28 +123,25 @@ public class FreezeGlyph implements GlyphHandler {
         List<FrozenBlock> frozenBlocks = new ArrayList<>();
 
         if (targets instanceof EntityVar entityVar) {
-            for (int i = 0; i < entityVar.size(); i++) {
-                Ref<EntityStore> ref = entityVar.getRef(i, accessor);
-                if (ref == null || !ref.isValid()) continue;
-
+            Ref<EntityStore> ref = entityVar.getRef(accessor);
+            if (ref != null && ref.isValid()) {
                 try {
                     EffectControllerComponent controller = accessor.getComponent(
                             ref, EffectControllerComponent.getComponentType());
-                    if (controller == null) continue;
+                    if (controller != null) {
+                        controller.addEffect(ref, freezeEffect, (float) duration,
+                                OverlapBehavior.OVERWRITE, accessor);
 
-                    controller.addEffect(ref, freezeEffect, (float) duration,
-                            OverlapBehavior.OVERWRITE, accessor);
-
-                    TransformComponent tc = accessor.getComponent(ref,
-                            TransformComponent.getComponentType());
-                    if (tc != null) {
-                        Vector3d pos = tc.getPosition();
-                        placeIceBlock(world, pos, frozenBlocks);
-                        FreezeStyle.renderFreeze(pos, hexContext.getColors(), accessor);
+                        TransformComponent tc = accessor.getComponent(ref,
+                                TransformComponent.getComponentType());
+                        if (tc != null) {
+                            Vector3d pos = tc.getPosition();
+                            placeIceBlock(world, pos, frozenBlocks);
+                            FreezeStyle.renderFreeze(pos, hexContext.getColors(), accessor);
+                        }
                     }
                 } catch (Exception e) {
-                    LOGGER.atWarning().log("freeze: failed on entity %s: %s",
-                            entityVar.getAt(i).getUuid(), e.getMessage());
+                    LOGGER.atWarning().log("freeze: failed on entity: %s", e.getMessage());
                 }
             }
         }

@@ -33,12 +33,12 @@ public class DrainGlyph implements GlyphHandler, HexValInterface {
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targetVar = glyph.resolveInput("target", hexContext);
-        if (targetVar == null || targetVar.size() == 0 || !(targetVar instanceof EntityVar entityVar)) {
+        if (!(targetVar instanceof EntityVar entityVar)) {
             Executor.continueExecution(glyph.getNext(), hexContext);
             return;
         }
 
-        Ref<EntityStore> targetRef = entityVar.getRef(0, hexContext.getAccessor());
+        Ref<EntityStore> targetRef = entityVar.getRef(hexContext.getAccessor());
         if (targetRef == null || !targetRef.isValid()) {
             Executor.continueExecution(glyph.getNext(), hexContext);
             return;
@@ -137,11 +137,11 @@ public class DrainGlyph implements GlyphHandler, HexValInterface {
     @Override
     public HexVar getValue(Glyph glyph, HexContext hexContext) {
         HexVar targetVar = glyph.resolveInput("target", hexContext);
-        if (targetVar == null || targetVar.size() == 0 || !(targetVar instanceof EntityVar entityVar)) {
+        if (!(targetVar instanceof EntityVar entityVar)) {
             return new NumberVar(0);
         }
 
-        Ref<EntityStore> targetRef = entityVar.getRef(0, hexContext.getAccessor());
+        Ref<EntityStore> targetRef = entityVar.getRef(hexContext.getAccessor());
         if (targetRef == null || !targetRef.isValid()) {
             return new NumberVar(0);
         }

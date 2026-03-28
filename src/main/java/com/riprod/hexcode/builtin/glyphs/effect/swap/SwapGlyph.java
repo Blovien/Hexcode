@@ -25,32 +25,27 @@ public class SwapGlyph implements GlyphHandler {
 
         HexVar varsA = glyph.resolveInput("a", hexContext);
         HexVar varsB = glyph.resolveInput("b", hexContext);
-        if (varsA == null || varsB == null || varsA.size() == 0 || varsB.size() == 0) {
+        if (varsA == null || varsB == null) {
             return true;
         }
 
-        int pairCount = Math.min(varsA.size(), varsB.size());
-        double totalDistance = 0.0;
-        for (int i = 0; i < pairCount; i++) {
-            Vector3d posA = SpellVarUtil.resolvePositionAt(varsA, i, hexContext.getAccessor());
-            Vector3d posB = SpellVarUtil.resolvePositionAt(varsB, i, hexContext.getAccessor());
-            if (posA == null || posB == null) {
-                continue;
-            }
-
-            double dx = posA.getX() - posB.getX();
-            double dy = posA.getY() - posB.getY();
-            double dz = posA.getZ() - posB.getZ();
-            double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-            totalDistance += distance * 2.0;
+        Vector3d posA = SpellVarUtil.resolvePosition(varsA, hexContext.getAccessor());
+        Vector3d posB = SpellVarUtil.resolvePosition(varsB, hexContext.getAccessor());
+        if (posA == null || posB == null) {
+            return true;
         }
+
+        double dx = posA.getX() - posB.getX();
+        double dy = posA.getY() - posB.getY();
+        double dz = posA.getZ() - posB.getZ();
+        double distance = Math.sqrt(dx * dx + dy * dy + dz * dz) * 2.0;
 
         float baseCost = asset.getManaConsumption()
                 * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
 
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
         float castMultiplier = (tracker != null) ? tracker.getManaCostMultiplier() : 1.0f;
-        float finalCost = (float) (baseCost * castMultiplier * totalDistance);
+        float finalCost = (float) (baseCost * castMultiplier * distance);
 
         return hexContext.getRoot().tryConsumeMana(finalCost, hexContext.getAccessor());
     }
@@ -68,15 +63,12 @@ public class SwapGlyph implements GlyphHandler {
 
         World world = hexContext.getAccessor().getExternalData().getWorld();
 
-        int pairCount = Math.min(varsA.size(), varsB.size());
-        for (int i = 0; i < pairCount; i++) {
-            Vector3d posA = SpellVarUtil.resolvePositionAt(varsA, i, hexContext.getAccessor());
-            Vector3d posB = SpellVarUtil.resolvePositionAt(varsB, i, hexContext.getAccessor());
-            if (posA != null && posB != null) {
-                SwapStyle.render(posA, posB, hexContext.getColors(), hexContext.getAccessor());
-            }
-            BlockUtils.swapPair(varsA, varsB, i, world, hexContext);
+        Vector3d posA = SpellVarUtil.resolvePosition(varsA, hexContext.getAccessor());
+        Vector3d posB = SpellVarUtil.resolvePosition(varsB, hexContext.getAccessor());
+        if (posA != null && posB != null) {
+            SwapStyle.render(posA, posB, hexContext.getColors(), hexContext.getAccessor());
         }
+        BlockUtils.swapPair(varsA, varsB, world, hexContext);
 
         Executor.continueExecution(glyph.getNext(), hexContext);
     }

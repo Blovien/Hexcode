@@ -56,8 +56,14 @@ public class GlaciateGlyph implements GlyphHandler {
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targetVar = glyph.resolveInput("target", hexContext);
-        if (targetVar == null || targetVar.size() == 0) {
+        if (targetVar == null) {
             LOGGER.atWarning().log("glaciate: no target provided");
+            return;
+        }
+
+        Vector3d targetPos = SpellVarUtil.resolvePosition(targetVar, hexContext.getAccessor());
+        if (targetPos == null) {
+            LOGGER.atWarning().log("glaciate: could not resolve target position");
             return;
         }
 
@@ -77,14 +83,9 @@ public class GlaciateGlyph implements GlyphHandler {
         HitboxCollisionConfig collisionConfig = HitboxCollisionConfig.getAssetMap()
                 .getAsset(HARD_COLLISION_CONFIG);
 
-        for (int i = 0; i < targetVar.size(); i++) {
-            Vector3d targetPos = SpellVarUtil.resolvePositionAt(targetVar, i, hexContext.getAccessor());
-            if (targetPos == null) continue;
-
-            Vector3d spawnPos = resolveSpawnPosition(targetPos, offsetVar, hexContext);
-            spawnIceBlock(glyph, hexContext, spawnPos, outputSlot, (float) duration,
-                    modelAsset, collisionConfig);
-        }
+        Vector3d spawnPos = resolveSpawnPosition(targetPos, offsetVar, hexContext);
+        spawnIceBlock(glyph, hexContext, spawnPos, outputSlot, (float) duration,
+                modelAsset, collisionConfig);
     }
 
     private Vector3d resolveSpawnPosition(Vector3d targetPos, HexVar offsetVar, HexContext hexContext) {
@@ -98,9 +99,9 @@ public class GlaciateGlyph implements GlyphHandler {
             return new Vector3d(targetPos).add(new Vector3d(0, DEFAULT_HEIGHT, 0));
         }
 
-        if (offsetVar instanceof PositionVar posVar && posVar.size() > 0) {
-            if (posVar.isAbsolute()) return new Vector3d(posVar.getAt(0));
-            return new Vector3d(targetPos).add(new Vector3d(posVar.getAt(0)));
+        if (offsetVar instanceof PositionVar posVar && posVar.getValue() != null) {
+            if (posVar.isAbsolute()) return new Vector3d(posVar.getValue());
+            return new Vector3d(targetPos).add(new Vector3d(posVar.getValue()));
         }
 
         if (offsetVar instanceof NumberVar) {

@@ -33,12 +33,12 @@ public class ArcGlyph implements GlyphHandler {
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targets = glyph.resolveInput("target", hexContext);
-        if (targets == null || targets.size() == 0 || !(targets instanceof EntityVar entityVar)) {
+        if (targets == null || !(targets instanceof EntityVar entityVar)) {
             LOGGER.atWarning().log("arc: no entity target provided");
             return;
         }
 
-        Ref<EntityStore> initialTarget = entityVar.getRef(0, hexContext.getAccessor());
+        Ref<EntityStore> initialTarget = entityVar.getRef(hexContext.getAccessor());
         if (initialTarget == null || !initialTarget.isValid()) {
             LOGGER.atWarning().log("arc: initial target ref invalid");
             return;

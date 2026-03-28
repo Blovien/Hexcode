@@ -1,16 +1,10 @@
 package com.riprod.hexcode.utils;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
+import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
-import com.hypixel.hytale.math.vector.Vector3i;
-import com.hypixel.hytale.server.core.entity.reference.PersistentRef;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
@@ -24,334 +18,132 @@ public class HexMathUtil {
     private HexMathUtil() {
     }
 
-    // --- add ---
-
     public static HexVar add(HexVar a, HexVar b) {
-        if (a instanceof NumberVar na && b instanceof NumberVar nb) return addNumbers(na, nb);
-        if (a instanceof PositionVar pa && b instanceof PositionVar pb) return addPositions(pa, pb);
-        if (a instanceof RotationVar ra && b instanceof RotationVar rb) return addRotations(ra, rb);
-        if (a instanceof PositionVar pa && b instanceof NumberVar nb) return addPositionNumber(pa, nb);
-        if (a instanceof RotationVar ra && b instanceof NumberVar nb) return addRotationNumber(ra, nb);
-        if (a instanceof NumberVar na && b instanceof RotationVar rb) return addRotationNumber(rb, na);
-        if (a instanceof NumberVar na && b instanceof PositionVar pb) return addPositionNumber(pb, na);
-        if (a instanceof EntityVar ea && b instanceof EntityVar eb) return concatEntities(ea, eb);
-        if (a instanceof BlockVar ba && b instanceof BlockVar bb) return concatBlocks(ba, bb);
-        LOGGER.atWarning().log("add: unsupported types " + a.getClass().getSimpleName() + " + " + b.getClass().getSimpleName());
+        if (a instanceof NumberVar na && b instanceof NumberVar nb)
+            return new NumberVar(na.getValue() + nb.getValue());
+        if (a instanceof PositionVar pa && b instanceof PositionVar pb)
+            return new PositionVar(new Vector3d(pa.getValue()).add(pb.getValue()), pa.isAbsolute() || pb.isAbsolute());
+        if (a instanceof RotationVar ra && b instanceof RotationVar rb)
+            return new RotationVar(new Vector3f(ra.getValue()).add(rb.getValue()));
+        if (a instanceof PositionVar pa && b instanceof NumberVar nb)
+            return new PositionVar(new Vector3d(pa.getValue()).add(nb.getValue()), pa.isAbsolute());
+        if (a instanceof NumberVar na && b instanceof PositionVar pb)
+            return new PositionVar(new Vector3d(pb.getValue()).add(na.getValue()), pb.isAbsolute());
+        if (a instanceof RotationVar ra && b instanceof NumberVar nb)
+            return new RotationVar(new Vector3f(ra.getValue()).add((float) nb.getValue(), (float) nb.getValue(), (float) nb.getValue()));
+        if (a instanceof NumberVar na && b instanceof RotationVar rb)
+            return new RotationVar(new Vector3f(rb.getValue()).add((float) na.getValue(), (float) na.getValue(), (float) na.getValue()));
+        if (a instanceof EntityVar || a instanceof BlockVar || b instanceof EntityVar || b instanceof BlockVar) {
+            return addViaPosition(a, b);
+        }
+        LOGGER.atWarning().log("add: unsupported types %s + %s", a.getClass().getSimpleName(), b.getClass().getSimpleName());
         return a;
     }
-
-    // --- negate ---
 
     public static HexVar negate(HexVar a) {
-        if (a instanceof NumberVar na) return negateNumber(na);
-        if (a instanceof PositionVar pa) return negatePosition(pa);
-        if (a instanceof RotationVar ra) return negateRotation(ra);
-        LOGGER.atWarning().log("negate: unsupported type " + a.getClass().getSimpleName());
+        if (a instanceof NumberVar na) return new NumberVar(-na.getValue());
+        if (a instanceof PositionVar pa) {
+            Vector3d v = pa.getValue();
+            return new PositionVar(new Vector3d(-v.x, -v.y, -v.z), false);
+        }
+        if (a instanceof RotationVar ra) {
+            Vector3f v = ra.getValue();
+            return new RotationVar(new Vector3f(-v.x, -v.y, -v.z));
+        }
+        LOGGER.atWarning().log("negate: unsupported type %s", a.getClass().getSimpleName());
         return a;
     }
-
-    private static NumberVar negateNumber(NumberVar a) {
-        List<Double> result = new ArrayList<>(a.size());
-        for (int i = 0; i < a.size(); i++) {
-            result.add(-a.getAt(i));
-        }
-        return new NumberVar(result);
-    }
-
-    private static PositionVar negatePosition(PositionVar a) {
-        List<Vector3d> result = new ArrayList<>(a.size());
-        for (int i = 0; i < a.size(); i++) {
-            Vector3d v = a.getAt(i);
-            result.add(new Vector3d(-v.x, -v.y, -v.z));
-        }
-        return new PositionVar(result, false);
-    }
-
-    private static RotationVar negateRotation(RotationVar a) {
-        List<Vector3f> result = new ArrayList<>(a.size());
-        for (int i = 0; i < a.size(); i++) {
-            Vector3f v = a.getAt(i);
-            result.add(new Vector3f(-v.x, -v.y, -v.z));
-        }
-        return new RotationVar(result);
-    }
-
-    // --- subtract ---
 
     public static HexVar subtract(HexVar a, HexVar b) {
         if (a == null || b == null) return a;
-        if (a instanceof NumberVar na && b instanceof NumberVar nb) return subtractNumbers(na, nb);
-        if (a instanceof PositionVar pa && b instanceof PositionVar pb) return subtractPositions(pa, pb);
-        if (a instanceof RotationVar ra && b instanceof RotationVar rb) return subtractRotations(ra, rb);
-        if (a instanceof PositionVar pa && b instanceof NumberVar nb) return subtractPositionNumber(pa, nb);
-        if (a instanceof RotationVar ra && b instanceof NumberVar nb) return subtractRotationNumber(ra, nb);
-        if (a instanceof EntityVar ea && b instanceof EntityVar eb) return removeEntities(ea, eb);
-        if (a instanceof BlockVar ba && b instanceof BlockVar bb) return removeBlocks(ba, bb);
-        LOGGER.atWarning().log("subtract: unsupported types " + a.getClass().getSimpleName() + " - " + b.getClass().getSimpleName());
+        if (a instanceof NumberVar na && b instanceof NumberVar nb)
+            return new NumberVar(na.getValue() - nb.getValue());
+        if (a instanceof PositionVar pa && b instanceof PositionVar pb)
+            return new PositionVar(new Vector3d(pa.getValue()).subtract(pb.getValue()), pa.isAbsolute() && !pb.isAbsolute());
+        if (a instanceof RotationVar ra && b instanceof RotationVar rb)
+            return new RotationVar(new Vector3f(ra.getValue()).subtract(rb.getValue()));
+        if (a instanceof PositionVar pa && b instanceof NumberVar nb)
+            return new PositionVar(new Vector3d(pa.getValue()).subtract(nb.getValue()), pa.isAbsolute());
+        if (a instanceof RotationVar ra && b instanceof NumberVar nb)
+            return new RotationVar(new Vector3f(ra.getValue()).subtract((float) nb.getValue(), (float) nb.getValue(), (float) nb.getValue()));
+        if (a instanceof EntityVar || a instanceof BlockVar || b instanceof EntityVar || b instanceof BlockVar) {
+            return subtractViaPosition(a, b);
+        }
+        LOGGER.atWarning().log("subtract: unsupported types %s - %s", a.getClass().getSimpleName(), b.getClass().getSimpleName());
         return a;
     }
-
-    // --- multiply ---
 
     public static HexVar multiply(HexVar a, HexVar b) {
-        if (a instanceof NumberVar na && b instanceof NumberVar nb) return multiplyNumbers(na, nb);
-        if (a instanceof PositionVar pa && b instanceof PositionVar pb) return multiplyPositions(pa, pb);
-        if (a instanceof PositionVar pa && b instanceof NumberVar nb) return multiplyPositionNumber(pa, nb);
-        if (a instanceof RotationVar ra && b instanceof NumberVar nb) return multiplyRotationNumber(ra, nb);
-        if (a instanceof NumberVar na && b instanceof PositionVar pb) return multiplyPositionNumber(pb, na);
-        if (a instanceof NumberVar na && b instanceof RotationVar rb) return multiplyRotationNumber(rb, na);
-        if (a instanceof RotationVar ra && b instanceof RotationVar rb) return multiplyRotations(ra, rb);
-        LOGGER.atWarning().log("multiply: unsupported types " + a.getClass().getSimpleName() + " * " + b.getClass().getSimpleName());
+        if (a instanceof NumberVar na && b instanceof NumberVar nb)
+            return new NumberVar(na.getValue() * nb.getValue());
+        if (a instanceof PositionVar pa && b instanceof PositionVar pb)
+            return new PositionVar(new Vector3d(pa.getValue()).scale(pb.getValue()), false);
+        if (a instanceof PositionVar pa && b instanceof NumberVar nb)
+            return new PositionVar(new Vector3d(pa.getValue()).scale(nb.getValue()), false);
+        if (a instanceof NumberVar na && b instanceof PositionVar pb)
+            return new PositionVar(new Vector3d(pb.getValue()).scale(na.getValue()), false);
+        if (a instanceof RotationVar ra && b instanceof NumberVar nb)
+            return new RotationVar(new Vector3f(ra.getValue()).scale((float) nb.getValue()));
+        if (a instanceof NumberVar na && b instanceof RotationVar rb)
+            return new RotationVar(new Vector3f(rb.getValue()).scale((float) na.getValue()));
+        if (a instanceof RotationVar ra && b instanceof RotationVar rb)
+            return new RotationVar(new Vector3f(ra.getValue()).scale(rb.getValue()));
+        LOGGER.atWarning().log("multiply: unsupported types %s * %s", a.getClass().getSimpleName(), b.getClass().getSimpleName());
         return a;
     }
-
-    // --- divide ---
 
     public static HexVar divide(HexVar a, HexVar b) {
-        if (a instanceof NumberVar na && b instanceof NumberVar nb) return divideNumbers(na, nb);
-        if (a instanceof PositionVar pa && b instanceof NumberVar nb) return dividePositionNumber(pa, nb);
-        if (a instanceof PositionVar pa && b instanceof PositionVar pb) return dividePositions(pa, pb);
-        if (a instanceof RotationVar ra && b instanceof NumberVar nb) return divideRotationNumber(ra, nb);
-        if (a instanceof RotationVar ra && b instanceof RotationVar rb) return divideRotations(ra, rb);
-        LOGGER.atWarning().log("divide: unsupported types " + a.getClass().getSimpleName() + " / " + b.getClass().getSimpleName());
+        if (a instanceof NumberVar na && b instanceof NumberVar nb)
+            return new NumberVar(nb.getValue() != 0 ? na.getValue() / nb.getValue() : na.getValue());
+        if (a instanceof PositionVar pa && b instanceof NumberVar nb) {
+            double s = nb.getValue();
+            return new PositionVar(s != 0 ? new Vector3d(pa.getValue()).scale(1.0 / s) : new Vector3d(pa.getValue()), false);
+        }
+        if (a instanceof PositionVar pa && b instanceof PositionVar pb) {
+            Vector3d va = pa.getValue(); Vector3d vb = pb.getValue();
+            return new PositionVar(new Vector3d(
+                    vb.x != 0 ? va.x / vb.x : va.x,
+                    vb.y != 0 ? va.y / vb.y : va.y,
+                    vb.z != 0 ? va.z / vb.z : va.z), false);
+        }
+        if (a instanceof RotationVar ra && b instanceof NumberVar nb) {
+            double s = nb.getValue();
+            return new RotationVar(s != 0 ? new Vector3f(ra.getValue()).scale((float) (1.0 / s)) : new Vector3f(ra.getValue()));
+        }
+        if (a instanceof RotationVar ra && b instanceof RotationVar rb) {
+            Vector3f va = ra.getValue(); Vector3f vb = rb.getValue();
+            return new RotationVar(new Vector3f(
+                    vb.x != 0 ? va.x / vb.x : va.x,
+                    vb.y != 0 ? va.y / vb.y : va.y,
+                    vb.z != 0 ? va.z / vb.z : va.z));
+        }
+        LOGGER.atWarning().log("divide: unsupported types %s / %s", a.getClass().getSimpleName(), b.getClass().getSimpleName());
         return a;
     }
 
-    // --- number operations ---
-
-    private static NumberVar addNumbers(NumberVar a, NumberVar b) {
-        return zipNumbers(a, b, (x, y) -> x + y);
+    private static HexVar addViaPosition(HexVar a, HexVar b) {
+        LOGGER.atWarning().log("add: converting %s + %s to position math", a.getClass().getSimpleName(), b.getClass().getSimpleName());
+        return a;
     }
 
-    private static NumberVar subtractNumbers(NumberVar a, NumberVar b) {
-        return zipNumbers(a, b, (x, y) -> x - y);
+    private static HexVar subtractViaPosition(HexVar a, HexVar b) {
+        LOGGER.atWarning().log("subtract: converting %s - %s to position math", a.getClass().getSimpleName(), b.getClass().getSimpleName());
+        return a;
     }
 
-    private static NumberVar multiplyNumbers(NumberVar a, NumberVar b) {
-        return zipNumbers(a, b, (x, y) -> x * y);
+    public static HexVar addViaPosition(HexVar a, HexVar b, ComponentAccessor<EntityStore> accessor) {
+        Vector3d posA = SpellVarUtil.resolvePosition(a, accessor);
+        Vector3d posB = SpellVarUtil.resolvePosition(b, accessor);
+        if (posA == null || posB == null) return a;
+        return new PositionVar(new Vector3d(posA).add(posB), true);
     }
 
-    private static NumberVar divideNumbers(NumberVar a, NumberVar b) {
-        return zipNumbers(a, b, (x, y) -> y != 0 ? x / y : x);
+    public static HexVar subtractViaPosition(HexVar a, HexVar b, ComponentAccessor<EntityStore> accessor) {
+        Vector3d posA = SpellVarUtil.resolvePosition(a, accessor);
+        Vector3d posB = SpellVarUtil.resolvePosition(b, accessor);
+        if (posA == null || posB == null) return a;
+        return new PositionVar(new Vector3d(posA).subtract(posB), false);
     }
-
-    private static NumberVar zipNumbers(NumberVar a, NumberVar b, DoubleBinaryOp op) {
-        boolean broadcastA = a.size() == 1 && b.size() > 1;
-        boolean broadcastB = b.size() == 1 && a.size() > 1;
-
-        int maxSize = Math.max(a.size(), b.size());
-        List<Double> result = new ArrayList<>(maxSize);
-
-        for (int i = 0; i < maxSize; i++) {
-            double va = a.getAt(broadcastA ? 0 : Math.min(i, a.size() - 1));
-            double vb = b.getAt(broadcastB ? 0 : Math.min(i, b.size() - 1));
-
-            if (i < a.size() || broadcastA) {
-                if (i < b.size() || broadcastB) {
-                    result.add(op.apply(va, vb));
-                } else {
-                    result.add(va);
-                }
-            }
-        }
-
-        return new NumberVar(result);
-    }
-
-    // --- position operations ---
-
-    private static PositionVar addPositions(PositionVar a, PositionVar b) {
-        return zipPositions(a, b, (va, vb) -> new Vector3d(va).add(vb),
-                a.isAbsolute() || b.isAbsolute());
-    }
-
-    private static PositionVar subtractPositions(PositionVar a, PositionVar b) {
-        return zipPositions(a, b, (va, vb) -> new Vector3d(va).subtract(vb),
-                a.isAbsolute() && !b.isAbsolute());
-    }
-
-    private static PositionVar multiplyPositions(PositionVar a, PositionVar b) {
-        return zipPositions(a, b, (va, vb) -> new Vector3d(va).scale(vb), false);
-    }
-
-    private static PositionVar dividePositions(PositionVar a, PositionVar b) {
-        return zipPositions(a, b, (va, vb) -> new Vector3d(
-                vb.x != 0 ? va.x / vb.x : va.x,
-                vb.y != 0 ? va.y / vb.y : va.y,
-                vb.z != 0 ? va.z / vb.z : va.z), false);
-    }
-
-    private static PositionVar addPositionNumber(PositionVar a, NumberVar b) {
-        return mapPositionScalar(a, b, (pos, s) -> new Vector3d(pos).add(s), a.isAbsolute());
-    }
-
-    private static PositionVar subtractPositionNumber(PositionVar a, NumberVar b) {
-        return mapPositionScalar(a, b, (pos, s) -> new Vector3d(pos).subtract(s), a.isAbsolute());
-    }
-
-    private static PositionVar multiplyPositionNumber(PositionVar a, NumberVar b) {
-        return mapPositionScalar(a, b, (pos, s) -> new Vector3d(pos).scale(s), false);
-    }
-
-    private static PositionVar dividePositionNumber(PositionVar a, NumberVar b) {
-        return mapPositionScalar(a, b, (pos, s) -> s != 0 ? new Vector3d(pos).scale(1.0 / s) : new Vector3d(pos), false);
-    }
-
-    private static PositionVar zipPositions(PositionVar a, PositionVar b, Vec3dBinaryOp op,
-            boolean absolute) {
-        boolean broadcastA = a.size() == 1 && b.size() > 1;
-        boolean broadcastB = b.size() == 1 && a.size() > 1;
-
-        int maxSize = Math.max(a.size(), b.size());
-        List<Vector3d> result = new ArrayList<>(maxSize);
-
-        for (int i = 0; i < maxSize; i++) {
-            if (i < a.size() || broadcastA) {
-                Vector3d va = a.getAt(broadcastA ? 0 : i);
-                if (i < b.size() || broadcastB) {
-                    Vector3d vb = b.getAt(broadcastB ? 0 : i);
-                    result.add(op.apply(va, vb));
-                } else {
-                    result.add(new Vector3d(va));
-                }
-            }
-        }
-
-        return new PositionVar(result, absolute);
-    }
-
-    private static PositionVar mapPositionScalar(PositionVar a, NumberVar b, Vec3dScalarOp op,
-            boolean absolute) {
-        boolean broadcastB = b.size() == 1;
-        int maxSize = a.size();
-        List<Vector3d> result = new ArrayList<>(maxSize);
-
-        for (int i = 0; i < maxSize; i++) {
-            double scalar = b.getAt(broadcastB ? 0 : Math.min(i, b.size() - 1));
-            if (i < b.size() || broadcastB) {
-                result.add(op.apply(a.getAt(i), scalar));
-            } else {
-                result.add(new Vector3d(a.getAt(i)));
-            }
-        }
-
-        return new PositionVar(result, absolute);
-    }
-
-    // --- rotation operations ---
-
-    private static RotationVar addRotations(RotationVar a, RotationVar b) {
-        return zipRotations(a, b, (va, vb) -> new Vector3f(va).add(vb));
-    }
-
-    private static RotationVar subtractRotations(RotationVar a, RotationVar b) {
-        return zipRotations(a, b, (va, vb) -> new Vector3f(va).subtract(vb));
-    }
-
-    private static RotationVar multiplyRotations(RotationVar a, RotationVar b) {
-        return zipRotations(a, b, (va, vb) -> new Vector3f(va).scale(vb));
-    }
-
-    private static RotationVar divideRotations(RotationVar a, RotationVar b) {
-        return zipRotations(a, b, (va, vb) -> new Vector3f(
-                vb.x != 0 ? va.x / vb.x : va.x,
-                vb.y != 0 ? va.y / vb.y : va.y,
-                vb.z != 0 ? va.z / vb.z : va.z));
-    }
-
-    private static RotationVar addRotationNumber(RotationVar a, NumberVar b) {
-        return mapRotationScalar(a, b, (rot, s) -> new Vector3f(rot).add((float)s, (float)s, (float)s));
-    }
-
-    private static RotationVar subtractRotationNumber(RotationVar a, NumberVar b) {
-        return mapRotationScalar(a, b, (rot, s) -> new Vector3f(rot).subtract((float)s, (float)s, (float)s));
-    }
-
-    private static RotationVar multiplyRotationNumber(RotationVar a, NumberVar b) {
-        return mapRotationScalar(a, b, (rot, s) -> new Vector3f(rot).scale((float) s));
-    }
-
-    private static RotationVar divideRotationNumber(RotationVar a, NumberVar b) {
-        return mapRotationScalar(a, b, (rot, s) -> s != 0 ? new Vector3f(rot).scale((float) (1.0 / s)) : new Vector3f(rot));
-    }
-
-    private static RotationVar zipRotations(RotationVar a, RotationVar b, Vec3fBinaryOp op) {
-        boolean broadcastA = a.size() == 1 && b.size() > 1;
-        boolean broadcastB = b.size() == 1 && a.size() > 1;
-
-        int maxSize = Math.max(a.size(), b.size());
-        List<Vector3f> result = new ArrayList<>(maxSize);
-
-        for (int i = 0; i < maxSize; i++) {
-            if (i < a.size() || broadcastA) {
-                Vector3f va = a.getAt(broadcastA ? 0 : i);
-                if (i < b.size() || broadcastB) {
-                    Vector3f vb = b.getAt(broadcastB ? 0 : i);
-                    result.add(op.apply(va, vb));
-                } else {
-                    result.add(new Vector3f(va));
-                }
-            }
-        }
-
-        return new RotationVar(result);
-    }
-
-    private static RotationVar mapRotationScalar(RotationVar a, NumberVar b, Vec3fScalarOp op) {
-        boolean broadcastB = b.size() == 1;
-        int maxSize = a.size();
-        List<Vector3f> result = new ArrayList<>(maxSize);
-
-        for (int i = 0; i < maxSize; i++) {
-            double scalar = b.getAt(broadcastB ? 0 : Math.min(i, b.size() - 1));
-            if (i < b.size() || broadcastB) {
-                result.add(op.apply(a.getAt(i), scalar));
-            } else {
-                result.add(new Vector3f(a.getAt(i)));
-            }
-        }
-
-        return new RotationVar(result);
-    }
-
-    // --- entity/block list operations ---
-
-    private static EntityVar concatEntities(EntityVar a, EntityVar b) {
-        List<PersistentRef> result = new ArrayList<>(a.getValues());
-        result.addAll(b.getValues());
-        return new EntityVar(result);
-    }
-
-    private static EntityVar removeEntities(EntityVar a, EntityVar b) {
-        Set<UUID> toRemove = new HashSet<>();
-        for (PersistentRef ref : b.getValues()) {
-            if (ref.getUuid() != null) toRemove.add(ref.getUuid());
-        }
-        List<PersistentRef> result = new ArrayList<>();
-        for (PersistentRef ref : a.getValues()) {
-            if (ref.getUuid() == null || !toRemove.contains(ref.getUuid())) {
-                result.add(ref);
-            }
-        }
-        return new EntityVar(result);
-    }
-
-    private static BlockVar concatBlocks(BlockVar a, BlockVar b) {
-        List<Vector3i> result = new ArrayList<>(a.getValues());
-        result.addAll(b.getValues());
-        return new BlockVar(result);
-    }
-
-    private static BlockVar removeBlocks(BlockVar a, BlockVar b) {
-        Set<Vector3i> toRemove = new HashSet<>(b.getValues());
-        List<Vector3i> result = new ArrayList<>();
-        for (Vector3i pos : a.getValues()) {
-            if (!toRemove.contains(pos)) result.add(pos);
-        }
-        return new BlockVar(result);
-    }
-
-    // --- comparisons ---
 
     public static boolean isEqual(HexVar a, HexVar b) {
         if (a == null || b == null) return false;
@@ -366,32 +158,5 @@ public class HexMathUtil {
     public static boolean isLess(HexVar a, HexVar b) {
         if (a == null || b == null) return false;
         return a.compareTo(b) < 0;
-    }
-
-    // --- functional interfaces ---
-
-    @FunctionalInterface
-    private interface DoubleBinaryOp {
-        double apply(double a, double b);
-    }
-
-    @FunctionalInterface
-    private interface Vec3dBinaryOp {
-        Vector3d apply(Vector3d a, Vector3d b);
-    }
-
-    @FunctionalInterface
-    private interface Vec3dScalarOp {
-        Vector3d apply(Vector3d a, double b);
-    }
-
-    @FunctionalInterface
-    private interface Vec3fBinaryOp {
-        Vector3f apply(Vector3f a, Vector3f b);
-    }
-
-    @FunctionalInterface
-    private interface Vec3fScalarOp {
-        Vector3f apply(Vector3f a, double b);
     }
 }

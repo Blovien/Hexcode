@@ -1,64 +1,39 @@
 package com.riprod.hexcode.core.common.glyphs.variables;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
-import com.hypixel.hytale.codec.codecs.array.ArrayCodec;
 import com.hypixel.hytale.math.vector.Vector3i;
 
 public class BlockVar extends HexVar {
-    private List<Vector3i> positions = new ArrayList<>();
+    private Vector3i position;
 
     public BlockVar() {
     }
 
-    public BlockVar(List<Vector3i> positions) {
-        this.positions = positions;
-    }
-
     public BlockVar(Vector3i position) {
-        this.positions = new ArrayList<>(List.of(position));
+        this.position = position;
     }
 
-    public List<Vector3i> getValues() {
-        return positions;
-    }
-
-    public void setPositions(List<Vector3i> positions) {
-        this.positions = positions;
-    }
-
-    public Vector3i getAt(int index) {
-        return positions.get(index);
-    }
-
-    public void addPosition(Vector3i position) {
-        this.positions.add(position);
-    }
-
-    public void removePosition(Vector3i position) {
-        this.positions.remove(position);
+    public Vector3i getValue() {
+        return position;
     }
 
     @Override
-    public int size() {
-        return positions.size();
+    public Object getRawValue() {
+        return position;
     }
 
     @Override
     public double toScalar() {
-        if (positions.isEmpty()) return 0;
-        Vector3i v = positions.get(0);
-        return Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+        if (position == null) return 0;
+        return Math.sqrt(position.x * position.x + position.y * position.y + position.z * position.z);
     }
 
     @Override
     public boolean equalTo(HexVar other) {
         if (other instanceof BlockVar bb) {
-            return !positions.isEmpty() && !bb.positions.isEmpty() && positions.get(0).equals(bb.positions.get(0));
+            if (position == null || bb.position == null) return position == bb.position;
+            return position.equals(bb.position);
         }
         return super.equalTo(other);
     }
@@ -66,7 +41,9 @@ public class BlockVar extends HexVar {
     @Override
     public int compareTo(HexVar other) {
         if (other instanceof BlockVar bb) {
-            if (positions.isEmpty() || bb.positions.isEmpty()) return 0;
+            if (position == null && bb.position == null) return 0;
+            if (position == null) return -1;
+            if (bb.position == null) return 1;
             return Double.compare(this.toScalar(), bb.toScalar());
         }
         return super.compareTo(other);
@@ -74,9 +51,9 @@ public class BlockVar extends HexVar {
 
     public static final BuilderCodec<BlockVar> CODEC = BuilderCodec
             .builder(BlockVar.class, BlockVar::new, HexVar.BASE_CODEC)
-            .append(new KeyedCodec<>("Positions", new ArrayCodec<>(Vector3i.CODEC, Vector3i[]::new)),
-                    (v, pos) -> v.positions = new ArrayList<>(Arrays.asList(pos)),
-                    v -> v.positions.toArray(Vector3i[]::new))
+            .append(new KeyedCodec<>("Position", Vector3i.CODEC),
+                    (v, pos) -> v.position = pos,
+                    v -> v.position)
             .add()
             .build();
 
