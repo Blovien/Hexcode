@@ -19,7 +19,7 @@ public class BoltStyle {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     private static final String SHOCK_EFFECT_ID = "Hexcode_Shock";
-    private static final String BOLT_PARTICLE = "Shock_Spawner";
+    private static final String BOLT_PARTICLE = "Shock_Spawner_Temporary";
     private static final String BOLT_SOUND = "SFX_Staff_Fire_Shoot";
     private static final Vector3f DEFAULT_COLOR = new Vector3f(0.6f, 0.9f, 1.0f);
     private static final float BEAM_THICKNESS = 0.2f;

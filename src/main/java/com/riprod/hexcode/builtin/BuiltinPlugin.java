@@ -16,7 +16,7 @@ import com.riprod.hexcode.builtin.glyphs.effect.conjure.ConjureGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.conjure.component.ConjureZoneComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.conjure.system.ConjureSystem;
 import com.riprod.hexcode.builtin.glyphs.effect.delay.DelayGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.detonate.DetonateGlyph;
+import com.riprod.hexcode.builtin.glyphs.effect.gust.GustGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.divide.DivideGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.drain.DrainGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.drain.component.DrainComponent;
@@ -37,7 +37,7 @@ import com.riprod.hexcode.builtin.glyphs.effect.fortify.system.FortifyTickSystem
 import com.riprod.hexcode.builtin.glyphs.effect.freeze.FreezeGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.freeze.component.FreezeComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.freeze.system.FreezeTickSystem;
-import com.riprod.hexcode.builtin.glyphs.effect.gather.GatherGlyph;
+import com.riprod.hexcode.builtin.glyphs.effect.area.AreaGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.glaciate.GlaciateGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.glaciate.component.GlaciateComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.glaciate.system.GlaciateSystem;
@@ -52,13 +52,13 @@ import com.riprod.hexcode.builtin.glyphs.effect.levitate.system.LevitateTickSyst
 import com.riprod.hexcode.builtin.glyphs.effect.multiply.MultiplyGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.interfere.InterfereGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.resonate.ResonateGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.propel.PropelGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.propel.component.PropelComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.propel.system.PropelSystem;
-import com.riprod.hexcode.builtin.glyphs.effect.rupture.RuptureGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.rupture.component.RuptureComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.rupture.system.RuptureTickSystem;
-import com.riprod.hexcode.builtin.glyphs.effect.seek.SeekGlyph;
+import com.riprod.hexcode.builtin.glyphs.effect.projectile.ProjectileGlyph;
+import com.riprod.hexcode.builtin.glyphs.effect.projectile.component.ProjectileComponent;
+import com.riprod.hexcode.builtin.glyphs.effect.projectile.system.ProjectileSystem;
+import com.riprod.hexcode.builtin.glyphs.effect.ensnare.EnsnareGlyph;
+import com.riprod.hexcode.builtin.glyphs.effect.ensnare.component.EnsnareComponent;
+import com.riprod.hexcode.builtin.glyphs.effect.ensnare.system.EnsnareTickSystem;
+import com.riprod.hexcode.builtin.glyphs.effect.beam.BeamGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.self.SelfGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.shatter.ShatterGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.shatter.component.ShatterComponent;
@@ -118,10 +118,10 @@ public class BuiltinPlugin extends JavaPlugin {
         GlyphRegistry.register("Glyph_Halt", new HaltGlyph());
 
         // Tier 2
-        GlyphRegistry.register("Glyph_Seek", new SeekGlyph());
-        GlyphRegistry.register("Glyph_Gather", new GatherGlyph());
-        GlyphRegistry.register("Glyph_Propel", new PropelGlyph());
-        GlyphRegistry.register("Glyph_Detonate", new DetonateGlyph());
+        GlyphRegistry.register("Glyph_Beam", new BeamGlyph());
+        GlyphRegistry.register("Glyph_Area", new AreaGlyph());
+        GlyphRegistry.register("Glyph_Projectile", new ProjectileGlyph());
+        GlyphRegistry.register("Glyph_Gust", new GustGlyph());
         GlyphRegistry.register("Glyph_Conjure", new ConjureGlyph());
         GlyphRegistry.register("Glyph_Growth", new GrowthGlyph());
         GlyphRegistry.register("Glyph_Fortify", new FortifyGlyph());
@@ -139,7 +139,7 @@ public class BuiltinPlugin extends JavaPlugin {
         GlyphRegistry.register("Glyph_Shatter", new ShatterGlyph());
         GlyphRegistry.register("Glyph_Glaciate", new GlaciateGlyph());
         GlyphRegistry.register("Glyph_Terraform", new TerraformGlyph());
-        GlyphRegistry.register("Glyph_Rupture", new RuptureGlyph());
+        GlyphRegistry.register("Glyph_Ensnare", new EnsnareGlyph());
         GlyphRegistry.register("Glyph_Phase", new PhaseGlyph());
         GlyphRegistry.register("Glyph_Warp", new WarpGlyph());
         GlyphRegistry.register("Glyph_Swap", new SwapGlyph());
@@ -211,10 +211,10 @@ public class BuiltinPlugin extends JavaPlugin {
                 .registerComponent(HexSignal.class, HexSignal::new);
         HexSignal.setComponentType(hexSignalType);
 
-        // Propel Component
-        ComponentType<EntityStore, PropelComponent> propelComponentType = entityStoreRegistry
-                .registerComponent(PropelComponent.class, PropelComponent::new);
-        PropelComponent.setComponentType(propelComponentType);
+        // Projectile Component
+        ComponentType<EntityStore, ProjectileComponent> projectileComponentType = entityStoreRegistry
+                .registerComponent(ProjectileComponent.class, ProjectileComponent::new);
+        ProjectileComponent.setComponentType(projectileComponentType);
 
         // Conjure Zone Component
         ComponentType<EntityStore, ConjureZoneComponent> conjureZoneType = entityStoreRegistry
@@ -251,9 +251,9 @@ public class BuiltinPlugin extends JavaPlugin {
                 .registerComponent(FreezeComponent.class, FreezeComponent::new);
         FreezeComponent.setComponentType(freezeComponentType);
 
-        ComponentType<EntityStore, RuptureComponent> ruptureComponentType = entityStoreRegistry
-                .registerComponent(RuptureComponent.class, RuptureComponent::new);
-        RuptureComponent.setComponentType(ruptureComponentType);
+        ComponentType<EntityStore, EnsnareComponent> ensnareComponentType = entityStoreRegistry
+                .registerComponent(EnsnareComponent.class, EnsnareComponent::new);
+        EnsnareComponent.setComponentType(ensnareComponentType);
 
         ComponentType<EntityStore, GlaciateComponent> glaciateComponentType = entityStoreRegistry
                 .registerComponent(GlaciateComponent.class, GlaciateComponent::new);
@@ -267,7 +267,7 @@ public class BuiltinPlugin extends JavaPlugin {
     private void RegisterSystems() {
         ComponentRegistryProxy<EntityStore> entityStoreRegistry = this.getEntityStoreRegistry();
         
-        entityStoreRegistry.registerSystem(new PropelSystem());
+        entityStoreRegistry.registerSystem(new ProjectileSystem());
         entityStoreRegistry.registerSystem(new ConjureSystem());
         entityStoreRegistry.registerSystem(new ArcSystem());
         entityStoreRegistry.registerSystem(new DrainTickSystem());
@@ -278,7 +278,7 @@ public class BuiltinPlugin extends JavaPlugin {
         entityStoreRegistry.registerSystem(new LevitateTickSystem());
         entityStoreRegistry.registerSystem(new PhaseTickSystem());
         entityStoreRegistry.registerSystem(new FreezeTickSystem());
-        entityStoreRegistry.registerSystem(new RuptureTickSystem());
+        entityStoreRegistry.registerSystem(new EnsnareTickSystem());
         entityStoreRegistry.registerSystem(new GlaciateSystem());
         entityStoreRegistry.registerSystem(new ShatterSystem());
     }

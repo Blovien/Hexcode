@@ -1,0 +1,8 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "Life_Obelisk_Ready"
+    }
+  ],
+  "CullDistance": 50
+}

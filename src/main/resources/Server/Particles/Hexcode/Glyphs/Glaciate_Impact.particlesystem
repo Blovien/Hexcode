@@ -1,9 +1,10 @@
 {
   "LifeSpan": 1.5,
   "CullDistance": 100,
-  "BoundingRadius": 3.0,
+  "BoundingRadius": 8.0,
   "IsImportant": true,
   "Spawners": [
+    { "SpawnerId": "Glaciate_Shockwave", "StartDelay": 0 },
     { "SpawnerId": "Glaciate_Flash" },
     { "SpawnerId": "Glaciate_IceShard", "StartDelay": 0.05 }
   ]

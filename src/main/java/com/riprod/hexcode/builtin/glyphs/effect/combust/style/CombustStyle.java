@@ -16,9 +16,9 @@ public class CombustStyle {
 
     private static final double SMALL_RADIUS = 3.0;
     private static final double MEDIUM_RADIUS = 7.0;
-    private static final String EXPLOSION_SMALL = "Detonate_Small";
-    private static final String EXPLOSION_MEDIUM = "Detonate_Medium";
-    private static final String EXPLOSION_BIG = "Detonate_Big";
+    private static final String EXPLOSION_SMALL = "Gust_Small";
+    private static final String EXPLOSION_MEDIUM = "Gust_Medium";
+    private static final String EXPLOSION_BIG = "Gust_Big";
 
     private CombustStyle() {
     }

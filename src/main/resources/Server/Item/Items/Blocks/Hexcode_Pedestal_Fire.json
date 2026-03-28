@@ -1,11 +1,11 @@
 {
   "Parent": "Hexcode_Pedestal_Template",
   "TranslationProperties": {
-    "Name": "Hexcode Pedestal"
+    "Name": "hexcode.blocks.Hexcode_Pedestal_Fire.name"
   },
   "Icon": "Icons/ItemsGenerated/Hexcode_Pedestal_Fire.png",
   "Categories": [
-    "Blocks.Deco"
+    "Hexcode.Pedestals"
   ],
   "PlayerAnimationsId": "Block",
   "BlockType": {
@@ -33,28 +33,62 @@
             "Color": "#ff4400",
             "Intensity": 1
           },
-          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Idle.blockyanim"
+          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Idle.blockyanim",
+          "InteractionHint": "hexcode.blocks.pedestal.interact.idle"
         },
         "Ready": {
           "Light": {
             "Color": "#ff6600",
             "Intensity": 2
           },
-          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Ready.blockyanim"
+          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Ready.blockyanim",
+          "Looping": true,
+          "InteractionHint": "hexcode.blocks.pedestal.interact.ready",
+          "Effect": [
+            "None"
+          ],
+          "Particles": [
+            {
+              "SystemId": "Arcane_Fire_Ready"
+            }
+          ]
         },
         "Selecting": {
           "Light": {
             "Color": "#ff8800",
             "Intensity": 4
           },
-          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Selecting.blockyanim"
+          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Selecting.blockyanim",
+          "Looping": true,
+          "InteractionHint": "hexcode.blocks.pedestal.interact.selecting",
+          "Particles": [
+            {
+              "SystemId": "Rune_System"
+            },
+            {
+              "SystemId": "Arcane_Fire_Selecting"
+            }
+          ]
         },
         "Crafting": {
           "Light": {
             "Color": "#ffaa00",
             "Intensity": 6
           },
-          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Crafting.blockyanim"
+          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Crafting.blockyanim",
+          "Looping": true,
+          "InteractionHint": "hexcode.blocks.pedestal.interact.crafting",
+          "Particles": [
+            {
+              "SystemId": "Room_Spawner"
+            },
+            {
+              "SystemId": "Glyph_Spawner"
+            },
+            {
+              "SystemId": "Arcane_Fire_Crafting"
+            }
+          ]
         }
       }
     },
@@ -63,7 +97,6 @@
         "Hexcode_PedestalBlock": {
           "MaxObelisks": 5,
           "HolderReference": "Pedestal_Holder",
-          "ObeliskRange": 25,
           "PerPlayer": false,
           "MaxRadius": 30,
           "AnimationSets": {
@@ -103,7 +136,8 @@
                 }
               ]
             }
-          }
+          },
+          "ObeliskRange": 10
         }
       }
     },
@@ -132,7 +166,7 @@
   },
   "ItemSoundSetId": "ISS_Blocks_Stone",
   "IconProperties": {
-    "Scale": 0.4,
+    "Scale": 0.5,
     "Rotation": [
       22.5,
       47,
@@ -140,7 +174,7 @@
     ],
     "Translation": [
       0,
-      -30
+      -16
     ]
   }
 }

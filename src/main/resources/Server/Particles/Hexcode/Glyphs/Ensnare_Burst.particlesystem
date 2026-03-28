@@ -1,0 +1,12 @@
+{
+  "Spawners": [
+    { "SpawnerId": "Ensnare_Hit_Flash", "StartDelay": 0 },
+    { "SpawnerId": "Ensnare_Burst_Debris", "PositionOffset": { "Y": 0 }, "StartDelay": 0 },
+    { "SpawnerId": "Ensnare_Burst_Dust", "PositionOffset": { "Y": 0 }, "StartDelay": 0.1 },
+    { "SpawnerId": "Ensnare_Burst_Smoke", "StartDelay": 0.1 }
+  ],
+  "LifeSpan": 2.0,
+  "CullDistance": 100,
+  "BoundingRadius": 15,
+  "IsImportant": true
+}

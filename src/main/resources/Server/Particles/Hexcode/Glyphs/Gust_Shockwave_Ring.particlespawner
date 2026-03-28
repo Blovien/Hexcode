@@ -1,0 +1,25 @@
+{
+  "RenderMode": "Erosion",
+  "ParticleRotationInfluence": "Billboard",
+  "LinearFiltering": true,
+  "LightInfluence": 0,
+  "MaxConcurrentParticles": 1,
+  "ParticleLifeSpan": { "Min": 0.2, "Max": 0.2 },
+  "SpawnRate": { "Min": 1, "Max": 1 },
+  "SpawnBurst": true,
+  "TotalParticles": { "Min": 1, "Max": 1 },
+  "Attractors": [{
+    "RadialImpulse": 5,
+    "RadialAcceleration": -6
+  }],
+  "Particle": {
+    "Texture": "Particles/Textures/Circles/Explosion_Shockwave.png",
+    "FrameSize": { "Width": 128, "Height": 128 },
+    "ScaleRatioConstraint": "OneToOne",
+    "Animation": {
+      "0": { "Opacity": 0.8, "Color": "#cc66ff", "Scale": { "X": { "Min": 0.0, "Max": 0.0 }, "Y": { "Min": 0.5, "Max": 0.5 } } },
+      "50": { "Opacity": 0.5, "Color": "#aa44dd", "Scale": { "X": { "Min": 1.0, "Max": 1.0 }, "Y": { "Min": 1.0, "Max": 1.0 } } },
+      "100": { "Opacity": 0, "Color": "#8b00ff", "Scale": { "X": { "Min": 1.5, "Max": 1.5 }, "Y": { "Min": 1.5, "Max": 1.5 } } }
+    }
+  }
+}

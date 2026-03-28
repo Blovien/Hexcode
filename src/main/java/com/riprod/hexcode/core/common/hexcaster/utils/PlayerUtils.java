@@ -3,12 +3,10 @@ package com.riprod.hexcode.core.common.hexcaster.utils;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.inventory.InventoryComponent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
-import com.hypixel.hytale.server.core.inventory.ItemStackTransaction;
+import com.hypixel.hytale.server.core.inventory.transaction.ItemStackTransaction;
 import com.hypixel.hytale.server.core.inventory.container.CombinedItemContainer;
-import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.entity.ItemUtils;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
@@ -101,21 +99,22 @@ public class PlayerUtils {
         }
     }
 
-    /** Attempts to add an item to the specified hand but falls back to just giving it to a player */
     public static void addHandItem(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> ref,
             HexSlot slot, ItemStack item) {
-        if (slot == HexSlot.OffHand) {
-            InventoryComponent.Utility utility = accessor.getComponent(ref, InventoryComponent.Utility.getComponentType());
-            if (utility == null) return;
-            byte activeSlot = utility.getActiveSlot();
-            if (activeSlot < 0) return;
-            utility.getInventory().setItemStackForSlot(activeSlot, item, false);
-        } else {
-            InventoryComponent.Hotbar hotbar = accessor.getComponent(ref, InventoryComponent.Hotbar.getComponentType());
-            if (hotbar == null) return;
-            byte activeSlot = hotbar.getActiveSlot();
-            if (activeSlot < 0) return;
-            hotbar.getInventory().setItemStackForSlot(activeSlot, item);
+        if (item == null || item.isEmpty()) return;
+
+        ItemStack currentHandItem = getHandItem(accessor, ref, slot);
+        if (currentHandItem == null || currentHandItem.isEmpty()) {
+            setHandItem(accessor, ref, slot, item);
+            return;
+        }
+
+        CombinedItemContainer combined = InventoryComponent.getCombined(
+                accessor, ref, InventoryComponent.HOTBAR_STORAGE_BACKPACK);
+        ItemStackTransaction transaction = combined.addItemStack(item);
+        ItemStack remainder = transaction.getRemainder();
+        if (!ItemStack.isEmpty(remainder)) {
+            ItemUtils.dropItem(ref, remainder, accessor);
         }
     }
 

@@ -110,7 +110,7 @@ public class PedestalItemUtil {
         if (bookStack == null || bookStack.isEmpty()) {
             return;
         }
-        PlayerUtils.setHandItem(accessor, ref, slot, bookStack);
+        PlayerUtils.addHandItem(accessor, ref, slot, bookStack);
     }
 
     public static boolean returnEssenceToPlayer(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> ref,

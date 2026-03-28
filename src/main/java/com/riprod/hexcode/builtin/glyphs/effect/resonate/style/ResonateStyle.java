@@ -13,11 +13,11 @@ public class ResonateStyle {
 
     public static void renderResonate(Vector3d pos, HexColors colors,
             CommandBuffer<EntityStore> accessor) {
-        VfxUtil.effect("Detonate_Smoke", "SFX_Block_Break", pos, accessor);
+        VfxUtil.effect("Gust_Smoke", "SFX_Block_Break", pos, accessor);
     }
 
     public static void renderNoSignal(Vector3d pos, HexColors colors,
             CommandBuffer<EntityStore> accessor) {
-        VfxUtil.effect("Detonate_Smoke", "SFX_Block_Break", pos, accessor);
+        VfxUtil.effect("Gust_Smoke", "SFX_Block_Break", pos, accessor);
     }
 }

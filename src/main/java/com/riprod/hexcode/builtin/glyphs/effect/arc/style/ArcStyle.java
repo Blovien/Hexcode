@@ -10,7 +10,7 @@ import com.riprod.hexcode.utils.VfxUtil;
 
 public class ArcStyle {
 
-    private static final String ARC_PARTICLE = "Shock_Spawner";
+    private static final String ARC_PARTICLE = "Shock_Spawner_Temporary";
     private static final String ARC_SOUND = "SFX_Staff_Fire_Shoot";
     private static final Vector3f DEFAULT_COLOR = new Vector3f(0.6f, 0.9f, 1.0f);
     private static final float BEAM_THICKNESS = 0.15f;

@@ -24,7 +24,7 @@ import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
 import com.hypixel.hytale.server.core.modules.projectile.ProjectileModule;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.builtin.glyphs.effect.propel.PropelPhysicsConfig;
+import com.riprod.hexcode.builtin.glyphs.effect.projectile.ProjectilePhysicsConfig;
 import com.riprod.hexcode.builtin.glyphs.effect.shatter.component.ShatterComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.shatter.style.ShatterStyle;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
@@ -200,7 +200,7 @@ public class ShatterGlyph implements GlyphHandler {
         holder.addComponent(Velocity.getComponentType(), new Velocity());
 
         Vector3d launchVelocity = new Vector3d(direction).scale(speed);
-        new PropelPhysicsConfig(gravity, 0).apply(holder, hexContext.getCasterRef(),
+        new ProjectilePhysicsConfig(gravity, 0).apply(holder, hexContext.getCasterRef(),
                 launchVelocity, hexContext.getAccessor(), false);
 
         holder.addComponent(HexSignal.getComponentType(),

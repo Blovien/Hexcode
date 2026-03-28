@@ -1,0 +1,11 @@
+{
+  "Spawners": [
+    { "SpawnerId": "Projectile_Launch_Flash", "PositionOffset": { "Y": 0 }, "StartDelay": 0 },
+    { "SpawnerId": "Projectile_Launch_Rings", "PositionOffset": { "Y": 0 }, "StartDelay": 0.02 },
+    { "SpawnerId": "Projectile_Launch_Sparks", "StartDelay": 0.01 }
+  ],
+  "LifeSpan": 0.8,
+  "CullDistance": 100,
+  "BoundingRadius": 3.0,
+  "IsImportant": true
+}

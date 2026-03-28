@@ -4,7 +4,7 @@
   },
   "Icon": "Icons/ItemsGenerated/Hexcode_Obelisk.png",
   "Categories": [
-    "Blocks.Deco"
+    "Hexcode.Obelisks"
   ],
   "PlayerAnimationsId": "Block",
   "BlockType": {

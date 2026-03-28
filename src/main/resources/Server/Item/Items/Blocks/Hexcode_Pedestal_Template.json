@@ -2,9 +2,9 @@
   "TranslationProperties": {
     "Name": "Hexcode Pedestal"
   },
-  "Icon": "Icons/ItemsGenerated/Hexcode_Pedestal.png",
+  "Icon": "Icons/ItemsGenerated/Hexcode_Pedestal_Template.png",
   "Categories": [
-    "Blocks.Deco"
+    "Hexcode.Pedestals"
   ],
   "PlayerAnimationsId": "Block",
   "BlockType": {
@@ -74,9 +74,9 @@
         "Hexcode_PedestalBlock": {
           "MaxObelisks": 5,
           "HolderReference": "Pedestal_Holder",
-          "ObeliskRange": 25,
+          "ObeliskRange": 10,
           "PerPlayer": false,
-          "MaxRadius": 30,
+          "MaxRadius": 15,
           "AnimationSets": {
             "Ready": {
               "Animations": [

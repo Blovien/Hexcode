@@ -1,10 +1,10 @@
 {
   "Parent": "Template_HexBook",
   "TranslationProperties": {
-    "Name": "server.items.Weapon_Spellbook_Grimoire_Brown.name"
+    "Name": "hexcode.items.Ice_Hexbook.name"
   },
   "Categories": [
-    "Items.Weapons"
+    "Hexcode.Books"
   ],
   "Icon": "Icons/ItemsGenerated/Ice_Hexbook.png",
   "Quality": "Epic",

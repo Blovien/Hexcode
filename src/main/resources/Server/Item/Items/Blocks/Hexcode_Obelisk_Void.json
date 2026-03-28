@@ -1,0 +1,141 @@
+{
+  "TranslationProperties": {
+    "Name": "hexcode.blocks.Hexcode_Obelisk_Void.name"
+  },
+  "Icon": "Icons/ItemsGenerated/Hexcode_Obelisk_Void.png",
+  "Categories": [
+    "Hexcode.Obelisks"
+  ],
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "DrawType": "Model",
+    "Material": "Solid",
+    "Opacity": "Transparent",
+    "CustomModel": "Blocks/Hexcode/Obelisks/Void_Obelisk.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "Blocks/Hexcode/Obelisks/Void_Obelisk.png",
+        "Weight": 1
+      }
+    ],
+    "HitboxType": "Full",
+    "BlockSoundSetId": "Stone",
+    "BlockParticleSetId": "Stone",
+    "Flags": {},
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "SoftBlocks"
+      }
+    },
+    "BlockEntity": {
+      "Components": {
+        "Hexcode_ObeliskBlock": {
+          "Power": 10,
+          "HandlerId": "seeker"
+        }
+      }
+    },
+    "State": {
+      "Definitions": {
+        "Idle": {
+          "Light": {
+            "Color": "#2a0040",
+            "Intensity": 1
+          }
+        },
+        "Ready": {
+          "Light": {
+            "Color": "#440066",
+            "Intensity": 2
+          },
+          "Particles": [
+            {
+              "SystemId": "Void_Obelisk_Ready",
+              "DetachedFromModel": false,
+              "PositionOffset": {
+                "Y": 0
+              }
+            }
+          ]
+        },
+        "Selecting": {
+          "Light": {
+            "Color": "#6600aa",
+            "Intensity": 4
+          },
+          "Particles": [
+            {
+              "SystemId": "Void_Obelisk_Selecting",
+              "DetachedFromModel": false,
+              "PositionOffset": {
+                "Y": 0
+              }
+            }
+          ],
+          "Looping": false
+        },
+        "Crafting": {
+          "Light": {
+            "Color": "#8833cc",
+            "Intensity": 6
+          },
+          "Particles": [
+            {
+              "SystemId": "Void_Obelisk_Crafting",
+              "DetachedFromModel": false
+            }
+          ],
+          "CustomModelAnimation": "Blocks/Hexcode/Obelisks/Animations/Obelisk_Void_Crafting.blockyanim",
+          "Looping": true
+        }
+      }
+    },
+    "HexObelisk": {
+      "Type": "Modifier",
+      "Modifiers": [
+        {
+          "Type": "",
+          "Value": -1
+        }
+      ]
+    },
+    "Support": {
+      "Down": [
+        {
+          "FaceType": "Full"
+        }
+      ]
+    },
+    "Supporting": {
+      "Down": [
+        {}
+      ],
+      "Up": [
+        {}
+      ]
+    },
+    "VariantRotation": "NESW",
+    "Looping": true
+  },
+  "Tags": {
+    "Type": [
+      "Deco"
+    ],
+    "Family": [
+      "Hexcode"
+    ]
+  },
+  "ItemSoundSetId": "ISS_Blocks_Stone",
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [
+      0,
+      19,
+      0
+    ],
+    "Translation": [
+      0,
+      -28
+    ]
+  }
+}

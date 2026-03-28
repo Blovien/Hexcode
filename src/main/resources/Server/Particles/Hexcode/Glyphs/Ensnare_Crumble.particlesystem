@@ -1,0 +1,10 @@
+{
+  "Spawners": [
+    { "SpawnerId": "Ensnare_Crumble_Fragments", "PositionOffset": { "Y": 0 }, "StartDelay": 0 },
+    { "SpawnerId": "Ensnare_Crumble_Dust", "PositionOffset": { "Y": 0 }, "StartDelay": 0.2 }
+  ],
+  "LifeSpan": 2.0,
+  "CullDistance": 100,
+  "BoundingRadius": 10,
+  "IsImportant": true
+}

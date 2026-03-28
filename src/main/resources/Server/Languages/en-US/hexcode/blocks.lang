@@ -1,0 +1,19 @@
+Hexcode_Pedestal_Fire.name=Fire Pedestal
+Hexcode_Pedestal_Arcane.name=Arcane Pedestal
+Hexcode_Pedestal_Thorium.name=Thorium Pedestal
+Hexcode_Pedestal_Void.name=Void Pedestal
+
+Hexcode_Obelisk_Life.name=Life Obelisk
+Hexcode_Obelisk_Void.name=Void Obelisk
+Hexcode_Obelisk_Seeker.name=Seeker Obelisk
+Hexcode_Obelisk_Ice.name=Ice Obelisk
+
+pedestal.interact.idle=Press [{key}] to add Book and Essence
+pedestal.interact.ready=Press [{key}] to activate pedestal
+pedestal.interact.selecting=Press [{key}] to disable. Click glyph with staff to select
+pedestal.interact.crafting=Press [{key}] to disable
+
+ui.itemcategory.pedestals=Pedestals
+ui.itemcategory.obelisks=Obelisks
+ui.itemcategory.staves=Staves
+ui.itemcategory.books=Books

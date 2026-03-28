@@ -13,11 +13,11 @@ public class ErodeStyle {
 
     public static void renderEntityHit(Vector3d pos, HexColors colors,
             CommandBuffer<EntityStore> accessor) {
-        VfxUtil.effect("Detonate_Smoke", "SFX_Block_Break", pos, accessor);
+        VfxUtil.effect("Gust_Smoke", "SFX_Block_Break", pos, accessor);
     }
 
     public static void renderBlockHit(Vector3d pos, HexColors colors,
             CommandBuffer<EntityStore> accessor) {
-        VfxUtil.effect("Detonate_Smoke", "SFX_Block_Break", pos, accessor);
+        VfxUtil.effect("Gust_Smoke", "SFX_Block_Break", pos, accessor);
     }
 }

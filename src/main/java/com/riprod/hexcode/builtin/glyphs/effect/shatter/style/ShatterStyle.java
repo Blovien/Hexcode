@@ -41,7 +41,7 @@ public class ShatterStyle {
 
     public static void renderMiss(Vector3d endPos, HexColors colors,
             CommandBuffer<EntityStore> accessor) {
-        VfxUtil.particle("Propel_Miss", endPos, accessor);
+        VfxUtil.particle("Projectile_Miss", endPos, accessor);
     }
 
     private static Vector3f resolveColor(HexColors colors) {

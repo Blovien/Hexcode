@@ -1,0 +1,21 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "Thorium_Selecting_Spawner",
+      "PositionOffset": {
+        "Y": 1
+      }
+    },
+    {
+      "SpawnerId": "Mist_Spawner_Subtle",
+      "EmitOffset": {
+        "Y": {
+          "Min": 0
+        }
+      },
+      "PositionOffset": {
+        "Y": -0.3
+      }
+    }
+  ]
+}

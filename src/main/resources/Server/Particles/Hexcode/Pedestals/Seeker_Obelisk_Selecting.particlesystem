@@ -1,0 +1,8 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "Seeker_Obelisk_Selecting"
+    }
+  ],
+  "CullDistance": 50
+}

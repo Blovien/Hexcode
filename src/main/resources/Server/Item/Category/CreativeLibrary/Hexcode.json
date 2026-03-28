@@ -1,0 +1,30 @@
+{
+  "Icon": "Icons/ItemCategories/Hexcode.png",
+  "Order": 4,
+  "Children": [
+    {
+      "Id": "Pedestals",
+      "Name": "hexcode.ui.itemcategory.pedestals",
+      "Icon": "Icons/ItemCategories/Hexcode_Pedestals.png",
+      "Order": 0
+    },
+    {
+      "Id": "Obelisks",
+      "Name": "hexcode.ui.itemcategory.obelisks",
+      "Icon": "Icons/ItemCategories/Hexcode_Obelisks.png",
+      "Order": 1
+    },
+    {
+      "Id": "Staves",
+      "Name": "hexcode.ui.itemcategory.staves",
+      "Icon": "Icons/ItemCategories/Hexcode_Staves.png",
+      "Order": 2
+    },
+    {
+      "Id": "Books",
+      "Name": "hexcode.ui.itemcategory.books",
+      "Icon": "Icons/ItemCategories/Hexcode_Books.png",
+      "Order": 3
+    }
+  ]
+}
