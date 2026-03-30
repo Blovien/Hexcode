@@ -8,7 +8,7 @@
   "ManaConsumption": 20,
   "Inputs": {
     "source": { "Title": "Source", "DefaultSlot": 1, "Description": "Position or entity to launch shards from" },
-    "direction": { "Title": "Direction", "Description": "Central direction of the cone" },
+    "direction": { "Title": "Direction", "DefaultSlot": 1, "Description": "Central direction of the cone" },
     "count": { "Title": "Count", "DefaultValue": 5, "Description": "Number of ice shards to launch" },
     "spread": { "Title": "Spread", "DefaultValue": 30, "Description": "Cone spread angle in degrees" },
     "speed": { "Title": "Speed", "DefaultValue": 20, "Description": "Shard launch speed" },

@@ -19,7 +19,7 @@
     },
     "delay": {
       "Title": "Delay",
-      "DefaultValue": 0.25,
+      "DefaultValue": 1,
       "Description": "Seconds between each arc jump"
     }
   },

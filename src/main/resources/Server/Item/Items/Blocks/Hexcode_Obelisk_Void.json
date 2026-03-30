@@ -115,7 +115,8 @@
       ]
     },
     "VariantRotation": "NESW",
-    "Looping": true
+    "Looping": true,
+    "CustomModelScale": 1.5
   },
   "Tags": {
     "Type": [

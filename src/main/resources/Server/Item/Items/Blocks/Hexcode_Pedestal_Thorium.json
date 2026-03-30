@@ -132,6 +132,16 @@
                 }
               ]
             }
+          },
+          "EssenceOffsetVector": {
+            "Y": -0.2,
+            "X": 0,
+            "Z": 0
+          },
+          "BookOffsetVector": {
+            "Y": 1,
+            "Z": 0,
+            "X": 0
           }
         }
       }
@@ -149,7 +159,7 @@
       ]
     },
     "VariantRotation": "NESW",
-    "CustomModelScale": 1
+    "CustomModelScale": 1.5
   },
   "Tags": {
     "Type": [

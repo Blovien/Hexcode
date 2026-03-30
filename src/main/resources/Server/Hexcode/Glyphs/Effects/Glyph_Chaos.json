@@ -14,11 +14,13 @@
     },
     "min": {
       "Title": "Min",
-      "Description": "Minimum value to generate between"
+      "Description": "Minimum value to generate between",
+      "DefaultValue": 0
     },
     "max": {
       "Title": "Max",
-      "Description": "Maximum value to generate between"
+      "Description": "Maximum value to generate between",
+      "DefaultValue": 1
     }
   },
   "Outputs": {

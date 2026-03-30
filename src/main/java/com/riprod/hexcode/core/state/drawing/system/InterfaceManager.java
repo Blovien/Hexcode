@@ -41,6 +41,7 @@ public class InterfaceManager {
     TransformComponent transform = accessor.getComponent(playerRef, TransformComponent.getComponentType());
     ModelComponent playerModel = accessor.getComponent(playerRef, ModelComponent.getComponentType());
     HexcasterDrawingComponent hexcaster = accessor.getComponent(playerRef, HexcasterDrawingComponent.getComponentType());
+    if (hexcaster == null) return;
 
     if (hexcaster.getTrailRef() != null) {
       return; // already spawned
@@ -84,6 +85,7 @@ public class InterfaceManager {
 
   public static void removeTrails(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> playerRef) {
     HexcasterDrawingComponent hexcaster = accessor.getComponent(playerRef, HexcasterDrawingComponent.getComponentType());
+    if (hexcaster == null) return;
     if (hexcaster.getTrailRef() != null) {
       Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
       accessor.removeEntity(hexcaster.getTrailRef(), holder, RemoveReason.REMOVE);
@@ -94,6 +96,7 @@ public class InterfaceManager {
   public static void positionTrail(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> playerRef,
       HeadRotation head) {
     HexcasterDrawingComponent hexcaster = accessor.getComponent(playerRef, HexcasterDrawingComponent.getComponentType());
+    if (hexcaster == null) return;
     Ref<EntityStore> trailRef = hexcaster.getTrailRef();
     if (trailRef == null || trailRef.isValid() == false)
       return;

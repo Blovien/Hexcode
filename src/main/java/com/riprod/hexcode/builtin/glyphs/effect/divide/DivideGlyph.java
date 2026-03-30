@@ -17,7 +17,8 @@ import com.riprod.hexcode.utils.SpellVarUtil;
 
 public class DivideGlyph implements GlyphHandler, HexValInterface {
     public static final String ID = "Glyph_Divide";
-    private static final float DEGRADATION_RATE = 0.25f;
+    private static final float INITIAL_PASS_CHANCE = 0.995f;
+    private static final float DECAY_PER_USE = 0.007f; // slower decay, ~10 uses -> ~0.92 chance
 
     @Override
     public boolean canExecute(Glyph glyph, HexContext hexContext) {
@@ -26,9 +27,11 @@ public class DivideGlyph implements GlyphHandler, HexValInterface {
             return true;
 
         int useCount = tracker.getGlyphTypeCount(glyph.getGlyphId());
-        float g = 1.0f / (1 + useCount * DEGRADATION_RATE);
-        float chance = g * tracker.getVolatilityMultiplier();
-        chance = Math.max(0f, Math.min(1f, chance));
+        float chance = INITIAL_PASS_CHANCE - useCount * DECAY_PER_USE;
+        chance = Math.max(0.01f, Math.min(1f, chance));
+
+        chance *= tracker.getVolatilityMultiplier();
+        chance = Math.max(0.01f, Math.min(1f, chance));
 
         float roll = ThreadLocalRandom.current().nextFloat();
         tracker.incrementGlyphType(glyph.getGlyphId());

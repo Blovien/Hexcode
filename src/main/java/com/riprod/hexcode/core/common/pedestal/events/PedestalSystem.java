@@ -19,6 +19,7 @@ import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.World;
+import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.hexbook.component.HexBookComponent;
@@ -206,6 +207,38 @@ public class PedestalSystem {
         } else {
             bookComp.setHex(slotIndex, hex);
             logger.atInfo().log("pedestal: saved hex to book — slot=%d, hex=%s", slotIndex, hex);
+        }
+
+        playerData.setStoredBookComponent(bookComp);
+    }
+
+    public static void saveHexToBook(Store<EntityStore> store, Ref<EntityStore> playerRef,
+            CraftingData playerData) {
+
+        int slotIndex = playerData.getActiveSlotIndex();
+        if (slotIndex < 0) return;
+
+        List<Ref<EntityStore>> previewRefs = playerData.getHexPreviewRefs();
+        if (previewRefs == null || previewRefs.isEmpty()) return;
+
+        Ref<EntityStore> activeHexRef = previewRefs.get(0);
+        if (activeHexRef == null || !activeHexRef.isValid()) return;
+
+        HexComponent hexComp = store.getComponent(activeHexRef, HexComponent.getComponentType());
+        if (hexComp == null) return;
+
+        Hex hex = hexComp.getHex().clone();
+        HexUtils.compress(hex);
+
+        HexBookComponent bookComp = playerData.getStoredBookComponent();
+        if (bookComp == null) return;
+
+        if (hex.getGlyphs().isEmpty()) {
+            if (slotIndex < bookComp.getHexes().size()) {
+                bookComp.getHexes().remove(slotIndex);
+            }
+        } else {
+            bookComp.setHex(slotIndex, hex);
         }
 
         playerData.setStoredBookComponent(bookComp);

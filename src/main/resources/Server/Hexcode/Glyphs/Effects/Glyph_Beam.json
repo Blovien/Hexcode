@@ -9,7 +9,7 @@
   "Inputs": {
     "entity": { "Title": "Source", "DefaultSlot": 1, "Description": "Entity to raycast from" },
     "rotation": { "Title": "Direction", "DefaultSlot": 1, "Description": "Aim direction override, defaults to source entity's look direction" },
-    "distance": { "Title": "Distance", "DefaultValue": 32, "Description": "Maximum range in blocks" }
+    "distance": { "Title": "Distance", "DefaultValue": 48, "Description": "Maximum range in blocks" }
   },
   "Outputs": {
     "result": { "Title": "Result", "DefaultSlot": 1, "Description": "Variable slot to store the result" }

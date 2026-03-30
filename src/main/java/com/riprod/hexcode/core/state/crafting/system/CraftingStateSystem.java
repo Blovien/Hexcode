@@ -13,6 +13,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.HexcodeEvents;
 import com.riprod.hexcode.api.event.HoverChangeEvent;
 import com.riprod.hexcode.core.common.obelisk.system.ObeliskDispatcher;
+import com.riprod.hexcode.core.common.pedestal.events.PedestalSystem;
 import com.riprod.hexcode.core.common.pedestal.utils.PedestalBlockUtil;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
@@ -146,6 +147,14 @@ public class CraftingStateSystem {
 
         if (playerData != null) {
             LinkRenderer.renderLinks(accessor, playerData, pedestal, dt);
+
+            if (playerData.getActiveSlotIndex() >= 0) {
+                playerData.setAutosaveTickCounter(playerData.getAutosaveTickCounter() + 1);
+                if (playerData.getAutosaveTickCounter() >= CraftingData.AUTOSAVE_INTERVAL) {
+                    PedestalSystem.saveHexToBook(accessor, ref, playerData);
+                    playerData.setAutosaveTickCounter(0);
+                }
+            }
         }
     }
 

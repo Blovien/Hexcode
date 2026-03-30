@@ -27,6 +27,7 @@ import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableType;
 import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.common.pedestal.events.PedestalSystem;
 import com.riprod.hexcode.core.common.pedestal.utils.PedestalBlockUtil;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.CraftingData;
@@ -110,6 +111,7 @@ public class CraftingSystem extends HexcodeManager {
 
         Ref<EntityStore> rootNodeRef = playerData.getAnchorNodeRef();
         if (rootNodeRef != null && rootNodeRef.isValid()) {
+            buffer.tryRemoveComponent(rootNodeRef, MountedComponent.getComponentType());
             buffer.tryRemoveEntity(rootNodeRef, RemoveReason.REMOVE);
         }
 
@@ -123,6 +125,7 @@ public class CraftingSystem extends HexcodeManager {
         List<Ref<EntityStore>> allRefs = playerData.getAllRefs();
         allRefs.forEach(r -> {
             if (r != null && r.isValid()) {
+                buffer.tryRemoveComponent(r, MountedComponent.getComponentType());
                 buffer.tryRemoveEntity(r, RemoveReason.REMOVE);
             }
         });
@@ -270,6 +273,8 @@ public class CraftingSystem extends HexcodeManager {
         if (!playerData.isOwner(ref)) {
             return;
         }
+
+        PedestalSystem.saveHexToBook(store, ref, playerData);
 
         // owner leaving: clean up pedestal entities
         for (Ref<EntityStore> previewRef : playerData.getHexPreviewRefs()) {

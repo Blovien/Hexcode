@@ -57,7 +57,7 @@ public class LinkRenderer {
 
         VfxUtil.advanceFlowPhase();
 
-        LinkRenderer.renderAllLinks(accessor, hexComp, world, playerData.getAnchorNodeRef());
+        LinkRenderer.renderAllLinks(accessor, hexComp, world, playerData.getAnchorNodeRef(), playerData.getGlyphColor());
 
         renderSlotValueLinks(accessor, hexComp, world, playerData.getSlotNodeRefs());
     }
@@ -68,7 +68,7 @@ public class LinkRenderer {
     }
 
     public static void renderAllLinks(ComponentAccessor<EntityStore> accessor,
-            HexComponent hexComp, World world, Ref<EntityStore> rootNodeRef) {
+            HexComponent hexComp, World world, Ref<EntityStore> rootNodeRef, Vector3f glyphColor) {
 
         String firstId = hexComp.getHex().getFirstGlyphId();
         if (rootNodeRef != null && rootNodeRef.isValid() && firstId != null) {
@@ -110,7 +110,7 @@ public class LinkRenderer {
                     continue;
 
                 VfxUtil.line(accessor, world, sourceTransform.getPosition(),
-                        targetTransform.getPosition(), CraftingColors.GLYPH_LINK, LINK_THICKNESS, 1f, DebugUtils.FLAG_NONE);
+                        targetTransform.getPosition(), glyphColor, LINK_THICKNESS, 1f, DebugUtils.FLAG_NONE);
                 VfxUtil.particleAlongPath("Link_Flow", sourceTransform.getPosition(),
                         targetTransform.getPosition(), 3, accessor);
             }

@@ -6,7 +6,7 @@
       "Texture": "NPC/Glyphs/Textures/Less.png"
     },
     {
-      "Model": "NPC/Glyphs/Models/Glyph_2.blockymodel",
+      "Model": "NPC/Glyphs/Models/Glyph_1.blockymodel",
       "Texture": "NPC/Glyphs/Textures/Greater.png"
     }
   ]

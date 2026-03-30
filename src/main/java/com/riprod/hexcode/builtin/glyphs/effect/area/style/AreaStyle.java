@@ -1,8 +1,10 @@
 package com.riprod.hexcode.builtin.glyphs.effect.area.style;
 
 import com.hypixel.hytale.component.ComponentAccessor;
+import com.hypixel.hytale.math.matrix.Matrix4d;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.protocol.DebugShape;
 import com.hypixel.hytale.server.core.modules.debug.DebugUtils;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -25,7 +27,14 @@ public class AreaStyle {
         }
 
         World world = accessor.getExternalData().getWorld();
-        DebugUtils.addSphere(world, center, color, radius * 2.0, SPHERE_DURATION);
+
+        Matrix4d matrix = new Matrix4d();
+        matrix.identity();
+        matrix.translate(center.x, center.y, center.z);
+        matrix.scale(radius * 2.0, radius * 2.0, radius * 2.0);
+
+        int flags = DebugUtils.FLAG_FADE | DebugUtils.FLAG_NO_WIREFRAME;
+        DebugUtils.add(world, DebugShape.Sphere, matrix, color, SPHERE_DURATION, flags);
 
         VfxUtil.effect("Area_Pulse", "SFX_Magic_Area", center, accessor);
     }

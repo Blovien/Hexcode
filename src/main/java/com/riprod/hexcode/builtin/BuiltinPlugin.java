@@ -110,6 +110,7 @@ public class BuiltinPlugin extends JavaPlugin {
         GlyphRegistry.register("Glyph_Self", self);
         HexValueRegistry.register("Glyph_Self", self);
         GlyphRegistry.register("Glyph_Chaos", new ChaosGlyph());
+        HexValueRegistry.register("Glyph_Chaos", new ChaosGlyph());
         GlyphRegistry.register("Glyph_Force", new ForceGlyph());
         GlyphRegistry.register("Glyph_Delay", new DelayGlyph());
         DrainGlyph drain = new DrainGlyph();

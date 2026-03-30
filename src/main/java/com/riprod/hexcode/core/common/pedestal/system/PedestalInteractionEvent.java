@@ -82,9 +82,19 @@ public class PedestalInteractionEvent {
                 return;
             }
 
-            // collaborative mode: non-owner joins as collaborator
             PedestalState state = playerData.getState();
             if (state == PedestalState.CRAFTING || state == PedestalState.SELECTING) {
+                HexcasterComponent hexcaster = accessor.getComponent(playerRef, HexcasterComponent.getComponentType());
+                if (hexcaster != null && hexcaster.getState() == HexState.CRAFTING) {
+                    hexcaster.requestStateChange(HexState.IDLE);
+                    pedestalComponent.getActivePlayerRefs().remove(playerRef);
+                    HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
+                            HexcasterCraftingComponent.getComponentType());
+                    if (craftingComp != null) {
+                        craftingComp.clearCraftingState();
+                    }
+                    return;
+                }
                 joinAsCollaborator(accessor, playerRef, pedestalComponent, playerData);
                 return;
             }

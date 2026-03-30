@@ -76,6 +76,8 @@ public class CraftingData {
     private List<Ref<EntityStore>> slotNodeRefs = new ArrayList<>();
     private Ref<EntityStore> anchorNodeRef;
     private int activeSlotIndex = -1;
+    private int autosaveTickCounter = 0;
+    public static final int AUTOSAVE_INTERVAL = 600;
 
     public List<Ref<EntityStore>> getAllRefs() {
         List<Ref<EntityStore>> allRefs = new ArrayList<>();
@@ -85,14 +87,15 @@ public class CraftingData {
         if (essenceDisplayRef != null && essenceDisplayRef.isValid()) {
             allRefs.add(essenceDisplayRef);
         }
-        allRefs.addAll(hexPreviewRefs);
-        if (anchorRef != null && anchorRef.isValid()) {
-            allRefs.add(anchorRef);
+        if (hexPreviewRefs != null) {
+            allRefs.addAll(hexPreviewRefs);
         }
         if (anchorNodeRef != null && anchorNodeRef.isValid()) {
             allRefs.add(anchorNodeRef);
         }
-        allRefs.addAll(slotNodeRefs);
+        if (slotNodeRefs != null) {
+            allRefs.addAll(slotNodeRefs);
+        }
         return allRefs;
     }
 
@@ -253,6 +256,14 @@ public class CraftingData {
 
     public boolean isOwner(Ref<EntityStore> playerRef) {
         return ownerRef != null && ownerRef.equals(playerRef);
+    }
+
+    public int getAutosaveTickCounter() {
+        return autosaveTickCounter;
+    }
+
+    public void setAutosaveTickCounter(int count) {
+        this.autosaveTickCounter = count;
     }
 
     public void setPedestalLocation(Vector3i pedestalLocation) {

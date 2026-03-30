@@ -4,6 +4,7 @@ import com.riprod.hexcode.builtin.BuiltinPlugin;
 import com.riprod.hexcode.command.HexcodeCommand;
 import com.riprod.hexcode.core.common.block.component.UnbreakableBlockComponent;
 import com.riprod.hexcode.core.common.block.event.BlockBreakEvent;
+import com.riprod.hexcode.core.state.drawing.DrawingSlotLockEvent;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
@@ -264,6 +265,7 @@ public class Hexcode extends JavaPlugin {
     entityStoreRegistry.registerSystem(new ExecutionTickSystem());
     entityStoreRegistry.registerSystem(new PedestalBlockEvent());
     entityStoreRegistry.registerSystem(new BlockBreakEvent());
+    entityStoreRegistry.registerSystem(new DrawingSlotLockEvent());
     entityStoreRegistry.registerSystem(new DebugTickSystem());
     entityStoreRegistry.registerSystem(new GlyphEffectSystem());
 

@@ -27,7 +27,7 @@ public class DrainGlyph implements GlyphHandler, HexValInterface {
     public static final String ID = "Glyph_Drain";
 
     private static final float HP_TO_MANA_RATE = 1.5f;
-    private static final float STAMINA_TO_MANA_RATE = 0.2f;
+    private static final float STAMINA_TO_MANA_RATE = 0.6f;
     private static final float DEFAULT_DURATION = 1.0f;
 
     @Override
