@@ -29,6 +29,9 @@ import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 public class CreateGlyph {
   private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
+  // compensates for the eliminated graph node debug sphere visual after the merge
+  public static final float MERGED_HANDLER_SCALE_BUMP = 1.3f;
+
   public static Ref<EntityStore> createHeadAnchor(ComponentAccessor<EntityStore> accessor,
       Ref<EntityStore> playerRef, float eyeHeight) {
     Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
@@ -83,7 +86,7 @@ public class CreateGlyph {
       return holder;
     }
 
-    Model model = Model.createScaledModel(modelAsset, glyph.getScale());
+    Model model = Model.createScaledModel(modelAsset, glyph.getScale() * MERGED_HANDLER_SCALE_BUMP);
 
     holder.addComponent(ModelComponent.getComponentType(), new ModelComponent(model));
 

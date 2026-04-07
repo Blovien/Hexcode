@@ -43,9 +43,9 @@ public class LevitateGlyph implements GlyphHandler {
         if (asset == null) return true;
 
         double intensity = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("intensity", hexContext), DEFAULT_INTENSITY);
+                glyph.resolveSlot("intensity", hexContext), DEFAULT_INTENSITY);
         double duration = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("duration", hexContext), DEFAULT_DURATION);
+                glyph.resolveSlot("duration", hexContext), DEFAULT_DURATION);
 
         float baseCost = asset.getManaConsumption()
                 * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
@@ -66,27 +66,27 @@ public class LevitateGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targets = glyph.resolveInput("target", hexContext);
+        HexVar targets = glyph.resolveSlot("target", hexContext);
         if (!(targets instanceof EntityVar entityVar)) {
             if (targets instanceof BlockVar) {
                 LOGGER.atInfo().log("levitate: block targets not yet implemented");
             }
-            Executor.continueExecution(glyph.getNext(), hexContext);
+            Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
         double intensity = Math.max(0, Math.min(MAX_INTENSITY,
                 SpellVarUtil.resolveNumberOrDefault(
-                        glyph.resolveInput("intensity", hexContext), DEFAULT_INTENSITY)));
+                        glyph.resolveSlot("intensity", hexContext), DEFAULT_INTENSITY)));
         double duration = Math.max(1, Math.min(MAX_DURATION,
                 SpellVarUtil.resolveNumberOrDefault(
-                        glyph.resolveInput("duration", hexContext), DEFAULT_DURATION)));
+                        glyph.resolveSlot("duration", hexContext), DEFAULT_DURATION)));
         float durationSeconds = (float) duration;
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
         applyToEntity(entityVar, (float) intensity, durationSeconds, hexContext, accessor);
 
-        Executor.continueExecution(glyph.getNext(), hexContext);
+        Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 
     private void applyToEntity(EntityVar entityVar, float intensity,

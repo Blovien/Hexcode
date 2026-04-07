@@ -40,7 +40,7 @@ public class BoltGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar target = glyph.resolveInput("target", hexContext);
+        HexVar target = glyph.resolveSlot("target", hexContext);
         if (target == null) {
             LOGGER.atWarning().log("bolt: no target provided");
             return;
@@ -58,7 +58,8 @@ public class BoltGlyph implements GlyphHandler {
         Vector3d sourcePos = casterTc.getPosition().clone();
         World world = accessor.getExternalData().getWorld();
         Vector3f color = BoltStyle.resolveColor(hexContext);
-        Integer outputSlot = glyph.resolveOutput("result", hexContext);
+        Double slotIndexD = SpellVarUtil.resolveNumber(glyph.resolveSlot("result", hexContext));
+        Integer outputSlot = slotIndexD != null ? slotIndexD.intValue() : null;
 
         if (target instanceof EntityVar entityVar) {
             handleEntityTarget(glyph, hexContext, entityVar, accessor, casterRef, sourcePos, world, color, outputSlot);
@@ -69,7 +70,7 @@ public class BoltGlyph implements GlyphHandler {
             return;
         }
 
-        Executor.continueExecution(glyph.getNext(), hexContext);
+        Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 
     private void handleEntityTarget(Glyph glyph, HexContext hexContext, EntityVar entityVar,
@@ -95,7 +96,7 @@ public class BoltGlyph implements GlyphHandler {
         BoltStyle.applyShockEffect(accessor, targetRef);
 
         double damageAmount = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("power", hexContext), 5.0);
+                glyph.resolveSlot("power", hexContext), 5.0);
         applyDamage(accessor, targetRef, (float) damageAmount);
 
         if (outputSlot != null) {

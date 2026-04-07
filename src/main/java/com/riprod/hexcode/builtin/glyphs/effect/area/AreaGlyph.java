@@ -50,7 +50,7 @@ public class AreaGlyph implements GlyphHandler {
         if (asset == null) return true;
 
         double radius = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("radius", hexContext), DEFAULT_RADIUS);
+                glyph.resolveSlot("radius", hexContext), DEFAULT_RADIUS);
         float radiusFactor = (float) ((radius * radius) / (DEFAULT_RADIUS * DEFAULT_RADIUS));
 
         float baseCost = asset.getManaConsumption()
@@ -65,27 +65,27 @@ public class AreaGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar centerVar = glyph.resolveInput("center", hexContext);
+        HexVar centerVar = glyph.resolveSlot("center", hexContext);
         double radius = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("radius", hexContext), DEFAULT_RADIUS);
+                glyph.resolveSlot("radius", hexContext), DEFAULT_RADIUS);
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
         Vector3d center = SpellVarUtil.resolvePosition(centerVar, accessor);
 
         if (center == null) {
-            Executor.continueExecution(glyph.getNext(), hexContext);
+            Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
-        Integer outputSlot = glyph.resolveOutput("result", hexContext);
-        Integer numTargetsSlot = glyph.resolveOutput("num_targets", hexContext);
+        Integer outputSlot = glyph.getSlotIndex("result", hexContext);
+        Integer numTargetsSlot = glyph.getSlotIndex("num_targets", hexContext);
 
         if (centerVar instanceof BlockVar) {
             List<Vector3i> blocks = gatherBlocks(center, radius, accessor);
             AreaStyle.render(center, radius, hexContext.getColors(), accessor);
 
             if (blocks.isEmpty()) {
-                Executor.continueExecution(glyph.getNext(), hexContext);
+                Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
                 return;
             }
 
@@ -97,14 +97,14 @@ public class AreaGlyph implements GlyphHandler {
                 if (numTargetsSlot != null) {
                     copy.setVariable(numTargetsSlot, new NumberVar(blocks.size()));
                 }
-                Executor.continueExecution(glyph.getNext(), copy);
+                Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, copy);
             }
         } else {
             List<PersistentRef> entities = gatherEntities(center, radius, hexContext);
             AreaStyle.render(center, radius, hexContext.getColors(), accessor);
 
             if (entities.isEmpty()) {
-                Executor.continueExecution(glyph.getNext(), hexContext);
+                Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
                 return;
             }
 
@@ -116,7 +116,7 @@ public class AreaGlyph implements GlyphHandler {
                 if (numTargetsSlot != null) {
                     copy.setVariable(numTargetsSlot, new NumberVar(entities.size()));
                 }
-                Executor.continueExecution(glyph.getNext(), copy);
+                Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, copy);
             }
         }
     }

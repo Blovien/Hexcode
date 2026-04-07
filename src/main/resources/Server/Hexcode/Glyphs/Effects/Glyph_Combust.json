@@ -2,27 +2,9 @@
   "Parent": "Base_Glyph",
   "Title": "Combust",
   "Description": "Explosive fire burst with radial knockback and ignition",
-  "GlyphType": "Effect",
   "ModelPath": "Glyph_Combust",
   "BasePower": 1.0,
   "ManaConsumption": 30,
-  "Inputs": {
-    "center": {
-      "Title": "Center",
-      "DefaultSlot": 1,
-      "Description": "Position to center the explosion. Defaults to caster position"
-    },
-    "radius": {
-      "Title": "Radius",
-      "DefaultValue": 2,
-      "Description": "Radius of the fire explosion"
-    },
-    "magnitude": {
-      "Title": "Magnitude",
-      "DefaultValue": 10,
-      "Description": "Strength of the explosion force and damage"
-    }
-  },
   "ShapeStructure": [
     {
       "ShapeId": "Circle",
@@ -36,5 +18,50 @@
       "ShapeId": "Square",
       "Size": 0.55
     }
-  ]
+  ],
+  "Slots": {
+    "center": {
+      "Label": "Center",
+      "Description": "Position to center the explosion. Defaults to caster position",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultSlot": 1
+    },
+    "radius": {
+      "Label": "Radius",
+      "Description": "Radius of the fire explosion",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultValue": 2
+    },
+    "magnitude": {
+      "Label": "Magnitude",
+      "Description": "Strength of the explosion force and damage",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultValue": 10
+    },
+    "Next": {
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain",
+      "Color": [
+        0.4,
+        1.0,
+        0.4
+      ],
+      "Shape": "Sphere"
+    }
+  }
 }

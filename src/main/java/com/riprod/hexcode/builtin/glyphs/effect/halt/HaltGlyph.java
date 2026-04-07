@@ -47,7 +47,7 @@ public class HaltGlyph implements GlyphHandler {
         if (tracker == null) return true;
 
         double duration = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("duration", hexContext), DEFAULT_DURATION);
+                glyph.resolveSlot("duration", hexContext), DEFAULT_DURATION);
 
         int extraRolls = (int) Math.floor(Math.exp(VOLATILITY_STEEPNESS * (duration - VOLATILITY_KNEE)));
 
@@ -72,7 +72,7 @@ public class HaltGlyph implements GlyphHandler {
         if (asset == null) return true;
 
         double duration = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("duration", hexContext), DEFAULT_DURATION);
+                glyph.resolveSlot("duration", hexContext), DEFAULT_DURATION);
 
         float baseCost = asset.getManaConsumption()
                 * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
@@ -94,21 +94,21 @@ public class HaltGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targets = glyph.resolveInput("target", hexContext);
+        HexVar targets = glyph.resolveSlot("target", hexContext);
         if (!(targets instanceof EntityVar entityVar)) {
-            Executor.continueExecution(glyph.getNext(), hexContext);
+            Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
         Ref<EntityStore> ref = entityVar.getRef(accessor);
         if (ref == null || !ref.isValid()) {
-            Executor.continueExecution(glyph.getNext(), hexContext);
+            Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
         double duration = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("duration", hexContext), DEFAULT_DURATION);
+                glyph.resolveSlot("duration", hexContext), DEFAULT_DURATION);
 
         try {
             StandardPhysicsProvider physics = accessor.getComponent(ref,
@@ -150,6 +150,6 @@ public class HaltGlyph implements GlyphHandler {
             LOGGER.atWarning().log("halt: could not halt entity: %s", e.getMessage());
         }
 
-        Executor.continueExecution(glyph.getNext(), hexContext);
+        Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 }

@@ -26,6 +26,7 @@ import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.state.crafting.handlers.node.Slot.SlotNodeHandler;
 import com.riprod.hexcode.core.common.glyphs.utils.CreateGlyph;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
@@ -54,7 +55,6 @@ import com.riprod.hexcode.core.state.crafting.entity.PedestalEntity;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeInterface;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeRouter;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Anchor.AnchorNodeHandler;
-import com.riprod.hexcode.core.state.crafting.handlers.node.Effect.EffectNodeHandler;
 import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
 import com.riprod.hexcode.utils.CleanupUtils;
 import com.riprod.hexcode.utils.GlyphMath;
@@ -125,7 +125,7 @@ public class ContainerNodeHandler implements NodeInterface {
         hexComponent.setSelfRef(hexRef);
 
         int numGlyphs = (int) hex.getGlyphs().stream()
-                .filter(glyph -> glyph != null && glyph.getPrevious().size() > 0)
+                .filter(glyph -> glyph != null)
                 .count();
 
         float scaleMultiplier = 1 + (numGlyphs * GlyphStyler.SCALE_PER_GLYPH);
@@ -192,13 +192,9 @@ public class ContainerNodeHandler implements NodeInterface {
             Map<String, Ref<EntityStore>> oldChildren = hexComp.getChildGlyphRefs();
             if (oldChildren != null) {
                 for (Ref<EntityStore> childRef : oldChildren.values()) {
-                    if (childRef == null || !childRef.isValid())
-                        continue;
-                    GlyphComponent effect = accessor.getComponent(childRef, GlyphComponent.getComponentType());
-                    if (effect != null && effect.getNodeRef() != null && effect.getNodeRef().isValid()) {
-                        accessor.removeEntity(effect.getNodeRef(), RemoveReason.REMOVE);
-                    }
-                    accessor.removeEntity(childRef, RemoveReason.REMOVE);
+                    if (childRef == null || !childRef.isValid()) continue;
+                    SlotNodeHandler.INSTANCE.despawnSlotsForGlyph(accessor, childRef);
+                    accessor.tryRemoveEntity(childRef, RemoveReason.REMOVE);
                 }
                 oldChildren.clear();
             }

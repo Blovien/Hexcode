@@ -37,8 +37,8 @@ public class EqualGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar a = glyph.resolveInput("a", hexContext);
-        HexVar b = glyph.resolveInput("b", hexContext);
+        HexVar a = glyph.resolveSlot("a", hexContext);
+        HexVar b = glyph.resolveSlot("b", hexContext);
 
         if (b == null) {
             assign(glyph, hexContext, a);
@@ -50,16 +50,16 @@ public class EqualGlyph implements GlyphHandler {
 
     private void assign(Glyph glyph, HexContext hexContext, HexVar value) {
         if (value != null) {
-            Integer outputSlot = glyph.resolveOutput("result", hexContext);
+            Integer outputSlot = glyph.getSlotIndex("result", hexContext);
             if (outputSlot != null) hexContext.setVariable(outputSlot, value);
         }
-        Executor.continueExecution(glyph.getNext(), hexContext);
+        Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 
     private void branch(Glyph glyph, HexContext hexContext, HexVar a, HexVar b) {
         boolean result = HexMathUtil.isEqual(a, b);
 
-        List<String> next = glyph.getNext();
+        List<String> next = glyph.getNextLinks();
         if (result) {
             if (!next.isEmpty()) {
                 Executor.continueExecution(List.of(next.get(0)), hexContext);

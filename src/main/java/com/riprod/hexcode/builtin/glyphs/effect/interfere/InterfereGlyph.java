@@ -49,7 +49,7 @@ public class InterfereGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targetVar = glyph.resolveInput("target", hexContext);
+        HexVar targetVar = glyph.resolveSlot("target", hexContext);
         if (targetVar == null) {
             LOGGER.atInfo().log("interfere: no targets");
             return;
@@ -90,7 +90,7 @@ public class InterfereGlyph implements GlyphHandler {
     private void hijackSignal(HexSignal signal, Glyph glyph, HexContext hexContext) {
         // replace all entries' glyph chains with the interfere caster's children
         // hexEntityRef stays pointing to the original caster → they pay mana (sabotage)
-        signal.replaceAll(hexContext.copy(), glyph.getNext());
+        signal.replaceAll(hexContext.copy(), glyph.getNextLinks());
     }
 
     private int stripBuffs(Ref<EntityStore> ref, CommandBuffer<EntityStore> accessor) {

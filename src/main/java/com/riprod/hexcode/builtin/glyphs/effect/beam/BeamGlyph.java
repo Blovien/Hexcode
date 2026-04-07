@@ -24,32 +24,32 @@ public class BeamGlyph implements GlyphHandler {
     public static final String ID = "Glyph_Beam";
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar posVar = glyph.resolveInput("entity", hexContext);
-        HexVar rotVar = glyph.resolveInput("rotation", hexContext);
+        HexVar posVar = glyph.resolveSlot("entity", hexContext);
+        HexVar rotVar = glyph.resolveSlot("rotation", hexContext);
         if (rotVar == null) rotVar = posVar;
 
         if (posVar == null) {
             LOGGER.atWarning().log("beam glyph: no source provided");
-            Executor.continueExecution(glyph.getNext(), hexContext);
+            Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
         Vector3d origin = SpellVarUtil.resolveEyePosition(posVar, hexContext.getAccessor());
         if (origin == null) {
             LOGGER.atWarning().log("beam glyph: could not resolve origin position");
-            Executor.continueExecution(glyph.getNext(), hexContext);
+            Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
         Vector3d direction = SpellVarUtil.resolveDirection(rotVar, origin, hexContext.getAccessor());
         if (direction == null) {
             LOGGER.atWarning().log("beam glyph: could not resolve direction");
-            Executor.continueExecution(glyph.getNext(), hexContext);
+            Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
         int beamLength = (int) SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("distance", hexContext),
+                glyph.resolveSlot("distance", hexContext),
                 32.0).doubleValue();
 
         Vector3f rotation = Vector3f.lookAt(direction);
@@ -80,7 +80,7 @@ public class BeamGlyph implements GlyphHandler {
 
         Vector3d beamOrigin = new Vector3d(origin).add(new Vector3d(direction).scale(1.5));
 
-        Integer outputSlot = glyph.resolveOutput("result", hexContext);
+        Integer outputSlot = glyph.getSlotIndex("result", hexContext);
         Vector3d endPoint;
         BeamStyle.HitType hitType;
 
@@ -105,6 +105,6 @@ public class BeamGlyph implements GlyphHandler {
 
         BeamStyle.render(beamOrigin, endPoint, hitType, hexContext.getColors(), hexContext.getAccessor());
 
-        Executor.continueExecution(glyph.getNext(), hexContext);
+        Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 }

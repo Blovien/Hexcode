@@ -23,8 +23,8 @@ public class WarpGlyph implements GlyphHandler {
         GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
         if (asset == null) return true;
 
-        HexVar targets = glyph.resolveInput("target", hexContext);
-        HexVar destInput = glyph.resolveInput("destination", hexContext);
+        HexVar targets = glyph.resolveSlot("target", hexContext);
+        HexVar destInput = glyph.resolveSlot("destination", hexContext);
         if (targets == null || destInput == null) {
             return true;
         }
@@ -55,12 +55,12 @@ public class WarpGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targets = glyph.resolveInput("target", hexContext);
-        HexVar destInput = glyph.resolveInput("destination", hexContext);
+        HexVar targets = glyph.resolveSlot("target", hexContext);
+        HexVar destInput = glyph.resolveSlot("destination", hexContext);
 
         if (destInput == null) {
             LOGGER.atWarning().log("warp glyph: no destination provided");
-            Executor.continueExecution(glyph.getNext(), hexContext);
+            Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
@@ -68,13 +68,13 @@ public class WarpGlyph implements GlyphHandler {
 
         if (destination == null) {
             LOGGER.atWarning().log("warp glyph: could not resolve destination");
-            Executor.continueExecution(glyph.getNext(), hexContext);
+            Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
         if (targets == null) {
             LOGGER.atWarning().log("warp glyph: no targets to warp");
-            Executor.continueExecution(glyph.getNext(), hexContext);
+            Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
@@ -86,6 +86,6 @@ public class WarpGlyph implements GlyphHandler {
             WarpStyle.render(departurePos, destination, hexContext.getColors(), hexContext.getAccessor());
         }
 
-        Executor.continueExecution(glyph.getNext(), hexContext);
+        Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 }

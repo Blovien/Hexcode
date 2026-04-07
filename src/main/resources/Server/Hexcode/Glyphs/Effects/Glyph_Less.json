@@ -2,15 +2,47 @@
   "Parent": "Base_Glyph",
   "Title": "Less",
   "Description": "Branches execution if A is less than B",
-  "GlyphType": "Effect",
   "ModelPath": "Glyph_Less",
   "BasePower": 0,
   "ManaConsumption": 0,
-  "Inputs": {
-    "a": { "Title": "A", "DefaultValue": 0, "Description": "First operand" },
-    "b": { "Title": "B", "DefaultValue": 0, "Description": "Second operand" }
-  },
   "ShapeStructure": [
-    { "ShapeId": "Less", "Size": 1.0 }
-  ]
+    {
+      "ShapeId": "Less",
+      "Size": 1.0
+    }
+  ],
+  "Slots": {
+    "a": {
+      "Label": "A",
+      "Description": "First operand",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultValue": 0
+    },
+    "b": {
+      "Label": "B",
+      "Description": "Second operand",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultValue": 0
+    },
+    "Next": {
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain",
+      "Color": [
+        0.4,
+        1.0,
+        0.4
+      ],
+      "Shape": "Sphere"
+    }
+  }
 }

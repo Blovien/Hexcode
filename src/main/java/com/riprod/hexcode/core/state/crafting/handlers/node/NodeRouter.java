@@ -13,7 +13,6 @@ import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
 import com.riprod.hexcode.core.state.crafting.constants.NodeType;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Anchor.AnchorNodeHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Container.ContainerNodeHandler;
-import com.riprod.hexcode.core.state.crafting.handlers.node.Effect.EffectNodeHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Glyph.GlyphNodeHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Slot.SlotNodeHandler;
 import com.riprod.hexcode.utils.VfxUtil;
@@ -24,7 +23,6 @@ public class NodeRouter {
     static {
         HANDLERS.put(NodeType.Anchor, AnchorNodeHandler.INSTANCE);
         HANDLERS.put(NodeType.Container, ContainerNodeHandler.INSTANCE);
-        HANDLERS.put(NodeType.Effect, EffectNodeHandler.INSTANCE);
         HANDLERS.put(NodeType.Glyph, GlyphNodeHandler.INSTANCE);
         HANDLERS.put(NodeType.Slot, SlotNodeHandler.INSTANCE);
     }

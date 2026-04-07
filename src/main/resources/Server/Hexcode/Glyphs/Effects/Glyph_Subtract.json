@@ -2,18 +2,56 @@
   "Parent": "Base_Glyph",
   "Title": "Subtract",
   "Description": "Subtracts one value from another",
-  "GlyphType": "Hybrid",
   "ModelPath": "Glyph_Subtract",
   "BasePower": 0,
   "ManaConsumption": 0,
-  "Inputs": {
-    "a": { "Title": "A", "Description": "First operand" },
-    "b": { "Title": "B", "Description": "Second operand" }
-  },
-  "Outputs": {
-    "result": { "Title": "Result", "DefaultSlot": 1, "Description": "Variable slot to store the result" }
-  },
   "ShapeStructure": [
-    { "ShapeId": "Antiline", "Size": 1.0 }
-  ]
+    {
+      "ShapeId": "Antiline",
+      "Size": 1.0
+    }
+  ],
+  "Slots": {
+    "a": {
+      "Label": "A",
+      "Description": "First operand",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube"
+    },
+    "b": {
+      "Label": "B",
+      "Description": "Second operand",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube"
+    },
+    "result": {
+      "Label": "Result",
+      "Description": "Variable slot to store the result",
+      "Color": [
+        1.0,
+        0.6,
+        0.1
+      ],
+      "Shape": "Cube",
+      "DefaultSlot": 1
+    },
+    "Next": {
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain",
+      "Color": [
+        0.4,
+        1.0,
+        0.4
+      ],
+      "Shape": "Sphere"
+    }
+  }
 }

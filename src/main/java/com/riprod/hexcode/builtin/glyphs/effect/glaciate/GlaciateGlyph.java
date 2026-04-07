@@ -56,7 +56,7 @@ public class GlaciateGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targetVar = glyph.resolveInput("target", hexContext);
+        HexVar targetVar = glyph.resolveSlot("target", hexContext);
         if (targetVar == null) {
             LOGGER.atWarning().log("glaciate: no target provided");
             return;
@@ -68,12 +68,12 @@ public class GlaciateGlyph implements GlyphHandler {
             return;
         }
 
-        HexVar offsetVar = glyph.resolveInput("offset", hexContext);
+        HexVar offsetVar = glyph.resolveSlot("offset", hexContext);
         double duration = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("duration", hexContext), DEFAULT_DURATION);
+                glyph.resolveSlot("duration", hexContext), DEFAULT_DURATION);
         if (duration <= 0) duration = DEFAULT_DURATION;
 
-        Integer outputSlot = glyph.resolveOutput("result", hexContext);
+        Integer outputSlot = glyph.getSlotIndex("result", hexContext);
 
         ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(ICE_MODEL);
         if (modelAsset == null) {
@@ -142,7 +142,7 @@ public class GlaciateGlyph implements GlyphHandler {
                     new HitboxCollision(collisionConfig));
         }
 
-        List<String> allNext = glyph.getNext();
+        List<String> allNext = glyph.getNextLinks();
         List<String> firstBranch = !allNext.isEmpty() ? List.of(allNext.get(0)) : null;
         List<String> entryNext = allNext.size() > 1
                 ? List.copyOf(allNext.subList(1, allNext.size()))

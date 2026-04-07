@@ -2,21 +2,58 @@
   "Parent": "Base_Glyph",
   "Title": "Divide",
   "Description": "Divides one value by another",
-  "GlyphType": "Hybrid",
   "ModelPath": "Glyph_Divide",
   "BasePower": 0,
   "ManaConsumption": 0,
-  "Inputs": {
-    "a": { "Title": "A", "DefaultValue": 0, "Description": "First operand" },
-    "b": { "Title": "B", "DefaultValue": 1, "Description": "Second operand" }
-  },
-  "Outputs": {
-    "result": { "Title": "Result", "DefaultSlot": 1, "Description": "Variable slot to store the result" }
-  },
   "ShapeStructure": [
     {
       "ShapeId": "Slash",
       "Size": 1.0
     }
-  ]
+  ],
+  "Slots": {
+    "a": {
+      "Label": "A",
+      "Description": "First operand",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultValue": 0
+    },
+    "b": {
+      "Label": "B",
+      "Description": "Second operand",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultValue": 1
+    },
+    "result": {
+      "Label": "Result",
+      "Description": "Variable slot to store the result",
+      "Color": [
+        1.0,
+        0.6,
+        0.1
+      ],
+      "Shape": "Cube",
+      "DefaultSlot": 1
+    },
+    "Next": {
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain",
+      "Color": [
+        0.4,
+        1.0,
+        0.4
+      ],
+      "Shape": "Sphere"
+    }
+  }
 }

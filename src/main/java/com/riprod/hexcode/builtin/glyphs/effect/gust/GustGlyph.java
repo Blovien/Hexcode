@@ -46,8 +46,8 @@ public class GustGlyph implements GlyphHandler {
         GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
         if (asset == null) return true;
 
-        HexVar radiusVar = glyph.resolveInput("radius", hexContext);
-        HexVar magVar = glyph.resolveInput("magnitude", hexContext);
+        HexVar radiusVar = glyph.resolveSlot("radius", hexContext);
+        HexVar magVar = glyph.resolveSlot("magnitude", hexContext);
         double radius = SpellVarUtil.resolveNumberOrDefault(radiusVar, 5.0);
         double mag = SpellVarUtil.resolveNumberOrDefault(magVar, 10.0);
 
@@ -72,12 +72,12 @@ public class GustGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar centerVar = glyph.resolveInput("center", hexContext);
-        double radius = SpellVarUtil.resolveNumberOrDefault(glyph.resolveInput("radius", hexContext), 5.0);
-        double mag = SpellVarUtil.resolveNumberOrDefault(glyph.resolveInput("magnitude", hexContext), 10.0);
+        HexVar centerVar = glyph.resolveSlot("center", hexContext);
+        double radius = SpellVarUtil.resolveNumberOrDefault(glyph.resolveSlot("radius", hexContext), 5.0);
+        double mag = SpellVarUtil.resolveNumberOrDefault(glyph.resolveSlot("magnitude", hexContext), 10.0);
 
         if (centerVar == null) {
-            Executor.continueExecution(glyph.getNext(), hexContext);
+            Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
@@ -87,7 +87,7 @@ public class GustGlyph implements GlyphHandler {
                     hexContext.getVariable(1), hexContext.getAccessor());
         }
         if (center == null) {
-            Executor.continueExecution(glyph.getNext(), hexContext);
+            Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
@@ -123,6 +123,6 @@ public class GustGlyph implements GlyphHandler {
 
         GustGlyphStyle.render(center, radius, hexContext.getColors(), accessor);
 
-        Executor.continueExecution(glyph.getNext(), hexContext);
+        Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 }

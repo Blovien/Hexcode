@@ -5,13 +5,13 @@ import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
-import com.riprod.hexcode.core.common.glyphs.values.HexValInterface;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
+import com.riprod.hexcode.utils.SpellVarUtil;
 
-public class SelfGlyph implements GlyphHandler, HexValInterface {
+public class SelfGlyph implements GlyphHandler {
     public static final String ID = "Glyph_Self";
 
     private HexVar compute(Glyph glyph, HexContext hexContext) {
@@ -27,15 +27,20 @@ public class SelfGlyph implements GlyphHandler, HexValInterface {
         HexVar result = compute(glyph, hexContext);
 
         if (result != null) {
-            Integer outputSlot = glyph.resolveOutput("result", hexContext);
-            if (outputSlot != null) hexContext.setVariable(outputSlot, result);
+            Double slotIndex = SpellVarUtil.resolveNumber(glyph.resolveSlot("result", hexContext));
+            if (slotIndex != null) hexContext.setVariable(slotIndex.intValue(), result);
         }
 
-        Executor.continueExecution(glyph.getNext(), hexContext);
+        Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 
     @Override
-    public HexVar getValue(Glyph glyph, HexContext hexContext) {
+    public boolean canResolveValue() {
+        return true;
+    }
+
+    @Override
+    public HexVar resolveValue(Glyph glyph, HexContext hexContext) {
         return compute(glyph, hexContext);
     }
 }

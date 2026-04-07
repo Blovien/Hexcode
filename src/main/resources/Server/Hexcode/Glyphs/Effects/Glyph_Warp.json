@@ -2,22 +2,9 @@
   "Parent": "Base_Glyph",
   "Title": "Warp",
   "Description": "Teleports targets to a destination position",
-  "GlyphType": "Effect",
   "ModelPath": "Glyph_Warp",
   "BasePower": 1.0,
   "ManaConsumption": 10,
-  "Inputs": {
-    "target": {
-      "Title": "Target",
-      "DefaultSlot": 1,
-      "Description": "Variable containing the targets to affect"
-    },
-    "destination": {
-      "Title": "Destination",
-      "DefaultSlot": 2,
-      "Description": "Position to teleport to"
-    }
-  },
   "ShapeStructure": [
     {
       "ShapeId": "Square",
@@ -31,5 +18,39 @@
       "ShapeId": "Antitriangle",
       "Size": 0.55
     }
-  ]
+  ],
+  "Slots": {
+    "target": {
+      "Label": "Target",
+      "Description": "Variable containing the targets to affect",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultSlot": 1
+    },
+    "destination": {
+      "Label": "Destination",
+      "Description": "Position to teleport to",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultSlot": 2
+    },
+    "Next": {
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain",
+      "Color": [
+        0.4,
+        1.0,
+        0.4
+      ],
+      "Shape": "Sphere"
+    }
+  }
 }

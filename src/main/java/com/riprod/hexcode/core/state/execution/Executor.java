@@ -17,15 +17,34 @@ import com.riprod.hexcode.core.state.execution.component.PendingContinue;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.Nonnull;
 
+import com.riprod.hexcode.core.common.glyphs.component.Slot;
+
 public class Executor {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     private Executor() {
+    }
+
+    public static void continueFromSlot(Glyph glyph, String slotKey, HexContext hexContext) {
+        Slot slot = glyph.getSlot(slotKey);
+        if (slot == null) return;
+        String[] links = slot.getLinks();
+        if (links.length == 0) return;
+        continueExecution(Arrays.asList(links), hexContext);
+    }
+
+    public static void delayFromSlot(Glyph glyph, String slotKey, HexContext hexContext, float delaySeconds) {
+        Slot slot = glyph.getSlot(slotKey);
+        if (slot == null) return;
+        String[] links = slot.getLinks();
+        if (links.length == 0) return;
+        delayContinuation(Arrays.asList(links), hexContext, delaySeconds);
     }
 
     public static void beginExecution(List<String> nextGlyphs, @Nonnull HexContext hexContext) {

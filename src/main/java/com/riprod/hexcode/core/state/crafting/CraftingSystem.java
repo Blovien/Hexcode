@@ -33,7 +33,6 @@ import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingCompone
 import com.riprod.hexcode.core.state.crafting.component.CraftingData;
 import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
 import com.riprod.hexcode.core.state.crafting.handlers.CraftingDragHandler;
-import com.riprod.hexcode.core.state.crafting.handlers.DetailsHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeRouter;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Slot.SlotNodeHandler;
 import com.riprod.hexcode.core.state.crafting.system.CraftingStateSystem;
@@ -287,11 +286,15 @@ public class CraftingSystem extends HexcodeManager {
             if (children == null)
                 continue;
             for (Ref<EntityStore> childRef : children.values()) {
-                if (childRef == null || !childRef.isValid())
-                    continue;
-                GlyphComponent glyph = store.getComponent(childRef, GlyphComponent.getComponentType());
-                if (glyph != null && glyph.getNodeRef() != null && glyph.getNodeRef().isValid()) {
-                    store.removeEntity(glyph.getNodeRef(), RemoveReason.REMOVE);
+                if (childRef == null || !childRef.isValid()) continue;
+                GlyphComponent glyphComp = store.getComponent(childRef, GlyphComponent.getComponentType());
+                if (glyphComp != null) {
+                    for (Ref<EntityStore> slotRef : glyphComp.getSlotEntityRefs()) {
+                        if (slotRef != null && slotRef.isValid()) {
+                            store.removeEntity(slotRef, RemoveReason.REMOVE);
+                        }
+                    }
+                    glyphComp.getSlotEntityRefs().clear();
                 }
                 store.removeEntity(childRef, RemoveReason.REMOVE);
             }

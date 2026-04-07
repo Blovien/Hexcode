@@ -16,14 +16,13 @@ import com.hypixel.hytale.assetstore.map.DefaultAssetMap;
 import com.hypixel.hytale.assetstore.map.JsonAssetWithMap;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
-import com.hypixel.hytale.codec.codecs.EnumCodec;
 import com.hypixel.hytale.codec.codecs.array.ArrayCodec;
 import com.hypixel.hytale.codec.codecs.map.MapCodec;
 import com.hypixel.hytale.codec.validation.ValidatorCache;
-import com.hypixel.hytale.codec.validation.Validators;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
-import com.riprod.hexcode.core.common.glyphs.utils.GlyphType;
 import com.riprod.hexcode.core.state.drawing.component.DrawnShapeComponent;
+
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
 public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<String, GlyphAsset>> {
     public static final AssetBuilderCodec<String, GlyphAsset> CODEC;
@@ -39,9 +38,9 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
     protected float basePower = 1.0f;
     protected int manaConsumption = 10;
     protected ArrayList<DrawnShapeComponent> shapes = new ArrayList<>();
-    protected GlyphType glyphType;
-    protected Map<String, SlotDefinition> inputs = new LinkedHashMap<>();
-    protected Map<String, SlotDefinition> outputs = new LinkedHashMap<>();
+    protected LinkedHashMap<String, SlotAsset> slots = new LinkedHashMap<>();
+
+    private transient Object2IntOpenHashMap<String> slotIndexCache;
 
     public static AssetStore<String, GlyphAsset, DefaultAssetMap<String, GlyphAsset>> getAssetStore() {
         if (ASSET_STORE == null) {
@@ -79,40 +78,41 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
         return this.shapes;
     }
 
-    public GlyphType getGlyphType() {
-        return this.glyphType;
+    public Map<String, SlotAsset> getSlots() {
+        return this.slots;
     }
 
-    public Map<String, SlotDefinition> getInputDefs() {
-        return this.inputs;
+    public SlotAsset getSlot(String key) {
+        return this.slots.get(key);
     }
 
-    public SlotDefinition getInputDef(String key) {
-        return this.inputs.get(key);
+    public Set<String> getSlotKeys() {
+        return this.slots.keySet();
     }
 
-    public Set<String> getInputKeys() {
-        return this.inputs.keySet();
+    public boolean hasSlot(String key) {
+        return this.slots.containsKey(key);
     }
 
-    public int getInputCount() {
-        return this.inputs.size();
+    public int getSlotCount() {
+        return this.slots.size();
     }
 
-    public Map<String, SlotDefinition> getOutputDefs() {
-        return this.outputs;
+    public int getSlotIndex(String key) {
+        if (this.slotIndexCache == null) {
+            this.slotIndexCache = buildSlotIndexCache();
+        }
+        return this.slotIndexCache.getOrDefault(key, -1);
     }
 
-    public SlotDefinition getOutputDef(String key) {
-        return this.outputs.get(key);
-    }
-
-    public Set<String> getOutputKeys() {
-        return this.outputs.keySet();
-    }
-
-    public int getOutputCount() {
-        return this.outputs.size();
+    private Object2IntOpenHashMap<String> buildSlotIndexCache() {
+        Object2IntOpenHashMap<String> cache = new Object2IntOpenHashMap<>(this.slots.size());
+        cache.defaultReturnValue(-1);
+        int i = 0;
+        for (String key : this.slots.keySet()) {
+            cache.put(key, i++);
+        }
+        return cache;
     }
 
     public String getTitle() {
@@ -130,8 +130,8 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
 
     @SuppressWarnings("unchecked")
     private static AssetBuilderCodec<String, GlyphAsset> buildCodec() {
-        Codec<Map<String, SlotDefinition>> slotMapCodec =
-                (Codec<Map<String, SlotDefinition>>) (Codec<?>) new MapCodec<>(SlotDefinition.CODEC, LinkedHashMap::new, false);
+        Codec<Map<String, SlotAsset>> slotMapCodec =
+                (Codec<Map<String, SlotAsset>>) (Codec<?>) new MapCodec<>(SlotAsset.CODEC, LinkedHashMap::new, false);
         return AssetBuilderCodec
                 .builder(GlyphAsset.class, GlyphAsset::new, Codec.STRING, (glyphAsset, s) -> {
                     glyphAsset.id = s;
@@ -167,11 +167,6 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
                         (a, v) -> a.manaConsumption = v, a -> a.manaConsumption,
                         (a, p) -> a.manaConsumption = p.manaConsumption)
                 .add()
-                .<GlyphType>appendInherited(new KeyedCodec<>("GlyphType", new EnumCodec<>(GlyphType.class)),
-                        (a, v) -> a.glyphType = v, a -> a.glyphType,
-                        (a, p) -> a.glyphType = p.glyphType)
-                .addValidator(Validators.nonNull())
-                .add()
                 .<DrawnShapeComponent[]>appendInherited(
                         new KeyedCodec<>("ShapeStructure",
                                 new ArrayCodec<>(DrawnShapeComponent.CODEC, DrawnShapeComponent[]::new)),
@@ -185,17 +180,17 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
                         c -> c.shapes.toArray(DrawnShapeComponent[]::new),
                         (a, p) -> a.shapes = new ArrayList<>(p.shapes))
                 .add()
-                .<Map<String, SlotDefinition>>appendInherited(
-                        new KeyedCodec<>("Inputs", slotMapCodec),
-                        (a, v) -> a.inputs = v != null ? new LinkedHashMap<>(v) : new LinkedHashMap<>(),
-                        a -> a.inputs,
-                        (a, p) -> a.inputs = new LinkedHashMap<>(p.inputs))
-                .add()
-                .<Map<String, SlotDefinition>>appendInherited(
-                        new KeyedCodec<>("Outputs", slotMapCodec),
-                        (a, v) -> a.outputs = v != null ? new LinkedHashMap<>(v) : new LinkedHashMap<>(),
-                        a -> a.outputs,
-                        (a, p) -> a.outputs = new LinkedHashMap<>(p.outputs))
+                .<Map<String, SlotAsset>>appendInherited(
+                        new KeyedCodec<>("Slots", slotMapCodec),
+                        (a, v) -> {
+                            a.slots = v != null ? new LinkedHashMap<>(v) : new LinkedHashMap<>();
+                            a.slotIndexCache = null;
+                        },
+                        a -> a.slots,
+                        (a, p) -> {
+                            a.slots = new LinkedHashMap<>(p.slots);
+                            a.slotIndexCache = null;
+                        })
                 .add()
                 .build();
     }

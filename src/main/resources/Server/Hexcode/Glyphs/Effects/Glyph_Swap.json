@@ -2,14 +2,9 @@
   "Parent": "Base_Glyph",
   "Title": "Swap",
   "Description": "Exchanges positions between two variable arrays element-by-element",
-  "GlyphType": "Effect",
   "ModelPath": "Glyph_Swap",
   "BasePower": 1.0,
   "ManaConsumption": 15,
-  "Inputs": {
-    "a": { "Title": "A", "DefaultSlot": 1, "Description": "First operand" },
-    "b": { "Title": "B", "DefaultSlot": 2, "Description": "Second operand" }
-  },
   "ShapeStructure": [
     {
       "ShapeId": "Antisquare",
@@ -23,5 +18,39 @@
       "ShapeId": "Square",
       "Size": 0.55
     }
-  ]
+  ],
+  "Slots": {
+    "a": {
+      "Label": "A",
+      "Description": "First operand",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultSlot": 1
+    },
+    "b": {
+      "Label": "B",
+      "Description": "Second operand",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultSlot": 2
+    },
+    "Next": {
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain",
+      "Color": [
+        0.4,
+        1.0,
+        0.4
+      ],
+      "Shape": "Sphere"
+    }
+  }
 }

@@ -4,6 +4,5 @@ public enum NodeType {
     Glyph,
     Anchor,
     Slot,
-    Effect,
     Container
 }

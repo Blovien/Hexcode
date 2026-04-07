@@ -20,8 +20,10 @@ import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.common.glyphs.registry.SlotAsset;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
+import com.riprod.hexcode.core.state.crafting.handlers.node.Slot.SlotNodeHandler;
 import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableType;
@@ -37,7 +39,7 @@ import com.riprod.hexcode.core.state.crafting.constants.NodeType;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeInterface;
 import com.riprod.hexcode.core.state.crafting.component.CraftingData;
 import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
-import com.riprod.hexcode.core.state.crafting.handlers.node.Effect.EffectNodeHandler;
+import com.riprod.hexcode.core.state.crafting.handlers.node.Glyph.GlyphNodeHandler;
 
 /**
  * ParentRef = Root hex ref
@@ -47,6 +49,13 @@ public class AnchorNodeHandler implements NodeInterface {
     private static final double ROOT_NODE_SCALE = 0.2;
 
     public static final AnchorNodeHandler INSTANCE = new AnchorNodeHandler();
+
+    public static final SlotAsset ENTRYPOINT_ASSET = SlotAsset.of(
+            "Entrypoint",
+            "Connect to the first glyph in the spell",
+            CraftingColors.ANCHOR,
+            new Vector3f(0, 0.5f, 0),
+            DebugShape.Sphere);
 
     public InteractionState enter(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
             Ref<EntityStore> playerRef) {
@@ -195,6 +204,9 @@ public class AnchorNodeHandler implements NodeInterface {
         HexComponent hexComp = accessor.getComponent(parentRef, HexComponent.getComponentType());
         Ref<EntityStore> nodeGlyph = accessor.addEntity(holder, AddReason.SPAWN);
 
+        SlotNodeHandler.INSTANCE.spawnAnchorSlot(accessor, nodeGlyph,
+                SlotNodeHandler.ENTRYPOINT_KEY, ENTRYPOINT_ASSET, rootPos);
+
         if (hexComp == null) {
             return nodeGlyph;
         }
@@ -212,7 +224,7 @@ public class AnchorNodeHandler implements NodeInterface {
 
             GlyphComponent glyphComp = new GlyphComponent(glyph);
 
-            Ref<EntityStore> glyphRef = EffectNodeHandler.INSTANCE.spawnNode(accessor, nodeGlyph, worldPos,
+            Ref<EntityStore> glyphRef = GlyphNodeHandler.INSTANCE.spawnNode(accessor, nodeGlyph, worldPos,
                     playerRef, glyphComp, parentRef);
 
             hexComp.addChildGlyphRef(glyph.getId(), glyphRef);

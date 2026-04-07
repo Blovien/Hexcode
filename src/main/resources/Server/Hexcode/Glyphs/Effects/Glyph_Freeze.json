@@ -2,22 +2,9 @@
   "Parent": "Base_Glyph",
   "Title": "Freeze",
   "Description": "Total stasis on targets with ice surfaces",
-  "GlyphType": "Effect",
   "ModelPath": "Glyph_Freeze",
   "BasePower": 1.0,
   "ManaConsumption": 25,
-  "Inputs": {
-    "target": {
-      "Title": "Target",
-      "DefaultSlot": 1,
-      "Description": "Variable containing the targets to affect"
-    },
-    "duration": {
-      "Title": "Duration",
-      "DefaultValue": 10,
-      "Description": "Duration of the freeze effect in seconds"
-    }
-  },
   "ShapeStructure": [
     {
       "ShapeId": "Antitriangle",
@@ -31,5 +18,39 @@
       "ShapeId": "Square",
       "Size": 0.55
     }
-  ]
+  ],
+  "Slots": {
+    "target": {
+      "Label": "Target",
+      "Description": "Variable containing the targets to affect",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultSlot": 1
+    },
+    "duration": {
+      "Label": "Duration",
+      "Description": "Duration of the freeze effect in seconds",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultValue": 10
+    },
+    "Next": {
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain",
+      "Color": [
+        0.4,
+        1.0,
+        0.4
+      ],
+      "Shape": "Sphere"
+    }
+  }
 }

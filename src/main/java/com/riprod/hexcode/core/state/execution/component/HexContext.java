@@ -143,11 +143,8 @@ public class HexContext {
         sb.append(prefix).append(connector).append(node.getGlyphId())
                 .append(" (").append(shortId).append(")")
                 .append(" acc=").append(String.format("%.2f", node.getVolatility()))
-                .append(" spd=").append(String.format("%.2f", node.getEfficiency()));
-        if (!node.getInputs().isEmpty())
-            sb.append(" nums=").append(node.getInputs());
-        if (!node.getOutputs().isEmpty())
-            sb.append(" vars=").append(node.getOutputs());
+                .append(" spd=").append(String.format("%.2f", node.getEfficiency()))
+                .append(" slots=").append(node.getSlots().keySet());
 
         if (!visited.add(id)) {
             sb.append(" [cycle]\n");
@@ -156,8 +153,9 @@ public class HexContext {
 
         sb.append("\n");
         String childPrefix = prefix + (last ? "    " : "│   ");
-        for (int i = 0; i < node.getNext().size(); i++) {
-            toStringWalk(node.getNext().get(i), sb, childPrefix, i == node.getNext().size() - 1, visited);
+        java.util.List<String> nextLinks = node.getNextLinks();
+        for (int i = 0; i < nextLinks.size(); i++) {
+            toStringWalk(nextLinks.get(i), sb, childPrefix, i == nextLinks.size() - 1, visited);
         }
 
         visited.remove(id);

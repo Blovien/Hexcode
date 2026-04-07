@@ -2,7 +2,6 @@
   "Parent": "Base_Glyph",
   "Title": "Number 12",
   "Description": "Provides the constant value 12",
-  "GlyphType": "Value",
   "ModelPath": "Number_12",
   "ShapeStructure": [
     {

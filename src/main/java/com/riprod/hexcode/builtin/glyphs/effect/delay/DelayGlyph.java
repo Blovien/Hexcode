@@ -12,10 +12,10 @@ public class DelayGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        float seconds = SpellVarUtil.resolveNumberOrDefault(glyph.resolveInput("duration", hexContext), 1.0).floatValue();
+        float seconds = SpellVarUtil.resolveNumberOrDefault(glyph.resolveSlot("duration", hexContext), 1.0).floatValue();
 
         DelayStyle.render(hexContext);
 
-        Executor.delayContinuation(glyph.getNext(), hexContext, seconds);
+        Executor.delayFromSlot(glyph, Glyph.NEXT_SLOT, hexContext, seconds);
     }
 }

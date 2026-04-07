@@ -84,11 +84,11 @@ public class ConjureGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar coordsAVar = glyph.resolveInputOrDefault(INPUTS.COORDS_A.getSlotName(), hexContext, new PositionVar(new Vector3d(0.5, 0.5, 0.5)));
-        HexVar coordsBVar = glyph.resolveInputOrDefault(INPUTS.COORDS_B.getSlotName(), hexContext, new PositionVar(new Vector3d(-0.5, -0.5, -0.5)));
-        HexVar durationVar = glyph.resolveInput(INPUTS.DURATION.getSlotName(), hexContext);
-        HexVar intervalVar = glyph.resolveInput(INPUTS.INTERVAL.getSlotName(), hexContext);
-        HexVar anchorVar = glyph.resolveInput(INPUTS.ANCHOR.getSlotName(), hexContext);
+        HexVar coordsAVar = glyph.resolveSlotOrDefault(INPUTS.COORDS_A.getSlotName(), hexContext, new PositionVar(new Vector3d(0.5, 0.5, 0.5)));
+        HexVar coordsBVar = glyph.resolveSlotOrDefault(INPUTS.COORDS_B.getSlotName(), hexContext, new PositionVar(new Vector3d(-0.5, -0.5, -0.5)));
+        HexVar durationVar = glyph.resolveSlot(INPUTS.DURATION.getSlotName(), hexContext);
+        HexVar intervalVar = glyph.resolveSlot(INPUTS.INTERVAL.getSlotName(), hexContext);
+        HexVar anchorVar = glyph.resolveSlot(INPUTS.ANCHOR.getSlotName(), hexContext);
 
         if (anchorVar == null) {
             LOGGER.atInfo().log("conjure: no anchor, failing");
@@ -136,10 +136,10 @@ public class ConjureGlyph implements GlyphHandler {
         float durationSeconds = SpellVarUtil.resolveNumberOrDefault(durationVar, 5.0).floatValue();
         float interval = SpellVarUtil.resolveNumberOrDefault(intervalVar, -1.0).floatValue();
 
-        Integer entityOutputSlot = glyph.resolveOutput(OUTPUTS.ENTITY.getSlotName(), hexContext);
-        Integer conjurationOutputSlot = glyph.resolveOutput(OUTPUTS.CONJURATION.getSlotName(), hexContext);
+        Integer entityOutputSlot = glyph.getSlotIndex(OUTPUTS.ENTITY.getSlotName(), hexContext);
+        Integer conjurationOutputSlot = glyph.getSlotIndex(OUTPUTS.CONJURATION.getSlotName(), hexContext);
 
-        List<String> allNext = glyph.getNext();
+        List<String> allNext = glyph.getNextLinks();
         List<String> firstBranch = !allNext.isEmpty() ? List.of(allNext.get(0)) : null;
         List<String> zoneNext = allNext.size() > 1
                 ? List.copyOf(allNext.subList(1, allNext.size()))

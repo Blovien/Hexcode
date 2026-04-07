@@ -1,12 +1,13 @@
 package com.riprod.hexcode.builtin.glyphs.value;
 
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
-import com.riprod.hexcode.core.common.glyphs.values.HexValInterface;
+import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.glyphs.variables.NumberVar;
+import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 
-public class NumberValue implements HexValInterface {
+public class NumberValue implements GlyphHandler {
 
     private int number;
 
@@ -18,7 +19,17 @@ public class NumberValue implements HexValInterface {
     }
 
     @Override
-    public HexVar getValue(Glyph glyph, HexContext hexContext) {
+    public boolean canResolveValue() {
+        return true;
+    }
+
+    @Override
+    public HexVar resolveValue(Glyph glyph, HexContext hexContext) {
         return new NumberVar(this.number);
+    }
+
+    @Override
+    public void execute(Glyph glyph, HexContext hexContext) {
+        Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 }

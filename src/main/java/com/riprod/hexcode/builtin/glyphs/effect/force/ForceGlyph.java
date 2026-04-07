@@ -57,8 +57,8 @@ public class ForceGlyph implements GlyphHandler {
     }
 
     private double computeForcePower(Glyph glyph, HexContext hexContext) {
-        HexVar dirInput = glyph.resolveInput("direction", hexContext);
-        HexVar magInput = glyph.resolveInput("magnitude", hexContext);
+        HexVar dirInput = glyph.resolveSlot("direction", hexContext);
+        HexVar magInput = glyph.resolveSlot("magnitude", hexContext);
         double magnitude = SpellVarUtil.resolveNumberOrDefault(magInput, 20.0);
 
         Vector3d direction = null;
@@ -75,20 +75,20 @@ public class ForceGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targets = glyph.resolveInput("target", hexContext);
+        HexVar targets = glyph.resolveSlot("target", hexContext);
         if (!(targets instanceof EntityVar entityVar)) {
-            Executor.continueExecution(glyph.getNext(), hexContext);
+            Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
         Ref<EntityStore> ref = entityVar.getRef(hexContext.getAccessor());
         if (ref == null || !ref.isValid()) {
-            Executor.continueExecution(glyph.getNext(), hexContext);
+            Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
-        HexVar dirInput = glyph.resolveInput("direction", hexContext);
-        HexVar magInput = glyph.resolveInput("magnitude", hexContext);
+        HexVar dirInput = glyph.resolveSlot("direction", hexContext);
+        HexVar magInput = glyph.resolveSlot("magnitude", hexContext);
         double magnitude = SpellVarUtil.resolveNumberOrDefault(magInput, 20.0);
 
         try {
@@ -116,6 +116,6 @@ public class ForceGlyph implements GlyphHandler {
             LOGGER.atWarning().log("force glyph: could not apply force to entity: %s", e.getMessage());
         }
 
-        Executor.continueExecution(glyph.getNext(), hexContext);
+        Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 }

@@ -31,7 +31,7 @@ import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
 import com.riprod.hexcode.core.state.crafting.component.CraftingData;
 import com.riprod.hexcode.core.state.crafting.entity.PedestalEntity;
-import com.riprod.hexcode.core.state.crafting.handlers.node.Effect.EffectNodeHandler;
+import com.riprod.hexcode.core.state.crafting.handlers.node.Glyph.GlyphNodeHandler;
 import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.riprod.hexcode.core.state.drawing.component.DrawnShapeComponent;
@@ -341,7 +341,7 @@ public class DrawingSystem extends HexcodeManager {
           (float) (worldPos.z - hexPos.z)));
     }
 
-    Ref<EntityStore> effectRef = EffectNodeHandler.INSTANCE.spawnNode(accessor, hexRef, worldPos, playerRef,
+    Ref<EntityStore> effectRef = GlyphNodeHandler.INSTANCE.spawnNode(accessor, hexRef, worldPos, playerRef,
         glyphComponent, hexRef);
 
     hexComp.addChildGlyphRef(glyph.getId(), effectRef);

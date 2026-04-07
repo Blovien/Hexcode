@@ -38,7 +38,6 @@ import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.common.pedestal.utils.PedestalBlockUtil;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.handlers.CraftingDragHandler;
-import com.riprod.hexcode.core.state.crafting.handlers.DetailsHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Container.ContainerNodeHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Slot.SlotNodeHandler;
 import com.riprod.hexcode.core.state.crafting.component.CraftingData;
@@ -122,19 +121,10 @@ public class PedestalSystem {
                 Map<String, Ref<EntityStore>> childRefs = hexComp.getChildGlyphRefs();
                 if (childRefs != null) {
                     for (Ref<EntityStore> glyphRef : childRefs.values()) {
-                        if (glyphRef == null || !glyphRef.isValid())
-                            continue;
-                        GlyphComponent effect = buffer.getComponent(glyphRef,
-                                GlyphComponent.getComponentType());
-                        if (effect != null && effect.getNodeRef() != null
-                                && effect.getNodeRef().isValid()) {
-                            buffer.tryRemoveComponent(effect.getNodeRef(), MountedComponent.getComponentType());
-                            buffer.tryRemoveEntity(effect.getNodeRef(), RemoveReason.REMOVE);
-                        }
-                        if (glyphRef.isValid()) {
-                            buffer.tryRemoveComponent(glyphRef, MountedComponent.getComponentType());
-                            buffer.tryRemoveEntity(glyphRef, RemoveReason.REMOVE);
-                        }
+                        if (glyphRef == null || !glyphRef.isValid()) continue;
+                        SlotNodeHandler.INSTANCE.despawnSlotsForGlyph(buffer, glyphRef);
+                        buffer.tryRemoveComponent(glyphRef, MountedComponent.getComponentType());
+                        buffer.tryRemoveEntity(glyphRef, RemoveReason.REMOVE);
                     }
                 }
             }

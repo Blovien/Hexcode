@@ -2,17 +2,36 @@
   "Parent": "Base_Glyph",
   "Title": "Delay",
   "Description": "Delays execution of child glyphs by a duration in seconds",
-  "GlyphType": "Effect",
   "ModelPath": "Glyph_Delay",
   "BasePower": 1.0,
   "ManaConsumption": 3,
-  "Inputs": {
-    "duration": { "Title": "Duration", "DefaultValue": 1, "Description": "How long to delay in seconds" }
-  },
   "ShapeStructure": [
     {
       "ShapeId": "Triangle",
       "Size": 1.0
     }
-  ]
+  ],
+  "Slots": {
+    "duration": {
+      "Label": "Duration",
+      "Description": "How long to delay in seconds",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultValue": 1
+    },
+    "Next": {
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain",
+      "Color": [
+        0.4,
+        1.0,
+        0.4
+      ],
+      "Shape": "Sphere"
+    }
+  }
 }

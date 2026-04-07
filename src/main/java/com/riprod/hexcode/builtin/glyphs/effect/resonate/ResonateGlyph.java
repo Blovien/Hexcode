@@ -39,13 +39,13 @@ public class ResonateGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targetVar = glyph.resolveInput("target", hexContext);
+        HexVar targetVar = glyph.resolveSlot("target", hexContext);
         if (!(targetVar instanceof EntityVar entityVar)) {
             LOGGER.atInfo().log("resonate: targets must be entities with hex signals");
             return;
         }
 
-        if (glyph.getNext() == null || glyph.getNext().isEmpty()) {
+        if (glyph.getNextLinks() == null || glyph.getNextLinks().isEmpty()) {
             LOGGER.atInfo().log("resonate: no children to inject");
             return;
         }
@@ -72,7 +72,7 @@ public class ResonateGlyph implements GlyphHandler {
                 hexContext.copy(),
                 hexContext.getRoot().getRootEntityRef(),
                 glyph,
-                glyph.getNext(),
+                glyph.getNextLinks(),
                 null);
         signal.addEntry(newEntry);
 

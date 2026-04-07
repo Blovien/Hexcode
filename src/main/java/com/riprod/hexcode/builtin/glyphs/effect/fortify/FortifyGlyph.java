@@ -53,7 +53,7 @@ public class FortifyGlyph implements GlyphHandler {
             return true;
 
         double amount = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("amount", hexContext), DEFAULT_AMOUNT);
+                glyph.resolveSlot("amount", hexContext), DEFAULT_AMOUNT);
 
         float baseCost = asset.getManaConsumption()
                 * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
@@ -78,8 +78,8 @@ public class FortifyGlyph implements GlyphHandler {
             return true;
 
         double amount = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("amount", hexContext), DEFAULT_AMOUNT);
-        HexVar targets = glyph.resolveInput("target", hexContext);
+                glyph.resolveSlot("amount", hexContext), DEFAULT_AMOUNT);
+        HexVar targets = glyph.resolveSlot("target", hexContext);
 
         float amountFactor = (float) (amount / DEFAULT_AMOUNT);
         int extraRolls = 0;
@@ -131,17 +131,17 @@ public class FortifyGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targets = glyph.resolveInput("target", hexContext);
+        HexVar targets = glyph.resolveSlot("target", hexContext);
         if (targets == null) {
-            Executor.continueExecution(glyph.getNext(), hexContext);
+            Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
         double amount = Math.max(MIN_AMOUNT, Math.min(MAX_AMOUNT,
                 SpellVarUtil.resolveNumberOrDefault(
-                        glyph.resolveInput("amount", hexContext), DEFAULT_AMOUNT)));
+                        glyph.resolveSlot("amount", hexContext), DEFAULT_AMOUNT)));
         double duration = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("duration", hexContext), DEFAULT_DURATION);
+                glyph.resolveSlot("duration", hexContext), DEFAULT_DURATION);
         float damageReduction = (float) (amount * REDUCTION_SCALE);
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
@@ -152,7 +152,7 @@ public class FortifyGlyph implements GlyphHandler {
             applyToBlocks(blockVar, amount, hexContext, accessor);
         }
 
-        Executor.continueExecution(glyph.getNext(), hexContext);
+        Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 
     private void applyToEntities(Glyph glyph, EntityVar entityVar, float damageReduction,

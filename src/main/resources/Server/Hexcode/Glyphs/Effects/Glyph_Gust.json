@@ -2,27 +2,9 @@
   "Parent": "Base_Glyph",
   "Title": "Gust",
   "Description": "Radial force pushing targets away from a center point",
-  "GlyphType": "Effect",
   "ModelPath": "Glyph_Gust",
   "BasePower": 1.0,
   "ManaConsumption": 15,
-  "Inputs": {
-    "center": {
-      "Title": "Center",
-      "DefaultSlot": 1,
-      "Description": "Position to center the effect around"
-    },
-    "radius": {
-      "Title": "Radius",
-      "DefaultValue": 5,
-      "Description": "Radius of the area of effect"
-    },
-    "magnitude": {
-      "Title": "Magnitude",
-      "DefaultValue": 15,
-      "Description": "Strength of the applied force"
-    }
-  },
   "ShapeStructure": [
     {
       "ShapeId": "Circle",
@@ -32,5 +14,50 @@
       "ShapeId": "Antisquare",
       "Size": 0.8
     }
-  ]
+  ],
+  "Slots": {
+    "center": {
+      "Label": "Center",
+      "Description": "Position to center the effect around",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultSlot": 1
+    },
+    "radius": {
+      "Label": "Radius",
+      "Description": "Radius of the area of effect",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultValue": 5
+    },
+    "magnitude": {
+      "Label": "Magnitude",
+      "Description": "Strength of the applied force",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultValue": 15
+    },
+    "Next": {
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain",
+      "Color": [
+        0.4,
+        1.0,
+        0.4
+      ],
+      "Shape": "Sphere"
+    }
+  }
 }

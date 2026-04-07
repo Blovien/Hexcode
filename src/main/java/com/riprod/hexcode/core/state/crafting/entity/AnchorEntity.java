@@ -7,6 +7,7 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import com.hypixel.hytale.builtin.mounts.MountedComponent;
+import com.riprod.hexcode.core.state.crafting.handlers.node.Slot.SlotNodeHandler;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.CommandBuffer;
@@ -76,17 +77,9 @@ public class AnchorEntity {
                     Map<String, Ref<EntityStore>> childRefs = hexComp.getChildGlyphRefs();
                     if (childRefs != null) {
                         for (Ref<EntityStore> glyphRef : childRefs.values()) {
-                            if (glyphRef == null || !glyphRef.isValid())
-                                continue;
-                            GlyphComponent effect = buffer.getComponent(glyphRef,
-                                    GlyphComponent.getComponentType());
-                            if (effect != null && effect.getNodeRef() != null
-                                    && effect.getNodeRef().isValid()) {
-                                safeRemoveEntity(buffer, effect.getNodeRef());
-                            }
-                            if (glyphRef.isValid()) {
-                                safeRemoveEntity(buffer, glyphRef);
-                            }
+                            if (glyphRef == null || !glyphRef.isValid()) continue;
+                            SlotNodeHandler.INSTANCE.despawnSlotsForGlyph(buffer, glyphRef);
+                            safeRemoveEntity(buffer, glyphRef);
                         }
                     }
                 }

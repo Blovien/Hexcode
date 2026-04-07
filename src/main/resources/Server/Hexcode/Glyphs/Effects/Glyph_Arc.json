@@ -2,34 +2,9 @@
   "Parent": "Base_Glyph",
   "Title": "Arc",
   "Description": "Chain lightning that fires each child on the next chain target",
-  "GlyphType": "Effect",
   "ModelPath": "Glyph_Arc",
   "BasePower": 1.0,
   "ManaConsumption": 20,
-  "Inputs": {
-    "target": {
-      "Title": "Target",
-      "DefaultSlot": 1,
-      "Description": "Variable containing the targets to affect"
-    },
-    "jump": {
-      "Title": "Jump",
-      "DefaultValue": 15,
-      "Description": "Number of blocks to jump"
-    },
-    "delay": {
-      "Title": "Delay",
-      "DefaultValue": 1,
-      "Description": "Seconds between each arc jump"
-    }
-  },
-  "Outputs": {
-    "result": {
-      "Title": "Result",
-      "DefaultSlot": 1,
-      "Description": "Variable slot to store the result"
-    }
-  },
   "ShapeStructure": [
     {
       "ShapeId": "Circle",
@@ -43,5 +18,61 @@
       "ShapeId": "Antisquare",
       "Size": 0.55
     }
-  ]
+  ],
+  "Slots": {
+    "target": {
+      "Label": "Target",
+      "Description": "Variable containing the targets to affect",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultSlot": 1
+    },
+    "jump": {
+      "Label": "Jump",
+      "Description": "Number of blocks to jump",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultValue": 15
+    },
+    "delay": {
+      "Label": "Delay",
+      "Description": "Seconds between each arc jump",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultValue": 1
+    },
+    "result": {
+      "Label": "Result",
+      "Description": "Variable slot to store the result",
+      "Color": [
+        1.0,
+        0.6,
+        0.1
+      ],
+      "Shape": "Cube",
+      "DefaultSlot": 1
+    },
+    "Next": {
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain",
+      "Color": [
+        0.4,
+        1.0,
+        0.4
+      ],
+      "Shape": "Sphere"
+    }
+  }
 }

@@ -2,34 +2,9 @@
   "Parent": "Base_Glyph",
   "Title": "Glaciate",
   "Description": "Conjures a solid ice block at a target with gravity and speed-based impact damage",
-  "GlyphType": "Effect",
   "ModelPath": "Glyph_Glaciate",
   "BasePower": 1.0,
   "ManaConsumption": 22,
-  "Inputs": {
-    "target": {
-      "Title": "Target",
-      "DefaultSlot": 1,
-      "Description": "Where to spawn the ice block"
-    },
-    "offset": {
-      "Title": "Offset",
-      "DefaultValue": 5,
-      "Description": "Spawn offset: number=height, position=relative offset, entity=absolute position"
-    },
-    "duration": {
-      "Title": "Duration",
-      "DefaultValue": 15,
-      "Description": "How long the ice block persists"
-    }
-  },
-  "Outputs": {
-    "result": {
-      "Title": "Result",
-      "DefaultSlot": 1,
-      "Description": "Spawned ice entity reference"
-    }
-  },
   "ShapeStructure": [
     {
       "ShapeId": "Antitriangle",
@@ -43,5 +18,61 @@
       "ShapeId": "Anticircle",
       "Size": 0.55
     }
-  ]
+  ],
+  "Slots": {
+    "target": {
+      "Label": "Target",
+      "Description": "Where to spawn the ice block",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultSlot": 1
+    },
+    "offset": {
+      "Label": "Offset",
+      "Description": "Spawn offset: number=height, position=relative offset, entity=absolute position",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultValue": 5
+    },
+    "duration": {
+      "Label": "Duration",
+      "Description": "How long the ice block persists",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultValue": 15
+    },
+    "result": {
+      "Label": "Result",
+      "Description": "Spawned ice entity reference",
+      "Color": [
+        1.0,
+        0.6,
+        0.1
+      ],
+      "Shape": "Cube",
+      "DefaultSlot": 1
+    },
+    "Next": {
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain",
+      "Color": [
+        0.4,
+        1.0,
+        0.4
+      ],
+      "Shape": "Sphere"
+    }
+  }
 }

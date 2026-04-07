@@ -7,6 +7,7 @@ import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -18,7 +19,7 @@ public class GlyphComponent implements Component<EntityStore> {
     private enum GlyphFlags {
         Hovering,
         Dragging,
-        Details
+        SlotsVisible
     }
 
     public static final BuilderCodec<GlyphComponent> CODEC = BuilderCodec
@@ -33,7 +34,7 @@ public class GlyphComponent implements Component<EntityStore> {
 
     // persistent - from asset
     @Nonnull
-    private Glyph glyph = new Glyph(); // default value to avoid null issues during codec construction
+    private Glyph glyph = new Glyph();
 
     // transient
     private Ref<EntityStore> parentRef;
@@ -41,10 +42,9 @@ public class GlyphComponent implements Component<EntityStore> {
     private Ref<EntityStore> hexRef;
     private Set<GlyphFlags> flags = EnumSet.noneOf(GlyphFlags.class);
     private float scale = 1f;
-    private Ref<EntityStore> nodeRef;
     private Vector3f visualOffset;
+    private List<Ref<EntityStore>> slotEntityRefs = new ArrayList<>();
 
-    // for the codec - do not use
     public GlyphComponent() {
     }
 
@@ -70,13 +70,9 @@ public class GlyphComponent implements Component<EntityStore> {
         return this.glyph.getId();
     }
 
-    /** Abstraction from Glyph */
-
     public List<String> getNext() {
-        return this.glyph.getNext();
+        return this.glyph.getNextLinks();
     }
-
-    /** Getters and Setters */
 
     @Nonnull
     public String getGlyphId() {
@@ -110,16 +106,20 @@ public class GlyphComponent implements Component<EntityStore> {
         this.hexRef = hexRef;
     }
 
+    // legacy alias: under the merged GlyphNodeHandler the glyph entity IS the node entity,
+    // so callers that previously despawned the separate node entity now despawn the glyph itself.
     @Nullable
     public Ref<EntityStore> getNodeRef() {
-        return nodeRef;
+        return selfRef;
     }
 
-    public void setNodeRef(@Nullable Ref<EntityStore> nodeRef) {
-        this.nodeRef = nodeRef;
+    public void setNodeRef(@Nullable Ref<EntityStore> ref) {
+        this.selfRef = ref;
     }
 
-    /** Positioning */
+    public List<Ref<EntityStore>> getSlotEntityRefs() {
+        return slotEntityRefs;
+    }
 
     public float getYaw() {
         return this.glyph.getRotation().getYaw();
@@ -180,12 +180,6 @@ public class GlyphComponent implements Component<EntityStore> {
         this.visualOffset = offset;
     }
 
-    public void addNext(String nextId) {
-        this.glyph.addNext(nextId);
-    }
-
-    /** Flags */
-
     public void setHoverState(boolean isHovered) {
         if (isHovered) {
             this.flags.add(GlyphFlags.Hovering);
@@ -210,16 +204,16 @@ public class GlyphComponent implements Component<EntityStore> {
         return this.flags.contains(GlyphFlags.Dragging);
     }
 
-    public void setDetailsOpen(boolean open) {
-        if (open) {
-            this.flags.add(GlyphFlags.Details);
+    public void setSlotsVisible(boolean visible) {
+        if (visible) {
+            this.flags.add(GlyphFlags.SlotsVisible);
         } else {
-            this.flags.remove(GlyphFlags.Details);
+            this.flags.remove(GlyphFlags.SlotsVisible);
         }
     }
 
-    public boolean isDetailsOpen() {
-        return this.flags.contains(GlyphFlags.Details);
+    public boolean areSlotsVisible() {
+        return this.flags.contains(GlyphFlags.SlotsVisible);
     }
 
     public float getVolatility() {
@@ -239,9 +233,9 @@ public class GlyphComponent implements Component<EntityStore> {
         copy.parentRef = this.parentRef;
         copy.selfRef = this.selfRef;
         copy.hexRef = this.hexRef;
-        copy.nodeRef = this.nodeRef;
         copy.flags = this.flags.isEmpty() ? EnumSet.noneOf(GlyphFlags.class) : EnumSet.copyOf(this.flags);
         copy.visualOffset = this.visualOffset;
+        copy.slotEntityRefs = new ArrayList<>();
         return copy;
     }
 

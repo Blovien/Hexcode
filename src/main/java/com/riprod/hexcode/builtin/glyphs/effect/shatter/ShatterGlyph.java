@@ -58,7 +58,7 @@ public class ShatterGlyph implements GlyphHandler {
         if (asset == null) return true;
 
         int count = (int) SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("count", hexContext), (double) DEFAULT_COUNT).intValue();
+                glyph.resolveSlot("count", hexContext), (double) DEFAULT_COUNT).intValue();
         if (count < 1) count = 1;
         float countScale = (float) (count / MANA_REFERENCE_COUNT);
 
@@ -74,14 +74,14 @@ public class ShatterGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        Integer outputSlot = glyph.resolveOutput("result", hexContext);
+        Integer outputSlot = glyph.getSlotIndex("result", hexContext);
 
-        HexVar sourceVar = glyph.resolveInput("source", hexContext);
-        HexVar directionVar = glyph.resolveInput("direction", hexContext);
-        HexVar countVar = glyph.resolveInput("count", hexContext);
-        HexVar spreadVar = glyph.resolveInput("spread", hexContext);
-        HexVar speedVar = glyph.resolveInput("speed", hexContext);
-        HexVar gravityVar = glyph.resolveInput("gravity", hexContext);
+        HexVar sourceVar = glyph.resolveSlot("source", hexContext);
+        HexVar directionVar = glyph.resolveSlot("direction", hexContext);
+        HexVar countVar = glyph.resolveSlot("count", hexContext);
+        HexVar spreadVar = glyph.resolveSlot("spread", hexContext);
+        HexVar speedVar = glyph.resolveSlot("speed", hexContext);
+        HexVar gravityVar = glyph.resolveSlot("gravity", hexContext);
 
         if (sourceVar == null) {
             LOGGER.atWarning().log("shatter: no source provided");
@@ -122,7 +122,7 @@ public class ShatterGlyph implements GlyphHandler {
         Map<String, Integer> outputSlots = new HashMap<>();
         if (outputSlot != null) outputSlots.put("result", outputSlot);
 
-        List<String> nextGlyphs = glyph.getNext();
+        List<String> nextGlyphs = glyph.getNextLinks();
 
         for (Vector3d dir : shardDirections) {
             Vector3d shardSpawn = new Vector3d(spawnPos).add(new Vector3d(dir).scale(1.0));

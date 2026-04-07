@@ -55,7 +55,7 @@ public class FreezeGlyph implements GlyphHandler {
         if (tracker == null) return true;
 
         double duration = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("duration", hexContext), DEFAULT_DURATION);
+                glyph.resolveSlot("duration", hexContext), DEFAULT_DURATION);
 
         int extraRolls = Math.max(0, (int) (duration / VOLATILITY_ROLL_INTERVAL) - 1);
 
@@ -80,7 +80,7 @@ public class FreezeGlyph implements GlyphHandler {
         if (asset == null) return true;
 
         double duration = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("duration", hexContext), DEFAULT_DURATION);
+                glyph.resolveSlot("duration", hexContext), DEFAULT_DURATION);
         float durationScale = (float) (duration / MANA_REFERENCE_DURATION);
 
         float baseCost = asset.getManaConsumption()
@@ -101,20 +101,20 @@ public class FreezeGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targets = glyph.resolveInput("target", hexContext);
+        HexVar targets = glyph.resolveSlot("target", hexContext);
 
         if (targets == null) {
-            Executor.continueExecution(glyph.getNext(), hexContext);
+            Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
         double duration = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("duration", hexContext), DEFAULT_DURATION);
+                glyph.resolveSlot("duration", hexContext), DEFAULT_DURATION);
 
         EntityEffect freezeEffect = EntityEffect.getAssetMap().getAsset("Hexcode_Freeze");
         if (freezeEffect == null) {
             LOGGER.atWarning().log("freeze: Freeze effect asset not found");
-            Executor.continueExecution(glyph.getNext(), hexContext);
+            Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
@@ -150,7 +150,7 @@ public class FreezeGlyph implements GlyphHandler {
             spawnFreezeTracker(hexContext, frozenBlocks, (float) duration, accessor);
         }
 
-        Executor.continueExecution(glyph.getNext(), hexContext);
+        Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 
     private static void placeIceBlock(World world, Vector3d pos, List<FrozenBlock> frozenBlocks) {

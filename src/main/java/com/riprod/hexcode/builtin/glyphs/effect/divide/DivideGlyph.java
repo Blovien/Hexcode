@@ -5,7 +5,6 @@ import java.util.concurrent.ThreadLocalRandom;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
-import com.riprod.hexcode.core.common.glyphs.values.HexValInterface;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
@@ -15,7 +14,7 @@ import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 import com.riprod.hexcode.utils.HexMathUtil;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
-public class DivideGlyph implements GlyphHandler, HexValInterface {
+public class DivideGlyph implements GlyphHandler {
     public static final String ID = "Glyph_Divide";
     private static final float INITIAL_PASS_CHANCE = 0.995f;
     private static final float DECAY_PER_USE = 0.007f; // slower decay, ~10 uses -> ~0.92 chance
@@ -44,8 +43,8 @@ public class DivideGlyph implements GlyphHandler, HexValInterface {
     }
 
     private HexVar compute(Glyph glyph, HexContext hexContext) {
-        HexVar a = glyph.resolveInput("a", hexContext);
-        HexVar b = glyph.resolveInput("b", hexContext);
+        HexVar a = glyph.resolveSlot("a", hexContext);
+        HexVar b = glyph.resolveSlot("b", hexContext);
 
         if (a instanceof EntityVar) {
             Vector3d aPos = SpellVarUtil.resolveAsPosition(a, hexContext.getAccessor());
@@ -65,16 +64,20 @@ public class DivideGlyph implements GlyphHandler, HexValInterface {
         HexVar result = compute(glyph, hexContext);
 
         if (result != null) {
-            Integer outputSlot = glyph.resolveOutput("result", hexContext);
-            if (outputSlot != null)
-                hexContext.setVariable(outputSlot, result);
+            Double slotIndex = SpellVarUtil.resolveNumber(glyph.resolveSlot("result", hexContext));
+            if (slotIndex != null) hexContext.setVariable(slotIndex.intValue(), result);
         }
 
-        Executor.continueExecution(glyph.getNext(), hexContext);
+        Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 
     @Override
-    public HexVar getValue(Glyph glyph, HexContext hexContext) {
+    public boolean canResolveValue() {
+        return true;
+    }
+
+    @Override
+    public HexVar resolveValue(Glyph glyph, HexContext hexContext) {
         return compute(glyph, hexContext);
     }
 }

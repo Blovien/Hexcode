@@ -6,7 +6,7 @@ import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
-import com.riprod.hexcode.core.common.glyphs.utils.GlyphType;
+import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 
@@ -15,8 +15,16 @@ public interface GlyphHandler {
 
     void execute(Glyph glyph, HexContext hexContext);
 
+    default boolean canResolveValue() {
+        return false;
+    }
+
+    default HexVar resolveValue(Glyph glyph, HexContext hexContext) {
+        return null;
+    }
+
     default boolean canExecute(Glyph glyph, HexContext hexContext) {
-        if (glyph.getType() != GlyphType.Effect) return true;
+        if (canResolveValue()) return true;
         return resolveVolatility(glyph, hexContext)
             && resolveMana(glyph, hexContext);
     }

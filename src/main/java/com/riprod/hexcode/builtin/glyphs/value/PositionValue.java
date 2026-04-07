@@ -3,7 +3,6 @@ package com.riprod.hexcode.builtin.glyphs.value;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
-import com.riprod.hexcode.core.common.glyphs.values.HexValInterface;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
@@ -11,12 +10,12 @@ import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
-public class PositionValue implements GlyphHandler, HexValInterface {
+public class PositionValue implements GlyphHandler {
 
     private HexVar compute(Glyph glyph, HexContext hexContext) {
-        HexVar xVar = glyph.resolveInput("x", hexContext);
-        HexVar yVar = glyph.resolveInput("y", hexContext);
-        HexVar zVar = glyph.resolveInput("z", hexContext);
+        HexVar xVar = glyph.resolveSlot("x", hexContext);
+        HexVar yVar = glyph.resolveSlot("y", hexContext);
+        HexVar zVar = glyph.resolveSlot("z", hexContext);
 
         int count = (xVar != null ? 1 : 0) + (yVar != null ? 1 : 0) + (zVar != null ? 1 : 0);
 
@@ -37,7 +36,12 @@ public class PositionValue implements GlyphHandler, HexValInterface {
     }
 
     @Override
-    public HexVar getValue(Glyph glyph, HexContext hexContext) {
+    public boolean canResolveValue() {
+        return true;
+    }
+
+    @Override
+    public HexVar resolveValue(Glyph glyph, HexContext hexContext) {
         return compute(glyph, hexContext);
     }
 
@@ -46,10 +50,10 @@ public class PositionValue implements GlyphHandler, HexValInterface {
         HexVar result = compute(glyph, hexContext);
 
         if (result != null) {
-            Integer outputSlot = glyph.resolveOutput("result", hexContext);
-            if (outputSlot != null) hexContext.setVariable(outputSlot, result);
+            Double slotIndex = SpellVarUtil.resolveNumber(glyph.resolveSlot("result", hexContext));
+            if (slotIndex != null) hexContext.setVariable(slotIndex.intValue(), result);
         }
 
-        Executor.continueExecution(glyph.getNext(), hexContext);
+        Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 }

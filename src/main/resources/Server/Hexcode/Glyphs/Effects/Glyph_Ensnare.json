@@ -2,19 +2,9 @@
   "Parent": "Base_Glyph",
   "Title": "Ensnare",
   "Description": "Creates spike formations that trap and damage entities in the area",
-  "GlyphType": "Effect",
   "ModelPath": "Glyph_Ensnare",
   "BasePower": 1.0,
   "ManaConsumption": 22,
-  "Inputs": {
-    "target": { "Title": "Target", "DefaultSlot": 1, "Description": "Center position or entity for the rupture area" },
-    "radius": { "Title": "Radius", "DefaultSlot": 2, "Description": "Radius of the rupture area in blocks" },
-    "damage": { "Title": "Damage", "DefaultSlot": 3, "Description": "Spike damage per hit" },
-    "duration": { "Title": "Duration", "DefaultSlot": 4, "Description": "Duration in ticks before spikes despawn" }
-  },
-  "Outputs": {
-    "result": { "Title": "Result", "DefaultSlot": 1, "Description": "Center position of the rupture" }
-  },
   "ShapeStructure": [
     {
       "ShapeId": "Square",
@@ -28,5 +18,72 @@
       "ShapeId": "Antisquare",
       "Size": 0.55
     }
-  ]
+  ],
+  "Slots": {
+    "target": {
+      "Label": "Target",
+      "Description": "Center position or entity for the rupture area",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultSlot": 1
+    },
+    "radius": {
+      "Label": "Radius",
+      "Description": "Radius of the rupture area in blocks",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultSlot": 2
+    },
+    "damage": {
+      "Label": "Damage",
+      "Description": "Spike damage per hit",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultSlot": 3
+    },
+    "duration": {
+      "Label": "Duration",
+      "Description": "Duration in ticks before spikes despawn",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultSlot": 4
+    },
+    "result": {
+      "Label": "Result",
+      "Description": "Center position of the rupture",
+      "Color": [
+        1.0,
+        0.6,
+        0.1
+      ],
+      "Shape": "Cube",
+      "DefaultSlot": 1
+    },
+    "Next": {
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain",
+      "Color": [
+        0.4,
+        1.0,
+        0.4
+      ],
+      "Shape": "Sphere"
+    }
+  }
 }

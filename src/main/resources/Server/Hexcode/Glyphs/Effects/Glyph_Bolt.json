@@ -2,29 +2,9 @@
   "Parent": "Base_Glyph",
   "Title": "Bolt",
   "Description": "Instant single-target energy discharge or remote block interaction",
-  "GlyphType": "Effect",
   "ModelPath": "Glyph_Bolt",
   "BasePower": 1.0,
   "ManaConsumption": 15,
-  "Inputs": {
-    "target": {
-      "Title": "Target",
-      "DefaultSlot": 1,
-      "Description": "Variable containing the targets to affect"
-    },
-    "power": {
-      "Title": "Power",
-      "DefaultValue": 15,
-      "Description": "Damage or power level of the bolt"
-    }
-  },
-  "Outputs": {
-    "result": {
-      "Title": "Result",
-      "DefaultSlot": 1,
-      "Description": "Variable slot to store the result"
-    }
-  },
   "ShapeStructure": [
     {
       "ShapeId": "Circle",
@@ -38,5 +18,50 @@
       "ShapeId": "Square",
       "Size": 0.55
     }
-  ]
+  ],
+  "Slots": {
+    "target": {
+      "Label": "Target",
+      "Description": "Variable containing the targets to affect",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultSlot": 1
+    },
+    "power": {
+      "Label": "Power",
+      "Description": "Damage or power level of the bolt",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultValue": 15
+    },
+    "result": {
+      "Label": "Result",
+      "Description": "Variable slot to store the result",
+      "Color": [
+        1.0,
+        0.6,
+        0.1
+      ],
+      "Shape": "Cube",
+      "DefaultSlot": 1
+    },
+    "Next": {
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain",
+      "Color": [
+        0.4,
+        1.0,
+        0.4
+      ],
+      "Shape": "Sphere"
+    }
+  }
 }

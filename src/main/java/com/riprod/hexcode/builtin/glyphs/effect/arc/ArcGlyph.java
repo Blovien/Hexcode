@@ -32,7 +32,7 @@ public class ArcGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targets = glyph.resolveInput("target", hexContext);
+        HexVar targets = glyph.resolveSlot("target", hexContext);
         if (targets == null || !(targets instanceof EntityVar entityVar)) {
             LOGGER.atWarning().log("arc: no entity target provided");
             return;
@@ -44,17 +44,17 @@ public class ArcGlyph implements GlyphHandler {
             return;
         }
 
-        List<String> branches = glyph.getNext();
+        List<String> branches = glyph.getNextLinks();
         if (branches.isEmpty()) {
             LOGGER.atInfo().log("arc: no child branches, nothing to do");
             return;
         }
 
         double maxJump = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("jump", hexContext), 15.0);
+                glyph.resolveSlot("jump", hexContext), 15.0);
         double delay = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("delay", hexContext), 0.75);
-        Integer outputSlot = glyph.resolveOutput("result", hexContext);
+                glyph.resolveSlot("delay", hexContext), 0.75);
+        Integer outputSlot = glyph.getSlotIndex("result", hexContext);
 
         Set<UUID> visited = new HashSet<>();
 

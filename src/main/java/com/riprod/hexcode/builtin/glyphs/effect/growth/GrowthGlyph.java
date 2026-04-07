@@ -65,7 +65,7 @@ public class GrowthGlyph implements GlyphHandler {
         if (asset == null) return true;
 
         double amount = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("amount", hexContext), DEFAULT_AMOUNT);
+                glyph.resolveSlot("amount", hexContext), DEFAULT_AMOUNT);
         float baseCost = asset.getManaConsumption()
                 * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
 
@@ -97,15 +97,15 @@ public class GrowthGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targets = glyph.resolveInput("target", hexContext);
+        HexVar targets = glyph.resolveSlot("target", hexContext);
         if (targets == null) {
-            Executor.continueExecution(glyph.getNext(), hexContext);
+            Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
         double amount = Math.max(MIN_AMOUNT, Math.min(MAX_AMOUNT,
                 SpellVarUtil.resolveNumberOrDefault(
-                        glyph.resolveInput("amount", hexContext), DEFAULT_AMOUNT)));
+                        glyph.resolveSlot("amount", hexContext), DEFAULT_AMOUNT)));
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
 
@@ -115,7 +115,7 @@ public class GrowthGlyph implements GlyphHandler {
             applyToBlock(blockVar, amount, hexContext, accessor);
         }
 
-        Executor.continueExecution(glyph.getNext(), hexContext);
+        Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 
     private void applyToEntity(EntityVar entityVar, double amount,
@@ -130,7 +130,7 @@ public class GrowthGlyph implements GlyphHandler {
         }
 
         double duration = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("duration", hexContext), DEFAULT_DURATION);
+                glyph.resolveSlot("duration", hexContext), DEFAULT_DURATION);
         float durationSeconds = (float) duration;
 
         EffectControllerComponent controller = accessor.getComponent(

@@ -1,6 +1,7 @@
 package com.riprod.hexcode.builtin.glyphs.effect.drain;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.hypixel.hytale.component.Ref;
@@ -12,7 +13,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.builtin.glyphs.effect.drain.component.DrainComponent;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
-import com.riprod.hexcode.core.common.glyphs.values.HexValInterface;
+import com.riprod.hexcode.core.common.glyphs.component.Slot;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.glyphs.variables.NumberVar;
@@ -22,7 +23,7 @@ import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
-public class DrainGlyph implements GlyphHandler, HexValInterface {
+public class DrainGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     public static final String ID = "Glyph_Drain";
 
@@ -32,20 +33,20 @@ public class DrainGlyph implements GlyphHandler, HexValInterface {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targetVar = glyph.resolveInput("target", hexContext);
+        HexVar targetVar = glyph.resolveSlot("target", hexContext);
         if (!(targetVar instanceof EntityVar entityVar)) {
-            Executor.continueExecution(glyph.getNext(), hexContext);
+            Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
         Ref<EntityStore> targetRef = entityVar.getRef(hexContext.getAccessor());
         if (targetRef == null || !targetRef.isValid()) {
-            Executor.continueExecution(glyph.getNext(), hexContext);
+            Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
-        HexVar hpInput = glyph.resolveInput("hp", hexContext);
-        HexVar staminaInput = glyph.resolveInput("stamina", hexContext);
+        HexVar hpInput = glyph.resolveSlot("hp", hexContext);
+        HexVar staminaInput = glyph.resolveSlot("stamina", hexContext);
 
         int sourceStatIndex;
         float conversionRate;
@@ -60,36 +61,34 @@ public class DrainGlyph implements GlyphHandler, HexValInterface {
             conversionRate = STAMINA_TO_MANA_RATE;
             drainPercent = SpellVarUtil.resolveNumberOrDefault(staminaInput, 0.0);
         } else {
-            // default to using health if no specific stat is provided
             sourceStatIndex = DefaultEntityStatTypes.getHealth();
             conversionRate = HP_TO_MANA_RATE;
             drainPercent = 15.0f;
         }
 
         if (drainPercent <= 0) {
-            Executor.continueExecution(glyph.getNext(), hexContext);
+            Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
         EntityStatMap statMap = hexContext.getAccessor().getComponent(targetRef, EntityStatMap.getComponentType());
         if (statMap == null) {
-            Executor.continueExecution(glyph.getNext(), hexContext);
+            Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
         EntityStatValue sourceStat = statMap.get(sourceStatIndex);
         if (sourceStat == null) {
-            Executor.continueExecution(glyph.getNext(), hexContext);
+            Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
         float totalDrainAmount = (float) (drainPercent / 100.0) * sourceStat.getMax();
 
-        // clamp so we don't drain below 1 hp
         if (sourceStatIndex == DefaultEntityStatTypes.getHealth()) {
             float maxDrainable = sourceStat.get() - 1.0f;
             if (maxDrainable <= 0) {
-                Executor.continueExecution(glyph.getNext(), hexContext);
+                Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
                 return;
             }
             totalDrainAmount = Math.min(totalDrainAmount, maxDrainable);
@@ -98,18 +97,21 @@ public class DrainGlyph implements GlyphHandler, HexValInterface {
         }
 
         if (totalDrainAmount <= 0) {
-            Executor.continueExecution(glyph.getNext(), hexContext);
+            Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
-        HexVar durationVar = glyph.resolveInput("duration", hexContext);
+        HexVar durationVar = glyph.resolveSlot("duration", hexContext);
         float duration = DEFAULT_DURATION;
         if (durationVar != null) {
             duration = Math.max(0.01f, SpellVarUtil.resolveNumberOrDefault(durationVar, (double) DEFAULT_DURATION).floatValue());
         }
 
         HexColors colors = hexContext.getColors();
-        List<String> nextGlyphIds = new ArrayList<>(glyph.getNext());
+        Slot nextSlot = glyph.getSlot(Glyph.NEXT_SLOT);
+        List<String> nextGlyphIds = nextSlot != null
+                ? new ArrayList<>(Arrays.asList(nextSlot.getLinks()))
+                : new ArrayList<>();
         Ref<EntityStore> hexEntityRef = hexContext.getRoot().getRootEntityRef();
 
         DrainComponent.DrainEntry entry = new DrainComponent.DrainEntry(
@@ -135,24 +137,23 @@ public class DrainGlyph implements GlyphHandler, HexValInterface {
     }
 
     @Override
-    public HexVar getValue(Glyph glyph, HexContext hexContext) {
-        HexVar targetVar = glyph.resolveInput("target", hexContext);
-        if (!(targetVar instanceof EntityVar entityVar)) {
-            return new NumberVar(0);
-        }
+    public boolean canResolveValue() {
+        return true;
+    }
+
+    @Override
+    public HexVar resolveValue(Glyph glyph, HexContext hexContext) {
+        HexVar targetVar = glyph.resolveSlot("target", hexContext);
+        if (!(targetVar instanceof EntityVar entityVar)) return new NumberVar(0);
 
         Ref<EntityStore> targetRef = entityVar.getRef(hexContext.getAccessor());
-        if (targetRef == null || !targetRef.isValid()) {
-            return new NumberVar(0);
-        }
+        if (targetRef == null || !targetRef.isValid()) return new NumberVar(0);
 
         EntityStatMap statMap = hexContext.getAccessor().getComponent(targetRef, EntityStatMap.getComponentType());
-        if (statMap == null) {
-            return new NumberVar(0);
-        }
+        if (statMap == null) return new NumberVar(0);
 
-        HexVar hpInput = glyph.resolveInput("hp", hexContext);
-        HexVar staminaInput = glyph.resolveInput("stamina", hexContext);
+        HexVar hpInput = glyph.resolveSlot("hp", hexContext);
+        HexVar staminaInput = glyph.resolveSlot("stamina", hexContext);
 
         int statIndex;
         if (hpInput != null) {
@@ -164,9 +165,7 @@ public class DrainGlyph implements GlyphHandler, HexValInterface {
         }
 
         EntityStatValue stat = statMap.get(statIndex);
-        if (stat == null || stat.getMax() == 0) {
-            return new NumberVar(0);
-        }
+        if (stat == null || stat.getMax() == 0) return new NumberVar(0);
 
         double fillPercent = (stat.get() / stat.getMax()) * 100.0;
         return new NumberVar(fillPercent);

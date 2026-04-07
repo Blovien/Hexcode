@@ -9,7 +9,8 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
-import com.riprod.hexcode.core.common.glyphs.utils.GlyphType;
+import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
+import com.riprod.hexcode.core.common.glyphs.registry.GlyphRegistry;
 
 import javax.annotation.Nonnull;
 
@@ -26,7 +27,8 @@ public class GlyphsListCommand extends AbstractPlayerCommand {
 
         context.sendMessage(Message.raw("Total Glyphs: " + GlyphAsset.getAssetMap().getAssetMap().size()));
         for (GlyphAsset glyphAsset : GlyphAsset.getAssetMap().getAssetMap().values()) {
-            if (glyphAsset.getGlyphType() == GlyphType.Value) {
+            GlyphHandler handler = GlyphRegistry.get(glyphAsset.getId());
+            if (handler != null && handler.canResolveValue()) {
                 continue;
             }
             context.sendMessage(Message.raw("- " + glyphAsset.getId()));

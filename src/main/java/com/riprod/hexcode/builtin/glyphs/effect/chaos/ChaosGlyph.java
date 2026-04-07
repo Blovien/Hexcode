@@ -2,7 +2,6 @@ package com.riprod.hexcode.builtin.glyphs.effect.chaos;
 
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
-import com.riprod.hexcode.core.common.glyphs.values.HexValInterface;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.glyphs.variables.NumberVar;
 import com.riprod.hexcode.core.state.execution.Executor;
@@ -13,40 +12,43 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import com.hypixel.hytale.logger.HytaleLogger;
 
-public class ChaosGlyph implements GlyphHandler, HexValInterface {
+public class ChaosGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     public static final String ID = "Glyph_Chaos";
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        Integer outVarIndex = glyph.resolveOutput("result", hexContext);
-        HexVar minValVar = glyph.resolveInput("min", hexContext);
-        HexVar maxValVar = glyph.resolveInput("max", hexContext);
+        Double slotIndex = SpellVarUtil.resolveNumber(glyph.resolveSlot("result", hexContext));
+        HexVar minValVar = glyph.resolveSlot("min", hexContext);
+        HexVar maxValVar = glyph.resolveSlot("max", hexContext);
 
-        if (outVarIndex != null && minValVar != null && maxValVar != null) {
+        if (slotIndex != null && minValVar != null && maxValVar != null) {
             int minVal = (int) Math.round(SpellVarUtil.resolveNumber(minValVar));
             int maxVal = (int) Math.round(SpellVarUtil.resolveNumber(maxValVar));
             int randomValue = ThreadLocalRandom.current().nextInt(minVal, maxVal + 1);
-            hexContext.setVariable(outVarIndex, new NumberVar(randomValue));
+            hexContext.setVariable(slotIndex.intValue(), new NumberVar(randomValue));
             LOGGER.atInfo().log("chaos: range [%d, %d], result=%d -> slot %d",
-                    minVal, maxVal, randomValue, outVarIndex);
+                    minVal, maxVal, randomValue, slotIndex.intValue());
         }
 
-        Executor.continueExecution(glyph.getNext(), hexContext);
+        Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 
     @Override
-    public HexVar getValue(Glyph glyph, HexContext hexContext) {
-        HexVar minValVar = glyph.resolveInput("min", hexContext);
-        HexVar maxValVar = glyph.resolveInput("max", hexContext);
+    public boolean canResolveValue() {
+        return true;
+    }
 
-        if (minValVar != null && maxValVar != null) {
-            int minVal = (int) Math.round(SpellVarUtil.resolveNumber(minValVar));
-            int maxVal = (int) Math.round(SpellVarUtil.resolveNumber(maxValVar));
-            int randomValue = ThreadLocalRandom.current().nextInt(minVal, maxVal + 1);
-            return new NumberVar(randomValue);
-        }
+    @Override
+    public HexVar resolveValue(Glyph glyph, HexContext hexContext) {
+        HexVar minValVar = glyph.resolveSlot("min", hexContext);
+        HexVar maxValVar = glyph.resolveSlot("max", hexContext);
 
-        return new NumberVar(0);
+        if (minValVar == null || maxValVar == null) return new NumberVar(0);
+
+        int minVal = (int) Math.round(SpellVarUtil.resolveNumber(minValVar));
+        int maxVal = (int) Math.round(SpellVarUtil.resolveNumber(maxValVar));
+        int randomValue = ThreadLocalRandom.current().nextInt(minVal, maxVal + 1);
+        return new NumberVar(randomValue);
     }
 }

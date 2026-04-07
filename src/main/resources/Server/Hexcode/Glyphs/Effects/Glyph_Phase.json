@@ -2,34 +2,9 @@
   "Parent": "Base_Glyph",
   "Title": "Phase",
   "Description": "Temporarily removes blocks from reality, restoring them after a delay",
-  "GlyphType": "Effect",
   "ModelPath": "Glyph_Phase",
   "BasePower": 1.0,
   "ManaConsumption": 18,
-  "Inputs": {
-    "target": {
-      "Title": "Target",
-      "DefaultSlot": 1,
-      "Description": "Blocks to phase out of existence"
-    },
-    "duration": {
-      "Title": "Duration",
-      "DefaultValue": 15,
-      "Description": "How long blocks stay phased in ticks"
-    },
-    "intensity": {
-      "Title": "Intensity",
-      "DefaultValue": 20,
-      "Description": "Maximum block hardness that can be phased"
-    }
-  },
-  "Outputs": {
-    "phased": {
-      "Title": "Phased",
-      "DefaultSlot": 1,
-      "Description": "Block positions that were successfully phased"
-    }
-  },
   "ShapeStructure": [
     {
       "ShapeId": "Square",
@@ -43,5 +18,61 @@
       "ShapeId": "Anticircle",
       "Size": 0.55
     }
-  ]
+  ],
+  "Slots": {
+    "target": {
+      "Label": "Target",
+      "Description": "Blocks to phase out of existence",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultSlot": 1
+    },
+    "duration": {
+      "Label": "Duration",
+      "Description": "How long blocks stay phased in ticks",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultValue": 15
+    },
+    "intensity": {
+      "Label": "Intensity",
+      "Description": "Maximum block hardness that can be phased",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultValue": 20
+    },
+    "phased": {
+      "Label": "Phased",
+      "Description": "Block positions that were successfully phased",
+      "Color": [
+        1.0,
+        0.6,
+        0.1
+      ],
+      "Shape": "Cube",
+      "DefaultSlot": 1
+    },
+    "Next": {
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain",
+      "Color": [
+        0.4,
+        1.0,
+        0.4
+      ],
+      "Shape": "Sphere"
+    }
+  }
 }

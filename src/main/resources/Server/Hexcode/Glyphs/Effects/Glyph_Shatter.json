@@ -2,21 +2,9 @@
   "Parent": "Base_Glyph",
   "Title": "Shatter",
   "Description": "Launches ice shard projectiles in a cone from a position. Each shard triggers the next glyph where it lands.",
-  "GlyphType": "Effect",
   "ModelPath": "Glyph_Shatter",
   "BasePower": 1.0,
   "ManaConsumption": 20,
-  "Inputs": {
-    "source": { "Title": "Source", "DefaultSlot": 1, "Description": "Position or entity to launch shards from" },
-    "direction": { "Title": "Direction", "DefaultSlot": 1, "Description": "Central direction of the cone" },
-    "count": { "Title": "Count", "DefaultValue": 5, "Description": "Number of ice shards to launch" },
-    "spread": { "Title": "Spread", "DefaultValue": 30, "Description": "Cone spread angle in degrees" },
-    "speed": { "Title": "Speed", "DefaultValue": 20, "Description": "Shard launch speed" },
-    "gravity": { "Title": "Gravity", "DefaultValue": 10, "Description": "Gravity applied to shards" }
-  },
-  "Outputs": {
-    "result": { "Title": "Result", "DefaultSlot": 1, "Description": "What each shard hit (entity or block position)" }
-  },
   "ShapeStructure": [
     {
       "ShapeId": "Antitriangle",
@@ -30,5 +18,94 @@
       "ShapeId": "Antisquare",
       "Size": 0.55
     }
-  ]
+  ],
+  "Slots": {
+    "source": {
+      "Label": "Source",
+      "Description": "Position or entity to launch shards from",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultSlot": 1
+    },
+    "direction": {
+      "Label": "Direction",
+      "Description": "Central direction of the cone",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultSlot": 1
+    },
+    "count": {
+      "Label": "Count",
+      "Description": "Number of ice shards to launch",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultValue": 5
+    },
+    "spread": {
+      "Label": "Spread",
+      "Description": "Cone spread angle in degrees",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultValue": 30
+    },
+    "speed": {
+      "Label": "Speed",
+      "Description": "Shard launch speed",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultValue": 20
+    },
+    "gravity": {
+      "Label": "Gravity",
+      "Description": "Gravity applied to shards",
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "Shape": "Cube",
+      "DefaultValue": 10
+    },
+    "result": {
+      "Label": "Result",
+      "Description": "What each shard hit (entity or block position)",
+      "Color": [
+        1.0,
+        0.6,
+        0.1
+      ],
+      "Shape": "Cube",
+      "DefaultSlot": 1
+    },
+    "Next": {
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain",
+      "Color": [
+        0.4,
+        1.0,
+        0.4
+      ],
+      "Shape": "Sphere"
+    }
+  }
 }

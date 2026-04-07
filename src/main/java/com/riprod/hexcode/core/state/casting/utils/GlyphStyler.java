@@ -174,7 +174,7 @@ public class GlyphStyler {
             GlyphComponent parentGlyph) {
 
         int numGlyphs = (int) hexComponent.getGlyphs().stream()
-                    .filter(glyph -> glyph != null && glyph.getPrevious().size() > 0)
+                    .filter(glyph -> glyph != null)
                     .count();
 
         float scaleMultiplier = 1 + (numGlyphs * SCALE_PER_GLYPH); // increase scale by 5% per glyph

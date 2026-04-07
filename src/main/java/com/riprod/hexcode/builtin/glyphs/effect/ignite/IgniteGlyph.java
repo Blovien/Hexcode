@@ -23,20 +23,20 @@ public class IgniteGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targets = glyph.resolveInput("target", hexContext);
+        HexVar targets = glyph.resolveSlot("target", hexContext);
 
         if (targets == null) {
-            Executor.continueExecution(glyph.getNext(), hexContext);
+            Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
         double duration = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("duration", hexContext), 5.0);
+                glyph.resolveSlot("duration", hexContext), 5.0);
 
         EntityEffect burnEffect = EntityEffect.getAssetMap().getAsset("Burn");
         if (burnEffect == null) {
             LOGGER.atWarning().log("ignite: burn effect asset not found");
-            Executor.continueExecution(glyph.getNext(), hexContext);
+            Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
@@ -64,6 +64,6 @@ public class IgniteGlyph implements GlyphHandler {
             }
         }
 
-        Executor.continueExecution(glyph.getNext(), hexContext);
+        Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 }

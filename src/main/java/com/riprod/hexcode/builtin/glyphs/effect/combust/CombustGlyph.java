@@ -47,9 +47,9 @@ public class CombustGlyph implements GlyphHandler {
         if (asset == null) return true;
 
         double radius = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("radius", hexContext), DEFAULT_RADIUS);
+                glyph.resolveSlot("radius", hexContext), DEFAULT_RADIUS);
         double magnitude = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("magnitude", hexContext), DEFAULT_MAGNITUDE);
+                glyph.resolveSlot("magnitude", hexContext), DEFAULT_MAGNITUDE);
 
         float baseCost = asset.getManaConsumption()
                 * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
@@ -71,16 +71,16 @@ public class CombustGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar centerVar = glyph.resolveInput("center", hexContext);
+        HexVar centerVar = glyph.resolveSlot("center", hexContext);
         double radius = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("radius", hexContext), DEFAULT_RADIUS);
+                glyph.resolveSlot("radius", hexContext), DEFAULT_RADIUS);
         double magnitude = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveInput("magnitude", hexContext), DEFAULT_MAGNITUDE);
+                glyph.resolveSlot("magnitude", hexContext), DEFAULT_MAGNITUDE);
 
         Vector3d center = resolveCenter(centerVar, hexContext);
         if (center == null) {
             LOGGER.atInfo().log("combust: no center resolved, skipping");
-            Executor.continueExecution(glyph.getNext(), hexContext);
+            Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
@@ -108,7 +108,7 @@ public class CombustGlyph implements GlyphHandler {
 
         CombustStyle.renderExplosion(accessor, center, radius, hexContext.getColors());
 
-        Executor.continueExecution(glyph.getNext(), hexContext);
+        Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 
     private Vector3d resolveCenter(HexVar centerVar, HexContext hexContext) {

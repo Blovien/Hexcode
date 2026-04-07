@@ -83,7 +83,6 @@ import com.riprod.hexcode.core.common.trigger.TriggerRegistry;
 import com.riprod.hexcode.core.common.trigger.component.TriggerComponent;
 import com.riprod.hexcode.core.common.trigger.system.TriggerTickSystem;
 import com.riprod.hexcode.core.state.execution.component.HexSignal;
-import com.riprod.hexcode.core.common.glyphs.registry.HexValueRegistry;
 import com.riprod.hexcode.core.common.obelisk.registry.ObeliskHandlerRegistry;
 import com.riprod.hexcode.core.state.casting.registery.CastingStyleRegistry;
 
@@ -112,16 +111,11 @@ public class BuiltinPlugin extends JavaPlugin {
     private void RegisterGlyphs() {
 
         // Tier 1
-        SelfGlyph self = new SelfGlyph();
-        GlyphRegistry.register("Glyph_Self", self);
-        HexValueRegistry.register("Glyph_Self", self);
+        GlyphRegistry.register("Glyph_Self", new SelfGlyph());
         GlyphRegistry.register("Glyph_Chaos", new ChaosGlyph());
-        HexValueRegistry.register("Glyph_Chaos", new ChaosGlyph());
         GlyphRegistry.register("Glyph_Force", new ForceGlyph());
         GlyphRegistry.register("Glyph_Delay", new DelayGlyph());
-        DrainGlyph drain = new DrainGlyph();
-        GlyphRegistry.register("Glyph_Drain", drain);
-        HexValueRegistry.register("Glyph_Drain", drain);
+        GlyphRegistry.register("Glyph_Drain", new DrainGlyph());
         GlyphRegistry.register("Glyph_Halt", new HaltGlyph());
 
         // Tier 2
@@ -136,6 +130,7 @@ public class BuiltinPlugin extends JavaPlugin {
         GlyphRegistry.register("Glyph_Interfere", new InterfereGlyph());
         GlyphRegistry.register("Glyph_Resonate", new ResonateGlyph());
         GlyphRegistry.register("Glyph_Levitate", new LevitateGlyph());
+
         // Tier 3
         GlyphRegistry.register("Glyph_Ignite", new IgniteGlyph());
         GlyphRegistry.register("Glyph_Combust", new CombustGlyph());
@@ -150,55 +145,25 @@ public class BuiltinPlugin extends JavaPlugin {
         GlyphRegistry.register("Glyph_Phase", new PhaseGlyph());
         GlyphRegistry.register("Glyph_Warp", new WarpGlyph());
         GlyphRegistry.register("Glyph_Swap", new SwapGlyph());
-        // hybrid: math glyphs (effect chain + value resolution)
-        MultiplyGlyph multiply = new MultiplyGlyph();
-        GlyphRegistry.register("Glyph_Multiply", multiply);
-        HexValueRegistry.register("Glyph_Multiply", multiply);
 
-        AddGlyph add = new AddGlyph();
-        GlyphRegistry.register("Glyph_Add", add);
-        HexValueRegistry.register("Glyph_Add", add);
-
-        SubtractGlyph subtract = new SubtractGlyph();
-        GlyphRegistry.register("Glyph_Subtract", subtract);
-        HexValueRegistry.register("Glyph_Subtract", subtract);
-
-        DivideGlyph divide = new DivideGlyph();
-        GlyphRegistry.register("Glyph_Divide", divide);
-        HexValueRegistry.register("Glyph_Divide", divide);
-
+        // math glyphs (canResolveValue + execute)
+        GlyphRegistry.register("Glyph_Multiply", new MultiplyGlyph());
+        GlyphRegistry.register("Glyph_Add", new AddGlyph());
+        GlyphRegistry.register("Glyph_Subtract", new SubtractGlyph());
+        GlyphRegistry.register("Glyph_Divide", new DivideGlyph());
         GlyphRegistry.register("Glyph_Equal", new EqualGlyph());
         GlyphRegistry.register("Glyph_Greater", new GreaterGlyph());
         GlyphRegistry.register("Glyph_Less", new LessGlyph());
 
-        // hybrid: constructor glyphs (effect chain + value resolution)
-        PositionValue position = new PositionValue();
-        GlyphRegistry.register("Glyph_Position", position);
-        HexValueRegistry.register("Glyph_Position", position);
+        // constructor glyphs (canResolveValue + execute)
+        GlyphRegistry.register("Glyph_Position", new PositionValue());
+        GlyphRegistry.register("Glyph_Rotation", new RotationValue());
 
-        RotationValue rotation = new RotationValue();
-        GlyphRegistry.register("Glyph_Rotation", rotation);
-        HexValueRegistry.register("Glyph_Rotation", rotation);
-
-        // values
-        HexValueRegistry.register("Number_1", new NumberValue(1));
-        HexValueRegistry.register("Number_2", new NumberValue(2));
-        HexValueRegistry.register("Number_3", new NumberValue(3));
-        HexValueRegistry.register("Number_4", new NumberValue(4));
-        HexValueRegistry.register("Number_5", new NumberValue(5));
-        HexValueRegistry.register("Number_6", new NumberValue(6));
-        HexValueRegistry.register("Number_7", new NumberValue(7));
-        HexValueRegistry.register("Number_8", new NumberValue(8));
-        HexValueRegistry.register("Number_9", new NumberValue(9));
-        HexValueRegistry.register("Number_10", new NumberValue(10));
-        HexValueRegistry.register("Number_11", new NumberValue(11));
-        HexValueRegistry.register("Number_12", new NumberValue(12));
-        HexValueRegistry.register("Number_13", new NumberValue(13));
-        HexValueRegistry.register("Number_14", new NumberValue(14));
-        HexValueRegistry.register("Number_15", new NumberValue(15));
-        HexValueRegistry.register("Number_16", new NumberValue(16));
-        HexValueRegistry.register("Glyph_Variable", new VariableValue());
-
+        // numeric values
+        for (int i = 1; i <= 16; i++) {
+            GlyphRegistry.register("Number_" + i, new NumberValue(i));
+        }
+        GlyphRegistry.register("Glyph_Variable", new VariableValue());
     }
 
     private void RegisterObelisks() {
