@@ -130,7 +130,7 @@ public class DrawingSystem extends HexcodeManager {
     }
 
     drawingComp.clearDrawingState();
-    buffer.removeComponent(ref, HexcasterDrawingComponent.getComponentType());
+    drawingComp.clear(buffer);
   }
 
   @Override

@@ -1,5 +1,6 @@
 package com.riprod.hexcode.core.common.hexcaster.component;
 
+import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.codec.codecs.EnumCodec;
@@ -7,9 +8,11 @@ import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.state.HexState;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,10 +27,41 @@ public class HexcasterComponent implements Component<EntityStore> {
                     (c, v) -> c.currentState = v,
                     c -> c.currentState)
             .add()
+            .append(new KeyedCodec<>("Hex", Hex.CODEC),
+                    (c, v) -> c.hex = v,
+                    c -> c.hex)
+            .add()
+            .append(new KeyedCodec<>("CastCount", Codec.INTEGER),
+                    (c, v) -> c.castCount = v,
+                    c -> c.castCount)
+            .add()
             .build();
 
     private HexState currentState = HexState.IDLE;
     private HexState pendingState = null;
+    private Hex hex;
+    private int castCount = 0;
+
+    @Nullable
+    public Hex getActiveHex() {
+        return hex;
+    }
+
+    public void setActiveHex(@Nullable Hex hex) {
+        this.hex = hex;
+    }
+
+    public boolean hasActiveHex() {
+        return hex != null;
+    }
+
+    public int getCastCount() {
+        return castCount;
+    }
+
+    public void incrementCastCount() {
+        this.castCount++;
+    }
 
     public HexState getState() {
         return currentState;
@@ -99,21 +133,6 @@ public class HexcasterComponent implements Component<EntityStore> {
         return id;
     }
 
-    /** @deprecated */
-    public void setTrailRef(Ref<EntityStore> trailRef) {
-        this.trailRef = trailRef;
-    }
-
-    /** @deprecated */
-    public Ref<EntityStore> getTrailRef() {
-        return trailRef;
-    }
-
-    /** @deprecated */
-    public long getDrawStartTimeMillis() {
-        return drawStartTimeMillis;
-    }
-
     public void setDrawStartTimeMillis(long drawStartTimeMillis) {
         this.drawStartTimeMillis = drawStartTimeMillis;
     }
@@ -139,6 +158,8 @@ public class HexcasterComponent implements Component<EntityStore> {
         copy.lastParticleSpawnMillis = this.lastParticleSpawnMillis;
         copy.drawStartTimeMillis = this.drawStartTimeMillis;
         copy.trainingShapeId = this.trainingShapeId;
+        copy.hex = this.hex != null ? this.hex.clone() : null;
+        copy.castCount = this.castCount;
         copy.lastTickMap = new HashMap<>(this.lastTickMap);
         return copy;
     }

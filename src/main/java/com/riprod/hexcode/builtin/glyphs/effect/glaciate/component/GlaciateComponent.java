@@ -15,8 +15,6 @@ public class GlaciateComponent implements Component<EntityStore> {
 
     private static ComponentType<EntityStore, GlaciateComponent> componentType;
 
-    private float lifetime;
-    private float initialLifetime;
     private float damageRadius;
     private float damageMultiplier;
     private Set<UUID> hitEntities;
@@ -26,15 +24,13 @@ public class GlaciateComponent implements Component<EntityStore> {
     public GlaciateComponent() {
     }
 
-    public GlaciateComponent(float lifetime, float damageRadius, float damageMultiplier,
+    public GlaciateComponent(float damageRadius, float damageMultiplier,
             List<String> firstBranchIds) {
-        this.lifetime = lifetime;
         this.damageRadius = damageRadius;
         this.damageMultiplier = damageMultiplier;
         this.hitEntities = new HashSet<>();
         this.firstBranchIds = firstBranchIds;
         this.firedFirstBranch = false;
-        this.initialLifetime = lifetime;
     }
 
     public static void setComponentType(ComponentType<EntityStore, GlaciateComponent> type) {
@@ -43,18 +39,6 @@ public class GlaciateComponent implements Component<EntityStore> {
 
     public static ComponentType<EntityStore, GlaciateComponent> getComponentType() {
         return componentType;
-    }
-
-    public float getLifetime() {
-        return lifetime;
-    }
-
-    public float getInitialLifetime() {
-        return initialLifetime;
-    }
-
-    public void decrementLifetime(float dt) {
-        this.lifetime -= dt;
     }
 
     public float getDamageRadius() {
@@ -86,13 +70,11 @@ public class GlaciateComponent implements Component<EntityStore> {
     @Override
     public GlaciateComponent clone() {
         GlaciateComponent copy = new GlaciateComponent();
-        copy.lifetime = this.lifetime;
         copy.damageRadius = this.damageRadius;
         copy.damageMultiplier = this.damageMultiplier;
         copy.hitEntities = this.hitEntities != null ? new HashSet<>(this.hitEntities) : new HashSet<>();
         copy.firstBranchIds = this.firstBranchIds;
         copy.firedFirstBranch = this.firedFirstBranch;
-        copy.initialLifetime = this.initialLifetime;
         return copy;
     }
 }

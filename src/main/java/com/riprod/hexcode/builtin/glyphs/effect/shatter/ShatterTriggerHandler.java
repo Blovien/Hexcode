@@ -1,16 +1,11 @@
-package com.riprod.hexcode.builtin.glyphs.effect.shatter.system;
+package com.riprod.hexcode.builtin.glyphs.effect.shatter;
 
 import java.util.List;
 
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentAccessor;
-import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.component.RemoveReason;
-import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.component.query.Query;
-import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
@@ -23,45 +18,33 @@ import com.riprod.hexcode.builtin.glyphs.effect.shatter.style.ShatterStyle;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.common.trigger.TriggerHandler;
+import com.riprod.hexcode.core.common.trigger.component.TriggerComponent;
 import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.HexRoot;
 import com.riprod.hexcode.core.state.execution.component.HexSignal;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 
-public class ShatterSystem extends EntityTickingSystem<EntityStore> {
+public class ShatterTriggerHandler implements TriggerHandler {
 
     private static final double HIT_IDENTIFICATION_RADIUS = 1.5;
 
     @Override
-    public Query<EntityStore> getQuery() {
-        return ShatterComponent.getComponentType();
-    }
+    public boolean onTick(float dt, Ref<EntityStore> entityRef,
+            ArchetypeChunk<EntityStore> chunk, int index,
+            TriggerComponent trigger, HexSignal signal,
+            CommandBuffer<EntityStore> buffer) {
 
-    @Override
-    public void tick(float dt, int index, ArchetypeChunk<EntityStore> chunk,
-            Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
         ShatterComponent shatter = chunk.getComponent(index, ShatterComponent.getComponentType());
-        Ref<EntityStore> shardRef = chunk.getReferenceTo(index);
         TransformComponent transform = chunk.getComponent(index, TransformComponent.getComponentType());
         StandardPhysicsProvider physics = chunk.getComponent(index,
                 StandardPhysicsProvider.getComponentType());
 
-        if (shatter == null || transform == null || physics == null) {
-            removeShard(shardRef, buffer);
-            return;
-        }
+        if (shatter == null || transform == null || physics == null) return true;
 
-        HexSignal signal = buffer.getComponent(shardRef, HexSignal.getComponentType());
-        if (signal == null || signal.getEntries().isEmpty()) {
-            removeShard(shardRef, buffer);
-            return;
-        }
-
-        if (!signal.hasLiveEntries(buffer)) {
-            removeShard(shardRef, buffer);
-            return;
-        }
+        if (signal == null || signal.getEntries().isEmpty()) return true;
+        if (!signal.hasLiveEntries(buffer)) return true;
 
         StandardPhysicsProvider.STATE state = physics.getState();
         Vector3d currentPos = transform.getPosition();
@@ -70,7 +53,7 @@ public class ShatterSystem extends EntityTickingSystem<EntityStore> {
         if (state == StandardPhysicsProvider.STATE.INACTIVE) {
             Vector3d contactPos = physics.getContactPosition();
             Ref<EntityStore> hitEntity = findEntityAtPosition(contactPos, shatter.getCasterRef(),
-                    shardRef, buffer);
+                    entityRef, buffer);
 
             HexVar resultVar = null;
             if (hitEntity != null) {
@@ -84,8 +67,7 @@ public class ShatterSystem extends EntityTickingSystem<EntityStore> {
 
             ShatterStyle.renderShardHit(contactPos, hexContext.getColors(), buffer);
             continueShardExecution(signal, resultVar, buffer);
-            removeShard(shardRef, buffer);
-            return;
+            return true;
         }
 
         if (state == StandardPhysicsProvider.STATE.RESTING) {
@@ -94,16 +76,17 @@ public class ShatterSystem extends EntityTickingSystem<EntityStore> {
 
             ShatterStyle.renderShardHit(contactPos, hexContext.getColors(), buffer);
             continueShardExecution(signal, resultVar, buffer);
-            removeShard(shardRef, buffer);
-            return;
+            return true;
         }
 
         double distanceTraveled = new Vector3d(currentPos).subtract(shatter.getSpawnPosition()).length();
         if (distanceTraveled >= shatter.getMaxDistance()) {
             ShatterStyle.renderMiss(currentPos, hexContext.getColors(), buffer);
             continueShardExecution(signal, null, buffer);
-            removeShard(shardRef, buffer);
+            return true;
         }
+
+        return false;
     }
 
     private Ref<EntityStore> findEntityAtPosition(Vector3d position, Ref<EntityStore> casterRef,
@@ -164,12 +147,6 @@ public class ShatterSystem extends EntityTickingSystem<EntityStore> {
             }
 
             Executor.continueExecution(entry.getNextGlyphIds(), ctx);
-            execComp.decrementExternalWaiters();
         }
-    }
-
-    private void removeShard(Ref<EntityStore> shardRef, CommandBuffer<EntityStore> buffer) {
-        Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
-        buffer.removeEntity(shardRef, holder, RemoveReason.REMOVE);
     }
 }

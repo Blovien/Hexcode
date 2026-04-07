@@ -4,12 +4,7 @@ import java.util.List;
 
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
-import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.component.RemoveReason;
-import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.component.query.Query;
-import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3i;
@@ -22,49 +17,38 @@ import com.hypixel.hytale.server.core.modules.entity.damage.DamageSystems;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.TargetUtil;
+import com.riprod.hexcode.core.common.trigger.TriggerHandler;
+import com.riprod.hexcode.core.common.trigger.component.TriggerComponent;
 import com.riprod.hexcode.core.state.execution.component.HexSignal;
 
-public class PhaseTickSystem extends EntityTickingSystem<EntityStore> {
+public class PhaseTriggerHandler implements TriggerHandler {
 
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     private static final float BASE_CRUSH_DAMAGE = 4.0f;
     private static int damageCauseIndex = -1;
 
     @Override
-    public Query<EntityStore> getQuery() {
-        return PhaseComponent.getComponentType();
+    public boolean onTick(float dt, Ref<EntityStore> entityRef,
+            ArchetypeChunk<EntityStore> chunk, int index,
+            TriggerComponent trigger, HexSignal signal,
+            CommandBuffer<EntityStore> buffer) {
+        return false;
     }
 
     @Override
-    public void tick(float dt, int index, ArchetypeChunk<EntityStore> chunk,
-            Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
-        try {
-            PhaseComponent phase = chunk.getComponent(index, PhaseComponent.getComponentType());
-            Ref<EntityStore> entityRef = chunk.getReferenceTo(index);
+    public void onCleanup(Ref<EntityStore> entityRef, TriggerComponent trigger,
+            HexSignal signal, CommandBuffer<EntityStore> buffer) {
+        PhaseComponent phase = buffer.getComponent(entityRef, PhaseComponent.getComponentType());
+        if (phase == null) return;
 
-            if (phase == null) {
-                removeEntity(entityRef, buffer);
-                return;
-            }
+        World world = buffer.getExternalData().getWorld();
+        restoreBlocks(phase, signal, world, buffer);
 
-            phase.incrementElapsed(dt);
-
-            if (!phase.isExpired()) {
-                return;
-            }
-
-            HexSignal signal = buffer.getComponent(entityRef, HexSignal.getComponentType());
-
-            World world = buffer.getExternalData().getWorld();
-            restoreBlocks(phase, signal, world, buffer);
-            continueExecution(signal, buffer);
-            removeEntity(entityRef, buffer);
-
-            LOGGER.atInfo().log("phase: restored %d blocks after %d ticks",
-                    phase.getPhasedBlocks().size(), phase.getDurationSeconds());
-        } catch (Exception e) {
-            LOGGER.atSevere().log("[hexcode] PhaseTickSystem failed: %s", e.getMessage());
+        if (signal != null) {
+            signal.fireAllEntries(buffer);
         }
+
+        LOGGER.atInfo().log("phase: restored %d blocks", phase.getPhasedBlocks().size());
     }
 
     private void restoreBlocks(PhaseComponent phase, HexSignal signal, World world,
@@ -79,7 +63,8 @@ public class PhaseTickSystem extends EntityTickingSystem<EntityStore> {
             world.getChunk(ChunkUtil.indexChunkFromBlock(pos.x, pos.z))
                     .setBlock(pos.x, pos.y, pos.z, blockId, blockType, block.getRotationIndex(), 0, 0);
             if (signal != null && signal.getPrimary() != null) {
-                PhaseStyle.renderPhaseIn(blockCenter, signal.getPrimary().getHexContext().getColors(), buffer);
+                PhaseStyle.renderPhaseIn(blockCenter, signal.getPrimary().getHexContext().getColors(),
+                        buffer);
             }
         }
     }
@@ -110,18 +95,6 @@ public class PhaseTickSystem extends EntityTickingSystem<EntityStore> {
             }
 
             PhaseStyle.renderCrush(blockCenter, null, buffer);
-            LOGGER.atInfo().log("phase: crush damage to entity at %s", pos);
         }
-    }
-
-    private void continueExecution(HexSignal signal, CommandBuffer<EntityStore> buffer) {
-        if (signal == null) return;
-        signal.fireAllEntries(buffer);
-        signal.decrementAllWaiters(buffer);
-    }
-
-    private void removeEntity(Ref<EntityStore> entityRef, CommandBuffer<EntityStore> buffer) {
-        Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
-        buffer.removeEntity(entityRef, holder, RemoveReason.REMOVE);
     }
 }

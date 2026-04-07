@@ -6,6 +6,7 @@ import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphRegistry;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
+import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexcaster.utils.CasterInventory;
 import com.riprod.hexcode.core.common.hexcaster.utils.PlayerUtils;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffAsset;
@@ -37,18 +38,20 @@ public class Executor {
 
         HexStaffComponent staff = CasterInventory.getHexStaffComponent(
                 hexContext.getAccessor(), hexContext.getCasterRef());
+        HexcasterComponent casterComp = hexContext.getAccessor().getComponent(
+                hexContext.getCasterRef(), HexcasterComponent.getComponentType());
         if (staff != null) {
             RootGlyph rootGlyph = hexContext.getAccessor().getComponent(
                     hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
 
             VolatilityTracker tracker = new VolatilityTracker(
-                    staff.getCastCount(), staff.getStaffModifier(),
+                    casterComp.getCastCount(), staff.getStaffModifier(),
                     rootGlyph.getPowerModifier(),
                     rootGlyph.getVolatilityMultiplier(),
                     rootGlyph.getManaCostMultiplier());
             hexContext.setVolatilityTracker(tracker);
 
-            staff.incrementCastCount();
+            casterComp.incrementCastCount();
             CasterInventory.saveHexStaffComponent(hexContext.getAccessor(), hexContext.getCasterRef(), staff);
 
             HexStaffAsset staffAsset = CasterInventory.getHexStaffAsset(

@@ -5,9 +5,9 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.protocol.ChangeVelocityType;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
-import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
 import com.hypixel.hytale.server.core.modules.splitvelocity.VelocityConfig;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.utils.VelocityUtil;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
@@ -106,10 +106,8 @@ public class ForceGlyph implements GlyphHandler {
                 }
                 Vector3d force = new Vector3d(direction).scale(magnitude);
 
-                Velocity vel = hexContext.getAccessor().getComponent(ref, Velocity.getComponentType());
-                if (vel != null) {
-                    vel.addInstruction(new Vector3d(force), new VelocityConfig(), ChangeVelocityType.Add);
-                }
+                VelocityUtil.applyVelocity(ref, force, ChangeVelocityType.Add,
+                        new VelocityConfig(), hexContext.getAccessor());
 
                 ForceGlyphStyle.render(targetPos, force, hexContext.getColors(),
                         hexContext.getAccessor());

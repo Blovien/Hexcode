@@ -52,8 +52,11 @@ public class CastingSystem extends HexcodeManager {
     public void firstTick(Ref<EntityStore> ref, HexcasterComponent comp,
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer,
             HexState previousState) {
-        HexcasterCastingComponent castingComp = new HexcasterCastingComponent();
-        buffer.addComponent(ref, HexcasterCastingComponent.getComponentType(), castingComp);
+        HexcasterCastingComponent castingComp = buffer.getComponent(ref, HexcasterCastingComponent.getComponentType());
+        if (castingComp == null) {
+            castingComp = new HexcasterCastingComponent();
+            buffer.addComponent(ref, HexcasterCastingComponent.getComponentType(), castingComp);
+        }
 
         HexStaffComponent staff = CasterInventory.getHexStaffComponent(buffer, ref);
         HexBookComponent book = CasterInventory.getHexBookComponent(buffer, ref);
@@ -102,13 +105,13 @@ public class CastingSystem extends HexcodeManager {
         HexComponent rootGlyph = castingComp.getLastSelectedHex();
 
         if (rootGlyph != null && staff != null) {
-            staff.setActiveHex(rootGlyph.getHex());
+            comp.setActiveHex(rootGlyph.getHex());
             CasterInventory.saveHexStaffComponent(buffer, ref, staff);
             comp.requestStateChange(HexState.EXECUTION);
         }
 
         castingComp.clearCastingState();
-        buffer.tryRemoveComponent(ref, HexcasterCastingComponent.getComponentType());
+        castingComp.clear(buffer);
     }
 
     @Override

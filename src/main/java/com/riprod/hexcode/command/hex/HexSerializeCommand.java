@@ -14,6 +14,7 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexbook.component.HexBookComponent;
+import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexcaster.utils.CasterInventory;
 import com.riprod.hexcode.core.common.hexes.codec.DecodeIssue;
 import com.riprod.hexcode.core.common.hexes.codec.DecodeResult;
@@ -51,13 +52,9 @@ public class HexSerializeCommand extends AbstractPlayerCommand {
         protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store,
                 @Nonnull Ref<EntityStore> playerEntityRef, @Nonnull PlayerRef playerRef, @Nonnull World world) {
 
-            HexStaffComponent staff = CasterInventory.getHexStaffComponent(store, playerEntityRef);
-            if (staff == null) {
-                send(playerRef, "you need to hold a hex staff");
-                return;
-            }
+            HexcasterComponent comp = store.getComponent(playerEntityRef, HexcasterComponent.getComponentType());
 
-            Hex hex = staff.getActiveHex();
+            Hex hex = comp.getActiveHex();
             if (hex == null) {
                 send(playerRef, "no hex selected on your staff");
                 return;

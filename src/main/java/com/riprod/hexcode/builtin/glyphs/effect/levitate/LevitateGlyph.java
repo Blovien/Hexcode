@@ -6,8 +6,11 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.OverlapBehavior;
 import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
+import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.protocol.ChangeVelocityType;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.physics.component.PhysicsValues;
+import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.builtin.glyphs.effect.levitate.component.LevitateComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.levitate.style.LevitateStyle;
@@ -108,9 +111,17 @@ public class LevitateGlyph implements GlyphHandler {
 
         if (currentPhysics != null) {
             double mass = currentPhysics.getMass();
-            double drag = intensity <= 0 ? WEIGHTLESS_DRAG : currentPhysics.getDragCoefficient();
+            double originalDrag = existing != null
+                    ? existing.getOriginalPhysicsValues().getDragCoefficient()
+                    : currentPhysics.getDragCoefficient();
+            double drag = intensity <= 0 ? WEIGHTLESS_DRAG : originalDrag;
             PhysicsValues levitatePhysics = new PhysicsValues(mass, drag, true);
             accessor.putComponent(ref, PhysicsValues.getComponentType(), levitatePhysics);
+        }
+
+        Velocity vel = accessor.getComponent(ref, Velocity.getComponentType());
+        if (vel != null && vel.getY() < 0) {
+            vel.addInstruction(new Vector3d(0, -vel.getY(), 0), null, ChangeVelocityType.Add);
         }
 
         EntityEffect levitateEffect = EntityEffect.getAssetMap().getAsset(LEVITATE_EFFECT_ID);

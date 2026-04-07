@@ -10,7 +10,9 @@ import com.hypixel.hytale.server.core.asset.type.entityeffect.config.OverlapBeha
 import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
 import com.hypixel.hytale.server.core.entity.knockback.KnockbackComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.modules.projectile.config.StandardPhysicsProvider;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.builtin.glyphs.effect.halt.component.HaltProjectileComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.halt.style.HaltStyle;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
@@ -109,11 +111,22 @@ public class HaltGlyph implements GlyphHandler {
                 glyph.resolveInput("duration", hexContext), DEFAULT_DURATION);
 
         try {
-            KnockbackComponent kb = new KnockbackComponent();
-            kb.setVelocity(new Vector3d(0, 0, 0));
-            kb.setVelocityType(ChangeVelocityType.Set);
-            kb.setDuration(0.0f);
-            accessor.putComponent(ref, KnockbackComponent.getComponentType(), kb);
+            StandardPhysicsProvider physics = accessor.getComponent(ref,
+                    StandardPhysicsProvider.getComponentType());
+            if (physics != null) {
+                physics.getForceProviderStandardState().nextTickVelocity.assign(Vector3d.ZERO);
+                physics.setState(StandardPhysicsProvider.STATE.INACTIVE);
+                if (duration > 0) {
+                    accessor.putComponent(ref, HaltProjectileComponent.getComponentType(),
+                            new HaltProjectileComponent((float) duration));
+                }
+            } else {
+                KnockbackComponent kb = new KnockbackComponent();
+                kb.setVelocity(new Vector3d(0, 0, 0));
+                kb.setVelocityType(ChangeVelocityType.Set);
+                kb.setDuration((float) duration);
+                accessor.putComponent(ref, KnockbackComponent.getComponentType(), kb);
+            }
 
             if (duration > 0) {
                 EntityEffect haltEffect = EntityEffect.getAssetMap().getAsset(HALT_EFFECT_ID);

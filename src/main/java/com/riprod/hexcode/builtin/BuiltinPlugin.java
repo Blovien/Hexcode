@@ -13,8 +13,8 @@ import com.riprod.hexcode.builtin.glyphs.effect.bolt.BoltGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.chaos.ChaosGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.combust.CombustGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.conjure.ConjureGlyph;
+import com.riprod.hexcode.builtin.glyphs.effect.conjure.ConjureTriggerHandler;
 import com.riprod.hexcode.builtin.glyphs.effect.conjure.component.ConjureZoneComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.conjure.system.ConjureSystem;
 import com.riprod.hexcode.builtin.glyphs.effect.delay.DelayGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.gust.GustGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.divide.DivideGlyph;
@@ -28,7 +28,7 @@ import com.riprod.hexcode.builtin.glyphs.effect.erode.system.ErodeDamageSystem;
 import com.riprod.hexcode.builtin.glyphs.effect.erode.system.ErodeTickSystem;
 import com.riprod.hexcode.builtin.glyphs.effect.phase.PhaseComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.phase.PhaseGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.phase.PhaseTickSystem;
+import com.riprod.hexcode.builtin.glyphs.effect.phase.PhaseTriggerHandler;
 import com.riprod.hexcode.builtin.glyphs.effect.force.ForceGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.fortify.FortifyGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.fortify.component.FortifyComponent;
@@ -39,11 +39,13 @@ import com.riprod.hexcode.builtin.glyphs.effect.freeze.component.FreezeComponent
 import com.riprod.hexcode.builtin.glyphs.effect.freeze.system.FreezeTickSystem;
 import com.riprod.hexcode.builtin.glyphs.effect.area.AreaGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.glaciate.GlaciateGlyph;
+import com.riprod.hexcode.builtin.glyphs.effect.glaciate.GlaciateTriggerHandler;
 import com.riprod.hexcode.builtin.glyphs.effect.glaciate.component.GlaciateComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.glaciate.system.GlaciateSystem;
 import com.riprod.hexcode.builtin.glyphs.effect.greater.GreaterGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.growth.GrowthGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.halt.HaltGlyph;
+import com.riprod.hexcode.builtin.glyphs.effect.halt.component.HaltProjectileComponent;
+import com.riprod.hexcode.builtin.glyphs.effect.halt.system.HaltProjectileTickSystem;
 import com.riprod.hexcode.builtin.glyphs.effect.ignite.IgniteGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.less.LessGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.levitate.LevitateGlyph;
@@ -61,8 +63,8 @@ import com.riprod.hexcode.builtin.glyphs.effect.ensnare.system.EnsnareTickSystem
 import com.riprod.hexcode.builtin.glyphs.effect.beam.BeamGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.self.SelfGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.shatter.ShatterGlyph;
+import com.riprod.hexcode.builtin.glyphs.effect.shatter.ShatterTriggerHandler;
 import com.riprod.hexcode.builtin.glyphs.effect.shatter.component.ShatterComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.shatter.system.ShatterSystem;
 import com.riprod.hexcode.builtin.glyphs.effect.smelt.SmeltGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.subtract.SubtractGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.swap.SwapGlyph;
@@ -77,6 +79,9 @@ import com.riprod.hexcode.builtin.styles.ArcStyle;
 import com.riprod.hexcode.builtin.styles.RingStyle;
 import com.riprod.hexcode.builtin.styles.SphereStyle;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphRegistry;
+import com.riprod.hexcode.core.common.trigger.TriggerRegistry;
+import com.riprod.hexcode.core.common.trigger.component.TriggerComponent;
+import com.riprod.hexcode.core.common.trigger.system.TriggerTickSystem;
 import com.riprod.hexcode.core.state.execution.component.HexSignal;
 import com.riprod.hexcode.core.common.glyphs.registry.HexValueRegistry;
 import com.riprod.hexcode.core.common.obelisk.registry.ObeliskHandlerRegistry;
@@ -99,6 +104,7 @@ public class BuiltinPlugin extends JavaPlugin {
         RegisterObelisks();
         RegisterComponents();
         RegisterSystems();
+        RegisterTriggers();
 
         initialized = true;
     }
@@ -263,13 +269,21 @@ public class BuiltinPlugin extends JavaPlugin {
         ComponentType<EntityStore, ShatterComponent> shatterComponentType = entityStoreRegistry
                 .registerComponent(ShatterComponent.class, ShatterComponent::new);
         ShatterComponent.setComponentType(shatterComponentType);
+
+        ComponentType<EntityStore, TriggerComponent> triggerComponentType = entityStoreRegistry
+                .registerComponent(TriggerComponent.class, TriggerComponent::new);
+        TriggerComponent.setComponentType(triggerComponentType);
+
+        ComponentType<EntityStore, HaltProjectileComponent> haltProjectileComponentType = entityStoreRegistry
+                .registerComponent(HaltProjectileComponent.class, HaltProjectileComponent::new);
+        HaltProjectileComponent.setComponentType(haltProjectileComponentType);
     }
 
     private void RegisterSystems() {
         ComponentRegistryProxy<EntityStore> entityStoreRegistry = this.getEntityStoreRegistry();
         
         entityStoreRegistry.registerSystem(new ProjectileSystem());
-        entityStoreRegistry.registerSystem(new ConjureSystem());
+        entityStoreRegistry.registerSystem(new TriggerTickSystem());
         entityStoreRegistry.registerSystem(new ArcSystem());
         entityStoreRegistry.registerSystem(new DrainTickSystem());
         entityStoreRegistry.registerSystem(new ErodeTickSystem());
@@ -277,10 +291,15 @@ public class BuiltinPlugin extends JavaPlugin {
         entityStoreRegistry.registerSystem(new FortifyTickSystem());
         entityStoreRegistry.registerSystem(new FortifyDamageSystem());
         entityStoreRegistry.registerSystem(new LevitateTickSystem());
-        entityStoreRegistry.registerSystem(new PhaseTickSystem());
         entityStoreRegistry.registerSystem(new FreezeTickSystem());
         entityStoreRegistry.registerSystem(new EnsnareTickSystem());
-        entityStoreRegistry.registerSystem(new GlaciateSystem());
-        entityStoreRegistry.registerSystem(new ShatterSystem());
+        entityStoreRegistry.registerSystem(new HaltProjectileTickSystem());
+    }
+
+    private void RegisterTriggers() {
+        TriggerRegistry.register("conjure", new ConjureTriggerHandler());
+        TriggerRegistry.register("glaciate", new GlaciateTriggerHandler());
+        TriggerRegistry.register("shatter", new ShatterTriggerHandler());
+        TriggerRegistry.register("phase", new PhaseTriggerHandler());
     }
 }

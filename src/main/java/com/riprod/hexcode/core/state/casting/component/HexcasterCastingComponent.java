@@ -6,6 +6,8 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.jline.console.impl.Builtins.Command;
+
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
@@ -115,6 +117,19 @@ public class HexcasterCastingComponent implements Component<EntityStore> {
 
     public void clearCastingState() {
         this.castingRootRef = null;
+        this.headAnchorRef = null;
+        this.activeHexes.clear();
+        this.hoveredChain = null;
+        this.draggingHex = null;
+        this.hoveredHex = null;
+        this.hoveredGlyph = null;
+        this.lastSelectedHex = null;
+    }
+
+    public void clear(CommandBuffer<EntityStore> buffer) {
+        this.castingRootRef = null;
+        CleanupUtils.safeRemoveEntity(buffer, this.headAnchorRef);
+        CleanupUtils.safeRemoveEntities(buffer, activeHexes);
         this.headAnchorRef = null;
         this.activeHexes.clear();
         this.hoveredChain = null;

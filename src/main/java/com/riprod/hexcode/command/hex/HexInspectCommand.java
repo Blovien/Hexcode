@@ -25,6 +25,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.BsonUtil;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
+import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexcaster.utils.CasterInventory;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffComponent;
@@ -49,12 +50,9 @@ public class HexInspectCommand extends AbstractPlayerCommand {
         boolean detailed = detailedFlag.get(context);
 
         HexStaffComponent staff = CasterInventory.getHexStaffComponent(store, playerEntityRef);
-        if (staff == null) {
-            send(playerRef, "No hex staff in main hand");
-            return;
-        }
+        HexcasterComponent comp = store.getComponent(playerEntityRef, HexcasterComponent.getComponentType());
 
-        Hex hex = staff.getActiveHex();
+        Hex hex = comp.getActiveHex();
         if (hex == null) {
             send(playerRef, "No active hex on staff");
             return;

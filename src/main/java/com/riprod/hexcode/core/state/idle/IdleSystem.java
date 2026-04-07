@@ -28,7 +28,7 @@ public class IdleSystem extends HexcodeManager {
                                 CleanupUtils.safeRemoveEntity(buffer, headAnchor);
                         }
                         craftingComp.clearCraftingState();
-                        buffer.removeComponent(ref, HexcasterCraftingComponent.getComponentType());
+                        craftingComp.clear(buffer);
                 }
         }
 

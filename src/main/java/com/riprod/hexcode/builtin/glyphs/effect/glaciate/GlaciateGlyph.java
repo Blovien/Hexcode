@@ -31,6 +31,7 @@ import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.glyphs.variables.NumberVar;
 import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.state.execution.Executor;
+import com.riprod.hexcode.core.common.trigger.component.TriggerComponent;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.HexSignal;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
@@ -154,8 +155,10 @@ public class GlaciateGlyph implements GlyphHandler {
                 new HexSignal(hexContext.copy(), hexContext.getRoot().getRootEntityRef(),
                         glyph, entryNext, outputSlots));
         holder.addComponent(GlaciateComponent.getComponentType(),
-                new GlaciateComponent(duration, DEFAULT_DAMAGE_RADIUS, DEFAULT_DAMAGE_MULTIPLIER,
+                new GlaciateComponent(DEFAULT_DAMAGE_RADIUS, DEFAULT_DAMAGE_MULTIPLIER,
                         firstBranch));
+        holder.addComponent(TriggerComponent.getComponentType(),
+                new TriggerComponent("glaciate", duration, null));
 
         GlaciatePhysicsConfig.INSTANCE.apply(holder, hexContext.getCasterRef(),
                 Vector3d.ZERO, hexContext.getAccessor(), false);

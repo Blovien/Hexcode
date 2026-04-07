@@ -37,6 +37,7 @@ import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
+import com.riprod.hexcode.core.common.trigger.component.TriggerComponent;
 import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.HexSignal;
@@ -144,8 +145,8 @@ public class ConjureGlyph implements GlyphHandler {
                 ? List.copyOf(allNext.subList(1, allNext.size()))
                 : List.of();
 
-        ConjureZoneComponent zoneComp = new ConjureZoneComponent(
-                halfExtents, interval, durationSeconds, firstBranch);
+        ConjureZoneComponent zoneComp = new ConjureZoneComponent(halfExtents, interval);
+        TriggerComponent triggerComp = new TriggerComponent("conjure", durationSeconds, firstBranch);
 
         Map<String, Integer> outputSlots = new HashMap<>();
         if (entityOutputSlot != null) {
@@ -192,6 +193,7 @@ public class ConjureGlyph implements GlyphHandler {
                 new Vector3d(0, 0, 0), hexContext.getAccessor(), false);
 
         holder.addComponent(ConjureZoneComponent.getComponentType(), zoneComp);
+        holder.addComponent(TriggerComponent.getComponentType(), triggerComp);
         holder.addComponent(HexSignal.getComponentType(), signal);
 
         ModelAsset anchorAsset = ModelAsset.getAssetMap().getAsset("Conjured_Anchor");

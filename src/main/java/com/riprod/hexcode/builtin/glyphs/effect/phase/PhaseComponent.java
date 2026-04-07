@@ -14,16 +14,12 @@ public class PhaseComponent implements Component<EntityStore> {
     private static ComponentType<EntityStore, PhaseComponent> componentType;
 
     private List<PhasedBlock> phasedBlocks;
-    private float durationSeconds;
-    private float elapsedDelta;
 
     public PhaseComponent() {
     }
 
-    public PhaseComponent(List<PhasedBlock> phasedBlocks, float durationSeconds) {
+    public PhaseComponent(List<PhasedBlock> phasedBlocks) {
         this.phasedBlocks = phasedBlocks;
-        this.durationSeconds = durationSeconds;
-        this.elapsedDelta = 0;
     }
 
     public static void setComponentType(ComponentType<EntityStore, PhaseComponent> type) {
@@ -38,29 +34,11 @@ public class PhaseComponent implements Component<EntityStore> {
         return phasedBlocks;
     }
 
-    public float getDurationSeconds() {
-        return durationSeconds;
-    }
-
-    public float getElapsedDelta() {
-        return elapsedDelta;
-    }
-
-    public void incrementElapsed(float dt) {
-        elapsedDelta += dt;
-    }
-
-    public boolean isExpired() {
-        return elapsedDelta >= durationSeconds;
-    }
-
     @Nonnull
     @Override
     public PhaseComponent clone() {
         PhaseComponent copy = new PhaseComponent();
         copy.phasedBlocks = this.phasedBlocks != null ? new ArrayList<>(this.phasedBlocks) : null;
-        copy.durationSeconds = this.durationSeconds;
-        copy.elapsedDelta = this.elapsedDelta;
         return copy;
     }
 }

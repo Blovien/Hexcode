@@ -31,6 +31,7 @@ import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.common.trigger.component.TriggerComponent;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.HexSignal;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
@@ -208,6 +209,8 @@ public class ShatterGlyph implements GlyphHandler {
                         glyph, nextGlyphs, new HashMap<>(outputSlots)));
         holder.addComponent(ShatterComponent.getComponentType(),
                 new ShatterComponent(hexContext.getCasterRef(), MAX_DISTANCE, new Vector3d(position)));
+        holder.addComponent(TriggerComponent.getComponentType(),
+                new TriggerComponent("shatter", -1, null));
 
         hexContext.getAccessor().addEntity(holder, AddReason.SPAWN);
 

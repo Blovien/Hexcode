@@ -20,6 +20,7 @@ import com.riprod.hexcode.core.common.hexcaster.utils.CasterInventory;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.utils.HexUtils;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffComponent;
+import com.riprod.hexcode.utils.HexStaffUtil;
 import com.riprod.hexcode.core.state.execution.component.PlayerHexRoot;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.api.event.HexcodeEvents;
@@ -31,6 +32,8 @@ import java.util.UUID;
 
 public class ExecutionSystem extends HexcodeManager {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+    private static final String EQUIP_CHECK_KEY = "exec_equip";
+    private static final float EQUIP_CHECK_INTERVAL = 0.25f;
 
     @Override
     public void firstTick(Ref<EntityStore> ref, HexcasterComponent comp,
@@ -42,11 +45,19 @@ public class ExecutionSystem extends HexcodeManager {
     public void lastTick(Ref<EntityStore> ref, HexcasterComponent comp,
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer,
             HexState nextState) {
+        comp.setActiveHex(null);
     }
 
     @Override
     public void tick0(Ref<EntityStore> ref, HexcasterComponent comp, float dt,
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
+        comp.incrementTickLength(EQUIP_CHECK_KEY, dt);
+        if (comp.getTickLength(EQUIP_CHECK_KEY) < EQUIP_CHECK_INTERVAL) return;
+        comp.setTickLength(EQUIP_CHECK_KEY, 0f);
+
+        if (!HexStaffUtil.hasHexcodeEquipment(store, ref)) {
+            comp.requestStateChange(HexState.IDLE);
+        }
     }
 
     @Override
@@ -78,7 +89,7 @@ public class ExecutionSystem extends HexcodeManager {
             return InteractionState.Failed;
         }
 
-        Hex activeHex = hexStaff.getActiveHex();
+        Hex activeHex = comp.getActiveHex();
         if (activeHex == null) {
             LOGGER.atWarning().log("no active spell on staff, nothing to execute");
             return InteractionState.Finished;

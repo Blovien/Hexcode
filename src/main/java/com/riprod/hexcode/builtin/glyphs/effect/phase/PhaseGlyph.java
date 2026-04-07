@@ -22,6 +22,7 @@ import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
+import com.riprod.hexcode.core.common.trigger.component.TriggerComponent;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.HexSignal;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
@@ -216,7 +217,9 @@ public class PhaseGlyph implements GlyphHandler {
                 new HexSignal(hexContext.copy(), hexContext.getRoot().getRootEntityRef(),
                         glyph, glyph.getNext(), null));
         holder.addComponent(PhaseComponent.getComponentType(),
-                new PhaseComponent(phasedBlocks, durationSeconds));
+                new PhaseComponent(phasedBlocks));
+        holder.addComponent(TriggerComponent.getComponentType(),
+                new TriggerComponent("phase", durationSeconds, null));
 
         accessor.addEntity(holder, AddReason.SPAWN);
 
