@@ -73,7 +73,7 @@
         0.1
       ],
       "Shape": "Cube",
-      "DefaultSlot": 1
+      "DefaultValue": 1.0
     },
     "Next": {
       "Label": "Next",

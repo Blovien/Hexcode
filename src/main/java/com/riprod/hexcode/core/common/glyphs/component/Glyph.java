@@ -141,10 +141,8 @@ public class Glyph {
         if (depth >= MAX_RESOLVE_DEPTH) return null;
 
         Slot slot = slots.get(key);
-        if (slot == null) return null;
-
-        String firstLink = slot.getFirstLink();
-        if (firstLink == null) return null;
+        String firstLink = slot != null ? slot.getFirstLink() : null;
+        if (firstLink == null) return resolveAssetDefault(key, hexContext);
 
         Glyph linked = hexContext.getGlyph(firstLink);
         if (linked == null) return null;
@@ -158,6 +156,23 @@ public class Glyph {
         } finally {
             resolveDepth.set(depth);
         }
+    }
+
+    @Nullable
+    private HexVar resolveAssetDefault(String key, HexContext hexContext) {
+        com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset asset =
+                com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset.getAssetMap().getAsset(glyphId);
+        if (asset == null) return null;
+        com.riprod.hexcode.core.common.glyphs.registry.SlotAsset slotAsset = asset.getSlot(key);
+        if (slotAsset == null) return null;
+
+        if (slotAsset.getDefaultValue() != null) {
+            return new com.riprod.hexcode.core.common.glyphs.variables.NumberVar(slotAsset.getDefaultValue());
+        }
+        if (slotAsset.getDefaultSlot() != null) {
+            return hexContext.getVariable(slotAsset.getDefaultSlot());
+        }
+        return null;
     }
 
     @Nullable

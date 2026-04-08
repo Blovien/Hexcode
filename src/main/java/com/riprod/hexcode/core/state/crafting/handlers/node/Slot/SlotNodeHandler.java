@@ -48,8 +48,6 @@ public class SlotNodeHandler implements NodeInterface {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     public static final SlotNodeHandler INSTANCE = new SlotNodeHandler();
 
-    public static final String ENTRYPOINT_KEY = "Entrypoint";
-
     private static final double SLOT_SCALE = 0.2;
     private static final float SLOT_RESPAWN_INTERVAL = 2.0f;
     private static final float SLOT_RADIUS = 0.6f;
@@ -133,38 +131,12 @@ public class SlotNodeHandler implements NodeInterface {
         GlyphComponent targetGlyph = accessor.getComponent(targetGlyphRef, GlyphComponent.getComponentType());
         if (targetGlyph == null) return InteractionState.Finished;
 
-        if (isAnchorEntrypoint(accessor, sourceRef, slotComp.getSlotKey())) {
-            return wireAnchorEntrypoint(accessor, sourceRef, targetGlyph);
-        }
-
         GlyphComponent sourceGlyph = accessor.getComponent(sourceRef, GlyphComponent.getComponentType());
         if (sourceGlyph == null) return InteractionState.Finished;
 
         sourceGlyph.getGlyph().addSlotLink(slotComp.getSlotKey(), targetGlyph.getId());
         LOGGER.atInfo().log("slot: connected '%s' on %s to glyph %s",
                 slotComp.getSlotKey(), sourceGlyph.getGlyphId(), targetGlyph.getId());
-        return InteractionState.Finished;
-    }
-
-    private boolean isAnchorEntrypoint(CommandBuffer<EntityStore> accessor, Ref<EntityStore> parentRef, String slotKey) {
-        if (!ENTRYPOINT_KEY.equals(slotKey)) return false;
-        NodeComponent parentNode = accessor.getComponent(parentRef, NodeComponent.getComponentType());
-        return parentNode != null && parentNode.getNodeType() == NodeType.Anchor;
-    }
-
-    private InteractionState wireAnchorEntrypoint(CommandBuffer<EntityStore> accessor,
-            Ref<EntityStore> anchorRef, GlyphComponent targetGlyph) {
-        NodeComponent anchorNode = accessor.getComponent(anchorRef, NodeComponent.getComponentType());
-        if (anchorNode == null) return InteractionState.Finished;
-
-        Ref<EntityStore> hexEntityRef = anchorNode.getParentEntity();
-        if (hexEntityRef == null) return InteractionState.Finished;
-
-        HexComponent hexComp = accessor.getComponent(hexEntityRef, HexComponent.getComponentType());
-        if (hexComp == null) return InteractionState.Finished;
-
-        hexComp.getHex().setFirstGlyphId(targetGlyph.getId());
-        LOGGER.atInfo().log("anchor: entrypoint set to glyph %s", targetGlyph.getId());
         return InteractionState.Finished;
     }
 
@@ -180,24 +152,10 @@ public class SlotNodeHandler implements NodeInterface {
         Ref<EntityStore> parentRef = nodeComp.getParentEntity();
         if (parentRef == null) return InteractionState.Failed;
 
-        if (isAnchorEntrypoint(accessor, parentRef, slotComp.getSlotKey())) {
-            return clearAnchorEntrypoint(accessor, parentRef);
-        }
-
         GlyphComponent parentGlyph = accessor.getComponent(parentRef, GlyphComponent.getComponentType());
         if (parentGlyph == null) return InteractionState.Failed;
 
         parentGlyph.getGlyph().clearSlot(slotComp.getSlotKey());
-        return InteractionState.Finished;
-    }
-
-    private InteractionState clearAnchorEntrypoint(CommandBuffer<EntityStore> accessor, Ref<EntityStore> anchorRef) {
-        NodeComponent anchorNode = accessor.getComponent(anchorRef, NodeComponent.getComponentType());
-        if (anchorNode == null) return InteractionState.Finished;
-
-        HexComponent hexComp = accessor.getComponent(
-                anchorNode.getParentEntity(), HexComponent.getComponentType());
-        if (hexComp != null) hexComp.getHex().setFirstGlyphId(null);
         return InteractionState.Finished;
     }
 
@@ -242,12 +200,6 @@ public class SlotNodeHandler implements NodeInterface {
                 glyphComp.getSlotEntityRefs().add(slotRef);
             }
         }
-    }
-
-    public void spawnAnchorSlot(CommandBuffer<EntityStore> accessor, Ref<EntityStore> anchorRef,
-            String slotKey, SlotAsset asset, Vector3d anchorWorldPos) {
-        Vector3f offset = asset.getOffset() != null ? asset.getOffset() : new Vector3f(0, 0, 0);
-        spawnSlotEntityAt(accessor, anchorRef, slotKey, asset, offset, anchorWorldPos);
     }
 
     private List<Vector3f> computeRadialFallbacks(Map<String, SlotAsset> assetSlots) {

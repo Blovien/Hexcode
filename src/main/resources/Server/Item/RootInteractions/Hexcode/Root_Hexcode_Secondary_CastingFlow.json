@@ -36,7 +36,6 @@
             },
             "Next": {
               "Type": "Simple",
-              "RunTime": 0.1,
               "Effects": {
                 "ItemAnimationId": "HexCasting_Exit",
                 "WorldSoundEventId": "SFX_Hexcode_Casting_Exit"

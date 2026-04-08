@@ -30,7 +30,7 @@ public class HexcasterCastingComponent implements Component<EntityStore> {
     private HexComponent draggingHex = null;
     private HexComponent hoveredHex = null;
     private GlyphComponent hoveredGlyph = null;
-    private HexComponent lastSelectedHex = null;
+    private HexComponent lastHoveredHex = null;
 
     public HexcasterCastingComponent() {
     }
@@ -64,10 +64,6 @@ public class HexcasterCastingComponent implements Component<EntityStore> {
     }
 
     public void setDraggingHex(@Nullable HexComponent draggingHex) {
-        if (draggingHex != null) {
-            setLastSelectedHex(draggingHex);
-        }
-
         if (this.draggingHex != null) {
             this.draggingHex.setDragState(false);
         }
@@ -107,12 +103,12 @@ public class HexcasterCastingComponent implements Component<EntityStore> {
         this.activeHexes = activeHexes;
     }
 
-    public void setLastSelectedHex(HexComponent hex) {
-        this.lastSelectedHex = hex;
+    public void setLastHoveredHex(HexComponent hex) {
+        this.lastHoveredHex = hex;
     }
 
-    public HexComponent getLastSelectedHex() {
-        return this.lastSelectedHex;
+    public HexComponent getLastHoveredHex() {
+        return this.lastHoveredHex;
     }
 
     public void clearCastingState() {
@@ -123,7 +119,7 @@ public class HexcasterCastingComponent implements Component<EntityStore> {
         this.draggingHex = null;
         this.hoveredHex = null;
         this.hoveredGlyph = null;
-        this.lastSelectedHex = null;
+        this.lastHoveredHex = null;
     }
 
     public void clear(CommandBuffer<EntityStore> buffer) {
@@ -136,7 +132,7 @@ public class HexcasterCastingComponent implements Component<EntityStore> {
         this.draggingHex = null;
         this.hoveredHex = null;
         this.hoveredGlyph = null;
-        this.lastSelectedHex = null;
+        this.lastHoveredHex = null;
     }
 
     @Nonnull
@@ -150,7 +146,7 @@ public class HexcasterCastingComponent implements Component<EntityStore> {
         copy.draggingHex = this.draggingHex;
         copy.hoveredHex = this.hoveredHex;
         copy.hoveredGlyph = this.hoveredGlyph;
-        copy.lastSelectedHex = this.lastSelectedHex;
+        copy.lastHoveredHex = this.lastHoveredHex;
         return copy;
     }
 }

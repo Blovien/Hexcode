@@ -10,7 +10,6 @@
       "Next": {
         "Type": "HexModeExit",
         "TargetState": "CASTING",
-        "RunTime": 0.05,
         "Effects": {
           "ItemAnimationId": "HexCasting_Active"
         }

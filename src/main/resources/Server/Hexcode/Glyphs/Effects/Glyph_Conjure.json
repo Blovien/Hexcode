@@ -78,7 +78,7 @@
         0.1
       ],
       "Shape": "Cube",
-      "DefaultSlot": 1
+      "DefaultValue": 1.0
     },
     "conjuration": {
       "Label": "Conjuration Output",
@@ -89,7 +89,7 @@
         0.1
       ],
       "Shape": "Cube",
-      "DefaultSlot": 2
+      "DefaultValue": 2.0
     },
     "Next": {
       "Label": "Next",

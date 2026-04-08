@@ -51,6 +51,7 @@ public class GlyphStyler {
         castingComp.setHoveredHex(hoveredHex);
 
         if (hoveredHex != null) {
+            castingComp.setLastHoveredHex(hoveredHex);
             enterHexHover(accessor, hoveredHex);
         }
     }
