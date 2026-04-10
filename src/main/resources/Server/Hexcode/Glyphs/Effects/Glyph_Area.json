@@ -25,7 +25,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultSlot": 1
+      "DefaultValue": 1,
+      "Unique": true
     },
     "radius": {
       "Label": "Radius",
@@ -36,7 +37,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 5
+      "DefaultValue": 5,
+      "Unique": true
     },
     "result": {
       "Label": "Result",

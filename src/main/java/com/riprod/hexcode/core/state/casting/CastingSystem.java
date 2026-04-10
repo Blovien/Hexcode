@@ -258,7 +258,11 @@ public class CastingSystem extends HexcodeManager {
             HexComponent targetHex = castingComp.getHoveredHex();
             GlyphComponent targetGlyph = null;
             if (targetHex != null && targetHex != castingComp.getDraggingHex()) {
-                targetGlyph = HexSelector.findHoveredGlyph(accessor, headRot2.getRotation(), targetHex);
+                // sentinel snap: prefer the Output end-cap when dragging
+                targetGlyph = HexSelector.findOutputGlyph(accessor, targetHex);
+                if (targetGlyph == null) {
+                    targetGlyph = HexSelector.findHoveredGlyph(accessor, headRot2.getRotation(), targetHex);
+                }
             }
             GlyphStyler.hoverGlyph(accessor, targetGlyph, castingComp);
         }

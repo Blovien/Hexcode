@@ -57,8 +57,8 @@ public class ForceGlyph implements GlyphHandler {
     }
 
     private double computeForcePower(Glyph glyph, HexContext hexContext) {
-        HexVar dirInput = glyph.resolveSlot("direction", hexContext);
-        HexVar magInput = glyph.resolveSlot("magnitude", hexContext);
+        HexVar dirInput = glyph.readSlot("direction", hexContext);
+        HexVar magInput = glyph.readSlot("magnitude", hexContext);
         double magnitude = SpellVarUtil.resolveNumberOrDefault(magInput, 20.0);
 
         Vector3d direction = null;
@@ -75,8 +75,9 @@ public class ForceGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targets = glyph.resolveSlot("target", hexContext);
-        if (!(targets instanceof EntityVar entityVar)) {
+        HexVar targets = glyph.readSlot("target", hexContext);
+        EntityVar entityVar = SpellVarUtil.resolveEntityVar(targets, hexContext);
+        if (entityVar == null) {
             Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
@@ -87,8 +88,8 @@ public class ForceGlyph implements GlyphHandler {
             return;
         }
 
-        HexVar dirInput = glyph.resolveSlot("direction", hexContext);
-        HexVar magInput = glyph.resolveSlot("magnitude", hexContext);
+        HexVar dirInput = glyph.readSlot("direction", hexContext);
+        HexVar magInput = glyph.readSlot("magnitude", hexContext);
         double magnitude = SpellVarUtil.resolveNumberOrDefault(magInput, 20.0);
 
         try {

@@ -52,6 +52,15 @@ public class EntityVar extends HexVar {
     }
 
     @Override
+    public String describe() {
+        if (entity == null) return "EntityVar: [null]";
+        UUID id = entity.getUuid();
+        if (id == null) return "EntityVar: [unset]";
+        String s = id.toString();
+        return "EntityVar: " + s.substring(0, Math.min(8, s.length()));
+    }
+
+    @Override
     public boolean equalTo(HexVar other) {
         if (other instanceof EntityVar ev) {
             if (entity == null || ev.entity == null) return entity == ev.entity;

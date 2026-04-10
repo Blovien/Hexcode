@@ -85,13 +85,10 @@ public class ArcSystem extends EntityTickingSystem<EntityStore> {
             HexContext ctx = entry.getHexContext().copy();
             ctx.UpdateAccessor(buffer);
 
-            Integer outputSlot = entry.getOutputSlot("result");
-            if (outputSlot != null) {
-                UUIDComponent uuid = buffer.getComponent(entityRef, UUIDComponent.getComponentType());
-                if (uuid != null) {
-                    EntityVar targetVar = new EntityVar(EntityVar.createRef(uuid.getUuid(), entityRef));
-                    ctx.setVariable(outputSlot, targetVar);
-                }
+            UUIDComponent uuid = buffer.getComponent(entityRef, UUIDComponent.getComponentType());
+            if (uuid != null && entry.getSourceGlyph() != null) {
+                EntityVar targetVar = new EntityVar(EntityVar.createRef(uuid.getUuid(), entityRef));
+                entry.getSourceGlyph().writeSlot("result", targetVar, ctx);
             }
 
             Executor.continueExecution(List.of(branch), ctx);

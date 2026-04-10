@@ -46,8 +46,8 @@ public class GustGlyph implements GlyphHandler {
         GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
         if (asset == null) return true;
 
-        HexVar radiusVar = glyph.resolveSlot("radius", hexContext);
-        HexVar magVar = glyph.resolveSlot("magnitude", hexContext);
+        HexVar radiusVar = glyph.readSlot("radius", hexContext);
+        HexVar magVar = glyph.readSlot("magnitude", hexContext);
         double radius = SpellVarUtil.resolveNumberOrDefault(radiusVar, 5.0);
         double mag = SpellVarUtil.resolveNumberOrDefault(magVar, 10.0);
 
@@ -72,9 +72,9 @@ public class GustGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar centerVar = glyph.resolveSlot("center", hexContext);
-        double radius = SpellVarUtil.resolveNumberOrDefault(glyph.resolveSlot("radius", hexContext), 5.0);
-        double mag = SpellVarUtil.resolveNumberOrDefault(glyph.resolveSlot("magnitude", hexContext), 10.0);
+        HexVar centerVar = glyph.readSlot("center", hexContext);
+        double radius = SpellVarUtil.resolveNumberOrDefault(glyph.readSlot("radius", hexContext), 5.0);
+        double mag = SpellVarUtil.resolveNumberOrDefault(glyph.readSlot("magnitude", hexContext), 10.0);
 
         if (centerVar == null) {
             Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
@@ -84,7 +84,7 @@ public class GustGlyph implements GlyphHandler {
         Vector3d center = SpellVarUtil.resolvePosition(centerVar, hexContext.getAccessor());
         if (center == null) {
             center = SpellVarUtil.resolvePosition(
-                    hexContext.getVariable(1), hexContext.getAccessor());
+                    hexContext.getVariable("1"), hexContext.getAccessor());
         }
         if (center == null) {
             Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);

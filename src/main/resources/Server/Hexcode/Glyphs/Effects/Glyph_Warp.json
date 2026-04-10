@@ -29,7 +29,7 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultSlot": 1
+      "DefaultValue": 1
     },
     "destination": {
       "Label": "Destination",
@@ -40,7 +40,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultSlot": 2
+      "DefaultValue": 2,
+      "Unique": true
     },
     "Next": {
       "Label": "Next",

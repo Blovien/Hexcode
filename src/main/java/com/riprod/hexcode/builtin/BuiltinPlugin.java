@@ -15,6 +15,7 @@ import com.riprod.hexcode.builtin.glyphs.effect.combust.CombustGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.conjure.ConjureGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.conjure.ConjureTriggerHandler;
 import com.riprod.hexcode.builtin.glyphs.effect.conjure.component.ConjureZoneComponent;
+import com.riprod.hexcode.builtin.glyphs.effect.debug.DebugGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.delay.DelayGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.gust.GustGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.divide.DivideGlyph;
@@ -52,8 +53,13 @@ import com.riprod.hexcode.builtin.glyphs.effect.levitate.LevitateGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.levitate.component.LevitateComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.levitate.system.LevitateTickSystem;
 import com.riprod.hexcode.builtin.glyphs.effect.multiply.MultiplyGlyph;
+import com.riprod.hexcode.builtin.glyphs.effect.output.OutputGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.interfere.InterfereGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.resonate.ResonateGlyph;
+import com.riprod.hexcode.builtin.glyphs.effect.scale.ScaleGlyph;
+import com.riprod.hexcode.builtin.glyphs.effect.scale.component.ScaleComponent;
+import com.riprod.hexcode.builtin.glyphs.effect.scale.system.ScaleTickSystem;
+import com.riprod.hexcode.builtin.glyphs.effect.onrelease.OnReleaseGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.projectile.ProjectileGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.projectile.component.ProjectileComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.projectile.system.ProjectileSystem;
@@ -70,6 +76,7 @@ import com.riprod.hexcode.builtin.glyphs.effect.subtract.SubtractGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.swap.SwapGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.terraform.TerraformGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.warp.WarpGlyph;
+import com.riprod.hexcode.builtin.glyphs.value.IsHoldingValue;
 import com.riprod.hexcode.builtin.glyphs.value.NumberValue;
 import com.riprod.hexcode.builtin.glyphs.value.PositionValue;
 import com.riprod.hexcode.builtin.glyphs.value.RotationValue;
@@ -130,6 +137,8 @@ public class BuiltinPlugin extends JavaPlugin {
         GlyphRegistry.register("Glyph_Interfere", new InterfereGlyph());
         GlyphRegistry.register("Glyph_Resonate", new ResonateGlyph());
         GlyphRegistry.register("Glyph_Levitate", new LevitateGlyph());
+        GlyphRegistry.register("Glyph_Scale", new ScaleGlyph());
+        GlyphRegistry.register("Glyph_OnRelease", new OnReleaseGlyph());
 
         // Tier 3
         GlyphRegistry.register("Glyph_Ignite", new IgniteGlyph());
@@ -146,7 +155,7 @@ public class BuiltinPlugin extends JavaPlugin {
         GlyphRegistry.register("Glyph_Warp", new WarpGlyph());
         GlyphRegistry.register("Glyph_Swap", new SwapGlyph());
 
-        // math glyphs (canResolveValue + execute)
+        // math glyphs (canReadValue + execute)
         GlyphRegistry.register("Glyph_Multiply", new MultiplyGlyph());
         GlyphRegistry.register("Glyph_Add", new AddGlyph());
         GlyphRegistry.register("Glyph_Subtract", new SubtractGlyph());
@@ -155,7 +164,7 @@ public class BuiltinPlugin extends JavaPlugin {
         GlyphRegistry.register("Glyph_Greater", new GreaterGlyph());
         GlyphRegistry.register("Glyph_Less", new LessGlyph());
 
-        // constructor glyphs (canResolveValue + execute)
+        // constructor glyphs (canReadValue + execute)
         GlyphRegistry.register("Glyph_Position", new PositionValue());
         GlyphRegistry.register("Glyph_Rotation", new RotationValue());
 
@@ -164,6 +173,15 @@ public class BuiltinPlugin extends JavaPlugin {
             GlyphRegistry.register("Number_" + i, new NumberValue(i));
         }
         GlyphRegistry.register("Glyph_Variable", new VariableValue());
+
+        // debug / introspection
+        GlyphRegistry.register("Glyph_Debug", new DebugGlyph());
+
+        // output landmark (Wave 2)
+        GlyphRegistry.register("Glyph_Output", new OutputGlyph());
+
+        // caster state queries
+        GlyphRegistry.register("Glyph_IsHolding", new IsHoldingValue());
     }
 
     private void RegisterObelisks() {
@@ -242,6 +260,10 @@ public class BuiltinPlugin extends JavaPlugin {
         ComponentType<EntityStore, HaltProjectileComponent> haltProjectileComponentType = entityStoreRegistry
                 .registerComponent(HaltProjectileComponent.class, HaltProjectileComponent::new);
         HaltProjectileComponent.setComponentType(haltProjectileComponentType);
+
+        ComponentType<EntityStore, ScaleComponent> scaleComponentType = entityStoreRegistry
+                .registerComponent(ScaleComponent.class, ScaleComponent::new);
+        ScaleComponent.setComponentType(scaleComponentType);
     }
 
     private void RegisterSystems() {
@@ -259,6 +281,7 @@ public class BuiltinPlugin extends JavaPlugin {
         entityStoreRegistry.registerSystem(new FreezeTickSystem());
         entityStoreRegistry.registerSystem(new EnsnareTickSystem());
         entityStoreRegistry.registerSystem(new HaltProjectileTickSystem());
+        entityStoreRegistry.registerSystem(new ScaleTickSystem());
     }
 
     private void RegisterTriggers() {

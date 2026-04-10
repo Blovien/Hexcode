@@ -23,7 +23,7 @@ public class IgniteGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targets = glyph.resolveSlot("target", hexContext);
+        HexVar targets = glyph.readSlot("target", hexContext);
 
         if (targets == null) {
             Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
@@ -31,7 +31,7 @@ public class IgniteGlyph implements GlyphHandler {
         }
 
         double duration = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("duration", hexContext), 5.0);
+                glyph.readSlot("duration", hexContext), 5.0);
 
         EntityEffect burnEffect = EntityEffect.getAssetMap().getAsset("Burn");
         if (burnEffect == null) {
@@ -42,7 +42,8 @@ public class IgniteGlyph implements GlyphHandler {
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
 
-        if (targets instanceof EntityVar entityVar) {
+        EntityVar entityVar = SpellVarUtil.resolveEntityVar(targets, hexContext);
+        if (entityVar != null) {
             Ref<EntityStore> ref = entityVar.getRef(accessor);
             if (ref != null && ref.isValid()) {
                 try {

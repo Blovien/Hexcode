@@ -20,8 +20,7 @@ public class SlotAsset {
     private String defaultDisplay;
     @Nullable
     private Double defaultValue;
-    @Nullable
-    private Integer defaultSlot;
+    private boolean unique = false;
 
     public SlotAsset() {
     }
@@ -68,9 +67,8 @@ public class SlotAsset {
         return defaultValue;
     }
 
-    @Nullable
-    public Integer getDefaultSlot() {
-        return defaultSlot;
+    public boolean isUnique() {
+        return unique;
     }
 
     public static final BuilderCodec<SlotAsset> CODEC = BuilderCodec
@@ -96,8 +94,8 @@ public class SlotAsset {
             .append(new KeyedCodec<>("DefaultValue", Codec.DOUBLE),
                     (s, v) -> s.defaultValue = v, s -> s.defaultValue)
             .add()
-            .append(new KeyedCodec<>("DefaultSlot", Codec.INTEGER),
-                    (s, v) -> s.defaultSlot = v, s -> s.defaultSlot)
+            .append(new KeyedCodec<>("Unique", Codec.BOOLEAN),
+                    (s, v) -> s.unique = v != null && v, s -> s.unique)
             .add()
             .build();
 }

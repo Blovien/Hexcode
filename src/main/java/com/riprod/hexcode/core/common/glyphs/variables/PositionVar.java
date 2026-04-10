@@ -40,6 +40,13 @@ public class PositionVar extends HexVar {
     }
 
     @Override
+    public String describe() {
+        if (position == null) return "PositionVar: [null]";
+        return String.format("PositionVar: (%.2f, %.2f, %.2f) [%s]",
+                position.x, position.y, position.z, absolute ? "abs" : "rel");
+    }
+
+    @Override
     public boolean equalTo(HexVar other) {
         if (other instanceof PositionVar pb) {
             if (position == null || pb.position == null) return position == pb.position;

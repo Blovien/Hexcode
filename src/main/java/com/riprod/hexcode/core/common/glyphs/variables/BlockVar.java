@@ -30,6 +30,12 @@ public class BlockVar extends HexVar {
     }
 
     @Override
+    public String describe() {
+        if (position == null) return "BlockVar: [null]";
+        return "BlockVar: (" + position.x + ", " + position.y + ", " + position.z + ")";
+    }
+
+    @Override
     public boolean equalTo(HexVar other) {
         if (other instanceof BlockVar bb) {
             if (position == null || bb.position == null) return position == bb.position;

@@ -14,8 +14,12 @@ import com.riprod.hexcode.state.HexState;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import com.riprod.hexcode.core.state.execution.component.HexContext;
 
 public class HexcasterComponent implements Component<EntityStore> {
 
@@ -41,6 +45,15 @@ public class HexcasterComponent implements Component<EntityStore> {
     private HexState pendingState = null;
     private Hex hex;
     private int castCount = 0;
+    private boolean holdingPrimary = false;
+
+    public boolean isHoldingPrimary() {
+        return holdingPrimary;
+    }
+
+    public void setHoldingPrimary(boolean holding) {
+        this.holdingPrimary = holding;
+    }
 
     @Nullable
     public Hex getActiveHex() {
@@ -97,6 +110,29 @@ public class HexcasterComponent implements Component<EntityStore> {
 
     // Crafting Mode
     private Map<String, Float> lastTickMap = new HashMap<>();
+
+    // OnRelease trigger subscriptions — fires when primary interaction ends
+    public static class PendingRelease {
+        public final List<String> childIds;
+        public final HexContext hexContext;
+        public PendingRelease(List<String> childIds, HexContext hexContext) {
+            this.childIds = childIds;
+            this.hexContext = hexContext;
+        }
+    }
+    private transient List<PendingRelease> pendingReleases = new ArrayList<>();
+
+    public void addPendingRelease(PendingRelease release) {
+        if (pendingReleases == null) pendingReleases = new ArrayList<>();
+        pendingReleases.add(release);
+    }
+
+    public List<PendingRelease> consumePendingReleases() {
+        if (pendingReleases == null || pendingReleases.isEmpty()) return List.of();
+        List<PendingRelease> out = pendingReleases;
+        pendingReleases = new ArrayList<>();
+        return out;
+    }
 
     public HexcasterComponent() {
     }
@@ -160,6 +196,7 @@ public class HexcasterComponent implements Component<EntityStore> {
         copy.trainingShapeId = this.trainingShapeId;
         copy.hex = this.hex != null ? this.hex.clone() : null;
         copy.castCount = this.castCount;
+        copy.holdingPrimary = this.holdingPrimary;
         copy.lastTickMap = new HashMap<>(this.lastTickMap);
         return copy;
     }

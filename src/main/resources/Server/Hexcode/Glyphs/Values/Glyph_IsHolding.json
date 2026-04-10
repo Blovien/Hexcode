@@ -1,0 +1,30 @@
+{
+  "Parent": "Base_Glyph",
+  "Title": "IsHolding",
+  "Description": "Returns 1.0 while the caster is holding primary (LMB) during EXECUTION, 0.0 otherwise",
+  "ModelPath": "Glyph_IsHolding",
+  "BasePower": 0,
+  "ManaConsumption": 0,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Circle",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Antitriangle",
+      "Size": 0.5
+    }
+  ],
+  "Slots": {
+    "Next": {
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain",
+      "Color": [
+        0.4,
+        1.0,
+        0.4
+      ],
+      "Shape": "Sphere"
+    }
+  }
+}

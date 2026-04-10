@@ -29,7 +29,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultSlot": 1
+      "DefaultValue": 1,
+      "Unique": true
     },
     "radius": {
       "Label": "Radius",
@@ -40,7 +41,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultSlot": 2
+      "DefaultValue": 2,
+      "Unique": true
     },
     "damage": {
       "Label": "Damage",
@@ -51,7 +53,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultSlot": 3
+      "DefaultValue": 3,
+      "Unique": true
     },
     "duration": {
       "Label": "Duration",
@@ -62,7 +65,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultSlot": 4
+      "DefaultValue": 4,
+      "Unique": true
     },
     "result": {
       "Label": "Result",

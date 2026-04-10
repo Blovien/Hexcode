@@ -58,7 +58,7 @@ public class ShatterGlyph implements GlyphHandler {
         if (asset == null) return true;
 
         int count = (int) SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("count", hexContext), (double) DEFAULT_COUNT).intValue();
+                glyph.readSlot("count", hexContext), (double) DEFAULT_COUNT).intValue();
         if (count < 1) count = 1;
         float countScale = (float) (count / MANA_REFERENCE_COUNT);
 
@@ -74,14 +74,12 @@ public class ShatterGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        Integer outputSlot = glyph.getSlotIndex("result", hexContext);
-
-        HexVar sourceVar = glyph.resolveSlot("source", hexContext);
-        HexVar directionVar = glyph.resolveSlot("direction", hexContext);
-        HexVar countVar = glyph.resolveSlot("count", hexContext);
-        HexVar spreadVar = glyph.resolveSlot("spread", hexContext);
-        HexVar speedVar = glyph.resolveSlot("speed", hexContext);
-        HexVar gravityVar = glyph.resolveSlot("gravity", hexContext);
+        HexVar sourceVar = glyph.readSlot("source", hexContext);
+        HexVar directionVar = glyph.readSlot("direction", hexContext);
+        HexVar countVar = glyph.readSlot("count", hexContext);
+        HexVar spreadVar = glyph.readSlot("spread", hexContext);
+        HexVar speedVar = glyph.readSlot("speed", hexContext);
+        HexVar gravityVar = glyph.readSlot("gravity", hexContext);
 
         if (sourceVar == null) {
             LOGGER.atWarning().log("shatter: no source provided");
@@ -119,15 +117,12 @@ public class ShatterGlyph implements GlyphHandler {
         ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(SHARD_MODEL);
         Model model = Model.createScaledModel(modelAsset, SHARD_SCALE);
 
-        Map<String, Integer> outputSlots = new HashMap<>();
-        if (outputSlot != null) outputSlots.put("result", outputSlot);
-
         List<String> nextGlyphs = glyph.getNextLinks();
 
         for (Vector3d dir : shardDirections) {
             Vector3d shardSpawn = new Vector3d(spawnPos).add(new Vector3d(dir).scale(1.0));
             spawnShard(hexContext, shardSpawn, dir, speed, gravity, model,
-                    outputSlots, nextGlyphs, glyph);
+                    nextGlyphs, glyph);
         }
 
         ShatterStyle.renderLaunch(spawnPos, centralDir, hexContext.getColors(), hexContext.getAccessor());
@@ -177,7 +172,7 @@ public class ShatterGlyph implements GlyphHandler {
     }
 
     private void spawnShard(HexContext hexContext, Vector3d position, Vector3d direction,
-            double speed, double gravity, Model model, Map<String, Integer> outputSlots,
+            double speed, double gravity, Model model,
             List<String> nextGlyphs, Glyph glyph) {
 
         Vector3f rotation = new Vector3f();
@@ -206,7 +201,7 @@ public class ShatterGlyph implements GlyphHandler {
 
         holder.addComponent(HexSignal.getComponentType(),
                 new HexSignal(hexContext.copy(), hexContext.getRoot().getRootEntityRef(),
-                        glyph, nextGlyphs, new HashMap<>(outputSlots)));
+                        glyph, nextGlyphs));
         holder.addComponent(ShatterComponent.getComponentType(),
                 new ShatterComponent(hexContext.getCasterRef(), MAX_DISTANCE, new Vector3d(position)));
         holder.addComponent(TriggerComponent.getComponentType(),

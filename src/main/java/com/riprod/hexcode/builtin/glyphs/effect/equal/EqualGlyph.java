@@ -3,6 +3,7 @@ package com.riprod.hexcode.builtin.glyphs.effect.equal;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
@@ -12,6 +13,7 @@ import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 import com.riprod.hexcode.utils.HexMathUtil;
 
 public class EqualGlyph implements GlyphHandler {
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     public static final String ID = "Glyph_Equal";
     private static final float DEGRADATION_RATE = 0.25f;
 
@@ -37,8 +39,8 @@ public class EqualGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar a = glyph.resolveSlot("a", hexContext);
-        HexVar b = glyph.resolveSlot("b", hexContext);
+        HexVar a = glyph.readSlot("a", hexContext);
+        HexVar b = glyph.readSlot("b", hexContext);
 
         if (b == null) {
             assign(glyph, hexContext, a);
@@ -50,8 +52,7 @@ public class EqualGlyph implements GlyphHandler {
 
     private void assign(Glyph glyph, HexContext hexContext, HexVar value) {
         if (value != null) {
-            Integer outputSlot = glyph.getSlotIndex("result", hexContext);
-            if (outputSlot != null) hexContext.setVariable(outputSlot, value);
+            glyph.writeSlot("result", value, hexContext);
         }
         Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }

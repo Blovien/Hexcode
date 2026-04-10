@@ -26,6 +26,20 @@ public class HexSelector {
                 new Vector3f(0, 0, 0), new ArrayList<>());
     }
 
+    // sentinel snap: returns the first Glyph_Output in the hex, or null.
+    // used during drag to prefer-snap drops onto Output end-caps.
+    public static GlyphComponent findOutputGlyph(CommandBuffer<EntityStore> accessor, HexComponent hex) {
+        if (hex == null) return null;
+        List<Ref<EntityStore>> all = hex.getChildGlyphRefsList();
+        for (Ref<EntityStore> childRef : all) {
+            if (childRef == null || !childRef.isValid()) continue;
+            GlyphComponent child = accessor.getComponent(childRef, GlyphComponent.getComponentType());
+            if (child == null) continue;
+            if ("Glyph_Output".equals(child.getGlyphId())) return child;
+        }
+        return null;
+    }
+
     public static GlyphComponent findHoveredGlyph(CommandBuffer<EntityStore> accessor, Vector3f playerRotation,
             HexComponent hex, List<String> nextGlyphs, Vector3f parentRotation, List<String> visitedGlyphs) {
 

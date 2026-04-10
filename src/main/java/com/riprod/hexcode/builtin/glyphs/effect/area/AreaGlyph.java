@@ -50,7 +50,7 @@ public class AreaGlyph implements GlyphHandler {
         if (asset == null) return true;
 
         double radius = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("radius", hexContext), DEFAULT_RADIUS);
+                glyph.readSlot("radius", hexContext), DEFAULT_RADIUS);
         float radiusFactor = (float) ((radius * radius) / (DEFAULT_RADIUS * DEFAULT_RADIUS));
 
         float baseCost = asset.getManaConsumption()
@@ -65,9 +65,9 @@ public class AreaGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar centerVar = glyph.resolveSlot("center", hexContext);
+        HexVar centerVar = glyph.readSlot("center", hexContext);
         double radius = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("radius", hexContext), DEFAULT_RADIUS);
+                glyph.readSlot("radius", hexContext), DEFAULT_RADIUS);
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
         Vector3d center = SpellVarUtil.resolvePosition(centerVar, accessor);
@@ -76,9 +76,6 @@ public class AreaGlyph implements GlyphHandler {
             Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
-
-        Integer outputSlot = glyph.getSlotIndex("result", hexContext);
-        Integer numTargetsSlot = glyph.getSlotIndex("num_targets", hexContext);
 
         if (centerVar instanceof BlockVar) {
             List<Vector3i> blocks = gatherBlocks(center, radius, accessor);
@@ -91,12 +88,8 @@ public class AreaGlyph implements GlyphHandler {
 
             for (Vector3i pos : blocks) {
                 HexContext copy = hexContext.copy();
-                if (outputSlot != null) {
-                    copy.setVariable(outputSlot, new BlockVar(pos));
-                }
-                if (numTargetsSlot != null) {
-                    copy.setVariable(numTargetsSlot, new NumberVar(blocks.size()));
-                }
+                glyph.writeSlot("result", new BlockVar(pos), copy);
+                glyph.writeSlot("num_targets", new NumberVar(blocks.size()), copy);
                 Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, copy);
             }
         } else {
@@ -110,12 +103,8 @@ public class AreaGlyph implements GlyphHandler {
 
             for (PersistentRef ref : entities) {
                 HexContext copy = hexContext.copy();
-                if (outputSlot != null) {
-                    copy.setVariable(outputSlot, new EntityVar(ref));
-                }
-                if (numTargetsSlot != null) {
-                    copy.setVariable(numTargetsSlot, new NumberVar(entities.size()));
-                }
+                glyph.writeSlot("result", new EntityVar(ref), copy);
+                glyph.writeSlot("num_targets", new NumberVar(entities.size()), copy);
                 Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, copy);
             }
         }

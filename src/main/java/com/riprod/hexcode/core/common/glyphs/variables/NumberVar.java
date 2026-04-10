@@ -29,6 +29,11 @@ public class NumberVar extends HexVar {
     }
 
     @Override
+    public String describe() {
+        return "NumberVar: " + number;
+    }
+
+    @Override
     public boolean equalTo(HexVar other) {
         if (other instanceof NumberVar nb) {
             return Double.compare(this.number, nb.number) == 0;

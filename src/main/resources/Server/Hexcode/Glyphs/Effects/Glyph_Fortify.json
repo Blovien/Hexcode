@@ -25,7 +25,7 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultSlot": 1
+      "DefaultValue": 1
     },
     "amount": {
       "Label": "Amount",
@@ -36,7 +36,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultSlot": 15
+      "DefaultValue": 15,
+      "Unique": true
     },
     "duration": {
       "Label": "Duration",
@@ -47,7 +48,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 200
+      "DefaultValue": 200,
+      "Unique": true
     },
     "Next": {
       "Label": "Next",

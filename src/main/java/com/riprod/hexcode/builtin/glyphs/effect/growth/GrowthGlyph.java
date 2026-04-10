@@ -65,7 +65,7 @@ public class GrowthGlyph implements GlyphHandler {
         if (asset == null) return true;
 
         double amount = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("amount", hexContext), DEFAULT_AMOUNT);
+                glyph.readSlot("amount", hexContext), DEFAULT_AMOUNT);
         float baseCost = asset.getManaConsumption()
                 * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
 
@@ -97,7 +97,7 @@ public class GrowthGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targets = glyph.resolveSlot("target", hexContext);
+        HexVar targets = glyph.readSlot("target", hexContext);
         if (targets == null) {
             Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
@@ -105,14 +105,16 @@ public class GrowthGlyph implements GlyphHandler {
 
         double amount = Math.max(MIN_AMOUNT, Math.min(MAX_AMOUNT,
                 SpellVarUtil.resolveNumberOrDefault(
-                        glyph.resolveSlot("amount", hexContext), DEFAULT_AMOUNT)));
+                        glyph.readSlot("amount", hexContext), DEFAULT_AMOUNT)));
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
 
-        if (targets instanceof EntityVar entityVar) {
+        EntityVar entityVar = SpellVarUtil.resolveEntityVar(targets, hexContext);
+        if (entityVar != null) {
             applyToEntity(entityVar, amount, glyph, hexContext, accessor);
-        } else if (targets instanceof BlockVar blockVar) {
-            applyToBlock(blockVar, amount, hexContext, accessor);
+        } else {
+            BlockVar blockVar = SpellVarUtil.resolveBlockVar(targets, hexContext);
+            if (blockVar != null) applyToBlock(blockVar, amount, hexContext, accessor);
         }
 
         Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
@@ -130,7 +132,7 @@ public class GrowthGlyph implements GlyphHandler {
         }
 
         double duration = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("duration", hexContext), DEFAULT_DURATION);
+                glyph.readSlot("duration", hexContext), DEFAULT_DURATION);
         float durationSeconds = (float) duration;
 
         EffectControllerComponent controller = accessor.getComponent(

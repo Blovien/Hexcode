@@ -12,7 +12,7 @@ public class DelayGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        float seconds = SpellVarUtil.resolveNumberOrDefault(glyph.resolveSlot("duration", hexContext), 1.0).floatValue();
+        float seconds = SpellVarUtil.resolveNumberOrDefault(glyph.readSlot("duration", hexContext), 1.0).floatValue();
 
         DelayStyle.render(hexContext);
 

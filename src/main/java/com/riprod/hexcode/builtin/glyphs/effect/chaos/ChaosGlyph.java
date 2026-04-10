@@ -18,31 +18,29 @@ public class ChaosGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        Double slotIndex = SpellVarUtil.resolveNumber(glyph.resolveSlot("result", hexContext));
-        HexVar minValVar = glyph.resolveSlot("min", hexContext);
-        HexVar maxValVar = glyph.resolveSlot("max", hexContext);
+        HexVar minValVar = glyph.readSlot("min", hexContext);
+        HexVar maxValVar = glyph.readSlot("max", hexContext);
 
-        if (slotIndex != null && minValVar != null && maxValVar != null) {
+        if (minValVar != null && maxValVar != null) {
             int minVal = (int) Math.round(SpellVarUtil.resolveNumber(minValVar));
             int maxVal = (int) Math.round(SpellVarUtil.resolveNumber(maxValVar));
             int randomValue = ThreadLocalRandom.current().nextInt(minVal, maxVal + 1);
-            hexContext.setVariable(slotIndex.intValue(), new NumberVar(randomValue));
-            LOGGER.atInfo().log("chaos: range [%d, %d], result=%d -> slot %d",
-                    minVal, maxVal, randomValue, slotIndex.intValue());
+            glyph.writeSlot("result", new NumberVar(randomValue), hexContext);
+            LOGGER.atInfo().log("chaos: range [%d, %d], result=%d", minVal, maxVal, randomValue);
         }
 
         Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 
     @Override
-    public boolean canResolveValue() {
+    public boolean canReadValue() {
         return true;
     }
 
     @Override
-    public HexVar resolveValue(Glyph glyph, HexContext hexContext) {
-        HexVar minValVar = glyph.resolveSlot("min", hexContext);
-        HexVar maxValVar = glyph.resolveSlot("max", hexContext);
+    public HexVar readValue(Glyph glyph, HexContext hexContext) {
+        HexVar minValVar = glyph.readSlot("min", hexContext);
+        HexVar maxValVar = glyph.readSlot("max", hexContext);
 
         if (minValVar == null || maxValVar == null) return new NumberVar(0);
 

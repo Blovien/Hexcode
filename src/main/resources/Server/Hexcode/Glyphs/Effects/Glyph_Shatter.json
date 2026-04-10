@@ -29,7 +29,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultSlot": 1
+      "DefaultValue": 1,
+      "Unique": true
     },
     "direction": {
       "Label": "Direction",
@@ -40,7 +41,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultSlot": 1
+      "DefaultValue": 1,
+      "Unique": true
     },
     "count": {
       "Label": "Count",
@@ -51,7 +53,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 5
+      "DefaultValue": 5,
+      "Unique": true
     },
     "spread": {
       "Label": "Spread",
@@ -62,7 +65,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 30
+      "DefaultValue": 30,
+      "Unique": true
     },
     "speed": {
       "Label": "Speed",
@@ -73,7 +77,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 20
+      "DefaultValue": 20,
+      "Unique": true
     },
     "gravity": {
       "Label": "Gravity",
@@ -84,7 +89,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 10
+      "DefaultValue": 10,
+      "Unique": true
     },
     "result": {
       "Label": "Result",

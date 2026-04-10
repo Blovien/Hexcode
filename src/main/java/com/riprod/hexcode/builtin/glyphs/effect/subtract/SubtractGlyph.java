@@ -2,6 +2,7 @@ package com.riprod.hexcode.builtin.glyphs.effect.subtract;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
@@ -15,6 +16,7 @@ import com.riprod.hexcode.utils.HexMathUtil;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
 public class SubtractGlyph implements GlyphHandler {
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     public static final String ID = "Glyph_Subtract";
     private static final float INITIAL_PASS_CHANCE = 0.995f;
     private static final float DECAY_PER_USE = 0.007f; // slower decay, ~10 uses -> ~0.92 chance
@@ -43,8 +45,8 @@ public class SubtractGlyph implements GlyphHandler {
     }
 
     private HexVar compute(Glyph glyph, HexContext hexContext) {
-        HexVar a = glyph.resolveSlot("a", hexContext);
-        HexVar b = glyph.resolveSlot("b", hexContext);
+        HexVar a = glyph.readSlot("a", hexContext);
+        HexVar b = glyph.readSlot("b", hexContext);
         if (a != null && b == null)
             return HexMathUtil.negate(a);
         if (a == null && b != null)
@@ -66,20 +68,19 @@ public class SubtractGlyph implements GlyphHandler {
         HexVar result = compute(glyph, hexContext);
 
         if (result != null) {
-            Double slotIndex = SpellVarUtil.resolveNumber(glyph.resolveSlot("result", hexContext));
-            if (slotIndex != null) hexContext.setVariable(slotIndex.intValue(), result);
+            glyph.writeSlot("result", result, hexContext);
         }
 
         Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 
     @Override
-    public boolean canResolveValue() {
+    public boolean canReadValue() {
         return true;
     }
 
     @Override
-    public HexVar resolveValue(Glyph glyph, HexContext hexContext) {
+    public HexVar readValue(Glyph glyph, HexContext hexContext) {
         return compute(glyph, hexContext);
     }
 }

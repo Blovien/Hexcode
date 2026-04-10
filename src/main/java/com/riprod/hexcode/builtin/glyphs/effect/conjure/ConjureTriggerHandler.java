@@ -140,18 +140,17 @@ public class ConjureTriggerHandler implements TriggerHandler {
                 ConjureStyle.renderTrigger(entityTransform.getPosition(), ctx.getColors(), buffer);
             }
 
-            Integer entityOutputSlot = entry.getOutputSlot("entity");
-            if (entityOutputSlot != null) {
-                ctx.setVariable(entityOutputSlot, new EntityVar(entityUuid.getUuid(), entityRef));
-            }
+            if (entry.getSourceGlyph() != null) {
+                entry.getSourceGlyph().writeSlot("entity",
+                        new EntityVar(entityUuid.getUuid(), entityRef), ctx);
 
-            Integer conjurationOutputSlot = entry.getOutputSlot("conjuration");
-            if (conjurationOutputSlot != null && zone.getZoneRef() != null && zone.getZoneRef().isValid()) {
-                UUIDComponent zoneUuid = buffer.getComponent(zone.getZoneRef(),
-                        UUIDComponent.getComponentType());
-                if (zoneUuid != null) {
-                    ctx.setVariable(conjurationOutputSlot,
-                            new EntityVar(zoneUuid.getUuid(), zone.getZoneRef()));
+                if (zone.getZoneRef() != null && zone.getZoneRef().isValid()) {
+                    UUIDComponent zoneUuid = buffer.getComponent(zone.getZoneRef(),
+                            UUIDComponent.getComponentType());
+                    if (zoneUuid != null) {
+                        entry.getSourceGlyph().writeSlot("conjuration",
+                                new EntityVar(zoneUuid.getUuid(), zone.getZoneRef()), ctx);
+                    }
                 }
             }
 

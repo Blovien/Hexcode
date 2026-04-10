@@ -1,13 +1,9 @@
 package com.riprod.hexcode.core.state.execution.component;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Component;
@@ -38,10 +34,9 @@ public class HexSignal implements Component<EntityStore> {
     }
 
     public HexSignal(HexContext hexContext, Ref<EntityStore> hexEntityRef,
-            Glyph sourceGlyph, List<String> nextGlyphIds,
-            @Nullable Map<String, Integer> outputSlots) {
+            Glyph sourceGlyph, List<String> nextGlyphIds) {
         this.entries = new ArrayList<>();
-        this.entries.add(new SignalEntry(hexContext, hexEntityRef, sourceGlyph, nextGlyphIds, outputSlots));
+        this.entries.add(new SignalEntry(hexContext, hexEntityRef, sourceGlyph, nextGlyphIds));
     }
 
     public SignalEntry getPrimary() {
@@ -135,19 +130,16 @@ public class HexSignal implements Component<EntityStore> {
         Ref<EntityStore> hexEntityRef;
         Glyph sourceGlyph;
         List<String> nextGlyphIds;
-        Map<String, Integer> outputSlots;
 
         public SignalEntry() {
         }
 
         public SignalEntry(HexContext hexContext, Ref<EntityStore> hexEntityRef,
-                Glyph sourceGlyph, List<String> nextGlyphIds,
-                @Nullable Map<String, Integer> outputSlots) {
+                Glyph sourceGlyph, List<String> nextGlyphIds) {
             this.hexContext = hexContext;
             this.hexEntityRef = hexEntityRef;
             this.sourceGlyph = sourceGlyph;
             this.nextGlyphIds = nextGlyphIds;
-            this.outputSlots = outputSlots != null ? outputSlots : new HashMap<>();
         }
 
         public HexContext getHexContext() {
@@ -174,15 +166,6 @@ public class HexSignal implements Component<EntityStore> {
             this.nextGlyphIds = nextGlyphIds;
         }
 
-        @Nullable
-        public Integer getOutputSlot(String key) {
-            return outputSlots != null ? outputSlots.get(key) : null;
-        }
-
-        public Map<String, Integer> getOutputSlots() {
-            return outputSlots;
-        }
-
         @Nonnull
         public SignalEntry clone() {
             SignalEntry copy = new SignalEntry();
@@ -190,7 +173,6 @@ public class HexSignal implements Component<EntityStore> {
             copy.hexEntityRef = this.hexEntityRef;
             copy.sourceGlyph = this.sourceGlyph;
             copy.nextGlyphIds = this.nextGlyphIds != null ? new ArrayList<>(this.nextGlyphIds) : null;
-            copy.outputSlots = this.outputSlots != null ? new HashMap<>(this.outputSlots) : null;
             return copy;
         }
     }

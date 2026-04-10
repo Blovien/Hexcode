@@ -1,0 +1,26 @@
+{
+  "Parent": "Base_Glyph",
+  "Title": "OnRelease",
+  "Description": "Defers child execution until the caster releases the primary interaction",
+  "ModelPath": "Glyph_OnRelease",
+  "BasePower": 0,
+  "ManaConsumption": 2,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Antitriangle",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Square",
+      "Size": 0.55
+    }
+  ],
+  "Slots": {
+    "Next": {
+      "Label": "Next",
+      "Description": "Children to fire on primary release",
+      "Color": [0.4, 1.0, 0.4],
+      "Shape": "Sphere"
+    }
+  }
+}

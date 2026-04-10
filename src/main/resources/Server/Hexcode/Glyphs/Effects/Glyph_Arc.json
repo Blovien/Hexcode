@@ -29,7 +29,7 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultSlot": 1
+      "DefaultValue": 1
     },
     "jump": {
       "Label": "Jump",
@@ -40,7 +40,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 15
+      "DefaultValue": 15,
+      "Unique": true
     },
     "delay": {
       "Label": "Delay",
@@ -51,7 +52,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 1
+      "DefaultValue": 1,
+      "Unique": true
     },
     "result": {
       "Label": "Result",

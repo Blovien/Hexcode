@@ -23,6 +23,7 @@ public class Slot {
     private transient DebugShape shape;
     @Nullable
     private transient String defaultDisplay;
+    private transient boolean unique;
 
     public Slot() {
     }
@@ -71,6 +72,11 @@ public class Slot {
         this.offset = resolvedOffset;
         this.shape = asset.getShape();
         this.defaultDisplay = asset.getDefaultDisplay();
+        this.unique = asset.isUnique();
+    }
+
+    public boolean isUnique() {
+        return this.unique;
     }
 
     public String getKey() {
@@ -120,6 +126,7 @@ public class Slot {
         copy.offset = this.offset;
         copy.shape = this.shape;
         copy.defaultDisplay = this.defaultDisplay;
+        copy.unique = this.unique;
         return copy;
     }
 

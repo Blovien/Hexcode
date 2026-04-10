@@ -29,7 +29,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultSlot": 1
+      "DefaultValue": 1,
+      "Unique": true
     },
     "radius": {
       "Label": "Radius",
@@ -40,7 +41,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 2
+      "DefaultValue": 2,
+      "Unique": true
     },
     "magnitude": {
       "Label": "Magnitude",
@@ -51,7 +53,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 10
+      "DefaultValue": 10,
+      "Unique": true
     },
     "Next": {
       "Label": "Next",

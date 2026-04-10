@@ -29,7 +29,7 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultSlot": 1
+      "DefaultValue": 1
     },
     "duration": {
       "Label": "Duration",
@@ -40,7 +40,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 15
+      "DefaultValue": 15,
+      "Unique": true
     },
     "intensity": {
       "Label": "Intensity",
@@ -51,7 +52,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 20
+      "DefaultValue": 20,
+      "Unique": true
     },
     "phased": {
       "Label": "Phased",

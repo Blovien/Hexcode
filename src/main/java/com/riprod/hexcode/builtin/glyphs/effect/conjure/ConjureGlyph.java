@@ -38,7 +38,6 @@ import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.common.trigger.component.TriggerComponent;
-import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.HexSignal;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
@@ -84,11 +83,11 @@ public class ConjureGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar coordsAVar = glyph.resolveSlotOrDefault(INPUTS.COORDS_A.getSlotName(), hexContext, new PositionVar(new Vector3d(0.5, 0.5, 0.5)));
-        HexVar coordsBVar = glyph.resolveSlotOrDefault(INPUTS.COORDS_B.getSlotName(), hexContext, new PositionVar(new Vector3d(-0.5, -0.5, -0.5)));
-        HexVar durationVar = glyph.resolveSlot(INPUTS.DURATION.getSlotName(), hexContext);
-        HexVar intervalVar = glyph.resolveSlot(INPUTS.INTERVAL.getSlotName(), hexContext);
-        HexVar anchorVar = glyph.resolveSlot(INPUTS.ANCHOR.getSlotName(), hexContext);
+        HexVar coordsAVar = glyph.readSlotOrDefault(INPUTS.COORDS_A.getSlotName(), hexContext, new PositionVar(new Vector3d(0.5, 0.5, 0.5)));
+        HexVar coordsBVar = glyph.readSlotOrDefault(INPUTS.COORDS_B.getSlotName(), hexContext, new PositionVar(new Vector3d(-0.5, -0.5, -0.5)));
+        HexVar durationVar = glyph.readSlot(INPUTS.DURATION.getSlotName(), hexContext);
+        HexVar intervalVar = glyph.readSlot(INPUTS.INTERVAL.getSlotName(), hexContext);
+        HexVar anchorVar = glyph.readSlot(INPUTS.ANCHOR.getSlotName(), hexContext);
 
         if (anchorVar == null) {
             LOGGER.atInfo().log("conjure: no anchor, failing");
@@ -136,9 +135,6 @@ public class ConjureGlyph implements GlyphHandler {
         float durationSeconds = SpellVarUtil.resolveNumberOrDefault(durationVar, 5.0).floatValue();
         float interval = SpellVarUtil.resolveNumberOrDefault(intervalVar, -1.0).floatValue();
 
-        Integer entityOutputSlot = glyph.getSlotIndex(OUTPUTS.ENTITY.getSlotName(), hexContext);
-        Integer conjurationOutputSlot = glyph.getSlotIndex(OUTPUTS.CONJURATION.getSlotName(), hexContext);
-
         List<String> allNext = glyph.getNextLinks();
         List<String> firstBranch = !allNext.isEmpty() ? List.of(allNext.get(0)) : null;
         List<String> zoneNext = allNext.size() > 1
@@ -148,17 +144,9 @@ public class ConjureGlyph implements GlyphHandler {
         ConjureZoneComponent zoneComp = new ConjureZoneComponent(halfExtents, interval);
         TriggerComponent triggerComp = new TriggerComponent("conjure", durationSeconds, firstBranch);
 
-        Map<String, Integer> outputSlots = new HashMap<>();
-        if (entityOutputSlot != null) {
-            outputSlots.put("entity", entityOutputSlot);
-        }
-        if (conjurationOutputSlot != null) {
-            outputSlots.put("conjuration", conjurationOutputSlot);
-        }
-
         HexSignal signal = new HexSignal(
                 hexContext.copy(), hexContext.getRoot().getRootEntityRef(),
-                glyph, zoneNext, outputSlots.isEmpty() ? null : outputSlots);
+                glyph, zoneNext);
 
         UUID zoneUuid = UUID.randomUUID();
         Vector3f debugColor = ConjureStyle.resolveColor(hexContext.getColors());
@@ -210,12 +198,8 @@ public class ConjureGlyph implements GlyphHandler {
         ConjureStyle.renderSpawn(center, hexContext.getColors(), hexContext.getAccessor());
 
         EntityVar zoneEntityVar = new EntityVar(zoneUuid, zoneRef);
-        if (entityOutputSlot != null) {
-            hexContext.setVariable(entityOutputSlot, zoneEntityVar);
-        }
-        if (conjurationOutputSlot != null) {
-            hexContext.setVariable(conjurationOutputSlot, zoneEntityVar);
-        }
+        glyph.writeSlot(OUTPUTS.ENTITY.getSlotName(), zoneEntityVar, hexContext);
+        glyph.writeSlot(OUTPUTS.CONJURATION.getSlotName(), zoneEntityVar, hexContext);
 
         RootGlyph execComp = hexContext.getAccessor().getComponent(
                 hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());

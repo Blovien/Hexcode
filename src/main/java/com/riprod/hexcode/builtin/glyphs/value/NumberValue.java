@@ -19,12 +19,12 @@ public class NumberValue implements GlyphHandler {
     }
 
     @Override
-    public boolean canResolveValue() {
+    public boolean canReadValue() {
         return true;
     }
 
     @Override
-    public HexVar resolveValue(Glyph glyph, HexContext hexContext) {
+    public HexVar readValue(Glyph glyph, HexContext hexContext) {
         return new NumberVar(this.number);
     }
 

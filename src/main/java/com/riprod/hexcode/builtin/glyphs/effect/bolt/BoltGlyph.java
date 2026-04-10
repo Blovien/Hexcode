@@ -40,7 +40,7 @@ public class BoltGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar target = glyph.resolveSlot("target", hexContext);
+        HexVar target = glyph.readSlot("target", hexContext);
         if (target == null) {
             LOGGER.atWarning().log("bolt: no target provided");
             return;
@@ -58,13 +58,13 @@ public class BoltGlyph implements GlyphHandler {
         Vector3d sourcePos = casterTc.getPosition().clone();
         World world = accessor.getExternalData().getWorld();
         Vector3f color = BoltStyle.resolveColor(hexContext);
-        Double slotIndexD = SpellVarUtil.resolveNumber(glyph.resolveSlot("result", hexContext));
-        Integer outputSlot = slotIndexD != null ? slotIndexD.intValue() : null;
 
-        if (target instanceof EntityVar entityVar) {
-            handleEntityTarget(glyph, hexContext, entityVar, accessor, casterRef, sourcePos, world, color, outputSlot);
-        } else if (target instanceof BlockVar blockVar) {
-            handleBlockTarget(glyph, hexContext, blockVar, accessor, casterRef, sourcePos, world, color, outputSlot);
+        EntityVar entityVar = SpellVarUtil.resolveEntityVar(target, hexContext);
+        BlockVar blockVar = entityVar == null ? SpellVarUtil.resolveBlockVar(target, hexContext) : null;
+        if (entityVar != null) {
+            handleEntityTarget(glyph, hexContext, entityVar, accessor, casterRef, sourcePos, world, color);
+        } else if (blockVar != null) {
+            handleBlockTarget(glyph, hexContext, blockVar, accessor, casterRef, sourcePos, world, color);
         } else {
             LOGGER.atWarning().log("bolt: target is not entity or block");
             return;
@@ -75,7 +75,7 @@ public class BoltGlyph implements GlyphHandler {
 
     private void handleEntityTarget(Glyph glyph, HexContext hexContext, EntityVar entityVar,
             CommandBuffer<EntityStore> accessor, Ref<EntityStore> casterRef,
-            Vector3d sourcePos, World world, Vector3f color, Integer outputSlot) {
+            Vector3d sourcePos, World world, Vector3f color) {
 
         Ref<EntityStore> targetRef = entityVar.getRef(accessor);
         if (targetRef == null || !targetRef.isValid()) {
@@ -96,15 +96,13 @@ public class BoltGlyph implements GlyphHandler {
         BoltStyle.applyShockEffect(accessor, targetRef);
 
         double damageAmount = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("power", hexContext), 5.0);
+                glyph.readSlot("power", hexContext), 5.0);
         applyDamage(accessor, targetRef, (float) damageAmount);
 
-        if (outputSlot != null) {
-            UUIDComponent targetUuid = accessor.getComponent(targetRef, UUIDComponent.getComponentType());
-            if (targetUuid != null) {
-                EntityVar resultVar = new EntityVar(EntityVar.createRef(targetUuid.getUuid(), targetRef));
-                hexContext.setVariable(outputSlot, resultVar);
-            }
+        UUIDComponent targetUuid = accessor.getComponent(targetRef, UUIDComponent.getComponentType());
+        if (targetUuid != null) {
+            EntityVar resultVar = new EntityVar(EntityVar.createRef(targetUuid.getUuid(), targetRef));
+            glyph.writeSlot("result", resultVar, hexContext);
         }
 
         LOGGER.atInfo().log("bolt: hit entity for %.1f damage", damageAmount);
@@ -112,7 +110,7 @@ public class BoltGlyph implements GlyphHandler {
 
     private void handleBlockTarget(Glyph glyph, HexContext hexContext, BlockVar blockVar,
             CommandBuffer<EntityStore> accessor, Ref<EntityStore> casterRef,
-            Vector3d sourcePos, World world, Vector3f color, Integer outputSlot) {
+            Vector3d sourcePos, World world, Vector3f color) {
 
         Vector3i blockPos = blockVar.getValue();
         if (blockPos == null) {
@@ -127,10 +125,7 @@ public class BoltGlyph implements GlyphHandler {
 
         triggerBlockInteraction(accessor, casterRef, world, blockPos);
 
-        if (outputSlot != null) {
-            BlockVar resultVar = new BlockVar(blockPos);
-            hexContext.setVariable(outputSlot, resultVar);
-        }
+        glyph.writeSlot("result", new BlockVar(blockPos), hexContext);
 
         LOGGER.atInfo().log("bolt: hit block at %d %d %d", blockPos.x, blockPos.y, blockPos.z);
     }

@@ -139,11 +139,8 @@ public class ShatterTriggerHandler implements TriggerHandler {
             ctx.UpdateAccessor(buffer);
             ctx.UpdateChunkAccessor(chunkAccessor);
 
-            if (resultVar != null) {
-                Integer outputSlot = entry.getOutputSlot("result");
-                if (outputSlot != null) {
-                    ctx.setVariable(outputSlot, resultVar);
-                }
+            if (resultVar != null && entry.getSourceGlyph() != null) {
+                entry.getSourceGlyph().writeSlot("result", resultVar, ctx);
             }
 
             Executor.continueExecution(entry.getNextGlyphIds(), ctx);

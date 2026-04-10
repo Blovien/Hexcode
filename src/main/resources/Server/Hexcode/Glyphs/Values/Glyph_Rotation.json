@@ -44,6 +44,16 @@
       ],
       "Shape": "Cube"
     },
+    "target": {
+      "Label": "Target",
+      "Description": "Optional entity to apply this rotation to. If wired, the constructed rotation is teleported onto the target's body and head.",
+      "Color": [
+        1.0,
+        0.4,
+        0.4
+      ],
+      "Shape": "Cube"
+    },
     "result": {
       "Label": "Result",
       "Description": "Variable slot to store the rotation",

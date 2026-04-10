@@ -23,8 +23,8 @@ public class WarpGlyph implements GlyphHandler {
         GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
         if (asset == null) return true;
 
-        HexVar targets = glyph.resolveSlot("target", hexContext);
-        HexVar destInput = glyph.resolveSlot("destination", hexContext);
+        HexVar targets = glyph.readSlot("target", hexContext);
+        HexVar destInput = glyph.readSlot("destination", hexContext);
         if (targets == null || destInput == null) {
             return true;
         }
@@ -55,8 +55,8 @@ public class WarpGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targets = glyph.resolveSlot("target", hexContext);
-        HexVar destInput = glyph.resolveSlot("destination", hexContext);
+        HexVar targets = glyph.readSlot("target", hexContext);
+        HexVar destInput = glyph.readSlot("destination", hexContext);
 
         if (destInput == null) {
             LOGGER.atWarning().log("warp glyph: no destination provided");

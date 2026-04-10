@@ -29,6 +29,13 @@ public class RotationVar extends HexVar {
     }
 
     @Override
+    public String describe() {
+        if (rotation == null) return "RotationVar: [null]";
+        return String.format("RotationVar: pitch=%.1f, yaw=%.1f, roll=%.1f",
+                rotation.x, rotation.y, rotation.z);
+    }
+
+    @Override
     public boolean equalTo(HexVar other) {
         if (other instanceof RotationVar rb) {
             if (rotation == null || rb.rotation == null) return rotation == rb.rotation;

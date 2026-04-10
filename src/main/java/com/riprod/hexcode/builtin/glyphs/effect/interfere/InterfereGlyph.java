@@ -49,7 +49,7 @@ public class InterfereGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targetVar = glyph.resolveSlot("target", hexContext);
+        HexVar targetVar = glyph.readSlot("target", hexContext);
         if (targetVar == null) {
             LOGGER.atInfo().log("interfere: no targets");
             return;
@@ -57,7 +57,8 @@ public class InterfereGlyph implements GlyphHandler {
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
 
-        if (targetVar instanceof EntityVar entityVar) {
+        EntityVar entityVar = SpellVarUtil.resolveEntityVar(targetVar, hexContext);
+        if (entityVar != null) {
             Ref<EntityStore> ref = entityVar.getRef(accessor);
             if (ref == null || !ref.isValid()) return;
 
@@ -77,8 +78,9 @@ public class InterfereGlyph implements GlyphHandler {
             }
         }
 
-        if (targetVar instanceof BlockVar blockVar) {
-            Vector3d blockCenter = SpellVarUtil.resolvePosition(targetVar, accessor);
+        BlockVar blockVar = SpellVarUtil.resolveBlockVar(targetVar, hexContext);
+        if (blockVar != null) {
+            Vector3d blockCenter = SpellVarUtil.resolvePosition(blockVar, accessor);
             if (blockCenter != null) {
                 InterfereStyle.renderBlockStrip(blockCenter, hexContext.getColors(), accessor);
             }

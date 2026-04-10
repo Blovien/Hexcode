@@ -140,12 +140,9 @@ public class GlaciateTriggerHandler implements TriggerHandler {
         ctx.UpdateAccessor(buffer);
         ctx.UpdateChunkAccessor(chunkAccessor);
 
-        Integer outputSlot = entry.getOutputSlot("result");
-        if (outputSlot != null) {
-            UUIDComponent uuid = buffer.getComponent(iceRef, UUIDComponent.getComponentType());
-            if (uuid != null) {
-                ctx.setVariable(outputSlot, new EntityVar(uuid.getUuid(), iceRef));
-            }
+        UUIDComponent uuid = buffer.getComponent(iceRef, UUIDComponent.getComponentType());
+        if (uuid != null && entry.getSourceGlyph() != null) {
+            entry.getSourceGlyph().writeSlot("result", new EntityVar(uuid.getUuid(), iceRef), ctx);
         }
 
         Executor.continueExecution(glaciate.getFirstBranchIds(), ctx);
@@ -189,9 +186,9 @@ public class GlaciateTriggerHandler implements TriggerHandler {
             ctx.UpdateAccessor(buffer);
             ctx.UpdateChunkAccessor(chunkAccessor);
 
-            Integer outputSlot = entry.getOutputSlot("result");
-            if (outputSlot != null) {
-                ctx.setVariable(outputSlot, new EntityVar(entityUuid.getUuid(), entityRef));
+            if (entry.getSourceGlyph() != null) {
+                entry.getSourceGlyph().writeSlot("result",
+                        new EntityVar(entityUuid.getUuid(), entityRef), ctx);
             }
 
             Executor.continueExecution(entry.getNextGlyphIds(), ctx);

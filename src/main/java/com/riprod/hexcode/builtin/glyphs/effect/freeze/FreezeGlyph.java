@@ -55,7 +55,7 @@ public class FreezeGlyph implements GlyphHandler {
         if (tracker == null) return true;
 
         double duration = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("duration", hexContext), DEFAULT_DURATION);
+                glyph.readSlot("duration", hexContext), DEFAULT_DURATION);
 
         int extraRolls = Math.max(0, (int) (duration / VOLATILITY_ROLL_INTERVAL) - 1);
 
@@ -80,7 +80,7 @@ public class FreezeGlyph implements GlyphHandler {
         if (asset == null) return true;
 
         double duration = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("duration", hexContext), DEFAULT_DURATION);
+                glyph.readSlot("duration", hexContext), DEFAULT_DURATION);
         float durationScale = (float) (duration / MANA_REFERENCE_DURATION);
 
         float baseCost = asset.getManaConsumption()
@@ -101,7 +101,7 @@ public class FreezeGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targets = glyph.resolveSlot("target", hexContext);
+        HexVar targets = glyph.readSlot("target", hexContext);
 
         if (targets == null) {
             Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
@@ -109,7 +109,7 @@ public class FreezeGlyph implements GlyphHandler {
         }
 
         double duration = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("duration", hexContext), DEFAULT_DURATION);
+                glyph.readSlot("duration", hexContext), DEFAULT_DURATION);
 
         EntityEffect freezeEffect = EntityEffect.getAssetMap().getAsset("Hexcode_Freeze");
         if (freezeEffect == null) {
@@ -122,7 +122,8 @@ public class FreezeGlyph implements GlyphHandler {
         World world = accessor.getExternalData().getWorld();
         List<FrozenBlock> frozenBlocks = new ArrayList<>();
 
-        if (targets instanceof EntityVar entityVar) {
+        EntityVar entityVar = SpellVarUtil.resolveEntityVar(targets, hexContext);
+        if (entityVar != null) {
             Ref<EntityStore> ref = entityVar.getRef(accessor);
             if (ref != null && ref.isValid()) {
                 try {
@@ -179,7 +180,7 @@ public class FreezeGlyph implements GlyphHandler {
                 new NetworkId(accessor.getExternalData().takeNextNetworkId()));
         holder.addComponent(HexSignal.getComponentType(),
                 new HexSignal(hexContext.copy(), hexContext.getRoot().getRootEntityRef(),
-                        null, null, null));
+                        null, null));
         holder.addComponent(FreezeComponent.getComponentType(),
                 new FreezeComponent(frozenBlocks, durationSeconds));
 

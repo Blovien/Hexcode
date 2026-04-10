@@ -27,20 +27,19 @@ public class SelfGlyph implements GlyphHandler {
         HexVar result = compute(glyph, hexContext);
 
         if (result != null) {
-            Double slotIndex = SpellVarUtil.resolveNumber(glyph.resolveSlot("result", hexContext));
-            if (slotIndex != null) hexContext.setVariable(slotIndex.intValue(), result);
+            glyph.writeSlot("result", result, hexContext);
         }
 
         Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 
     @Override
-    public boolean canResolveValue() {
+    public boolean canReadValue() {
         return true;
     }
 
     @Override
-    public HexVar resolveValue(Glyph glyph, HexContext hexContext) {
+    public HexVar readValue(Glyph glyph, HexContext hexContext) {
         return compute(glyph, hexContext);
     }
 }

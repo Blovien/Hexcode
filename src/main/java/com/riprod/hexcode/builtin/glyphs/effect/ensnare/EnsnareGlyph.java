@@ -65,9 +65,9 @@ public class EnsnareGlyph implements GlyphHandler {
             return true;
 
         double radius = Math.max(0, SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("radius", hexContext), DEFAULT_RADIUS));
+                glyph.readSlot("radius", hexContext), DEFAULT_RADIUS));
         double duration = Math.max(0, SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("duration", hexContext), DEFAULT_DURATION));
+                glyph.readSlot("duration", hexContext), DEFAULT_DURATION));
 
         float baseCost = asset.getManaConsumption()
                 * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
@@ -93,9 +93,9 @@ public class EnsnareGlyph implements GlyphHandler {
             return true;
 
         double radius = Math.max(0, SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("radius", hexContext), DEFAULT_RADIUS));
+                glyph.readSlot("radius", hexContext), DEFAULT_RADIUS));
         double damage = Math.max(0, SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("damage", hexContext), DEFAULT_DAMAGE));
+                glyph.readSlot("damage", hexContext), DEFAULT_DAMAGE));
 
         int extraRolls = Math.max(0,
                 (int) (harshScale(radius, DEFAULT_RADIUS, RADIUS_THRESHOLD, 2.0)
@@ -122,14 +122,14 @@ public class EnsnareGlyph implements GlyphHandler {
         World world = accessor.getExternalData().getWorld();
 
         double radius = Math.max(0, SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("radius", hexContext), DEFAULT_RADIUS));
+                glyph.readSlot("radius", hexContext), DEFAULT_RADIUS));
         double damage = Math.max(0, SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("damage", hexContext), DEFAULT_DAMAGE));
+                glyph.readSlot("damage", hexContext), DEFAULT_DAMAGE));
         double duration = Math.max(0, SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("duration", hexContext), DEFAULT_DURATION));
+                glyph.readSlot("duration", hexContext), DEFAULT_DURATION));
 
         Vector3d center = SpellVarUtil.resolvePosition(
-                glyph.resolveSlot("target", hexContext), accessor);
+                glyph.readSlot("target", hexContext), accessor);
         if (center == null) {
             LOGGER.atInfo().log("ensnare: could not resolve center position");
             return;
@@ -185,10 +185,7 @@ public class EnsnareGlyph implements GlyphHandler {
             return;
         }
 
-        Integer outputSlot = glyph.getSlotIndex("result", hexContext);
-        if (outputSlot != null) {
-            hexContext.setVariable(outputSlot, new PositionVar(new Vector3d(center), true));
-        }
+        glyph.writeSlot("result", new PositionVar(new Vector3d(center), true), hexContext);
 
         spawnTrackerEntity(glyph, hexContext, spikes, (float) duration,
                 (float) damage, center, radius, accessor);
@@ -241,7 +238,7 @@ public class EnsnareGlyph implements GlyphHandler {
                 new NetworkId(accessor.getExternalData().takeNextNetworkId()));
         holder.addComponent(HexSignal.getComponentType(),
                 new HexSignal(hexContext.copy(), hexContext.getRoot().getRootEntityRef(),
-                        glyph, glyph.getNextLinks(), null));
+                        glyph, glyph.getNextLinks()));
         holder.addComponent(EnsnareComponent.getComponentType(),
                 new EnsnareComponent(spikes, durationSeconds, spikeDamage,
                         DAMAGE_COOLDOWN_SECONDS, center, radius));

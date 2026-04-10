@@ -25,7 +25,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultSlot": 1
+      "DefaultValue": 1,
+      "Unique": true
     },
     "coordsA": {
       "Label": "First Corner",
@@ -35,7 +36,8 @@
         0.5,
         1.0
       ],
-      "Shape": "Cube"
+      "Shape": "Cube",
+      "Unique": true
     },
     "coordsB": {
       "Label": "Second Corner",
@@ -45,7 +47,8 @@
         0.5,
         1.0
       ],
-      "Shape": "Cube"
+      "Shape": "Cube",
+      "Unique": true
     },
     "duration": {
       "Label": "Duration",
@@ -56,7 +59,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 5
+      "DefaultValue": 5,
+      "Unique": true
     },
     "interval": {
       "Label": "Interval",
@@ -67,7 +71,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": -1
+      "DefaultValue": -1,
+      "Unique": true
     },
     "entity": {
       "Label": "Target Entity Output",

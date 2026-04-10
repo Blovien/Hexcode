@@ -9,16 +9,29 @@ import com.riprod.hexcode.utils.SpellVarUtil;
 
 public class VariableValue implements GlyphHandler {
 
+    // single source of truth for "what is my dereference target".
+    // if the slot input resolves to a number, that number is the key.
+    // otherwise the key is this Variable instance's own glyph UUID.
+    private static String computeKey(Glyph glyph, HexContext hexContext) {
+        HexVar slotInput = glyph.readSlot("slot", hexContext);
+        Double n = SpellVarUtil.resolveNumber(slotInput);
+        if (n != null) return String.valueOf(n.intValue());
+        return glyph.getId();
+    }
+
     @Override
-    public boolean canResolveValue() {
+    public boolean canReadValue() {
         return true;
     }
 
     @Override
-    public HexVar resolveValue(Glyph glyph, HexContext hexContext) {
-        Double slot = SpellVarUtil.resolveNumber(glyph.resolveSlot("slot", hexContext));
-        if (slot == null) return null;
-        return hexContext.getVariable(slot.intValue());
+    public HexVar readValue(Glyph glyph, HexContext hexContext) {
+        return hexContext.getVariable(computeKey(glyph, hexContext));
+    }
+
+    @Override
+    public void writeValue(Glyph glyph, HexContext hexContext, HexVar value) {
+        hexContext.setVariable(computeKey(glyph, hexContext), value);
     }
 
     @Override

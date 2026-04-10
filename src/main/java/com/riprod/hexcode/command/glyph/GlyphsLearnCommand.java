@@ -58,7 +58,7 @@ public class GlyphsLearnCommand extends AbstractPlayerCommand {
         }
 
         GlyphHandler handler = GlyphRegistry.get(glyphId);
-        if (handler != null && handler.canResolveValue()) {
+        if (handler != null && handler.canReadValue()) {
             playerRef.sendMessage(Message.raw("Cannot learn value glyphs: " + glyphId));
             return;
         }

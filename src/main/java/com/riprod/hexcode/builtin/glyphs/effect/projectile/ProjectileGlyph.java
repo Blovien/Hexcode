@@ -43,13 +43,11 @@ public class ProjectileGlyph implements GlyphHandler {
 
   @Override
   public void execute(Glyph glyph, HexContext hexContext) {
-    Integer outputSlot = glyph.getSlotIndex("result", hexContext);
-
-    HexVar sourceVar = glyph.resolveSlot("source", hexContext);
-    HexVar directionVar = glyph.resolveSlot("direction", hexContext);
-    HexVar speedVar = glyph.resolveSlot("speed", hexContext);
-    HexVar gravityVar = glyph.resolveSlot("gravity", hexContext);
-    HexVar bouncesVar = glyph.resolveSlot("bounces", hexContext);
+    HexVar sourceVar = glyph.readSlot("source", hexContext);
+    HexVar directionVar = glyph.readSlot("direction", hexContext);
+    HexVar speedVar = glyph.readSlot("speed", hexContext);
+    HexVar gravityVar = glyph.readSlot("gravity", hexContext);
+    HexVar bouncesVar = glyph.readSlot("bounces", hexContext);
 
     if (sourceVar == null) {
       LOGGER.atWarning().log("propel: no source provided");
@@ -119,12 +117,9 @@ public class ProjectileGlyph implements GlyphHandler {
     new ProjectilePhysicsConfig(gravity, bounces).apply(holder, hexContext.getCasterRef(), launchVelocity,
         hexContext.getAccessor(), false);
 
-    Map<String, Integer> outputSlots = new HashMap<>();
-    if (outputSlot != null) outputSlots.put("result", outputSlot);
-
     holder.addComponent(HexSignal.getComponentType(),
         new HexSignal(hexContext.copy(), hexContext.getRoot().getRootEntityRef(),
-            glyph, glyph.getNextLinks(), outputSlots));
+            glyph, glyph.getNextLinks()));
     holder.addComponent(ProjectileComponent.getComponentType(),
         new ProjectileComponent(hexContext.getCasterRef(), MAX_DISTANCE, new Vector3d(spawnPos)));
 

@@ -53,7 +53,7 @@ public class FortifyGlyph implements GlyphHandler {
             return true;
 
         double amount = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("amount", hexContext), DEFAULT_AMOUNT);
+                glyph.readSlot("amount", hexContext), DEFAULT_AMOUNT);
 
         float baseCost = asset.getManaConsumption()
                 * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
@@ -78,8 +78,8 @@ public class FortifyGlyph implements GlyphHandler {
             return true;
 
         double amount = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("amount", hexContext), DEFAULT_AMOUNT);
-        HexVar targets = glyph.resolveSlot("target", hexContext);
+                glyph.readSlot("amount", hexContext), DEFAULT_AMOUNT);
+        HexVar targets = glyph.readSlot("target", hexContext);
 
         float amountFactor = (float) (amount / DEFAULT_AMOUNT);
         int extraRolls = 0;
@@ -131,7 +131,7 @@ public class FortifyGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targets = glyph.resolveSlot("target", hexContext);
+        HexVar targets = glyph.readSlot("target", hexContext);
         if (targets == null) {
             Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
@@ -139,17 +139,19 @@ public class FortifyGlyph implements GlyphHandler {
 
         double amount = Math.max(MIN_AMOUNT, Math.min(MAX_AMOUNT,
                 SpellVarUtil.resolveNumberOrDefault(
-                        glyph.resolveSlot("amount", hexContext), DEFAULT_AMOUNT)));
+                        glyph.readSlot("amount", hexContext), DEFAULT_AMOUNT)));
         double duration = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("duration", hexContext), DEFAULT_DURATION);
+                glyph.readSlot("duration", hexContext), DEFAULT_DURATION);
         float damageReduction = (float) (amount * REDUCTION_SCALE);
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
 
-        if (targets instanceof EntityVar entityVar) {
+        EntityVar entityVar = SpellVarUtil.resolveEntityVar(targets, hexContext);
+        if (entityVar != null) {
             applyToEntities(glyph, entityVar, damageReduction, (float) duration, hexContext, accessor);
-        } else if (targets instanceof BlockVar blockVar) {
-            applyToBlocks(blockVar, amount, hexContext, accessor);
+        } else {
+            BlockVar blockVar = SpellVarUtil.resolveBlockVar(targets, hexContext);
+            if (blockVar != null) applyToBlocks(blockVar, amount, hexContext, accessor);
         }
 
         Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);

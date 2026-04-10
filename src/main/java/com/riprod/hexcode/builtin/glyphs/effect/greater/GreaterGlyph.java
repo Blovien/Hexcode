@@ -3,6 +3,7 @@ package com.riprod.hexcode.builtin.glyphs.effect.greater;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
@@ -12,6 +13,7 @@ import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 import com.riprod.hexcode.utils.HexMathUtil;
 
 public class GreaterGlyph implements GlyphHandler {
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     public static final String ID = "Glyph_Greater";
     private static final float INITIAL_PASS_CHANCE = 0.995f;
     private static final float DECAY_PER_USE = 0.007f; // slower decay, ~10 uses -> ~0.92 chance
@@ -40,8 +42,8 @@ public class GreaterGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar a = glyph.resolveSlot("a", hexContext);
-        HexVar b = glyph.resolveSlot("b", hexContext);
+        HexVar a = glyph.readSlot("a", hexContext);
+        HexVar b = glyph.readSlot("b", hexContext);
         boolean result = HexMathUtil.isGreater(a, b);
 
         List<String> next = glyph.getNextLinks();

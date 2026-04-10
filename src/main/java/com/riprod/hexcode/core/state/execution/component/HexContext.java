@@ -26,7 +26,7 @@ public class HexContext {
     private CommandBuffer<EntityStore> accessor;
     private ComponentAccessor<ChunkStore> chunkAccessor;
     private Hex hex;
-    private Map<Integer, HexVar> variables;
+    private Map<String, HexVar> variables;
     private VolatilityTracker volatilityTracker;
     private HexColors colors;
 
@@ -88,19 +88,19 @@ public class HexContext {
         return hex.get(id);
     }
 
-    public Map<Integer, HexVar> getVariables() {
+    public Map<String, HexVar> getVariables() {
         return variables;
     }
 
-    public HexVar getVariable(int slot) {
+    public HexVar getVariable(String slot) {
         return variables.get(slot);
     }
 
-    public void setVariables(Map<Integer, HexVar> variables) {
+    public void setVariables(Map<String, HexVar> variables) {
         this.variables = variables;
     }
 
-    public void setVariable(int slot, HexVar value) {
+    public void setVariable(String slot, HexVar value) {
         this.variables.put(slot, value);
     }
 
@@ -168,26 +168,8 @@ public class HexContext {
                     c -> c.hex)
             .add()
             .append(new KeyedCodec<>("Variables", new MapCodec<>(HexVar.CODEC, HashMap::new)),
-                    // Deserialize: Map<String, HexVar> -> Map<Integer, HexVar>
-                    (c, v) -> {
-                        Map<Integer, HexVar> intKeyed = new HashMap<>();
-                        for (Map.Entry<String, HexVar> entry : v.entrySet()) {
-                            try {
-                                intKeyed.put(Integer.parseInt(entry.getKey()), entry.getValue());
-                            } catch (NumberFormatException e) {
-                                // Optionally handle invalid keys
-                            }
-                        }
-                        c.variables = intKeyed;
-                    },
-                    // Serialize: Map<Integer, HexVar> -> Map<String, HexVar>
-                    c -> {
-                        Map<String, HexVar> strKeyed = new HashMap<>();
-                        for (Map.Entry<Integer, HexVar> entry : c.variables.entrySet()) {
-                            strKeyed.put(entry.getKey().toString(), entry.getValue());
-                        }
-                        return strKeyed;
-                    })
+                    (c, v) -> c.variables = v,
+                    c -> c.variables)
             .add()
             .append(new KeyedCodec<>("VolatilityTracker", VolatilityTracker.CODEC),
                     (c, v) -> c.volatilityTracker = v,

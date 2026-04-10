@@ -23,8 +23,8 @@ public class SwapGlyph implements GlyphHandler {
         GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
         if (asset == null) return true;
 
-        HexVar varsA = glyph.resolveSlot("a", hexContext);
-        HexVar varsB = glyph.resolveSlot("b", hexContext);
+        HexVar varsA = glyph.readSlot("a", hexContext);
+        HexVar varsB = glyph.readSlot("b", hexContext);
         if (varsA == null || varsB == null) {
             return true;
         }
@@ -52,8 +52,8 @@ public class SwapGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar varsA = glyph.resolveSlot("a", hexContext);
-        HexVar varsB = glyph.resolveSlot("b", hexContext);
+        HexVar varsA = glyph.readSlot("a", hexContext);
+        HexVar varsB = glyph.readSlot("b", hexContext);
 
         if (varsA == null || varsB == null) {
             LOGGER.atWarning().log("swap glyph: missing input variables");

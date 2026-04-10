@@ -29,7 +29,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultSlot": 1
+      "DefaultValue": 1,
+      "Unique": true
     },
     "b": {
       "Label": "B",
@@ -40,7 +41,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultSlot": 2
+      "DefaultValue": 2,
+      "Unique": true
     },
     "Next": {
       "Label": "Next",

@@ -1,0 +1,40 @@
+{
+  "Parent": "Base_Glyph",
+  "Title": "Debug",
+  "Description": "Dumps current hex state to chat: mana, current glyph, linked next glyphs with volatility/efficiency, optional slot value, and all populated variables. Passthrough in execution chain; returns slot input when used as a value.",
+  "ModelPath": "Glyph_Debug",
+  "BasePower": 0,
+  "ManaConsumption": 0,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Triangle",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Triangle",
+      "Size": 0.5
+    }
+  ],
+  "Slots": {
+    "slot": {
+      "Label": "Inspect",
+      "Description": "Optional input whose resolved value is included in the dump. When Debug is used as a value input, its resolved value is also returned to the parent glyph.",
+      "Color": [
+        0.7,
+        0.7,
+        0.9
+      ],
+      "Shape": "Cube"
+    },
+    "Next": {
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain",
+      "Color": [
+        0.4,
+        1.0,
+        0.4
+      ],
+      "Shape": "Sphere"
+    }
+  }
+}

@@ -53,6 +53,7 @@ public class DrainComponent implements Component<EntityStore> {
 
     public static class DrainEntry {
         private final int sourceStatIndex;
+        private final Ref<EntityStore> destEntityRef;
         private final float conversionRate;
         private final float totalDrainAmount;
         private float drainedSoFar;
@@ -63,10 +64,12 @@ public class DrainComponent implements Component<EntityStore> {
         private final Ref<EntityStore> hexEntityRef;
         private final HexColors colors;
 
-        public DrainEntry(int sourceStatIndex, float conversionRate, float totalDrainAmount,
+        public DrainEntry(int sourceStatIndex, Ref<EntityStore> destEntityRef,
+                float conversionRate, float totalDrainAmount,
                 float durationSeconds, HexContext hexContext, List<String> nextGlyphIds,
                 Ref<EntityStore> hexEntityRef, HexColors colors) {
             this.sourceStatIndex = sourceStatIndex;
+            this.destEntityRef = destEntityRef;
             this.conversionRate = conversionRate;
             this.totalDrainAmount = totalDrainAmount;
             this.drainedSoFar = 0f;
@@ -80,6 +83,10 @@ public class DrainComponent implements Component<EntityStore> {
 
         public int getSourceStatIndex() {
             return sourceStatIndex;
+        }
+
+        public Ref<EntityStore> getDestEntityRef() {
+            return destEntityRef;
         }
 
         public float getConversionRate() {
@@ -132,7 +139,8 @@ public class DrainComponent implements Component<EntityStore> {
 
         @Nonnull
         public DrainEntry clone() {
-            DrainEntry copy = new DrainEntry(sourceStatIndex, conversionRate, totalDrainAmount,
+            DrainEntry copy = new DrainEntry(sourceStatIndex, destEntityRef,
+                    conversionRate, totalDrainAmount,
                     remainingSeconds, hexContext != null ? hexContext.copy() : null,
                     new ArrayList<>(nextGlyphIds), hexEntityRef, colors);
             copy.drainedSoFar = this.drainedSoFar;

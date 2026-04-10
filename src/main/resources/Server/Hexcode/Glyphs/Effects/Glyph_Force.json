@@ -21,7 +21,7 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultSlot": 1
+      "DefaultValue": 1
     },
     "direction": {
       "Label": "Direction",
@@ -32,7 +32,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultSlot": 1
+      "DefaultValue": 1,
+      "Unique": true
     },
     "magnitude": {
       "Label": "Magnitude",
@@ -43,7 +44,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 20
+      "DefaultValue": 20,
+      "Unique": true
     },
     "Next": {
       "Label": "Next",

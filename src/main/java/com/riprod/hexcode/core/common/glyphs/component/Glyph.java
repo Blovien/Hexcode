@@ -15,7 +15,9 @@ import com.hypixel.hytale.codec.codecs.map.MapCodec;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphRegistry;
+import com.riprod.hexcode.core.common.glyphs.registry.SlotAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.common.glyphs.variables.NumberVar;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 
 public class Glyph {
@@ -136,7 +138,7 @@ public class Glyph {
     }
 
     @Nullable
-    public HexVar resolveSlot(String key, HexContext hexContext) {
+    public HexVar readSlot(String key, HexContext hexContext) {
         int depth = resolveDepth.get();
         if (depth >= MAX_RESOLVE_DEPTH) return null;
 
@@ -148,45 +150,53 @@ public class Glyph {
         if (linked == null) return null;
 
         GlyphHandler handler = GlyphRegistry.get(linked.getGlyphId());
-        if (handler == null || !handler.canResolveValue()) return null;
+        if (handler == null || !handler.canReadValue()) return null;
 
         resolveDepth.set(depth + 1);
         try {
-            return handler.resolveValue(linked, hexContext);
+            return handler.readValue(linked, hexContext);
         } finally {
             resolveDepth.set(depth);
         }
     }
 
+    // Walks all linked glyphs on the slot and asks each to writeValue(value).
+    // The linked glyph performs the actual setVariable internally — no key
+    // is exposed across this boundary. For unique slots (SlotAsset.unique=true)
+    // craft-time validation guarantees only one link, so this writes once.
+    // For non-unique slots this writes the same value to every wired destination.
+    public void writeSlot(String key, HexVar value, HexContext hexContext) {
+        Slot slot = slots.get(key);
+        if (slot == null) return;
+        String[] links = slot.getLinks();
+        if (links.length == 0) return;
+        for (String linkId : links) {
+            Glyph linked = hexContext.getGlyph(linkId);
+            if (linked == null) continue;
+            GlyphHandler handler = GlyphRegistry.get(linked.getGlyphId());
+            if (handler == null) continue;
+            handler.writeValue(linked, hexContext, value);
+        }
+    }
+
     @Nullable
     private HexVar resolveAssetDefault(String key, HexContext hexContext) {
-        com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset asset =
-                com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset.getAssetMap().getAsset(glyphId);
+        GlyphAsset asset =
+                GlyphAsset.getAssetMap().getAsset(glyphId);
         if (asset == null) return null;
-        com.riprod.hexcode.core.common.glyphs.registry.SlotAsset slotAsset = asset.getSlot(key);
+        SlotAsset slotAsset = asset.getSlot(key);
         if (slotAsset == null) return null;
 
         if (slotAsset.getDefaultValue() != null) {
-            return new com.riprod.hexcode.core.common.glyphs.variables.NumberVar(slotAsset.getDefaultValue());
-        }
-        if (slotAsset.getDefaultSlot() != null) {
-            return hexContext.getVariable(slotAsset.getDefaultSlot());
+            return new NumberVar(slotAsset.getDefaultValue());
         }
         return null;
     }
 
     @Nullable
-    public HexVar resolveSlotOrDefault(String key, HexContext hexContext, HexVar defaultValue) {
-        HexVar resolved = resolveSlot(key, hexContext);
+    public HexVar readSlotOrDefault(String key, HexContext hexContext, HexVar defaultValue) {
+        HexVar resolved = readSlot(key, hexContext);
         return resolved != null ? resolved : defaultValue;
-    }
-
-    @Nullable
-    public Integer getSlotIndex(String key, HexContext hexContext) {
-        HexVar resolved = resolveSlot(key, hexContext);
-        if (resolved == null) return null;
-        Double number = com.riprod.hexcode.utils.SpellVarUtil.resolveNumber(resolved);
-        return number != null ? number.intValue() : null;
     }
 
     public List<String> getNextLinks() {
@@ -197,7 +207,7 @@ public class Glyph {
         return java.util.Arrays.asList(links);
     }
 
-    public List<HexVar> resolveSlotAll(String key, HexContext hexContext) {
+    public List<HexVar> readSlotAll(String key, HexContext hexContext) {
         Slot slot = slots.get(key);
         if (slot == null) return List.of();
 
@@ -212,11 +222,11 @@ public class Glyph {
             Glyph linked = hexContext.getGlyph(linkId);
             if (linked == null) continue;
             GlyphHandler handler = GlyphRegistry.get(linked.getGlyphId());
-            if (handler == null || !handler.canResolveValue()) continue;
+            if (handler == null || !handler.canReadValue()) continue;
 
             resolveDepth.set(depth + 1);
             try {
-                HexVar value = handler.resolveValue(linked, hexContext);
+                HexVar value = handler.readValue(linked, hexContext);
                 if (value != null) resolved.add(value);
             } finally {
                 resolveDepth.set(depth);

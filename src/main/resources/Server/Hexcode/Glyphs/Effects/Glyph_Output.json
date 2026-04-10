@@ -1,0 +1,31 @@
+{
+  "Parent": "Base_Glyph",
+  "Title": "Output",
+  "Description": "End-cap landmark that sets the hex's primary color from a Number (grayscale 0-255) or PositionVar (x/y/z as R/G/B 0-255). Output's Next slot is empty at craft time and terminates the branch; when another hex is dragged onto this one in casting mode, Output's Next is populated at drop time and the attached chain runs with the color already applied.",
+  "ModelPath": "Glyph_Output",
+  "BasePower": 0,
+  "ManaConsumption": 2,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Square",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Antitriangle",
+      "Size": 0.5
+    }
+  ],
+  "Slots": {
+    "color": {
+      "Label": "Color",
+      "Description": "Number for grayscale (0-255) or PositionVar for RGB (x=R, y=G, z=B, 0-255 each)",
+      "Color": [
+        1.0,
+        0.8,
+        0.4
+      ],
+      "Shape": "Cube",
+      "Unique": true
+    }
+  }
+}

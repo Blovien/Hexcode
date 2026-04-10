@@ -53,7 +53,7 @@ public class Executor {
                 hexContext.getCasterRef(), UUIDComponent.getComponentType());
         EntityVar casterVar = new EntityVar(EntityVar.createRef(uuidComponent.getUuid(), hexContext.getCasterRef()));
 
-        hexContext.setVariable(1, casterVar);
+        hexContext.setVariable("1", casterVar);
 
         HexStaffComponent staff = CasterInventory.getHexStaffComponent(
                 hexContext.getAccessor(), hexContext.getCasterRef());

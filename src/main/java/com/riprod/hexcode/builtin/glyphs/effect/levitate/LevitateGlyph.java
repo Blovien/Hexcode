@@ -43,9 +43,9 @@ public class LevitateGlyph implements GlyphHandler {
         if (asset == null) return true;
 
         double intensity = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("intensity", hexContext), DEFAULT_INTENSITY);
+                glyph.readSlot("intensity", hexContext), DEFAULT_INTENSITY);
         double duration = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("duration", hexContext), DEFAULT_DURATION);
+                glyph.readSlot("duration", hexContext), DEFAULT_DURATION);
 
         float baseCost = asset.getManaConsumption()
                 * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
@@ -66,9 +66,10 @@ public class LevitateGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targets = glyph.resolveSlot("target", hexContext);
-        if (!(targets instanceof EntityVar entityVar)) {
-            if (targets instanceof BlockVar) {
+        HexVar targets = glyph.readSlot("target", hexContext);
+        EntityVar entityVar = SpellVarUtil.resolveEntityVar(targets, hexContext);
+        if (entityVar == null) {
+            if (SpellVarUtil.resolveBlockVar(targets, hexContext) != null) {
                 LOGGER.atInfo().log("levitate: block targets not yet implemented");
             }
             Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
@@ -77,10 +78,10 @@ public class LevitateGlyph implements GlyphHandler {
 
         double intensity = Math.max(0, Math.min(MAX_INTENSITY,
                 SpellVarUtil.resolveNumberOrDefault(
-                        glyph.resolveSlot("intensity", hexContext), DEFAULT_INTENSITY)));
+                        glyph.readSlot("intensity", hexContext), DEFAULT_INTENSITY)));
         double duration = Math.max(1, Math.min(MAX_DURATION,
                 SpellVarUtil.resolveNumberOrDefault(
-                        glyph.resolveSlot("duration", hexContext), DEFAULT_DURATION)));
+                        glyph.readSlot("duration", hexContext), DEFAULT_DURATION)));
         float durationSeconds = (float) duration;
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();

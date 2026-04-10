@@ -21,6 +21,7 @@ import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.utils.HexUtils;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffComponent;
 import com.riprod.hexcode.utils.HexStaffUtil;
+import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.PlayerHexRoot;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.api.event.HexcodeEvents;
@@ -34,6 +35,9 @@ public class ExecutionSystem extends HexcodeManager {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     private static final String EQUIP_CHECK_KEY = "exec_equip";
     private static final float EQUIP_CHECK_INTERVAL = 0.25f;
+    private static final String HOLD_STALE_KEY = "exec_hold_stale";
+    // if tickInteraction hasn't fired in this many seconds, consider LMB released
+    private static final float HOLD_STALE_THRESHOLD = 0.15f;
 
     @Override
     public void firstTick(Ref<EntityStore> ref, HexcasterComponent comp,
@@ -46,11 +50,21 @@ public class ExecutionSystem extends HexcodeManager {
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer,
             HexState nextState) {
         comp.setActiveHex(null);
+        comp.setHoldingPrimary(false);
+        comp.setTickLength(HOLD_STALE_KEY, 0f);
     }
 
     @Override
     public void tick0(Ref<EntityStore> ref, HexcasterComponent comp, float dt,
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
+        // release detection: if tickInteraction stops firing, clear the holding flag
+        if (comp.isHoldingPrimary()) {
+            comp.incrementTickLength(HOLD_STALE_KEY, dt);
+            if (comp.getTickLength(HOLD_STALE_KEY) > HOLD_STALE_THRESHOLD) {
+                comp.setHoldingPrimary(false);
+            }
+        }
+
         comp.incrementTickLength(EQUIP_CHECK_KEY, dt);
         if (comp.getTickLength(EQUIP_CHECK_KEY) < EQUIP_CHECK_INTERVAL) return;
         comp.setTickLength(EQUIP_CHECK_KEY, 0f);
@@ -70,13 +84,24 @@ public class ExecutionSystem extends HexcodeManager {
 
     @Override
     public InteractionState exitInteraction(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref, HexcasterComponent comp) {
+        comp.setHoldingPrimary(false);
+        comp.setTickLength(HOLD_STALE_KEY, 0f);
+        // fire any OnRelease-deferred branches
+        for (HexcasterComponent.PendingRelease release : comp.consumePendingReleases()) {
+            try {
+                Executor.continueExecution(release.childIds, release.hexContext);
+            } catch (Exception e) {
+                LOGGER.atWarning().log("onrelease: fire failed: %s", e.getMessage());
+            }
+        }
         return InteractionState.NotFinished;
     }
 
     @Override
     public InteractionState tickInteraction(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref, float dt,
             HexcasterComponent comp) {
-
+        comp.setHoldingPrimary(true);
+        comp.setTickLength(HOLD_STALE_KEY, 0f);
         return InteractionState.NotFinished;
     }
 
@@ -115,7 +140,10 @@ public class ExecutionSystem extends HexcodeManager {
         PlayerHexRoot root = new PlayerHexRoot(ref, hexEntityRef);
         execComp.setRoot(root);
 
-        return InteractionState.Finished;
+        // keep the interaction alive so tickInteraction/exitInteraction fire while LMB is held
+        comp.setHoldingPrimary(true);
+        comp.setTickLength(HOLD_STALE_KEY, 0f);
+        return InteractionState.NotFinished;
     }
 
     private Holder<EntityStore> buildHexEntityHolder(ComponentAccessor<EntityStore> accessor,

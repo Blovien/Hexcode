@@ -50,7 +50,7 @@ public class DrainTickSystem extends EntityTickingSystem<EntityStore> {
             while (it.hasNext()) {
                 DrainEntry entry = it.next();
 
-                if (shouldStop(entry, statMap)) {
+                if (shouldStop(entry, statMap, buffer)) {
                     completeEntry(entry, buffer);
                     it.remove();
                     continue;
@@ -87,15 +87,21 @@ public class DrainTickSystem extends EntityTickingSystem<EntityStore> {
                 // drain source
                 statMap.subtractStatValue(entry.getSourceStatIndex(), drainAmount);
 
-                // convert and add to mana
+                // convert and deposit into destination entity's Mana (always Mana — never any other stat)
                 float converted = drainAmount * entry.getConversionRate();
+                Ref<EntityStore> destRef = entry.getDestEntityRef();
                 int manaIndex = DefaultEntityStatTypes.getMana();
-                EntityStatValue manaStat = statMap.get(manaIndex);
-                if (manaStat != null) {
-                    float manaRoom = manaStat.getMax() - manaStat.get();
-                    converted = Math.min(converted, manaRoom);
-                    if (converted > 0) {
-                        statMap.addStatValue(manaIndex, converted);
+                if (destRef != null && destRef.isValid()) {
+                    EntityStatMap destStatMap = buffer.getComponent(destRef, EntityStatMap.getComponentType());
+                    if (destStatMap != null) {
+                        EntityStatValue destMana = destStatMap.get(manaIndex);
+                        if (destMana != null) {
+                            float destRoom = destMana.getMax() - destMana.get();
+                            converted = Math.min(converted, destRoom);
+                            if (converted > 0) {
+                                destStatMap.addStatValue(manaIndex, converted);
+                            }
+                        }
                     }
                 }
 
@@ -118,7 +124,7 @@ public class DrainTickSystem extends EntityTickingSystem<EntityStore> {
         }
     }
 
-    private boolean shouldStop(DrainEntry entry, EntityStatMap statMap) {
+    private boolean shouldStop(DrainEntry entry, EntityStatMap statMap, CommandBuffer<EntityStore> buffer) {
         if (entry.isExpired()) return true;
 
         EntityStatValue sourceStat = statMap.get(entry.getSourceStatIndex());
@@ -130,9 +136,15 @@ public class DrainTickSystem extends EntityTickingSystem<EntityStore> {
             if (sourceStat.get() <= 0) return true;
         }
 
-        int manaIndex = DefaultEntityStatTypes.getMana();
-        EntityStatValue manaStat = statMap.get(manaIndex);
-        if (manaStat != null && manaStat.get() >= manaStat.getMax()) return true;
+        // stop if the destination entity's mana is already at cap
+        Ref<EntityStore> destRef = entry.getDestEntityRef();
+        if (destRef != null && destRef.isValid()) {
+            EntityStatMap destStatMap = buffer.getComponent(destRef, EntityStatMap.getComponentType());
+            if (destStatMap != null) {
+                EntityStatValue destMana = destStatMap.get(DefaultEntityStatTypes.getMana());
+                if (destMana != null && destMana.get() >= destMana.getMax()) return true;
+            }
+        }
 
         return false;
     }

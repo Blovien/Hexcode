@@ -134,6 +134,12 @@ public class SlotNodeHandler implements NodeInterface {
         GlyphComponent sourceGlyph = accessor.getComponent(sourceRef, GlyphComponent.getComponentType());
         if (sourceGlyph == null) return InteractionState.Finished;
 
+        Slot slot = sourceGlyph.getGlyph().getSlot(slotComp.getSlotKey());
+        if (slot != null && slot.isUnique() && slot.getLinks().length >= 1) {
+            LOGGER.atInfo().log("slot: rejected link to unique slot '%s' on %s (already has %d link(s))",
+                    slotComp.getSlotKey(), sourceGlyph.getGlyphId(), slot.getLinks().length);
+            return InteractionState.Failed;
+        }
         sourceGlyph.getGlyph().addSlotLink(slotComp.getSlotKey(), targetGlyph.getId());
         LOGGER.atInfo().log("slot: connected '%s' on %s to glyph %s",
                 slotComp.getSlotKey(), sourceGlyph.getGlyphId(), targetGlyph.getId());

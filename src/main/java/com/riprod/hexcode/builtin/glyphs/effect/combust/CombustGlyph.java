@@ -47,9 +47,9 @@ public class CombustGlyph implements GlyphHandler {
         if (asset == null) return true;
 
         double radius = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("radius", hexContext), DEFAULT_RADIUS);
+                glyph.readSlot("radius", hexContext), DEFAULT_RADIUS);
         double magnitude = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("magnitude", hexContext), DEFAULT_MAGNITUDE);
+                glyph.readSlot("magnitude", hexContext), DEFAULT_MAGNITUDE);
 
         float baseCost = asset.getManaConsumption()
                 * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
@@ -71,11 +71,11 @@ public class CombustGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar centerVar = glyph.resolveSlot("center", hexContext);
+        HexVar centerVar = glyph.readSlot("center", hexContext);
         double radius = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("radius", hexContext), DEFAULT_RADIUS);
+                glyph.readSlot("radius", hexContext), DEFAULT_RADIUS);
         double magnitude = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("magnitude", hexContext), DEFAULT_MAGNITUDE);
+                glyph.readSlot("magnitude", hexContext), DEFAULT_MAGNITUDE);
 
         Vector3d center = resolveCenter(centerVar, hexContext);
         if (center == null) {
@@ -118,7 +118,7 @@ public class CombustGlyph implements GlyphHandler {
         }
 
         return SpellVarUtil.resolvePosition(
-                hexContext.getVariable(1), hexContext.getAccessor());
+                hexContext.getVariable("1"), hexContext.getAccessor());
     }
 
     private void performExplosion(Vector3d center, double radius, double magnitude,

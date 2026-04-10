@@ -32,8 +32,9 @@ public class ArcGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targets = glyph.resolveSlot("target", hexContext);
-        if (targets == null || !(targets instanceof EntityVar entityVar)) {
+        HexVar targets = glyph.readSlot("target", hexContext);
+        EntityVar entityVar = SpellVarUtil.resolveEntityVar(targets, hexContext);
+        if (entityVar == null) {
             LOGGER.atWarning().log("arc: no entity target provided");
             return;
         }
@@ -51,10 +52,9 @@ public class ArcGlyph implements GlyphHandler {
         }
 
         double maxJump = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("jump", hexContext), 15.0);
+                glyph.readSlot("jump", hexContext), 15.0);
         double delay = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("delay", hexContext), 0.75);
-        Integer outputSlot = glyph.getSlotIndex("result", hexContext);
+                glyph.readSlot("delay", hexContext), 0.75);
 
         Set<UUID> visited = new HashSet<>();
 
@@ -98,8 +98,7 @@ public class ArcGlyph implements GlyphHandler {
                 (float) delay);
 
         HexSignal signal = new HexSignal(
-                hexContext.copy(), hexEntityRef, glyph, branches,
-                outputSlot != null ? Map.of("result", outputSlot) : null);
+                hexContext.copy(), hexEntityRef, glyph, branches);
 
         hexContext.getAccessor().addComponent(
                 initialTarget, ArcComponent.getComponentType(), arcComponent);

@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatValue;
 import com.hypixel.hytale.server.core.modules.entitystats.asset.DefaultEntityStatTypes;
@@ -31,10 +32,18 @@ public class DrainGlyph implements GlyphHandler {
     private static final float STAMINA_TO_MANA_RATE = 0.6f;
     private static final float DEFAULT_DURATION = 1.0f;
 
+    private static float conversionRate(int sourceStat) {
+        // destination is always Mana — drain is always <other> -> mana, never the reverse
+        if (sourceStat == DefaultEntityStatTypes.getHealth()) return HP_TO_MANA_RATE;
+        if (sourceStat == DefaultEntityStatTypes.getStamina()) return STAMINA_TO_MANA_RATE;
+        return 1.0f;
+    }
+
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targetVar = glyph.resolveSlot("target", hexContext);
-        if (!(targetVar instanceof EntityVar entityVar)) {
+        HexVar targetVar = glyph.readSlot("target", hexContext);
+        EntityVar entityVar = SpellVarUtil.resolveEntityVar(targetVar, hexContext);
+        if (entityVar == null) {
             Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
@@ -45,26 +54,47 @@ public class DrainGlyph implements GlyphHandler {
             return;
         }
 
-        HexVar hpInput = glyph.resolveSlot("hp", hexContext);
-        HexVar staminaInput = glyph.resolveSlot("stamina", hexContext);
+        HexVar hpInput = glyph.readSlot("hp", hexContext);
+        HexVar staminaInput = glyph.readSlot("stamina", hexContext);
 
         int sourceStatIndex;
-        float conversionRate;
         double drainPercent;
 
         if (hpInput != null) {
             sourceStatIndex = DefaultEntityStatTypes.getHealth();
-            conversionRate = HP_TO_MANA_RATE;
             drainPercent = SpellVarUtil.resolveNumberOrDefault(hpInput, 0.0);
         } else if (staminaInput != null) {
             sourceStatIndex = DefaultEntityStatTypes.getStamina();
-            conversionRate = STAMINA_TO_MANA_RATE;
             drainPercent = SpellVarUtil.resolveNumberOrDefault(staminaInput, 0.0);
         } else {
             sourceStatIndex = DefaultEntityStatTypes.getHealth();
-            conversionRate = HP_TO_MANA_RATE;
             drainPercent = 15.0f;
         }
+
+        // HP-source gate: only allow HP drain if the source IS the caster.
+        // Prevents "drain enemy HP → my mana" from becoming the dominant PvP strategy.
+        if (sourceStatIndex == DefaultEntityStatTypes.getHealth()) {
+            UUIDComponent srcUuid = hexContext.getAccessor().getComponent(
+                    targetRef, UUIDComponent.getComponentType());
+            UUIDComponent casterUuid = hexContext.getAccessor().getComponent(
+                    hexContext.getCasterRef(), UUIDComponent.getComponentType());
+            if (srcUuid == null || casterUuid == null
+                    || !srcUuid.getUuid().equals(casterUuid.getUuid())) {
+                Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
+                return;
+            }
+        }
+
+        // destination entity (default = caster). Destination stat is always Mana.
+        HexVar destVar = glyph.readSlot("destination", hexContext);
+        Ref<EntityStore> destRef = hexContext.getCasterRef();
+        EntityVar destEntityVar = SpellVarUtil.resolveEntityVar(destVar, hexContext);
+        if (destEntityVar != null) {
+            Ref<EntityStore> resolved = destEntityVar.getRef(hexContext.getAccessor());
+            if (resolved != null && resolved.isValid()) destRef = resolved;
+        }
+
+        float rate = conversionRate(sourceStatIndex);
 
         if (drainPercent <= 0) {
             Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
@@ -101,7 +131,7 @@ public class DrainGlyph implements GlyphHandler {
             return;
         }
 
-        HexVar durationVar = glyph.resolveSlot("duration", hexContext);
+        HexVar durationVar = glyph.readSlot("duration", hexContext);
         float duration = DEFAULT_DURATION;
         if (durationVar != null) {
             duration = Math.max(0.01f, SpellVarUtil.resolveNumberOrDefault(durationVar, (double) DEFAULT_DURATION).floatValue());
@@ -115,7 +145,7 @@ public class DrainGlyph implements GlyphHandler {
         Ref<EntityStore> hexEntityRef = hexContext.getRoot().getRootEntityRef();
 
         DrainComponent.DrainEntry entry = new DrainComponent.DrainEntry(
-                sourceStatIndex, conversionRate, totalDrainAmount, duration,
+                sourceStatIndex, destRef, rate, totalDrainAmount, duration,
                 hexContext.copy(), nextGlyphIds, hexEntityRef, colors);
 
         DrainComponent existing = hexContext.getAccessor().getComponent(
@@ -137,13 +167,13 @@ public class DrainGlyph implements GlyphHandler {
     }
 
     @Override
-    public boolean canResolveValue() {
+    public boolean canReadValue() {
         return true;
     }
 
     @Override
-    public HexVar resolveValue(Glyph glyph, HexContext hexContext) {
-        HexVar targetVar = glyph.resolveSlot("target", hexContext);
+    public HexVar readValue(Glyph glyph, HexContext hexContext) {
+        HexVar targetVar = glyph.readSlot("target", hexContext);
         if (!(targetVar instanceof EntityVar entityVar)) return new NumberVar(0);
 
         Ref<EntityStore> targetRef = entityVar.getRef(hexContext.getAccessor());
@@ -152,8 +182,8 @@ public class DrainGlyph implements GlyphHandler {
         EntityStatMap statMap = hexContext.getAccessor().getComponent(targetRef, EntityStatMap.getComponentType());
         if (statMap == null) return new NumberVar(0);
 
-        HexVar hpInput = glyph.resolveSlot("hp", hexContext);
-        HexVar staminaInput = glyph.resolveSlot("stamina", hexContext);
+        HexVar hpInput = glyph.readSlot("hp", hexContext);
+        HexVar staminaInput = glyph.readSlot("stamina", hexContext);
 
         int statIndex;
         if (hpInput != null) {

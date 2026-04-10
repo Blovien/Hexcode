@@ -13,9 +13,9 @@ import com.riprod.hexcode.utils.SpellVarUtil;
 public class PositionValue implements GlyphHandler {
 
     private HexVar compute(Glyph glyph, HexContext hexContext) {
-        HexVar xVar = glyph.resolveSlot("x", hexContext);
-        HexVar yVar = glyph.resolveSlot("y", hexContext);
-        HexVar zVar = glyph.resolveSlot("z", hexContext);
+        HexVar xVar = glyph.readSlot("x", hexContext);
+        HexVar yVar = glyph.readSlot("y", hexContext);
+        HexVar zVar = glyph.readSlot("z", hexContext);
 
         int count = (xVar != null ? 1 : 0) + (yVar != null ? 1 : 0) + (zVar != null ? 1 : 0);
 
@@ -36,12 +36,12 @@ public class PositionValue implements GlyphHandler {
     }
 
     @Override
-    public boolean canResolveValue() {
+    public boolean canReadValue() {
         return true;
     }
 
     @Override
-    public HexVar resolveValue(Glyph glyph, HexContext hexContext) {
+    public HexVar readValue(Glyph glyph, HexContext hexContext) {
         return compute(glyph, hexContext);
     }
 
@@ -50,8 +50,7 @@ public class PositionValue implements GlyphHandler {
         HexVar result = compute(glyph, hexContext);
 
         if (result != null) {
-            Double slotIndex = SpellVarUtil.resolveNumber(glyph.resolveSlot("result", hexContext));
-            if (slotIndex != null) hexContext.setVariable(slotIndex.intValue(), result);
+            glyph.writeSlot("result", result, hexContext);
         }
 
         Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);

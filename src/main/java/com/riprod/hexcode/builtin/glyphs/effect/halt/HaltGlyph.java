@@ -47,7 +47,7 @@ public class HaltGlyph implements GlyphHandler {
         if (tracker == null) return true;
 
         double duration = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("duration", hexContext), DEFAULT_DURATION);
+                glyph.readSlot("duration", hexContext), DEFAULT_DURATION);
 
         int extraRolls = (int) Math.floor(Math.exp(VOLATILITY_STEEPNESS * (duration - VOLATILITY_KNEE)));
 
@@ -72,7 +72,7 @@ public class HaltGlyph implements GlyphHandler {
         if (asset == null) return true;
 
         double duration = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("duration", hexContext), DEFAULT_DURATION);
+                glyph.readSlot("duration", hexContext), DEFAULT_DURATION);
 
         float baseCost = asset.getManaConsumption()
                 * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
@@ -94,8 +94,9 @@ public class HaltGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targets = glyph.resolveSlot("target", hexContext);
-        if (!(targets instanceof EntityVar entityVar)) {
+        HexVar targets = glyph.readSlot("target", hexContext);
+        EntityVar entityVar = SpellVarUtil.resolveEntityVar(targets, hexContext);
+        if (entityVar == null) {
             Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
@@ -108,7 +109,7 @@ public class HaltGlyph implements GlyphHandler {
         }
 
         double duration = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("duration", hexContext), DEFAULT_DURATION);
+                glyph.readSlot("duration", hexContext), DEFAULT_DURATION);
 
         try {
             StandardPhysicsProvider physics = accessor.getComponent(ref,

@@ -24,8 +24,8 @@ public class BeamGlyph implements GlyphHandler {
     public static final String ID = "Glyph_Beam";
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar posVar = glyph.resolveSlot("entity", hexContext);
-        HexVar rotVar = glyph.resolveSlot("rotation", hexContext);
+        HexVar posVar = glyph.readSlot("entity", hexContext);
+        HexVar rotVar = glyph.readSlot("rotation", hexContext);
         if (rotVar == null) rotVar = posVar;
 
         if (posVar == null) {
@@ -49,7 +49,7 @@ public class BeamGlyph implements GlyphHandler {
         }
 
         int beamLength = (int) SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("distance", hexContext),
+                glyph.readSlot("distance", hexContext),
                 32.0).doubleValue();
 
         Vector3f rotation = Vector3f.lookAt(direction);
@@ -66,8 +66,9 @@ public class BeamGlyph implements GlyphHandler {
             blockHitDistSq = new Vector3d(origin).subtract(blockHitLocation).squaredLength();
         }
 
-        if (posVar instanceof EntityVar entityVar) {
-            Ref<EntityStore> sourceRef = entityVar.getRef(hexContext.getAccessor());
+        EntityVar sourceEntityVar = SpellVarUtil.resolveEntityVar(posVar, hexContext);
+        if (sourceEntityVar != null) {
+            Ref<EntityStore> sourceRef = sourceEntityVar.getRef(hexContext.getAccessor());
             if (sourceRef != null && sourceRef.isValid()) {
                 entityHit = TargetUtil.getTargetEntity(sourceRef, (float) beamLength, hexContext.getAccessor());
                 if (entityHit != null) {
@@ -80,22 +81,24 @@ public class BeamGlyph implements GlyphHandler {
 
         Vector3d beamOrigin = new Vector3d(origin).add(new Vector3d(direction).scale(1.5));
 
-        Integer outputSlot = glyph.getSlotIndex("result", hexContext);
         Vector3d endPoint;
         BeamStyle.HitType hitType;
 
         if (entityHit != null && entityHitDistSq < blockHitDistSq) {
             UUIDComponent uuidComp = hexContext.getAccessor().getComponent(entityHit, UUIDComponent.getComponentType());
-            EntityVar resultVar = new EntityVar(EntityVar.createRef(uuidComp.getUuid(), entityHit));
-            if (outputSlot != null) {
-                hexContext.setVariable(outputSlot, resultVar);
+            if (uuidComp == null) {
+                endPoint = new Vector3d(origin).add(new Vector3d(direction).scale(beamLength));
+                hitType = BeamStyle.HitType.MISS;
+            } else {
+                EntityVar resultVar = new EntityVar(EntityVar.createRef(uuidComp.getUuid(), entityHit));
+                glyph.writeSlot("result", resultVar, hexContext);
+                endPoint = hexContext.getAccessor().getComponent(entityHit,
+                        TransformComponent.getComponentType()).getPosition();
+                hitType = BeamStyle.HitType.ENTITY;
             }
-            endPoint = hexContext.getAccessor().getComponent(entityHit,
-                    TransformComponent.getComponentType()).getPosition();
-            hitType = BeamStyle.HitType.ENTITY;
         } else if (blockHitLocation != null) {
             BlockVar resultVar = new BlockVar(blockHitLocation.toVector3i());
-            if (outputSlot != null) hexContext.setVariable(outputSlot, resultVar);
+            glyph.writeSlot("result", resultVar, hexContext);
             endPoint = blockHitLocation;
             hitType = BeamStyle.HitType.BLOCK;
         } else {

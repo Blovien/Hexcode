@@ -11,6 +11,8 @@ public abstract class HexVar {
 
     public abstract double toScalar();
 
+    public abstract String describe();
+
     public boolean equalTo(HexVar other) {
         if (other == null) return false;
         return Double.compare(this.toScalar(), other.toScalar()) == 0;

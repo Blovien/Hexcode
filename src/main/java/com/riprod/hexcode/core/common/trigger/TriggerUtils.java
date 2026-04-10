@@ -44,12 +44,11 @@ public class TriggerUtils {
         ctx.UpdateAccessor(buffer);
         ctx.UpdateChunkAccessor(chunkAccessor);
 
-        for (var outputEntry : entry.getOutputSlots().entrySet()) {
-            if (entityRef.isValid()) {
-                UUIDComponent uuid = buffer.getComponent(entityRef, UUIDComponent.getComponentType());
-                if (uuid != null) {
-                    ctx.setVariable(outputEntry.getValue(), new EntityVar(uuid.getUuid(), entityRef));
-                }
+        if (entityRef.isValid() && entry.getSourceGlyph() != null) {
+            UUIDComponent uuid = buffer.getComponent(entityRef, UUIDComponent.getComponentType());
+            if (uuid != null) {
+                entry.getSourceGlyph().writeSlot("result",
+                        new EntityVar(uuid.getUuid(), entityRef), ctx);
             }
         }
 

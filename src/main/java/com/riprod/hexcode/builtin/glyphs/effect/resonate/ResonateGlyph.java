@@ -15,6 +15,7 @@ import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.HexSignal;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
+import com.riprod.hexcode.utils.SpellVarUtil;
 
 public class ResonateGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -39,8 +40,9 @@ public class ResonateGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targetVar = glyph.resolveSlot("target", hexContext);
-        if (!(targetVar instanceof EntityVar entityVar)) {
+        HexVar targetVar = glyph.readSlot("target", hexContext);
+        EntityVar entityVar = SpellVarUtil.resolveEntityVar(targetVar, hexContext);
+        if (entityVar == null) {
             LOGGER.atInfo().log("resonate: targets must be entities with hex signals");
             return;
         }
@@ -72,8 +74,7 @@ public class ResonateGlyph implements GlyphHandler {
                 hexContext.copy(),
                 hexContext.getRoot().getRootEntityRef(),
                 glyph,
-                glyph.getNextLinks(),
-                null);
+                glyph.getNextLinks());
         signal.addEntry(newEntry);
 
         Vector3d pos = resolvePosition(ref, accessor);

@@ -47,7 +47,7 @@ public class PhaseGlyph implements GlyphHandler {
         if (asset == null) return true;
 
         double duration = clamp(SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("duration", hexContext), DEFAULT_DURATION),
+                glyph.readSlot("duration", hexContext), DEFAULT_DURATION),
                 MIN_DURATION, MAX_DURATION);
 
         float baseCost = asset.getManaConsumption()
@@ -71,9 +71,9 @@ public class PhaseGlyph implements GlyphHandler {
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
         if (tracker == null) return true;
 
-        HexVar targets = glyph.resolveSlot("target", hexContext);
+        HexVar targets = glyph.readSlot("target", hexContext);
         double intensity = clamp(SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("intensity", hexContext), DEFAULT_INTENSITY),
+                glyph.readSlot("intensity", hexContext), DEFAULT_INTENSITY),
                 MIN_INTENSITY, MAX_INTENSITY);
 
         int extraRolls = 0;
@@ -126,17 +126,17 @@ public class PhaseGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targets = glyph.resolveSlot("target", hexContext);
+        HexVar targets = glyph.readSlot("target", hexContext);
         if (targets == null) {
             LOGGER.atInfo().log("phase: no targets provided");
             return;
         }
 
         double duration = clamp(SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("duration", hexContext), DEFAULT_DURATION),
+                glyph.readSlot("duration", hexContext), DEFAULT_DURATION),
                 MIN_DURATION, MAX_DURATION);
         double intensity = clamp(SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("intensity", hexContext), DEFAULT_INTENSITY),
+                glyph.readSlot("intensity", hexContext), DEFAULT_INTENSITY),
                 MIN_INTENSITY, MAX_INTENSITY);
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
@@ -174,10 +174,7 @@ public class PhaseGlyph implements GlyphHandler {
         Vector3d blockCenter = new Vector3d(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5);
         PhaseStyle.renderPhaseOut(blockCenter, hexContext.getColors(), accessor);
 
-        Integer outputSlot = glyph.getSlotIndex("phased", hexContext);
-        if (outputSlot != null) {
-            hexContext.setVariable(outputSlot, new BlockVar(pos));
-        }
+        glyph.writeSlot("phased", new BlockVar(pos), hexContext);
 
         spawnPhaseEntity(glyph, hexContext, phasedBlocks, (float) duration, accessor);
 
@@ -185,10 +182,10 @@ public class PhaseGlyph implements GlyphHandler {
     }
 
     private Vector3i resolveBlockPosition(HexVar targets, HexContext hexContext) {
-        if (targets instanceof BlockVar blockVar) {
-            return blockVar.getValue();
-        }
-        if (targets instanceof PositionVar posVar) {
+        BlockVar blockVar = SpellVarUtil.resolveBlockVar(targets, hexContext);
+        if (blockVar != null) return blockVar.getValue();
+        PositionVar posVar = SpellVarUtil.resolvePositionVar(targets, hexContext);
+        if (posVar != null) {
             Vector3d pos = posVar.getValue();
             if (pos != null) {
                 return new Vector3i((int) Math.floor(pos.x), (int) Math.floor(pos.y),
@@ -215,7 +212,7 @@ public class PhaseGlyph implements GlyphHandler {
                 new NetworkId(accessor.getExternalData().takeNextNetworkId()));
         holder.addComponent(HexSignal.getComponentType(),
                 new HexSignal(hexContext.copy(), hexContext.getRoot().getRootEntityRef(),
-                        glyph, glyph.getNextLinks(), null));
+                        glyph, glyph.getNextLinks()));
         holder.addComponent(PhaseComponent.getComponentType(),
                 new PhaseComponent(phasedBlocks));
         holder.addComponent(TriggerComponent.getComponentType(),

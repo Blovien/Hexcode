@@ -56,7 +56,7 @@ public class GlaciateGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar targetVar = glyph.resolveSlot("target", hexContext);
+        HexVar targetVar = glyph.readSlot("target", hexContext);
         if (targetVar == null) {
             LOGGER.atWarning().log("glaciate: no target provided");
             return;
@@ -68,12 +68,10 @@ public class GlaciateGlyph implements GlyphHandler {
             return;
         }
 
-        HexVar offsetVar = glyph.resolveSlot("offset", hexContext);
+        HexVar offsetVar = glyph.readSlot("offset", hexContext);
         double duration = SpellVarUtil.resolveNumberOrDefault(
-                glyph.resolveSlot("duration", hexContext), DEFAULT_DURATION);
+                glyph.readSlot("duration", hexContext), DEFAULT_DURATION);
         if (duration <= 0) duration = DEFAULT_DURATION;
-
-        Integer outputSlot = glyph.getSlotIndex("result", hexContext);
 
         ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(ICE_MODEL);
         if (modelAsset == null) {
@@ -85,7 +83,7 @@ public class GlaciateGlyph implements GlyphHandler {
                 .getAsset(HARD_COLLISION_CONFIG);
 
         Vector3d spawnPos = resolveSpawnPosition(targetPos, offsetVar, hexContext);
-        spawnIceBlock(glyph, hexContext, spawnPos, outputSlot, (float) duration,
+        spawnIceBlock(glyph, hexContext, spawnPos, (float) duration,
                 modelAsset, collisionConfig);
     }
 
@@ -114,7 +112,7 @@ public class GlaciateGlyph implements GlyphHandler {
     }
 
     private void spawnIceBlock(Glyph glyph, HexContext hexContext, Vector3d spawnPos,
-            Integer outputSlot, float duration,
+            float duration,
             ModelAsset modelAsset, HitboxCollisionConfig collisionConfig) {
         Model model = Model.createScaledModel(modelAsset, ICE_SCALE);
         Vector3f rotation = new Vector3f();
@@ -148,12 +146,9 @@ public class GlaciateGlyph implements GlyphHandler {
                 ? List.copyOf(allNext.subList(1, allNext.size()))
                 : List.of();
 
-        Map<String, Integer> outputSlots = new HashMap<>();
-        if (outputSlot != null) outputSlots.put("result", outputSlot);
-
         holder.addComponent(HexSignal.getComponentType(),
                 new HexSignal(hexContext.copy(), hexContext.getRoot().getRootEntityRef(),
-                        glyph, entryNext, outputSlots));
+                        glyph, entryNext));
         holder.addComponent(GlaciateComponent.getComponentType(),
                 new GlaciateComponent(DEFAULT_DAMAGE_RADIUS, DEFAULT_DAMAGE_MULTIPLIER,
                         firstBranch));
@@ -165,9 +160,7 @@ public class GlaciateGlyph implements GlyphHandler {
 
         Ref<EntityStore> iceRef = hexContext.getAccessor().addEntity(holder, AddReason.SPAWN);
 
-        if (outputSlot != null) {
-            hexContext.setVariable(outputSlot, new EntityVar(iceUuid, iceRef));
-        }
+        glyph.writeSlot("result", new EntityVar(iceUuid, iceRef), hexContext);
 
         RootGlyph execComp = hexContext.getAccessor().getComponent(
                 hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());

@@ -13,7 +13,7 @@ public class DelayStyle {
 
     public static void render(HexContext hexContext) {
         Vector3d casterPos = SpellVarUtil.resolvePosition(
-                hexContext.getVariable(1), hexContext.getAccessor());
+                hexContext.getVariable("1"), hexContext.getAccessor());
         if (casterPos == null) return;
 
         VfxUtil.effect("Delay_Shimmer", "SFX_Hex_Tick", casterPos, hexContext.getAccessor());
