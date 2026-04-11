@@ -17,7 +17,7 @@ public class TriggerComponent implements Component<EntityStore> {
     private String handlerId;
     private float remainingLifetime;
     private float initialLifetime;
-    private List<String> firstBranchIds;
+    private String[] firstBranchIds;
     private boolean firedFirstBranch;
     private boolean killRequested;
 
@@ -25,7 +25,7 @@ public class TriggerComponent implements Component<EntityStore> {
     }
 
     public TriggerComponent(@Nonnull String handlerId, float lifetime,
-            @Nullable List<String> firstBranchIds) {
+            @Nullable String[] firstBranchIds) {
         this.handlerId = handlerId;
         this.remainingLifetime = lifetime;
         this.initialLifetime = lifetime;
@@ -59,7 +59,7 @@ public class TriggerComponent implements Component<EntityStore> {
     }
 
     @Nullable
-    public List<String> getFirstBranchIds() {
+    public String[] getFirstBranchIds() {
         return firstBranchIds;
     }
 
@@ -86,7 +86,7 @@ public class TriggerComponent implements Component<EntityStore> {
         copy.handlerId = this.handlerId;
         copy.remainingLifetime = this.remainingLifetime;
         copy.initialLifetime = this.initialLifetime;
-        copy.firstBranchIds = this.firstBranchIds != null ? new ArrayList<>(this.firstBranchIds) : null;
+        copy.firstBranchIds = this.firstBranchIds != null ? this.firstBranchIds.clone() : null;
         copy.firedFirstBranch = this.firedFirstBranch;
         copy.killRequested = this.killRequested;
         return copy;

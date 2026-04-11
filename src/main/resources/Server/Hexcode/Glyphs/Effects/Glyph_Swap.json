@@ -29,8 +29,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 1,
-      "Unique": true
+      "Unique": true,
+      "DefaultVariable": "1"
     },
     "b": {
       "Label": "B",
@@ -41,8 +41,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 2,
-      "Unique": true
+      "Unique": true,
+      "DefaultVariable": "2"
     },
     "Next": {
       "Label": "Next",

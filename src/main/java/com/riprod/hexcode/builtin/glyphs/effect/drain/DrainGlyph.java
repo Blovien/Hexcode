@@ -162,7 +162,7 @@ public class DrainGlyph implements GlyphHandler {
         RootGlyph rootGlyph = hexContext.getAccessor().getComponent(
                 hexEntityRef, RootGlyph.getComponentType());
         if (rootGlyph != null) {
-            rootGlyph.incrementExternalWaiters();
+            rootGlyph.addDependent(targetRef);
         }
     }
 

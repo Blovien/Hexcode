@@ -25,8 +25,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 1,
-      "Unique": true
+      "Unique": true,
+      "DefaultVariable": "1"
     },
     "rotation": {
       "Label": "Direction",
@@ -37,8 +37,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 1,
-      "Unique": true
+      "Unique": true,
+      "DefaultVariable": "1"
     },
     "distance": {
       "Label": "Distance",
@@ -61,7 +61,7 @@
         0.1
       ],
       "Shape": "Cube",
-      "DefaultValue": 1.0
+      "DefaultValue": 1
     },
     "Next": {
       "Label": "Next",

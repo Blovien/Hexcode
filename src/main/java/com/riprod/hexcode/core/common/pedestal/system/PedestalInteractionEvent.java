@@ -133,12 +133,12 @@ public class PedestalInteractionEvent {
         boolean hasBook = playerData.getStoredBook() != null && !playerData.getStoredBook().isEmpty();
 
         if (hasBook && !hasEssence) {
-            PedestalSystem.enterIdle(accessor, player, pedestalComponent, world);
+            PedestalSystem.enterIdle(accessor, playerRef, pedestalComponent, world);
             return;
         }
 
         if (hasEssence && !hasBook) {
-            PedestalSystem.enterIdle(accessor, player, pedestalComponent, world);
+            PedestalSystem.enterIdle(accessor, playerRef, pedestalComponent, world);
             return;
         }
 
@@ -149,7 +149,7 @@ public class PedestalInteractionEvent {
                 PedestalSystem.exitCrafting(accessor, playerRef, pedestalComponent, playerData);
                 PedestalSystem.enterSelecting(pedestalComponent, player, world, accessor);
             } else if (state == PedestalState.SELECTING) {
-                PedestalSystem.enterIdle(accessor, player, pedestalComponent, world);
+                PedestalSystem.enterIdle(accessor, playerRef, pedestalComponent, world);
             } else {
                 logger.atInfo().log("pedestal: entering selecting + obelisk flow");
                 PedestalSystem.enterSelecting(pedestalComponent, player, world, accessor);

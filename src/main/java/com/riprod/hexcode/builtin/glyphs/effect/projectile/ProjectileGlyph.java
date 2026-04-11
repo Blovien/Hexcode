@@ -62,6 +62,7 @@ public class ProjectileGlyph implements GlyphHandler {
     }
     if (spawnPos == null) {
       LOGGER.atWarning().log("propel: could not resolve spawn position");
+      Executor.fail(hexContext);
       return;
     }
 
@@ -72,6 +73,7 @@ public class ProjectileGlyph implements GlyphHandler {
     }
     if (direction == null) {
       LOGGER.atWarning().log("propel: could not resolve direction");
+      Executor.fail(hexContext);
       return;
     }
 
@@ -128,7 +130,7 @@ public class ProjectileGlyph implements GlyphHandler {
     RootGlyph execComp = hexContext.getAccessor().getComponent(
         hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
     if (execComp != null) {
-      execComp.incrementExternalWaiters();
+      execComp.addDependent(projectileRef);
     }
 
     ProjectileStyle.renderLaunch(spawnPos, direction, hexContext.getColors(), hexContext.getAccessor());

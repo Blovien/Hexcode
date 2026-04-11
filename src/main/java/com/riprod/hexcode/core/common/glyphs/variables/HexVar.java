@@ -9,7 +9,7 @@ public abstract class HexVar {
 
     public abstract Object getRawValue();
 
-    public abstract double toScalar();
+    public abstract Double toScalar();
 
     public abstract String describe();
 

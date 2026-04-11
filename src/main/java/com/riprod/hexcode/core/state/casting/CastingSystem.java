@@ -40,6 +40,7 @@ import com.riprod.hexcode.core.state.casting.utils.GlyphStyler;
 import com.riprod.hexcode.core.state.casting.utils.HexSelector;
 import com.riprod.hexcode.core.state.casting.utils.HexSpawner;
 import com.riprod.hexcode.core.state.casting.utils.RootSpawner;
+import com.riprod.hexcode.core.state.execution.component.HexcasterExecutionComponent;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
 import com.riprod.hexcode.utils.GlyphMath;
@@ -98,6 +99,7 @@ public class CastingSystem extends HexcodeManager {
         if (castingComp == null) {
             return;
         }
+        HexcasterExecutionComponent execComp = buffer.ensureAndGetComponent(ref, HexcasterExecutionComponent.getComponentType());
 
         cleanupEntities(buffer, castingComp);
 
@@ -105,7 +107,7 @@ public class CastingSystem extends HexcodeManager {
         HexComponent rootGlyph = castingComp.getLastHoveredHex();
 
         if (rootGlyph != null && staff != null) {
-            comp.setActiveHex(rootGlyph.getHex());
+            execComp.setActiveHex(rootGlyph.getHex());
             CasterInventory.saveHexStaffComponent(buffer, ref, staff);
             comp.requestStateChange(HexState.EXECUTION);
         }
@@ -159,30 +161,44 @@ public class CastingSystem extends HexcodeManager {
 
     @Override
     public void onPlayerLeave(PlayerRef playerRef) {
+        HexcasterCastingComponent castingComp = null;
         Ref<EntityStore> ref = playerRef.getReference();
-        if (ref == null || !ref.isValid()) return;
-        Store<EntityStore> store = ref.getStore();
-
-        HexcasterCastingComponent castingComp = store.getComponent(ref, HexcasterCastingComponent.getComponentType());
+        if (ref != null && ref.isValid()) {
+            castingComp = ref.getStore().getComponent(ref, HexcasterCastingComponent.getComponentType());
+        } else {
+            Holder<EntityStore> holder = playerRef.getHolder();
+            if (holder != null) {
+                castingComp = holder.getComponent(HexcasterCastingComponent.getComponentType());
+            }
+        }
         if (castingComp == null) return;
 
         Ref<EntityStore> headAnchorRef = castingComp.getHeadAnchorRef();
         if (headAnchorRef != null && headAnchorRef.isValid()) {
-            store.removeEntity(headAnchorRef, RemoveReason.REMOVE);
-        }
-
-        Ref<EntityStore> castingRoot = castingComp.getCastingRootRef();
-        if (castingRoot != null && castingRoot.isValid()) {
-            store.removeEntity(castingRoot, RemoveReason.REMOVE);
+            headAnchorRef.getStore().removeEntity(headAnchorRef, RemoveReason.REMOVE);
         }
 
         List<Ref<EntityStore>> activeHexes = castingComp.getActiveHexes();
         if (activeHexes != null) {
             for (Ref<EntityStore> hexRef : activeHexes) {
-                if (hexRef != null && hexRef.isValid()) {
-                    store.removeEntity(hexRef, RemoveReason.REMOVE);
+                if (hexRef == null || !hexRef.isValid()) continue;
+                HexComponent hexComp = hexRef.getStore().getComponent(hexRef, HexComponent.getComponentType());
+                if (hexComp != null) {
+                    for (Ref<EntityStore> childRef : hexComp.getChildGlyphRefsList()) {
+                        if (childRef != null && childRef.isValid()) {
+                            childRef.getStore().removeEntity(childRef, RemoveReason.REMOVE);
+                        }
+                    }
+                }
+                if (hexRef.isValid()) {
+                    hexRef.getStore().removeEntity(hexRef, RemoveReason.REMOVE);
                 }
             }
+        }
+
+        Ref<EntityStore> castingRoot = castingComp.getCastingRootRef();
+        if (castingRoot != null && castingRoot.isValid()) {
+            castingRoot.getStore().removeEntity(castingRoot, RemoveReason.REMOVE);
         }
     }
 
@@ -258,10 +274,12 @@ public class CastingSystem extends HexcodeManager {
             HexComponent targetHex = castingComp.getHoveredHex();
             GlyphComponent targetGlyph = null;
             if (targetHex != null && targetHex != castingComp.getDraggingHex()) {
-                // sentinel snap: prefer the Output end-cap when dragging
-                targetGlyph = HexSelector.findOutputGlyph(accessor, targetHex);
-                if (targetGlyph == null) {
-                    targetGlyph = HexSelector.findHoveredGlyph(accessor, headRot2.getRotation(), targetHex);
+                targetGlyph = HexSelector.findHoveredGlyph(accessor, headRot2.getRotation(), targetHex);
+                if (targetGlyph != null) {
+                    GlyphComponent outputChild = HexSelector.findOutputChild(accessor, targetHex, targetGlyph);
+                    if (outputChild != null) {
+                        targetGlyph = outputChild;
+                    }
                 }
             }
             GlyphStyler.hoverGlyph(accessor, targetGlyph, castingComp);

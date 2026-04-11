@@ -29,8 +29,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 1,
-      "Unique": true
+      "Unique": true,
+      "DefaultVariable": "1"
     },
     "radius": {
       "Label": "Radius",
@@ -41,7 +41,7 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 2,
+      "DefaultValue": 2.1,
       "Unique": true
     },
     "damage": {
@@ -77,7 +77,7 @@
         0.1
       ],
       "Shape": "Cube",
-      "DefaultValue": 1.0
+      "DefaultValue": 1
     },
     "Next": {
       "Label": "Next",

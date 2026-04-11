@@ -24,8 +24,8 @@ public class RotationVar extends HexVar {
     }
 
     @Override
-    public double toScalar() {
-        return rotation == null ? 0 : rotation.length();
+    public Double toScalar() {
+        return rotation == null ? 0.0 : rotation.length();
     }
 
     @Override
@@ -53,6 +53,11 @@ public class RotationVar extends HexVar {
             return Double.compare(rotation.length(), rb.rotation.length());
         }
         return super.compareTo(other);
+    }
+
+    @Override
+    public String toString() {
+        return "RotationVar(" + rotation + ")";
     }
 
     public static final BuilderCodec<RotationVar> CODEC = BuilderCodec

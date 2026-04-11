@@ -1,0 +1,30 @@
+{
+  "Tiers": {
+    "Copper": 68,
+    "Bronze": 192,
+    "Iron": 354,
+    "Thorium": 544,
+    "Cobalt": 760,
+    "Adamantite": 1000,
+    "Mithril": 1260,
+    "Onyxium": 1540,
+
+    "Wood": 10,
+    "Wool": 30,
+    "Leather_Soft": 40,
+    "Cloth_Wool": 80,
+    "Diving_Crude": 100,
+    "Leather_Light": 140,
+    "Cloth_Cotton": 200,
+    "Bronze_Ornate": 250,
+    "Leather_Medium": 280,
+    "Cloth_Linen": 360,
+    "Leather_Heavy": 460,
+    "Cloth_Silk": 600,
+    "Leather_Raven": 680,
+    "Steel": 840,
+    "Cloth_Cindercloth": 880,
+    "Steel_Ancient": 1100,
+    "Prisma": 1400
+  }
+}

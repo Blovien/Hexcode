@@ -184,12 +184,12 @@ public class FreezeGlyph implements GlyphHandler {
         holder.addComponent(FreezeComponent.getComponentType(),
                 new FreezeComponent(frozenBlocks, durationSeconds));
 
-        accessor.addEntity(holder, AddReason.SPAWN);
+        Ref<EntityStore> trackerRef = accessor.addEntity(holder, AddReason.SPAWN);
 
         RootGlyph execComp = accessor.getComponent(
                 hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
         if (execComp != null) {
-            execComp.incrementExternalWaiters();
+            execComp.addDependent(trackerRef);
         }
     }
 }

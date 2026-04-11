@@ -29,7 +29,7 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 1
+      "DefaultVariable": "1"
     },
     "duration": {
       "Label": "Duration",

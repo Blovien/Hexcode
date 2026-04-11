@@ -36,7 +36,7 @@ public class OutputGlyph implements GlyphHandler {
 
     private Color resolveAsColor(HexVar input) {
         if (input instanceof NumberVar numVar) {
-            int v = clamp255((int) numVar.getValue());
+            int v = clamp255(numVar.getValue().intValue());
             return makeColor(v, v, v);
         }
         if (input instanceof PositionVar posVar && posVar.getValue() != null) {

@@ -162,6 +162,16 @@ public class ArcSystem extends EntityTickingSystem<EntityStore> {
         ArcComponent nextHop = arc.createNextHop();
         HexSignal nextSignal = signal.clone();
 
+        for (HexSignal.SignalEntry sigEntry : signal.getEntries()) {
+            Ref<EntityStore> hexRef = sigEntry.getHexEntityRef();
+            if (hexRef == null || !hexRef.isValid()) continue;
+            RootGlyph rootGlyph = buffer.getComponent(hexRef, RootGlyph.getComponentType());
+            if (rootGlyph != null) {
+                rootGlyph.removeDependent(entityRef);
+                rootGlyph.addDependent(nextTarget);
+            }
+        }
+
         buffer.removeComponent(entityRef, ArcComponent.getComponentType());
         buffer.removeComponent(entityRef, HexSignal.getComponentType());
         buffer.addComponent(nextTarget, ArcComponent.getComponentType(), nextHop);
@@ -182,7 +192,7 @@ public class ArcSystem extends EntityTickingSystem<EntityStore> {
         }
 
         if (signal != null) {
-            signal.decrementAllWaiters(buffer);
+            signal.removeDependentFromAllRoots(buffer, entityRef);
         }
 
         buffer.removeComponent(entityRef, ArcComponent.getComponentType());

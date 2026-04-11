@@ -39,6 +39,13 @@ public class Hex {
         this.hexId = UUID.randomUUID().toString();
     }
 
+    public void replaceWith(Hex other) {
+        this.hexGraph.clear();
+        this.hexGraph.putAll(other.hexGraph);
+        this.hexId = other.hexId;
+        this.firstGlyphId = other.firstGlyphId;
+    }
+
     public void absorb(Hex other, String insertLocation) {
         Glyph insertGlyph = hexGraph.get(insertLocation);
         if (insertGlyph == null) return;

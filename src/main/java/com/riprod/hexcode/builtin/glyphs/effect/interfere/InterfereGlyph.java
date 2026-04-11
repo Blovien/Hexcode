@@ -18,6 +18,7 @@ import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.HexSignal;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
@@ -52,6 +53,7 @@ public class InterfereGlyph implements GlyphHandler {
         HexVar targetVar = glyph.readSlot("target", hexContext);
         if (targetVar == null) {
             LOGGER.atInfo().log("interfere: no targets");
+            Executor.fail(hexContext);
             return;
         }
 
@@ -60,7 +62,10 @@ public class InterfereGlyph implements GlyphHandler {
         EntityVar entityVar = SpellVarUtil.resolveEntityVar(targetVar, hexContext);
         if (entityVar != null) {
             Ref<EntityStore> ref = entityVar.getRef(accessor);
-            if (ref == null || !ref.isValid()) return;
+            if (ref == null || !ref.isValid()) {
+                Executor.fail(hexContext);
+                return;
+            }
 
             Vector3d pos = resolvePosition(ref, accessor);
 

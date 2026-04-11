@@ -49,7 +49,6 @@ public class FreezeTickSystem extends EntityTickingSystem<EntityStore> {
 
             World world = buffer.getExternalData().getWorld();
             restoreBlocks(freeze, signal, world, buffer);
-            decrementWaiters(signal, buffer);
             removeEntity(entityRef, buffer);
 
             LOGGER.atInfo().log("freeze: restored %d blocks after %.1fs",
@@ -70,11 +69,6 @@ public class FreezeTickSystem extends EntityTickingSystem<EntityStore> {
                 FreezeStyle.renderMelt(blockCenter, signal.getPrimary().getHexContext().getColors(), buffer);
             }
         }
-    }
-
-    private void decrementWaiters(HexSignal signal, CommandBuffer<EntityStore> buffer) {
-        if (signal == null) return;
-        signal.decrementAllWaiters(buffer);
     }
 
     private void removeEntity(Ref<EntityStore> entityRef, CommandBuffer<EntityStore> buffer) {

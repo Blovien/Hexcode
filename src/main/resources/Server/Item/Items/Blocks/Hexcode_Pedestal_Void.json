@@ -92,7 +92,7 @@
         "Hexcode_PedestalBlock": {
           "MaxObelisks": 8,
           "HolderReference": "Pedestal_Holder",
-          "ObeliskRange": 35,
+          "ObeliskRange": 8,
           "PerPlayer": false,
           "MaxRadius": 35,
           "AnimationSets": {

@@ -43,6 +43,7 @@ public class BoltGlyph implements GlyphHandler {
         HexVar target = glyph.readSlot("target", hexContext);
         if (target == null) {
             LOGGER.atWarning().log("bolt: no target provided");
+            Executor.fail(hexContext);
             return;
         }
 
@@ -52,6 +53,7 @@ public class BoltGlyph implements GlyphHandler {
         TransformComponent casterTc = accessor.getComponent(casterRef, TransformComponent.getComponentType());
         if (casterTc == null) {
             LOGGER.atWarning().log("bolt: caster has no transform");
+            Executor.fail(hexContext);
             return;
         }
 
@@ -67,6 +69,7 @@ public class BoltGlyph implements GlyphHandler {
             handleBlockTarget(glyph, hexContext, blockVar, accessor, casterRef, sourcePos, world, color);
         } else {
             LOGGER.atWarning().log("bolt: target is not entity or block");
+            Executor.fail(hexContext);
             return;
         }
 

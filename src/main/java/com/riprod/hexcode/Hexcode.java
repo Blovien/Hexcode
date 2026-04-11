@@ -2,6 +2,8 @@ package com.riprod.hexcode;
 
 import com.riprod.hexcode.builtin.BuiltinPlugin;
 import com.riprod.hexcode.command.HexcodeCommand;
+import com.riprod.hexcode.core.common.armor.ArmorManaConfig;
+import com.riprod.hexcode.core.common.armor.ArmorManaPatcher;
 import com.riprod.hexcode.core.common.block.component.UnbreakableBlockComponent;
 import com.riprod.hexcode.core.common.block.event.BlockBreakEvent;
 import com.riprod.hexcode.core.common.hexcaster.StaffUnequipEvent;
@@ -42,6 +44,7 @@ import com.riprod.hexcode.core.state.drawing.component.HexcasterDrawingComponent
 import com.riprod.hexcode.core.state.drawing.registry.ShapeAsset;
 import com.riprod.hexcode.core.state.drawing.registry.TemplateAsset;
 import com.riprod.hexcode.core.state.execution.ExecutionSystem;
+import com.riprod.hexcode.core.state.execution.component.HexcasterExecutionComponent;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.core.state.execution.system.ExecutionTickSystem;
 import com.riprod.hexcode.core.state.idle.IdleSystem;
@@ -51,13 +54,16 @@ import com.riprod.hexcode.interaction.HexMode;
 import com.riprod.hexcode.interaction.HexModeExit;
 import com.riprod.hexcode.interaction.HexStateBranch;
 import com.riprod.hexcode.interaction.HexAbility;
+import com.riprod.hexcode.interaction.HexExecutionExit;
 import com.riprod.hexcode.interaction.HexItemCondition;
+import com.riprod.hexcode.interaction.GlyphBookInteraction;
 import com.riprod.hexcode.interaction.PedestalInteraction;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexTick;
 import com.riprod.hexcode.state.HexcodeManager;
 import com.riprod.hexcode.state.StateRouter;
 import com.hypixel.hytale.assetstore.AssetRegistry;
+import com.hypixel.hytale.assetstore.event.LoadedAssetsEvent;
 import com.hypixel.hytale.assetstore.map.DefaultAssetMap;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.asset.type.particle.config.ParticleSystem;
@@ -73,6 +79,8 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.asset.HytaleAssetStore;
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
+import com.riprod.hexcode.api.event.SpellCastEvent;
+import com.riprod.hexcode.builtin.glyphs.effect.domain.DomainSpellCastListener;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
@@ -141,6 +149,15 @@ public class Hexcode extends JavaPlugin {
             .loadsAfter(ParticleSystem.class)
             .loadsAfter(Item.class)
             .build());
+    AssetRegistry.register(
+        HytaleAssetStore
+            .builder(ArmorManaConfig.class,
+                new DefaultAssetMap<String, ArmorManaConfig>())
+            .setPath(ArmorManaConfig.ASSET_PATH)
+            .setCodec(ArmorManaConfig.CODEC)
+            .setKeyFunction(ArmorManaConfig::getId)
+            .loadsBefore(Item.class)
+            .build());
 
     // Entity Component Registries
     ComponentRegistryProxy<EntityStore> entityStoreRegistry = this.getEntityStoreRegistry();
@@ -162,7 +179,7 @@ public class Hexcode extends JavaPlugin {
     HexBookComponent.setComponentType(hexBookComponentType);
 
     ComponentType<EntityStore, HexStaffComponent> hexStaffComponentType = entityStoreRegistry
-        .registerComponent(
+        .registerComponent( 
             HexStaffComponent.class, "HexStaff",
             HexStaffComponent.CODEC);
     HexStaffComponent.setComponentType(hexStaffComponentType);
@@ -172,6 +189,11 @@ public class Hexcode extends JavaPlugin {
             HexcasterComponent.class, "HexcasterComponent",
             HexcasterComponent.CODEC);
     HexcasterComponent.setComponentType(hexcasterComponentType);
+
+    ComponentType<EntityStore, HexcasterExecutionComponent> executionComponentType = entityStoreRegistry
+        .registerComponent(HexcasterExecutionComponent.class,
+            HexcasterExecutionComponent::new);
+    HexcasterExecutionComponent.setComponentType(executionComponentType);
 
     ComponentType<EntityStore, HexcasterCastingComponent> castingRootComponentType = entityStoreRegistry
         .registerComponent(HexcasterCastingComponent.class,
@@ -193,10 +215,10 @@ public class Hexcode extends JavaPlugin {
             NodeComponent::new);
     NodeComponent.setComponentType(nodeComponentType);
 
-    ComponentType<EntityStore, RootGlyph> executionComponentType = entityStoreRegistry.registerComponent(
+    ComponentType<EntityStore, RootGlyph> rootGlyphComponent = entityStoreRegistry.registerComponent(
         RootGlyph.class,
         RootGlyph::new);
-    RootGlyph.setComponentType(executionComponentType);
+    RootGlyph.setComponentType(rootGlyphComponent);
 
     ComponentType<EntityStore, SlotComponent> slotComponentType = entityStoreRegistry
         .registerComponent(SlotComponent.class, SlotComponent::new);
@@ -245,12 +267,14 @@ public class Hexcode extends JavaPlugin {
     // Interaction Registries
     Interaction.CODEC.register("HexStateBranch", HexStateBranch.class, HexStateBranch.CODEC);
     Interaction.CODEC.register("HexStateChange", HexStateChange.class, HexStateChange.CODEC);
+    Interaction.CODEC.register("HexExecutionExit", HexExecutionExit.class, HexExecutionExit.CODEC);
     Interaction.CODEC.register("HexHold", HexHold.class, HexHold.CODEC);
     Interaction.CODEC.register("HexMode", HexMode.class, HexMode.CODEC);
     Interaction.CODEC.register("HexModeExit", HexModeExit.class, HexModeExit.CODEC);
     Interaction.CODEC.register("PedestalInteraction", PedestalInteraction.class, PedestalInteraction.CODEC);
     Interaction.CODEC.register("HexItemCondition", HexItemCondition.class, HexItemCondition.CODEC);
     Interaction.CODEC.register("HexAbility", HexAbility.class, HexAbility.CODEC);
+    Interaction.CODEC.register("GlyphBookInteraction", GlyphBookInteraction.class, GlyphBookInteraction.CODEC);
 
     // State Managers
     StateRouter.registerState(HexState.IDLE, new IdleSystem());
@@ -274,6 +298,9 @@ public class Hexcode extends JavaPlugin {
     // Events
     this.getEventRegistry().registerGlobal(PlayerConnectEvent.class, Hexcode::onPlayerConnect);
     this.getEventRegistry().registerGlobal(PlayerDisconnectEvent.class, Hexcode::onPlayerDisconnect);
+    this.getEventRegistry().registerGlobal(SpellCastEvent.class, new DomainSpellCastListener());
+    this.getEventRegistry().register(LoadedAssetsEvent.class, Item.class,
+        ArmorManaPatcher::onItemsLoaded);
 
     // Commands
     this.getCommandRegistry().registerCommand(new HexcodeCommand());

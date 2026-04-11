@@ -1,0 +1,57 @@
+$C = "../../Common.ui";
+
+$C.@PageOverlay {
+  LayoutMode: Middle;
+
+  $C.@DecoratedContainer {
+    Anchor: (Width: 520);
+
+    #Title {
+      $C.@Title {
+        @Text = "Glyph Book (Stop-Gap GUI. Will be redone later)";
+      }
+    }
+
+    #Content {
+      Padding: (Vertical: 16, Horizontal: 24);
+
+      Group #HexList {
+        LayoutMode: Top;
+      }
+
+      Group #EmptyLabel {
+        Anchor: (Top: 16);
+
+        Label {
+          Style: (FontSize: 16, TextColor: #5a6a7a, HorizontalAlignment: Center);
+          Text: "No hexes in this book";
+        }
+      }
+
+      Group #ColorPalette {
+        Anchor: (Top: 20);
+        Visible: false;
+
+        Label #ColorTitle {
+          Style: (FontSize: 14, TextColor: #96a9be, RenderUppercase: true, RenderBold: true);
+          Text: "Recolor Hex";
+        }
+
+        Group #ColorRow {
+          LayoutMode: Center;
+          Anchor: (Top: 8, Height: 32);
+        }
+      }
+
+      Group {
+        LayoutMode: Center;
+        Anchor: (Top: 20);
+
+        $C.@CancelTextButton #CloseBtn {
+          Text: "Close";
+          FlexWeight: 1;
+        }
+      }
+    }
+  }
+}

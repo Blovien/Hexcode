@@ -1,0 +1,9 @@
+{
+  "SwitchTo": "PostColor",
+  "HighlightColor": "#4a2f7a",
+  "HighlightThickness": 1.0,
+  "UseBloomOnHighlight": true,
+  "PostColor": "#1a0a3a",
+  "PostColorOpacity": 0.85,
+  "AnimationDuration": 0.2
+}

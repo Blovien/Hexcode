@@ -11,6 +11,8 @@ import java.util.concurrent.ThreadLocalRandom;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.Slot;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphRegistry;
+import com.riprod.hexcode.core.common.hexes.codec.DecodeResult;
+import com.riprod.hexcode.core.common.hexes.codec.HexCodec;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 
 public class HexUtils {
@@ -70,15 +72,15 @@ public class HexUtils {
     }
 
     public static String serialize(Hex hex) {
-        return com.riprod.hexcode.core.common.hexes.codec.HexCodec.serialize(hex);
+        return HexCodec.serialize(hex);
     }
 
-    public static com.riprod.hexcode.core.common.hexes.codec.DecodeResult deserializeWithResult(String data) {
-        return com.riprod.hexcode.core.common.hexes.codec.HexCodec.deserialize(data);
+    public static DecodeResult deserializeWithResult(String data) {
+        return HexCodec.deserialize(data);
     }
 
     public static Hex deserialize(String data) {
-        return com.riprod.hexcode.core.common.hexes.codec.HexCodec.deserialize(data).getHex();
+        return HexCodec.deserialize(data).getHex();
     }
 
     private static void removeUnregisteredGlyphs(Hex hex) {

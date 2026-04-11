@@ -53,7 +53,7 @@
         0.1
       ],
       "Shape": "Cube",
-      "DefaultValue": 1.0
+      "DefaultValue": 1
     },
     "Next": {
       "Label": "Next",

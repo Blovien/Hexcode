@@ -20,6 +20,7 @@ import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexColors;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.HexSignal;
@@ -36,18 +37,21 @@ public class ArcGlyph implements GlyphHandler {
         EntityVar entityVar = SpellVarUtil.resolveEntityVar(targets, hexContext);
         if (entityVar == null) {
             LOGGER.atWarning().log("arc: no entity target provided");
+            Executor.fail(hexContext);
             return;
         }
 
         Ref<EntityStore> initialTarget = entityVar.getRef(hexContext.getAccessor());
         if (initialTarget == null || !initialTarget.isValid()) {
             LOGGER.atWarning().log("arc: initial target ref invalid");
+            Executor.fail(hexContext);
             return;
         }
 
         List<String> branches = glyph.getNextLinks();
         if (branches.isEmpty()) {
             LOGGER.atInfo().log("arc: no child branches, nothing to do");
+            Executor.fail(hexContext);
             return;
         }
 
@@ -108,7 +112,7 @@ public class ArcGlyph implements GlyphHandler {
         RootGlyph rootGlyph = hexContext.getAccessor().getComponent(
                 hexEntityRef, RootGlyph.getComponentType());
         if (rootGlyph != null) {
-            rootGlyph.incrementExternalWaiters();
+            rootGlyph.addDependent(initialTarget);
         }
 
         LOGGER.atInfo().log("arc: attached chain with %d branches to initial target", branches.size());

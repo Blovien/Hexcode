@@ -37,7 +37,19 @@
       "Weapon"
     ]
   },
-  "Weapon": {},
+  "Weapon": {
+    "EntityStatsToClear": [
+      "SignatureEnergy"
+    ],
+    "StatModifiers": {
+      "SignatureEnergy": [
+        {
+          "Amount": 5,
+          "CalculationType": "Additive"
+        }
+      ]
+    }
+  },
   "ItemSoundSetId": "ISS_Weapons_Wood",
   "MaxStack": 1
 }

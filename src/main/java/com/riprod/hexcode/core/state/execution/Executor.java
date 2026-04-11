@@ -13,7 +13,7 @@ import com.riprod.hexcode.core.common.hexstaff.component.HexStaffAsset;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffComponent;
 import com.riprod.hexcode.utils.HexSlot;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.PendingContinue;
+import com.riprod.hexcode.core.state.execution.component.HexcasterExecutionComponent;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 
@@ -39,13 +39,6 @@ public class Executor {
         continueExecution(Arrays.asList(links), hexContext);
     }
 
-    public static void delayFromSlot(Glyph glyph, String slotKey, HexContext hexContext, float delaySeconds) {
-        Slot slot = glyph.getSlot(slotKey);
-        if (slot == null) return;
-        String[] links = slot.getLinks();
-        if (links.length == 0) return;
-        delayContinuation(Arrays.asList(links), hexContext, delaySeconds);
-    }
 
     public static void beginExecution(List<String> nextGlyphs, @Nonnull HexContext hexContext) {
 
@@ -57,20 +50,22 @@ public class Executor {
 
         HexStaffComponent staff = CasterInventory.getHexStaffComponent(
                 hexContext.getAccessor(), hexContext.getCasterRef());
-        HexcasterComponent casterComp = hexContext.getAccessor().getComponent(
-                hexContext.getCasterRef(), HexcasterComponent.getComponentType());
+        
+        HexcasterExecutionComponent execComp = hexContext.getAccessor().getComponent(
+                hexContext.getCasterRef(), HexcasterExecutionComponent.getComponentType());
+
         if (staff != null) {
             RootGlyph rootGlyph = hexContext.getAccessor().getComponent(
                     hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
 
             VolatilityTracker tracker = new VolatilityTracker(
-                    casterComp.getCastCount(), staff.getStaffModifier(),
+                    execComp.getCastCount(), staff.getStaffModifier(),
                     rootGlyph.getPowerModifier(),
                     rootGlyph.getVolatilityMultiplier(),
                     rootGlyph.getManaCostMultiplier());
             hexContext.setVolatilityTracker(tracker);
 
-            casterComp.incrementCastCount();
+            execComp.incrementCastCount();
             CasterInventory.saveHexStaffComponent(hexContext.getAccessor(), hexContext.getCasterRef(), staff);
 
             HexStaffAsset staffAsset = CasterInventory.getHexStaffAsset(
@@ -80,7 +75,51 @@ public class Executor {
             }
         }
 
+        registerActiveHex(hexContext);
+
+        RootGlyph rootGlyph = hexContext.getAccessor().getComponent(
+                hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
+        if (rootGlyph != null) {
+            rootGlyph.setOriginContext(hexContext);
+        }
+
         continueExecution(nextGlyphs, hexContext);
+    }
+
+    public static void fail(HexContext hexContext) {
+        VolatilityTracker tracker = hexContext.getVolatilityTracker();
+        if (tracker != null) {
+            tracker.setFailed(true);
+            tracker.setFizzled(true);
+        }
+        unregisterActiveHex(hexContext);
+    }
+
+    public static void registerActiveHex(HexContext hexContext) {
+        try {
+            if (hexContext.getAccessor() == null || hexContext.getCasterRef() == null) return;
+            HexcasterComponent comp = hexContext.getAccessor().getComponent(
+                    hexContext.getCasterRef(), HexcasterComponent.getComponentType());
+            if (comp != null) {
+                comp.registerActiveHex(hexContext);
+            }
+        } catch (Exception e) {
+            LOGGER.atWarning().log("failed to register active hex: %s", e.getMessage());
+        }
+    }
+
+    public static void unregisterActiveHex(HexContext hexContext) {
+        try {
+            if (hexContext.getAccessor() == null || hexContext.getCasterRef() == null) return;
+            if (!hexContext.getCasterRef().isValid()) return;
+            HexcasterComponent comp = hexContext.getAccessor().getComponent(
+                    hexContext.getCasterRef(), HexcasterComponent.getComponentType());
+            if (comp != null) {
+                comp.removeActiveHex(hexContext);
+            }
+        } catch (Exception e) {
+            LOGGER.atWarning().log("failed to unregister active hex: %s", e.getMessage());
+        }
     }
 
     public static void continueExecution(List<String> nextGlyphs, HexContext hexContext) {
@@ -90,8 +129,9 @@ public class Executor {
         }
 
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
-        if (tracker != null && tracker.isFizzled()) {
-            LOGGER.atInfo().log("hex fizzled — halting execution");
+        if (tracker != null && (tracker.isFizzled() || tracker.isFailed())) {
+            LOGGER.atInfo().log("hex %s — halting execution",
+                    tracker.isFailed() ? "failed" : "fizzled");
             return;
         }
 
@@ -143,14 +183,4 @@ public class Executor {
         }
     }
 
-    public static void delayContinuation(List<String> nextGlyphs, HexContext hexContext, float delaySeconds) {
-        RootGlyph rootGlyph = hexContext.getAccessor().getComponent(
-                hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
-
-        PendingContinue pending = new PendingContinue(
-                nextGlyphs,
-                hexContext,
-                delaySeconds);
-        rootGlyph.addPendingContinue(pending);
-    }
 }

@@ -2,6 +2,7 @@ package com.riprod.hexcode.builtin;
 
 import com.hypixel.hytale.component.ComponentRegistryProxy;
 import com.hypixel.hytale.component.ComponentType;
+import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -10,6 +11,9 @@ import com.riprod.hexcode.builtin.glyphs.effect.arc.ArcGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.arc.component.ArcComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.arc.system.ArcSystem;
 import com.riprod.hexcode.builtin.glyphs.effect.bolt.BoltGlyph;
+import com.riprod.hexcode.builtin.glyphs.effect.concentration.ConcentrationGlyph;
+import com.riprod.hexcode.builtin.glyphs.effect.concentration.ConcentrationTriggerHandler;
+import com.riprod.hexcode.builtin.glyphs.effect.concentration.component.ConcentrationTriggerComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.chaos.ChaosGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.combust.CombustGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.conjure.ConjureGlyph;
@@ -17,6 +21,11 @@ import com.riprod.hexcode.builtin.glyphs.effect.conjure.ConjureTriggerHandler;
 import com.riprod.hexcode.builtin.glyphs.effect.conjure.component.ConjureZoneComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.debug.DebugGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.delay.DelayGlyph;
+import com.riprod.hexcode.builtin.glyphs.effect.delay.DelayTriggerHandler;
+import com.riprod.hexcode.builtin.glyphs.effect.domain.DomainGlyph;
+import com.riprod.hexcode.builtin.glyphs.effect.domain.DomainTriggerHandler;
+import com.riprod.hexcode.builtin.glyphs.effect.domain.component.DomainAuraComponent;
+import com.riprod.hexcode.builtin.glyphs.effect.domain.component.DomainZoneComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.gust.GustGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.divide.DivideGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.drain.DrainGlyph;
@@ -59,7 +68,6 @@ import com.riprod.hexcode.builtin.glyphs.effect.resonate.ResonateGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.scale.ScaleGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.scale.component.ScaleComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.scale.system.ScaleTickSystem;
-import com.riprod.hexcode.builtin.glyphs.effect.onrelease.OnReleaseGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.projectile.ProjectileGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.projectile.component.ProjectileComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.projectile.system.ProjectileSystem;
@@ -81,6 +89,10 @@ import com.riprod.hexcode.builtin.glyphs.value.NumberValue;
 import com.riprod.hexcode.builtin.glyphs.value.PositionValue;
 import com.riprod.hexcode.builtin.glyphs.value.RotationValue;
 import com.riprod.hexcode.builtin.glyphs.value.VariableValue;
+import com.riprod.hexcode.builtin.obelisks.accuracy.AccuracyObelisk;
+import com.riprod.hexcode.builtin.obelisks.efficiency.EfficiencyObelisk;
+import com.riprod.hexcode.builtin.obelisks.importexport.ImportExportObelisk;
+import com.riprod.hexcode.builtin.obelisks.importexport.interactions.ImportInteraction;
 import com.riprod.hexcode.builtin.obelisks.seeker.SeekerObelisk;
 import com.riprod.hexcode.builtin.styles.ArcStyle;
 import com.riprod.hexcode.builtin.styles.RingStyle;
@@ -111,6 +123,7 @@ public class BuiltinPlugin extends JavaPlugin {
         RegisterComponents();
         RegisterSystems();
         RegisterTriggers();
+        RegisterInteractions();
 
         initialized = true;
     }
@@ -138,7 +151,7 @@ public class BuiltinPlugin extends JavaPlugin {
         GlyphRegistry.register("Glyph_Resonate", new ResonateGlyph());
         GlyphRegistry.register("Glyph_Levitate", new LevitateGlyph());
         GlyphRegistry.register("Glyph_Scale", new ScaleGlyph());
-        GlyphRegistry.register("Glyph_OnRelease", new OnReleaseGlyph());
+        GlyphRegistry.register("Glyph_Domain", new DomainGlyph());
 
         // Tier 3
         GlyphRegistry.register("Glyph_Ignite", new IgniteGlyph());
@@ -182,16 +195,24 @@ public class BuiltinPlugin extends JavaPlugin {
 
         // caster state queries
         GlyphRegistry.register("Glyph_IsHolding", new IsHoldingValue());
+        GlyphRegistry.register("Glyph_Concentration", new ConcentrationGlyph());
     }
 
     private void RegisterObelisks() {
         ObeliskHandlerRegistry.register("seeker", new SeekerObelisk());
+        ObeliskHandlerRegistry.register("accuracy", new AccuracyObelisk());
+        ObeliskHandlerRegistry.register("efficiency", new EfficiencyObelisk());
+        ObeliskHandlerRegistry.register("import_export", new ImportExportObelisk());
     }
 
     private void RegisterStyles() {
         CastingStyleRegistry.register(new ArcStyle());
         CastingStyleRegistry.register(new RingStyle());
         CastingStyleRegistry.register(new SphereStyle());
+    }
+
+    private void RegisterInteractions() {
+        Interaction.CODEC.register("HexImportExportInteraction", ImportInteraction.class, ImportInteraction.CODEC);
     }
 
     private void RegisterComponents() {
@@ -264,6 +285,18 @@ public class BuiltinPlugin extends JavaPlugin {
         ComponentType<EntityStore, ScaleComponent> scaleComponentType = entityStoreRegistry
                 .registerComponent(ScaleComponent.class, ScaleComponent::new);
         ScaleComponent.setComponentType(scaleComponentType);
+
+        ComponentType<EntityStore, DomainZoneComponent> domainZoneComponentType = entityStoreRegistry
+                .registerComponent(DomainZoneComponent.class, DomainZoneComponent::new);
+        DomainZoneComponent.setComponentType(domainZoneComponentType);
+
+        ComponentType<EntityStore, DomainAuraComponent> domainAuraComponentType = entityStoreRegistry
+                .registerComponent(DomainAuraComponent.class, DomainAuraComponent::new);
+        DomainAuraComponent.setComponentType(domainAuraComponentType);
+
+        ComponentType<EntityStore, ConcentrationTriggerComponent> concentrationTriggerType = entityStoreRegistry
+                .registerComponent(ConcentrationTriggerComponent.class, ConcentrationTriggerComponent::new);
+        ConcentrationTriggerComponent.setComponentType(concentrationTriggerType);
     }
 
     private void RegisterSystems() {
@@ -289,5 +322,8 @@ public class BuiltinPlugin extends JavaPlugin {
         TriggerRegistry.register("glaciate", new GlaciateTriggerHandler());
         TriggerRegistry.register("shatter", new ShatterTriggerHandler());
         TriggerRegistry.register("phase", new PhaseTriggerHandler());
+        TriggerRegistry.register("domain", new DomainTriggerHandler());
+        TriggerRegistry.register(ConcentrationGlyph.TRIGGER_HANDLER_ID, new ConcentrationTriggerHandler());
+        TriggerRegistry.register(DelayGlyph.TRIGGER_HANDLER_ID, new DelayTriggerHandler());
     }
 }

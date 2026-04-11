@@ -24,11 +24,7 @@
         }
       },
       "Failed": {
-        "Type": "Charging",
-        "Next": {
-          "0.5": "Unarmed_Swing_Right"
-        },
-        "DisplayProgress": false
+        "Type": "GlyphBookInteraction"
       }
     }
   ],

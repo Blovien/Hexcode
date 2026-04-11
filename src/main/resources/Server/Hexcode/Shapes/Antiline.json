@@ -1,5 +1,6 @@
 {
   "ImagePath": "Antiline",
   "CenterFilled": true,
-  "CanRotate": false
+  "CanRotate": false,
+  "ExpectedSpeed": 166
 }

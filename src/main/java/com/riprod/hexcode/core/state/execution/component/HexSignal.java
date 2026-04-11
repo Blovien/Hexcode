@@ -103,14 +103,14 @@ public class HexSignal implements Component<EntityStore> {
         }
     }
 
-    public void decrementAllWaiters(CommandBuffer<EntityStore> buffer) {
+    public void removeDependentFromAllRoots(CommandBuffer<EntityStore> buffer, Ref<EntityStore> dependentRef) {
         for (SignalEntry entry : entries) {
             Ref<EntityStore> hexRef = entry.getHexEntityRef();
             if (hexRef == null || !hexRef.isValid()) continue;
 
             RootGlyph execComp = buffer.getComponent(hexRef, RootGlyph.getComponentType());
             if (execComp != null) {
-                execComp.decrementExternalWaiters();
+                execComp.removeDependent(dependentRef);
             }
         }
     }

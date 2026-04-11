@@ -12,6 +12,7 @@ import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.HexSignal;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
@@ -44,29 +45,36 @@ public class ResonateGlyph implements GlyphHandler {
         EntityVar entityVar = SpellVarUtil.resolveEntityVar(targetVar, hexContext);
         if (entityVar == null) {
             LOGGER.atInfo().log("resonate: targets must be entities with hex signals");
+            Executor.fail(hexContext);
             return;
         }
 
         if (glyph.getNextLinks() == null || glyph.getNextLinks().isEmpty()) {
             LOGGER.atInfo().log("resonate: no children to inject");
+            Executor.fail(hexContext);
             return;
         }
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
 
         Ref<EntityStore> ref = entityVar.getRef(accessor);
-        if (ref == null || !ref.isValid()) return;
+        if (ref == null || !ref.isValid()) {
+            Executor.fail(hexContext);
+            return;
+        }
 
         HexSignal signal = accessor.getComponent(ref, HexSignal.getComponentType());
         if (signal == null) {
             Vector3d pos = resolvePosition(ref, accessor);
             if (pos != null) ResonateStyle.renderNoSignal(pos, hexContext.getColors(), accessor);
             LOGGER.atInfo().log("resonate: target has no hex signal, skipping");
+            Executor.fail(hexContext);
             return;
         }
 
         if (signal.getEntries().size() >= MAX_ENTRIES) {
             LOGGER.atInfo().log("resonate: signal already at max entries (%d), skipping", MAX_ENTRIES);
+            Executor.fail(hexContext);
             return;
         }
 

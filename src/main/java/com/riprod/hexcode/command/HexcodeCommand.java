@@ -15,6 +15,7 @@ import com.riprod.hexcode.command.glyph.GlyphsLearnCommand;
 import com.riprod.hexcode.command.glyph.GlyphsListCommand;
 import com.riprod.hexcode.command.hex.HexInspectCommand;
 import com.riprod.hexcode.command.hex.HexSerializeCommand;
+import com.riprod.hexcode.command.hex.HexTestRoundtripCommand;
 
 import com.hypixel.hytale.logger.HytaleLogger;
 
@@ -32,6 +33,7 @@ public class HexcodeCommand extends AbstractPlayerCommand {
         addSubCommand(new GlyphsForgetCommand());
         addSubCommand(new HexInspectCommand());
         addSubCommand(new HexSerializeCommand());
+        addSubCommand(new HexTestRoundtripCommand());
         addSubCommand(new DrawTrainCommand());
         addSubCommand(new HexResetCommand());
     }
@@ -53,6 +55,7 @@ public class HexcodeCommand extends AbstractPlayerCommand {
         ctx.sendMessage(Message.raw("/hexcode forget - Forget the glyph you are looking at"));
         ctx.sendMessage(Message.raw("/hexcode inspect - Print the glyph tree of the active hex on the held staff"));
         ctx.sendMessage(Message.raw("/hexcode serialize - Print the serialized data of the active hex on the held staff"));
+        ctx.sendMessage(Message.raw("/hexcode test-roundtrip - Encode+decode the active hex and verify structural equality"));
         ctx.sendMessage(Message.raw("/hexcode train - Start a draw training session"));
         ctx.sendMessage(Message.raw("/hexcode reset - Force reset hexcode state to IDLE"));
     }

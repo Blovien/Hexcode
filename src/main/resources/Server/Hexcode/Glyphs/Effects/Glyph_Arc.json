@@ -29,7 +29,7 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 1
+      "DefaultVariable": "1"
     },
     "jump": {
       "Label": "Jump",
@@ -52,7 +52,7 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 1,
+      "DefaultValue": 0.5,
       "Unique": true
     },
     "result": {
@@ -64,7 +64,7 @@
         0.1
       ],
       "Shape": "Cube",
-      "DefaultValue": 1.0
+      "DefaultValue": 1
     },
     "Next": {
       "Label": "Next",

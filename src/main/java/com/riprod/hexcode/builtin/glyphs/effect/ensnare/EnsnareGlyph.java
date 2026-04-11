@@ -27,6 +27,7 @@ import com.riprod.hexcode.builtin.glyphs.effect.ensnare.component.SpikeEntry;
 import com.riprod.hexcode.builtin.glyphs.effect.ensnare.style.EnsnareStyle;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
+import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
@@ -132,6 +133,7 @@ public class EnsnareGlyph implements GlyphHandler {
                 glyph.readSlot("target", hexContext), accessor);
         if (center == null) {
             LOGGER.atInfo().log("ensnare: could not resolve center position");
+            Executor.fail(hexContext);
             return;
         }
 
@@ -142,6 +144,7 @@ public class EnsnareGlyph implements GlyphHandler {
         ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(SPIKE_MODEL);
         if (modelAsset == null) {
             LOGGER.atWarning().log("ensnare: spike model asset not found: %s", SPIKE_MODEL);
+            Executor.fail(hexContext);
             return;
         }
 
@@ -182,6 +185,7 @@ public class EnsnareGlyph implements GlyphHandler {
 
         if (spikes.isEmpty()) {
             LOGGER.atInfo().log("ensnare: no valid spike positions found");
+            Executor.fail(hexContext);
             return;
         }
 
@@ -243,12 +247,12 @@ public class EnsnareGlyph implements GlyphHandler {
                 new EnsnareComponent(spikes, durationSeconds, spikeDamage,
                         DAMAGE_COOLDOWN_SECONDS, center, radius));
 
-        accessor.addEntity(holder, AddReason.SPAWN);
+        Ref<EntityStore> trackerRef = accessor.addEntity(holder, AddReason.SPAWN);
 
         RootGlyph execComp = accessor.getComponent(
                 hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
         if (execComp != null) {
-            execComp.incrementExternalWaiters();
+            execComp.addDependent(trackerRef);
         }
     }
 

@@ -49,7 +49,6 @@ public class HexResetCommand extends AbstractPlayerCommand {
             int cleaned = cleanupAll(store, ref, hexcaster);
 
             hexcaster.applyState(HexState.IDLE);
-            hexcaster.clearDrawingState();
 
             if (currentState == HexState.IDLE && cleaned == 0) {
                 send(playerRef, "already idle, nothing to reset");

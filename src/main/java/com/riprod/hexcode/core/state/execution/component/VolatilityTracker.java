@@ -20,6 +20,7 @@ public class VolatilityTracker {
     private Float lastChance;
     private Float lastRoll;
     private volatile boolean fizzled;
+    private volatile boolean failed;
 
     public VolatilityTracker(int castCount, float staffModifier,
             float powerModifier, float volatilityMultiplier, float manaCostMultiplier) {
@@ -93,12 +94,24 @@ public class VolatilityTracker {
         return volatilityMultiplier;
     }
 
+    public void setVolatilityMultiplier(float volatilityMultiplier) {
+        this.volatilityMultiplier = volatilityMultiplier;
+    }
+
     public boolean isFizzled() {
         return fizzled;
     }
 
     public void setFizzled(boolean fizzled) {
         this.fizzled = fizzled;
+    }
+
+    public boolean isFailed() {
+        return failed;
+    }
+
+    public void setFailed(boolean failed) {
+        this.failed = failed;
     }
 
     public static final BuilderCodec<VolatilityTracker> CODEC = BuilderCodec

@@ -25,8 +25,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 1,
-      "Unique": true
+      "Unique": true,
+      "DefaultVariable": "1"
     },
     "coordsA": {
       "Label": "First Corner",
@@ -83,7 +83,7 @@
         0.1
       ],
       "Shape": "Cube",
-      "DefaultValue": 1.0
+      "DefaultValue": 1
     },
     "conjuration": {
       "Label": "Conjuration Output",
@@ -94,11 +94,21 @@
         0.1
       ],
       "Shape": "Cube",
-      "DefaultValue": 2.0
+      "DefaultValue": 2
+    },
+    "immediate": {
+      "Label": "Immediate",
+      "Description": "Fires immediately after the conjuration is created",
+      "Color": [
+        0.4,
+        1.0,
+        0.4
+      ],
+      "Shape": "Sphere"
     },
     "Next": {
       "Label": "Next",
-      "Description": "The next glyph in the execution chain",
+      "Description": "Executes on every entity in the area",
       "Color": [
         0.4,
         1.0,

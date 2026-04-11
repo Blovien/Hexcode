@@ -24,8 +24,8 @@ public class BlockVar extends HexVar {
     }
 
     @Override
-    public double toScalar() {
-        if (position == null) return 0;
+    public Double toScalar() {
+        if (position == null) return 0.0;
         return Math.sqrt(position.x * position.x + position.y * position.y + position.z * position.z);
     }
 
@@ -53,6 +53,11 @@ public class BlockVar extends HexVar {
             return Double.compare(this.toScalar(), bb.toScalar());
         }
         return super.compareTo(other);
+    }
+
+    @Override
+    public String toString() {
+        return "BlockVar(" + position + ")";
     }
 
     public static final BuilderCodec<BlockVar> CODEC = BuilderCodec

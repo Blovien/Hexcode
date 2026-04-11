@@ -5,16 +5,20 @@ import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 
 public class NumberVar extends HexVar {
-    private double number;
+    private Double number;
 
     public NumberVar() {
     }
 
-    public NumberVar(double number) {
+    public NumberVar(Double number) {
         this.number = number;
     }
 
-    public double getValue() {
+    public NumberVar(int number) {
+        this.number = (double) number;
+    }
+
+    public Double getValue() {
         return number;
     }
 
@@ -24,7 +28,7 @@ public class NumberVar extends HexVar {
     }
 
     @Override
-    public double toScalar() {
+    public Double toScalar() {
         return number;
     }
 
@@ -48,6 +52,11 @@ public class NumberVar extends HexVar {
         }
         return super.compareTo(other);
     }
+
+    @Override
+    public String toString() {
+        return String.valueOf(number.intValue());
+    }   
 
     public static final BuilderCodec<NumberVar> CODEC = BuilderCodec
             .builder(NumberVar.class, NumberVar::new, HexVar.BASE_CODEC)

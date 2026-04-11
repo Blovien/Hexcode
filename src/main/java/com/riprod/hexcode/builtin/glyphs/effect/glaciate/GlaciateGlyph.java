@@ -59,12 +59,14 @@ public class GlaciateGlyph implements GlyphHandler {
         HexVar targetVar = glyph.readSlot("target", hexContext);
         if (targetVar == null) {
             LOGGER.atWarning().log("glaciate: no target provided");
+            Executor.fail(hexContext);
             return;
         }
 
         Vector3d targetPos = SpellVarUtil.resolvePosition(targetVar, hexContext.getAccessor());
         if (targetPos == null) {
             LOGGER.atWarning().log("glaciate: could not resolve target position");
+            Executor.fail(hexContext);
             return;
         }
 
@@ -76,6 +78,7 @@ public class GlaciateGlyph implements GlyphHandler {
         ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(ICE_MODEL);
         if (modelAsset == null) {
             LOGGER.atWarning().log("glaciate: model asset not found: %s", ICE_MODEL);
+            Executor.fail(hexContext);
             return;
         }
 
@@ -165,7 +168,7 @@ public class GlaciateGlyph implements GlyphHandler {
         RootGlyph execComp = hexContext.getAccessor().getComponent(
                 hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
         if (execComp != null) {
-            execComp.incrementExternalWaiters();
+            execComp.addDependent(iceRef);
         }
 
         GlaciateStyle.renderSpawn(spawnPos, hexContext.getColors(), hexContext.getAccessor());

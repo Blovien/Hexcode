@@ -18,7 +18,47 @@
   "Interactions": {
     "Primary": "Hexstaff_Primary",
     "Secondary": "Hexstaff_Secondary",
+    "Ability1": "Hexstaff_Ability1",
     "Ability3": "Hexstaff_Ability3"
   },
-  "MaxStack": 1
+  "ItemAppearanceConditions": {
+    "SignatureEnergy": [
+      {
+        "Condition": [
+          100,
+          100
+        ],
+        "ConditionValueType": "Percent"
+      }
+    ]
+  },
+  "Weapon": {
+    "EntityStatsToClear": [
+      "SignatureEnergy",
+      "SignatureCharges"
+    ],
+    "StatModifiers": {
+      "SignatureEnergy": [
+        {
+          "Amount": 3,
+          "CalculationType": "Additive"
+        }
+      ],
+      "SignatureCharges": [
+        {
+          "CalculationType": "Additive",
+          "Amount": 3
+        }
+      ]
+    },
+    "RenderDualWielded": false
+  },
+  "Categories": [
+    "Items.Weapons"
+  ],
+  "Quality": "Template",
+  "MaxStack": 1,
+  "DisplayEntityStatsHUD": [
+    "SignatureEnergy"
+  ]
 }

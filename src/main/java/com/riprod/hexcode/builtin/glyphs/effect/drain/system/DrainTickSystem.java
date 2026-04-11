@@ -51,14 +51,14 @@ public class DrainTickSystem extends EntityTickingSystem<EntityStore> {
                 DrainEntry entry = it.next();
 
                 if (shouldStop(entry, statMap, buffer)) {
-                    completeEntry(entry, buffer);
+                    completeEntry(entry, entityRef, buffer);
                     it.remove();
                     continue;
                 }
 
                 EntityStatValue sourceStat = statMap.get(entry.getSourceStatIndex());
                 if (sourceStat == null) {
-                    completeEntry(entry, buffer);
+                    completeEntry(entry, entityRef, buffer);
                     it.remove();
                     continue;
                 }
@@ -69,7 +69,7 @@ public class DrainTickSystem extends EntityTickingSystem<EntityStore> {
                 if (entry.getSourceStatIndex() == DefaultEntityStatTypes.getHealth()) {
                     float maxDrainable = sourceStat.get() - 1.0f;
                     if (maxDrainable <= 0) {
-                        completeEntry(entry, buffer);
+                        completeEntry(entry, entityRef, buffer);
                         it.remove();
                         continue;
                     }
@@ -79,7 +79,7 @@ public class DrainTickSystem extends EntityTickingSystem<EntityStore> {
                 }
 
                 if (drainAmount <= 0) {
-                    completeEntry(entry, buffer);
+                    completeEntry(entry, entityRef, buffer);
                     it.remove();
                     continue;
                 }
@@ -149,12 +149,13 @@ public class DrainTickSystem extends EntityTickingSystem<EntityStore> {
         return false;
     }
 
-    private void completeEntry(DrainEntry entry, CommandBuffer<EntityStore> buffer) {
+    private void completeEntry(DrainEntry entry, Ref<EntityStore> targetRef,
+            CommandBuffer<EntityStore> buffer) {
         Ref<EntityStore> hexEntityRef = entry.getHexEntityRef();
         if (hexEntityRef != null && hexEntityRef.isValid()) {
             RootGlyph rootGlyph = buffer.getComponent(hexEntityRef, RootGlyph.getComponentType());
             if (rootGlyph != null) {
-                rootGlyph.decrementExternalWaiters();
+                rootGlyph.removeDependent(targetRef);
             }
         }
 
@@ -168,7 +169,7 @@ public class DrainTickSystem extends EntityTickingSystem<EntityStore> {
     private void cleanupAll(DrainComponent drain, Ref<EntityStore> entityRef,
             CommandBuffer<EntityStore> buffer) {
         for (DrainEntry entry : drain.getEntries()) {
-            completeEntry(entry, buffer);
+            completeEntry(entry, entityRef, buffer);
         }
         drain.getEntries().clear();
         buffer.removeComponent(entityRef, DrainComponent.getComponentType());

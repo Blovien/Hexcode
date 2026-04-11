@@ -20,6 +20,8 @@ public class SlotAsset {
     private String defaultDisplay;
     @Nullable
     private Double defaultValue;
+    @Nullable
+    private String defaultVariable;
     private boolean unique = false;
 
     public SlotAsset() {
@@ -67,6 +69,11 @@ public class SlotAsset {
         return defaultValue;
     }
 
+    @Nullable
+    public String getDefaultVariable() {
+        return defaultVariable;
+    }
+
     public boolean isUnique() {
         return unique;
     }
@@ -93,6 +100,9 @@ public class SlotAsset {
             .add()
             .append(new KeyedCodec<>("DefaultValue", Codec.DOUBLE),
                     (s, v) -> s.defaultValue = v, s -> s.defaultValue)
+            .add()
+            .append(new KeyedCodec<>("DefaultVariable", Codec.STRING),
+                    (s, v) -> s.defaultVariable = v, s -> s.defaultVariable)
             .add()
             .append(new KeyedCodec<>("Unique", Codec.BOOLEAN),
                     (s, v) -> s.unique = v != null && v, s -> s.unique)

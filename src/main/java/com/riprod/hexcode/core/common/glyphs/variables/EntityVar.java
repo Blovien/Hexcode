@@ -47,7 +47,7 @@ public class EntityVar extends HexVar {
     }
 
     @Override
-    public double toScalar() {
+    public Double toScalar() {
         return entity != null ? 1.0 : 0.0;
     }
 
@@ -78,6 +78,11 @@ public class EntityVar extends HexVar {
             return entity.getUuid().compareTo(ev.entity.getUuid());
         }
         return super.compareTo(other);
+    }
+
+    @Override
+    public String toString() {
+        return "EntityVar(" + entity.getUuid() + ")";
     }
 
     public static final BuilderCodec<EntityVar> CODEC = BuilderCodec

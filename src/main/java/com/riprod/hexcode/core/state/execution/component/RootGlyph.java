@@ -7,6 +7,7 @@ import javax.annotation.Nonnull;
 
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
+import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 
@@ -16,12 +17,12 @@ public class RootGlyph implements Component<EntityStore> {
 
     private HexRoot root;
     private Hex hex;
-    private final List<PendingContinue> pendingContinues = new ArrayList<>();
     private boolean needsInitialExecution;
-    private int externalWaiters;
+    private final List<Ref<EntityStore>> dependents = new ArrayList<>();
     private float powerModifier;
     private float manaCostMultiplier = 1.0f;
     private float volatilityMultiplier = 1.0f;
+    private HexContext originContext;
 
     public RootGlyph() {
     }
@@ -42,24 +43,12 @@ public class RootGlyph implements Component<EntityStore> {
         this.root = root;
     }
 
-    public List<PendingContinue> getPendingContinues() {
-        return pendingContinues;
-    }
-
     public Hex getHex() {
         return hex;
     }
 
     public void setHex(Hex hex) {
         this.hex = hex;
-    }
-
-    public void addPendingContinue(PendingContinue pending) {
-        pendingContinues.add(pending);
-    }
-
-    public boolean hasPendingContinues() {
-        return !pendingContinues.isEmpty();
     }
 
     public boolean needsInitialExecution() {
@@ -70,16 +59,29 @@ public class RootGlyph implements Component<EntityStore> {
         this.needsInitialExecution = needsInitialExecution;
     }
 
-    public int getExternalWaiters() {
-        return externalWaiters;
+    public List<Ref<EntityStore>> getDependents() {
+        return dependents;
     }
 
-    public void incrementExternalWaiters() {
-        externalWaiters++;
+    public void addDependent(Ref<EntityStore> ref) {
+        if (ref != null) dependents.add(ref);
     }
 
-    public void decrementExternalWaiters() {
-        externalWaiters--;
+    public void removeDependent(Ref<EntityStore> ref) {
+        if (ref != null) dependents.remove(ref);
+    }
+
+    public void pruneDeadDependents() {
+        for (int i = dependents.size() - 1; i >= 0; i--) {
+            Ref<EntityStore> ref = dependents.get(i);
+            if (ref == null || !ref.isValid()) {
+                dependents.remove(i);
+            }
+        }
+    }
+
+    public boolean hasDependents() {
+        return !dependents.isEmpty();
     }
 
     public float getPowerModifier() {
@@ -106,18 +108,26 @@ public class RootGlyph implements Component<EntityStore> {
         this.volatilityMultiplier = volatilityMultiplier;
     }
 
+    public HexContext getOriginContext() {
+        return originContext;
+    }
+
+    public void setOriginContext(HexContext originContext) {
+        this.originContext = originContext;
+    }
+
     @Nonnull
     @Override
     public RootGlyph clone() {
         RootGlyph copy = new RootGlyph();
         copy.root = this.root;
         copy.hex = this.hex;
-        copy.pendingContinues.addAll(this.pendingContinues);
         copy.needsInitialExecution = this.needsInitialExecution;
-        copy.externalWaiters = this.externalWaiters;
+        copy.dependents.addAll(this.dependents);
         copy.powerModifier = this.powerModifier;
         copy.manaCostMultiplier = this.manaCostMultiplier;
         copy.volatilityMultiplier = this.volatilityMultiplier;
+        copy.originContext = this.originContext;
         return copy;
     }
 }

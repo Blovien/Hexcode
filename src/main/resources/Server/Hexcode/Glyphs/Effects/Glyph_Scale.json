@@ -19,23 +19,35 @@
     "target": {
       "Label": "Target",
       "Description": "Entity to scale",
-      "Color": [0.2, 0.5, 1.0],
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
       "Shape": "Cube",
-      "DefaultValue": 1,
-      "Unique": true
+      "Unique": true,
+      "DefaultVariable": "1"
     },
     "magnitude": {
       "Label": "Magnitude",
       "Description": "Scale factor (0.25-4.0)",
-      "Color": [0.2, 0.5, 1.0],
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
       "Shape": "Cube",
-      "DefaultValue": 2,
+      "DefaultValue": 2.1,
       "Unique": true
     },
     "duration": {
       "Label": "Duration",
       "Description": "How long the scale lasts in seconds",
-      "Color": [0.2, 0.5, 1.0],
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
       "Shape": "Cube",
       "DefaultValue": 5,
       "Unique": true
@@ -43,7 +55,11 @@
     "Next": {
       "Label": "Next",
       "Description": "The next glyph in the execution chain",
-      "Color": [0.4, 1.0, 0.4],
+      "Color": [
+        0.4,
+        1.0,
+        0.4
+      ],
       "Shape": "Sphere"
     }
   }

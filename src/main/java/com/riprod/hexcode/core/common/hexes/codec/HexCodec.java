@@ -1,23 +1,31 @@
 package com.riprod.hexcode.core.common.hexes.codec;
 
-import java.util.List;
-
 import javax.annotation.Nullable;
 
 import com.riprod.hexcode.core.common.hexes.component.Hex;
+import com.riprod.hexcode.core.common.hexes.utils.HexUtils;
 
-// stub: full hex serialization is deferred (see plan deferred items).
-// new shape will use Hex.CODEC directly via the standard BSON path.
 public class HexCodec {
+
+    public static final String PREFIX = HexCodecV14.FRAME_PREFIX;
 
     @Nullable
     public static String serialize(Hex hex) {
-        return null;
+        Hex clone = hex.clone();
+        HexUtils.validate(clone);
+        HexUtils.compress(clone);
+        return HexCodecV14.serialize(clone);
     }
 
     public static DecodeResult deserialize(String data) {
-        return new DecodeResult(null, List.of(
-                new DecodeIssue("hex serialization not yet implemented for new shape",
-                        DecodeIssue.Severity.ERROR)));
+        if (data == null) return DecodeResult.error("null input");
+        if (!data.startsWith(PREFIX)) {
+            return DecodeResult.error("unsupported format (expected " + PREFIX + ")");
+        }
+        DecodeResult result = HexCodecV14.deserialize(data);
+        if (result.getHex() != null) {
+            HexUtils.repair(result.getHex());
+        }
+        return result;
     }
 }

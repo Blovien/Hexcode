@@ -104,6 +104,9 @@ public class BeamGlyph implements GlyphHandler {
         } else {
             endPoint = new Vector3d(origin).add(new Vector3d(direction).scale(beamLength));
             hitType = BeamStyle.HitType.MISS;
+            BeamStyle.render(beamOrigin, endPoint, hitType, hexContext.getColors(), hexContext.getAccessor());
+            Executor.fail(hexContext);
+            return;
         }
 
         BeamStyle.render(beamOrigin, endPoint, hitType, hexContext.getColors(), hexContext.getAccessor());

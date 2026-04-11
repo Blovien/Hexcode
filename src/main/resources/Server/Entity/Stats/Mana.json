@@ -1,8 +1,8 @@
 {
   "$Comment": "Hexcode Mana stat - overrides base Mana.json which has Max=0",
-  "InitialValue": 450,
+  "InitialValue": 0,
   "Min": 0,
-  "Max": 500,
+  "Max": 0,
   "Shared": true,
   "ResetType": "MaxValue",
   "Regenerating": [

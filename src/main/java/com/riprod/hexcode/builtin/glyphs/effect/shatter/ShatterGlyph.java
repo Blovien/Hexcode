@@ -32,6 +32,7 @@ import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.trigger.component.TriggerComponent;
+import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.HexSignal;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
@@ -83,6 +84,7 @@ public class ShatterGlyph implements GlyphHandler {
 
         if (sourceVar == null) {
             LOGGER.atWarning().log("shatter: no source provided");
+            Executor.fail(hexContext);
             return;
         }
 
@@ -92,6 +94,7 @@ public class ShatterGlyph implements GlyphHandler {
         }
         if (spawnPos == null) {
             LOGGER.atWarning().log("shatter: could not resolve spawn position");
+            Executor.fail(hexContext);
             return;
         }
 
@@ -99,6 +102,7 @@ public class ShatterGlyph implements GlyphHandler {
                 directionVar, spawnPos, hexContext.getAccessor());
         if (centralDir == null) {
             LOGGER.atWarning().log("shatter: could not resolve direction");
+            Executor.fail(hexContext);
             return;
         }
 
@@ -207,12 +211,12 @@ public class ShatterGlyph implements GlyphHandler {
         holder.addComponent(TriggerComponent.getComponentType(),
                 new TriggerComponent("shatter", -1, null));
 
-        hexContext.getAccessor().addEntity(holder, AddReason.SPAWN);
+        Ref<EntityStore> shardRef = hexContext.getAccessor().addEntity(holder, AddReason.SPAWN);
 
         RootGlyph execComp = hexContext.getAccessor().getComponent(
                 hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
         if (execComp != null) {
-            execComp.incrementExternalWaiters();
+            execComp.addDependent(shardRef);
         }
     }
 }

@@ -39,7 +39,7 @@ public interface GlyphHandler {
         if (canReadValue()) {
             HexVar v = readValue(glyph, hexContext);
             if (v instanceof NumberVar nv) {
-                key = String.valueOf((int) nv.getValue());
+                key = String.valueOf(nv.getValue().intValue());
             }
         }
         hexContext.setVariable(key, value);

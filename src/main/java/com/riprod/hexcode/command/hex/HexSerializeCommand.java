@@ -21,6 +21,7 @@ import com.riprod.hexcode.core.common.hexes.codec.DecodeResult;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.utils.HexUtils;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffComponent;
+import com.riprod.hexcode.core.state.execution.component.HexcasterExecutionComponent;
 import com.riprod.hexcode.utils.HexSlot;
 
 public class HexSerializeCommand extends AbstractPlayerCommand {
@@ -52,9 +53,14 @@ public class HexSerializeCommand extends AbstractPlayerCommand {
         protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store,
                 @Nonnull Ref<EntityStore> playerEntityRef, @Nonnull PlayerRef playerRef, @Nonnull World world) {
 
-            HexcasterComponent comp = store.getComponent(playerEntityRef, HexcasterComponent.getComponentType());
+            HexcasterExecutionComponent execComp = store.getComponent(playerEntityRef, HexcasterExecutionComponent.getComponentType());
 
-            Hex hex = comp.getActiveHex();
+            if (execComp == null) {
+                send(playerRef, "no execution component found on player");
+                return;
+            }
+
+            Hex hex = execComp.getActiveHex();
             if (hex == null) {
                 send(playerRef, "no hex selected on your staff");
                 return;

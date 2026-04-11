@@ -50,7 +50,6 @@ public class TriggerTickSystem extends EntityTickingSystem<EntityStore> {
                 trigger.setRemainingLifetime(trigger.getRemainingLifetime() - dt);
                 if (trigger.getRemainingLifetime() <= 0) {
                     handler.onCleanup(entityRef, trigger, signal, buffer);
-                    TriggerUtils.decrementWaiters(signal, buffer);
                     TriggerUtils.removeEntity(entityRef, buffer);
                     return;
                 }
@@ -66,7 +65,6 @@ public class TriggerTickSystem extends EntityTickingSystem<EntityStore> {
 
             if (killRequested || trigger.isKillRequested()) {
                 handler.onCleanup(entityRef, trigger, signal, buffer);
-                TriggerUtils.decrementWaiters(signal, buffer);
                 TriggerUtils.removeEntity(entityRef, buffer);
             }
         } catch (Exception e) {

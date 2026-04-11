@@ -41,8 +41,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 1,
-      "Unique": true
+      "Unique": true,
+      "DefaultVariable": "1"
     },
     "duration": {
       "Label": "Duration",

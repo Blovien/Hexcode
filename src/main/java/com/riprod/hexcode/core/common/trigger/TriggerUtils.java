@@ -1,5 +1,7 @@
 package com.riprod.hexcode.core.common.trigger;
 
+import java.util.Arrays;
+
 import javax.annotation.Nullable;
 
 import com.hypixel.hytale.component.CommandBuffer;
@@ -52,12 +54,7 @@ public class TriggerUtils {
             }
         }
 
-        Executor.continueExecution(trigger.getFirstBranchIds(), ctx);
-    }
-
-    public static void decrementWaiters(@Nullable HexSignal signal, CommandBuffer<EntityStore> buffer) {
-        if (signal == null) return;
-        signal.decrementAllWaiters(buffer);
+        Executor.continueExecution(Arrays.asList(trigger.getFirstBranchIds()), ctx);
     }
 
     public static void removeEntity(Ref<EntityStore> ref, CommandBuffer<EntityStore> buffer) {

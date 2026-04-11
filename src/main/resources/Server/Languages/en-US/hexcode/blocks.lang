@@ -7,6 +7,7 @@ Hexcode_Obelisk_Life.name=Life Obelisk
 Hexcode_Obelisk_Void.name=Void Obelisk
 Hexcode_Obelisk_Seeker.name=Seeker Obelisk
 Hexcode_Obelisk_Ice.name=Ice Obelisk
+Hexcode_Obelisk_Import_Export.name=Import/Export Obelisk
 
 pedestal.interact.idle=Press [{key}] to add Book and Essence
 pedestal.interact.ready=Press [{key}] to activate pedestal

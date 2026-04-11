@@ -1,5 +1,6 @@
 {
   "ImagePath": "Line",
   "CenterFilled": true,
-  "CanRotate": false
+  "CanRotate": false,
+  "ExpectedSpeed": 200
 }

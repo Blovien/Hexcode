@@ -21,7 +21,7 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 1
+      "DefaultVariable": "1"
     },
     "direction": {
       "Label": "Direction",
@@ -32,8 +32,8 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 1,
-      "Unique": true
+      "Unique": true,
+      "DefaultVariable": "1"
     },
     "magnitude": {
       "Label": "Magnitude",

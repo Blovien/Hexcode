@@ -1,5 +1,6 @@
 {
   "ImagePath": "Antislash",
   "CenterFilled": true,
-  "CanRotate": false
+  "CanRotate": false,
+  "ExpectedSpeed": 267
 }

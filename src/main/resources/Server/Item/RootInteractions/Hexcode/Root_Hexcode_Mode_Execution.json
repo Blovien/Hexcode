@@ -5,6 +5,9 @@
       "TargetState": "EXECUTION",
       "Effects": {
         "ItemAnimationId": "HexExecution_Primary"
+      },
+      "Next": {
+        "Type": "HexExecutionExit"
       }
     }
   ]

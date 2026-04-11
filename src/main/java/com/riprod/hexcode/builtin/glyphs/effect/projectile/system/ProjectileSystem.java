@@ -171,7 +171,6 @@ public class ProjectileSystem extends EntityTickingSystem<EntityStore> {
             }
 
             Executor.continueExecution(entry.getNextGlyphIds(), ctx);
-            execComp.decrementExternalWaiters();
         }
     }
 

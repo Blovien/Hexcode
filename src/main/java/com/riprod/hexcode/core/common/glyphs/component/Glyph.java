@@ -58,6 +58,10 @@ public class Glyph {
         return glyphId;
     }
 
+    public void setGlyphId(String glyphId) {
+        this.glyphId = glyphId;
+    }
+
     public float getVolatility() {
         return volatility;
     }
@@ -160,22 +164,43 @@ public class Glyph {
         }
     }
 
-    // Walks all linked glyphs on the slot and asks each to writeValue(value).
-    // The linked glyph performs the actual setVariable internally — no key
-    // is exposed across this boundary. For unique slots (SlotAsset.unique=true)
-    // craft-time validation guarantees only one link, so this writes once.
-    // For non-unique slots this writes the same value to every wired destination.
     public void writeSlot(String key, HexVar value, HexContext hexContext) {
         Slot slot = slots.get(key);
         if (slot == null) return;
         String[] links = slot.getLinks();
-        if (links.length == 0) return;
+        if (links.length == 0) {
+            // if no links, try writing to default asset variable
+            writeAssetDefault(key, value, hexContext);
+            return;
+        };
         for (String linkId : links) {
             Glyph linked = hexContext.getGlyph(linkId);
             if (linked == null) continue;
             GlyphHandler handler = GlyphRegistry.get(linked.getGlyphId());
             if (handler == null) continue;
             handler.writeValue(linked, hexContext, value);
+        }
+    }
+
+    private void writeAssetDefault(String key, HexVar value, HexContext hexContext) {
+        GlyphAsset asset =
+                GlyphAsset.getAssetMap().getAsset(glyphId);
+        if (asset == null) return;
+        SlotAsset slotAsset = asset.getSlot(key);
+        if (slotAsset == null) return;
+
+        Double defaultVar = slotAsset.getDefaultValue();
+        if (defaultVar != null) {
+            hexContext.setVariable(String.valueOf(defaultVar.intValue()), value);
+            return;
+        }
+
+        String defaultVariable = slotAsset.getDefaultVariable();
+        if (defaultVariable != null) {
+            HexVar resolved = hexContext.getVariable(defaultVariable);
+            if (resolved != null) {
+                hexContext.setVariable(resolved.toString(), value);
+            }
         }
     }
 
@@ -187,9 +212,15 @@ public class Glyph {
         SlotAsset slotAsset = asset.getSlot(key);
         if (slotAsset == null) return null;
 
-        if (slotAsset.getDefaultValue() != null) {
-            return new NumberVar(slotAsset.getDefaultValue());
+        String defaultVar = slotAsset.getDefaultVariable();
+        if (defaultVar != null) {
+            HexVar resolved = hexContext.getVariable(defaultVar);
+            if (resolved != null) return resolved;
         }
+
+        Double defaultNum = slotAsset.getDefaultValue();
+        if (defaultNum != null) return new NumberVar(defaultNum);
+
         return null;
     }
 

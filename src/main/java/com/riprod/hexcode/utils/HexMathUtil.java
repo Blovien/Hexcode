@@ -30,9 +30,9 @@ public class HexMathUtil {
         if (a instanceof NumberVar na && b instanceof PositionVar pb)
             return new PositionVar(new Vector3d(pb.getValue()).add(na.getValue()), pb.isAbsolute());
         if (a instanceof RotationVar ra && b instanceof NumberVar nb)
-            return new RotationVar(new Vector3f(ra.getValue()).add((float) nb.getValue(), (float) nb.getValue(), (float) nb.getValue()));
+            return new RotationVar(new Vector3f(ra.getValue()).add(nb.getValue().floatValue(), nb.getValue().floatValue(), nb.getValue().floatValue()));
         if (a instanceof NumberVar na && b instanceof RotationVar rb)
-            return new RotationVar(new Vector3f(rb.getValue()).add((float) na.getValue(), (float) na.getValue(), (float) na.getValue()));
+            return new RotationVar(new Vector3f(rb.getValue()).add(na.getValue().floatValue(), na.getValue().floatValue(), na.getValue().floatValue()));
         if (a instanceof EntityVar || a instanceof BlockVar || b instanceof EntityVar || b instanceof BlockVar) {
             return addViaPosition(a, b);
         }
@@ -65,7 +65,7 @@ public class HexMathUtil {
         if (a instanceof PositionVar pa && b instanceof NumberVar nb)
             return new PositionVar(new Vector3d(pa.getValue()).subtract(nb.getValue()), pa.isAbsolute());
         if (a instanceof RotationVar ra && b instanceof NumberVar nb)
-            return new RotationVar(new Vector3f(ra.getValue()).subtract((float) nb.getValue(), (float) nb.getValue(), (float) nb.getValue()));
+            return new RotationVar(new Vector3f(ra.getValue()).subtract(nb.getValue().floatValue(), nb.getValue().floatValue(), nb.getValue().floatValue()));
         if (a instanceof EntityVar || a instanceof BlockVar || b instanceof EntityVar || b instanceof BlockVar) {
             return subtractViaPosition(a, b);
         }
@@ -83,9 +83,9 @@ public class HexMathUtil {
         if (a instanceof NumberVar na && b instanceof PositionVar pb)
             return new PositionVar(new Vector3d(pb.getValue()).scale(na.getValue()), false);
         if (a instanceof RotationVar ra && b instanceof NumberVar nb)
-            return new RotationVar(new Vector3f(ra.getValue()).scale((float) nb.getValue()));
+            return new RotationVar(new Vector3f(ra.getValue()).scale(nb.getValue().floatValue()));
         if (a instanceof NumberVar na && b instanceof RotationVar rb)
-            return new RotationVar(new Vector3f(rb.getValue()).scale((float) na.getValue()));
+            return new RotationVar(new Vector3f(rb.getValue()).scale(na.getValue().floatValue()));
         if (a instanceof RotationVar ra && b instanceof RotationVar rb)
             return new RotationVar(new Vector3f(ra.getValue()).scale(rb.getValue()));
         LOGGER.atWarning().log("multiply: unsupported types %s * %s", a.getClass().getSimpleName(), b.getClass().getSimpleName());

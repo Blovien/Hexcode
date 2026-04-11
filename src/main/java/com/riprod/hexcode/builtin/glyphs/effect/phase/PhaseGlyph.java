@@ -23,6 +23,7 @@ import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.common.trigger.component.TriggerComponent;
+import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.HexSignal;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
@@ -129,6 +130,7 @@ public class PhaseGlyph implements GlyphHandler {
         HexVar targets = glyph.readSlot("target", hexContext);
         if (targets == null) {
             LOGGER.atInfo().log("phase: no targets provided");
+            Executor.fail(hexContext);
             return;
         }
 
@@ -145,21 +147,27 @@ public class PhaseGlyph implements GlyphHandler {
         Vector3i pos = resolveBlockPosition(targets, hexContext);
         if (pos == null) {
             LOGGER.atInfo().log("phase: could not resolve block position");
+            Executor.fail(hexContext);
             return;
         }
 
         int blockId = world.getBlock(pos.x, pos.y, pos.z);
         if (blockId == BlockType.EMPTY_ID) {
             LOGGER.atInfo().log("phase: target block is empty");
+            Executor.fail(hexContext);
             return;
         }
 
         BlockType blockType = BlockType.getAssetMap().getAsset(blockId);
-        if (blockType == null) return;
+        if (blockType == null) {
+            Executor.fail(hexContext);
+            return;
+        }
 
         int quality = getBlockQuality(blockType);
         if (quality > intensity) {
             LOGGER.atInfo().log("phase: block quality %d exceeds intensity %.1f", quality, intensity);
+            Executor.fail(hexContext);
             return;
         }
 
@@ -218,12 +226,12 @@ public class PhaseGlyph implements GlyphHandler {
         holder.addComponent(TriggerComponent.getComponentType(),
                 new TriggerComponent("phase", durationSeconds, null));
 
-        accessor.addEntity(holder, AddReason.SPAWN);
+        Ref<EntityStore> phaseRef = accessor.addEntity(holder, AddReason.SPAWN);
 
         RootGlyph execComp = accessor.getComponent(
                 hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
         if (execComp != null) {
-            execComp.incrementExternalWaiters();
+            execComp.addDependent(phaseRef);
         }
     }
 

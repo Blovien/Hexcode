@@ -29,6 +29,7 @@ import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexcaster.utils.CasterInventory;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffComponent;
+import com.riprod.hexcode.core.state.execution.component.HexcasterExecutionComponent;
 
 public class HexInspectCommand extends AbstractPlayerCommand {
 
@@ -50,9 +51,17 @@ public class HexInspectCommand extends AbstractPlayerCommand {
         boolean detailed = detailedFlag.get(context);
 
         HexStaffComponent staff = CasterInventory.getHexStaffComponent(store, playerEntityRef);
-        HexcasterComponent comp = store.getComponent(playerEntityRef, HexcasterComponent.getComponentType());
+        HexcasterExecutionComponent execComp = store.getComponent(playerEntityRef, HexcasterExecutionComponent.getComponentType());
+        if (staff == null) {
+            send(playerRef, "You are not holding a hex staff");
+            return;
+        }
+        if (execComp == null) {
+            send(playerRef, "No execution component found on player");
+            return;
+        }
 
-        Hex hex = comp.getActiveHex();
+        Hex hex = execComp.getActiveHex();
         if (hex == null) {
             send(playerRef, "No active hex on staff");
             return;

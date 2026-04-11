@@ -22,13 +22,20 @@ import com.riprod.hexcode.core.common.hexes.utils.HexUtils;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffComponent;
 import com.riprod.hexcode.utils.HexStaffUtil;
 import com.riprod.hexcode.core.state.execution.Executor;
+import com.riprod.hexcode.core.state.execution.component.HexcasterExecutionComponent;
 import com.riprod.hexcode.core.state.execution.component.PlayerHexRoot;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.api.event.HexcodeEvents;
 import com.riprod.hexcode.api.event.SpellCastEvent;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
+import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
+import com.hypixel.hytale.server.core.modules.entitystats.EntityStatValue;
+import com.hypixel.hytale.server.core.modules.entitystats.asset.DefaultEntityStatTypes;
+import com.hypixel.hytale.protocol.InteractionType;
+import com.hypixel.hytale.server.core.Message;
 
+import java.util.List;
 import java.util.UUID;
 
 public class ExecutionSystem extends HexcodeManager {
@@ -43,14 +50,19 @@ public class ExecutionSystem extends HexcodeManager {
     public void firstTick(Ref<EntityStore> ref, HexcasterComponent comp,
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer,
             HexState previousState) {
+        buffer.ensureComponent(ref, HexcasterExecutionComponent.getComponentType());
+
     }
 
     @Override
     public void lastTick(Ref<EntityStore> ref, HexcasterComponent comp,
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer,
             HexState nextState) {
-        comp.setActiveHex(null);
-        comp.setHoldingPrimary(false);
+        HexcasterExecutionComponent execComp = buffer.getComponent(ref, HexcasterExecutionComponent.getComponentType());
+        if (execComp == null)
+            return;
+        execComp.setActiveHex(null);
+        execComp.setHoldingPrimary(false);
         comp.setTickLength(HOLD_STALE_KEY, 0f);
     }
 
@@ -58,15 +70,17 @@ public class ExecutionSystem extends HexcodeManager {
     public void tick0(Ref<EntityStore> ref, HexcasterComponent comp, float dt,
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
         // release detection: if tickInteraction stops firing, clear the holding flag
-        if (comp.isHoldingPrimary()) {
+        HexcasterExecutionComponent execComp = buffer.ensureAndGetComponent(ref, HexcasterExecutionComponent.getComponentType());
+        if (execComp.isHoldingPrimary()) {
             comp.incrementTickLength(HOLD_STALE_KEY, dt);
             if (comp.getTickLength(HOLD_STALE_KEY) > HOLD_STALE_THRESHOLD) {
-                comp.setHoldingPrimary(false);
+                execComp.setHoldingPrimary(false);
             }
         }
 
         comp.incrementTickLength(EQUIP_CHECK_KEY, dt);
-        if (comp.getTickLength(EQUIP_CHECK_KEY) < EQUIP_CHECK_INTERVAL) return;
+        if (comp.getTickLength(EQUIP_CHECK_KEY) < EQUIP_CHECK_INTERVAL)
+            return;
         comp.setTickLength(EQUIP_CHECK_KEY, 0f);
 
         if (!HexStaffUtil.hasHexcodeEquipment(store, ref)) {
@@ -83,65 +97,99 @@ public class ExecutionSystem extends HexcodeManager {
     }
 
     @Override
-    public InteractionState exitInteraction(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref, HexcasterComponent comp) {
-        comp.setHoldingPrimary(false);
-        comp.setTickLength(HOLD_STALE_KEY, 0f);
-        // fire any OnRelease-deferred branches
-        for (HexcasterComponent.PendingRelease release : comp.consumePendingReleases()) {
-            try {
-                Executor.continueExecution(release.childIds, release.hexContext);
-            } catch (Exception e) {
-                LOGGER.atWarning().log("onrelease: fire failed: %s", e.getMessage());
+    public InteractionState enterAbility(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref,
+            HexcasterComponent comp, InteractionType inputType) {
+        if (inputType == InteractionType.Ability1) {
+            int count = comp.getActiveCount();
+            comp.cancelAll();
+            PlayerRef pr = buffer.getComponent(ref, PlayerRef.getComponentType());
+            if (pr != null && count > 0) {
+                pr.sendMessage(Message.raw("dispelled " + count + " active spell(s)"));
             }
+            return InteractionState.Finished;
         }
+        return InteractionState.Finished;
+    }
+
+    @Override
+    public InteractionState exitInteraction(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref,
+            HexcasterComponent comp) {
+        HexcasterExecutionComponent execComp = buffer.ensureAndGetComponent(ref, HexcasterExecutionComponent.getComponentType());
+        if (execComp == null) return InteractionState.Finished;
+
+        execComp.setHoldingPrimary(false);
+        comp.setTickLength(HOLD_STALE_KEY, 0f);
         return InteractionState.NotFinished;
     }
 
     @Override
     public InteractionState tickInteraction(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref, float dt,
             HexcasterComponent comp) {
-        comp.setHoldingPrimary(true);
+        HexcasterExecutionComponent execComp = buffer.ensureAndGetComponent(ref, HexcasterExecutionComponent.getComponentType());
+        if (execComp == null) return InteractionState.Finished;
+
+        execComp.setHoldingPrimary(true);
         comp.setTickLength(HOLD_STALE_KEY, 0f);
         return InteractionState.NotFinished;
     }
 
     @Override
-    public InteractionState enterInteraction(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref, HexcasterComponent comp) {
+    public InteractionState enterInteraction(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref,
+            HexcasterComponent comp) {
 
-        HexStaffComponent hexStaff = CasterInventory.getHexStaffComponent(accessor, ref);
-        if (hexStaff == null) {
-            LOGGER.atWarning().log("no hex staff component found, cannot execute spell");
-            return InteractionState.Failed;
+        HexcasterExecutionComponent execComp = accessor.getComponent(ref, HexcasterExecutionComponent.getComponentType());
+        if (execComp == null) {
+            LOGGER.atWarning().log("no execution component found on hexcaster, cannot execute");
+            return InteractionState.Finished;
         }
 
-        Hex activeHex = comp.getActiveHex();
+        Hex activeHex = execComp.getActiveHex();
         if (activeHex == null) {
             LOGGER.atWarning().log("no active spell on staff, nothing to execute");
             return InteractionState.Finished;
+        }
+
+        int sigIndex = DefaultEntityStatTypes.getSignatureEnergy();
+        if (sigIndex != Integer.MIN_VALUE) {
+            EntityStatMap statMap = accessor.getComponent(ref, EntityStatMap.getComponentType());
+            if (statMap != null) {
+                EntityStatValue sigStat = statMap.get(sigIndex);
+                if (sigStat != null) {
+                    int cap = (int) sigStat.getMax();
+                    if (cap > 0 && comp.getActiveCount() >= cap) {
+                        PlayerRef pr = accessor.getComponent(ref, PlayerRef.getComponentType());
+                        if (pr != null) {
+                            pr.sendMessage(Message.raw("at maximum active spells (" + cap + ")"));
+                        }
+                        return InteractionState.Finished;
+                    }
+                }
+            }
         }
 
         Hex hexClone = activeHex.clone();
         HexUtils.validate(hexClone);
 
         SpellCastEvent spellCastEvent = HexcodeEvents.dispatch(new SpellCastEvent(ref, hexClone));
-        if (spellCastEvent.isCancelled()) return InteractionState.Failed;
+        if (spellCastEvent.isCancelled())
+            return InteractionState.Failed;
 
-        RootGlyph execComp = new RootGlyph();
-        execComp.setHex(hexClone);
-        execComp.setNeedsInitialExecution(true);
-        execComp.setPowerModifier(spellCastEvent.getPowerModifier());
-        execComp.setManaCostMultiplier(spellCastEvent.getManaCostMultiplier());
-        execComp.setVolatilityMultiplier(spellCastEvent.getVolatilityMultiplier());
-        
+        RootGlyph rootGlyph = new RootGlyph();
+        rootGlyph.setHex(hexClone);
+        rootGlyph.setNeedsInitialExecution(true);
+        rootGlyph.setPowerModifier(spellCastEvent.getPowerModifier());
+        rootGlyph.setManaCostMultiplier(spellCastEvent.getManaCostMultiplier());
+        rootGlyph.setVolatilityMultiplier(spellCastEvent.getVolatilityMultiplier());
 
-        Holder<EntityStore> holder = buildHexEntityHolder(accessor, ref, execComp);
+        Holder<EntityStore> holder = buildHexEntityHolder(accessor, ref, rootGlyph);
         Ref<EntityStore> hexEntityRef = accessor.addEntity(holder, AddReason.SPAWN);
 
         PlayerHexRoot root = new PlayerHexRoot(ref, hexEntityRef);
-        execComp.setRoot(root);
+        rootGlyph.setRoot(root);
 
-        // keep the interaction alive so tickInteraction/exitInteraction fire while LMB is held
-        comp.setHoldingPrimary(true);
+        // keep the interaction alive so tickInteraction/exitInteraction fire while LMB
+        // is held
+        execComp.setHoldingPrimary(true);
         comp.setTickLength(HOLD_STALE_KEY, 0f);
         return InteractionState.NotFinished;
     }

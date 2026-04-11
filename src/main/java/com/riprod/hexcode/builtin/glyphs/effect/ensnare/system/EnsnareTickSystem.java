@@ -150,7 +150,6 @@ public class EnsnareTickSystem extends EntityTickingSystem<EntityStore> {
     private void continueExecution(HexSignal signal, CommandBuffer<EntityStore> buffer) {
         if (signal == null) return;
         signal.fireAllEntries(buffer);
-        signal.decrementAllWaiters(buffer);
     }
 
     private void removeEntity(Ref<EntityStore> entityRef, CommandBuffer<EntityStore> buffer) {

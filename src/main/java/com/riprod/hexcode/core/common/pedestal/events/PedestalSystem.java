@@ -356,7 +356,7 @@ public class PedestalSystem {
     }
 
     public static void enterIdle(CommandBuffer<EntityStore> buffer,
-            Player player, PedestalBlockComponent pedestalComponent,
+            Ref<EntityStore> playerRef, PedestalBlockComponent pedestalComponent,
             World world) {
 
         CraftingData playerData = pedestalComponent.getCraftingDataComponent();
@@ -364,7 +364,7 @@ public class PedestalSystem {
         AnchorEntity.DespawnHexPreviews(buffer, pedestalComponent, playerData);
 
         logger.atInfo().log("pedestal: entering idle at %s for player %s", pedestalComponent.getLocation(),
-                player.getReference());
+                playerRef);
 
         Set<Ref<EntityStore>> activePlayers = pedestalComponent.getActivePlayerRefs();
         for (Ref<EntityStore> activePlayerRef : activePlayers) {

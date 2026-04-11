@@ -35,7 +35,7 @@ public class PositionVar extends HexVar {
     }
 
     @Override
-    public double toScalar() {
+    public Double toScalar() {
         return position == null ? 0 : position.length();
     }
 
@@ -64,6 +64,11 @@ public class PositionVar extends HexVar {
             return Double.compare(position.length(), pb.position.length());
         }
         return super.compareTo(other);
+    }
+
+    @Override
+    public String toString() {
+        return "PositionVar(" + position + ", absolute=" + absolute + ")";
     }
 
     public static final BuilderCodec<PositionVar> CODEC = BuilderCodec

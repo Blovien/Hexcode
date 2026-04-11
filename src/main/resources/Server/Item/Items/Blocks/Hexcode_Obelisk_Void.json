@@ -31,7 +31,7 @@
       "Components": {
         "Hexcode_ObeliskBlock": {
           "Power": 10,
-          "HandlerId": "seeker"
+          "HandlerId": "import_export"
         }
       }
     },
@@ -116,7 +116,16 @@
     },
     "VariantRotation": "NESW",
     "Looping": true,
-    "CustomModelScale": 1.5
+    "CustomModelScale": 1.5,
+    "Interactions": {
+      "Use": {
+        "Interactions": [
+          {
+            "Type": "HexImportExportInteraction"
+          }
+        ]
+      }
+    }
   },
   "Tags": {
     "Type": [

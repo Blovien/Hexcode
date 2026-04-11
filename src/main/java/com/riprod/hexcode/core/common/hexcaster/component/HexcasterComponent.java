@@ -31,50 +31,10 @@ public class HexcasterComponent implements Component<EntityStore> {
                     (c, v) -> c.currentState = v,
                     c -> c.currentState)
             .add()
-            .append(new KeyedCodec<>("Hex", Hex.CODEC),
-                    (c, v) -> c.hex = v,
-                    c -> c.hex)
-            .add()
-            .append(new KeyedCodec<>("CastCount", Codec.INTEGER),
-                    (c, v) -> c.castCount = v,
-                    c -> c.castCount)
-            .add()
             .build();
 
     private HexState currentState = HexState.IDLE;
     private HexState pendingState = null;
-    private Hex hex;
-    private int castCount = 0;
-    private boolean holdingPrimary = false;
-
-    public boolean isHoldingPrimary() {
-        return holdingPrimary;
-    }
-
-    public void setHoldingPrimary(boolean holding) {
-        this.holdingPrimary = holding;
-    }
-
-    @Nullable
-    public Hex getActiveHex() {
-        return hex;
-    }
-
-    public void setActiveHex(@Nullable Hex hex) {
-        this.hex = hex;
-    }
-
-    public boolean hasActiveHex() {
-        return hex != null;
-    }
-
-    public int getCastCount() {
-        return castCount;
-    }
-
-    public void incrementCastCount() {
-        this.castCount++;
-    }
 
     public HexState getState() {
         return currentState;
@@ -103,7 +63,6 @@ public class HexcasterComponent implements Component<EntityStore> {
     // Drawing Mode
     private Ref<EntityStore> trailRef = null;
     private long lastParticleSpawnMillis = 0;
-    private long drawStartTimeMillis = 0;
 
     // training mode
     private String trainingShapeId = null;
@@ -111,27 +70,33 @@ public class HexcasterComponent implements Component<EntityStore> {
     // Crafting Mode
     private Map<String, Float> lastTickMap = new HashMap<>();
 
-    // OnRelease trigger subscriptions — fires when primary interaction ends
-    public static class PendingRelease {
-        public final List<String> childIds;
-        public final HexContext hexContext;
-        public PendingRelease(List<String> childIds, HexContext hexContext) {
-            this.childIds = childIds;
-            this.hexContext = hexContext;
+    private transient List<HexContext> activeContexts = new ArrayList<>();
+
+    public void registerActiveHex(HexContext ctx) {
+        if (activeContexts == null) activeContexts = new ArrayList<>();
+        activeContexts.add(ctx);
+    }
+
+    public void removeActiveHex(HexContext ctx) {
+        if (activeContexts == null) return;
+        activeContexts.remove(ctx);
+    }
+
+    public void cancelAll() {
+        if (activeContexts == null || activeContexts.isEmpty()) return;
+        for (HexContext ctx : new ArrayList<>(activeContexts)) {
+            com.riprod.hexcode.core.state.execution.Executor.fail(ctx);
         }
-    }
-    private transient List<PendingRelease> pendingReleases = new ArrayList<>();
-
-    public void addPendingRelease(PendingRelease release) {
-        if (pendingReleases == null) pendingReleases = new ArrayList<>();
-        pendingReleases.add(release);
+        activeContexts.clear();
     }
 
-    public List<PendingRelease> consumePendingReleases() {
-        if (pendingReleases == null || pendingReleases.isEmpty()) return List.of();
-        List<PendingRelease> out = pendingReleases;
-        pendingReleases = new ArrayList<>();
-        return out;
+    public int getActiveCount() {
+        return activeContexts == null ? 0 : activeContexts.size();
+    }
+
+    public List<HexContext> getActiveContexts() {
+        if (activeContexts == null) activeContexts = new ArrayList<>();
+        return activeContexts;
     }
 
     public HexcasterComponent() {
@@ -143,13 +108,6 @@ public class HexcasterComponent implements Component<EntityStore> {
 
     public static ComponentType<EntityStore, HexcasterComponent> getComponentType() {
         return componentType;
-    }
-
-    /** @deprecated */
-    public void clearDrawingState() {
-        this.trailRef = null;
-        this.lastParticleSpawnMillis = 0;
-        this.drawStartTimeMillis = 0;
     }
 
     /** @deprecated */
@@ -167,10 +125,6 @@ public class HexcasterComponent implements Component<EntityStore> {
         String id = this.trainingShapeId;
         this.trainingShapeId = null;
         return id;
-    }
-
-    public void setDrawStartTimeMillis(long drawStartTimeMillis) {
-        this.drawStartTimeMillis = drawStartTimeMillis;
     }
 
     public float getTickLength(String keyId) {
@@ -192,11 +146,7 @@ public class HexcasterComponent implements Component<EntityStore> {
         copy.currentState = this.currentState;
         copy.trailRef = this.trailRef;
         copy.lastParticleSpawnMillis = this.lastParticleSpawnMillis;
-        copy.drawStartTimeMillis = this.drawStartTimeMillis;
         copy.trainingShapeId = this.trainingShapeId;
-        copy.hex = this.hex != null ? this.hex.clone() : null;
-        copy.castCount = this.castCount;
-        copy.holdingPrimary = this.holdingPrimary;
         copy.lastTickMap = new HashMap<>(this.lastTickMap);
         return copy;
     }

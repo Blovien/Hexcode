@@ -80,7 +80,7 @@ public class DrawingSystem extends HexcodeManager {
     HexcasterDrawingComponent drawingComp = buffer.getComponent(ref, HexcasterDrawingComponent.getComponentType());
     PedestalBlockComponent pedestal = PedestalBlockUtil.resolvePedestal(ref, buffer);
     if (pedestal == null) {
-        return;
+      return;
     }
     CraftingData playerData = pedestal.getCraftingDataComponent();
 
@@ -156,13 +156,15 @@ public class DrawingSystem extends HexcodeManager {
   public InteractionState enterInteraction(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref,
       HexcasterComponent comp) {
 
+    HexcasterDrawingComponent drawingComp = accessor.getComponent(ref, HexcasterDrawingComponent.getComponentType());
+
     HeadRotation head = accessor.getComponent(ref, HeadRotation.getComponentType());
     if (head == null)
       return InteractionState.Failed;
 
     TimeResource timeResource = accessor.getResource(TimeResource.getResourceType());
     Long curTime = timeResource.getNow().toEpochMilli();
-    comp.setDrawStartTimeMillis(curTime);
+    drawingComp.setDrawStartTimeMillis(curTime);
 
     InterfaceManager.spawnTrails(accessor, ref, head);
     return InteractionState.NotFinished;
@@ -265,8 +267,9 @@ public class DrawingSystem extends HexcodeManager {
     float maxSize = Math.max(Math.abs(maxYaw - minYaw), Math.abs(maxPitch - minPitch));
     result.setSize(maxSize);
 
-    LOGGER.atInfo().log("%d ms (%f score) | S: %f | A: %f", drawSpeed, result.getEfficiency(), maxSize,
-        result.getVolatility());
+    LOGGER.atInfo().log("%d ms (%f score) | S: %f | A: %f -------------- Cur Time: %d | Start Time: %d", drawSpeed,
+        result.getEfficiency(), maxSize,
+        result.getVolatility(), curTime, startTime);
 
     InterfaceManager.removeTrails(accessor, ref);
     drawingComp.addDrawnGlyph(result);

@@ -47,6 +47,17 @@ public class HexSpawner {
         // Spawn Hexes
         for (int i = 0; i < hexes.size(); i++) {
             Hex hex = hexes.get(i);
+
+            // skip malformed hex (no entry point, or pointer to a missing glyph)
+            String firstGlyphId = hex.getFirstGlyphId();
+            Glyph firstGlyph = firstGlyphId != null ? hex.get(firstGlyphId) : null;
+            if (firstGlyph == null) {
+                LOGGER.atWarning().log(
+                        "skipping malformed hex (no entry point): hexId=%s firstGlyphId=%s glyphs=%d",
+                        hex.getHexId(), firstGlyphId, hex.getGlyphs().size());
+                continue;
+            }
+
             HexComponent hexComponent = new HexComponent(hex);
             Vector3f rot = rotations.get(i);
             Vector3d position = GlyphMath.sphericalToCartesian(rot);
@@ -66,9 +77,6 @@ public class HexSpawner {
                     .count();
             float scaleMultiplier = 1 + (numGlyphs * GlyphStyler.SCALE_PER_GLYPH); // increase scale by 5% per glyph
 
-            // getting the first glyph
-            String firstGlyphId = hex.getFirstGlyphId();
-            Glyph firstGlyph = hex.get(firstGlyphId);
             GlyphComponent firstGlyphComponent = new GlyphComponent(firstGlyph);
 
             // setting up the first glyph
