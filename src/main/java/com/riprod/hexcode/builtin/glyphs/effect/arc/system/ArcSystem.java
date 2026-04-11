@@ -197,7 +197,5 @@ public class ArcSystem extends EntityTickingSystem<EntityStore> {
 
         buffer.removeComponent(entityRef, ArcComponent.getComponentType());
         buffer.removeComponent(entityRef, HexSignal.getComponentType());
-
-        LOGGER.atInfo().log("arc: chain ended after %d hops", arc.getBranchIndex());
     }
 }

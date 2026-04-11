@@ -1,0 +1,10 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "Preatorian_Summon_Flames"
+    }
+  ],
+  "CullDistance": 75.0,
+  "BoundingRadius": 3.0,
+  "IsImportant": false
+}

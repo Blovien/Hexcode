@@ -91,7 +91,7 @@ public class PedestalInteractionEvent {
                     HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
                             HexcasterCraftingComponent.getComponentType());
                     if (craftingComp != null) {
-                        craftingComp.clearCraftingState();
+                        craftingComp.clear(accessor);
                     }
                     return;
                 }
@@ -116,7 +116,8 @@ public class PedestalInteractionEvent {
 
         if (PedestalItemUtil.anyEssence(mainHand, utilityHand) && playerData.getEssence() == null) {
             Pair<ItemStack, HexSlot> essence = PedestalItemUtil.getEssence(mainHand, utilityHand);
-            PedestalSystem.handleEssencePlacement(accessor, player, essence.getFirst(), essence.getSecond(), pedestalComponent, playerData,
+            PedestalSystem.handleEssencePlacement(accessor, player, essence.getFirst(), essence.getSecond(),
+                    pedestalComponent, playerData,
                     blockPos);
             PedestalSystem.handleReady(accessor, playerData, pedestalComponent, world);
             return;
@@ -124,7 +125,8 @@ public class PedestalInteractionEvent {
 
         if (PedestalItemUtil.anyHexBook(mainHand, utilityHand) && playerData.getStoredBook().isEmpty()) {
             Pair<ItemStack, HexSlot> book = PedestalItemUtil.getHexBook(mainHand, utilityHand);
-            PedestalSystem.handleBookPlacement(accessor, player, book.getFirst(), book.getSecond(), pedestalComponent, playerData, blockPos);
+            PedestalSystem.handleBookPlacement(accessor, player, book.getFirst(), book.getSecond(), pedestalComponent,
+                    playerData, blockPos);
             PedestalSystem.handleReady(accessor, playerData, pedestalComponent, world);
             return;
         }

@@ -27,11 +27,6 @@ public class HiddenUtils {
             HiddenComponent hidden = accessor.getComponent(ref, HiddenComponent.getComponentType());
             if (hidden == null) {
                 HoverableComponent hoverable = accessor.getComponent(ref, HoverableComponent.getComponentType());
-                if (hoverable == null) {
-                    logger.atInfo().log(
-                            "filterByOwner: ref %s has no HoverableComponent and no HiddenComponent, skipping",
-                            ref);
-                }
                 continue;
             }
             Ref<EntityStore> owner = hidden.getOwnerRef();

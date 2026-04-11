@@ -48,10 +48,8 @@ public class CasterInventory {
         HexBookComponent existingComponent = inventoryItem.getFromMetadataOrNull(METADATA_KEY_HEX_BOOK,
                 HexBookComponent.CODEC);
         if (existingComponent != null) {
-            LOGGER.atInfo().log("Found existing HexBookComponent in item metadata");
             return new Pair<>(inventoryPair.getSecond(), existingComponent);
         }
-        LOGGER.atInfo().log("Creating HexBookComponent...");
 
         // Check if this item is a registered HexBook asset
         HexBookAsset bookAsset = getHexBookAsset(inventoryItem);

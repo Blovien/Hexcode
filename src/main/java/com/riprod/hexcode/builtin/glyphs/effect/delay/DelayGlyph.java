@@ -24,6 +24,8 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.builtin.glyphs.effect.delay.style.DelayStyle;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
+import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
+import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.trigger.component.TriggerComponent;
 import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
@@ -56,18 +58,20 @@ public class DelayGlyph implements GlyphHandler {
             return;
         }
 
-        Ref<EntityStore> casterRef = hexContext.getCasterRef();
-        CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
+        HexVar var = hexContext.getVariable("1");
 
-        Vector3d spawnPos;
-        if (casterRef != null && casterRef.isValid()) {
-            TransformComponent casterTransform = accessor.getComponent(
-                    casterRef, TransformComponent.getComponentType());
-            spawnPos = casterTransform != null
-                    ? new Vector3d(casterTransform.getPosition())
-                    : new Vector3d();
-        } else {
-            spawnPos = new Vector3d();
+
+        CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
+        
+        Vector3d spawnPos = SpellVarUtil.resolvePosition(var, hexContext.getAccessor());
+
+        if (spawnPos == null) {
+            Ref<EntityStore> casterRef = hexContext.getCasterRef();
+            if (casterRef != null && casterRef.isValid()) {
+                spawnPos = accessor.getComponent(casterRef, TransformComponent.getComponentType()).getPosition();
+            } else {
+                spawnPos = new Vector3d();
+            }
         }
 
         DelayStyle.render(hexContext);
@@ -90,9 +94,12 @@ public class DelayGlyph implements GlyphHandler {
         holder.addComponent(TriggerComponent.getComponentType(), triggerComp);
         holder.addComponent(HexSignal.getComponentType(), signal);
 
-        if (casterRef != null && casterRef.isValid()) {
-            holder.addComponent(MountedComponent.getComponentType(),
-                    new MountedComponent(casterRef, MOUNT_OFFSET, MountController.Minecart));
+        if (var instanceof EntityVar entityVar) {
+            Ref<EntityStore> entityRef = entityVar.getRef(accessor);
+            if (entityRef != null && entityRef.isValid()) {
+                holder.addComponent(MountedComponent.getComponentType(),
+                        new MountedComponent(entityRef, MOUNT_OFFSET, MountController.Minecart));
+            }
         }
 
         ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(MODEL_ID);

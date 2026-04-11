@@ -173,28 +173,9 @@ public class ImportExportPage extends InteractiveCustomUIPage<ImportExportPage.P
             return;
         }
 
-        int activeSlot = playerData.getActiveSlotIndex();
-        List<Hex> hexes = playerData.getHexes();
-        if (activeSlot < 0 || activeSlot >= hexes.size()) {
-            updateStatus("no active hex slot");
-            return;
-        }
+        playerData.setPendingImportHex(hex);
 
-        hexes.set(activeSlot, hex);
-
-        List<Ref<EntityStore>> previewRefs = playerData.getHexPreviewRefs();
-        if (previewRefs != null && activeSlot < previewRefs.size()) {
-            Ref<EntityStore> activeRef = previewRefs.get(activeSlot);
-            if (activeRef != null && activeRef.isValid()) {
-                HexComponent hexComp = store.getComponent(activeRef, HexComponent.getComponentType());
-                if (hexComp != null) {
-                    Hex existing = hexComp.getHex();
-                    existing.replaceWith(hex);
-                }
-            }
-        }
-
-        StringBuilder msg = new StringBuilder("imported hex — replacing active slot");
+        StringBuilder msg = new StringBuilder("importing hex...");
         for (DecodeIssue issue : result.getIssues()) {
             if (issue.getSeverity() != DecodeIssue.Severity.INFO) {
                 msg.append("\n").append(issue);

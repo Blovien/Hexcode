@@ -85,13 +85,6 @@ public class HexcasterCraftingComponent implements Component<EntityStore> {
         this.dragTickCount = dragTickCount;
     }
 
-    public void clearCraftingState() {
-        this.headAnchorRef = null;
-        this.draggingRef = null;
-        this.hoveredRef = null;
-        this.dragTickCount = 0;
-    }
-
     public void clear(CommandBuffer<EntityStore> buffer) {
         CleanupUtils.safeRemoveEntity(buffer, this.headAnchorRef);
         this.headAnchorRef = null;

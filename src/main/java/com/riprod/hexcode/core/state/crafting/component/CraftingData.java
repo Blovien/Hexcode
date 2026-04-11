@@ -78,6 +78,8 @@ public class CraftingData {
     private int activeSlotIndex = -1;
     private int autosaveTickCounter = 0;
     public static final int AUTOSAVE_INTERVAL = 600;
+    private Hex pendingImportHex = null;
+    private int pendingReenterSlot = -1;
 
     public List<Ref<EntityStore>> getAllRefs() {
         List<Ref<EntityStore>> allRefs = new ArrayList<>();
@@ -264,6 +266,22 @@ public class CraftingData {
 
     public void setAutosaveTickCounter(int count) {
         this.autosaveTickCounter = count;
+    }
+
+    public Hex getPendingImportHex() {
+        return pendingImportHex;
+    }
+
+    public void setPendingImportHex(Hex hex) {
+        this.pendingImportHex = hex;
+    }
+
+    public int getPendingReenterSlot() {
+        return pendingReenterSlot;
+    }
+
+    public void setPendingReenterSlot(int slot) {
+        this.pendingReenterSlot = slot;
     }
 
     public void setPedestalLocation(Vector3i pedestalLocation) {

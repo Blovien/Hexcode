@@ -121,7 +121,8 @@ public class PedestalSystem {
                 Map<String, Ref<EntityStore>> childRefs = hexComp.getChildGlyphRefs();
                 if (childRefs != null) {
                     for (Ref<EntityStore> glyphRef : childRefs.values()) {
-                        if (glyphRef == null || !glyphRef.isValid()) continue;
+                        if (glyphRef == null || !glyphRef.isValid())
+                            continue;
                         SlotNodeHandler.INSTANCE.despawnSlotsForGlyph(buffer, glyphRef);
                         buffer.tryRemoveComponent(glyphRef, MountedComponent.getComponentType());
                         buffer.tryRemoveEntity(glyphRef, RemoveReason.REMOVE);
@@ -135,12 +136,14 @@ public class PedestalSystem {
             }
         }
 
-        Vector3d anchorPos = PedestalEntity.getAnchorPosition(pedestal.getCraftingDataComponent().getPedestalLocation());
+        Vector3d anchorPos = PedestalEntity
+                .getAnchorPosition(pedestal.getCraftingDataComponent().getPedestalLocation());
         Vector3d activePos = new Vector3d(
                 anchorPos.x + ACTIVE_HEX_OFFSET.x,
                 anchorPos.y + ACTIVE_HEX_OFFSET.y,
                 anchorPos.z + ACTIVE_HEX_OFFSET.z);
-        TransformComponent anchorTransform = buffer.getComponent(selectedAnchorNodeRef, TransformComponent.getComponentType());
+        TransformComponent anchorTransform = buffer.getComponent(selectedAnchorNodeRef,
+                TransformComponent.getComponentType());
         anchorTransform.getPosition().assign(activePos);
         anchorTransform.getRotation().assign(0, 0, 0);
         if (buffer.getComponent(selectedAnchorNodeRef, MountedComponent.getComponentType()) != null) {
@@ -194,9 +197,6 @@ public class PedestalSystem {
                 bookComp.getHexes().remove(slotIndex);
                 logger.atInfo().log("pedestal: removed empty hex from book — slot=%d", slotIndex);
             }
-        } else {
-            bookComp.setHex(slotIndex, hex);
-            logger.atInfo().log("pedestal: saved hex to book — slot=%d, hex=%s", slotIndex, hex);
         }
 
         playerData.setStoredBookComponent(bookComp);
@@ -206,22 +206,27 @@ public class PedestalSystem {
             CraftingData playerData) {
 
         int slotIndex = playerData.getActiveSlotIndex();
-        if (slotIndex < 0) return;
+        if (slotIndex < 0)
+            return;
 
         List<Ref<EntityStore>> previewRefs = playerData.getHexPreviewRefs();
-        if (previewRefs == null || previewRefs.isEmpty()) return;
+        if (previewRefs == null || previewRefs.isEmpty())
+            return;
 
         Ref<EntityStore> activeHexRef = previewRefs.get(0);
-        if (activeHexRef == null || !activeHexRef.isValid()) return;
+        if (activeHexRef == null || !activeHexRef.isValid())
+            return;
 
         HexComponent hexComp = store.getComponent(activeHexRef, HexComponent.getComponentType());
-        if (hexComp == null) return;
+        if (hexComp == null)
+            return;
 
         Hex hex = hexComp.getHex().clone();
         HexUtils.compress(hex);
 
         HexBookComponent bookComp = playerData.getStoredBookComponent();
-        if (bookComp == null) return;
+        if (bookComp == null)
+            return;
 
         if (hex.getGlyphs().isEmpty()) {
             if (slotIndex < bookComp.getHexes().size()) {
@@ -234,36 +239,36 @@ public class PedestalSystem {
         playerData.setStoredBookComponent(bookComp);
     }
 
-    public static void exitCrafting(CommandBuffer<EntityStore> buffer, Ref<EntityStore> playerRef,
+    public static void exitCrafting(CommandBuffer<EntityStore> accessor, Ref<EntityStore> playerRef,
             PedestalBlockComponent pedestal, CraftingData playerData) {
 
-        ObeliskDispatcher.dispatchExitCrafting(buffer, pedestal, playerRef);
-        saveHexToBook(buffer, playerRef, playerData);
+        ObeliskDispatcher.dispatchExitCrafting(accessor, pedestal, playerRef);
+        saveHexToBook(accessor, playerRef, playerData);
 
         // cleanup slots
-        SlotNodeHandler.INSTANCE.despawn(buffer, playerData);
+        SlotNodeHandler.INSTANCE.despawn(accessor, playerData);
         playerData.setSlotNodeRefs(new ArrayList<>());
 
         // cleanup dragging state
-        HexcasterCraftingComponent craftingComp = buffer.getComponent(playerRef,
+        HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
                 HexcasterCraftingComponent.getComponentType());
         if (craftingComp != null) {
-            CraftingDragHandler.endDrag(buffer, craftingComp.getDraggingRef(),
+            CraftingDragHandler.endDrag(accessor, craftingComp.getDraggingRef(),
                     craftingComp.getHeadAnchorRef());
         }
 
-        AnchorEntity.DespawnHexPreviews(buffer, pedestal, playerData);
+        AnchorEntity.DespawnHexPreviews(accessor, pedestal, playerData);
 
         Ref<EntityStore> anchorNodeRef = playerData.getAnchorNodeRef();
         if (anchorNodeRef != null && anchorNodeRef.isValid()) {
-            buffer.tryRemoveEntity(anchorNodeRef, RemoveReason.REMOVE);
+            accessor.tryRemoveEntity(anchorNodeRef, RemoveReason.REMOVE);
             playerData.setAnchorNodeRef(null);
         }
 
         playerData.setActiveSlotIndex(-1);
 
         if (craftingComp != null) {
-            craftingComp.clearCraftingState();
+            craftingComp.clear(accessor);
         }
 
     }
@@ -409,7 +414,8 @@ public class PedestalSystem {
         }
         if (!pedestalComponent.isConsumeEssence()) {
             Ref<EntityStore> essenceReturnRef = (ownerRef != null && ownerRef.isValid()) ? ownerRef : null;
-            boolean returned = essenceReturnRef != null && PedestalItemUtil.returnEssenceToPlayer(buffer, essenceReturnRef, playerData.getEssence());
+            boolean returned = essenceReturnRef != null
+                    && PedestalItemUtil.returnEssenceToPlayer(buffer, essenceReturnRef, playerData.getEssence());
             if (!returned && playerData.getEssence() != null) {
                 PedestalItemUtil.dropEssenceAtPosition(buffer, playerData.getEssence(), blockPos);
             }

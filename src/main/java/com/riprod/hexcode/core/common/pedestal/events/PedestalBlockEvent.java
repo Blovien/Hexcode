@@ -109,7 +109,6 @@ public class PedestalBlockEvent extends EntityEventSystem<EntityStore, BreakBloc
 
             ObeliskSystem.updateState(buffer, pedestal, world, PedestalState.SELECTING, PedestalState.IDLE);
 
-            LOGGER.atInfo().log("pedestal cleanup complete at %s", pos);
         } catch (Exception e) {
             LOGGER.atSevere().log("[hexcode] PedestalBlockEvent failed: %s", e.getMessage());
         }

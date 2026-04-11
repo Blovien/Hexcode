@@ -25,7 +25,7 @@ public class VolatilityTracker {
     public VolatilityTracker(int castCount, float staffModifier,
             float powerModifier, float volatilityMultiplier, float manaCostMultiplier) {
         this.castCount = castCount;
-        this.staffModifier = Math.max(staffModifier, 0.1f);
+        this.staffModifier = staffModifier;
         this.powerModifier = powerModifier;
         this.volatilityMultiplier = volatilityMultiplier;
         this.manaCostMultiplier = manaCostMultiplier;
@@ -48,7 +48,7 @@ public class VolatilityTracker {
         float m = powerModifier;
 
         float chance = (v * g) * (x + (c * (0.3f / s) * 0.25f)) + m;
-        return Math.max(0f, Math.min(1f, chance * volatilityMultiplier));
+        return Math.max(0f, Math.min(1.5f, chance * volatilityMultiplier));
     }
 
     public boolean rollAndIncrement(Glyph glyph) {

@@ -14,6 +14,8 @@ import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.Color;
 import com.hypixel.hytale.protocol.InteractionState;
+import com.hypixel.hytale.protocol.packets.connection.PongType;
+import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.time.TimeResource;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
@@ -264,10 +266,20 @@ public class DrawingSystem extends HexcodeManager {
     long drawSpeed = curTime - startTime;
     result.setSpeed(drawSpeed);
 
+    int pingMs = (int) accessor.getComponent(ref, PlayerRef.getComponentType())
+        .getPacketHandler()
+        .getPingInfo(PongType.Direct)
+        .getPingMetricSet()
+        .getLastValue();
+
+    float forgiveness = 1f + Math.min(pingMs, 500) / 1000f; // cap at +30% at 300ms
+    result.setVolatility(Math.min(1f, result.getVolatility() * forgiveness));
+    drawSpeed = (long) (drawSpeed / forgiveness); // pretend they drew faster
+
     float maxSize = Math.max(Math.abs(maxYaw - minYaw), Math.abs(maxPitch - minPitch));
     result.setSize(maxSize);
 
-    LOGGER.atInfo().log("%d ms (%f score) | S: %f | A: %f -------------- Cur Time: %d | Start Time: %d", drawSpeed,
+    LOGGER.atInfo().log("%d ms (%f score) | S: %f | A: %f", drawSpeed,
         result.getEfficiency(), maxSize,
         result.getVolatility(), curTime, startTime);
 

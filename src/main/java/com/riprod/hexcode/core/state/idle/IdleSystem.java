@@ -27,7 +27,6 @@ public class IdleSystem extends HexcodeManager {
                         if (headAnchor != null && headAnchor.isValid()) {
                                 CleanupUtils.safeRemoveEntity(buffer, headAnchor);
                         }
-                        craftingComp.clearCraftingState();
                         craftingComp.clear(buffer);
                 }
         }

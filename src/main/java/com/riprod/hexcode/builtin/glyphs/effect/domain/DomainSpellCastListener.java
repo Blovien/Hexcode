@@ -22,10 +22,10 @@ public class DomainSpellCastListener implements Consumer<SpellCastEvent> {
         if (store == null) return;
 
         DomainAuraComponent aura = store.getComponent(casterRef, DomainAuraComponent.getComponentType());
-        LOGGER.atInfo().log("domain listener: caster=%s aura=%s boost=%.2f",
+        if (aura == null) return;
+        LOGGER.atInfo().log("domain cast: caster=%s aura=%s boost=%.2f",
                 casterRef, aura != null,
                 aura != null ? aura.getVolatilityBoost() : 1.0f);
-        if (aura == null) return;
 
         if (aura.getZoneRef() == null || !aura.getZoneRef().isValid()) return;
 

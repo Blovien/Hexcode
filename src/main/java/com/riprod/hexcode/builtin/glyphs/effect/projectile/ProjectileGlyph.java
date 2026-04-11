@@ -38,7 +38,7 @@ public class ProjectileGlyph implements GlyphHandler {
   public static final String ID = "Glyph_Projectile";
 
   private static final double MAX_DISTANCE = 64.0;
-  private static final String PROJECTILE_MODEL = "Glyph_Projectile";
+  private static final String PROJECTILE_MODEL = "Glyph_Projectile_Flight";
   private static final float PROJECTILE_SCALE = 0.5f;
 
   @Override
