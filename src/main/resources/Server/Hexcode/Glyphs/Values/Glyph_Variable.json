@@ -21,5 +21,6 @@
       "Shape": "Cube",
       "DefaultVariable": "1"
     }
-  }
+  },
+  "VolatilityCost": 1
 }

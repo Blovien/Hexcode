@@ -20,11 +20,6 @@ public class VariableValue implements GlyphHandler {
     }
 
     @Override
-    public boolean canReadValue() {
-        return true;
-    }
-
-    @Override
     public HexVar readValue(Glyph glyph, HexContext hexContext) {
         return hexContext.getVariable(computeKey(glyph, hexContext));
     }

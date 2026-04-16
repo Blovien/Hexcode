@@ -16,10 +16,6 @@ public interface GlyphHandler {
 
     void execute(Glyph glyph, HexContext hexContext);
 
-    default boolean canReadValue() {
-        return false;
-    }
-
     default HexVar readValue(Glyph glyph, HexContext hexContext) {
         return null;
     }
@@ -36,17 +32,14 @@ public interface GlyphHandler {
      */
     default void writeValue(Glyph glyph, HexContext hexContext, HexVar value) {
         String key = glyph.getId();
-        if (canReadValue()) {
-            HexVar v = readValue(glyph, hexContext);
-            if (v instanceof NumberVar nv) {
-                key = String.valueOf(nv.getValue().intValue());
-            }
+        HexVar v = readValue(glyph, hexContext);
+        if (v instanceof NumberVar nv) {
+            key = String.valueOf(nv.getValue().intValue());
         }
         hexContext.setVariable(key, value);
     }
 
-    default boolean canExecute(Glyph glyph, HexContext hexContext) {
-        if (canReadValue()) return true;
+    default boolean consumeResources(Glyph glyph, HexContext hexContext) {
         return resolveVolatility(glyph, hexContext)
             && resolveMana(glyph, hexContext);
     }
@@ -54,17 +47,16 @@ public interface GlyphHandler {
     default boolean resolveVolatility(Glyph glyph, HexContext hexContext) {
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
         if (tracker == null) return true;
-        boolean passed = tracker.rollAndIncrement(glyph);
-        if (!passed) {
-            tracker.setFizzled(true);
+        float cost = VolatilityTracker.computeGlyphCost(glyph);
+        if (cost <= 0) return true;
+        boolean consumed = tracker.consumeVolatility(cost);
+        if (!consumed) {
             String title = resolveGlyphTitle(glyph.getGlyphId());
-            LOGGER.atInfo().log("glyph %s fizzled: rolled %.3f against %.3f chance (cast #%d, type count %d)",
-                    glyph.getGlyphId(), tracker.getLastRoll(), tracker.getLastChance(),
-                    tracker.getCastCount(),
-                    tracker.getGlyphTypeCount(glyph.getGlyphId()));
+            LOGGER.atInfo().log("glyph %s fizzled: volatility depleted (remaining: %.1f, cost: %.1f)",
+                    glyph.getGlyphId(), tracker.getRemainingBudget(), cost);
             sendCasterMessage(hexContext, title + " fizzled!");
         }
-        return passed;
+        return consumed;
     }
 
     default boolean resolveMana(Glyph glyph, HexContext hexContext) {

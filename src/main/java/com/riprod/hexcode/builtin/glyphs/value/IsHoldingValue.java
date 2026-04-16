@@ -13,11 +13,6 @@ import com.riprod.hexcode.core.state.execution.component.HexcasterExecutionCompo
 public class IsHoldingValue implements GlyphHandler {
 
     @Override
-    public boolean canReadValue() {
-        return true;
-    }
-
-    @Override
     public HexVar readValue(Glyph glyph, HexContext hexContext) {
         Ref<EntityStore> casterRef = hexContext.getCasterRef();
         if (casterRef == null || !casterRef.isValid() || hexContext.getAccessor() == null) {

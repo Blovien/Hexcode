@@ -2,6 +2,8 @@ package com.riprod.hexcode.core.state.execution;
 
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
+import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
+import com.hypixel.hytale.server.core.modules.entitystats.EntityStatValue;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphRegistry;
@@ -11,6 +13,7 @@ import com.riprod.hexcode.core.common.hexcaster.utils.CasterInventory;
 import com.riprod.hexcode.core.common.hexcaster.utils.PlayerUtils;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffAsset;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffComponent;
+import com.riprod.hexcode.core.common.stats.HexcodeEntityStatTypes;
 import com.riprod.hexcode.utils.HexSlot;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.HexcasterExecutionComponent;
@@ -33,12 +36,13 @@ public class Executor {
 
     public static void continueFromSlot(Glyph glyph, String slotKey, HexContext hexContext) {
         Slot slot = glyph.getSlot(slotKey);
-        if (slot == null) return;
+        if (slot == null)
+            return;
         String[] links = slot.getLinks();
-        if (links.length == 0) return;
+        if (links.length == 0)
+            return;
         continueExecution(Arrays.asList(links), hexContext);
     }
-
 
     public static void beginExecution(List<String> nextGlyphs, @Nonnull HexContext hexContext) {
 
@@ -50,7 +54,7 @@ public class Executor {
 
         HexStaffComponent staff = CasterInventory.getHexStaffComponent(
                 hexContext.getAccessor(), hexContext.getCasterRef());
-        
+
         HexcasterExecutionComponent execComp = hexContext.getAccessor().getComponent(
                 hexContext.getCasterRef(), HexcasterExecutionComponent.getComponentType());
 
@@ -58,14 +62,26 @@ public class Executor {
             RootGlyph rootGlyph = hexContext.getAccessor().getComponent(
                     hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
 
+            float statMax = 0f;
+            EntityStatMap statMap = hexContext.getAccessor().getComponent(
+                    hexContext.getCasterRef(), EntityStatMap.getComponentType());
+            if (statMap != null) {
+                int volIndex = HexcodeEntityStatTypes.getVolatility();
+                if (volIndex != Integer.MIN_VALUE) {
+                    EntityStatValue volStat = statMap.get(volIndex);
+                    if (volStat != null)
+                        statMax = volStat.getMax();
+                }
+            }
+
+            float startingBudget = Math.max(0, statMax - execComp.getCumulativeDecay());
             VolatilityTracker tracker = new VolatilityTracker(
-                    execComp.getCastCount(), staff.getStaffModifier(),
-                    rootGlyph.getPowerModifier(),
+                    startingBudget,
                     rootGlyph.getVolatilityMultiplier(),
                     rootGlyph.getManaCostMultiplier());
             hexContext.setVolatilityTracker(tracker);
 
-            execComp.incrementCastCount();
+            execComp.advanceCast(staff.getCastDecayRate(), statMax);
             CasterInventory.saveHexStaffComponent(hexContext.getAccessor(), hexContext.getCasterRef(), staff);
 
             HexStaffAsset staffAsset = CasterInventory.getHexStaffAsset(
@@ -97,7 +113,8 @@ public class Executor {
 
     public static void registerActiveHex(HexContext hexContext) {
         try {
-            if (hexContext.getAccessor() == null || hexContext.getCasterRef() == null) return;
+            if (hexContext.getAccessor() == null || hexContext.getCasterRef() == null)
+                return;
             HexcasterComponent comp = hexContext.getAccessor().getComponent(
                     hexContext.getCasterRef(), HexcasterComponent.getComponentType());
             if (comp != null) {
@@ -110,8 +127,10 @@ public class Executor {
 
     public static void unregisterActiveHex(HexContext hexContext) {
         try {
-            if (hexContext.getAccessor() == null || hexContext.getCasterRef() == null) return;
-            if (!hexContext.getCasterRef().isValid()) return;
+            if (hexContext.getAccessor() == null || hexContext.getCasterRef() == null)
+                return;
+            if (!hexContext.getCasterRef().isValid())
+                return;
             HexcasterComponent comp = hexContext.getAccessor().getComponent(
                     hexContext.getCasterRef(), HexcasterComponent.getComponentType());
             if (comp != null) {
@@ -130,32 +149,9 @@ public class Executor {
 
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
         if (tracker != null && (tracker.isFizzled() || tracker.isFailed())) {
-            LOGGER.atInfo().log("hex %s — halting execution",
+            LOGGER.atInfo().log("hex %s - halting execution",
                     tracker.isFailed() ? "failed" : "fizzled");
-            return;
-        }
-
-        if (nextGlyphs.size() == 1) {
-            String nextId = nextGlyphs.get(0);
-            Glyph nextNode = hexContext.getGlyph(nextId);
-            if (nextNode == null) {
-                LOGGER.atSevere().log("dangling glyph reference: %s not found in hex graph", nextId);
-                return;
-            }
-            GlyphHandler nextHandler = GlyphRegistry.get(nextNode.getGlyphId());
-            if (nextHandler == null) {
-                LOGGER.atSevere().log("no handler found for glyph %s, skipping", nextNode.getGlyphId());
-                return;
-            }
-            try {
-                if (!nextHandler.canExecute(nextNode, hexContext)) {
-                    return;
-                }
-                LOGGER.atInfo().log("Executing glyph %s - ID: %s", nextNode.getGlyphId(), nextNode.getId());
-                nextHandler.execute(nextNode, hexContext);
-            } catch (Exception e) {
-                LOGGER.atSevere().log("error executing glyph %s: %s", nextNode.getGlyphId(), e.getMessage());
-            }
+            fail(hexContext);
             return;
         }
 
@@ -163,22 +159,25 @@ public class Executor {
             Glyph nextNode = hexContext.getGlyph(nextNodeId);
             if (nextNode == null) {
                 LOGGER.atSevere().log("dangling glyph reference: %s not found in hex graph", nextNodeId);
+                fail(hexContext);
                 continue;
             }
             GlyphHandler nextHandler = GlyphRegistry.get(nextNode.getGlyphId());
             if (nextHandler == null) {
                 LOGGER.atSevere().log("no handler found for glyph %s, skipping", nextNode.getGlyphId());
+                fail(hexContext);
                 continue;
             }
-            HexContext copiedBranch = hexContext.copy();
             try {
-                if (!nextHandler.canExecute(nextNode, copiedBranch)) {
+                if (!nextHandler.consumeResources(nextNode, hexContext)) {
+                    fail(hexContext);
                     continue;
                 }
                 LOGGER.atInfo().log("Executing glyph %s - ID: %s", nextNode.getGlyphId(), nextNode.getId());
-                nextHandler.execute(nextNode, copiedBranch);
+                nextHandler.execute(nextNode, hexContext);
             } catch (Exception e) {
                 LOGGER.atSevere().log("error executing glyph %s: %s", nextNode.getGlyphId(), e.getMessage());
+                fail(hexContext);
             }
         }
     }

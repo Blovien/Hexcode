@@ -177,7 +177,6 @@ public class ExecutionSystem extends HexcodeManager {
         RootGlyph rootGlyph = new RootGlyph();
         rootGlyph.setHex(hexClone);
         rootGlyph.setNeedsInitialExecution(true);
-        rootGlyph.setPowerModifier(spellCastEvent.getPowerModifier());
         rootGlyph.setManaCostMultiplier(spellCastEvent.getManaCostMultiplier());
         rootGlyph.setVolatilityMultiplier(spellCastEvent.getVolatilityMultiplier());
 

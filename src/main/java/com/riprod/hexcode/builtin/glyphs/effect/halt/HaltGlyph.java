@@ -8,8 +8,10 @@ import com.hypixel.hytale.protocol.ChangeVelocityType;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.OverlapBehavior;
 import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
+import com.hypixel.hytale.server.core.entity.EntityUtils;
 import com.hypixel.hytale.server.core.entity.knockback.KnockbackComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.modules.physics.component.PhysicsValues;
 import com.hypixel.hytale.server.core.modules.projectile.config.StandardPhysicsProvider;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.builtin.glyphs.effect.halt.component.HaltProjectileComponent;
@@ -36,8 +38,7 @@ public class HaltGlyph implements GlyphHandler {
     private static final double MANA_KNEE = 2.0;
     private static final double MANA_STEEPNESS = 1.5;
 
-    // volatility: extra rolls = floor(e^(k_vol * (t - t_vol)))
-    // near-zero below t_vol, climbs fast above it
+    // cost scales exponentially past the knee duration
     private static final double VOLATILITY_KNEE = 4.0;
     private static final double VOLATILITY_STEEPNESS = 0.8;
 
@@ -49,21 +50,9 @@ public class HaltGlyph implements GlyphHandler {
         double duration = SpellVarUtil.resolveNumberOrDefault(
                 glyph.readSlot("duration", hexContext), DEFAULT_DURATION);
 
-        int extraRolls = (int) Math.floor(Math.exp(VOLATILITY_STEEPNESS * (duration - VOLATILITY_KNEE)));
-
-        if (!tracker.rollAndIncrement(glyph)) {
-            LOGGER.atInfo().log("halt: fizzled on primary volatility roll");
-            return false;
-        }
-
-        for (int i = 0; i < extraRolls; i++) {
-            if (!tracker.rollAndIncrement(glyph)) {
-                LOGGER.atInfo().log("halt: fizzled on extra volatility roll %d/%d", i + 1, extraRolls);
-                return false;
-            }
-        }
-
-        return true;
+        float expScale = (float) Math.max(1.0, Math.exp(VOLATILITY_STEEPNESS * (duration - VOLATILITY_KNEE)));
+        float cost = VolatilityTracker.computeGlyphCost(glyph) * expScale;
+        return tracker.consumeVolatility(cost);
     }
 
     @Override
@@ -116,10 +105,10 @@ public class HaltGlyph implements GlyphHandler {
                     StandardPhysicsProvider.getComponentType());
             if (physics != null) {
                 physics.getForceProviderStandardState().nextTickVelocity.assign(Vector3d.ZERO);
-                physics.setState(StandardPhysicsProvider.STATE.INACTIVE);
                 if (duration > 0) {
+                    physics.setState(StandardPhysicsProvider.STATE.INACTIVE);
                     accessor.putComponent(ref, HaltProjectileComponent.getComponentType(),
-                            new HaltProjectileComponent((float) duration));
+                            new HaltProjectileComponent((float) duration, null));
                 }
             } else {
                 KnockbackComponent kb = new KnockbackComponent();
@@ -127,6 +116,14 @@ public class HaltGlyph implements GlyphHandler {
                 kb.setVelocityType(ChangeVelocityType.Set);
                 kb.setDuration((float) duration);
                 accessor.putComponent(ref, KnockbackComponent.getComponentType(), kb);
+
+                if (duration > 0) {
+                    PhysicsValues original = EntityUtils.getPhysicsValues(ref, accessor);
+                    PhysicsValues halted = new PhysicsValues(original.getMass(), 999.0, false);
+                    accessor.putComponent(ref, PhysicsValues.getComponentType(), halted);
+                    accessor.putComponent(ref, HaltProjectileComponent.getComponentType(),
+                            new HaltProjectileComponent((float) duration, new PhysicsValues(original)));
+                }
             }
 
             if (duration > 0) {

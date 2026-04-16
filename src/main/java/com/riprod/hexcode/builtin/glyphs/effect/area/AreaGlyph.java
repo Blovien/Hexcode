@@ -2,7 +2,7 @@ package com.riprod.hexcode.builtin.glyphs.effect.area;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
+
 
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
@@ -31,17 +31,15 @@ public class AreaGlyph implements GlyphHandler {
     public static final String ID = "Glyph_Area";
 
     private static final double DEFAULT_RADIUS = 5.0;
-    private static final float VOLATILITY_HARSHNESS = 0.6f;
+    private static final float VOLATILITY_COST_MULTIPLIER = 1.67f;
 
     @Override
     public boolean resolveVolatility(Glyph glyph, HexContext hexContext) {
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
         if (tracker == null) return true;
-        float chance = tracker.computeSuccessChance(glyph) * VOLATILITY_HARSHNESS;
-        chance = Math.max(0f, Math.min(1f, chance));
-        float roll = ThreadLocalRandom.current().nextFloat();
-        tracker.incrementGlyphType(glyph.getGlyphId());
-        return roll < chance;
+        float cost = VolatilityTracker.computeGlyphCost(glyph) * VOLATILITY_COST_MULTIPLIER;
+        if (cost <= 0) return true;
+        return tracker.consumeVolatility(cost);
     }
 
     @Override

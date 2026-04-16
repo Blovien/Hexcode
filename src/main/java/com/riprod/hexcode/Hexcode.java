@@ -4,6 +4,8 @@ import com.riprod.hexcode.builtin.BuiltinPlugin;
 import com.riprod.hexcode.command.HexcodeCommand;
 import com.riprod.hexcode.core.common.armor.ArmorManaConfig;
 import com.riprod.hexcode.core.common.armor.ArmorManaPatcher;
+import com.riprod.hexcode.core.common.armor.ArmorVolatilityConfig;
+import com.riprod.hexcode.core.common.armor.ArmorVolatilityPatcher;
 import com.riprod.hexcode.core.common.block.component.UnbreakableBlockComponent;
 import com.riprod.hexcode.core.common.block.event.BlockBreakEvent;
 import com.riprod.hexcode.core.common.hexcaster.StaffUnequipEvent;
@@ -32,6 +34,8 @@ import com.riprod.hexcode.core.common.pedestal.events.PedestalBlockEvent;
 import com.riprod.hexcode.core.common.pedestal.events.PedestalPlaceEvent;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.common.effect.GlyphEffectSystem;
+import com.riprod.hexcode.core.common.imbuement.ImbuementCooldownComponent;
+import com.riprod.hexcode.core.common.imbuement.WeaponImbuementSystem;
 import com.riprod.hexcode.core.common.utilities.system.DebugTickSystem;
 import com.riprod.hexcode.core.state.casting.CastingSystem;
 import com.riprod.hexcode.core.state.casting.component.HexcasterCastingComponent;
@@ -158,6 +162,15 @@ public class Hexcode extends JavaPlugin {
             .setKeyFunction(ArmorManaConfig::getId)
             .loadsBefore(Item.class)
             .build());
+    AssetRegistry.register(
+        HytaleAssetStore
+            .builder(ArmorVolatilityConfig.class,
+                new DefaultAssetMap<String, ArmorVolatilityConfig>())
+            .setPath(ArmorVolatilityConfig.ASSET_PATH)
+            .setCodec(ArmorVolatilityConfig.CODEC)
+            .setKeyFunction(ArmorVolatilityConfig::getId)
+            .loadsBefore(Item.class)
+            .build());
 
     // Entity Component Registries
     ComponentRegistryProxy<EntityStore> entityStoreRegistry = this.getEntityStoreRegistry();
@@ -228,6 +241,10 @@ public class Hexcode extends JavaPlugin {
         .registerComponent(HoverableComponent.class, HoverableComponent::new);
     HoverableComponent.setComponentType(hoverableComponentType);
 
+    ComponentType<EntityStore, ImbuementCooldownComponent> imbuementCooldownType = entityStoreRegistry
+        .registerComponent(ImbuementCooldownComponent.class, ImbuementCooldownComponent::new);
+    ImbuementCooldownComponent.setComponentType(imbuementCooldownType);
+
     ComponentType<EntityStore, DebugComponent> debugComponentType = entityStoreRegistry
         .registerComponent(DebugComponent.class, DebugComponent::new);
     DebugComponent.setComponentType(debugComponentType);
@@ -294,6 +311,7 @@ public class Hexcode extends JavaPlugin {
     entityStoreRegistry.registerSystem(new StaffUnequipEvent());
     entityStoreRegistry.registerSystem(new DebugTickSystem());
     entityStoreRegistry.registerSystem(new GlyphEffectSystem());
+    entityStoreRegistry.registerSystem(new WeaponImbuementSystem());
 
     // Events
     this.getEventRegistry().registerGlobal(PlayerConnectEvent.class, Hexcode::onPlayerConnect);
@@ -301,6 +319,8 @@ public class Hexcode extends JavaPlugin {
     this.getEventRegistry().registerGlobal(SpellCastEvent.class, new DomainSpellCastListener());
     this.getEventRegistry().register(LoadedAssetsEvent.class, Item.class,
         ArmorManaPatcher::onItemsLoaded);
+    this.getEventRegistry().register(LoadedAssetsEvent.class, Item.class,
+        ArmorVolatilityPatcher::onItemsLoaded);
 
     // Commands
     this.getCommandRegistry().registerCommand(new HexcodeCommand());

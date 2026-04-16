@@ -13,15 +13,14 @@ import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.OverlapBehavior;
-import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
-import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.builtin.glyphs.effect.freeze.component.FreezeComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.freeze.component.FrozenBlock;
 import com.riprod.hexcode.builtin.glyphs.effect.freeze.style.FreezeStyle;
+import com.riprod.hexcode.core.common.construct.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
@@ -29,7 +28,6 @@ import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.HexSignal;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 import com.riprod.hexcode.utils.SpellVarUtil;
@@ -41,12 +39,7 @@ public class FreezeGlyph implements GlyphHandler {
 
     private static final double DEFAULT_DURATION = 3.0;
 
-    // -- volatility tuning --
-    // every N seconds of duration adds an extra volatility roll
-    private static final double VOLATILITY_ROLL_INTERVAL = 2.0;
-
-    // -- mana tuning --
-    // duration at which mana cost equals the base JSON cost
+    private static final double VOLATILITY_REFERENCE_DURATION = 3.0;
     private static final double MANA_REFERENCE_DURATION = 3.0;
 
     @Override
@@ -56,22 +49,10 @@ public class FreezeGlyph implements GlyphHandler {
 
         double duration = SpellVarUtil.resolveNumberOrDefault(
                 glyph.readSlot("duration", hexContext), DEFAULT_DURATION);
+        float durationScale = (float) Math.max(1.0, duration / VOLATILITY_REFERENCE_DURATION);
 
-        int extraRolls = Math.max(0, (int) (duration / VOLATILITY_ROLL_INTERVAL) - 1);
-
-        if (!tracker.rollAndIncrement(glyph)) {
-            LOGGER.atInfo().log("freeze: fizzled on primary volatility roll");
-            return false;
-        }
-
-        for (int i = 0; i < extraRolls; i++) {
-            if (!tracker.rollAndIncrement(glyph)) {
-                LOGGER.atInfo().log("freeze: fizzled on extra volatility roll %d/%d", i + 1, extraRolls);
-                return false;
-            }
-        }
-
-        return true;
+        float cost = VolatilityTracker.computeGlyphCost(glyph) * durationScale;
+        return tracker.consumeVolatility(cost);
     }
 
     @Override
@@ -174,13 +155,18 @@ public class FreezeGlyph implements GlyphHandler {
 
     private void spawnFreezeTracker(HexContext hexContext, List<FrozenBlock> frozenBlocks,
             float durationSeconds, CommandBuffer<EntityStore> accessor) {
-        Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
-        holder.ensureComponent(UUIDComponent.getComponentType());
-        holder.addComponent(NetworkId.getComponentType(),
-                new NetworkId(accessor.getExternalData().takeNextNetworkId()));
-        holder.addComponent(HexSignal.getComponentType(),
-                new HexSignal(hexContext.copy(), hexContext.getRoot().getRootEntityRef(),
-                        null, null));
+        Vector3d trackerPos = Vector3d.ZERO;
+        if (!frozenBlocks.isEmpty()) {
+            Vector3i first = frozenBlocks.get(0).getPosition();
+            trackerPos = new Vector3d(first.x + 0.5, first.y + 0.5, first.z + 0.5);
+        }
+
+        Holder<EntityStore> holder = HexConstructSpawner.create(
+                accessor, hexContext, null,
+                "freeze", durationSeconds, 0,
+                null, null, null,
+                trackerPos);
+
         holder.addComponent(FreezeComponent.getComponentType(),
                 new FreezeComponent(frozenBlocks, durationSeconds));
 

@@ -47,4 +47,16 @@ public class PlayerHexRoot implements HexRoot {
         if (statMap == null) return 0f;
         return statMap.get(DefaultEntityStatTypes.getMana()).get();
     }
+
+    @Override
+    public boolean addMana(float amount, ComponentAccessor<EntityStore> accessor) {
+        if (amount <= 0) return false;
+        EntityStatMap statMap = accessor.getComponent(playerRef, EntityStatMap.getComponentType());
+        if (statMap == null) return false;
+        int manaIndex = DefaultEntityStatTypes.getMana();
+        float before = statMap.get(manaIndex).get();
+        if (before >= statMap.get(manaIndex).getMax()) return false;
+        statMap.addStatValue(manaIndex, amount);
+        return true;
+    }
 }

@@ -154,7 +154,7 @@ public class Glyph {
         if (linked == null) return null;
 
         GlyphHandler handler = GlyphRegistry.get(linked.getGlyphId());
-        if (handler == null || !handler.canReadValue()) return null;
+        if (handler == null) return null;
 
         resolveDepth.set(depth + 1);
         try {
@@ -253,7 +253,7 @@ public class Glyph {
             Glyph linked = hexContext.getGlyph(linkId);
             if (linked == null) continue;
             GlyphHandler handler = GlyphRegistry.get(linked.getGlyphId());
-            if (handler == null || !handler.canReadValue()) continue;
+            if (handler == null) continue;
 
             resolveDepth.set(depth + 1);
             try {

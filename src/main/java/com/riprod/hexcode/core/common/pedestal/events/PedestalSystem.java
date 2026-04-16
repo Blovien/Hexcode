@@ -197,6 +197,9 @@ public class PedestalSystem {
                 bookComp.getHexes().remove(slotIndex);
                 logger.atInfo().log("pedestal: removed empty hex from book — slot=%d", slotIndex);
             }
+        } else {
+            bookComp.setHex(slotIndex, hex);
+            logger.atInfo().log("pedestal: saved hex to book — slot=%d, hex=%s", slotIndex, hex);
         }
 
         playerData.setStoredBookComponent(bookComp);

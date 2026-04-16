@@ -24,21 +24,15 @@ public class GustGlyph implements GlyphHandler {
     private static final double MIN_KNOCKBACK_OFFSET = 0.1;
     private static final float BASE_DAMAGE = 2.0f;
     private static final float DAMAGE_SCALE = 0.2f;
-    private static final float VOLATILITY_HARSHNESS = 0.9f;
+    private static final float VOLATILITY_COST_MULTIPLIER = 1.11f;
 
     @Override
     public boolean resolveVolatility(Glyph glyph, HexContext hexContext) {
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
         if (tracker == null) return true;
-        float chance = tracker.computeSuccessChance(glyph) * VOLATILITY_HARSHNESS;
-        chance = Math.max(0f, Math.min(1f, chance));
-        float roll = ThreadLocalRandom.current().nextFloat();
-        tracker.incrementGlyphType(glyph.getGlyphId());
-        if (roll >= chance) {
-            LOGGER.atInfo().log("glyph %s fizzled: rolled %.3f against %.3f chance (harshness %.1fx)",
-                    glyph.getGlyphId(), roll, chance, 1.0f / VOLATILITY_HARSHNESS);
-        }
-        return roll < chance;
+        float cost = VolatilityTracker.computeGlyphCost(glyph) * VOLATILITY_COST_MULTIPLIER;
+        if (cost <= 0) return true;
+        return tracker.consumeVolatility(cost);
     }
 
     @Override

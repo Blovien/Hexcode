@@ -62,17 +62,10 @@ public final class ArmorManaPatcher {
             Item head = items.get("Armor_" + tier + "_Head");
             Item hands = items.get("Armor_" + tier + "_Hands");
 
-            int weightSum =
-                    (armorOf(chest) != null ? W_CHEST : 0)
-                            + (armorOf(legs) != null ? W_LEGS : 0)
-                            + (armorOf(head) != null ? W_HEAD : 0)
-                            + (armorOf(hands) != null ? W_HANDS : 0);
-            if (weightSum == 0) continue;
-
-            patched += patch(chest, scale(total, W_CHEST, weightSum), manaIndex);
-            patched += patch(legs, scale(total, W_LEGS, weightSum), manaIndex);
-            patched += patch(head, scale(total, W_HEAD, weightSum), manaIndex);
-            patched += patch(hands, scale(total, W_HANDS, weightSum), manaIndex);
+            patched += patch(chest, scale(total, W_CHEST), manaIndex);
+            patched += patch(legs, scale(total, W_LEGS), manaIndex);
+            patched += patch(head, scale(total, W_HEAD), manaIndex);
+            patched += patch(hands, scale(total, W_HANDS), manaIndex);
         }
 
         LOGGER.atInfo().log("ArmorManaPatcher: patched %d armor pieces with Mana modifiers", patched);
@@ -92,13 +85,8 @@ public final class ArmorManaPatcher {
         return Map.of();
     }
 
-    private static int scale(int total, int weight, int weightSum) {
-        if (weight == 0) return 0;
-        return Math.round((float) total * weight / weightSum);
-    }
-
-    private static ItemArmor armorOf(Item item) {
-        return item == null ? null : item.getArmor();
+    private static int scale(int total, int weight) {
+        return Math.round((float) total * weight / 100f);
     }
 
     private static int patch(Item item, int amount, int manaIndex) {
@@ -107,6 +95,11 @@ public final class ArmorManaPatcher {
         if (armor == null) return 0;
 
         Int2ObjectMap<StaticModifier[]> existing = armor.getStatModifiers();
+        if (existing != null) {
+            StaticModifier[] current = existing.get(manaIndex);
+            if (current != null && current.length > 0) return 0;
+        }
+
         Int2ObjectMap<StaticModifier[]> target;
         if (existing == null) {
             target = new Int2ObjectOpenHashMap<>();
@@ -119,16 +112,7 @@ public final class ArmorManaPatcher {
                 Modifier.ModifierTarget.MAX,
                 StaticModifier.CalculationType.ADDITIVE,
                 (float) amount);
-
-        StaticModifier[] current = target.get(manaIndex);
-        if (current == null || current.length == 0) {
-            target.put(manaIndex, new StaticModifier[] { manaMod });
-        } else {
-            StaticModifier[] merged = new StaticModifier[current.length + 1];
-            System.arraycopy(current, 0, merged, 0, current.length);
-            merged[current.length] = manaMod;
-            target.put(manaIndex, merged);
-        }
+        target.put(manaIndex, new StaticModifier[] { manaMod });
         return 1;
     }
 

@@ -6,17 +6,11 @@ import javax.annotation.Nullable;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
-import com.hypixel.hytale.codec.codecs.EnumCodec;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
-import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
-import com.riprod.hexcode.state.HexState;
-import com.riprod.hexcode.utils.CleanupUtils;
 
 public class HexcasterExecutionComponent implements Component<EntityStore> {
 
@@ -31,6 +25,10 @@ public class HexcasterExecutionComponent implements Component<EntityStore> {
             .append(new KeyedCodec<>("CastCount", Codec.INTEGER),
                     (c, v) -> c.castCount = v,
                     c -> c.castCount)
+            .add()
+            .append(new KeyedCodec<>("CumulativeDecay", Codec.FLOAT),
+                    (c, v) -> c.cumulativeDecay = v,
+                    c -> c.cumulativeDecay)
             .add()
             .build();
 
@@ -47,6 +45,7 @@ public class HexcasterExecutionComponent implements Component<EntityStore> {
 
     private Hex hex;
     private int castCount = 0;
+    private float cumulativeDecay = 0f;
     private boolean holdingPrimary = false;
 
     public boolean isHoldingPrimary() {
@@ -74,8 +73,18 @@ public class HexcasterExecutionComponent implements Component<EntityStore> {
         return castCount;
     }
 
-    public void incrementCastCount() {
+    public float getCumulativeDecay() {
+        return cumulativeDecay;
+    }
+
+    public void advanceCast(float decayRate, float maxVolatility) {
         this.castCount++;
+        this.cumulativeDecay += decayRate * maxVolatility;
+    }
+
+    public void resetCastState() {
+        this.castCount = 0;
+        this.cumulativeDecay = 0f;
     }
 
     public void clear(CommandBuffer<EntityStore> buffer) {
@@ -88,6 +97,7 @@ public class HexcasterExecutionComponent implements Component<EntityStore> {
         HexcasterExecutionComponent copy = new HexcasterExecutionComponent();
         copy.hex = this.hex != null ? this.hex.clone() : null;
         copy.castCount = this.castCount;
+        copy.cumulativeDecay = this.cumulativeDecay;
         copy.holdingPrimary = this.holdingPrimary;
         return copy;
     }

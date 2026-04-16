@@ -1,7 +1,9 @@
 package com.riprod.hexcode.builtin;
 
+import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentRegistryProxy;
 import com.hypixel.hytale.component.ComponentType;
+import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
@@ -9,21 +11,28 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.builtin.glyphs.effect.add.AddGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.arc.ArcGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.arc.component.ArcComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.arc.system.ArcSystem;
 import com.riprod.hexcode.builtin.glyphs.effect.bolt.BoltGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.concentration.ConcentrationGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.concentration.ConcentrationTriggerHandler;
+import com.riprod.hexcode.builtin.glyphs.effect.concentration.ConcentrationConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.effect.concentration.component.ConcentrationTriggerComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.chaos.ChaosGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.combust.CombustGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.conjure.ConjureGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.conjure.ConjureTriggerHandler;
 import com.riprod.hexcode.builtin.glyphs.effect.conjure.component.ConjureZoneComponent;
+import com.riprod.hexcode.builtin.glyphs.effect.conjure.system.ConjureConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.effect.debug.DebugGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.delay.DelayGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.delay.DelayTriggerHandler;
+import com.riprod.hexcode.builtin.glyphs.effect.arc.ArcConstructHandler;
+import com.riprod.hexcode.builtin.glyphs.effect.domain.DomainConstructHandler;
+import com.riprod.hexcode.builtin.glyphs.effect.glaciate.GlaciateConstructHandler;
+import com.riprod.hexcode.core.common.construct.ConstructRegistry;
+import com.riprod.hexcode.core.common.construct.component.HexConstruct;
+import com.riprod.hexcode.core.common.construct.system.HexConstructSystem;
+import com.riprod.hexcode.core.common.effect.HexEffectHandler;
+import com.riprod.hexcode.core.common.effect.HexEffectRegistry;
+import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
+import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.domain.DomainGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.domain.DomainTriggerHandler;
 import com.riprod.hexcode.builtin.glyphs.effect.domain.component.DomainAuraComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.domain.component.DomainZoneComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.gust.GustGlyph;
@@ -37,19 +46,18 @@ import com.riprod.hexcode.builtin.glyphs.effect.erode.component.ErodeComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.erode.system.ErodeDamageSystem;
 import com.riprod.hexcode.builtin.glyphs.effect.erode.system.ErodeTickSystem;
 import com.riprod.hexcode.builtin.glyphs.effect.phase.PhaseComponent;
+import com.riprod.hexcode.builtin.glyphs.effect.phase.PhaseConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.effect.phase.PhaseGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.phase.PhaseTriggerHandler;
 import com.riprod.hexcode.builtin.glyphs.effect.force.ForceGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.fortify.FortifyGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.fortify.component.FortifyComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.fortify.system.FortifyDamageSystem;
 import com.riprod.hexcode.builtin.glyphs.effect.fortify.system.FortifyTickSystem;
+import com.riprod.hexcode.builtin.glyphs.effect.freeze.FreezeConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.effect.freeze.FreezeGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.freeze.component.FreezeComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.freeze.system.FreezeTickSystem;
 import com.riprod.hexcode.builtin.glyphs.effect.area.AreaGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.glaciate.GlaciateGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.glaciate.GlaciateTriggerHandler;
 import com.riprod.hexcode.builtin.glyphs.effect.glaciate.component.GlaciateComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.greater.GreaterGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.growth.GrowthGlyph;
@@ -65,19 +73,20 @@ import com.riprod.hexcode.builtin.glyphs.effect.multiply.MultiplyGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.output.OutputGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.interfere.InterfereGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.resonate.ResonateGlyph;
+import com.riprod.hexcode.builtin.glyphs.effect.projectile.ProjectileConstructHandler;
+import com.riprod.hexcode.builtin.glyphs.effect.scale.ScaleConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.effect.scale.ScaleGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.scale.component.ScaleComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.scale.system.ScaleTickSystem;
+import com.riprod.hexcode.builtin.glyphs.effect.scale.component.ScaleTargetMarker;
 import com.riprod.hexcode.builtin.glyphs.effect.projectile.ProjectileGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.projectile.component.ProjectileComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.projectile.system.ProjectileSystem;
+import com.riprod.hexcode.builtin.glyphs.effect.ensnare.EnsnareConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.effect.ensnare.EnsnareGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.ensnare.component.EnsnareComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.ensnare.system.EnsnareTickSystem;
 import com.riprod.hexcode.builtin.glyphs.effect.beam.BeamGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.self.SelfGlyph;
+import com.riprod.hexcode.builtin.glyphs.effect.shatter.ShatterConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.effect.shatter.ShatterGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.shatter.ShatterTriggerHandler;
 import com.riprod.hexcode.builtin.glyphs.effect.shatter.component.ShatterComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.smelt.SmeltGlyph;
 import com.riprod.hexcode.builtin.glyphs.effect.subtract.SubtractGlyph;
@@ -98,10 +107,6 @@ import com.riprod.hexcode.builtin.styles.ArcStyle;
 import com.riprod.hexcode.builtin.styles.RingStyle;
 import com.riprod.hexcode.builtin.styles.SphereStyle;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphRegistry;
-import com.riprod.hexcode.core.common.trigger.TriggerRegistry;
-import com.riprod.hexcode.core.common.trigger.component.TriggerComponent;
-import com.riprod.hexcode.core.common.trigger.system.TriggerTickSystem;
-import com.riprod.hexcode.core.state.execution.component.HexSignal;
 import com.riprod.hexcode.core.common.obelisk.registry.ObeliskHandlerRegistry;
 import com.riprod.hexcode.core.state.casting.registery.CastingStyleRegistry;
 
@@ -122,7 +127,8 @@ public class BuiltinPlugin extends JavaPlugin {
         RegisterObelisks();
         RegisterComponents();
         RegisterSystems();
-        RegisterTriggers();
+        RegisterConstructs();
+        RegisterEffects();
         RegisterInteractions();
 
         initialized = true;
@@ -218,10 +224,6 @@ public class BuiltinPlugin extends JavaPlugin {
     private void RegisterComponents() {
         ComponentRegistryProxy<EntityStore> entityStoreRegistry = this.getEntityStoreRegistry();
 
-        ComponentType<EntityStore, HexSignal> hexSignalType = entityStoreRegistry
-                .registerComponent(HexSignal.class, HexSignal::new);
-        HexSignal.setComponentType(hexSignalType);
-
         // Projectile Component
         ComponentType<EntityStore, ProjectileComponent> projectileComponentType = entityStoreRegistry
                 .registerComponent(ProjectileComponent.class, ProjectileComponent::new);
@@ -274,10 +276,6 @@ public class BuiltinPlugin extends JavaPlugin {
                 .registerComponent(ShatterComponent.class, ShatterComponent::new);
         ShatterComponent.setComponentType(shatterComponentType);
 
-        ComponentType<EntityStore, TriggerComponent> triggerComponentType = entityStoreRegistry
-                .registerComponent(TriggerComponent.class, TriggerComponent::new);
-        TriggerComponent.setComponentType(triggerComponentType);
-
         ComponentType<EntityStore, HaltProjectileComponent> haltProjectileComponentType = entityStoreRegistry
                 .registerComponent(HaltProjectileComponent.class, HaltProjectileComponent::new);
         HaltProjectileComponent.setComponentType(haltProjectileComponentType);
@@ -285,6 +283,10 @@ public class BuiltinPlugin extends JavaPlugin {
         ComponentType<EntityStore, ScaleComponent> scaleComponentType = entityStoreRegistry
                 .registerComponent(ScaleComponent.class, ScaleComponent::new);
         ScaleComponent.setComponentType(scaleComponentType);
+
+        ComponentType<EntityStore, ScaleTargetMarker> scaleTargetMarkerType = entityStoreRegistry
+                .registerComponent(ScaleTargetMarker.class, ScaleTargetMarker::new);
+        ScaleTargetMarker.setComponentType(scaleTargetMarkerType);
 
         ComponentType<EntityStore, DomainZoneComponent> domainZoneComponentType = entityStoreRegistry
                 .registerComponent(DomainZoneComponent.class, DomainZoneComponent::new);
@@ -297,33 +299,86 @@ public class BuiltinPlugin extends JavaPlugin {
         ComponentType<EntityStore, ConcentrationTriggerComponent> concentrationTriggerType = entityStoreRegistry
                 .registerComponent(ConcentrationTriggerComponent.class, ConcentrationTriggerComponent::new);
         ConcentrationTriggerComponent.setComponentType(concentrationTriggerType);
+
+        ComponentType<EntityStore, HexConstruct> hexConstructType = entityStoreRegistry
+                .registerComponent(HexConstruct.class, HexConstruct::new);
+        HexConstruct.setComponentType(hexConstructType);
     }
 
     private void RegisterSystems() {
         ComponentRegistryProxy<EntityStore> entityStoreRegistry = this.getEntityStoreRegistry();
         
-        entityStoreRegistry.registerSystem(new ProjectileSystem());
-        entityStoreRegistry.registerSystem(new TriggerTickSystem());
-        entityStoreRegistry.registerSystem(new ArcSystem());
         entityStoreRegistry.registerSystem(new DrainTickSystem());
         entityStoreRegistry.registerSystem(new ErodeTickSystem());
         entityStoreRegistry.registerSystem(new ErodeDamageSystem());
         entityStoreRegistry.registerSystem(new FortifyTickSystem());
         entityStoreRegistry.registerSystem(new FortifyDamageSystem());
         entityStoreRegistry.registerSystem(new LevitateTickSystem());
-        entityStoreRegistry.registerSystem(new FreezeTickSystem());
-        entityStoreRegistry.registerSystem(new EnsnareTickSystem());
         entityStoreRegistry.registerSystem(new HaltProjectileTickSystem());
-        entityStoreRegistry.registerSystem(new ScaleTickSystem());
+        entityStoreRegistry.registerSystem(new HexConstructSystem());
     }
 
-    private void RegisterTriggers() {
-        TriggerRegistry.register("conjure", new ConjureTriggerHandler());
-        TriggerRegistry.register("glaciate", new GlaciateTriggerHandler());
-        TriggerRegistry.register("shatter", new ShatterTriggerHandler());
-        TriggerRegistry.register("phase", new PhaseTriggerHandler());
-        TriggerRegistry.register("domain", new DomainTriggerHandler());
-        TriggerRegistry.register(ConcentrationGlyph.TRIGGER_HANDLER_ID, new ConcentrationTriggerHandler());
-        TriggerRegistry.register(DelayGlyph.TRIGGER_HANDLER_ID, new DelayTriggerHandler());
+    private void RegisterEffects() {
+        HexEffectRegistry.register("fortify", new HexEffectHandler() {
+            @Override
+            public boolean isPresent(CommandBuffer<EntityStore> buffer, Ref<EntityStore> target) {
+                return buffer.getComponent(target, FortifyComponent.getComponentType()) != null;
+            }
+
+            @Override
+            public void strip(CommandBuffer<EntityStore> buffer, Ref<EntityStore> target) {
+                buffer.removeComponent(target, FortifyComponent.getComponentType());
+                removeEntityEffect(target, "Hexcode_Fortify", buffer);
+            }
+        });
+        HexEffectRegistry.register("erode", new HexEffectHandler() {
+            @Override
+            public boolean isPresent(CommandBuffer<EntityStore> buffer, Ref<EntityStore> target) {
+                return buffer.getComponent(target, ErodeComponent.getComponentType()) != null;
+            }
+
+            @Override
+            public void strip(CommandBuffer<EntityStore> buffer, Ref<EntityStore> target) {
+                buffer.removeComponent(target, ErodeComponent.getComponentType());
+                removeEntityEffect(target, "Hexcode_Erode", buffer);
+            }
+        });
+        HexEffectRegistry.register("levitate", new HexEffectHandler() {
+            @Override
+            public boolean isPresent(CommandBuffer<EntityStore> buffer, Ref<EntityStore> target) {
+                return buffer.getComponent(target, LevitateComponent.getComponentType()) != null;
+            }
+
+            @Override
+            public void strip(CommandBuffer<EntityStore> buffer, Ref<EntityStore> target) {
+                buffer.removeComponent(target, LevitateComponent.getComponentType());
+                removeEntityEffect(target, "Hexcode_Levitate", buffer);
+            }
+        });
+    }
+
+    private static void removeEntityEffect(Ref<EntityStore> ref, String effectId,
+            CommandBuffer<EntityStore> buffer) {
+        EffectControllerComponent controller = buffer.getComponent(
+                ref, EffectControllerComponent.getComponentType());
+        if (controller == null) return;
+        int effectIndex = EntityEffect.getAssetMap().getIndex(effectId);
+        if (effectIndex != Integer.MIN_VALUE) {
+            controller.removeEffect(ref, effectIndex, buffer);
+        }
+    }
+
+    private void RegisterConstructs() {
+        ConstructRegistry.register("scale", new ScaleConstructHandler());
+        ConstructRegistry.register("concentration", new ConcentrationConstructHandler());
+        ConstructRegistry.register("domain", new DomainConstructHandler());
+        ConstructRegistry.register("glaciate", new GlaciateConstructHandler());
+        ConstructRegistry.register("arc", new ArcConstructHandler());
+        ConstructRegistry.register("phase", new PhaseConstructHandler());
+        ConstructRegistry.register("shatter", new ShatterConstructHandler());
+        ConstructRegistry.register("conjure", new ConjureConstructHandler());
+        ConstructRegistry.register("projectile", new ProjectileConstructHandler());
+        ConstructRegistry.register("ensnare", new EnsnareConstructHandler());
+        ConstructRegistry.register("freeze", new FreezeConstructHandler());
     }
 }

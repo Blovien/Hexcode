@@ -6,6 +6,7 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
+import com.hypixel.hytale.server.core.modules.physics.component.PhysicsValues;
 import com.hypixel.hytale.server.core.modules.projectile.config.StandardPhysicsProvider;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.builtin.glyphs.effect.halt.component.HaltProjectileComponent;
@@ -32,6 +33,11 @@ public class HaltProjectileTickSystem extends EntityTickingSystem<EntityStore> {
                 StandardPhysicsProvider.getComponentType());
         if (physics != null) {
             physics.setState(StandardPhysicsProvider.STATE.ACTIVE);
+        }
+
+        PhysicsValues original = halt.getOriginalPhysicsValues();
+        if (original != null) {
+            buffer.putComponent(ref, PhysicsValues.getComponentType(), new PhysicsValues(original));
         }
 
         buffer.removeComponent(ref, HaltProjectileComponent.getComponentType());

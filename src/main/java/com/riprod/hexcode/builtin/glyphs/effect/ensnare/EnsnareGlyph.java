@@ -25,15 +25,13 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.builtin.glyphs.effect.ensnare.component.EnsnareComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.ensnare.component.SpikeEntry;
 import com.riprod.hexcode.builtin.glyphs.effect.ensnare.style.EnsnareStyle;
+import com.riprod.hexcode.core.common.construct.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
-import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
-import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.HexSignal;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 import com.riprod.hexcode.utils.SpellVarUtil;
@@ -90,31 +88,19 @@ public class EnsnareGlyph implements GlyphHandler {
     @Override
     public boolean resolveVolatility(Glyph glyph, HexContext hexContext) {
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
-        if (tracker == null)
-            return true;
+        if (tracker == null) return true;
 
         double radius = Math.max(0, SpellVarUtil.resolveNumberOrDefault(
                 glyph.readSlot("radius", hexContext), DEFAULT_RADIUS));
         double damage = Math.max(0, SpellVarUtil.resolveNumberOrDefault(
                 glyph.readSlot("damage", hexContext), DEFAULT_DAMAGE));
 
-        int extraRolls = Math.max(0,
-                (int) (harshScale(radius, DEFAULT_RADIUS, RADIUS_THRESHOLD, 2.0)
-                        + harshScale(damage, DEFAULT_DAMAGE, DAMAGE_THRESHOLD, 2.0)) - 1);
+        float scale = (float) Math.max(1.0,
+                harshScale(radius, DEFAULT_RADIUS, RADIUS_THRESHOLD, 2.0)
+                + harshScale(damage, DEFAULT_DAMAGE, DAMAGE_THRESHOLD, 2.0));
 
-        if (!tracker.rollAndIncrement(glyph)) {
-            LOGGER.atInfo().log("ensnare: fizzled on primary volatility roll");
-            return false;
-        }
-
-        for (int i = 0; i < extraRolls; i++) {
-            if (!tracker.rollAndIncrement(glyph)) {
-                LOGGER.atInfo().log("ensnare: fizzled on extra volatility roll %d/%d", i + 1, extraRolls);
-                return false;
-            }
-        }
-
-        return true;
+        float cost = VolatilityTracker.computeGlyphCost(glyph) * scale;
+        return tracker.consumeVolatility(cost);
     }
 
     @Override
@@ -236,13 +222,12 @@ public class EnsnareGlyph implements GlyphHandler {
     private void spawnTrackerEntity(Glyph glyph, HexContext hexContext,
             List<SpikeEntry> spikes, float durationSeconds, float spikeDamage,
             Vector3d center, double radius, CommandBuffer<EntityStore> accessor) {
-        Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
-        holder.ensureComponent(UUIDComponent.getComponentType());
-        holder.addComponent(NetworkId.getComponentType(),
-                new NetworkId(accessor.getExternalData().takeNextNetworkId()));
-        holder.addComponent(HexSignal.getComponentType(),
-                new HexSignal(hexContext.copy(), hexContext.getRoot().getRootEntityRef(),
-                        glyph, glyph.getNextLinks()));
+        Holder<EntityStore> holder = HexConstructSpawner.create(
+                accessor, hexContext, glyph,
+                "ensnare", durationSeconds, 0,
+                null, null, glyph.getNextLinks(),
+                new Vector3d(center));
+
         holder.addComponent(EnsnareComponent.getComponentType(),
                 new EnsnareComponent(spikes, durationSeconds, spikeDamage,
                         DAMAGE_COOLDOWN_SECONDS, center, radius));

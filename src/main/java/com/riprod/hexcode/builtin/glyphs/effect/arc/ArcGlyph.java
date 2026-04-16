@@ -3,12 +3,14 @@ package com.riprod.hexcode.builtin.glyphs.effect.arc;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.hypixel.hytale.component.AddReason;
+import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.World;
@@ -16,6 +18,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.builtin.glyphs.effect.arc.component.ArcComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.arc.style.ArcStyle;
 import com.riprod.hexcode.builtin.glyphs.effect.arc.utils.ArcUtils;
+import com.riprod.hexcode.core.common.construct.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
@@ -23,7 +26,6 @@ import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexColors;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.HexSignal;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
@@ -92,29 +94,27 @@ public class ArcGlyph implements GlyphHandler {
             ArcStyle.renderHit(hexContext.getAccessor(), targetTc.getPosition(), colors);
         }
 
-        Ref<EntityStore> hexEntityRef = hexContext.getRoot().getRootEntityRef();
+        Vector3d spawnPos = targetTc != null ? targetTc.getPosition() : new Vector3d();
+
+        Holder<EntityStore> holder = HexConstructSpawner.create(
+                hexContext.getAccessor(), hexContext, glyph,
+                "arc", -1, 0,
+                null, branches, null,
+                spawnPos);
 
         ArcComponent arcComponent = new ArcComponent(
-                glyph,
-                new ArrayList<>(branches),
-                visited,
-                (float) maxJump,
-                (float) delay);
+                glyph, new ArrayList<>(branches), visited,
+                (float) maxJump, (float) delay);
+        holder.addComponent(ArcComponent.getComponentType(), arcComponent);
 
-        HexSignal signal = new HexSignal(
-                hexContext.copy(), hexEntityRef, glyph, branches);
-
-        hexContext.getAccessor().addComponent(
-                initialTarget, ArcComponent.getComponentType(), arcComponent);
-        hexContext.getAccessor().addComponent(
-                initialTarget, HexSignal.getComponentType(), signal);
+        Ref<EntityStore> constructRef = hexContext.getAccessor().addEntity(holder, AddReason.SPAWN);
 
         RootGlyph rootGlyph = hexContext.getAccessor().getComponent(
-                hexEntityRef, RootGlyph.getComponentType());
+                hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
         if (rootGlyph != null) {
-            rootGlyph.addDependent(initialTarget);
+            rootGlyph.addDependent(constructRef);
         }
 
-        LOGGER.atInfo().log("arc: attached chain with %d branches to initial target", branches.size());
+        LOGGER.atInfo().log("arc: spawned construct with %d branches on initial target", branches.size());
     }
 }

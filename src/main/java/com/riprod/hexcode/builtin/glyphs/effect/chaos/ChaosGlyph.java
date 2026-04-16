@@ -33,11 +33,6 @@ public class ChaosGlyph implements GlyphHandler {
     }
 
     @Override
-    public boolean canReadValue() {
-        return true;
-    }
-
-    @Override
     public HexVar readValue(Glyph glyph, HexContext hexContext) {
         HexVar minValVar = glyph.readSlot("min", hexContext);
         HexVar maxValVar = glyph.readSlot("max", hexContext);

@@ -281,7 +281,7 @@ public class DrawingSystem extends HexcodeManager {
 
     LOGGER.atInfo().log("%d ms (%f score) | S: %f | A: %f", drawSpeed,
         result.getEfficiency(), maxSize,
-        result.getVolatility(), curTime, startTime);
+        result.getVolatility());
 
     InterfaceManager.removeTrails(accessor, ref);
     drawingComp.addDrawnGlyph(result);

@@ -27,5 +27,6 @@
       "Shape": "Cube",
       "Unique": true
     }
-  }
+  },
+  "VolatilityCost": 5
 }

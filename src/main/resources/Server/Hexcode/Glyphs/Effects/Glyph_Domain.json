@@ -23,7 +23,11 @@
     "target": {
       "Label": "Target",
       "Description": "Anchor position for domain center",
-      "Color": [1.0, 0.4, 0.4],
+      "Color": [
+        1.0,
+        0.4,
+        0.4
+      ],
       "Shape": "Cube",
       "DefaultVariable": "1",
       "Unique": true
@@ -31,7 +35,11 @@
     "magnitude": {
       "Label": "Radius",
       "Description": "Sphere radius (2-15 blocks)",
-      "Color": [0.2, 0.5, 1.0],
+      "Color": [
+        0.2,
+        0.5,
+        1.0
+      ],
       "Shape": "Cube",
       "DefaultValue": 5,
       "Unique": true
@@ -39,7 +47,11 @@
     "duration": {
       "Label": "Duration",
       "Description": "Lifetime in seconds",
-      "Color": [0.4, 0.8, 0.4],
+      "Color": [
+        0.4,
+        0.8,
+        0.4
+      ],
       "Shape": "Cube",
       "DefaultValue": 10,
       "Unique": true
@@ -47,7 +59,11 @@
     "power": {
       "Label": "Power",
       "Description": "Contestation power (higher wins, costs more upfront mana)",
-      "Color": [1.0, 0.8, 0.2],
+      "Color": [
+        1.0,
+        0.8,
+        0.2
+      ],
       "Shape": "Cube",
       "DefaultValue": 0,
       "Unique": true
@@ -55,28 +71,45 @@
     "entity": {
       "Label": "Entity Output",
       "Description": "Variable to store the entity that entered the domain",
-      "Color": [1.0, 0.6, 0.1],
+      "Color": [
+        1.0,
+        0.6,
+        0.1
+      ],
       "Shape": "Cube",
       "DefaultValue": 1
     },
     "domain": {
       "Label": "Domain Output",
       "Description": "Variable to store the domain zone entity (can be moved with Force)",
-      "Color": [1.0, 0.6, 0.1],
+      "Color": [
+        1.0,
+        0.6,
+        0.1
+      ],
       "Shape": "Cube",
       "DefaultValue": 2
     },
     "immediate": {
       "Label": "Immediate",
       "Description": "Fires immediately after the domain is spawned",
-      "Color": [0.4, 1.0, 0.4],
+      "Color": [
+        0.4,
+        1.0,
+        0.4
+      ],
       "Shape": "Sphere"
     },
     "Next": {
       "Label": "Next",
       "Description": "Fires per entity entering the domain (excluding caster)",
-      "Color": [0.4, 1.0, 0.4],
+      "Color": [
+        0.4,
+        1.0,
+        0.4
+      ],
       "Shape": "Sphere"
     }
-  }
+  },
+  "VolatilityCost": 30
 }

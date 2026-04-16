@@ -1,5 +1,8 @@
 package com.riprod.hexcode.builtin.glyphs.effect.glaciate;
 
+import java.util.List;
+import java.util.UUID;
+
 import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
@@ -9,13 +12,13 @@ import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
+import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel;
 import com.hypixel.hytale.server.core.modules.entity.component.PropComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
-import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
 import com.hypixel.hytale.server.core.modules.entity.hitboxcollision.HitboxCollision;
 import com.hypixel.hytale.server.core.modules.entity.hitboxcollision.HitboxCollisionConfig;
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
@@ -24,6 +27,8 @@ import com.hypixel.hytale.server.core.modules.projectile.ProjectileModule;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.builtin.glyphs.effect.glaciate.component.GlaciateComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.glaciate.style.GlaciateStyle;
+import com.riprod.hexcode.core.common.construct.HexConstructSpawner;
+import com.riprod.hexcode.core.common.construct.component.HexConstruct;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
@@ -31,16 +36,9 @@ import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.glyphs.variables.NumberVar;
 import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.state.execution.Executor;
-import com.riprod.hexcode.core.common.trigger.component.TriggerComponent;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.HexSignal;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.utils.SpellVarUtil;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 public class GlaciateGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -118,21 +116,28 @@ public class GlaciateGlyph implements GlyphHandler {
             float duration,
             ModelAsset modelAsset, HitboxCollisionConfig collisionConfig) {
         Model model = Model.createScaledModel(modelAsset, ICE_SCALE);
-        Vector3f rotation = new Vector3f();
 
-        Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
-        holder.addComponent(TransformComponent.getComponentType(),
-                new TransformComponent(new Vector3d(spawnPos), rotation));
+        List<String> allNext = glyph.getNextLinks();
+        List<String> firstBranchIds = !allNext.isEmpty() ? List.of(allNext.get(0)) : null;
+        List<String> entryNext = allNext.size() > 1
+                ? List.copyOf(allNext.subList(1, allNext.size()))
+                : List.of();
+
+        Holder<EntityStore> holder = HexConstructSpawner.create(
+                hexContext.getAccessor(), hexContext, glyph,
+                "glaciate", duration, 0,
+                firstBranchIds, entryNext, null,
+                new Vector3d(spawnPos));
+
+        Vector3f rotation = new Vector3f();
+        holder.getComponent(TransformComponent.getComponentType())
+                .setRotation(rotation);
         holder.addComponent(HeadRotation.getComponentType(), new HeadRotation(rotation));
-        UUID iceUuid = UUID.randomUUID();
-        holder.addComponent(UUIDComponent.getComponentType(), new UUIDComponent(iceUuid));
         holder.addComponent(ModelComponent.getComponentType(), new ModelComponent(model));
         holder.addComponent(PersistentModel.getComponentType(),
                 new PersistentModel(model.toReference()));
         holder.addComponent(BoundingBox.getComponentType(),
                 new BoundingBox(model.getBoundingBox()));
-        holder.addComponent(NetworkId.getComponentType(),
-                new NetworkId(hexContext.getAccessor().getExternalData().takeNextNetworkId()));
         holder.ensureComponent(PropComponent.getComponentType());
         holder.ensureComponent(ProjectileModule.get().getProjectileComponentType());
         holder.ensureComponent(EffectControllerComponent.getComponentType());
@@ -143,26 +148,16 @@ public class GlaciateGlyph implements GlyphHandler {
                     new HitboxCollision(collisionConfig));
         }
 
-        List<String> allNext = glyph.getNextLinks();
-        List<String> firstBranch = !allNext.isEmpty() ? List.of(allNext.get(0)) : null;
-        List<String> entryNext = allNext.size() > 1
-                ? List.copyOf(allNext.subList(1, allNext.size()))
-                : List.of();
-
-        holder.addComponent(HexSignal.getComponentType(),
-                new HexSignal(hexContext.copy(), hexContext.getRoot().getRootEntityRef(),
-                        glyph, entryNext));
         holder.addComponent(GlaciateComponent.getComponentType(),
-                new GlaciateComponent(DEFAULT_DAMAGE_RADIUS, DEFAULT_DAMAGE_MULTIPLIER,
-                        firstBranch));
-        holder.addComponent(TriggerComponent.getComponentType(),
-                new TriggerComponent("glaciate", duration, null));
+                new GlaciateComponent(DEFAULT_DAMAGE_RADIUS, DEFAULT_DAMAGE_MULTIPLIER, null));
 
         GlaciatePhysicsConfig.INSTANCE.apply(holder, hexContext.getCasterRef(),
                 Vector3d.ZERO, hexContext.getAccessor(), false);
 
         Ref<EntityStore> iceRef = hexContext.getAccessor().addEntity(holder, AddReason.SPAWN);
 
+        UUIDComponent iceUuidComp = holder.getComponent(UUIDComponent.getComponentType());
+        UUID iceUuid = iceUuidComp != null ? iceUuidComp.getUuid() : UUID.randomUUID();
         glyph.writeSlot("result", new EntityVar(iceUuid, iceRef), hexContext);
 
         RootGlyph execComp = hexContext.getAccessor().getComponent(

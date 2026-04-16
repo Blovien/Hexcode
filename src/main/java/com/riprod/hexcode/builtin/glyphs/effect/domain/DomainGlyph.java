@@ -1,10 +1,10 @@
 package com.riprod.hexcode.builtin.glyphs.effect.domain;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
 import com.hypixel.hytale.component.AddReason;
-import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
@@ -15,22 +15,19 @@ import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
 import com.hypixel.hytale.server.core.modules.debug.DebugUtils;
 import com.hypixel.hytale.server.core.modules.entity.component.PropComponent;
-import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
-import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.modules.projectile.ProjectileModule;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.builtin.glyphs.effect.domain.component.DomainZoneComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.domain.style.DomainStyle;
+import com.riprod.hexcode.core.common.construct.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.component.Slot;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
-import com.riprod.hexcode.core.common.trigger.component.TriggerComponent;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.HexSignal;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
@@ -48,9 +45,7 @@ public class DomainGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
         Ref<EntityStore> casterRef = hexContext.getCasterRef();
-
         if (casterRef == null || !casterRef.isValid()) {
             Executor.fail(hexContext);
             return;
@@ -63,7 +58,7 @@ public class DomainGlyph implements GlyphHandler {
             return;
         }
 
-        Vector3d anchorPos = SpellVarUtil.resolvePosition(targetVar, accessor);
+        Vector3d anchorPos = SpellVarUtil.resolvePosition(targetVar, hexContext.getAccessor());
         if (anchorPos == null) {
             LOGGER.atInfo().log("domain: invalid target position");
             Executor.fail(hexContext);
@@ -81,30 +76,36 @@ public class DomainGlyph implements GlyphHandler {
                 glyph.readSlot("power", hexContext), DEFAULT_POWER).floatValue();
         power = Math.max(0.1f, power);
 
-        // upfront mana cost scales with power
         float upfrontCost = BASE_MANA_COST * (1 + (power - 1) * 0.5f);
-        if (!hexContext.getRoot().tryConsumeMana(upfrontCost, accessor)) {
+        if (!hexContext.getRoot().tryConsumeMana(upfrontCost, hexContext.getAccessor())) {
             LOGGER.atInfo().log("domain: insufficient mana for upfront cost %.1f", upfrontCost);
             Executor.fail(hexContext);
             return;
         }
 
-        // passive drain scales with radius
         float baseDrainPerSecond = BASE_MANA_COST * ((float) radius / 5.0f) * 0.1f;
 
-        List<String> zoneNext = glyph.getNextLinks();
+        List<String> conditionalBranchIds = glyph.getNextLinks();
         Slot immediateSlot = glyph.getSlot("immediate");
         String[] immediateLinks = immediateSlot != null ? immediateSlot.getLinks() : null;
+        List<String> immediateBranchIds = (immediateLinks != null && immediateLinks.length > 0)
+                ? Arrays.asList(immediateLinks) : null;
 
-        UUID zoneUuid = UUID.randomUUID();
-        UUIDComponent casterUuidComp = accessor.getComponent(casterRef, UUIDComponent.getComponentType());
+        UUIDComponent casterUuidComp = hexContext.getAccessor().getComponent(
+                casterRef, UUIDComponent.getComponentType());
         UUID casterUuid = casterUuidComp != null ? casterUuidComp.getUuid() : UUID.randomUUID();
+
+        EntityVar zoneEntityVar = new EntityVar(UUID.randomUUID(), null);
+        glyph.writeSlot("domain", zoneEntityVar, hexContext);
+
+        Holder<EntityStore> holder = HexConstructSpawner.create(
+                hexContext.getAccessor(), hexContext, glyph,
+                "domain", durationSeconds, baseDrainPerSecond,
+                immediateBranchIds, conditionalBranchIds, null,
+                new Vector3d(anchorPos));
 
         DomainZoneComponent zoneComp = new DomainZoneComponent(
                 (float) radius, baseDrainPerSecond, BASE_TRIGGER_COST, power, casterUuid, casterRef);
-
-        TriggerComponent triggerComp = new TriggerComponent("domain", durationSeconds,
-                (immediateLinks != null && immediateLinks.length > 0) ? immediateLinks : null);
 
         Vector3f debugColor = DomainStyle.resolveColor(hexContext.getColors());
         Vector3d debugScale = new Vector3d(radius * 2, radius * 2, radius * 2);
@@ -113,39 +114,27 @@ public class DomainGlyph implements GlyphHandler {
         debugComp.setIntervalMultiplier(0.01f);
         debugComp.setFlags(DebugUtils.FLAG_NO_WIREFRAME);
 
-        Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
-        holder.addComponent(TransformComponent.getComponentType(),
-                new TransformComponent(new Vector3d(anchorPos), new Vector3f()));
-        holder.addComponent(UUIDComponent.getComponentType(), new UUIDComponent(zoneUuid));
         holder.ensureComponent(PropComponent.getComponentType());
         holder.ensureComponent(ProjectileModule.get().getProjectileComponentType());
         holder.ensureComponent(EffectControllerComponent.getComponentType());
-        holder.addComponent(NetworkId.getComponentType(),
-                new NetworkId(accessor.getExternalData().takeNextNetworkId()));
         holder.addComponent(DebugComponent.getComponentType(), debugComp);
         holder.addComponent(DomainZoneComponent.getComponentType(), zoneComp);
-        holder.addComponent(TriggerComponent.getComponentType(), triggerComp);
 
-        Ref<EntityStore> zoneRef = accessor.addEntity(holder, AddReason.SPAWN);
+        Ref<EntityStore> zoneRef = hexContext.getAccessor().addEntity(holder, AddReason.SPAWN);
         zoneComp.setZoneRef(zoneRef);
 
-        DomainStyle.renderSpawn(anchorPos, (float) radius, hexContext.getColors(), accessor);
+        UUIDComponent zoneUuidComp = holder.getComponent(UUIDComponent.getComponentType());
+        if (zoneUuidComp != null) {
+            zoneEntityVar = new EntityVar(zoneUuidComp.getUuid(), zoneRef);
+            glyph.writeSlot("domain", zoneEntityVar, hexContext);
+        }
 
-        // write output variables to hexContext BEFORE building the HexSignal snapshot,
-        // so both the immediate branch (via firstBranchIds) and the Next branch (per
-        // entity enter) observe the resolved zone ref in their context copies.
-        EntityVar zoneEntityVar = new EntityVar(zoneUuid, zoneRef);
-        glyph.writeSlot("domain", zoneEntityVar, hexContext);
+        DomainStyle.renderSpawn(anchorPos, (float) radius, hexContext.getColors(), hexContext.getAccessor());
 
-        HexSignal signal = new HexSignal(
-                hexContext.copy(), hexContext.getRoot().getRootEntityRef(),
-                glyph, zoneNext);
-        accessor.addComponent(zoneRef, HexSignal.getComponentType(), signal);
-
-        RootGlyph execComp = accessor.getComponent(
+        RootGlyph rootGlyph = hexContext.getAccessor().getComponent(
                 hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
-        if (execComp != null) {
-            execComp.addDependent(zoneRef);
+        if (rootGlyph != null) {
+            rootGlyph.addDependent(zoneRef);
         }
     }
 }

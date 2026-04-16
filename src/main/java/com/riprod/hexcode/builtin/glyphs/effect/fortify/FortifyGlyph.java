@@ -74,35 +74,14 @@ public class FortifyGlyph implements GlyphHandler {
     @Override
     public boolean resolveVolatility(Glyph glyph, HexContext hexContext) {
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
-        if (tracker == null)
-            return true;
+        if (tracker == null) return true;
 
         double amount = SpellVarUtil.resolveNumberOrDefault(
                 glyph.readSlot("amount", hexContext), DEFAULT_AMOUNT);
-        HexVar targets = glyph.readSlot("target", hexContext);
+        float amountScale = (float) Math.max(1.0, amount / DEFAULT_AMOUNT);
 
-        float amountFactor = (float) (amount / DEFAULT_AMOUNT);
-        int extraRolls = 0;
-
-        if (targets instanceof BlockVar blockVar) {
-            extraRolls = computeBlockVolatilityRolls(blockVar, amountFactor, hexContext);
-        } else {
-            extraRolls = Math.max(0, (int) (amountFactor - 1));
-        }
-
-        if (!tracker.rollAndIncrement(glyph)) {
-            LOGGER.atInfo().log("fortify: fizzled on primary volatility roll");
-            return false;
-        }
-
-        for (int i = 0; i < extraRolls; i++) {
-            if (!tracker.rollAndIncrement(glyph)) {
-                LOGGER.atInfo().log("fortify: fizzled on extra volatility roll %d/%d", i + 1, extraRolls);
-                return false;
-            }
-        }
-
-        return true;
+        float cost = VolatilityTracker.computeGlyphCost(glyph) * amountScale;
+        return tracker.consumeVolatility(cost);
     }
 
     private int computeBlockVolatilityRolls(BlockVar blockVar, float amountFactor,

@@ -37,6 +37,7 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
     protected String description;
     protected float basePower = 1.0f;
     protected int manaConsumption = 10;
+    protected int volatilityCost = 10;
     protected ArrayList<DrawnShapeComponent> shapes = new ArrayList<>();
     protected LinkedHashMap<String, SlotAsset> slots = new LinkedHashMap<>();
 
@@ -72,6 +73,10 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
 
     public int getManaConsumption() {
         return this.manaConsumption;
+    }
+
+    public int getVolatilityCost() {
+        return this.volatilityCost;
     }
 
     public List<DrawnShapeComponent> getShapes() {
@@ -166,6 +171,10 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
                 .<Integer>appendInherited(new KeyedCodec<>("ManaConsumption", Codec.INTEGER),
                         (a, v) -> a.manaConsumption = v, a -> a.manaConsumption,
                         (a, p) -> a.manaConsumption = p.manaConsumption)
+                .add()
+                .<Integer>appendInherited(new KeyedCodec<>("VolatilityCost", Codec.INTEGER),
+                        (a, v) -> a.volatilityCost = v, a -> a.volatilityCost,
+                        (a, p) -> a.volatilityCost = p.volatilityCost)
                 .add()
                 .<DrawnShapeComponent[]>appendInherited(
                         new KeyedCodec<>("ShapeStructure",

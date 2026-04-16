@@ -1,37 +1,34 @@
 package com.riprod.hexcode.builtin.glyphs.effect.interfere;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
-import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.builtin.glyphs.effect.erode.component.ErodeComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.fortify.component.FortifyComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.interfere.style.InterfereStyle;
-import com.riprod.hexcode.builtin.glyphs.effect.levitate.component.LevitateComponent;
+import com.riprod.hexcode.core.common.construct.component.HexConstruct;
+import com.riprod.hexcode.core.common.effect.HexEffectHandler;
+import com.riprod.hexcode.core.common.effect.HexEffectRegistry;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.HexSignal;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
 public class InterfereGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     public static final String ID = "Glyph_Interfere";
-
-    private static final String FORTIFY_EFFECT_ID = "Hexcode_Fortify";
-    private static final String ERODE_EFFECT_ID = "Hexcode_Erode";
-    private static final String LEVITATE_EFFECT_ID = "Hexcode_Levitate";
-    private static final float HIJACK_COST_MULTIPLIER = 2.0f;
 
     @Override
     public boolean resolveMana(Glyph glyph, HexContext hexContext) {
@@ -63,19 +60,20 @@ public class InterfereGlyph implements GlyphHandler {
         if (entityVar != null) {
             Ref<EntityStore> ref = entityVar.getRef(accessor);
             if (ref == null || !ref.isValid()) {
+                LOGGER.atInfo().log("interfere: invalid target");
                 Executor.fail(hexContext);
                 return;
             }
 
             Vector3d pos = resolvePosition(ref, accessor);
 
-            HexSignal signal = accessor.getComponent(ref, HexSignal.getComponentType());
-            if (signal != null && signal.getPrimary() != null) {
-                hijackSignal(signal, glyph, hexContext);
+            HexConstruct construct = accessor.getComponent(ref, HexConstruct.getComponentType());
+            if (construct != null) {
+                hijackConstruct(construct, glyph, hexContext);
                 if (pos != null) InterfereStyle.renderHijack(pos, hexContext.getColors(), accessor);
-                LOGGER.atInfo().log("interfere: hijacked hex signal");
+                LOGGER.atInfo().log("interfere: hijacked construct");
             } else {
-                int stripped = stripBuffs(ref, accessor);
+                int stripped = stripEffects(ref, accessor);
                 if (stripped > 0 && pos != null) {
                     InterfereStyle.renderStrip(pos, hexContext.getColors(), accessor);
                 }
@@ -90,50 +88,57 @@ public class InterfereGlyph implements GlyphHandler {
                 InterfereStyle.renderBlockStrip(blockCenter, hexContext.getColors(), accessor);
             }
         }
-
-        // interfere does not call continueExecution — children are the injected payload
     }
 
-    private void hijackSignal(HexSignal signal, Glyph glyph, HexContext hexContext) {
-        // replace all entries' glyph chains with the interfere caster's children
-        // hexEntityRef stays pointing to the original caster → they pay mana (sabotage)
-        signal.replaceAll(hexContext.copy(), glyph.getNextLinks());
+    private void hijackConstruct(HexConstruct construct, Glyph glyph, HexContext hexContext) {
+        HexContext targetCtx = construct.getHexContext();
+        Hex hex = targetCtx.gethex();
+
+        List<String> displaced = new ArrayList<>(construct.getConditionalBranchIds());
+
+        List<String> interfereChildren = glyph.getNextLinks();
+        if (interfereChildren == null || interfereChildren.isEmpty()) return;
+
+        Hex sourceHex = hexContext.gethex();
+        for (Glyph g : sourceHex.getGlyphs()) {
+            hex.put(g.getId(), g);
+        }
+
+        construct.setConditionalBranchIds(new ArrayList<>(interfereChildren));
+
+        if (!displaced.isEmpty()) {
+            Glyph outputGlyph = findOutputGlyph(interfereChildren, hexContext);
+            if (outputGlyph != null) {
+                for (String id : displaced) {
+                    outputGlyph.addSlotLink(Glyph.NEXT_SLOT, id);
+                }
+            }
+        }
+
+        // for (Map.Entry<String, HexVar> entry : hexContext.getVariables().entrySet()) {
+        //     targetCtx.setVariable(entry.getKey(), entry.getValue());
+        // }
     }
 
-    private int stripBuffs(Ref<EntityStore> ref, CommandBuffer<EntityStore> accessor) {
+    private Glyph findOutputGlyph(List<String> childIds, HexContext hexContext) {
+        for (String id : childIds) {
+            Glyph g = hexContext.getGlyph(id);
+            if (g != null && "Glyph_Output".equals(g.getGlyphId())) {
+                return g;
+            }
+        }
+        return null;
+    }
+
+    private int stripEffects(Ref<EntityStore> ref, CommandBuffer<EntityStore> accessor) {
         int count = 0;
-
-        if (accessor.getComponent(ref, FortifyComponent.getComponentType()) != null) {
-            removeEntityEffect(ref, FORTIFY_EFFECT_ID, accessor);
-            accessor.removeComponent(ref, FortifyComponent.getComponentType());
-            count++;
+        for (HexEffectHandler handler : HexEffectRegistry.getAll().values()) {
+            if (handler.isPresent(accessor, ref)) {
+                handler.strip(accessor, ref);
+                count++;
+            }
         }
-
-        if (accessor.getComponent(ref, ErodeComponent.getComponentType()) != null) {
-            removeEntityEffect(ref, ERODE_EFFECT_ID, accessor);
-            accessor.removeComponent(ref, ErodeComponent.getComponentType());
-            count++;
-        }
-
-        if (accessor.getComponent(ref, LevitateComponent.getComponentType()) != null) {
-            removeEntityEffect(ref, LEVITATE_EFFECT_ID, accessor);
-            accessor.removeComponent(ref, LevitateComponent.getComponentType());
-            count++;
-        }
-
         return count;
-    }
-
-    private void removeEntityEffect(Ref<EntityStore> ref, String effectId,
-            CommandBuffer<EntityStore> accessor) {
-        EffectControllerComponent controller = accessor.getComponent(
-                ref, EffectControllerComponent.getComponentType());
-        if (controller == null) return;
-
-        int effectIndex = EntityEffect.getAssetMap().getIndex(effectId);
-        if (effectIndex != Integer.MIN_VALUE) {
-            controller.removeEffect(ref, effectIndex, accessor);
-        }
     }
 
     private Vector3d resolvePosition(Ref<EntityStore> ref, CommandBuffer<EntityStore> accessor) {

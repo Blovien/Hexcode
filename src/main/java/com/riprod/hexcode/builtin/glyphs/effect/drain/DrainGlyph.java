@@ -167,11 +167,6 @@ public class DrainGlyph implements GlyphHandler {
     }
 
     @Override
-    public boolean canReadValue() {
-        return true;
-    }
-
-    @Override
     public HexVar readValue(Glyph glyph, HexContext hexContext) {
         HexVar targetVar = glyph.readSlot("target", hexContext);
         if (!(targetVar instanceof EntityVar entityVar)) return new NumberVar(0);

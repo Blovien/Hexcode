@@ -107,6 +107,7 @@ public class CastingSystem extends HexcodeManager {
         HexComponent rootGlyph = castingComp.getLastHoveredHex();
 
         if (rootGlyph != null && staff != null) {
+            execComp.resetCastState();
             execComp.setActiveHex(rootGlyph.getHex());
             CasterInventory.saveHexStaffComponent(buffer, ref, staff);
             comp.requestStateChange(HexState.EXECUTION);

@@ -1,9 +1,7 @@
 package com.riprod.hexcode.builtin.glyphs.effect.shatter;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.Holder;
@@ -13,28 +11,26 @@ import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
-import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel;
 import com.hypixel.hytale.server.core.modules.entity.component.PropComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
-import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
 import com.hypixel.hytale.server.core.modules.projectile.ProjectileModule;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.builtin.glyphs.effect.projectile.ProjectilePhysicsConfig;
 import com.riprod.hexcode.builtin.glyphs.effect.shatter.component.ShatterComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.shatter.style.ShatterStyle;
+import com.riprod.hexcode.core.common.construct.HexConstructSpawner;
+import com.riprod.hexcode.core.common.construct.component.HexConstruct;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
-import com.riprod.hexcode.core.common.trigger.component.TriggerComponent;
 import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.HexSignal;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 import com.riprod.hexcode.utils.SpellVarUtil;
@@ -183,18 +179,23 @@ public class ShatterGlyph implements GlyphHandler {
         rotation.setYaw((float) Math.atan2(-direction.x, direction.z));
         rotation.setPitch((float) Math.asin(-direction.y));
 
-        Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
-        holder.addComponent(TransformComponent.getComponentType(),
-                new TransformComponent(new Vector3d(position), rotation));
+        Holder<EntityStore> holder = HexConstructSpawner.create(
+                hexContext.getAccessor(), hexContext, glyph,
+                "shatter", -1, 0f,
+                null, nextGlyphs, null,
+                new Vector3d(position));
+
+        TransformComponent tc = holder.getComponent(TransformComponent.getComponentType());
+        if (tc != null) {
+            tc.setRotation(rotation);
+        }
+
         holder.addComponent(HeadRotation.getComponentType(), new HeadRotation(rotation));
-        holder.ensureComponent(UUIDComponent.getComponentType());
         holder.addComponent(ModelComponent.getComponentType(), new ModelComponent(model));
         holder.addComponent(PersistentModel.getComponentType(),
                 new PersistentModel(model.toReference()));
         holder.addComponent(BoundingBox.getComponentType(),
                 new BoundingBox(model.getBoundingBox()));
-        holder.addComponent(NetworkId.getComponentType(),
-                new NetworkId(hexContext.getAccessor().getExternalData().takeNextNetworkId()));
         holder.ensureComponent(PropComponent.getComponentType());
         holder.ensureComponent(ProjectileModule.get().getProjectileComponentType());
         holder.addComponent(Velocity.getComponentType(), new Velocity());
@@ -203,13 +204,8 @@ public class ShatterGlyph implements GlyphHandler {
         new ProjectilePhysicsConfig(gravity, 0).apply(holder, hexContext.getCasterRef(),
                 launchVelocity, hexContext.getAccessor(), false);
 
-        holder.addComponent(HexSignal.getComponentType(),
-                new HexSignal(hexContext.copy(), hexContext.getRoot().getRootEntityRef(),
-                        glyph, nextGlyphs));
         holder.addComponent(ShatterComponent.getComponentType(),
                 new ShatterComponent(hexContext.getCasterRef(), MAX_DISTANCE, new Vector3d(position)));
-        holder.addComponent(TriggerComponent.getComponentType(),
-                new TriggerComponent("shatter", -1, null));
 
         Ref<EntityStore> shardRef = hexContext.getAccessor().addEntity(holder, AddReason.SPAWN);
 

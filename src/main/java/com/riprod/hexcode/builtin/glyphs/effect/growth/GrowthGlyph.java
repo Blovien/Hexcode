@@ -83,19 +83,6 @@ public class GrowthGlyph implements GlyphHandler {
     }
 
     @Override
-    public boolean resolveVolatility(Glyph glyph, HexContext hexContext) {
-        VolatilityTracker tracker = hexContext.getVolatilityTracker();
-        if (tracker == null) return true;
-
-        if (!tracker.rollAndIncrement(glyph)) {
-            LOGGER.atInfo().log("growth: fizzled on primary volatility roll");
-            return false;
-        }
-
-        return true;
-    }
-
-    @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targets = glyph.readSlot("target", hexContext);
         if (targets == null) {

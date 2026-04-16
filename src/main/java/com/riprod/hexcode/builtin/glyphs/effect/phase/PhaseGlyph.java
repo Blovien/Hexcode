@@ -12,20 +12,17 @@ import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockGathering;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
-import com.hypixel.hytale.server.core.entity.UUIDComponent;
-import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.common.construct.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
-import com.riprod.hexcode.core.common.trigger.component.TriggerComponent;
 import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.HexSignal;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 import com.riprod.hexcode.utils.SpellVarUtil;
@@ -72,31 +69,13 @@ public class PhaseGlyph implements GlyphHandler {
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
         if (tracker == null) return true;
 
-        HexVar targets = glyph.readSlot("target", hexContext);
         double intensity = clamp(SpellVarUtil.resolveNumberOrDefault(
                 glyph.readSlot("intensity", hexContext), DEFAULT_INTENSITY),
                 MIN_INTENSITY, MAX_INTENSITY);
+        float intensityScale = (float) Math.max(1.0, intensity / DEFAULT_INTENSITY);
 
-        int extraRolls = 0;
-        if (targets instanceof BlockVar blockVar) {
-            extraRolls = computeBlockVolatilityRolls(blockVar, intensity, hexContext);
-        } else {
-            extraRolls = Math.max(0, (int) (intensity / DEFAULT_INTENSITY) - 1);
-        }
-
-        if (!tracker.rollAndIncrement(glyph)) {
-            LOGGER.atInfo().log("phase: fizzled on primary volatility roll");
-            return false;
-        }
-
-        for (int i = 0; i < extraRolls; i++) {
-            if (!tracker.rollAndIncrement(glyph)) {
-                LOGGER.atInfo().log("phase: fizzled on extra volatility roll %d/%d", i + 1, extraRolls);
-                return false;
-            }
-        }
-
-        return true;
+        float cost = VolatilityTracker.computeGlyphCost(glyph) * intensityScale;
+        return tracker.consumeVolatility(cost);
     }
 
     private int computeBlockVolatilityRolls(BlockVar blockVar, double intensity,
@@ -184,7 +163,24 @@ public class PhaseGlyph implements GlyphHandler {
 
         glyph.writeSlot("phased", new BlockVar(pos), hexContext);
 
-        spawnPhaseEntity(glyph, hexContext, phasedBlocks, (float) duration, accessor);
+        List<String> nextLinks = glyph.getNextLinks();
+
+        Holder<EntityStore> holder = HexConstructSpawner.create(
+                accessor, hexContext, glyph,
+                "phase", (float) duration, 0f,
+                null, null, nextLinks,
+                blockCenter);
+
+        holder.addComponent(PhaseComponent.getComponentType(),
+                new PhaseComponent(phasedBlocks));
+
+        Ref<EntityStore> phaseRef = accessor.addEntity(holder, AddReason.SPAWN);
+
+        RootGlyph execComp = accessor.getComponent(
+                hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
+        if (execComp != null) {
+            execComp.addDependent(phaseRef);
+        }
 
         LOGGER.atInfo().log("phase: phased block for %.1f seconds", duration);
     }
@@ -209,30 +205,6 @@ public class PhaseGlyph implements GlyphHandler {
         var breaking = gathering.getBreaking();
         if (breaking == null) return 0;
         return breaking.getQuality();
-    }
-
-    private void spawnPhaseEntity(Glyph glyph, HexContext hexContext,
-            List<PhasedBlock> phasedBlocks, float durationSeconds,
-            CommandBuffer<EntityStore> accessor) {
-        Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
-        holder.ensureComponent(UUIDComponent.getComponentType());
-        holder.addComponent(NetworkId.getComponentType(),
-                new NetworkId(accessor.getExternalData().takeNextNetworkId()));
-        holder.addComponent(HexSignal.getComponentType(),
-                new HexSignal(hexContext.copy(), hexContext.getRoot().getRootEntityRef(),
-                        glyph, glyph.getNextLinks()));
-        holder.addComponent(PhaseComponent.getComponentType(),
-                new PhaseComponent(phasedBlocks));
-        holder.addComponent(TriggerComponent.getComponentType(),
-                new TriggerComponent("phase", durationSeconds, null));
-
-        Ref<EntityStore> phaseRef = accessor.addEntity(holder, AddReason.SPAWN);
-
-        RootGlyph execComp = accessor.getComponent(
-                hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
-        if (execComp != null) {
-            execComp.addDependent(phaseRef);
-        }
     }
 
     private static double clamp(double value, double min, double max) {

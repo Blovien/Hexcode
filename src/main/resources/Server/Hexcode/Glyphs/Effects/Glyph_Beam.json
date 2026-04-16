@@ -73,5 +73,6 @@
       ],
       "Shape": "Sphere"
     }
-  }
+  },
+  "VolatilityCost": 15
 }

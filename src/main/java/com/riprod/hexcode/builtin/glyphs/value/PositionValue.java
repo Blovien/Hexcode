@@ -36,11 +36,6 @@ public class PositionValue implements GlyphHandler {
     }
 
     @Override
-    public boolean canReadValue() {
-        return true;
-    }
-
-    @Override
     public HexVar readValue(Glyph glyph, HexContext hexContext) {
         return compute(glyph, hexContext);
     }

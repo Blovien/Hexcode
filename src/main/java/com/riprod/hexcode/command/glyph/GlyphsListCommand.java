@@ -28,7 +28,7 @@ public class GlyphsListCommand extends AbstractPlayerCommand {
         context.sendMessage(Message.raw("Total Glyphs: " + GlyphAsset.getAssetMap().getAssetMap().size()));
         for (GlyphAsset glyphAsset : GlyphAsset.getAssetMap().getAssetMap().values()) {
             GlyphHandler handler = GlyphRegistry.get(glyphAsset.getId());
-            if (handler != null && handler.canReadValue()) {
+            if (handler != null) {
                 continue;
             }
             context.sendMessage(Message.raw("- " + glyphAsset.getId()));

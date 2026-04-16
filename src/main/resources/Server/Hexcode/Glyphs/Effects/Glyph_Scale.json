@@ -37,7 +37,7 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 2.1,
+      "DefaultValue": 2.0,
       "Unique": true
     },
     "duration": {
@@ -62,5 +62,6 @@
       ],
       "Shape": "Sphere"
     }
-  }
+  },
+  "VolatilityCost": 5
 }

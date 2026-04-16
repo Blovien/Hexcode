@@ -1,8 +1,6 @@
 package com.riprod.hexcode.builtin.glyphs.effect.delay;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 import com.hypixel.hytale.builtin.mounts.MountedComponent;
 import com.hypixel.hytale.component.AddReason;
@@ -15,21 +13,18 @@ import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.MountController;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
-import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
-import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.builtin.glyphs.effect.delay.style.DelayStyle;
+import com.riprod.hexcode.core.common.construct.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
-import com.riprod.hexcode.core.common.trigger.component.TriggerComponent;
 import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.HexSignal;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
@@ -37,7 +32,6 @@ public class DelayGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     public static final String ID = "Glyph_Delay";
-    public static final String TRIGGER_HANDLER_ID = "delay";
     private static final String MODEL_ID = "Glyph_Delay";
 
     private static final Vector3f MOUNT_OFFSET = new Vector3f(0f, 2.0f, 0f);
@@ -51,18 +45,15 @@ public class DelayGlyph implements GlyphHandler {
             return;
         }
 
-        String[] nextLinks = glyph.getSlot(Glyph.NEXT_SLOT) != null
-                ? glyph.getSlot(Glyph.NEXT_SLOT).getLinks()
-                : new String[0];
-        if (nextLinks.length == 0) {
+        List<String> nextLinks = glyph.getNextLinks();
+        if (nextLinks.isEmpty()) {
             return;
         }
 
         HexVar var = hexContext.getVariable("1");
 
-
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
-        
+
         Vector3d spawnPos = SpellVarUtil.resolvePosition(var, hexContext.getAccessor());
 
         if (spawnPos == null) {
@@ -76,31 +67,11 @@ public class DelayGlyph implements GlyphHandler {
 
         DelayStyle.render(hexContext);
 
-        List<String> nextBranches = Arrays.asList(nextLinks);
-        HexSignal signal = new HexSignal(
-                hexContext.copy(),
-                hexContext.getRoot().getRootEntityRef(),
-                glyph,
-                nextBranches);
-
-        TriggerComponent triggerComp = new TriggerComponent(TRIGGER_HANDLER_ID, seconds, null);
-
-        Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
-        holder.addComponent(TransformComponent.getComponentType(),
-                new TransformComponent(spawnPos, new Vector3f()));
-        holder.addComponent(UUIDComponent.getComponentType(), new UUIDComponent(UUID.randomUUID()));
-        holder.addComponent(NetworkId.getComponentType(),
-                new NetworkId(accessor.getExternalData().takeNextNetworkId()));
-        holder.addComponent(TriggerComponent.getComponentType(), triggerComp);
-        holder.addComponent(HexSignal.getComponentType(), signal);
-
-        if (var instanceof EntityVar entityVar) {
-            Ref<EntityStore> entityRef = entityVar.getRef(accessor);
-            if (entityRef != null && entityRef.isValid()) {
-                holder.addComponent(MountedComponent.getComponentType(),
-                        new MountedComponent(entityRef, MOUNT_OFFSET, MountController.Minecart));
-            }
-        }
+        Holder<EntityStore> holder = HexConstructSpawner.create(
+                accessor, hexContext, glyph,
+                null, seconds, 0f,
+                null, null, nextLinks,
+                spawnPos);
 
         ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(MODEL_ID);
         if (modelAsset != null) {

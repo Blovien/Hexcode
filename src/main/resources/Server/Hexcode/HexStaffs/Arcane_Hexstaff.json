@@ -2,7 +2,6 @@
   "Parent": "Base_Staff",
   "ItemId": "Arcane_Hexstaff",
   "CastStyleId": "ring",
-  "StaffModifier": 0.65,
   "CastingAuraParticles": [
     {
       "SystemId": "Alternative_Rune_System",
@@ -30,5 +29,7 @@
   "Colors": {
     "PrimaryColor": "#0D47A1",
     "SecondaryColor": "#42A5F5"
-  }
+  },
+  "CastDecayRate": 0.04,
+  "VolatilityBonus": 80
 }

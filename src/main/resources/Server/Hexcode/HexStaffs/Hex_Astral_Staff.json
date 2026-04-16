@@ -2,7 +2,6 @@
   "Parent": "Base_Staff",
   "ItemId": "Hex_Astral_Staff",
   "CastStyleId": "sphere",
-  "StaffModifier": 0.85,
   "CastingAuraParticles": [
     {
       "SystemId": "Alternative_Rune_System",
@@ -24,5 +23,7 @@
   "Colors": {
     "PrimaryColor": "#7B1FA2",
     "SecondaryColor": "#CE93D8"
-  }
+  },
+  "CastDecayRate": 0.03,
+  "VolatilityBonus": 120
 }

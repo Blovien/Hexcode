@@ -19,8 +19,13 @@
     "Next": {
       "Label": "Next",
       "Description": "Children sustained while concentrating",
-      "Color": [0.4, 1.0, 0.4],
+      "Color": [
+        0.4,
+        1.0,
+        0.4
+      ],
       "Shape": "Sphere"
     }
-  }
+  },
+  "VolatilityCost": 5
 }

@@ -6,11 +6,14 @@ import java.util.Map;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.Message;
+import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
+import com.hypixel.hytale.server.core.modules.entitystats.EntityStatValue;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.common.stats.HexcodeEntityStatTypes;
 import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 
@@ -18,16 +21,9 @@ public class DebugGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     @Override
-    public boolean canReadValue() {
-        return true;
-    }
-
-    @Override
     public HexVar readValue(Glyph glyph, HexContext hexContext) {
         dump(glyph, hexContext);
-        // when used as a value glyph, pass through the first wired slot input.
-        // Multi-link slot inputs are still dumped via readSlotAll inside dump()
-        // but only the first is propagated to the parent reader.
+
         return glyph.readSlot("slot", hexContext);
     }
 
@@ -39,24 +35,24 @@ public class DebugGlyph implements GlyphHandler {
 
     private void dump(Glyph glyph, HexContext hexContext) {
         Ref<EntityStore> casterRef = hexContext.getCasterRef();
-        if (casterRef == null || !casterRef.isValid()) return;
-        if (hexContext.getAccessor() == null) return;
+        if (casterRef == null || !casterRef.isValid())
+            return;
+        if (hexContext.getAccessor() == null)
+            return;
         PlayerRef pr = hexContext.getAccessor().getComponent(casterRef, PlayerRef.getComponentType());
-        if (pr == null) return;
+        if (pr == null)
+            return;
 
         StringBuilder sb = new StringBuilder();
-        sb.append("=== Hex Debug ===\n");
 
         float mana = hexContext.getRoot().getCurrentMana(hexContext.getAccessor());
+        float maxVol = hexContext.getVolatilityTracker().getStartingBudget();
+        float curVol = hexContext.getVolatilityTracker().getRemainingBudget();
         sb.append(String.format("Mana: %.1f\n", mana));
-
-        sb.append("This: ").append(glyph.getGlyphId())
-                .append(" (").append(shortId(glyph.getId())).append(")\n");
+        sb.append(String.format("Volatility: %.1f / %.1f\n", curVol, maxVol));
 
         var nextLinks = glyph.getNextLinks();
-        if (nextLinks.isEmpty()) {
-            sb.append("Next: [end]\n");
-        } else {
+        if (!nextLinks.isEmpty()) {
             sb.append("Next:\n");
             for (String nextId : nextLinks) {
                 Glyph next = hexContext.getGlyph(nextId);
@@ -90,7 +86,8 @@ public class DebugGlyph implements GlyphHandler {
             sb.append("Vars:\n");
             for (Map.Entry<String, HexVar> entry : vars.entrySet()) {
                 HexVar v = entry.getValue();
-                if (v == null) continue;
+                if (v == null)
+                    continue;
                 sb.append("  ")
                         .append(entry.getKey())
                         .append(": ")
@@ -105,7 +102,8 @@ public class DebugGlyph implements GlyphHandler {
     }
 
     private static String shortId(String id) {
-        if (id == null || id.length() < 8) return id == null ? "?" : id;
+        if (id == null || id.length() < 8)
+            return id == null ? "?" : id;
         return id.substring(0, 8);
     }
 }

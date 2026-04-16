@@ -10,4 +10,5 @@ public interface HexRoot {
     Ref<EntityStore> getRootEntityRef();
     boolean tryConsumeMana(float cost, ComponentAccessor<EntityStore> accessor);
     float getCurrentMana(ComponentAccessor<EntityStore> accessor);
+    boolean addMana(float amount, ComponentAccessor<EntityStore> accessor);
 }

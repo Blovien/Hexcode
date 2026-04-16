@@ -1,44 +1,7 @@
 {
-  "InitialValue": 450,
+  "InitialValue": 0,
   "Min": 0,
-  "Max": 1,
+  "Max": 0,
   "Shared": true,
-  "ResetType": "MaxValue",
-  "Regenerating": [
-    {
-      "$Comment": "Mana regeneration for players - very slow, forces drain usage in combat",
-      "Interval": 2,
-      "Amount": 0.01,
-      "RegenType": "Percentage",
-      "Conditions": [
-        {
-          "Id": "Alive",
-          "Inverse": false
-        },
-        {
-          "Id": "IsPlayer"
-        },
-        {
-          "Id": "NoDamageTaken",
-          "Delay": 15,
-          "Inverse": false
-        }
-      ]
-    },
-    {
-      "$Comment": "Fast mana regen in creative mode",
-      "Interval": 0.2,
-      "Amount": 50,
-      "RegenType": "Additive",
-      "Conditions": [
-        {
-          "Id": "Alive"
-        },
-        {
-          "Id": "CheckPlayerGameMode",
-          "GameMode": "Creative"
-        }
-      ]
-    }
-  ]
+  "ResetType": "MaxValue"
 }

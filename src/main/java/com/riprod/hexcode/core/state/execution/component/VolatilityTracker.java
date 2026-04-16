@@ -1,93 +1,70 @@
 package com.riprod.hexcode.core.state.execution.component;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
-import com.hypixel.hytale.codec.codecs.map.MapCodec;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
+import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 
 public class VolatilityTracker {
-    private Map<String, Integer> glyphTypeCounts = new HashMap<>();
-    private Integer castCount;
-    private Float staffModifier;
-    private Float powerModifier;
-    private Float volatilityMultiplier;
-    private Float manaCostMultiplier;
-    private Float lastChance;
-    private Float lastRoll;
+    private float startingBudget;
+    private float remainingBudget;
+    private float volatilityMultiplier;
+    private float manaCostMultiplier;
     private volatile boolean fizzled;
     private volatile boolean failed;
 
-    public VolatilityTracker(int castCount, float staffModifier,
-            float powerModifier, float volatilityMultiplier, float manaCostMultiplier) {
-        this.castCount = castCount;
-        this.staffModifier = staffModifier;
-        this.powerModifier = powerModifier;
+    public VolatilityTracker(float startingBudget, float volatilityMultiplier, float manaCostMultiplier) {
+        this.startingBudget = startingBudget;
+        this.remainingBudget = startingBudget;
         this.volatilityMultiplier = volatilityMultiplier;
         this.manaCostMultiplier = manaCostMultiplier;
     }
 
     public VolatilityTracker() {
-        this.castCount = 0;
-        this.staffModifier = 1.0f;
-        this.powerModifier = 0f;
+        this.startingBudget = 0f;
+        this.remainingBudget = 0f;
         this.volatilityMultiplier = 1.0f;
         this.manaCostMultiplier = 1.0f;
     }
 
-    public float computeSuccessChance(Glyph glyph) {
-        float v = glyph.getVolatility();
-        float g = 1.0f / (1 + glyphTypeCounts.getOrDefault(glyph.getGlyphId(), 0));
-        float x = 1.0f;
-        float c = castCount;
-        float s = staffModifier;
-        float m = powerModifier;
-
-        float chance = (v * g) * (x + (c * (0.3f / s) * 0.25f)) + m;
-        return Math.max(0f, Math.min(1.5f, chance * volatilityMultiplier));
+    public static float computeGlyphCost(Glyph glyph) {
+        GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
+        if (asset == null) return 0;
+        float baseCost = asset.getVolatilityCost();
+        // perfect draw (1.0) = 0.5x cost, worst draw (0.0) = 1.0x cost
+        float qualityFactor = (1 - glyph.getVolatility()) * 0.5f + 0.5f;
+        return baseCost * qualityFactor;
     }
 
-    public boolean rollAndIncrement(Glyph glyph) {
-        lastChance = computeSuccessChance(glyph);
-        lastRoll = ThreadLocalRandom.current().nextFloat();
-        incrementGlyphType(glyph.getGlyphId());
-        return lastRoll < lastChance;
+    public boolean consumeVolatility(float cost) {
+        if (fizzled) return false;
+        float finalCost = cost * volatilityMultiplier;
+        if (finalCost <= 0) return true;
+        float drain = finalCost <= 1f
+                ? finalCost
+                : 1f + ThreadLocalRandom.current().nextFloat() * (finalCost - 1f);
+        remainingBudget -= drain;
+        if (remainingBudget <= 0) {
+            remainingBudget = 0;
+            fizzled = true;
+            return false;
+        }
+        return true;
     }
 
-    public float getLastChance() {
-        return lastChance;
+    public float getStartingBudget() {
+        return startingBudget;
     }
 
-    public float getLastRoll() {
-        return lastRoll;
-    }
-
-    public void incrementGlyphType(String glyphId) {
-        glyphTypeCounts.merge(glyphId, 1, Integer::sum);
-    }
-
-    public int getGlyphTypeCount(String glyphId) {
-        return glyphTypeCounts.getOrDefault(glyphId, 0);
+    public float getRemainingBudget() {
+        return remainingBudget;
     }
 
     public float getManaCostMultiplier() {
         return manaCostMultiplier;
-    }
-
-    public int getCastCount() {
-        return castCount;
-    }
-
-    public float getStaffModifier() {
-        return staffModifier;
-    }
-
-    public float getPowerModifier() {
-        return powerModifier;
     }
 
     public float getVolatilityMultiplier() {
@@ -116,17 +93,13 @@ public class VolatilityTracker {
 
     public static final BuilderCodec<VolatilityTracker> CODEC = BuilderCodec
             .builder(VolatilityTracker.class, VolatilityTracker::new)
-            .append(new KeyedCodec<>("CastCount", Codec.INTEGER),
-                    (c, v) -> c.castCount = v,
-                    (c) -> c.castCount)
+            .append(new KeyedCodec<>("StartingBudget", Codec.FLOAT),
+                    (c, v) -> c.startingBudget = v,
+                    (c) -> c.startingBudget)
             .add()
-            .append(new KeyedCodec<>("StaffModifier", Codec.FLOAT),
-                    (c, v) -> c.staffModifier = v,
-                    (c) -> c.staffModifier)
-            .add()
-            .append(new KeyedCodec<>("PowerModifier", Codec.FLOAT),
-                    (c, v) -> c.powerModifier = v,
-                    (c) -> c.powerModifier)
+            .append(new KeyedCodec<>("RemainingBudget", Codec.FLOAT),
+                    (c, v) -> c.remainingBudget = v,
+                    (c) -> c.remainingBudget)
             .add()
             .append(new KeyedCodec<>("VolatilityMultiplier", Codec.FLOAT),
                     (c, v) -> c.volatilityMultiplier = v,
@@ -135,10 +108,6 @@ public class VolatilityTracker {
             .append(new KeyedCodec<>("ManaCostMultiplier", Codec.FLOAT),
                     (c, v) -> c.manaCostMultiplier = v,
                     (c) -> c.manaCostMultiplier)
-            .add()
-            .append(new KeyedCodec<>("GlyphTypeCounts", new MapCodec<>(Codec.INTEGER, HashMap::new, false)),
-                    (c, v) -> c.glyphTypeCounts = v,
-                    c -> c.glyphTypeCounts)
             .add()
             .build();
 }

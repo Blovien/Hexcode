@@ -14,5 +14,7 @@
     {
       "SystemId": "Ring_Spawner"
     }
-  ]
+  ],
+  "CastDecayRate": 0.06,
+  "VolatilityBonus": 50
 }

@@ -8,6 +8,7 @@ import com.hypixel.hytale.server.core.asset.type.entityeffect.config.OverlapBeha
 import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.protocol.ChangeVelocityType;
+import com.hypixel.hytale.server.core.entity.EntityUtils;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.physics.component.PhysicsValues;
 import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
@@ -95,9 +96,8 @@ public class LevitateGlyph implements GlyphHandler {
         Ref<EntityStore> ref = entityVar.getRef(accessor);
         if (ref == null || !ref.isValid()) return;
 
-        PhysicsValues currentPhysics = accessor.getComponent(ref, PhysicsValues.getComponentType());
-        PhysicsValues originalCopy = currentPhysics != null
-                ? new PhysicsValues(currentPhysics) : null;
+        PhysicsValues currentPhysics = EntityUtils.getPhysicsValues(ref, accessor);
+        PhysicsValues originalCopy = new PhysicsValues(currentPhysics);
 
         LevitateComponent existing = accessor.getComponent(ref, LevitateComponent.getComponentType());
         if (existing != null) {
@@ -110,15 +110,13 @@ public class LevitateGlyph implements GlyphHandler {
                             hexContext.getColors(), originalCopy));
         }
 
-        if (currentPhysics != null) {
-            double mass = currentPhysics.getMass();
-            double originalDrag = existing != null
-                    ? existing.getOriginalPhysicsValues().getDragCoefficient()
-                    : currentPhysics.getDragCoefficient();
-            double drag = intensity <= 0 ? WEIGHTLESS_DRAG : originalDrag;
-            PhysicsValues levitatePhysics = new PhysicsValues(mass, drag, true);
-            accessor.putComponent(ref, PhysicsValues.getComponentType(), levitatePhysics);
-        }
+        double mass = currentPhysics.getMass();
+        double originalDrag = existing != null
+                ? existing.getOriginalPhysicsValues().getDragCoefficient()
+                : currentPhysics.getDragCoefficient();
+        double drag = intensity <= 0 ? WEIGHTLESS_DRAG : originalDrag;
+        PhysicsValues levitatePhysics = new PhysicsValues(mass, drag, true);
+        accessor.putComponent(ref, PhysicsValues.getComponentType(), levitatePhysics);
 
         Velocity vel = accessor.getComponent(ref, Velocity.getComponentType());
         if (vel != null && vel.getY() < 0) {

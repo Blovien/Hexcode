@@ -19,11 +19,6 @@ public class NumberValue implements GlyphHandler {
     }
 
     @Override
-    public boolean canReadValue() {
-        return true;
-    }
-
-    @Override
     public HexVar readValue(Glyph glyph, HexContext hexContext) {
         return new NumberVar(this.number);
     }

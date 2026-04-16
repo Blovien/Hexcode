@@ -1,7 +1,5 @@
 package com.riprod.hexcode.builtin.glyphs.effect.add;
 
-import java.util.concurrent.ThreadLocalRandom;
-
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
@@ -10,36 +8,11 @@ import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 import com.riprod.hexcode.utils.HexMathUtil;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
 public class AddGlyph implements GlyphHandler {
     public static final String ID = "Glyph_Add";
-    private static final float INITIAL_PASS_CHANCE = 0.995f;
-    private static final float DECAY_PER_USE = 0.007f;
-
-    @Override
-    public boolean canExecute(Glyph glyph, HexContext hexContext) {
-        VolatilityTracker tracker = hexContext.getVolatilityTracker();
-        if (tracker == null) return true;
-
-        int useCount = tracker.getGlyphTypeCount(glyph.getGlyphId());
-        float chance = INITIAL_PASS_CHANCE - useCount * DECAY_PER_USE;
-        chance = Math.max(0.01f, Math.min(1f, chance));
-
-        chance *= tracker.getVolatilityMultiplier();
-        chance = Math.max(0.01f, Math.min(1f, chance));
-
-        float roll = ThreadLocalRandom.current().nextFloat();
-        tracker.incrementGlyphType(glyph.getGlyphId());
-
-        if (roll >= chance) {
-            LOGGER.atInfo().log("glyph %s fizzled: rolled %.3f against %.3f chance (use #%d)",
-                    glyph.getGlyphId(), roll, chance, useCount + 1);
-        }
-        return roll < chance;
-    }
 
     private HexVar compute(Glyph glyph, HexContext hexContext) {
         HexVar a = glyph.readSlot("a", hexContext);
@@ -52,11 +25,6 @@ public class AddGlyph implements GlyphHandler {
             b = new PositionVar(bPos, true);
         }
         return HexMathUtil.add(a, b);
-    }
-
-    @Override
-    public boolean canReadValue() {
-        return true;
     }
 
     @Override
