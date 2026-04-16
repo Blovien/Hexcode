@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.hypixel.hytale.component.AddReason;
+import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
@@ -43,9 +44,11 @@ public class ArcGlyph implements GlyphHandler {
             return;
         }
 
-        Ref<EntityStore> initialTarget = entityVar.getRef(hexContext.getAccessor());
-        if (initialTarget == null || !initialTarget.isValid()) {
-            LOGGER.atWarning().log("arc: initial target ref invalid");
+        CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
+
+        Ref<EntityStore> originRef = entityVar.getRef(accessor);
+        if (originRef == null || !originRef.isValid()) {
+            LOGGER.atWarning().log("arc: cast origin ref invalid");
             Executor.fail(hexContext);
             return;
         }
@@ -62,59 +65,70 @@ public class ArcGlyph implements GlyphHandler {
         double delay = SpellVarUtil.resolveNumberOrDefault(
                 glyph.readSlot("delay", hexContext), 0.75);
 
-        Set<UUID> visited = new HashSet<>();
-
-        UUIDComponent casterUuid = hexContext.getAccessor().getComponent(
-                hexContext.getCasterRef(), UUIDComponent.getComponentType());
-        if (casterUuid != null) {
-            visited.add(casterUuid.getUuid());
-        }
-
-        UUIDComponent targetUuid = hexContext.getAccessor().getComponent(
-                initialTarget, UUIDComponent.getComponentType());
-        if (targetUuid != null) {
-            visited.add(targetUuid.getUuid());
-        }
-
-        TransformComponent casterTc = hexContext.getAccessor().getComponent(
-                hexContext.getCasterRef(), TransformComponent.getComponentType());
-        TransformComponent targetTc = hexContext.getAccessor().getComponent(
-                initialTarget, TransformComponent.getComponentType());
-
         HexColors colors = hexContext.getColors();
 
-        if (casterTc != null && targetTc != null) {
-            World world = hexContext.getAccessor().getExternalData().getWorld();
-            ArcStyle.renderArc(hexContext.getAccessor(), world,
-                    casterTc.getPosition(), targetTc.getPosition(), colors);
+        Set<UUID> visited = new HashSet<>();
+        UUIDComponent casterUuid = accessor.getComponent(
+                hexContext.getCasterRef(), UUIDComponent.getComponentType());
+        if (casterUuid != null) visited.add(casterUuid.getUuid());
+
+        UUIDComponent originUuid = accessor.getComponent(
+                originRef, UUIDComponent.getComponentType());
+        if (originUuid != null) visited.add(originUuid.getUuid());
+
+        TransformComponent originTc = accessor.getComponent(
+                originRef, TransformComponent.getComponentType());
+        if (originTc == null) {
+            LOGGER.atWarning().log("arc: cast origin has no transform");
+            Executor.fail(hexContext);
+            return;
+        }
+        Vector3d originPos = originTc.getPosition();
+
+        Ref<EntityStore> firstJump = ArcUtils.getNextArcTarget(
+                originPos, (float) maxJump, visited,
+                hexContext.getCasterRef(), accessor);
+        if (firstJump == null) {
+            LOGGER.atInfo().log("arc: no nearby entity within %.1f to jump to, fizzling", maxJump);
+            ArcStyle.renderFizzle(accessor, originPos, colors);
+            Executor.fail(hexContext);
+            return;
         }
 
-        ArcUtils.applyShockEffect(hexContext.getAccessor(), initialTarget);
-        if (targetTc != null) {
-            ArcStyle.renderHit(hexContext.getAccessor(), targetTc.getPosition(), colors);
-        }
+        UUIDComponent firstJumpUuid = accessor.getComponent(
+                firstJump, UUIDComponent.getComponentType());
+        if (firstJumpUuid != null) visited.add(firstJumpUuid.getUuid());
 
-        Vector3d spawnPos = targetTc != null ? targetTc.getPosition() : new Vector3d();
+        TransformComponent firstJumpTc = accessor.getComponent(
+                firstJump, TransformComponent.getComponentType());
+        Vector3d firstJumpPos = firstJumpTc != null ? firstJumpTc.getPosition() : originPos;
+
+        World world = accessor.getExternalData().getWorld();
+        ArcStyle.renderArc(accessor, world, originPos, firstJumpPos, colors);
+        ArcUtils.applyShockEffect(accessor, firstJump, (float) (delay + 0.25));
+        ArcStyle.renderHit(accessor, firstJumpPos, colors);
 
         Holder<EntityStore> holder = HexConstructSpawner.create(
-                hexContext.getAccessor(), hexContext, glyph,
+                accessor, hexContext, glyph,
                 "arc", -1, 0,
-                null, branches, null,
-                spawnPos);
+                null, null, null,
+                firstJumpPos);
 
         ArcComponent arcComponent = new ArcComponent(
                 glyph, new ArrayList<>(branches), visited,
-                (float) maxJump, (float) delay);
+                (float) maxJump, (float) delay,
+                firstJump, firstJumpUuid != null ? firstJumpUuid.getUuid() : null);
         holder.addComponent(ArcComponent.getComponentType(), arcComponent);
 
-        Ref<EntityStore> constructRef = hexContext.getAccessor().addEntity(holder, AddReason.SPAWN);
+        Ref<EntityStore> constructRef = accessor.addEntity(holder, AddReason.SPAWN);
 
-        RootGlyph rootGlyph = hexContext.getAccessor().getComponent(
+        RootGlyph rootGlyph = accessor.getComponent(
                 hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
         if (rootGlyph != null) {
             rootGlyph.addDependent(constructRef);
         }
 
-        LOGGER.atInfo().log("arc: spawned construct with %d branches on initial target", branches.size());
+        LOGGER.atInfo().log("arc: spawned construct, %d branches, first jump uuid=%s",
+                branches.size(), firstJumpUuid != null ? firstJumpUuid.getUuid() : "null");
     }
 }

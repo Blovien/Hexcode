@@ -6,7 +6,6 @@ import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.codec.codecs.map.MapCodec;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset.AnimationSet;
-import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
@@ -14,17 +13,15 @@ import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.state.crafting.component.CraftingData;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class PedestalBlockComponent implements Component<ChunkStore> {
 
@@ -76,9 +73,6 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
             .documentation(
                     "A model that has the animations for the items (book/essence). Used for customizing the animation displays.")
             .add()
-            .append(new KeyedCodec<>("RuntimeData", CraftingData.CODEC), (c, v) -> c.craftingDataComponent = v, c -> c.craftingDataComponent)
-            .documentation("Data that is set at runtime. Generally this can be ignored.")
-            .add()
             .build();
 
     private static ComponentType<ChunkStore, PedestalBlockComponent> componentType;
@@ -99,28 +93,48 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
     private Map<String, AnimationSet> animationSetMap = Collections.emptyMap();
     protected Vector3f essenceOffset = new Vector3f(0f, -0.5f, 0f);
     protected Vector3f bookOffset = new Vector3f(0f, 0.3f, 0f);
-    private boolean consumeEssence = false;
-    // transient
+    // transient runtime
     private Map<String, Float> lastTickMap = new HashMap<>();
     private List<Vector3i> obeliskLocations = new ArrayList<>();
-    private Set<Ref<EntityStore>> activePlayerRefs = new HashSet<>();
-    private CraftingData craftingDataComponent = null;
+    private Vector3i location;
+    private Ref<EntityStore> sessionRef;
+    private Ref<EntityStore> anchorRef;
+    private String bookAssetId;
 
-    public CraftingData getCraftingDataComponent() {
-        return craftingDataComponent;
-    }
-
-    public void setCraftingDataComponent(CraftingData craftingDataComponent) {
-        this.craftingDataComponent = craftingDataComponent;
-    }
-
+    @Nullable
     public Vector3i getLocation() {
-        if (craftingDataComponent == null) return null;
-        return craftingDataComponent.getPedestalLocation();
+        return location;
     }
 
-    public boolean isConsumeEssence() {
-        return consumeEssence;
+    public void setLocation(Vector3i location) {
+        this.location = location;
+    }
+
+    @Nullable
+    public Ref<EntityStore> getSessionRef() {
+        return sessionRef;
+    }
+
+    public void setSessionRef(@Nullable Ref<EntityStore> sessionRef) {
+        this.sessionRef = sessionRef;
+    }
+
+    @Nullable
+    public Ref<EntityStore> getAnchorRef() {
+        return anchorRef;
+    }
+
+    public void setAnchorRef(@Nullable Ref<EntityStore> anchorRef) {
+        this.anchorRef = anchorRef;
+    }
+
+    @Nullable
+    public String getBookAssetId() {
+        return bookAssetId;
+    }
+
+    public void setBookAssetId(@Nullable String bookAssetId) {
+        this.bookAssetId = bookAssetId;
     }
 
     public int getMaxObelisks() {
@@ -129,22 +143,6 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
 
     public String getReferenceHolder() {
         return referenceHolder;
-    }
-
-    public Boolean addDetectedPlayer(CommandBuffer<EntityStore> accessor, Ref<EntityStore> playerRef) {
-        if (activePlayerRefs.contains(playerRef)) {
-            return false;
-        }
-        activePlayerRefs.add(playerRef);
-        return true;
-    }
-
-    public Set<Ref<EntityStore>> getActivePlayerRefs() {
-        return activePlayerRefs;
-    }
-
-    public Boolean isActivePlayer(Ref<EntityStore> playerRef) {
-        return activePlayerRefs.contains(playerRef);
     }
 
     public int getObeliskRange() {
@@ -178,7 +176,6 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
         return this.obeliskLocations.remove(obeliskLoc);
     }
 
-    // style
     public Vector3f getBookOffset() {
         return this.bookOffset;
     }
@@ -211,19 +208,20 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
     @Override
     public Component<ChunkStore> clone() {
         PedestalBlockComponent copy = new PedestalBlockComponent();
-        copy.consumeEssence = this.consumeEssence;
         copy.maxObelisks = this.maxObelisks;
         copy.maxRadius = this.maxRadius;
         copy.perPlayer = this.perPlayer;
         copy.obeliskRange = this.obeliskRange;
         copy.referenceHolder = this.referenceHolder;
-        copy.activePlayerRefs = new HashSet<>(this.activePlayerRefs);
         copy.bookOffset = this.bookOffset;
         copy.essenceOffset = this.essenceOffset;
-        copy.craftingDataComponent = this.craftingDataComponent != null ? this.craftingDataComponent.clone() : null;
         copy.animationSetMap = this.animationSetMap;
         copy.lastTickMap = new HashMap<>(this.lastTickMap);
         copy.obeliskLocations = new ArrayList<>(this.obeliskLocations);
+        copy.location = this.location;
+        copy.sessionRef = this.sessionRef;
+        copy.anchorRef = this.anchorRef;
+        copy.bookAssetId = this.bookAssetId;
         return copy;
     }
 }

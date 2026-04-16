@@ -22,9 +22,11 @@ import com.riprod.hexcode.core.common.hexes.utils.HexUtils;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffComponent;
 import com.riprod.hexcode.utils.HexStaffUtil;
 import com.riprod.hexcode.core.state.execution.Executor;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.HexcasterExecutionComponent;
 import com.riprod.hexcode.core.state.execution.component.PlayerHexRoot;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
+import com.riprod.hexcode.utils.CleanupUtils;
 import com.riprod.hexcode.api.event.HexcodeEvents;
 import com.riprod.hexcode.api.event.SpellCastEvent;
 import com.riprod.hexcode.state.HexState;
@@ -35,6 +37,7 @@ import com.hypixel.hytale.server.core.modules.entitystats.asset.DefaultEntitySta
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.Message;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -93,7 +96,14 @@ public class ExecutionSystem extends HexcodeManager {
     }
 
     @Override
-    public void onPlayerLeave(PlayerRef playerRef) {
+    public void onPlayerLeave(Ref<EntityStore> ref, HexcasterComponent comp,
+            Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
+        for (HexContext ctx : new ArrayList<>(comp.getActiveContexts())) {
+            if (ctx.getRoot() != null) {
+                CleanupUtils.safeRemoveConstruct(buffer, ctx.getRoot().getRootEntityRef());
+            }
+        }
+        comp.cancelAll();
     }
 
     @Override

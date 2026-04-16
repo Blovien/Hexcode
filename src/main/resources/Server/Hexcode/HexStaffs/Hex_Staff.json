@@ -12,6 +12,12 @@
         "Y": -1.5
       },
       "Color": "#D4A03C"
+    },
+    {
+      "SystemId": "Fire_HexStaff_Aura",
+      "PositionOffset": {
+        "Y": -1.5
+      }
     }
   ],
   "Colors": {

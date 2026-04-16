@@ -5,9 +5,11 @@ import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
+import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 
@@ -31,17 +33,26 @@ public class ArcComponent implements Component<EntityStore> {
     private float tickTimer = 0f;
     private int branchIndex = 0;
     private boolean hasFired = false;
+    private boolean naturalCompletion = false;
+
+    @Nullable
+    private Ref<EntityStore> currentTargetRef;
+    @Nullable
+    private UUID currentTargetUuid;
 
     public ArcComponent() {
     }
 
     public ArcComponent(Glyph arcGlyph, List<String> branches, Set<UUID> visitedEntities,
-            float maxJumpDistance, float delay) {
+            float maxJumpDistance, float delay,
+            @Nullable Ref<EntityStore> currentTargetRef, @Nullable UUID currentTargetUuid) {
         this.arcGlyph = arcGlyph;
         this.branches = branches;
         this.visitedEntities = visitedEntities;
         this.maxJumpDistance = maxJumpDistance;
         this.delay = delay;
+        this.currentTargetRef = currentTargetRef;
+        this.currentTargetUuid = currentTargetUuid;
     }
 
     public Glyph getArcGlyph() {
@@ -98,11 +109,22 @@ public class ArcComponent implements Component<EntityStore> {
         this.hasFired = hasFired;
     }
 
-    public ArcComponent createNextHop() {
-        ArcComponent next = new ArcComponent(
-                arcGlyph, branches, visitedEntities, maxJumpDistance, delay);
-        next.branchIndex = this.branchIndex;
-        return next;
+    public boolean isNaturalCompletion() {
+        return naturalCompletion;
+    }
+
+    public void setNaturalCompletion(boolean naturalCompletion) {
+        this.naturalCompletion = naturalCompletion;
+    }
+
+    @Nullable
+    public Ref<EntityStore> getCurrentTargetRef() {
+        return currentTargetRef;
+    }
+
+    @Nullable
+    public UUID getCurrentTargetUuid() {
+        return currentTargetUuid;
     }
 
     @Nonnull
@@ -117,6 +139,9 @@ public class ArcComponent implements Component<EntityStore> {
         copy.tickTimer = this.tickTimer;
         copy.branchIndex = this.branchIndex;
         copy.hasFired = this.hasFired;
+        copy.naturalCompletion = this.naturalCompletion;
+        copy.currentTargetRef = this.currentTargetRef;
+        copy.currentTargetUuid = this.currentTargetUuid;
         return copy;
     }
 }

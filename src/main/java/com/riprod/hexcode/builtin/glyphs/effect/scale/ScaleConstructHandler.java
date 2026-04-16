@@ -36,7 +36,11 @@ public class ScaleConstructHandler implements ConstructHandler {
                     EntityScaleComponent scaleComp = buffer.getComponent(
                             targetRef, EntityScaleComponent.getComponentType());
                     if (scaleComp != null) {
-                        scaleComp.setScale(scale.getOriginalScale());
+                        if (scale.hadEntityScaleBefore()) {
+                            scaleComp.setScale(scale.getOriginalScale());
+                        } else {
+                            buffer.removeComponent(targetRef, EntityScaleComponent.getComponentType());
+                        }
                     }
                     Box originalBox = scale.getOriginalBoundingBox();
                     BoundingBox box = buffer.getComponent(targetRef, BoundingBox.getComponentType());

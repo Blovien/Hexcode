@@ -26,8 +26,9 @@ import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.hexes.utils.HexUtils;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.CraftingData;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
+import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
+import com.riprod.hexcode.core.state.crafting.session.SessionUtils;
 
 public class ImportExportPage extends InteractiveCustomUIPage<ImportExportPage.PageEventData> {
 
@@ -73,34 +74,19 @@ public class ImportExportPage extends InteractiveCustomUIPage<ImportExportPage.P
     }
 
     private void handleExport(Ref<EntityStore> ref, Store<EntityStore> store) {
-        HexcasterCraftingComponent castingComp = store.getComponent(ref, HexcasterCraftingComponent.getComponentType());
-        if (castingComp == null) {
-            updateStatus("no hexcaster data found");
+        HexcodeSessionComponent session = SessionUtils.resolveSessionByPlayer(ref, store);
+        if (session == null) {
+            updateStatus("no active session found");
             return;
         }
 
-        World world = store.getExternalData().getWorld();
-
-        Vector3i pedestalPos = castingComp.getPedestalLocation();
-        if (pedestalPos == null) {
-            updateStatus("Pedestal location not found");
-            return;
-        }
-
-        PedestalBlockComponent pedestalComp = BlockModule.getComponent(PedestalBlockComponent.getComponentType(), world,
-                pedestalPos.x, pedestalPos.y, pedestalPos.z);
-
-        CraftingData playerData = pedestalComp.getCraftingDataComponent();
-
-        // access control check
-        Ref<EntityStore> ownerRef = playerData.getOwnerRef();
+        Ref<EntityStore> ownerRef = session.getOwnerRef();
         if (ownerRef == null || !ownerRef.isValid() || !ownerRef.equals(ref)) {
             updateStatus("you don't have permission to export from this pedestal");
             return;
         }
 
-        // get active hex
-        List<Ref<EntityStore>> previewRefs = playerData.getHexPreviewRefs();
+        List<Ref<EntityStore>> previewRefs = session.getHexPreviewRefs();
         if (previewRefs == null || previewRefs.isEmpty())
             return;
 
@@ -145,35 +131,19 @@ public class ImportExportPage extends InteractiveCustomUIPage<ImportExportPage.P
         Hex hex = result.getHex();
         HexUtils.validate(hex);
 
-        HexcasterCraftingComponent craftingComp = store.getComponent(ref, HexcasterCraftingComponent.getComponentType());
-        if (craftingComp == null) {
-            updateStatus("not in crafting mode");
+        HexcodeSessionComponent importSession = SessionUtils.resolveSessionByPlayer(ref, store);
+        if (importSession == null) {
+            updateStatus("not in a crafting session");
             return;
         }
 
-        World world = store.getExternalData().getWorld();
-        Vector3i pedestalPos = craftingComp.getPedestalLocation();
-        if (pedestalPos == null) {
-            updateStatus("pedestal not found");
-            return;
-        }
-
-        PedestalBlockComponent pedestalComp = BlockModule.getComponent(
-                PedestalBlockComponent.getComponentType(), world,
-                pedestalPos.x, pedestalPos.y, pedestalPos.z);
-        if (pedestalComp == null) {
-            updateStatus("pedestal not found");
-            return;
-        }
-
-        CraftingData playerData = pedestalComp.getCraftingDataComponent();
-        Ref<EntityStore> ownerRef = playerData.getOwnerRef();
-        if (ownerRef == null || !ownerRef.isValid() || !ownerRef.equals(ref)) {
+        Ref<EntityStore> ownerRef2 = importSession.getOwnerRef();
+        if (ownerRef2 == null || !ownerRef2.isValid() || !ownerRef2.equals(ref)) {
             updateStatus("you don't own this pedestal");
             return;
         }
 
-        playerData.setPendingImportHex(hex);
+        importSession.setPendingImportHex(hex);
 
         StringBuilder msg = new StringBuilder("importing hex...");
         for (DecodeIssue issue : result.getIssues()) {

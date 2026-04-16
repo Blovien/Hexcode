@@ -48,25 +48,16 @@ public class BoltGlyph implements GlyphHandler {
         }
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
-        Ref<EntityStore> casterRef = hexContext.getCasterRef();
 
-        TransformComponent casterTc = accessor.getComponent(casterRef, TransformComponent.getComponentType());
-        if (casterTc == null) {
-            LOGGER.atWarning().log("bolt: caster has no transform");
-            Executor.fail(hexContext);
-            return;
-        }
-
-        Vector3d sourcePos = casterTc.getPosition().clone();
         World world = accessor.getExternalData().getWorld();
         Vector3f color = BoltStyle.resolveColor(hexContext);
 
         EntityVar entityVar = SpellVarUtil.resolveEntityVar(target, hexContext);
         BlockVar blockVar = entityVar == null ? SpellVarUtil.resolveBlockVar(target, hexContext) : null;
         if (entityVar != null) {
-            handleEntityTarget(glyph, hexContext, entityVar, accessor, casterRef, sourcePos, world, color);
+            handleEntityTarget(glyph, hexContext, entityVar, accessor, world, color);
         } else if (blockVar != null) {
-            handleBlockTarget(glyph, hexContext, blockVar, accessor, casterRef, sourcePos, world, color);
+            handleBlockTarget(glyph, hexContext, blockVar, accessor, world, color);
         } else {
             LOGGER.atWarning().log("bolt: target is not entity or block");
             Executor.fail(hexContext);
@@ -77,8 +68,8 @@ public class BoltGlyph implements GlyphHandler {
     }
 
     private void handleEntityTarget(Glyph glyph, HexContext hexContext, EntityVar entityVar,
-            CommandBuffer<EntityStore> accessor, Ref<EntityStore> casterRef,
-            Vector3d sourcePos, World world, Vector3f color) {
+            CommandBuffer<EntityStore> accessor,
+            World world, Vector3f color) {
 
         Ref<EntityStore> targetRef = entityVar.getRef(accessor);
         if (targetRef == null || !targetRef.isValid()) {
@@ -94,7 +85,6 @@ public class BoltGlyph implements GlyphHandler {
 
         Vector3d targetPos = targetTc.getPosition();
 
-        BoltStyle.renderBolt(accessor, world, sourcePos, targetPos, color);
         BoltStyle.renderImpact(accessor, targetPos);
         BoltStyle.applyShockEffect(accessor, targetRef);
 
@@ -102,18 +92,12 @@ public class BoltGlyph implements GlyphHandler {
                 glyph.readSlot("power", hexContext), 5.0);
         applyDamage(accessor, targetRef, (float) damageAmount);
 
-        UUIDComponent targetUuid = accessor.getComponent(targetRef, UUIDComponent.getComponentType());
-        if (targetUuid != null) {
-            EntityVar resultVar = new EntityVar(EntityVar.createRef(targetUuid.getUuid(), targetRef));
-            glyph.writeSlot("result", resultVar, hexContext);
-        }
-
         LOGGER.atInfo().log("bolt: hit entity for %.1f damage", damageAmount);
     }
 
     private void handleBlockTarget(Glyph glyph, HexContext hexContext, BlockVar blockVar,
-            CommandBuffer<EntityStore> accessor, Ref<EntityStore> casterRef,
-            Vector3d sourcePos, World world, Vector3f color) {
+            CommandBuffer<EntityStore> accessor,
+            World world, Vector3f color) {
 
         Vector3i blockPos = blockVar.getValue();
         if (blockPos == null) {
@@ -123,10 +107,9 @@ public class BoltGlyph implements GlyphHandler {
 
         Vector3d targetPos = new Vector3d(blockPos.x + 0.5, blockPos.y + 0.5, blockPos.z + 0.5);
 
-        BoltStyle.renderBolt(accessor, world, sourcePos, targetPos, color);
         BoltStyle.renderImpact(accessor, targetPos);
 
-        triggerBlockInteraction(accessor, casterRef, world, blockPos);
+        triggerBlockInteraction(accessor, hexContext.getCasterRef(), world, blockPos);
 
         glyph.writeSlot("result", new BlockVar(blockPos), hexContext);
 
@@ -136,7 +119,8 @@ public class BoltGlyph implements GlyphHandler {
     private void triggerBlockInteraction(CommandBuffer<EntityStore> accessor,
             Ref<EntityStore> casterRef, World world, Vector3i blockPos) {
 
-        InteractionManager manager = accessor.getComponent(casterRef, InteractionModule.get().getInteractionManagerComponent());
+        InteractionManager manager = accessor.getComponent(casterRef,
+                InteractionModule.get().getInteractionManagerComponent());
         if (manager == null) {
             LOGGER.atInfo().log("bolt: no interaction manager on caster, skipping block interaction");
             return;

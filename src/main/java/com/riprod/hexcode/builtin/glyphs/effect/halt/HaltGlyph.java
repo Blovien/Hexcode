@@ -66,11 +66,9 @@ public class HaltGlyph implements GlyphHandler {
         float baseCost = asset.getManaConsumption()
                 * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
 
-        double durationMultiplier = 1.0 + Math.exp(MANA_STEEPNESS * (duration - MANA_KNEE));
-
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
         float castMultiplier = (tracker != null) ? tracker.getManaCostMultiplier() : 1.0f;
-        float finalCost = (float) (baseCost * castMultiplier * durationMultiplier);
+        float finalCost = (float) (baseCost * castMultiplier);
 
         boolean consumed = hexContext.getRoot().tryConsumeMana(finalCost, hexContext.getAccessor());
         if (!consumed) {

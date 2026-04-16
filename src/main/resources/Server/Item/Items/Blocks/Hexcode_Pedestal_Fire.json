@@ -67,6 +67,9 @@
             },
             {
               "SystemId": "Arcane_Fire_Selecting"
+            },
+            {
+              "SystemId": "Fire_AoE2"
             }
           ]
         },

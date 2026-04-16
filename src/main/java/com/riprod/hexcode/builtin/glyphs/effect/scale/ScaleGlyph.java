@@ -99,11 +99,16 @@ public class ScaleGlyph implements GlyphHandler {
                     targetRef, EntityScaleComponent.getComponentType());
             BoundingBox box = accessor.getComponent(targetRef, BoundingBox.getComponentType());
 
-            float originalScale = scaleComp != null ? scaleComp.getScale() : 1.0f;
+            boolean hadEntityScaleBefore = scaleComp != null;
+            float originalScale = hadEntityScaleBefore ? scaleComp.getScale() : 1.0f;
             Box originalBox = box != null ? new Box(box.getBoundingBox()) : null;
 
-            if (scaleComp != null) {
-                scaleComp.setScale(originalScale * (float) magnitude);
+            float newScale = originalScale * (float) magnitude;
+            if (hadEntityScaleBefore) {
+                scaleComp.setScale(newScale);
+            } else {
+                accessor.addComponent(targetRef, EntityScaleComponent.getComponentType(),
+                        new EntityScaleComponent(newScale));
             }
             if (box != null && originalBox != null) {
                 Box scaled = new Box(originalBox).scale((float) magnitude);
@@ -119,7 +124,8 @@ public class ScaleGlyph implements GlyphHandler {
                 spawnPos = new Vector3d();
             }
 
-            ScaleComponent scaleMarker = new ScaleComponent(targetRef, originalScale, originalBox);
+            ScaleComponent scaleMarker = new ScaleComponent(
+                    targetRef, originalScale, originalBox, hadEntityScaleBefore);
 
             Holder<EntityStore> holder = HexConstructSpawner.create(
                     accessor, hexContext, glyph,

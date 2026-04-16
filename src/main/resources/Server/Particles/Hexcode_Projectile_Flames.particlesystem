@@ -1,10 +1,16 @@
 {
   "Spawners": [
     {
-      "SpawnerId": "Preatorian_Summon_Flames"
+      "SpawnerId": "Projectile_Flames"
+    },
+    {
+      "SpawnerId": "Arcane_Ice_Crafting_Spawner"
+    },
+    {
+      "SpawnerId": "Rings_Rings"
     }
   ],
   "CullDistance": 75.0,
-  "BoundingRadius": 3.0,
+  "BoundingRadius": 3,
   "IsImportant": false
 }

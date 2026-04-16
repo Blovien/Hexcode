@@ -33,6 +33,7 @@ public class ProjectileStyle {
     public static void renderEntityHit(Vector3d projectilePos, Vector3d hitPos, HexColors colors,
             CommandBuffer<EntityStore> accessor) {
         VfxUtil.effect("Projectile_Hit", "SFX_Staff_Flame_Fireball_Impact", hitPos, accessor);
+        VfxUtil.particle("Area_Pulse", hitPos, accessor);
 
         Vector3f color = resolveColor(colors);
         World world = accessor.getExternalData().getWorld();

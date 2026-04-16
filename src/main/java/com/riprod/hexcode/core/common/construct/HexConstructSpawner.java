@@ -44,7 +44,7 @@ public class HexConstructSpawner {
         HexConstruct construct = new HexConstruct(
                 handlerId, lifetime, manaDrainPerSecond,
                 immediateBranchIds, conditionalBranchIds, cleanupBranchIds,
-                hexContext.copy(), triggeringGlyph, rootEntityRef);
+                hexContext, triggeringGlyph, rootEntityRef);
 
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
         holder.addComponent(TransformComponent.getComponentType(),
@@ -84,7 +84,7 @@ public class HexConstructSpawner {
             HexConstruct construct = new HexConstruct(
                     handlerId, lifetime, manaDrainPerSecond,
                     immediateBranchIds, conditionalBranchIds, cleanupBranchIds,
-                    hexContext.copy(), triggeringGlyph, rootEntityRef);
+                    hexContext, triggeringGlyph, rootEntityRef);
 
             buffer.addComponent(targetRef, HexConstruct.getComponentType(), construct);
         }

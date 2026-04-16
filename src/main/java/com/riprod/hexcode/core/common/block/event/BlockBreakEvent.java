@@ -2,9 +2,6 @@ package com.riprod.hexcode.core.common.block.event;
 
 import javax.annotation.Nonnull;
 
-import java.util.List;
-import java.util.Set;
-
 import com.hypixel.hytale.component.Archetype;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
@@ -21,12 +18,10 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.block.component.UnbreakableBlockComponent;
 import com.riprod.hexcode.core.common.obelisk.component.ObeliskBlockComponent;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.common.pedestal.utils.PedestalBlockUtil;
-import com.riprod.hexcode.core.state.crafting.component.CraftingData;
-import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
+import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
+import com.riprod.hexcode.core.state.crafting.session.SessionUtils;
 import com.riprod.hexcode.core.state.crafting.entity.AnchorEntity;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
 
 public class BlockBreakEvent extends EntityEventSystem<EntityStore, BreakBlockEvent> {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -55,7 +50,7 @@ public class BlockBreakEvent extends EntityEventSystem<EntityStore, BreakBlockEv
                     PedestalBlockComponent.getComponentType(), world,
                     pos.x, pos.y, pos.z);
             if (pedestal != null) {
-                cleanupPedestal(buffer, pedestal);
+                cleanupPedestal(buffer, pedestal, world);
             }
 
             ObeliskBlockComponent obelisk = BlockModule.getComponent(
@@ -69,29 +64,16 @@ public class BlockBreakEvent extends EntityEventSystem<EntityStore, BreakBlockEv
         }
     }
 
-    private static void cleanupPedestal(CommandBuffer<EntityStore> buffer, PedestalBlockComponent pedestal) {
-        Set<Ref<EntityStore>> activePlayers = pedestal.getActivePlayerRefs();
-        for (Ref<EntityStore> playerRef : activePlayers) {
-            if (playerRef == null || !playerRef.isValid())
-                continue;
-            HexcasterCraftingComponent playerData = buffer.getComponent(playerRef,
-                    HexcasterCraftingComponent.getComponentType());
-            if (playerData == null)
-                continue;
-
-            playerData.setPedestalLocation(null);
-            buffer.tryRemoveComponent(playerRef, HexcasterCraftingComponent.getComponentType());
+    private static void cleanupPedestal(CommandBuffer<EntityStore> buffer, PedestalBlockComponent pedestal, World world) {
+        Ref<EntityStore> sessionRef = SessionUtils.getSessionRef(pedestal);
+        if (sessionRef != null) {
+            SessionUtils.endSession(buffer, sessionRef, world);
         }
 
-        CraftingData pedestalData = pedestal.getCraftingDataComponent();
-        if (pedestalData != null) {
-            AnchorEntity.DespawnHexPreviews(buffer, pedestal, pedestalData);
-            List<Ref<EntityStore>> allRefs = pedestalData.getAllRefs();
-            for (Ref<EntityStore> ref : allRefs) {
-                if (ref != null && ref.isValid()) {
-                    buffer.tryRemoveEntity(ref, RemoveReason.REMOVE);
-                }
-            }
+        Ref<EntityStore> anchorRef = pedestal.getAnchorRef();
+        if (anchorRef != null && anchorRef.isValid()) {
+            buffer.tryRemoveEntity(anchorRef, RemoveReason.REMOVE);
+            pedestal.setAnchorRef(null);
         }
     }
 

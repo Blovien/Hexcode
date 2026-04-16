@@ -24,7 +24,8 @@ import com.riprod.hexcode.core.common.hover.component.HoverableType;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.common.pedestal.utils.PedestalBlockUtil;
 import com.riprod.hexcode.core.state.casting.utils.GlyphStyler;
-import com.riprod.hexcode.core.state.crafting.component.CraftingData;
+import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
+import com.riprod.hexcode.core.state.crafting.session.SessionUtils;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
 import com.riprod.hexcode.core.state.crafting.constants.NodeType;
@@ -71,13 +72,13 @@ public class GlyphNodeHandler implements NodeInterface {
         PedestalBlockComponent blockComp = PedestalBlockUtil.resolvePedestal(playerRef, accessor);
         if (blockComp == null) return InteractionState.Finished;
 
-        CraftingData playerData = blockComp.getCraftingDataComponent();
-        if (playerData == null) return InteractionState.Finished;
+        HexcodeSessionComponent session = SessionUtils.resolveSession(blockComp, accessor);
+        if (session == null) return InteractionState.Finished;
 
         Vector3f dropOffset = CraftingPositionUtil.lookToHexOffset(accessor, playerRef,
-                playerData.getAnchorNodeRef(), 2.0f);
+                session.getAnchorNodeRef(), 2.0f);
         Vector3d dropWorldPos = CraftingPositionUtil.hexOffsetToWorld(accessor,
-                playerData.getAnchorNodeRef(), dropOffset);
+                session.getAnchorNodeRef(), dropOffset);
 
         GlyphComponent glyphComp = accessor.getComponent(nodeRef, GlyphComponent.getComponentType());
         if (glyphComp == null) return InteractionState.Finished;
@@ -130,14 +131,14 @@ public class GlyphNodeHandler implements NodeInterface {
             Ref<EntityStore> playerRef, GlyphComponent glyphComp) {
         PedestalBlockComponent blockComp = PedestalBlockUtil.resolvePedestal(playerRef, accessor);
         if (blockComp == null) return;
-        CraftingData playerData = blockComp.getCraftingDataComponent();
-        if (playerData == null) return;
+        HexcodeSessionComponent session = SessionUtils.resolveSession(blockComp, accessor);
+        if (session == null) return;
 
         HeadRotation headRot = accessor.getComponent(playerRef, HeadRotation.getComponentType());
         if (headRot == null) return;
 
         Vector3d dropWorldPos = CraftingPositionUtil.hexOffsetToWorld(accessor,
-                playerData.getAnchorNodeRef(), glyphComp.getOffset());
+                session.getAnchorNodeRef(), glyphComp.getOffset());
         TransformComponent transform = accessor.getComponent(nodeRef, TransformComponent.getComponentType());
         if (transform == null) return;
 

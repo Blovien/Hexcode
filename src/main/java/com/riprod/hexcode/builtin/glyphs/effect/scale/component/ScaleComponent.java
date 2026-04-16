@@ -25,15 +25,17 @@ public class ScaleComponent implements Component<EntityStore> {
     private float originalScale = 1.0f;
     @Nullable
     private Box originalBoundingBox;
+    private boolean hadEntityScaleBefore;
 
     public ScaleComponent() {
     }
 
     public ScaleComponent(Ref<EntityStore> targetRef, float originalScale,
-            @Nullable Box originalBoundingBox) {
+            @Nullable Box originalBoundingBox, boolean hadEntityScaleBefore) {
         this.targetRef = targetRef;
         this.originalScale = originalScale;
         this.originalBoundingBox = originalBoundingBox;
+        this.hadEntityScaleBefore = hadEntityScaleBefore;
     }
 
     public Ref<EntityStore> getTargetRef() {
@@ -49,10 +51,15 @@ public class ScaleComponent implements Component<EntityStore> {
         return originalBoundingBox;
     }
 
+    public boolean hadEntityScaleBefore() {
+        return hadEntityScaleBefore;
+    }
+
     @Nonnull
     @Override
     public ScaleComponent clone() {
         return new ScaleComponent(targetRef, originalScale,
-                originalBoundingBox != null ? new Box(originalBoundingBox) : null);
+                originalBoundingBox != null ? new Box(originalBoundingBox) : null,
+                hadEntityScaleBefore);
     }
 }

@@ -25,7 +25,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.CraftingData;
+import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
 import com.hypixel.hytale.logger.HytaleLogger;
 
 public class PedestalEntity {
@@ -74,7 +74,7 @@ public class PedestalEntity {
     }
 
     public static Ref<EntityStore> spawnEssenceDisplay(CommandBuffer<EntityStore> accessor,
-            PedestalBlockComponent pedestal, CraftingData playerData,
+            PedestalBlockComponent pedestal, HexcodeSessionComponent session,
             Vector3d anchorPos, Item item,
             String anchorId, Ref<EntityStore> playerRef) {
 
@@ -93,7 +93,7 @@ public class PedestalEntity {
         addDisplayModel(pedestal, holder, item, anchorId, 0.5f);
 
         holder.addComponent(MountedComponent.getComponentType(),
-                new MountedComponent(playerData.getAnchorRef(), pedestal.getEssenceOffset(),
+                new MountedComponent(session.getAnchorRef(), pedestal.getEssenceOffset(),
                         MountController.Minecart));
 
         return accessor.addEntity(holder, AddReason.SPAWN);
@@ -101,7 +101,7 @@ public class PedestalEntity {
 
     public static Ref<EntityStore> spawnBookDisplay(CommandBuffer<EntityStore> accessor,
             PedestalBlockComponent pedestal,
-            CraftingData playerData, Vector3d anchorPos, Item item, Ref<EntityStore> playerRef) {
+            HexcodeSessionComponent session, Vector3d anchorPos, Item item, Ref<EntityStore> playerRef) {
 
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
 
@@ -118,7 +118,7 @@ public class PedestalEntity {
         addDisplayModel(pedestal, holder, item, pedestal.getReferenceHolder(), 1.0f);
 
         holder.addComponent(MountedComponent.getComponentType(),
-                new MountedComponent(playerData.getAnchorRef(), pedestal.getBookOffset(),
+                new MountedComponent(session.getAnchorRef(), pedestal.getBookOffset(),
                         MountController.Minecart));
 
         return accessor.addEntity(holder, AddReason.SPAWN);

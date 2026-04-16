@@ -29,7 +29,7 @@ public class GlyphStyler {
 
     private static final float HOVER_SCALE = 1.2f;
 
-    public static void hoverHex(ComponentAccessor<EntityStore> accessor, HexComponent hoveredHex,
+    public static void hoverHex(CommandBuffer<EntityStore> accessor, HexComponent hoveredHex,
             HexcasterCastingComponent castingComp) {
 
         HexComponent previous = castingComp.getHoveredHex();
@@ -56,7 +56,7 @@ public class GlyphStyler {
         }
     }
 
-    public static void hoverGlyph(ComponentAccessor<EntityStore> accessor, GlyphComponent hoveredGlyph,
+    public static void hoverGlyph(CommandBuffer<EntityStore> accessor, GlyphComponent hoveredGlyph,
             HexcasterCastingComponent castingComp) {
 
         GlyphComponent previous = castingComp.getHoveredGlyph();
@@ -75,7 +75,7 @@ public class GlyphStyler {
         }
     }
 
-    private static void enterHexHover(ComponentAccessor<EntityStore> accessor, HexComponent hex) {
+    private static void enterHexHover(CommandBuffer<EntityStore> accessor, HexComponent hex) {
         try {
             hex.setHoverState(true);
             String firstGlyphId = hex.getHex().getFirstGlyphId();
@@ -86,7 +86,7 @@ public class GlyphStyler {
         }
     }
 
-    private static void exitHexHover(ComponentAccessor<EntityStore> accessor, HexComponent hex) {
+    private static void exitHexHover(CommandBuffer<EntityStore> accessor, HexComponent hex) {
         try {
             hex.setHoverState(false);
             String firstGlyphId = hex.getHex().getFirstGlyphId();
@@ -97,7 +97,7 @@ public class GlyphStyler {
         }
     }
 
-    public static void enterGlyphHover(ComponentAccessor<EntityStore> accessor, GlyphComponent glyph) {
+    public static void enterGlyphHover(CommandBuffer<EntityStore> accessor, GlyphComponent glyph) {
         try {
             glyph.setHoverState(true);
             updateScale(accessor, glyph.getSelfRef(), glyph.getScale() * HOVER_SCALE);
@@ -106,7 +106,7 @@ public class GlyphStyler {
         }
     }
 
-    public static void exitGlyphHover(ComponentAccessor<EntityStore> accessor, GlyphComponent glyph) {
+    public static void exitGlyphHover(CommandBuffer<EntityStore> accessor, GlyphComponent glyph) {
         try {
             glyph.setHoverState(false);
             updateScale(accessor, glyph.getSelfRef(), glyph.getScale());
@@ -115,14 +115,17 @@ public class GlyphStyler {
         }
     }
 
-    public static void updateScale(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> selfRef, float newScale) {
+    public static void updateScale(CommandBuffer<EntityStore> accessor, Ref<EntityStore> selfRef, float newScale) {
         try {
+            if (selfRef == null || !selfRef.isValid()) return;
 
-            EntityScaleComponent scaleComponent = accessor.ensureAndGetComponent(selfRef,
-                    EntityScaleComponent.getComponentType());
+            EntityScaleComponent existing = accessor.getComponent(selfRef, EntityScaleComponent.getComponentType());
+            if (existing != null) {
+                existing.setScale(newScale);
+                return;
+            }
 
-            scaleComponent.setScale(newScale);
-
+            accessor.putComponent(selfRef, EntityScaleComponent.getComponentType(), new EntityScaleComponent(newScale));
         } catch (Exception e) {
             LOGGER.atWarning().withCause(e).log("Error updating scale for glyph");
         }

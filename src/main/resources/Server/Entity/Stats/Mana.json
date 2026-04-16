@@ -1,8 +1,8 @@
 {
   "$Comment": "Hexcode Mana stat - overrides base Mana.json which has Max=0",
-  "InitialValue": 0,
+  "InitialValue": 999999,
   "Min": 0,
-  "Max": 0,
+  "Max": 999999,
   "Shared": true,
   "ResetType": "MaxValue",
   "Regenerating": [
@@ -29,7 +29,7 @@
     {
       "$Comment": "Fast mana regen in creative mode",
       "Interval": 0.2,
-      "Amount": 50,
+      "Amount": 5000,
       "RegenType": "Additive",
       "Conditions": [
         {

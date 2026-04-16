@@ -4,7 +4,7 @@
   "Description": "Instantly zeros all velocity on targets, optionally sustaining suppression",
   "ModelPath": "Glyph_Halt",
   "BasePower": 1.0,
-  "ManaConsumption": 5,
+  "ManaConsumption": 3,
   "ShapeStructure": [
     {
       "ShapeId": "Antitriangle",

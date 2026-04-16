@@ -31,10 +31,10 @@ import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.pedestal.utils.PedestalBlockUtil;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
-import com.riprod.hexcode.core.state.crafting.component.CraftingData;
+import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
+import com.riprod.hexcode.core.state.crafting.session.SessionUtils;
 import com.riprod.hexcode.core.state.crafting.entity.PedestalEntity;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Glyph.GlyphNodeHandler;
-import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.riprod.hexcode.core.state.drawing.component.DrawnShapeComponent;
 import com.riprod.hexcode.core.state.drawing.component.HexcasterDrawingComponent;
@@ -46,6 +46,7 @@ import com.riprod.hexcode.core.state.drawing.system.shapes.ShapeDetector;
 import com.riprod.hexcode.core.state.drawing.utils.ShapeComparator;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
+import com.riprod.hexcode.utils.VfxUtil;
 
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 
@@ -84,7 +85,7 @@ public class DrawingSystem extends HexcodeManager {
     if (pedestal == null) {
       return;
     }
-    CraftingData playerData = pedestal.getCraftingDataComponent();
+    HexcodeSessionComponent session = SessionUtils.resolveSession(pedestal, buffer);
 
     List<DrawnShapeComponent> drawnShapes = drawingComp.getDrawnGlyphs();
     if (drawnShapes != null && !drawnShapes.isEmpty()) {
@@ -113,14 +114,14 @@ public class DrawingSystem extends HexcodeManager {
         if (spawnPos == null) {
           LOGGER.atInfo().log("cannot spawn drawn hex: missing pedestal or draw position");
         } else {
-          Vector3d anchorPos = PedestalEntity.getAnchorPosition(playerData.getPedestalLocation());
+          Vector3d anchorPos = PedestalEntity.getAnchorPosition(session.getPedestalLocation());
           double maxRadius = pedestal.getMaxRadius();
           double distSq = spawnPos.distanceSquaredTo(anchorPos);
 
           if (distSq > maxRadius * maxRadius) {
             LOGGER.atInfo().log("drawn hex outside pedestal radius");
           } else {
-            spawnDrawnGlyph(buffer, glyph, playerData, transform, ref);
+            spawnDrawnGlyph(buffer, glyph, session, transform, ref);
           }
         }
       }
@@ -151,7 +152,11 @@ public class DrawingSystem extends HexcodeManager {
   }
 
   @Override
-  public void onPlayerLeave(PlayerRef playerRef) {
+  public void onPlayerLeave(Ref<EntityStore> ref, HexcasterComponent comp,
+      Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
+    HexcasterDrawingComponent drawingComp = buffer.getComponent(ref, HexcasterDrawingComponent.getComponentType());
+    if (drawingComp == null) return;
+    drawingComp.clear(buffer);
   }
 
   @Override
@@ -314,9 +319,9 @@ public class DrawingSystem extends HexcodeManager {
   }
 
   private static void spawnDrawnGlyph(CommandBuffer<EntityStore> accessor, Glyph glyph,
-      CraftingData playerData, Transform spawnPos, Ref<EntityStore> playerRef) {
+      HexcodeSessionComponent session, Transform spawnPos, Ref<EntityStore> playerRef) {
 
-    Ref<EntityStore> anchorRef = playerData.getAnchorNodeRef();
+    Ref<EntityStore> anchorRef = session.getAnchorNodeRef();
     if (anchorRef == null || !anchorRef.isValid()) {
       LOGGER.atWarning().log("cannot spawn drawn glyph: no active anchor entity ref on pedestal");
       return;
@@ -358,6 +363,8 @@ public class DrawingSystem extends HexcodeManager {
 
     Ref<EntityStore> effectRef = GlyphNodeHandler.INSTANCE.spawnNode(accessor, hexRef, worldPos, playerRef,
         glyphComponent, hexRef);
+
+    VfxUtil.sound("SFX_Eye_Void_Attack_Summon", worldPos, accessor);
 
     hexComp.addChildGlyphRef(glyph.getId(), effectRef);
     hexComp.getHex().put(glyph.getId(), glyph);

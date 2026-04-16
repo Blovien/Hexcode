@@ -52,7 +52,7 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 0.5,
+      "DefaultValue": 0.75,
       "Unique": true
     },
     "result": {

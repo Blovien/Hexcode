@@ -80,9 +80,9 @@ public class SlotNodeHandler implements NodeInterface {
 
         Transform look = TargetUtil.getLook(playerRef, accessor);
         Vector3d targetPoint = new Vector3d(
-                look.getPosition().x + look.getDirection().x * 5,
-                look.getPosition().y + look.getDirection().y * 5,
-                look.getPosition().z + look.getDirection().z * 5);
+                look.getPosition().x + look.getDirection().x * 2,
+                look.getPosition().y + look.getDirection().y * 2,
+                look.getPosition().z + look.getDirection().z * 2);
 
         Vector3f color = resolveActiveLinkColor(accessor, node);
         LinkRenderer.renderActiveLink(accessor, accessor.getExternalData().getWorld(),
@@ -282,7 +282,7 @@ public class SlotNodeHandler implements NodeInterface {
     // under per-glyph SlotsVisible there's no global "close all slots" \u2014 slot entities
     // ride along with their parent glyph entity removal via MountedComponent.
     public void despawn(CommandBuffer<EntityStore> accessor,
-            com.riprod.hexcode.core.state.crafting.component.CraftingData playerData) {
+            com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent session) {
         // intentionally a no-op
     }
 

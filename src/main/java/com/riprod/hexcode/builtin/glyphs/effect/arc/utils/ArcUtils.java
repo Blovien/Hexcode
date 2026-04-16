@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
@@ -26,7 +27,7 @@ public class ArcUtils {
     }
 
     public static void applyShockEffect(CommandBuffer<EntityStore> accessor,
-            Ref<EntityStore> targetRef) {
+            Ref<EntityStore> targetRef, float durationSeconds) {
         EntityEffect shockEffect = EntityEffect.getAssetMap().getAsset(SHOCK_EFFECT_ID);
         if (shockEffect == null) {
             LOGGER.atWarning().log("arc: Hexcode_Shock effect asset not found");
@@ -35,9 +36,12 @@ public class ArcUtils {
 
         EffectControllerComponent controller = accessor.getComponent(
                 targetRef, EffectControllerComponent.getComponentType());
-        if (controller == null) return;
+        if (controller == null) {
+            LOGGER.atFine().log("arc: target has no EffectControllerComponent, skipping shock");
+            return;
+        }
 
-        controller.addEffect(targetRef, shockEffect, 1.0f, OverlapBehavior.OVERWRITE, accessor);
+        controller.addEffect(targetRef, shockEffect, durationSeconds, OverlapBehavior.OVERWRITE, accessor);
     }
 
     public static Ref<EntityStore> getNextArcTarget(
@@ -60,20 +64,6 @@ public class ArcUtils {
         });
 
         if (candidates.isEmpty()) return null;
-
-        Ref<EntityStore> closest = null;
-        double closestDistSq = Double.MAX_VALUE;
-
-        for (Ref<EntityStore> ref : candidates) {
-            TransformComponent tc = buffer.getComponent(ref, TransformComponent.getComponentType());
-            if (tc == null) continue;
-            double distSq = new Vector3d(fromPosition).subtract(tc.getPosition()).squaredLength();
-            if (distSq < closestDistSq) {
-                closestDistSq = distSq;
-                closest = ref;
-            }
-        }
-
-        return closest;
+        return candidates.get(ThreadLocalRandom.current().nextInt(candidates.size()));
     }
 }

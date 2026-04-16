@@ -14,6 +14,15 @@
     {
       "SystemId": "Hexcode_Projectile_Flames",
       "TargetEntityPart": "Self"
+    },
+    {
+      "SystemId": "Sword_Charged_Trail_Praetorian",
+      "TargetEntityPart": "Self"
+    }
+  ],
+  "Trails": [
+    {
+      "TrailId": "Hexcode_Conjure_Trail"
     }
   ]
 }

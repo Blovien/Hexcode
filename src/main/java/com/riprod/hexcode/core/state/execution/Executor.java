@@ -1,7 +1,9 @@
 package com.riprod.hexcode.core.state.execution;
 
+import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatValue;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
@@ -142,7 +144,6 @@ public class Executor {
     }
 
     public static void continueExecution(List<String> nextGlyphs, HexContext hexContext) {
-
         if (nextGlyphs.isEmpty()) {
             return;
         }
@@ -155,30 +156,41 @@ public class Executor {
             return;
         }
 
+        boolean multiBranch = nextGlyphs.size() > 1;
+
         for (String nextNodeId : nextGlyphs) {
-            Glyph nextNode = hexContext.getGlyph(nextNodeId);
-            if (nextNode == null) {
-                LOGGER.atSevere().log("dangling glyph reference: %s not found in hex graph", nextNodeId);
-                fail(hexContext);
-                continue;
-            }
-            GlyphHandler nextHandler = GlyphRegistry.get(nextNode.getGlyphId());
-            if (nextHandler == null) {
-                LOGGER.atSevere().log("no handler found for glyph %s, skipping", nextNode.getGlyphId());
-                fail(hexContext);
-                continue;
-            }
+
             try {
-                if (!nextHandler.consumeResources(nextNode, hexContext)) {
-                    fail(hexContext);
-                    continue;
-                }
-                LOGGER.atInfo().log("Executing glyph %s - ID: %s", nextNode.getGlyphId(), nextNode.getId());
-                nextHandler.execute(nextNode, hexContext);
+                executeNode(nextNodeId, multiBranch ? hexContext.clone() : hexContext);
             } catch (Exception e) {
-                LOGGER.atSevere().log("error executing glyph %s: %s", nextNode.getGlyphId(), e.getMessage());
-                fail(hexContext);
+                LOGGER.atSevere().log("error executing glyph %s: %s", nextNodeId, e.getMessage());
             }
+        }
+    }
+
+    private static void executeNode(String nodeId, HexContext hexContext) {
+        Glyph nextNode = hexContext.getGlyph(nodeId);
+        if (nextNode == null) {
+            LOGGER.atSevere().log("dangling glyph reference: %s not found in hex graph", nodeId);
+            fail(hexContext);
+            return;
+        }
+        GlyphHandler nextHandler = GlyphRegistry.get(nextNode.getGlyphId());
+        if (nextHandler == null) {
+            LOGGER.atSevere().log("no handler found for glyph %s, skipping", nextNode.getGlyphId());
+            fail(hexContext);
+            return;
+        }
+        try {
+            if (!nextHandler.consumeResources(nextNode, hexContext)) {
+                fail(hexContext);
+                return;
+            }
+            LOGGER.atInfo().log("Executing glyph %s - ID: %s", nextNode.getGlyphId(), nextNode.getId());
+            nextHandler.execute(nextNode, hexContext);
+        } catch (Exception e) {
+            LOGGER.atSevere().log("error executing glyph %s: %s", nextNode.getGlyphId(), e.getMessage());
+            fail(hexContext);
         }
     }
 

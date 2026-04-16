@@ -27,7 +27,6 @@ import com.riprod.hexcode.builtin.glyphs.effect.domain.DomainConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.effect.glaciate.GlaciateConstructHandler;
 import com.riprod.hexcode.core.common.construct.ConstructRegistry;
 import com.riprod.hexcode.core.common.construct.component.HexConstruct;
-import com.riprod.hexcode.core.common.construct.system.HexConstructSystem;
 import com.riprod.hexcode.core.common.effect.HexEffectHandler;
 import com.riprod.hexcode.core.common.effect.HexEffectRegistry;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
@@ -315,7 +314,6 @@ public class BuiltinPlugin extends JavaPlugin {
         entityStoreRegistry.registerSystem(new FortifyDamageSystem());
         entityStoreRegistry.registerSystem(new LevitateTickSystem());
         entityStoreRegistry.registerSystem(new HaltProjectileTickSystem());
-        entityStoreRegistry.registerSystem(new HexConstructSystem());
     }
 
     private void RegisterEffects() {

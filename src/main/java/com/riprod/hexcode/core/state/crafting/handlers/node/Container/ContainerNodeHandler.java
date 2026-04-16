@@ -46,7 +46,8 @@ import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.state.casting.utils.GlyphStyler;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
-import com.riprod.hexcode.core.state.crafting.component.CraftingData;
+import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
+import com.riprod.hexcode.core.state.crafting.session.SessionUtils;
 import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 import com.riprod.hexcode.core.state.crafting.constants.NodeType;
 import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
@@ -55,7 +56,6 @@ import com.riprod.hexcode.core.state.crafting.entity.PedestalEntity;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeInterface;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeRouter;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Anchor.AnchorNodeHandler;
-import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
 import com.riprod.hexcode.utils.CleanupUtils;
 import com.riprod.hexcode.utils.GlyphMath;
 import com.hypixel.hytale.logger.HytaleLogger;
@@ -158,20 +158,20 @@ public class ContainerNodeHandler implements NodeInterface {
             return InteractionState.Failed;
         }
 
-        CraftingData playerData = pedestal.getCraftingDataComponent();
-        if (playerData == null) {
-            logger.atWarning().log("container enter: playerData is null");
+        HexcodeSessionComponent session = SessionUtils.resolveSession(pedestal, accessor);
+        if (session == null) {
+            logger.atWarning().log("container enter: session is null");
             return InteractionState.Failed;
         }
 
-        if (!playerData.isOwner(playerRef)) {
+        if (!session.isOwner(playerRef)) {
             logger.atWarning().log("container enter: not owner — ownerRef=%s, playerRef=%s, same=%s",
-                    playerData.getOwnerRef(), playerRef, playerData.getOwnerRef() == playerRef);
+                    session.getOwnerRef(), playerRef, session.getOwnerRef() == playerRef);
             return InteractionState.Failed;
         }
 
-        if (playerData.getState() != PedestalState.SELECTING) {
-            logger.atWarning().log("container enter: wrong state=%s", playerData.getState());
+        if (session.getState() != PedestalState.SELECTING) {
+            logger.atWarning().log("container enter: wrong state=%s", session.getState());
             return InteractionState.Failed;
         }
 
@@ -186,8 +186,8 @@ public class ContainerNodeHandler implements NodeInterface {
         Hex originalHex = null;
 
         if (isFilled) {
-            int slotIndex = playerData.getHexPreviewRefs().indexOf(node);
-            playerData.setActiveSlotIndex(slotIndex);
+            int slotIndex = session.getHexPreviewRefs().indexOf(node);
+            session.setActiveSlotIndex(slotIndex);
 
             Map<String, Ref<EntityStore>> oldChildren = hexComp.getChildGlyphRefs();
             if (oldChildren != null) {
@@ -199,7 +199,7 @@ public class ContainerNodeHandler implements NodeInterface {
                 oldChildren.clear();
             }
 
-            List<Hex> bookHexes = playerData.getHexes();
+            List<Hex> bookHexes = session.getHexes();
             if (slotIndex >= 0 && slotIndex < bookHexes.size()) {
                 Hex hex = bookHexes.get(slotIndex).clone();
                 HexComponent freshComp = new HexComponent(hex);
@@ -210,7 +210,7 @@ public class ContainerNodeHandler implements NodeInterface {
             }
 
         } else {
-            playerData.setActiveSlotIndex(playerData.getHexes().size());
+            session.setActiveSlotIndex(session.getHexes().size());
 
             originalHex = new Hex();
             HexComponent newHexComp = new HexComponent(originalHex);
@@ -226,7 +226,7 @@ public class ContainerNodeHandler implements NodeInterface {
         craftingComp.setHoveredRef(null);
         accessor.removeComponent(node, DebugComponent.getComponentType());
 
-        Vector3d anchorPos = PedestalEntity.getAnchorPosition(pedestal.getCraftingDataComponent().getPedestalLocation());
+        Vector3d anchorPos = PedestalEntity.getAnchorPosition(session.getPedestalLocation());
         Vector3d activePos = new Vector3d(
                 anchorPos.x + PedestalSystem.ACTIVE_HEX_OFFSET.x,
                 anchorPos.y + PedestalSystem.ACTIVE_HEX_OFFSET.y,
@@ -234,7 +234,7 @@ public class ContainerNodeHandler implements NodeInterface {
 
         Ref<EntityStore> rootNodeRef = AnchorNodeHandler.INSTANCE.spawnNode(accessor, originalHex,
                 node, activePos, playerRef);
-        playerData.setAnchorNodeRef(rootNodeRef);
+        session.setAnchorNodeRef(rootNodeRef);
 
         return InteractionState.Finished;
     }

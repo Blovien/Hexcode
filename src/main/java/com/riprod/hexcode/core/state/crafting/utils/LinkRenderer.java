@@ -16,7 +16,7 @@ import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.common.utilities.OrientedDebugUtil;
-import com.riprod.hexcode.core.state.crafting.component.CraftingData;
+import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
 import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 import com.riprod.hexcode.utils.VfxUtil;
@@ -29,7 +29,7 @@ public class LinkRenderer {
     private static final float CONE_TIME = 0.6f;
     private static final float THROTTLE_INTERVAL = -0.5f;
 
-    public static void renderLinks(CommandBuffer<EntityStore> accessor, CraftingData playerData,
+    public static void renderLinks(CommandBuffer<EntityStore> accessor, HexcodeSessionComponent session,
             PedestalBlockComponent pedestal, float dt) {
         if (pedestal.getTickLength("LINK_RENDER") < 0) {
             pedestal.incrementTickLength("LINK_RENDER", dt);
@@ -37,7 +37,7 @@ public class LinkRenderer {
         }
         pedestal.setTickLength("LINK_RENDER", THROTTLE_INTERVAL);
 
-        Ref<EntityStore> anchorNodeRef = playerData.getAnchorNodeRef();
+        Ref<EntityStore> anchorNodeRef = session.getAnchorNodeRef();
         if (anchorNodeRef == null || !anchorNodeRef.isValid()) return;
 
         NodeComponent anchorNode = accessor.getComponent(anchorNodeRef, NodeComponent.getComponentType());

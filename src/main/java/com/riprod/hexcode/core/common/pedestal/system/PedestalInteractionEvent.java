@@ -15,13 +15,14 @@ import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexcaster.utils.PlayerUtils;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.common.pedestal.events.PedestalSystem;
-import com.riprod.hexcode.core.state.crafting.component.CraftingData;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
+import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
+import com.riprod.hexcode.core.state.crafting.session.SessionUtils;
 import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
-import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalItemUtil;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.utils.HexSlot;
+import com.riprod.hexcode.utils.VfxUtil;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 
 import io.sentry.util.Pair;
@@ -45,137 +46,143 @@ public class PedestalInteractionEvent {
         World world = accessor.getExternalData().getWorld();
 
         Player player = accessor.getComponent(playerRef, Player.getComponentType());
-        if (player == null) {
+        if (player == null)
             return;
-        }
 
         PedestalBlockComponent pedestalComponent = BlockModule.getComponent(
                 PedestalBlockComponent.getComponentType(), world,
                 blockPos.x, blockPos.y, blockPos.z);
-
         if (pedestalComponent == null) {
             logger.atInfo().log("pedestal interaction failed: no PedestalBlockComponent at %s", blockPos);
             return;
         }
 
-        CraftingData playerData = pedestalComponent.getCraftingDataComponent();
-        if (playerData == null) {
-            logger.atWarning().log("pedestal interaction: no CraftingData at %s", blockPos);
+        Ref<EntityStore> existingSessionRef = SessionUtils.getSessionRef(pedestalComponent);
+        HexcodeSessionComponent session = existingSessionRef != null
+                ? accessor.getComponent(existingSessionRef, HexcodeSessionComponent.getComponentType())
+                : null;
+
+        Ref<EntityStore> playerSessionRef = SessionUtils.getSessionRefByPlayer(playerRef, accessor);
+
+        if (playerSessionRef != null && !playerSessionRef.equals(existingSessionRef)) {
+            PlayerRef pr = accessor.getComponent(playerRef, PlayerRef.getComponentType());
+            if (pr != null) {
+                pr.sendMessage(Message.raw("You are already in another crafting session."));
+            }
             return;
         }
 
-        if (playerData.getOwnerRef() == null || !playerData.getOwnerRef().isValid()) {
-            playerData.setOwnerRef(playerRef);
-        }
+        if (session != null) {
+            boolean isOwner = session.isOwner(playerRef);
+            boolean isParticipant = session.isParticipant(playerRef);
 
-        // access control
-        Ref<EntityStore> ownerRef = playerData.getOwnerRef();
-        boolean hasOwner = ownerRef != null && ownerRef.isValid();
-        boolean isOwner = hasOwner && ownerRef.equals(playerRef);
-
-        if (hasOwner && !isOwner) {
-            if (pedestalComponent.isPerPlayer()) {
-                PlayerRef pr = accessor.getComponent(playerRef, PlayerRef.getComponentType());
-                if (pr != null) {
-                    pr.sendMessage(Message.raw("This pedestal is already in use!"));
-                }
-                return;
-            }
-
-            PedestalState state = playerData.getState();
-            if (state == PedestalState.CRAFTING || state == PedestalState.SELECTING) {
-                HexcasterComponent hexcaster = accessor.getComponent(playerRef, HexcasterComponent.getComponentType());
-                if (hexcaster != null && hexcaster.getState() == HexState.CRAFTING) {
-                    hexcaster.requestStateChange(HexState.IDLE);
-                    pedestalComponent.getActivePlayerRefs().remove(playerRef);
-                    HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
-                            HexcasterCraftingComponent.getComponentType());
-                    if (craftingComp != null) {
-                        craftingComp.clear(accessor);
+            if (!isOwner && !isParticipant) {
+                if (!session.isOpen()) {
+                    PlayerRef pr = accessor.getComponent(playerRef, PlayerRef.getComponentType());
+                    if (pr != null) {
+                        pr.sendMessage(Message.raw("This pedestal is already in use!"));
                     }
                     return;
                 }
-                joinAsCollaborator(accessor, playerRef, pedestalComponent, playerData);
+
+                PedestalState state = session.getState();
+                if (state == PedestalState.CRAFTING || state == PedestalState.SELECTING) {
+                    joinAsCollaborator(accessor, playerRef, existingSessionRef, session);
+                    return;
+                }
+
+                PlayerRef pr = accessor.getComponent(playerRef, PlayerRef.getComponentType());
+                if (pr != null) {
+                    pr.sendMessage(Message.raw("Waiting for the owner to finish setting up the pedestal."));
+                }
                 return;
             }
 
-            PlayerRef pr = accessor.getComponent(playerRef, PlayerRef.getComponentType());
-            if (pr != null) {
-                pr.sendMessage(Message.raw("Waiting for the owner to finish setting up the pedestal."));
+            if (isParticipant && !isOwner) {
+                PedestalState state = session.getState();
+                if (state == PedestalState.CRAFTING || state == PedestalState.SELECTING) {
+                    HexcasterComponent hexcaster = accessor.getComponent(playerRef,
+                            HexcasterComponent.getComponentType());
+                    if (hexcaster != null && hexcaster.getState() == HexState.CRAFTING) {
+                        hexcaster.requestStateChange(HexState.IDLE);
+                        session.removeParticipant(playerRef);
+                        HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
+                                HexcasterCraftingComponent.getComponentType());
+                        if (craftingComp != null) {
+                            craftingComp.clear(accessor);
+                        }
+                        return;
+                    }
+                    joinAsCollaborator(accessor, playerRef, existingSessionRef, session);
+                    return;
+                }
+                return;
             }
-            return;
         }
 
-        if (!hasOwner) {
-            playerData.setOwnerRef(playerRef);
+        if (session == null) {
+            session = SessionUtils.createSession(accessor, pedestalComponent, blockPos,
+                    playerRef, !pedestalComponent.isPerPlayer());
+            existingSessionRef = pedestalComponent.getSessionRef();
         }
 
         Pair<ItemStack, ItemStack> held = PlayerUtils.getItemFromHands(accessor, playerRef);
         ItemStack mainHand = held.getFirst();
         ItemStack utilityHand = held.getSecond();
 
-        if (PedestalItemUtil.anyEssence(mainHand, utilityHand) && playerData.getEssence() == null) {
-            Pair<ItemStack, HexSlot> essence = PedestalItemUtil.getEssence(mainHand, utilityHand);
-            PedestalSystem.handleEssencePlacement(accessor, player, essence.getFirst(), essence.getSecond(),
-                    pedestalComponent, playerData,
-                    blockPos);
-            PedestalSystem.handleReady(accessor, playerData, pedestalComponent, world);
-            return;
-        }
-
-        if (PedestalItemUtil.anyHexBook(mainHand, utilityHand) && playerData.getStoredBook().isEmpty()) {
-            Pair<ItemStack, HexSlot> book = PedestalItemUtil.getHexBook(mainHand, utilityHand);
-            PedestalSystem.handleBookPlacement(accessor, player, book.getFirst(), book.getSecond(), pedestalComponent,
-                    playerData, blockPos);
-            PedestalSystem.handleReady(accessor, playerData, pedestalComponent, world);
-            return;
-        }
-
-        boolean hasEssence = playerData.getEssence() != null;
-        boolean hasBook = playerData.getStoredBook() != null && !playerData.getStoredBook().isEmpty();
-
-        if (hasBook && !hasEssence) {
-            PedestalSystem.enterIdle(accessor, playerRef, pedestalComponent, world);
-            return;
-        }
-
-        if (hasEssence && !hasBook) {
-            PedestalSystem.enterIdle(accessor, playerRef, pedestalComponent, world);
-            return;
-        }
-
-        if (hasBook && hasEssence) {
-            PedestalState state = playerData.getState();
-            logger.atInfo().log("pedestal: hasBook && hasEssence, state=%s", state);
-            if (state == PedestalState.CRAFTING) {
-                PedestalSystem.exitCrafting(accessor, playerRef, pedestalComponent, playerData);
-                PedestalSystem.enterSelecting(pedestalComponent, player, world, accessor);
-            } else if (state == PedestalState.SELECTING) {
-                PedestalSystem.enterIdle(accessor, playerRef, pedestalComponent, world);
-            } else {
-                logger.atInfo().log("pedestal: entering selecting + obelisk flow");
-                PedestalSystem.enterSelecting(pedestalComponent, player, world, accessor);
+        if (PedestalItemUtil.anyEssence(mainHand, utilityHand) && session.getEssence() == null) {
+            PedestalState currentState = session.getState();
+            if (currentState == PedestalState.IDLE || currentState == PedestalState.READY
+                    || currentState == PedestalState.SELECTING) {
+                Pair<ItemStack, HexSlot> essence = PedestalItemUtil.getEssence(mainHand, utilityHand);
+                PedestalSystem.handleEssencePlacement(accessor, player, essence.getFirst(), essence.getSecond(),
+                        pedestalComponent, session, blockPos);
+                if (currentState == PedestalState.IDLE) {
+                    PedestalSystem.handleReady(accessor, session, pedestalComponent, world);
+                }
+                return;
             }
+        }
+
+        if (PedestalItemUtil.anyHexBook(mainHand, utilityHand) && session.getStoredBook().isEmpty()) {
+            Pair<ItemStack, HexSlot> book = PedestalItemUtil.getHexBook(mainHand, utilityHand);
+            PedestalSystem.handleBookPlacement(accessor, player, book.getFirst(), book.getSecond(),
+                    pedestalComponent, session, blockPos);
+            VfxUtil.particle("Area_Pulse", blockPos.toVector3d(), accessor);
+            PedestalSystem.handleReady(accessor, session, pedestalComponent, world);
+            return;
+        }
+
+        boolean hasBook = session.getStoredBook() != null && !session.getStoredBook().isEmpty();
+
+        if (!hasBook) {
+            SessionUtils.endSession(accessor, existingSessionRef, world);
+            return;
+        }
+
+        PedestalState state = session.getState();
+        logger.atInfo().log("pedestal: hasBook, state=%s", state);
+        if (state == PedestalState.CRAFTING) {
+            PedestalSystem.exitCrafting(accessor, playerRef, pedestalComponent, session);
+            PedestalSystem.enterSelecting(pedestalComponent, player, world, accessor);
+        } else if (state == PedestalState.SELECTING) {
+            VfxUtil.sound("SFX_Deployable_Totem_Heal_Despawn", pedestalComponent.getLocation().toVector3d(), accessor);
+            SessionUtils.endSession(accessor, existingSessionRef, world);
+        } else {
+            VfxUtil.sound("SFX_Arcane_Workbench_Open_Local", pedestalComponent.getLocation().toVector3d(), accessor);
+            logger.atInfo().log("pedestal: entering selecting + obelisk flow");
+            PedestalSystem.enterSelecting(pedestalComponent, player, world, accessor);
         }
     }
 
     private static void joinAsCollaborator(CommandBuffer<EntityStore> accessor, Ref<EntityStore> playerRef,
-            PedestalBlockComponent pedestalComponent, CraftingData playerData) {
+            Ref<EntityStore> sessionRef, HexcodeSessionComponent session) {
 
-        HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
-                HexcasterCraftingComponent.getComponentType());
-        if (craftingComp == null) {
-            craftingComp = new HexcasterCraftingComponent();
-            accessor.putComponent(playerRef, HexcasterCraftingComponent.getComponentType(), craftingComp);
-        }
-        craftingComp.setPedestalLocation(playerData.getPedestalLocation());
+        SessionUtils.joinSession(accessor, sessionRef, playerRef);
 
         HexcasterComponent hexcaster = accessor.getComponent(playerRef, HexcasterComponent.getComponentType());
         if (hexcaster != null) {
             hexcaster.requestStateChange(HexState.CRAFTING);
         }
-
-        pedestalComponent.addDetectedPlayer(accessor, playerRef);
     }
-
 }

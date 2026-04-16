@@ -7,7 +7,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.hypixel.hytale.component.AddReason;
-import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.vector.Vector3d;
@@ -22,12 +21,18 @@ import com.riprod.hexcode.core.common.construct.ConstructHandler;
 import com.riprod.hexcode.core.common.construct.ConstructTickContext;
 import com.riprod.hexcode.core.common.construct.HexConstructSpawner;
 import com.riprod.hexcode.core.common.construct.component.HexConstruct;
+import com.riprod.hexcode.core.common.glyphs.component.Glyph;
+import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.state.execution.component.HexColors;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.RootGlyph;
+import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 
 public class ArcConstructHandler implements ConstructHandler {
+
+    private static final float DEFAULT_JUMP_RANGE = 15.0f;
+    private static final float SHOCK_OVERLAP = 0.25f;
 
     @Override
     public boolean onTick(float dt, HexConstruct construct, ConstructTickContext ctx) {
@@ -47,6 +52,10 @@ public class ArcConstructHandler implements ConstructHandler {
 
     @Override
     public void onCleanup(HexConstruct construct, ConstructTickContext ctx) {
+        ArcComponent arc = ctx.getBuffer().getComponent(
+                ctx.getEntityRef(), ArcComponent.getComponentType());
+        if (arc != null && arc.isNaturalCompletion()) return;
+
         TransformComponent tc = ctx.getBuffer().getComponent(
                 ctx.getEntityRef(), TransformComponent.getComponentType());
         if (tc != null) {
@@ -58,25 +67,61 @@ public class ArcConstructHandler implements ConstructHandler {
     private boolean fireAndPrepareHop(ArcComponent arc, HexConstruct construct,
             ConstructTickContext ctx) {
         String branch = arc.getCurrentBranch();
-        if (branch == null) return true;
+        if (branch == null) {
+            arc.setNaturalCompletion(true);
+            return true;
+        }
 
-        final Ref<EntityStore> entityRef = ctx.getEntityRef();
-        UUIDComponent uuid = ctx.getBuffer().getComponent(entityRef, UUIDComponent.getComponentType());
+        HexContext hexContext = construct.getHexContext();
+        if (!tryConsumePerHopMana(arc, hexContext, ctx)) {
+            return true;
+        }
 
-        ctx.fireBranch(List.of(branch), hexCtx -> {
-            if (uuid != null && construct.getTriggeringGlyph() != null) {
-                construct.getTriggeringGlyph().writeSlot("result",
-                        new EntityVar(EntityVar.createRef(uuid.getUuid(), entityRef)), hexCtx);
-            }
-        });
+        final Ref<EntityStore> targetRef = arc.getCurrentTargetRef();
+        final UUID targetUuid = arc.getCurrentTargetUuid();
+        final Glyph triggeringGlyph = construct.getTriggeringGlyph();
+
+        if (targetRef != null && targetRef.isValid() && targetUuid != null
+                && triggeringGlyph != null) {
+            ctx.fireBranch(List.of(branch), hexCtx -> {
+                triggeringGlyph.writeSlot("result",
+                        new EntityVar(targetUuid, targetRef), hexCtx);
+            });
+        } else {
+            ctx.fireBranch(List.of(branch), null);
+        }
 
         arc.advanceBranch();
         arc.setHasFired(true);
         arc.resetTimer();
 
-        if (!arc.hasMoreBranches()) return true;
+        if (!arc.hasMoreBranches()) {
+            arc.setNaturalCompletion(true);
+            return true;
+        }
 
         return false;
+    }
+
+    private boolean tryConsumePerHopMana(ArcComponent arc, HexContext hexContext,
+            ConstructTickContext ctx) {
+        Glyph arcGlyph = arc.getArcGlyph();
+        if (arcGlyph == null) return true;
+
+        GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(arcGlyph.getGlyphId());
+        if (asset == null) return true;
+
+        float baseCost = asset.getManaConsumption()
+                * ((1 - arcGlyph.getEfficiency()) * 0.25f + 0.75f);
+
+        VolatilityTracker tracker = hexContext.getVolatilityTracker();
+        float castMultiplier = (tracker != null) ? tracker.getManaCostMultiplier() : 1.0f;
+
+        float rangeScale = arc.getMaxJumpDistance() / DEFAULT_JUMP_RANGE;
+        float finalCost = baseCost * castMultiplier * rangeScale;
+
+        if (hexContext.getRoot() == null) return true;
+        return hexContext.getRoot().tryConsumeMana(finalCost, ctx.getBuffer());
     }
 
     private boolean hop(ArcComponent arc, HexConstruct construct, ConstructTickContext ctx) {
@@ -104,7 +149,7 @@ public class ArcConstructHandler implements ConstructHandler {
         HexColors colors = hexContext.getColors();
         World world = ctx.getBuffer().getExternalData().getWorld();
         ArcStyle.renderArc(ctx.getBuffer(), world, fromPos, nextPos, colors);
-        ArcUtils.applyShockEffect(ctx.getBuffer(), nextTarget);
+        ArcUtils.applyShockEffect(ctx.getBuffer(), nextTarget, arc.getDelay() + SHOCK_OVERLAP);
         ArcStyle.renderHit(ctx.getBuffer(), nextPos, colors);
 
         List<String> remainingBranches = new ArrayList<>(
@@ -115,12 +160,13 @@ public class ArcConstructHandler implements ConstructHandler {
         Holder<EntityStore> holder = HexConstructSpawner.create(
                 ctx.getBuffer(), hexContext, construct.getTriggeringGlyph(),
                 "arc", -1, 0,
-                null, construct.getConditionalBranchIds(), null,
+                null, null, null,
                 nextPos);
 
         ArcComponent nextHop = new ArcComponent(
                 arc.getArcGlyph(), remainingBranches, visited,
-                arc.getMaxJumpDistance(), arc.getDelay());
+                arc.getMaxJumpDistance(), arc.getDelay(),
+                nextTarget, nextUuid != null ? nextUuid.getUuid() : null);
         holder.addComponent(ArcComponent.getComponentType(), nextHop);
 
         Ref<EntityStore> newRef = ctx.getBuffer().addEntity(holder, AddReason.SPAWN);
@@ -133,6 +179,7 @@ public class ArcConstructHandler implements ConstructHandler {
             }
         }
 
+        arc.setNaturalCompletion(true);
         return true;
     }
 }

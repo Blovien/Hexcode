@@ -20,12 +20,12 @@ import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
-import com.riprod.hexcode.core.state.crafting.component.CraftingData;
+import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
+import com.riprod.hexcode.core.state.crafting.session.SessionUtils;
 import com.riprod.hexcode.core.state.crafting.handlers.CraftingDragHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeRouter;
 import com.riprod.hexcode.core.state.crafting.utils.HoverStyleUtils;
 import com.riprod.hexcode.core.state.crafting.utils.LinkRenderer;
-import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
 
 public class CraftingStateSystem {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -142,19 +142,10 @@ public class CraftingStateSystem {
 
         HoverStyleUtils.hoverParticles(accessor, craftingComp.getHoveredRef(), dt, pedestal);
 
-        PedestalBlockComponent blockComp = PedestalBlockUtil.resolvePedestal(ref, accessor);
-        CraftingData playerData = blockComp != null ? blockComp.getCraftingDataComponent() : null;
+        HexcodeSessionComponent session = SessionUtils.resolveSession(pedestal, accessor);
 
-        if (playerData != null) {
-            LinkRenderer.renderLinks(accessor, playerData, pedestal, dt);
-
-            if (playerData.getActiveSlotIndex() >= 0) {
-                playerData.setAutosaveTickCounter(playerData.getAutosaveTickCounter() + 1);
-                if (playerData.getAutosaveTickCounter() >= CraftingData.AUTOSAVE_INTERVAL) {
-                    PedestalSystem.saveHexToBook(accessor, ref, playerData);
-                    playerData.setAutosaveTickCounter(0);
-                }
-            }
+        if (session != null) {
+            LinkRenderer.renderLinks(accessor, session, pedestal, dt);
         }
     }
 

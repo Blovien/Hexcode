@@ -3,6 +3,7 @@ package com.riprod.hexcode.builtin.glyphs.effect.arc.style;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.protocol.Color;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.state.execution.component.HexColors;
@@ -30,17 +31,29 @@ public class ArcStyle {
 
     public static void renderHit(CommandBuffer<EntityStore> accessor, Vector3d position,
             HexColors colors) {
-        VfxUtil.particle(ARC_PARTICLE, position, accessor);
+        Color color = resolveProtocolColor(colors);
+        VfxUtil.particleAlongPath(ARC_PARTICLE, position, position, 1, color, null, accessor);
         VfxUtil.sound(ARC_SOUND, position, accessor);
     }
 
     public static void renderFizzle(CommandBuffer<EntityStore> accessor, Vector3d position,
             HexColors colors) {
-        VfxUtil.particle(ARC_PARTICLE, position, accessor);
+        Color color = resolveProtocolColor(colors);
+        VfxUtil.particleAlongPath(ARC_PARTICLE, position, position, 1, color, null, accessor);
     }
 
     private static Vector3f resolveColor(HexColors colors) {
         if (colors == null || colors.getPrimaryColor() == null) return DEFAULT_COLOR;
         return HexColors.toVector3f(colors.getPrimaryColor());
+    }
+
+    private static Color resolveProtocolColor(HexColors colors) {
+        if (colors == null || colors.getPrimaryColor() == null) {
+            return new Color(
+                    (byte) (DEFAULT_COLOR.x * 255f),
+                    (byte) (DEFAULT_COLOR.y * 255f),
+                    (byte) (DEFAULT_COLOR.z * 255f));
+        }
+        return colors.getPrimaryColor();
     }
 }

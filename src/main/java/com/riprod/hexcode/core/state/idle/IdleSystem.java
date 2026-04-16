@@ -5,13 +5,15 @@ import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.protocol.InteractionState;
-import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
+import com.riprod.hexcode.core.state.crafting.utils.PedestalItemUtil;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
 import com.riprod.hexcode.utils.CleanupUtils;
+import com.riprod.hexcode.utils.HexSlot;
+import com.hypixel.hytale.server.core.inventory.ItemStack;
 
 public class IdleSystem extends HexcodeManager {
 
@@ -40,14 +42,21 @@ public class IdleSystem extends HexcodeManager {
         @Override
         public void tick0(Ref<EntityStore> ref, HexcasterComponent comp, float dt,
                         Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
+                HexcasterCraftingComponent craftingComp = buffer.getComponent(ref,
+                                HexcasterCraftingComponent.getComponentType());
+                if (craftingComp == null) return;
+                ItemStack snapshot = craftingComp.getPersistedBookSnapshot();
+                if (snapshot != null && !snapshot.isEmpty()) {
+                        HexSlot slot = craftingComp.getPersistedBookSourceSlot();
+                        if (slot == null) slot = HexSlot.MainHand;
+                        PedestalItemUtil.returnBookToPlayer(buffer, ref, snapshot, slot);
+                        craftingComp.setPersistedBookSnapshot(null);
+                        craftingComp.setPersistedBookSourceSlot(null);
+                }
         }
 
         @Override
         public void onPlayerJoin(Holder<EntityStore> holder, HexcasterComponent comp) {
-        }
-
-        @Override
-        public void onPlayerLeave(PlayerRef playerRef) {
         }
 
         @Override

@@ -11,6 +11,7 @@ import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
+import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
 
 public class PedestalBlockUtil {
 
@@ -41,11 +42,13 @@ public class PedestalBlockUtil {
 
         HexcasterCraftingComponent craftingComp = buffer.getComponent(playerRef,
                 HexcasterCraftingComponent.getComponentType());
-        if (craftingComp == null) {
-            return null;
-        }
+        if (craftingComp == null || !craftingComp.hasActiveSession()) return null;
 
-        Vector3i pos = craftingComp.getPedestalLocation();
+        HexcodeSessionComponent session = buffer.getComponent(craftingComp.getSessionRef(),
+                HexcodeSessionComponent.getComponentType());
+        if (session == null) return null;
+
+        Vector3i pos = session.getPedestalLocation();
         return BlockModule.getComponent(
                 PedestalBlockComponent.getComponentType(),
                 buffer.getExternalData().getWorld(),

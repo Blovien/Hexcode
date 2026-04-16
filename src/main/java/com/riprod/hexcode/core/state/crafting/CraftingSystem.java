@@ -11,37 +11,28 @@ import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.entity.entities.Player;
-import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
-import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
-import com.riprod.hexcode.core.common.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
-import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
-import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
-import com.riprod.hexcode.core.common.hover.component.HoverableType;
-import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.common.pedestal.events.PedestalSystem;
 import com.riprod.hexcode.core.common.pedestal.utils.PedestalBlockUtil;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
-import com.riprod.hexcode.core.state.crafting.component.CraftingData;
+import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
+import com.riprod.hexcode.core.state.crafting.session.SessionUtils;
 import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
 import com.riprod.hexcode.core.state.crafting.handlers.CraftingDragHandler;
-import com.riprod.hexcode.core.state.crafting.handlers.node.NodeRouter;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Container.ContainerNodeHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Slot.SlotNodeHandler;
 import com.riprod.hexcode.core.state.crafting.system.CraftingStateSystem;
-import com.riprod.hexcode.core.state.crafting.utils.CraftingPositionUtil;
 import com.riprod.hexcode.core.state.crafting.utils.GravityUtil;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
@@ -61,7 +52,7 @@ public class CraftingSystem extends HexcodeManager {
         HexcasterCraftingComponent craftingComp = buffer.getComponent(ref,
                 HexcasterCraftingComponent.getComponentType());
 
-        if (craftingComp == null || craftingComp.getPedestalLocation() == null) {
+        if (craftingComp == null || !craftingComp.hasActiveSession()) {
             comp.requestStateChange(HexState.IDLE);
             return;
         }
@@ -77,9 +68,9 @@ public class CraftingSystem extends HexcodeManager {
         HexcasterCraftingComponent craftingComp = buffer.getComponent(ref,
                 HexcasterCraftingComponent.getComponentType());
         PedestalBlockComponent pedestal = PedestalBlockUtil.resolvePedestal(ref, buffer);
-        CraftingData playerData = pedestal != null ? pedestal.getCraftingDataComponent() : null;
+        HexcodeSessionComponent session = pedestal != null ? SessionUtils.resolveSession(pedestal, buffer) : null;
 
-        if (craftingComp == null || playerData == null) {
+        if (craftingComp == null || session == null) {
             if (craftingComp != null) {
                 craftingComp.clear(buffer);
             }
@@ -87,7 +78,7 @@ public class CraftingSystem extends HexcodeManager {
             return;
         }
 
-        SlotNodeHandler.INSTANCE.despawn(buffer, playerData);
+        SlotNodeHandler.INSTANCE.despawn(buffer, session);
 
         CraftingDragHandler.endDrag(buffer, craftingComp.getDraggingRef(),
                 craftingComp.getHeadAnchorRef());
@@ -98,30 +89,28 @@ public class CraftingSystem extends HexcodeManager {
 
         GravityUtil.exitFly(buffer, ref);
 
-        boolean isOwner = playerData != null && playerData.isOwner(ref);
+        boolean isOwner = session.isOwner(ref);
 
         if (!isOwner) {
-            // collaborator leaving: clean up their interaction state only
-            if (pedestal != null) {
-                pedestal.getActivePlayerRefs().remove(ref);
-            }
+            session.removeParticipant(ref);
             if (craftingComp != null) {
                 craftingComp.clear(buffer);
             }
             return;
         }
 
-        // owner leaving: full cleanup — delegate to canonical exit path
-        PedestalSystem.exitCrafting(buffer, ref, pedestal, playerData);
-        PedestalSystem.enterIdle(buffer, ref, pedestal, buffer.getExternalData().getWorld());
+        World world = buffer.getExternalData().getWorld();
+        PedestalSystem.exitCrafting(buffer, ref, pedestal, session);
+        Ref<EntityStore> sessionRef = SessionUtils.getSessionRef(pedestal);
+        if (sessionRef != null) {
+            SessionUtils.endSession(buffer, sessionRef, world);
+        }
     }
 
     @Override
     public void tick0(Ref<EntityStore> ref, HexcasterComponent comp, float dt,
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
 
-        // cleanup the head anchor if it exists but isn't being dragged (can happen if
-        // player leaves mid-drag)
         HexcasterCraftingComponent craftingComp = buffer.getComponent(ref,
                 HexcasterCraftingComponent.getComponentType());
         if (craftingComp != null && craftingComp.getDraggingRef() == null
@@ -138,37 +127,38 @@ public class CraftingSystem extends HexcodeManager {
             return;
         }
 
-        CraftingData playerData = pedestal.getCraftingDataComponent();
-        if (playerData != null && playerData.getPendingReenterSlot() >= 0) {
-            int slot = playerData.getPendingReenterSlot();
-            playerData.setPendingReenterSlot(-1);
-            List<Ref<EntityStore>> previewRefs = playerData.getHexPreviewRefs();
+        HexcodeSessionComponent session = SessionUtils.resolveSession(pedestal, buffer);
+        if (session != null && session.getPendingReenterSlot() >= 0) {
+            int slot = session.getPendingReenterSlot();
+            session.setPendingReenterSlot(-1);
+            List<Ref<EntityStore>> previewRefs = session.getHexPreviewRefs();
             if (slot < previewRefs.size()) {
                 ContainerNodeHandler.INSTANCE.enter(buffer, previewRefs.get(slot), ref);
             }
             return;
         }
-        if (playerData != null && playerData.getPendingImportHex() != null) {
-            int savedSlot = playerData.getActiveSlotIndex();
-            Hex importedHex = playerData.getPendingImportHex();
-            playerData.setPendingImportHex(null);
+        if (session != null && session.getPendingImportHex() != null) {
+            int savedSlot = session.getActiveSlotIndex();
+            Hex importedHex = session.getPendingImportHex();
+            session.setPendingImportHex(null);
 
-            PedestalSystem.exitCrafting(buffer, ref, pedestal, playerData);
+            PedestalSystem.exitCrafting(buffer, ref, pedestal, session);
 
-            HexBookComponent bookComp = playerData.getStoredBookComponent();
+            com.riprod.hexcode.core.common.hexbook.component.HexBookComponent bookComp = session
+                    .getStoredBookComponent();
             if (bookComp != null) {
                 List<Hex> hexes = bookComp.getHexes();
                 while (hexes.size() <= savedSlot)
                     hexes.add(new Hex());
                 hexes.set(savedSlot, importedHex);
-                playerData.setStoredBookComponent(bookComp);
+                session.setStoredBookComponent(bookComp);
             }
 
             Player player = buffer.getComponent(ref, Player.getComponentType());
             World world = buffer.getExternalData().getWorld();
             PedestalSystem.enterSelecting(pedestal, player, world, buffer);
 
-            playerData.setPendingReenterSlot(savedSlot);
+            session.setPendingReenterSlot(savedSlot);
             return;
         }
 
@@ -209,9 +199,9 @@ public class CraftingSystem extends HexcodeManager {
         if (blockComp == null) {
             return InteractionState.Finished;
         }
-        CraftingData playerData = blockComp.getCraftingDataComponent();
+        HexcodeSessionComponent session = SessionUtils.resolveSession(blockComp, accessor);
 
-        if (playerData == null || playerData.getState() != PedestalState.CRAFTING) {
+        if (session == null || session.getState() != PedestalState.CRAFTING) {
             return InteractionState.Finished;
         }
 
@@ -226,13 +216,13 @@ public class CraftingSystem extends HexcodeManager {
         if (pedestal == null)
             return InteractionState.NotFinished;
 
-        CraftingData playerData = pedestal.getCraftingDataComponent();
+        HexcodeSessionComponent session = SessionUtils.resolveSession(pedestal, buffer);
 
-        if (playerData == null) {
+        if (session == null) {
             return InteractionState.NotFinished;
         }
 
-        if (playerData.getState() == PedestalState.CRAFTING) {
+        if (session.getState() == PedestalState.CRAFTING) {
             CraftingStateSystem.tickInteraction(buffer, dt, ref, pedestal);
         }
 
@@ -246,8 +236,8 @@ public class CraftingSystem extends HexcodeManager {
         if (pedestal == null) {
             return InteractionState.Finished;
         }
-        CraftingData playerData = pedestal.getCraftingDataComponent();
-        if (playerData == null || playerData.getState() != PedestalState.CRAFTING) {
+        HexcodeSessionComponent session = SessionUtils.resolveSession(pedestal, accessor);
+        if (session == null || session.getState() != PedestalState.CRAFTING) {
             return InteractionState.Finished;
         }
         return CraftingStateSystem.exitInteraction(accessor, ref);
@@ -258,95 +248,50 @@ public class CraftingSystem extends HexcodeManager {
     }
 
     @Override
-    public void onPlayerLeave(PlayerRef playerRef) {
-        HexcasterCraftingComponent craftingComp = null;
-        Store<EntityStore> store = null;
-        Ref<EntityStore> ref = playerRef.getReference();
-        boolean refValid = ref != null && ref.isValid();
+    public void onPlayerLeave(Ref<EntityStore> ref, HexcasterComponent comp,
+            Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
+        HexcasterCraftingComponent craftingComp = buffer.getComponent(ref,
+                HexcasterCraftingComponent.getComponentType());
+        if (craftingComp == null || !craftingComp.hasActiveSession()) return;
 
-        if (refValid) {
-            store = ref.getStore();
-            craftingComp = store.getComponent(ref, HexcasterCraftingComponent.getComponentType());
-        } else {
-            Holder<EntityStore> holder = playerRef.getHolder();
-            if (holder != null) {
-                craftingComp = holder.getComponent(HexcasterCraftingComponent.getComponentType());
-            }
-        }
-
-        if (craftingComp == null)
-            return;
-
-        Ref<EntityStore> headAnchor = craftingComp.getHeadAnchorRef();
-        if (headAnchor != null && headAnchor.isValid()) {
-            if (store == null)
-                store = headAnchor.getStore();
-            store.removeEntity(headAnchor, RemoveReason.REMOVE);
-        }
-
-        if (!refValid)
-            return;
-
-        Vector3i blockPos = craftingComp.getPedestalLocation();
-        if (blockPos == null)
-            return;
-
-        PedestalBlockComponent blockComp = BlockModule.getComponent(
-                PedestalBlockComponent.getComponentType(),
-                store.getExternalData().getWorld(),
-                blockPos.getX(), blockPos.getY(), blockPos.getZ());
-        CraftingData playerData = blockComp.getCraftingDataComponent();
-        if (playerData == null)
-            return;
-
-        if (!playerData.isOwner(ref)) {
-            blockComp.getActivePlayerRefs().remove(ref);
+        Ref<EntityStore> sessionRef = craftingComp.getSessionRef();
+        HexcodeSessionComponent session = buffer.getComponent(sessionRef,
+                HexcodeSessionComponent.getComponentType());
+        if (session == null) {
+            craftingComp.clear(buffer);
             return;
         }
 
-        PedestalSystem.saveHexToBook(store, ref, playerData);
+        CleanupUtils.safeRemoveEntity(buffer, craftingComp.getHeadAnchorRef());
 
-        for (Ref<EntityStore> previewRef : playerData.getHexPreviewRefs()) {
-            if (previewRef == null || !previewRef.isValid())
-                continue;
-            HexComponent hexComp = store.getComponent(previewRef, HexComponent.getComponentType());
-            if (hexComp == null)
-                continue;
+        if (!session.isOwner(ref)) {
+            session.removeParticipant(ref);
+            craftingComp.clear(buffer);
+            return;
+        }
+
+        PedestalSystem.saveHexToBook(store, ref, session);
+
+        for (Ref<EntityStore> previewRef : session.getHexPreviewRefs()) {
+            if (previewRef == null || !previewRef.isValid()) continue;
+            HexComponent hexComp = buffer.getComponent(previewRef, HexComponent.getComponentType());
+            if (hexComp == null) continue;
             Map<String, Ref<EntityStore>> children = hexComp.getChildGlyphRefs();
-            if (children == null)
-                continue;
+            if (children == null) continue;
             for (Ref<EntityStore> childRef : children.values()) {
-                if (childRef == null || !childRef.isValid())
-                    continue;
-                GlyphComponent glyphComp = store.getComponent(childRef, GlyphComponent.getComponentType());
+                if (childRef == null || !childRef.isValid()) continue;
+                GlyphComponent glyphComp = buffer.getComponent(childRef, GlyphComponent.getComponentType());
                 if (glyphComp != null) {
-                    for (Ref<EntityStore> slotRef : glyphComp.getSlotEntityRefs()) {
-                        if (slotRef != null && slotRef.isValid()) {
-                            store.removeEntity(slotRef, RemoveReason.REMOVE);
-                        }
-                    }
+                    CleanupUtils.safeRemoveEntities(buffer, glyphComp.getSlotEntityRefs());
                     glyphComp.getSlotEntityRefs().clear();
                 }
-                store.removeEntity(childRef, RemoveReason.REMOVE);
+                CleanupUtils.safeRemoveEntity(buffer, childRef);
             }
         }
 
-        for (Ref<EntityStore> entityRef : playerData.getAllRefs()) {
-            if (entityRef != null && entityRef.isValid()) {
-                store.removeEntity(entityRef, RemoveReason.REMOVE);
-            }
-        }
+        CleanupUtils.safeRemoveEntities(buffer, session.getAllRefs());
 
-        playerData.setOwnerRef(null);
-
-        for (Ref<EntityStore> activeRef : blockComp.getActivePlayerRefs()) {
-            if (activeRef == null || !activeRef.isValid() || activeRef.equals(ref))
-                continue;
-            HexcasterComponent hexcaster = store.getComponent(activeRef, HexcasterComponent.getComponentType());
-            if (hexcaster != null) {
-                hexcaster.requestStateChange(HexState.IDLE);
-            }
-        }
-        blockComp.getActivePlayerRefs().clear();
+        World world = store.getExternalData().getWorld();
+        SessionUtils.endSession(buffer, sessionRef, world);
     }
 }

@@ -21,7 +21,6 @@ import com.hypixel.hytale.server.core.inventory.InventoryComponent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
-import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.glyphs.utils.CreateGlyph;
@@ -43,6 +42,7 @@ import com.riprod.hexcode.core.state.casting.utils.RootSpawner;
 import com.riprod.hexcode.core.state.execution.component.HexcasterExecutionComponent;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
+import com.riprod.hexcode.utils.CleanupUtils;
 import com.riprod.hexcode.utils.GlyphMath;
 import com.riprod.hexcode.utils.HexSlot;
 
@@ -161,46 +161,26 @@ public class CastingSystem extends HexcodeManager {
     }
 
     @Override
-    public void onPlayerLeave(PlayerRef playerRef) {
-        HexcasterCastingComponent castingComp = null;
-        Ref<EntityStore> ref = playerRef.getReference();
-        if (ref != null && ref.isValid()) {
-            castingComp = ref.getStore().getComponent(ref, HexcasterCastingComponent.getComponentType());
-        } else {
-            Holder<EntityStore> holder = playerRef.getHolder();
-            if (holder != null) {
-                castingComp = holder.getComponent(HexcasterCastingComponent.getComponentType());
-            }
-        }
+    public void onPlayerLeave(Ref<EntityStore> ref, HexcasterComponent comp,
+            Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
+        HexcasterCastingComponent castingComp = buffer.getComponent(ref, HexcasterCastingComponent.getComponentType());
         if (castingComp == null) return;
 
-        Ref<EntityStore> headAnchorRef = castingComp.getHeadAnchorRef();
-        if (headAnchorRef != null && headAnchorRef.isValid()) {
-            headAnchorRef.getStore().removeEntity(headAnchorRef, RemoveReason.REMOVE);
-        }
+        CleanupUtils.safeRemoveEntity(buffer, castingComp.getHeadAnchorRef());
 
         List<Ref<EntityStore>> activeHexes = castingComp.getActiveHexes();
         if (activeHexes != null) {
             for (Ref<EntityStore> hexRef : activeHexes) {
                 if (hexRef == null || !hexRef.isValid()) continue;
-                HexComponent hexComp = hexRef.getStore().getComponent(hexRef, HexComponent.getComponentType());
+                HexComponent hexComp = buffer.getComponent(hexRef, HexComponent.getComponentType());
                 if (hexComp != null) {
-                    for (Ref<EntityStore> childRef : hexComp.getChildGlyphRefsList()) {
-                        if (childRef != null && childRef.isValid()) {
-                            childRef.getStore().removeEntity(childRef, RemoveReason.REMOVE);
-                        }
-                    }
+                    CleanupUtils.safeRemoveEntities(buffer, hexComp.getChildGlyphRefsList());
                 }
-                if (hexRef.isValid()) {
-                    hexRef.getStore().removeEntity(hexRef, RemoveReason.REMOVE);
-                }
+                CleanupUtils.safeRemoveEntity(buffer, hexRef);
             }
         }
 
-        Ref<EntityStore> castingRoot = castingComp.getCastingRootRef();
-        if (castingRoot != null && castingRoot.isValid()) {
-            castingRoot.getStore().removeEntity(castingRoot, RemoveReason.REMOVE);
-        }
+        CleanupUtils.safeRemoveEntity(buffer, castingComp.getCastingRootRef());
     }
 
     @Override

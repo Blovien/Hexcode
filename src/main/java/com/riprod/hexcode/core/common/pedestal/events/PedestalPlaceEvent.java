@@ -20,7 +20,6 @@ import com.hypixel.hytale.server.core.universe.world.chunk.BlockChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.CraftingData;
 import com.riprod.hexcode.core.state.crafting.entity.PedestalEntity;
 
 public class PedestalPlaceEvent extends RefSystem<ChunkStore> {
@@ -62,14 +61,9 @@ public class PedestalPlaceEvent extends RefSystem<ChunkStore> {
         int blockZ = ChunkUtil.worldCoordFromLocalCoord(blockChunk.getZ(), localZ);
         Vector3i blockPos = new Vector3i(blockX, localY, blockZ);
 
+        pedestal.setLocation(blockPos);
+
         World world = commandBuffer.getExternalData().getWorld();
-
-        CraftingData craftingData = pedestal.getCraftingDataComponent();
-        if (craftingData == null) {
-            craftingData = new CraftingData(blockPos);
-            pedestal.setCraftingDataComponent(craftingData);
-        }
-
         Store<EntityStore> entityStore = world.getEntityStore().getStore();
         Holder<EntityStore> anchorHolder = PedestalEntity.buildAnchorHolder(entityStore, blockPos);
         if (anchorHolder == null) {
@@ -82,10 +76,7 @@ public class PedestalPlaceEvent extends RefSystem<ChunkStore> {
                     PedestalBlockComponent.getComponentType(), world,
                     blockPos.x, blockPos.y, blockPos.z);
             if (ped != null) {
-                CraftingData data = ped.getCraftingDataComponent();
-                if (data != null) {
-                    data.setAnchorEntityRef(anchorRef);
-                }
+                ped.setAnchorRef(anchorRef);
             }
             LOGGER.atInfo().log("pedestal holder spawned at %s", blockPos);
         });
