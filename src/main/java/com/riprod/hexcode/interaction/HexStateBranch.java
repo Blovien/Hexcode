@@ -68,6 +68,10 @@ public class HexStateBranch extends SimpleInteraction {
 
             if (branches != null && branches.containsKey(state)) {
                 RootInteraction branch = RootInteraction.getAssetMap().getAsset(branches.get(state));
+                if (branch == null) {
+                    ctx.getState().state = InteractionState.Failed;
+                    return;
+                }
                 ctx.getState().state = InteractionState.Finished;
                 ctx.execute(branch);
             } else {

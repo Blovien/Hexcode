@@ -88,7 +88,7 @@ public class CraftingSystem extends HexcodeManager {
         SlotNodeHandler.INSTANCE.despawn(buffer, session);
 
         CraftingDragHandler.endDrag(buffer, craftingComp.getDraggingRef(),
-                craftingComp.getHeadAnchorRef());
+                craftingComp.getHeadAnchorRef(), craftingComp);
 
         if (nextState == HexState.DRAWING) {
             return;
@@ -127,6 +127,22 @@ public class CraftingSystem extends HexcodeManager {
             buffer.tryRemoveComponent(craftingComp.getHeadAnchorRef(), MountedComponent.getComponentType());
             buffer.tryRemoveEntity(craftingComp.getHeadAnchorRef(), RemoveReason.REMOVE);
             craftingComp.setHeadAnchorRef(buffer, null);
+        }
+
+        if (craftingComp != null && !craftingComp.getPendingDespawn().isEmpty()) {
+            List<Ref<EntityStore>> pending = craftingComp.getPendingDespawn();
+            for (int i = pending.size() - 1; i >= 0; i--) {
+                Ref<EntityStore> pendingRef = pending.get(i);
+                if (pendingRef == null) {
+                    pending.remove(i);
+                    continue;
+                }
+                if (pendingRef.isValid()) {
+                    buffer.tryRemoveComponent(pendingRef, MountedComponent.getComponentType());
+                    buffer.tryRemoveEntity(pendingRef, RemoveReason.REMOVE);
+                    pending.remove(i);
+                }
+            }
         }
 
         PedestalBlockComponent pedestal = PedestalBlockUtil.resolvePedestal(ref, buffer);

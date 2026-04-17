@@ -248,7 +248,7 @@ public class PedestalSystem {
                 HexcasterCraftingComponent.getComponentType());
         if (craftingComp != null) {
             CraftingDragHandler.endDrag(accessor, craftingComp.getDraggingRef(),
-                    craftingComp.getHeadAnchorRef());
+                    craftingComp.getHeadAnchorRef(), craftingComp);
         }
 
         AnchorEntity.DespawnHexPreviews(accessor, session);

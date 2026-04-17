@@ -37,6 +37,7 @@ import com.riprod.hexcode.core.common.pedestal.events.PedestalBlockEvent;
 import com.riprod.hexcode.core.common.pedestal.events.PedestalPlaceEvent;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.common.effect.GlyphEffectSystem;
+import com.riprod.hexcode.core.common.imbuement.HexCastEventSystem;
 import com.riprod.hexcode.core.common.imbuement.ImbuementCooldownComponent;
 import com.riprod.hexcode.core.common.imbuement.WeaponImbuementSystem;
 import com.riprod.hexcode.core.common.utilities.system.DebugTickSystem;
@@ -327,6 +328,7 @@ public class Hexcode extends JavaPlugin {
     entityStoreRegistry.registerSystem(new DebugTickSystem());
     entityStoreRegistry.registerSystem(new GlyphEffectSystem());
     entityStoreRegistry.registerSystem(new WeaponImbuementSystem());
+    entityStoreRegistry.registerSystem(new HexCastEventSystem());
     entityStoreRegistry.registerSystem(new HexcasterCleanupSystem());
     entityStoreRegistry.registerSystem(new SessionTickSystem());
 

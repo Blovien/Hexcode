@@ -94,7 +94,6 @@ public class HexMode extends ChargingInteraction {
             }
 
             if (hexcaster.getState() != targetState) {
-                LOGGER.atInfo().log("hexmode: state mismatch, current=%s target=%s", hexcaster.getState(), targetState);
                 ctx.getState().state = InteractionState.Finished;
                 return;
             }

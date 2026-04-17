@@ -63,7 +63,6 @@ public class CraftingStateSystem {
     }
 
     public static InteractionState exitInteraction(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref) {
-
         HexcasterCraftingComponent craftingComp = accessor.getComponent(ref,
                 HexcasterCraftingComponent.getComponentType());
         if (craftingComp == null)
@@ -87,7 +86,7 @@ public class CraftingStateSystem {
             result = NodeRouter.exit(accessor, draggedRef, ref);
         }
 
-        CraftingDragHandler.endDrag(accessor, draggedRef, craftingComp.getHeadAnchorRef());
+        CraftingDragHandler.endDrag(accessor, draggedRef, craftingComp.getHeadAnchorRef(), craftingComp);
 
         craftingComp.setDraggingRef(null);
         craftingComp.setHeadAnchorRef(accessor, null);
