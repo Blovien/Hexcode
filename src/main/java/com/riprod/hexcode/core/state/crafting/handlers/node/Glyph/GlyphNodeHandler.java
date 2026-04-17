@@ -102,15 +102,6 @@ public class GlyphNodeHandler implements NodeInterface {
     @Override
     public InteractionState click(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
             Ref<EntityStore> playerRef) {
-        HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
-                HexcasterCraftingComponent.getComponentType());
-        if (craftingComp != null) {
-            Ref<EntityStore> headAnchorRef = craftingComp.getHeadAnchorRef();
-            if (headAnchorRef != null && headAnchorRef.isValid()) {
-                craftingComp.setHeadAnchorRef(accessor, null);
-            }
-        }
-
         GlyphComponent glyphComp = accessor.getComponent(nodeRef, GlyphComponent.getComponentType());
         if (glyphComp == null) return InteractionState.Failed;
 

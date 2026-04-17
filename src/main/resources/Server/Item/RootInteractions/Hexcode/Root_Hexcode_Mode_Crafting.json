@@ -13,6 +13,13 @@
         "Effects": {
           "ItemAnimationId": "HexCrafting_Active"
         }
+      },
+      "Failed": {
+        "Type": "HexModeExit",
+        "TargetState": "CRAFTING",
+        "Effects": {
+          "ItemAnimationId": "HexCrafting_Active"
+        }
       }
     }
   ]

@@ -63,7 +63,7 @@ public class HexMode extends ChargingInteraction {
 
     @Nonnull
     public WaitForDataFrom getWaitForDataFrom() {
-        return WaitForDataFrom.Server;
+        return WaitForDataFrom.Client;
     }
 
     @Override

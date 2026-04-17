@@ -46,98 +46,36 @@ public class HexStateBranch extends SimpleInteraction {
     protected void tick0(boolean firstRun, float time, @Nonnull InteractionType type,
             @Nonnull InteractionContext ctx, @Nonnull CooldownHandler cooldown) {
         try {
-            LOGGER.atInfo().log("[HSB] tick0 enter firstRun=%s time=%s type=%s", firstRun, time, type);
             CommandBuffer<EntityStore> commandBuffer = ctx.getCommandBuffer();
             if (commandBuffer == null) {
-                LOGGER.atInfo().log("[HSB] tick0 FAIL: commandBuffer null");
                 ctx.getState().state = InteractionState.Failed;
                 return;
             }
 
-            Ref<EntityStore> entityRef = ctx.getEntity();
-            Ref<EntityStore> owningRef = ctx.getOwningEntity();
-            LOGGER.atInfo().log("[HSB] tick0 refs entity=%s(valid=%s) owning=%s(valid=%s) same=%s",
-                    entityRef, entityRef != null && entityRef.isValid(),
-                    owningRef, owningRef != null && owningRef.isValid(),
-                    entityRef == owningRef);
-
-            Ref<EntityStore> playerRef = entityRef;
+            Ref<EntityStore> playerRef = ctx.getEntity();
             if (playerRef == null || !playerRef.isValid()) {
-                LOGGER.atInfo().log("[HSB] tick0 FAIL: entity ref null/invalid");
                 ctx.getState().state = InteractionState.Failed;
                 return;
             }
 
-            HexcasterComponent hexcasterOnEntity = commandBuffer.getComponent(entityRef, HexcasterComponent.getComponentType());
-            HexcasterComponent hexcasterOnOwning = owningRef != null && owningRef.isValid()
-                    ? commandBuffer.getComponent(owningRef, HexcasterComponent.getComponentType())
-                    : null;
-            LOGGER.atInfo().log("[HSB] tick0 hexcaster on entity=%s on owning=%s",
-                    hexcasterOnEntity != null ? hexcasterOnEntity.getState() : "null",
-                    hexcasterOnOwning != null ? hexcasterOnOwning.getState() : "null");
-
-            HexcasterComponent hexcaster = hexcasterOnEntity;
+            HexcasterComponent hexcaster = commandBuffer.getComponent(playerRef, HexcasterComponent.getComponentType());
             if (hexcaster == null) {
-                LOGGER.atInfo().log("[HSB] tick0 FAIL: HexcasterComponent missing on entity ref");
                 ctx.getState().state = InteractionState.Failed;
                 return;
             }
 
             HexState state = hexcaster.getState();
-            LOGGER.atInfo().log("[HSB] tick0 state=%s branchKeys=%s containsKey=%s",
-                    state,
-                    branches != null ? branches.keySet() : "null-map",
-                    branches != null && branches.containsKey(state));
 
             if (branches != null && branches.containsKey(state)) {
-                String branchId = branches.get(state);
-                RootInteraction branch = RootInteraction.getAssetMap().getAsset(branchId);
-                if (branch == null) {
-                    LOGGER.atInfo().log("[HSB] tick0 FAIL: branch asset missing id=%s", branchId);
-                    ctx.getState().state = InteractionState.Failed;
-                    return;
-                }
-                LOGGER.atInfo().log("[HSB] tick0 EXEC branchId=%s", branchId);
+                RootInteraction branch = RootInteraction.getAssetMap().getAsset(branches.get(state));
                 ctx.getState().state = InteractionState.Finished;
                 ctx.execute(branch);
             } else {
-                LOGGER.atInfo().log("[HSB] tick0 FAIL: no branch for state=%s", state);
                 ctx.getState().state = InteractionState.Failed;
             }
         } catch (Exception e) {
             LOGGER.atSevere().log("[hexcode] HexStateBranch failed: %s", e.getMessage());
             ctx.getState().state = InteractionState.Failed;
-        }
-    }
-
-    @Nonnull
-    @Override
-    public WaitForDataFrom getWaitForDataFrom() {
-        return WaitForDataFrom.None;
-    }
-
-    @Override
-    protected void simulateTick0(boolean firstRun, float time, InteractionType type,
-            InteractionContext ctx, CooldownHandler cooldown) {
-        LOGGER.atInfo().log("[HSB] simulateTick0 enter firstRun=%s", firstRun);
-        if (!firstRun)
-            return;
-        HexcasterComponent hc = ctx.getCommandBuffer().getComponent(ctx.getEntity(),
-                HexcasterComponent.getComponentType());
-        LOGGER.atInfo().log("[HSB] simulateTick0 hexcaster=%s branches=%s",
-                hc != null ? hc.getState() : "null",
-                branches != null ? branches.keySet() : "null-map");
-        if (hc == null || branches == null)
-            return;
-        String branchId = branches.get(hc.getState());
-        LOGGER.atInfo().log("[HSB] simulateTick0 branchId=%s", branchId);
-        if (branchId == null)
-            return;
-        RootInteraction branch = RootInteraction.getAssetMap().getAsset(branchId);
-        if (branch != null) {
-            LOGGER.atInfo().log("[HSB] simulateTick0 EXEC branchId=%s", branchId);
-            ctx.getState().state = InteractionState.Finished;
-            ctx.execute(branch);
         }
     }
 }
