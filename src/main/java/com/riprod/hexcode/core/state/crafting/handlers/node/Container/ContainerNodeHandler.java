@@ -31,7 +31,6 @@ import com.riprod.hexcode.core.common.glyphs.utils.CreateGlyph;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.hexes.utils.CreateHex;
-import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.api.event.EnterCraftingModeEvent;
 import com.riprod.hexcode.api.event.HexcodeEvents;
 import com.riprod.hexcode.core.common.obelisk.system.ObeliskDispatcher;

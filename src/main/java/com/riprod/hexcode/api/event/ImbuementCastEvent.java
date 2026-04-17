@@ -11,7 +11,7 @@ public class ImbuementCastEvent extends CancellableEcsEvent implements IEvent<Vo
     private final Ref<EntityStore> wielderRef;
     private final Ref<EntityStore> targetRef;
     private final Hex hex;
-    private float powerModifier = 0.0f;
+    private float powerModifier = 1.0f;
     private float manaCostMultiplier = 1.0f;
     private float volatilityMultiplier = 1.0f;
 

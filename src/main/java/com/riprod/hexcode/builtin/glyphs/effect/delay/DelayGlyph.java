@@ -5,6 +5,7 @@ import java.util.List;
 import com.hypixel.hytale.builtin.mounts.MountedComponent;
 import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.CommandBuffer;
+import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;

@@ -13,14 +13,21 @@ public class VolatilityTracker {
     private float remainingBudget;
     private float volatilityMultiplier;
     private float manaCostMultiplier;
+    private float magicPowerMultiplier;
     private volatile boolean fizzled;
     private volatile boolean failed;
 
     public VolatilityTracker(float startingBudget, float volatilityMultiplier, float manaCostMultiplier) {
+        this(startingBudget, volatilityMultiplier, manaCostMultiplier, 1.0f);
+    }
+
+    public VolatilityTracker(float startingBudget, float volatilityMultiplier,
+            float manaCostMultiplier, float magicPowerMultiplier) {
         this.startingBudget = startingBudget;
         this.remainingBudget = startingBudget;
         this.volatilityMultiplier = volatilityMultiplier;
         this.manaCostMultiplier = manaCostMultiplier;
+        this.magicPowerMultiplier = magicPowerMultiplier;
     }
 
     public VolatilityTracker() {
@@ -28,6 +35,7 @@ public class VolatilityTracker {
         this.remainingBudget = 0f;
         this.volatilityMultiplier = 1.0f;
         this.manaCostMultiplier = 1.0f;
+        this.magicPowerMultiplier = 1.0f;
     }
 
     public static float computeGlyphCost(Glyph glyph) {
@@ -75,6 +83,14 @@ public class VolatilityTracker {
         this.volatilityMultiplier = volatilityMultiplier;
     }
 
+    public float getMagicPowerMultiplier() {
+        return magicPowerMultiplier;
+    }
+
+    public void setMagicPowerMultiplier(float magicPowerMultiplier) {
+        this.magicPowerMultiplier = magicPowerMultiplier;
+    }
+
     public boolean isFizzled() {
         return fizzled;
     }
@@ -108,6 +124,10 @@ public class VolatilityTracker {
             .append(new KeyedCodec<>("ManaCostMultiplier", Codec.FLOAT),
                     (c, v) -> c.manaCostMultiplier = v,
                     (c) -> c.manaCostMultiplier)
+            .add()
+            .append(new KeyedCodec<>("MagicPowerMultiplier", Codec.FLOAT),
+                    (c, v) -> c.magicPowerMultiplier = v,
+                    (c) -> c.magicPowerMultiplier)
             .add()
             .build();
 }

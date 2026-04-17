@@ -1,6 +1,6 @@
 package com.riprod.hexcode.builtin.glyphs.effect.area.style;
 
-import com.hypixel.hytale.component.ComponentAccessor;
+import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.math.matrix.Matrix4d;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
@@ -20,7 +20,7 @@ public class AreaStyle {
     }
 
     public static void render(Vector3d center, double radius, HexColors colors,
-            ComponentAccessor<EntityStore> accessor) {
+            CommandBuffer<EntityStore> accessor) {
         Vector3f color = DEFAULT_COLOR;
         if (colors != null && colors.getPrimaryColor() != null) {
             color = HexColors.toVector3f(colors.getPrimaryColor());

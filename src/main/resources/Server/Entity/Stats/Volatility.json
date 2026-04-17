@@ -1,14 +1,13 @@
 {
-  "InitialValue": 999999,
-  "Min": 0,
-  "Max": 999999,
+  "InitialValue": 10,
+  "Max": 10,
   "Shared": true,
   "ResetType": "MaxValue",
   "Regenerating": [
     {
       "$Comment": "Mana regeneration for players - very slow, forces drain usage in combat",
-      "Interval": 2,
-      "Amount": 20,
+      "Interval": 10,
+      "Amount": 100,
       "RegenType": "Percentage",
       "Conditions": [
         {
@@ -17,13 +16,9 @@
         },
         {
           "Id": "IsPlayer"
-        },
-        {
-          "Id": "NoDamageTaken",
-          "Delay": 15,
-          "Inverse": false
         }
       ]
     }
-  ]
+  ],
+  "IgnoreInvulnerability": true
 }

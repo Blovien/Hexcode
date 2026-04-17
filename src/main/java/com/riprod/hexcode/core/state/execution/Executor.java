@@ -80,7 +80,8 @@ public class Executor {
             VolatilityTracker tracker = new VolatilityTracker(
                     startingBudget,
                     rootGlyph.getVolatilityMultiplier(),
-                    rootGlyph.getManaCostMultiplier());
+                    rootGlyph.getManaCostMultiplier(),
+                    rootGlyph.getPowerModifier());
             hexContext.setVolatilityTracker(tracker);
 
             execComp.advanceCast(staff.getCastDecayRate(), statMax);

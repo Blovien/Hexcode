@@ -21,6 +21,7 @@ public class RootGlyph implements Component<EntityStore> {
     private final List<Ref<EntityStore>> dependents = new ArrayList<>();
     private float manaCostMultiplier = 1.0f;
     private float volatilityMultiplier = 1.0f;
+    private float powerModifier = 1.0f;
     private HexContext originContext;
 
     public RootGlyph() {
@@ -99,6 +100,14 @@ public class RootGlyph implements Component<EntityStore> {
         this.volatilityMultiplier = volatilityMultiplier;
     }
 
+    public float getPowerModifier() {
+        return powerModifier;
+    }
+
+    public void setPowerModifier(float powerModifier) {
+        this.powerModifier = powerModifier;
+    }
+
     public HexContext getOriginContext() {
         return originContext;
     }
@@ -117,6 +126,7 @@ public class RootGlyph implements Component<EntityStore> {
         copy.dependents.addAll(this.dependents);
         copy.manaCostMultiplier = this.manaCostMultiplier;
         copy.volatilityMultiplier = this.volatilityMultiplier;
+        copy.powerModifier = this.powerModifier;
         copy.originContext = this.originContext;
         return copy;
     }

@@ -22,7 +22,6 @@ public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
   protected ModelParticle[] castingAuraParticles;
   protected ModelParticle[] craftingAuraParticles;
   protected float castDecayRate = 0.05f;
-  protected float volatilityBonus = 0f;
   protected HexColors colors;
 
   public static AssetStore<String, HexStaffAsset, DefaultAssetMap<String, HexStaffAsset>> getAssetStore() {
@@ -61,10 +60,6 @@ public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
     return this.castDecayRate;
   }
 
-  public float getVolatilityBonus() {
-    return this.volatilityBonus;
-  }
-
   public HexColors getColors() {
     return this.colors;
   }
@@ -96,11 +91,6 @@ public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
           (a, v) -> a.castDecayRate = v,
           a -> a.castDecayRate,
           (a, p) -> a.castDecayRate = p.castDecayRate)
-      .add()
-      .<Float>appendInherited(new KeyedCodec<>("VolatilityBonus", Codec.FLOAT),
-          (a, v) -> a.volatilityBonus = v,
-          a -> a.volatilityBonus,
-          (a, p) -> a.volatilityBonus = p.volatilityBonus)
       .add()
       .appendInherited(new KeyedCodec<>("Colors", HexColors.CODEC),
           (a, v) -> a.colors = v,

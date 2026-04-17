@@ -28,6 +28,23 @@ public class HexcasterCleanupSystem extends RefSystem<EntityStore> {
     @Override
     public void onEntityAdded(@Nonnull Ref<EntityStore> ref, @Nonnull AddReason reason,
             @Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> buffer) {
+
+        try {
+            HexcasterComponent comp = store.getComponent(ref, HexcasterComponent.getComponentType());
+            if (comp == null)
+                return;
+
+            for (HexcodeManager manager : StateRouter.allManagers()) {
+                try {
+                    manager.onPlayerJoin(ref, comp, store, buffer);
+                } catch (Exception e) {
+                    LOGGER.atWarning().withCause(e).log("[hexcode] manager onPlayerJoin failed");
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.atSevere().log("[hexcode] HexcasterCleanupSystem.onEntityAdded failed: %s", e.getMessage());
+        }
+
     }
 
     @Override
@@ -35,7 +52,8 @@ public class HexcasterCleanupSystem extends RefSystem<EntityStore> {
             @Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> buffer) {
         try {
             HexcasterComponent comp = store.getComponent(ref, HexcasterComponent.getComponentType());
-            if (comp == null) return;
+            if (comp == null)
+                return;
 
             for (HexcodeManager manager : StateRouter.allManagers()) {
                 try {

@@ -20,21 +20,5 @@ public class ImportExportObelisk implements ObeliskInterface {
     public void onEnterCrafting(CommandBuffer<EntityStore> buffer, Ref<EntityStore> playerRef,
             ObeliskBlockComponent obelisk) {
 
-        PlayerRef ref = buffer.getComponent(playerRef, PlayerRef.getComponentType());
-        if (ref == null) return;
-        
-        Vector3i pedestalLoc = obelisk.getRegisteredPedestalLoc();
-        if (pedestalLoc == null) return;
-        Holder<ChunkStore> pedestalHolder = buffer.getExternalData().getWorld().getBlockComponentHolder(pedestalLoc.x, pedestalLoc.y, pedestalLoc.z);
-
-        PedestalBlockComponent pedestal = pedestalHolder.getComponent(PedestalBlockComponent.getComponentType());
-
-        HexcasterCraftingComponent craftingComp = buffer.getComponent(playerRef, HexcasterCraftingComponent.getComponentType());
-
-        Player player = buffer.getComponent(playerRef, Player.getComponentType());
-        if (player == null) return;
-
-        Store<EntityStore> store = buffer.getExternalData().getWorld().getEntityStore().getStore();
-        player.getPageManager().openCustomPage(playerRef, store, new ImportExportPage(ref));
     }
 }

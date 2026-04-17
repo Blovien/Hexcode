@@ -21,10 +21,6 @@ public class HexStaffComponent implements Component<EntityStore> {
                     (c, v) -> c.castDecayRate = v,
                     c -> c.castDecayRate)
             .add()
-            .append(new KeyedCodec<>("VolatilityBonus", Codec.FLOAT),
-                    (c, v) -> c.volatilityBonus = v,
-                    c -> c.volatilityBonus)
-            .add()
             .build();
 
     private static ComponentType<EntityStore, HexStaffComponent> componentType;
@@ -32,7 +28,6 @@ public class HexStaffComponent implements Component<EntityStore> {
     @Nonnull
     private String styleId = "ring";
     private float castDecayRate = 0.05f;
-    private float volatilityBonus = 0f;
 
     public HexStaffComponent() {
     }
@@ -40,7 +35,6 @@ public class HexStaffComponent implements Component<EntityStore> {
     public HexStaffComponent(@Nonnull HexStaffAsset staffAsset) {
         this.styleId = staffAsset.getCastStyleId();
         this.castDecayRate = staffAsset.getCastDecayRate();
-        this.volatilityBonus = staffAsset.getVolatilityBonus();
     }
 
     public static void setComponentType(ComponentType<EntityStore, HexStaffComponent> type) {
@@ -64,17 +58,12 @@ public class HexStaffComponent implements Component<EntityStore> {
         return castDecayRate;
     }
 
-    public float getVolatilityBonus() {
-        return volatilityBonus;
-    }
-
     @Nonnull
     @Override
     public HexStaffComponent clone() {
         HexStaffComponent copy = new HexStaffComponent();
         copy.styleId = this.styleId;
         copy.castDecayRate = this.castDecayRate;
-        copy.volatilityBonus = this.volatilityBonus;
         return copy;
     }
 }

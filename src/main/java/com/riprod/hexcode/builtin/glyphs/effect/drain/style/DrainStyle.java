@@ -1,6 +1,6 @@
 package com.riprod.hexcode.builtin.glyphs.effect.drain.style;
 
-import com.hypixel.hytale.component.ComponentAccessor;
+import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -12,7 +12,7 @@ public class DrainStyle {
     private static final Vector3f DEFAULT_COLOR = new Vector3f(0.4f, 0.0f, 0.6f);
 
     public static void renderTick(Vector3d pos, HexColors colors,
-            ComponentAccessor<EntityStore> accessor) {
+            CommandBuffer<EntityStore> accessor) {
         Vector3f color = DEFAULT_COLOR;
         if (colors != null && colors.getPrimaryColor() != null) {
             color = HexColors.toVector3f(colors.getPrimaryColor());
@@ -21,7 +21,7 @@ public class DrainStyle {
     }
 
     public static void renderComplete(Vector3d pos, HexColors colors,
-            ComponentAccessor<EntityStore> accessor) {
+            CommandBuffer<EntityStore> accessor) {
         Vector3f color = DEFAULT_COLOR;
         if (colors != null && colors.getPrimaryColor() != null) {
             color = HexColors.toVector3f(colors.getPrimaryColor());

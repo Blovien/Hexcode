@@ -9,6 +9,10 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.hypixel.hytale.codec.KeyedCodec;
+import com.hypixel.hytale.codec.Codec;
+import com.hypixel.hytale.codec.builder.BuilderCodec;
+import com.hypixel.hytale.codec.codecs.EnumCodec;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
@@ -28,7 +32,25 @@ import com.riprod.hexcode.utils.HexSlot;
 
 public class HexcodeSessionComponent implements Component<EntityStore> {
 
-    public static final int AUTOSAVE_INTERVAL = 600;
+    public static final BuilderCodec<HexcodeSessionComponent> CODEC = BuilderCodec
+            .builder(HexcodeSessionComponent.class, HexcodeSessionComponent::new)
+            .append(new KeyedCodec<>("StoredBook", ItemStack.CODEC),
+                    (c, v) -> c.storedBook = v,
+                    c -> c.storedBook)
+            .add()
+            .append(new KeyedCodec<>("BookSourceSlot", new EnumCodec<>(HexSlot.class)),
+                    (c, v) -> c.bookSourceSlot = v,
+                    c -> c.bookSourceSlot)
+            .add()
+            .append(new KeyedCodec<>("PedestalLocation", Vector3i.CODEC),
+                    (c, v) -> c.pedestalLocation = v,
+                    c -> c.pedestalLocation)
+            .add()
+            .append(new KeyedCodec<>("EssenceItemId", Codec.STRING),
+                    (c, v) -> c.essenceItemId = v,
+                    c -> c.essenceItemId)
+            .add()
+            .build();
 
     private static ComponentType<EntityStore, HexcodeSessionComponent> componentType;
 

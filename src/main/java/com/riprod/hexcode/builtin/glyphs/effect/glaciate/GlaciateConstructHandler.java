@@ -58,6 +58,7 @@ public class GlaciateConstructHandler implements ConstructHandler {
 
             if (speed > 0.1) {
                 float damage = (float) (speed * glaciate.getDamageMultiplier());
+                damage *= construct.getHexContext().getMagicPowerMultiplier();
                 applyDamage(ref, damage, ctx);
                 applyKnockback(ref, iceVelocity, speed, ctx);
             }

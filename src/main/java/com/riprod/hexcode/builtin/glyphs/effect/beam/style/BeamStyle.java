@@ -1,6 +1,6 @@
 package com.riprod.hexcode.builtin.glyphs.effect.beam.style;
 
-import com.hypixel.hytale.component.ComponentAccessor;
+import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.server.core.modules.debug.DebugUtils;
@@ -23,7 +23,7 @@ public class BeamStyle {
     }
 
     public static void render(Vector3d origin, Vector3d endPoint, HitType hitType,
-            HexColors colors, ComponentAccessor<EntityStore> accessor) {
+            HexColors colors, CommandBuffer<EntityStore> accessor) {
         Vector3f beamColor = DEFAULT_COLOR;
         if (colors != null && colors.getPrimaryColor() != null) {
             beamColor = HexColors.toVector3f(colors.getPrimaryColor());

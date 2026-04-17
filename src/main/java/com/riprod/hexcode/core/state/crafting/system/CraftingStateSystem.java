@@ -16,7 +16,6 @@ import com.riprod.hexcode.core.common.obelisk.system.ObeliskDispatcher;
 import com.riprod.hexcode.core.common.pedestal.events.PedestalSystem;
 import com.riprod.hexcode.core.common.pedestal.utils.PedestalBlockUtil;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
-import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;

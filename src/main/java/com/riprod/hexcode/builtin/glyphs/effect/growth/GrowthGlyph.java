@@ -5,6 +5,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import com.hypixel.hytale.builtin.adventure.farming.states.FarmingBlock;
 import com.hypixel.hytale.component.CommandBuffer;
+import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;

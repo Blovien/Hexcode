@@ -1,0 +1,9 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "Hexstaff_Orbit_Spark"
+    }
+  ],
+  "LifeSpan": 999,
+  "CullDistance": 50
+}

@@ -6,16 +6,18 @@ import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
+import com.riprod.hexcode.core.common.hexes.saved.SavedHexAsset;
 import com.riprod.hexcode.core.state.execution.component.HexColors;
 
 public class ImbuementData {
 
     @Nullable private String hexAssetId;
     @Nullable private Hex hex;
+    @Nullable private String referenceId;
     private float volatilityOverride = -1f;
     private float efficiencyOverride = -1f;
     private float volatilityBudgetOverride = -1f;
-    private float powerModifier = 0.0f;
+    private float powerModifier = 1.0f;
     private float manaCostMultiplier = 1.0f;
     private int cooldownTicks = 20;
     @Nullable private HexColors colors;
@@ -39,6 +41,15 @@ public class ImbuementData {
 
     public void setHex(@Nullable Hex hex) {
         this.hex = hex;
+    }
+
+    @Nullable
+    public String getReferenceId() {
+        return referenceId;
+    }
+
+    public void setReferenceId(@Nullable String referenceId) {
+        this.referenceId = referenceId;
     }
 
     public float getVolatilityOverride() {
@@ -107,6 +118,11 @@ public class ImbuementData {
             .append(new KeyedCodec<>("Hex", Hex.CODEC),
                     (c, v) -> c.hex = v,
                     c -> c.hex)
+            .add()
+            .append(new KeyedCodec<>("ReferenceId", Codec.STRING),
+                    (c, v) -> c.referenceId = v,
+                    c -> c.referenceId)
+            .addValidatorLate(() -> SavedHexAsset.VALIDATOR_CACHE.getValidator().late())
             .add()
             .append(new KeyedCodec<>("VolatilityOverride", Codec.FLOAT),
                     (c, v) -> c.volatilityOverride = v,

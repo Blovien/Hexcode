@@ -1,0 +1,67 @@
+{
+  "Parent": "Template_HexStaff",
+  "TranslationProperties": {
+    "Name": "hexcode.items.hexstaff.basic.mithril.name",
+    "Description": "hexcode.items.hexstaff.basic.mithril.description"
+  },
+  "Categories": [
+    "Hexcode.Staves",
+    "Items.Weapons"
+  ],
+  "Quality": "Epic",
+  "ItemLevel": 50,
+  "Model": "Items/Weapons/Staff/Mithril.blockymodel",
+  "Texture": "Items/Weapons/Staff/Mithril_Texture.png",
+  "IconProperties": {
+    "Scale": 0.28,
+    "Translation": [
+      -52,
+      -52
+    ],
+    "Rotation": [
+      22.5,
+      45,
+      315
+    ]
+  },
+  "DroppedItemAnimation": "Items/Animations/Dropped/Dropped_Diagonal_Left.blockyanim",
+  "Icon": "Icons/ItemsGenerated/Weapon_Staff_Mithril.png",
+  "Tags": {
+    "Type": [
+      "Weapon"
+    ],
+    "Family": [
+      "Staff"
+    ]
+  },
+  "Weapon": {
+    "StatModifiers": {
+      "Magic_Power": [
+        {
+          "Target": "Max",
+          "CalculationType": "Additive",
+          "Amount": 1.9
+        }
+      ],
+      "Volatility": [
+        {
+          "Target": "Max",
+          "CalculationType": "Additive",
+          "Amount": 270
+        }
+      ],
+      "MagicCharges": [
+        {
+          "CalculationType": "Additive",
+          "Amount": 8
+        }
+      ]
+    },
+    "EntityStatsToClear": [
+      "Magic_Power",
+      "MagicCharges",
+      "Volatility"
+    ]
+  },
+  "ItemSoundSetId": "ISS_Weapons_Wood"
+}

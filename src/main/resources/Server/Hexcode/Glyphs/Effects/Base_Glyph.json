@@ -2,5 +2,5 @@
   "ModelPath": "Base_Glyph",
   "BasePower": 1.0,
   "ManaConsumption": 25,
-  "VolatilityCost": 10
+  "VolatilityCost": 1
 }

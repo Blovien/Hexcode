@@ -24,7 +24,6 @@ import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
-import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 
 public class CreateGlyph {
   private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();

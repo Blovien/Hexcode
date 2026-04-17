@@ -4,6 +4,7 @@ import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Holder;
+import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
@@ -15,6 +16,7 @@ import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.common.stats.HexcodeEntityStatTypes;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexcaster.utils.CasterInventory;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
@@ -33,7 +35,6 @@ import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatValue;
-import com.hypixel.hytale.server.core.modules.entitystats.asset.DefaultEntityStatTypes;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.Message;
 
@@ -73,7 +74,8 @@ public class ExecutionSystem extends HexcodeManager {
     public void tick0(Ref<EntityStore> ref, HexcasterComponent comp, float dt,
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
         // release detection: if tickInteraction stops firing, clear the holding flag
-        HexcasterExecutionComponent execComp = buffer.ensureAndGetComponent(ref, HexcasterExecutionComponent.getComponentType());
+        HexcasterExecutionComponent execComp = buffer.ensureAndGetComponent(ref,
+                HexcasterExecutionComponent.getComponentType());
         if (execComp.isHoldingPrimary()) {
             comp.incrementTickLength(HOLD_STALE_KEY, dt);
             if (comp.getTickLength(HOLD_STALE_KEY) > HOLD_STALE_THRESHOLD) {
@@ -92,7 +94,8 @@ public class ExecutionSystem extends HexcodeManager {
     }
 
     @Override
-    public void onPlayerJoin(Holder<EntityStore> holder, HexcasterComponent comp) {
+    public void onPlayerJoin(Ref<EntityStore> playerRef, HexcasterComponent comp,
+            Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
     }
 
     @Override
@@ -124,8 +127,10 @@ public class ExecutionSystem extends HexcodeManager {
     @Override
     public InteractionState exitInteraction(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref,
             HexcasterComponent comp) {
-        HexcasterExecutionComponent execComp = buffer.ensureAndGetComponent(ref, HexcasterExecutionComponent.getComponentType());
-        if (execComp == null) return InteractionState.Finished;
+        HexcasterExecutionComponent execComp = buffer.ensureAndGetComponent(ref,
+                HexcasterExecutionComponent.getComponentType());
+        if (execComp == null)
+            return InteractionState.Finished;
 
         execComp.setHoldingPrimary(false);
         comp.setTickLength(HOLD_STALE_KEY, 0f);
@@ -135,8 +140,10 @@ public class ExecutionSystem extends HexcodeManager {
     @Override
     public InteractionState tickInteraction(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref, float dt,
             HexcasterComponent comp) {
-        HexcasterExecutionComponent execComp = buffer.ensureAndGetComponent(ref, HexcasterExecutionComponent.getComponentType());
-        if (execComp == null) return InteractionState.Finished;
+        HexcasterExecutionComponent execComp = buffer.ensureAndGetComponent(ref,
+                HexcasterExecutionComponent.getComponentType());
+        if (execComp == null)
+            return InteractionState.Finished;
 
         execComp.setHoldingPrimary(true);
         comp.setTickLength(HOLD_STALE_KEY, 0f);
@@ -147,7 +154,8 @@ public class ExecutionSystem extends HexcodeManager {
     public InteractionState enterInteraction(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref,
             HexcasterComponent comp) {
 
-        HexcasterExecutionComponent execComp = accessor.getComponent(ref, HexcasterExecutionComponent.getComponentType());
+        HexcasterExecutionComponent execComp = accessor.getComponent(ref,
+                HexcasterExecutionComponent.getComponentType());
         if (execComp == null) {
             LOGGER.atWarning().log("no execution component found on hexcaster, cannot execute");
             return InteractionState.Finished;
@@ -159,13 +167,13 @@ public class ExecutionSystem extends HexcodeManager {
             return InteractionState.Finished;
         }
 
-        int sigIndex = DefaultEntityStatTypes.getSignatureEnergy();
-        if (sigIndex != Integer.MIN_VALUE) {
+        int chargesIndex = HexcodeEntityStatTypes.getMagicCharges();
+        if (chargesIndex != Integer.MIN_VALUE) {
             EntityStatMap statMap = accessor.getComponent(ref, EntityStatMap.getComponentType());
             if (statMap != null) {
-                EntityStatValue sigStat = statMap.get(sigIndex);
-                if (sigStat != null) {
-                    int cap = (int) sigStat.getMax();
+                EntityStatValue chargesStat = statMap.get(chargesIndex);
+                if (chargesStat != null) {
+                    int cap = (int) chargesStat.getMax();
                     if (cap > 0 && comp.getActiveCount() >= cap) {
                         PlayerRef pr = accessor.getComponent(ref, PlayerRef.getComponentType());
                         if (pr != null) {
@@ -180,7 +188,9 @@ public class ExecutionSystem extends HexcodeManager {
         Hex hexClone = activeHex.clone();
         HexUtils.validate(hexClone);
 
-        SpellCastEvent spellCastEvent = HexcodeEvents.dispatch(new SpellCastEvent(ref, hexClone));
+        SpellCastEvent spellCastEventInit = new SpellCastEvent(ref, hexClone);
+        spellCastEventInit.setPowerModifier(resolveMagicPower(accessor, ref));
+        SpellCastEvent spellCastEvent = HexcodeEvents.dispatch(spellCastEventInit);
         if (spellCastEvent.isCancelled())
             return InteractionState.Failed;
 
@@ -189,6 +199,7 @@ public class ExecutionSystem extends HexcodeManager {
         rootGlyph.setNeedsInitialExecution(true);
         rootGlyph.setManaCostMultiplier(spellCastEvent.getManaCostMultiplier());
         rootGlyph.setVolatilityMultiplier(spellCastEvent.getVolatilityMultiplier());
+        rootGlyph.setPowerModifier(spellCastEvent.getPowerModifier());
 
         Holder<EntityStore> holder = buildHexEntityHolder(accessor, ref, rootGlyph);
         Ref<EntityStore> hexEntityRef = accessor.addEntity(holder, AddReason.SPAWN);
@@ -201,6 +212,17 @@ public class ExecutionSystem extends HexcodeManager {
         execComp.setHoldingPrimary(true);
         comp.setTickLength(HOLD_STALE_KEY, 0f);
         return InteractionState.NotFinished;
+    }
+
+    private static float resolveMagicPower(CommandBuffer<EntityStore> accessor, Ref<EntityStore> casterRef) {
+        EntityStatMap statMap = accessor.getComponent(casterRef, EntityStatMap.getComponentType());
+        if (statMap == null)
+            return 1.0f;
+        int idx = HexcodeEntityStatTypes.getMagicPower();
+        if (idx == Integer.MIN_VALUE)
+            return 1.0f;
+        EntityStatValue stat = statMap.get(idx);
+        return stat != null ? stat.getMax() : 1.0f;
     }
 
     private Holder<EntityStore> buildHexEntityHolder(ComponentAccessor<EntityStore> accessor,

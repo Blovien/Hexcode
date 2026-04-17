@@ -40,13 +40,16 @@ public class PedestalBlockUtil {
     public static PedestalBlockComponent resolvePedestal(Ref<EntityStore> playerRef,
             CommandBuffer<EntityStore> buffer) {
 
-        HexcasterCraftingComponent craftingComp = buffer.getComponent(playerRef,
-                HexcasterCraftingComponent.getComponentType());
-        if (craftingComp == null || !craftingComp.hasActiveSession()) return null;
-
-        HexcodeSessionComponent session = buffer.getComponent(craftingComp.getSessionRef(),
+        HexcodeSessionComponent session = buffer.getComponent(playerRef,
                 HexcodeSessionComponent.getComponentType());
-        if (session == null) return null;
+        if (session == null) {
+            HexcasterCraftingComponent craftingComp = buffer.getComponent(playerRef,
+                    HexcasterCraftingComponent.getComponentType());
+            if (craftingComp == null || !craftingComp.hasActiveSession()) return null;
+            session = buffer.getComponent(craftingComp.getSessionRef(),
+                    HexcodeSessionComponent.getComponentType());
+            if (session == null) return null;
+        }
 
         Vector3i pos = session.getPedestalLocation();
         return BlockModule.getComponent(

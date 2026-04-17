@@ -5,6 +5,7 @@ import java.util.List;
 import com.hypixel.hytale.builtin.mounts.MountedComponent;
 import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.CommandBuffer;
+import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
@@ -19,6 +20,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.EntityScaleCompon
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.modules.entity.player.PlayerSkinComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.builtin.glyphs.effect.scale.component.ScaleComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.scale.component.ScaleTargetMarker;
@@ -109,6 +111,11 @@ public class ScaleGlyph implements GlyphHandler {
             } else {
                 accessor.addComponent(targetRef, EntityScaleComponent.getComponentType(),
                         new EntityScaleComponent(newScale));
+            }
+            PlayerSkinComponent targetSkin = accessor.getComponent(
+                    targetRef, PlayerSkinComponent.getComponentType());
+            if (targetSkin != null) {
+                targetSkin.setNetworkOutdated();
             }
             if (box != null && originalBox != null) {
                 Box scaled = new Box(originalBox).scale((float) magnitude);

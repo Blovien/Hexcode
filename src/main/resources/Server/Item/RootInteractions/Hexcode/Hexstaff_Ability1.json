@@ -5,9 +5,6 @@
     "Cooldown": 0.5
   },
   "Interactions": [
-    {
-      "Type": "HexAbility",
-      "CancelOnItemChange": true
-    }
+    "Hexstaff_Ability1"
   ]
 }

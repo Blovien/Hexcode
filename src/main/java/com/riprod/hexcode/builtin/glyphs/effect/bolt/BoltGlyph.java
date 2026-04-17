@@ -1,6 +1,7 @@
 package com.riprod.hexcode.builtin.glyphs.effect.bolt;
 
 import com.hypixel.hytale.component.CommandBuffer;
+import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
@@ -90,6 +91,7 @@ public class BoltGlyph implements GlyphHandler {
 
         double damageAmount = SpellVarUtil.resolveNumberOrDefault(
                 glyph.readSlot("power", hexContext), 5.0);
+        damageAmount *= hexContext.getMagicPowerMultiplier();
         applyDamage(accessor, targetRef, (float) damageAmount);
 
         LOGGER.atInfo().log("bolt: hit entity for %.1f damage", damageAmount);

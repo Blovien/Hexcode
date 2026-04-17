@@ -1,6 +1,6 @@
 package com.riprod.hexcode.builtin.glyphs.effect.domain.style;
 
-import com.hypixel.hytale.component.ComponentAccessor;
+import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -29,27 +29,27 @@ public class DomainStyle {
     }
 
     public static void renderSpawn(Vector3d pos, float radius, HexColors colors,
-            ComponentAccessor<EntityStore> accessor) {
+            CommandBuffer<EntityStore> accessor) {
         VfxUtil.effect(SPAWN_PARTICLE, SPAWN_SOUND, pos, accessor);
     }
 
     public static void renderDespawn(Vector3d pos, float radius, HexColors colors,
-            ComponentAccessor<EntityStore> accessor) {
+            CommandBuffer<EntityStore> accessor) {
         VfxUtil.effect(DESPAWN_PARTICLE, DESPAWN_SOUND, pos, accessor);
     }
 
     public static void renderTrigger(Vector3d entityPos, HexColors colors,
-            ComponentAccessor<EntityStore> accessor) {
+            CommandBuffer<EntityStore> accessor) {
         VfxUtil.effect(TRIGGER_PARTICLE, TRIGGER_SOUND, entityPos, accessor);
     }
 
     public static void renderContested(Vector3d pos, HexColors colors,
-            ComponentAccessor<EntityStore> accessor) {
+            CommandBuffer<EntityStore> accessor) {
         VfxUtil.effect(CONTESTED_PARTICLE, CONTESTED_SOUND, pos, accessor);
     }
 
     public static void renderAmbient(Vector3d center, float radius, HexColors colors,
-            ComponentAccessor<EntityStore> accessor) {
+            CommandBuffer<EntityStore> accessor) {
         VfxUtil.particle(AMBIENT_PARTICLE, center, accessor);
     }
 }

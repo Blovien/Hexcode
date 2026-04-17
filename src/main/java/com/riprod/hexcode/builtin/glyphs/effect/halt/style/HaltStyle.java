@@ -1,6 +1,6 @@
 package com.riprod.hexcode.builtin.glyphs.effect.halt.style;
 
-import com.hypixel.hytale.component.ComponentAccessor;
+import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -15,7 +15,7 @@ public class HaltStyle {
     }
 
     public static void render(Vector3d targetPos, HexColors colors,
-            ComponentAccessor<EntityStore> accessor) {
+            CommandBuffer<EntityStore> accessor) {
         VfxUtil.effect("Halt_Crystallize", "SFX_Ice_Build", targetPos, accessor);
     }
 

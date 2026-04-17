@@ -1,6 +1,7 @@
 package com.riprod.hexcode.builtin.glyphs.effect.ignite;
 
 import com.hypixel.hytale.component.CommandBuffer;
+import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;

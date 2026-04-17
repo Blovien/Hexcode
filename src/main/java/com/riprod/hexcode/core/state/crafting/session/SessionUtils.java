@@ -4,15 +4,12 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentAccessor;
-import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3i;
-import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.world.World;
@@ -26,9 +23,6 @@ import com.riprod.hexcode.core.state.crafting.entity.AnchorEntity;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Slot.SlotNodeHandler;
 import com.riprod.hexcode.core.state.crafting.utils.PedestalItemUtil;
 import com.riprod.hexcode.state.HexState;
-import com.riprod.hexcode.utils.CleanupUtils;
-
-import java.util.UUID;
 
 public class SessionUtils {
 
@@ -38,12 +32,6 @@ public class SessionUtils {
             PedestalBlockComponent pedestal, Vector3i pedestalLocation,
             Ref<EntityStore> ownerRef, boolean isOpen) {
 
-        Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
-
-        holder.addComponent(UUIDComponent.getComponentType(),
-                new UUIDComponent(UUID.randomUUID()));
-        holder.ensureComponent(EntityStore.REGISTRY.getNonSerializedComponentType());
-
         HexcodeSessionComponent session = new HexcodeSessionComponent(pedestalLocation, ownerRef, isOpen);
 
         Ref<EntityStore> anchorRef = pedestal.getAnchorRef();
@@ -51,26 +39,24 @@ public class SessionUtils {
             session.setAnchorEntityRef(anchorRef);
         }
 
-        holder.addComponent(HexcodeSessionComponent.getComponentType(), session);
+        buffer.addComponent(ownerRef, HexcodeSessionComponent.getComponentType(), session);
 
-        Ref<EntityStore> sessionRef = buffer.addEntity(holder, AddReason.SPAWN);
-
-        pedestal.setSessionRef(sessionRef);
+        pedestal.setSessionRef(ownerRef);
 
         HexcasterCraftingComponent craftingComp = buffer.getComponent(ownerRef,
                 HexcasterCraftingComponent.getComponentType());
         if (craftingComp != null) {
-            craftingComp.setSessionRef(sessionRef);
+            craftingComp.setSessionRef(ownerRef);
         }
 
-        logger.atInfo().log("session created id=%s at %s, open=%s", session.getSessionId(), pedestalLocation, isOpen);
+        logger.atInfo().log("session created at %s, open=%s", pedestalLocation, isOpen);
         return session;
     }
 
     public static void joinSession(CommandBuffer<EntityStore> buffer,
-            Ref<EntityStore> sessionRef, Ref<EntityStore> participantRef) {
+            Ref<EntityStore> ownerRef, Ref<EntityStore> participantRef) {
 
-        HexcodeSessionComponent session = buffer.getComponent(sessionRef,
+        HexcodeSessionComponent session = buffer.getComponent(ownerRef,
                 HexcodeSessionComponent.getComponentType());
         if (session == null) return;
 
@@ -79,10 +65,10 @@ public class SessionUtils {
         HexcasterCraftingComponent craftingComp = buffer.getComponent(participantRef,
                 HexcasterCraftingComponent.getComponentType());
         if (craftingComp != null) {
-            craftingComp.setSessionRef(sessionRef);
+            craftingComp.setSessionRef(ownerRef);
         }
 
-        logger.atInfo().log("player joined session id=%s", session.getSessionId());
+        logger.atInfo().log("player joined session at %s", session.getPedestalLocation());
     }
 
     public static void leaveSession(CommandBuffer<EntityStore> buffer, Ref<EntityStore> participantRef,
@@ -92,8 +78,8 @@ public class SessionUtils {
                 HexcasterCraftingComponent.getComponentType());
         if (craftingComp == null || !craftingComp.hasActiveSession()) return;
 
-        Ref<EntityStore> sessionRef = craftingComp.getSessionRef();
-        HexcodeSessionComponent session = buffer.getComponent(sessionRef,
+        Ref<EntityStore> ownerRef = craftingComp.getSessionRef();
+        HexcodeSessionComponent session = buffer.getComponent(ownerRef,
                 HexcodeSessionComponent.getComponentType());
         if (session == null) {
             craftingComp.clear(buffer);
@@ -107,20 +93,20 @@ public class SessionUtils {
         boolean noParticipants = session.getParticipantRefs().isEmpty();
 
         if (isOwner || noParticipants) {
-            endSession(buffer, sessionRef, world);
+            endSession(buffer, ownerRef, world);
         }
     }
 
-    public static void endSession(CommandBuffer<EntityStore> buffer, Ref<EntityStore> sessionRef,
+    public static void endSession(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ownerRef,
             World world) {
 
-        if (sessionRef == null || !sessionRef.isValid()) return;
+        if (ownerRef == null || !ownerRef.isValid()) return;
 
-        HexcodeSessionComponent session = buffer.getComponent(sessionRef,
+        HexcodeSessionComponent session = buffer.getComponent(ownerRef,
                 HexcodeSessionComponent.getComponentType());
         if (session == null) return;
 
-        logger.atInfo().log("ending session id=%s at %s", session.getSessionId(), session.getPedestalLocation());
+        logger.atInfo().log("ending session at %s", session.getPedestalLocation());
 
         Set<Ref<EntityStore>> participants = session.getParticipantRefs();
         for (Ref<EntityStore> pRef : participants) {
@@ -148,25 +134,13 @@ public class SessionUtils {
             session.setAnchorNodeRef(null);
         }
 
-        Ref<EntityStore> ownerRef = session.getOwnerRef();
         ItemStack bookStack = session.getStoredBook();
         if (bookStack != null && !bookStack.isEmpty()) {
-            if (ownerRef != null && ownerRef.isValid()) {
-                PedestalItemUtil.returnBookToPlayer(buffer, ownerRef, bookStack, session.getBookSourceSlot());
-            } else {
-                PedestalItemUtil.dropBookAtPosition(buffer, bookStack, session.getPedestalLocation());
-            }
+            PedestalItemUtil.returnBookToPlayer(buffer, ownerRef, bookStack, session.getBookSourceSlot());
             session.setStoredBook(ItemStack.EMPTY);
-
-            if (ownerRef != null && ownerRef.isValid()) {
-                HexcasterCraftingComponent ownerCrafting = buffer.getComponent(ownerRef,
-                        HexcasterCraftingComponent.getComponentType());
-                if (ownerCrafting != null) {
-                    ownerCrafting.setPersistedBookSnapshot(null);
-                    ownerCrafting.setPersistedBookSourceSlot(null);
-                }
-            }
         }
+
+        PedestalItemUtil.returnEssenceToPlayer(buffer, ownerRef, session.getEssence());
 
         Ref<EntityStore> bookRef = session.getBookDisplayRef();
         if (bookRef != null && bookRef.isValid()) {
@@ -195,29 +169,30 @@ public class SessionUtils {
         session.setActiveSlotIndex(-1);
         session.setAnchorEntityRef(null);
 
-        if (sessionRef.isValid()) {
-            buffer.tryRemoveEntity(sessionRef, RemoveReason.REMOVE);
-        }
+        buffer.tryRemoveComponent(ownerRef, HexcodeSessionComponent.getComponentType());
     }
 
     @Nullable
     public static HexcodeSessionComponent resolveSession(PedestalBlockComponent pedestal,
             ComponentAccessor<EntityStore> accessor) {
-        Ref<EntityStore> sessionRef = pedestal.getSessionRef();
-        if (sessionRef == null || !sessionRef.isValid()) return null;
-        return accessor.getComponent(sessionRef, HexcodeSessionComponent.getComponentType());
+        Ref<EntityStore> ownerRef = pedestal.getSessionRef();
+        if (ownerRef == null || !ownerRef.isValid()) return null;
+        return accessor.getComponent(ownerRef, HexcodeSessionComponent.getComponentType());
     }
 
     @Nullable
     public static Ref<EntityStore> getSessionRef(PedestalBlockComponent pedestal) {
-        Ref<EntityStore> sessionRef = pedestal.getSessionRef();
-        if (sessionRef == null || !sessionRef.isValid()) return null;
-        return sessionRef;
+        Ref<EntityStore> ownerRef = pedestal.getSessionRef();
+        if (ownerRef == null || !ownerRef.isValid()) return null;
+        return ownerRef;
     }
 
     @Nullable
     public static HexcodeSessionComponent resolveSessionByPlayer(Ref<EntityStore> playerRef,
             ComponentAccessor<EntityStore> accessor) {
+        HexcodeSessionComponent session = accessor.getComponent(playerRef,
+                HexcodeSessionComponent.getComponentType());
+        if (session != null) return session;
         HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
                 HexcasterCraftingComponent.getComponentType());
         if (craftingComp == null || !craftingComp.hasActiveSession()) return null;
@@ -227,6 +202,9 @@ public class SessionUtils {
     @Nullable
     public static Ref<EntityStore> getSessionRefByPlayer(Ref<EntityStore> playerRef,
             ComponentAccessor<EntityStore> accessor) {
+        HexcodeSessionComponent session = accessor.getComponent(playerRef,
+                HexcodeSessionComponent.getComponentType());
+        if (session != null) return playerRef;
         HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
                 HexcasterCraftingComponent.getComponentType());
         if (craftingComp == null || !craftingComp.hasActiveSession()) return null;

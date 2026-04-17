@@ -3,7 +3,7 @@ package com.riprod.hexcode.core.state.drawing;
 import java.util.List;
 
 import com.hypixel.hytale.component.CommandBuffer;
-import com.hypixel.hytale.component.Holder;
+import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
@@ -148,7 +148,8 @@ public class DrawingSystem extends HexcodeManager {
   }
 
   @Override
-  public void onPlayerJoin(Holder<EntityStore> holder, HexcasterComponent comp) {
+  public void onPlayerJoin(Ref<EntityStore> playerRef, HexcasterComponent comp,
+                        Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
   }
 
   @Override

@@ -22,7 +22,6 @@ import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
-import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableType;
 import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;

@@ -62,6 +62,7 @@ public class ImbuementExecutor {
         rootGlyph.setNeedsInitialExecution(false);
         rootGlyph.setManaCostMultiplier(event.getManaCostMultiplier());
         rootGlyph.setVolatilityMultiplier(event.getVolatilityMultiplier());
+        rootGlyph.setPowerModifier(event.getPowerModifier());
 
         Holder<EntityStore> holder = buildHexEntityHolder(
                 request.buffer, request.wielderRef, rootGlyph);
@@ -89,7 +90,8 @@ public class ImbuementExecutor {
         VolatilityTracker tracker = new VolatilityTracker(
                 startingBudget,
                 event.getVolatilityMultiplier(),
-                event.getManaCostMultiplier());
+                event.getManaCostMultiplier(),
+                event.getPowerModifier());
         hexContext.setVolatilityTracker(tracker);
 
         if (request.colors != null) {

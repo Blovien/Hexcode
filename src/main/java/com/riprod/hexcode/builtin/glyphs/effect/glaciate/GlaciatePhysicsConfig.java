@@ -3,6 +3,7 @@ package com.riprod.hexcode.builtin.glyphs.effect.glaciate;
 import java.lang.reflect.Field;
 import java.util.UUID;
 
+import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
@@ -30,11 +31,11 @@ public class GlaciatePhysicsConfig extends StandardPhysicsConfig {
 
     @Override
     public void apply(Holder<EntityStore> holder, Ref<EntityStore> creatorRef,
-            Vector3d velocity, ComponentAccessor<EntityStore> componentAccessor,
+            Vector3d velocity, ComponentAccessor<EntityStore> accessor,
             boolean predicted) {
         UUID creatorUUID = null;
         if (creatorRef != null) {
-            UUIDComponent uuidComponent = componentAccessor.getComponent(
+            UUIDComponent uuidComponent = accessor.getComponent(
                     creatorRef, UUIDComponent.getComponentType());
             if (uuidComponent != null) creatorUUID = uuidComponent.getUuid();
         }

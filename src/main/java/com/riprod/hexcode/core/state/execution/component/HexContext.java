@@ -120,13 +120,18 @@ public class HexContext {
         this.colors = colors;
     }
 
+    public float getMagicPowerMultiplier() {
+        return volatilityTracker != null ? volatilityTracker.getMagicPowerMultiplier() : 1.0f;
+    }
+
     /** Utility Functions */
 
     public HexContext copy() {
         HexContext copy = new HexContext(this.root, this.accessor, this.chunkAccessor, this.hex);
         copy.variables = new HashMap<>(this.variables);
         copy.volatilityTracker = this.volatilityTracker;
-        if (this.colors != null) copy.colors = this.colors.clone();
+        if (this.colors != null)
+            copy.colors = this.colors.clone();
         return copy;
     }
 
@@ -174,18 +179,19 @@ public class HexContext {
             .append(new KeyedCodec<>("VolatilityTracker", VolatilityTracker.CODEC),
                     (c, v) -> c.volatilityTracker = v,
                     c -> c.volatilityTracker)
-             .add()
-             .append(new KeyedCodec<>("HexColors", HexColors.CODEC),
+            .add()
+            .append(new KeyedCodec<>("HexColors", HexColors.CODEC),
                     (c, v) -> c.colors = v,
                     c -> c.colors)
-             .add()
+            .add()
             .build();
 
     public HexContext clone() {
         HexContext copy = new HexContext(this.root, this.accessor, this.chunkAccessor, this.hex.clone());
         copy.variables = new HashMap<>(this.variables);
         copy.volatilityTracker = this.volatilityTracker;
-        if (this.colors != null) copy.colors = this.colors.clone();
+        if (this.colors != null)
+            copy.colors = this.colors.clone();
         return copy;
     }
 }

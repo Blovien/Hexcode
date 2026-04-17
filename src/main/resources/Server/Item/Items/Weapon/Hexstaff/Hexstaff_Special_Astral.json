@@ -1,0 +1,71 @@
+{
+  "Parent": "Template_HexStaff",
+  "TranslationProperties": {
+    "Name": "hexcode.items.Hex_Astral_Staff.name"
+  },
+  "Categories": [
+    "Hexcode.Staves"
+  ],
+  "Quality": "Epic",
+  "ItemLevel": 40,
+  "PlayerAnimationsId": "HexStaff",
+  "Utility": {
+    "Compatible": true
+  },
+  "IconProperties": {
+    "Scale": 0.25,
+    "Rotation": [
+      45,
+      90,
+      0
+    ],
+    "Translation": [
+      -51.6,
+      -54.6
+    ]
+  },
+  "Model": "Items/Weapons/Staff/Hex_Astral_Staff.blockymodel",
+  "Texture": "Items/Weapons/Staff/Hex_Astral_Staff_Texture.png",
+  "Icon": "Icons/ItemsGenerated/Hex_Astral_Staff.png",
+  "Scale": 1.3,
+  "DroppedItemAnimation": "Items/Animations/Dropped/Dropped_Diagonal_Left.blockyanim",
+  "Tags": {
+    "Family": [
+      "Staff"
+    ],
+    "Type": [
+      "Weapon"
+    ]
+  },
+  "Weapon": {
+    "StatModifiers": {
+      "Magic_Power": [
+        {
+          "Target": "Max",
+          "CalculationType": "Additive",
+          "Amount": 1.6
+        }
+      ],
+      "Volatility": [
+        {
+          "Target": "Max",
+          "CalculationType": "Additive",
+          "Amount": 200
+        }
+      ],
+      "MagicCharges": [
+        {
+          "CalculationType": "Additive",
+          "Amount": 8
+        }
+      ]
+    },
+    "EntityStatsToClear": [
+      "Magic_Power",
+      "MagicCharges",
+      "Volatility"
+    ]
+  },
+  "ItemSoundSetId": "ISS_Weapons_Wood",
+  "MaxStack": 1
+}

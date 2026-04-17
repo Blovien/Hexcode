@@ -3,6 +3,7 @@ package com.riprod.hexcode.builtin.glyphs.effect.fortify;
 import java.time.Instant;
 
 import com.hypixel.hytale.component.CommandBuffer;
+import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;

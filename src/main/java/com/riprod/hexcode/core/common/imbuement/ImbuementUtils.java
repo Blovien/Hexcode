@@ -4,6 +4,7 @@ import javax.annotation.Nullable;
 
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
+import com.riprod.hexcode.core.common.hexes.saved.SavedHexAsset;
 import com.riprod.hexcode.core.common.hexes.utils.HexUtils;
 
 public class ImbuementUtils {
@@ -32,7 +33,11 @@ public class ImbuementUtils {
         if (data.getHex() != null) return data.getHex().clone();
         if (data.getHexAssetId() != null) {
             Hex hex = HexUtils.deserialize(data.getHexAssetId());
-            return hex != null ? hex.clone() : null;
+            if (hex != null) return hex.clone();
+        }
+        if (data.getReferenceId() != null) {
+            SavedHexAsset saved = SavedHexAsset.getAssetMap().getAsset(data.getReferenceId());
+            if (saved != null && saved.getHex() != null) return saved.getHex().clone();
         }
         return null;
     }

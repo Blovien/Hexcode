@@ -1,0 +1,9 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "Mist_Spawner",
+      "StartDelay": 2
+    }
+  ],
+  "CullDistance": 50
+}

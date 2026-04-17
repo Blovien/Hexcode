@@ -7,6 +7,7 @@ import com.hypixel.hytale.math.shape.Box;
 import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
 import com.hypixel.hytale.server.core.modules.entity.component.EntityScaleComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.modules.entity.player.PlayerSkinComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.builtin.glyphs.effect.scale.component.ScaleComponent;
 import com.riprod.hexcode.builtin.glyphs.effect.scale.component.ScaleTargetMarker;
@@ -36,11 +37,12 @@ public class ScaleConstructHandler implements ConstructHandler {
                     EntityScaleComponent scaleComp = buffer.getComponent(
                             targetRef, EntityScaleComponent.getComponentType());
                     if (scaleComp != null) {
-                        if (scale.hadEntityScaleBefore()) {
-                            scaleComp.setScale(scale.getOriginalScale());
-                        } else {
-                            buffer.removeComponent(targetRef, EntityScaleComponent.getComponentType());
-                        }
+                        scaleComp.setScale(scale.getOriginalScale());
+                    }
+                    PlayerSkinComponent skinComp = buffer.getComponent(
+                            targetRef, PlayerSkinComponent.getComponentType());
+                    if (skinComp != null) {
+                        skinComp.setNetworkOutdated();
                     }
                     Box originalBox = scale.getOriginalBoundingBox();
                     BoundingBox box = buffer.getComponent(targetRef, BoundingBox.getComponentType());

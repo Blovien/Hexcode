@@ -1,0 +1,76 @@
+{
+  "Parent": "Template_HexStaff",
+  "TranslationProperties": {
+    "Name": "hexcode.items.hexstaff.basic.bronze.name",
+    "Description": "hexcode.items.hexstaff.basic.bronze.description"
+  },
+  "Categories": [
+    "Hexcode.Staves",
+    "Items.Weapons"
+  ],
+  "Icon": "Icons/ItemsGenerated/Weapon_Staff_Bronze.png",
+  "Quality": "Common",
+  "ItemLevel": 25,
+  "Model": "Items/Weapons/Staff/Bronze.blockymodel",
+  "Texture": "Items/Weapons/Staff/Bronze_Texture.png",
+  "IconProperties": {
+    "Scale": 0.29,
+    "Translation": [
+      -50,
+      -50
+    ],
+    "Rotation": [
+      22.5,
+      45,
+      315
+    ]
+  },
+  "Particles": [
+    {
+      "SystemId": "Staff_Bronze",
+      "TargetNodeName": "Handle",
+      "PositionOffset": {
+        "X": 1
+      }
+    }
+  ],
+  "DroppedItemAnimation": "Items/Animations/Dropped/Dropped_Diagonal_Left.blockyanim",
+  "Tags": {
+    "Type": [
+      "Weapon"
+    ],
+    "Family": [
+      "Staff"
+    ]
+  },
+  "Weapon": {
+    "StatModifiers": {
+      "Magic_Power": [
+        {
+          "Target": "Max",
+          "CalculationType": "Additive",
+          "Amount": 0.1
+        }
+      ],
+      "Volatility": [
+        {
+          "Target": "Max",
+          "CalculationType": "Additive",
+          "Amount": 8
+        }
+      ],
+      "MagicCharges": [
+        {
+          "CalculationType": "Additive",
+          "Amount": 2
+        }
+      ]
+    },
+    "EntityStatsToClear": [
+      "Magic_Power",
+      "MagicCharges",
+      "Volatility"
+    ]
+  },
+  "ItemSoundSetId": "ISS_Weapons_Wood"
+}

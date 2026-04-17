@@ -57,7 +57,7 @@ public class GlyphBookInteraction extends SimpleInteraction {
             return;
         }
 
-        PlayerRef pRef = player.getPlayerRef();
+        PlayerRef pRef = store.getComponent(playerRef, PlayerRef.getComponentType());
         GlyphBookPage page = new GlyphBookPage(pRef, bookResult.getFirst());
         player.getPageManager().openCustomPage(playerRef, store, page);
 
