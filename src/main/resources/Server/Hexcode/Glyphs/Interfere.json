@@ -1,0 +1,31 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Interfere",
+  "Description": "Hijacks active hex constructs or strips hex effects from targets",
+  "ModelPath": "Interfere",
+  "BasePower": 1.0,
+  "ManaConsumption": 15,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Anticircle",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Circle",
+      "Size": 0.8
+    }
+  ],
+  "Slots": {
+    "target": {
+      "Style": "Input",
+      "Label": "Target",
+      "Description": "Entities or blocks to interfere with"
+    },
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain"
+    }
+  },
+  "VolatilityCost": 8
+}

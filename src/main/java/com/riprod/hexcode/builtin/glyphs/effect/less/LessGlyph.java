@@ -17,8 +17,8 @@ public class LessGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar a = glyph.readSlot("a", hexContext);
-        HexVar b = glyph.readSlot("b", hexContext);
+        HexVar a = glyph.readSlot(LessGlyphSlots.A, hexContext);
+        HexVar b = glyph.readSlot(LessGlyphSlots.B, hexContext);
         boolean result = HexMathUtil.isLess(a, b);
 
         List<String> next = glyph.getNextLinks();

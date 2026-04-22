@@ -15,6 +15,7 @@ import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.common.glyphs.variables.NumberVar;
 import com.riprod.hexcode.core.state.execution.Executor;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.utils.SpellVarUtil;
@@ -24,8 +25,8 @@ public class BeamGlyph implements GlyphHandler {
     public static final String ID = "Glyph_Beam";
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar posVar = glyph.readSlot("entity", hexContext);
-        HexVar rotVar = glyph.readSlot("rotation", hexContext);
+        HexVar posVar = glyph.readSlot(BeamGlyphSlots.SOURCE, hexContext);
+        HexVar rotVar = glyph.readSlot(BeamGlyphSlots.ROTATION, hexContext);
         if (rotVar == null) rotVar = posVar;
 
         if (posVar == null) {
@@ -48,9 +49,8 @@ public class BeamGlyph implements GlyphHandler {
             return;
         }
 
-        int beamLength = (int) SpellVarUtil.resolveNumberOrDefault(
-                glyph.readSlot("distance", hexContext),
-                32.0).doubleValue();
+        int beamLength = (int) SpellVarUtil.resolveNumber(
+                glyph.readSlot(BeamGlyphSlots.RANGE, hexContext, new NumberVar(32.0))).doubleValue();
 
         Vector3f rotation = Vector3f.lookAt(direction);
         Transform transform = new Transform(new Vector3d(origin), rotation);
@@ -91,14 +91,14 @@ public class BeamGlyph implements GlyphHandler {
                 hitType = BeamStyle.HitType.MISS;
             } else {
                 EntityVar resultVar = new EntityVar(EntityVar.createRef(uuidComp.getUuid(), entityHit));
-                glyph.writeSlot("result", resultVar, hexContext);
+                glyph.writeOutput(resultVar, hexContext);
                 endPoint = hexContext.getAccessor().getComponent(entityHit,
                         TransformComponent.getComponentType()).getPosition();
                 hitType = BeamStyle.HitType.ENTITY;
             }
         } else if (blockHitLocation != null) {
             BlockVar resultVar = new BlockVar(blockHitLocation.toVector3i());
-            glyph.writeSlot("result", resultVar, hexContext);
+            glyph.writeOutput(resultVar, hexContext);
             endPoint = blockHitLocation;
             hitType = BeamStyle.HitType.BLOCK;
         } else {

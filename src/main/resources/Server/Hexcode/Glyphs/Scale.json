@@ -1,0 +1,46 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Scale",
+  "Description": "Temporarily scales an entity's visual size and collision box",
+  "ModelPath": "Scale",
+  "BasePower": 1.0,
+  "ManaConsumption": 12,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Antisquare",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Triangle",
+      "Size": 0.55
+    }
+  ],
+  "Slots": {
+    "target": {
+      "Style": "Input",
+      "Label": "Target",
+      "Description": "Entity to scale",
+      "Unique": true
+    },
+    "magnitude": {
+      "Style": "Input",
+      "Label": "Magnitude",
+      "Description": "Scale factor (0.25-4.0)",
+      "DefaultValue": 2.0,
+      "Unique": true
+    },
+    "duration": {
+      "Style": "Input",
+      "Label": "Duration",
+      "Description": "How long the scale lasts in seconds",
+      "DefaultValue": 5,
+      "Unique": true
+    },
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain"
+    }
+  },
+  "VolatilityCost": 1
+}

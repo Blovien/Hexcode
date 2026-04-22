@@ -17,8 +17,8 @@ public class DivideGlyph implements GlyphHandler {
     public static final String ID = "Glyph_Divide";
 
     private HexVar compute(Glyph glyph, HexContext hexContext) {
-        HexVar a = glyph.readSlot("a", hexContext);
-        HexVar b = glyph.readSlot("b", hexContext);
+        HexVar a = glyph.readSlot(DivideGlyphSlots.A, hexContext);
+        HexVar b = glyph.readSlot(DivideGlyphSlots.B, hexContext);
 
         if (a instanceof EntityVar) {
             Vector3d aPos = SpellVarUtil.resolveAsPosition(a, hexContext.getAccessor());
@@ -38,7 +38,7 @@ public class DivideGlyph implements GlyphHandler {
         HexVar result = compute(glyph, hexContext);
 
         if (result != null) {
-            glyph.writeSlot("result", result, hexContext);
+            glyph.writeOutput(result, hexContext);
         }
 
         Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);

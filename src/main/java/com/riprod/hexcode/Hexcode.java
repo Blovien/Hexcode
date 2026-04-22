@@ -16,6 +16,7 @@ import com.riprod.hexcode.core.common.hexcaster.system.HexcasterCleanupSystem;
 import com.riprod.hexcode.core.state.drawing.DrawingSlotLockEvent;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
+import com.riprod.hexcode.core.common.glyphs.registry.StyleAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
@@ -118,10 +119,18 @@ public class Hexcode extends JavaPlugin {
     // Custom asset registries
     AssetRegistry.register(
         HytaleAssetStore
+            .builder(StyleAsset.class, new DefaultAssetMap<String, StyleAsset>())
+            .setPath("Hexcode/Styles")
+            .setCodec(StyleAsset.CODEC)
+            .setKeyFunction(StyleAsset::getId)
+            .build());
+    AssetRegistry.register(
+        HytaleAssetStore
             .builder(GlyphAsset.class, new DefaultAssetMap<String, GlyphAsset>())
             .setPath("Hexcode/Glyphs")
             .setCodec(GlyphAsset.CODEC)
             .setKeyFunction(GlyphAsset::getId)
+            .loadsAfter(StyleAsset.class)
             .build());
     AssetRegistry.register(
         HytaleAssetStore

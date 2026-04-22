@@ -48,63 +48,15 @@ public class ConjureGlyph implements GlyphHandler {
   public static final String ID = "Glyph_Conjure";
   private static final String HARD_COLLISION_ID = "Hexcode_Conjure_HardCollision";
 
-  public enum INPUTS {
-    ANCHOR("anchor"),
-    COORDS_A("coordsA"),
-    COORDS_B("coordsB"),
-    DURATION("duration"),
-    INTERVAL("interval");
-
-    private final String slotName;
-
-    INPUTS(String slotName) {
-      this.slotName = slotName;
-    }
-
-    public String getSlotName() {
-      return slotName;
-    }
-  }
-
-  public enum OUTPUTS {
-    ENTITY("entity"),
-    CONJURATION("conjuration");
-
-    private final String slotName;
-
-    OUTPUTS(String slotName) {
-      this.slotName = slotName;
-    }
-
-    public String getSlotName() {
-      return slotName;
-    }
-  }
-
-  public enum NEXT {
-    IMMEDIATE("immediate"),
-    NEXT("Next");
-
-    private final String linkName;
-
-    NEXT(String linkName) {
-      this.linkName = linkName;
-    }
-
-    public String getLinkName() {
-      return linkName;
-    }
-  }
-
   @Override
   public void execute(Glyph glyph, HexContext hexContext) {
-    HexVar coordsAVar = glyph.readSlotOrDefault(INPUTS.COORDS_A.getSlotName(), hexContext,
+    HexVar coordsAVar = glyph.readSlot(ConjureGlyphSlots.COORDS_A, hexContext,
         new PositionVar(new Vector3d(0.5, 0.5, 0.5)));
-    HexVar coordsBVar = glyph.readSlotOrDefault(INPUTS.COORDS_B.getSlotName(), hexContext,
+    HexVar coordsBVar = glyph.readSlot(ConjureGlyphSlots.COORDS_B, hexContext,
         new PositionVar(new Vector3d(-0.5, -0.5, -0.5)));
-    HexVar durationVar = glyph.readSlot(INPUTS.DURATION.getSlotName(), hexContext);
-    HexVar intervalVar = glyph.readSlot(INPUTS.INTERVAL.getSlotName(), hexContext);
-    HexVar anchorVar = glyph.readSlot(INPUTS.ANCHOR.getSlotName(), hexContext);
+    HexVar durationVar = glyph.readSlot(ConjureGlyphSlots.DURATION, hexContext);
+    HexVar intervalVar = glyph.readSlot(ConjureGlyphSlots.INTERVAL, hexContext);
+    HexVar anchorVar = glyph.readSlot(ConjureGlyphSlots.ANCHOR, hexContext);
 
     if (anchorVar == null) {
       LOGGER.atInfo().log("conjure: no anchor, failing");
@@ -165,8 +117,8 @@ public class ConjureGlyph implements GlyphHandler {
     float durationSeconds = SpellVarUtil.resolveNumberOrDefault(durationVar, 5.0).floatValue();
     float interval = SpellVarUtil.resolveNumberOrDefault(intervalVar, -1.0).floatValue();
 
-    String[] immediate = glyph.getSlot(NEXT.IMMEDIATE.getLinkName()).getLinks();
-    String[] next = glyph.getSlot(NEXT.NEXT.getLinkName()).getLinks();
+    String[] immediate = glyph.getSlot(ConjureGlyphSlots.IMMEDIATE).getLinks();
+    String[] next = glyph.getSlot(Glyph.NEXT_SLOT).getLinks();
 
     List<String> immediateBranchIds = Arrays.asList(immediate);
     List<String> conditionalBranchIds = Arrays.asList(next);
@@ -223,8 +175,7 @@ public class ConjureGlyph implements GlyphHandler {
     UUIDComponent zoneUuidComp = holder.getComponent(UUIDComponent.getComponentType());
     UUID zoneUuid = zoneUuidComp != null ? zoneUuidComp.getUuid() : UUID.randomUUID();
     EntityVar zoneEntityVar = new EntityVar(zoneUuid, zoneRef);
-    glyph.writeSlot(OUTPUTS.ENTITY.getSlotName(), zoneEntityVar, hexContext);
-    glyph.writeSlot(OUTPUTS.CONJURATION.getSlotName(), zoneEntityVar, hexContext);
+    glyph.writeSelfOutput(zoneEntityVar, hexContext);
 
     RootGlyph execComp = hexContext.getAccessor().getComponent(
         hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());

@@ -10,7 +10,7 @@ import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.state.crafting.constants.NodeType;
+import com.riprod.hexcode.core.state.crafting.constants.NodeTypeId;
 
 public class NodeComponent implements Component<EntityStore> {
 
@@ -27,7 +27,7 @@ public class NodeComponent implements Component<EntityStore> {
         this.nodeType = other.nodeType;
     }
 
-    public NodeComponent(Ref<EntityStore> parentEntity, NodeType nodeType) {
+    public NodeComponent(Ref<EntityStore> parentEntity, NodeTypeId nodeType) {
         this.parentEntity = parentEntity;
         this.nodeType = nodeType;
     }
@@ -44,7 +44,7 @@ public class NodeComponent implements Component<EntityStore> {
     private List<Ref<EntityStore>> incomingRefs = new ArrayList<>(); // links coming into this node
     private Ref<EntityStore> parentEntity; // parent object
     private boolean isHovered = false;
-    private NodeType nodeType;
+    private NodeTypeId nodeType;
 
     public List<Ref<EntityStore>> getOutgoingRefs() {
         return outgoingRefs;
@@ -94,11 +94,11 @@ public class NodeComponent implements Component<EntityStore> {
         this.parentEntity = parentGlyphRef;
     }
 
-    public NodeType getNodeType() {
+    public NodeTypeId getNodeType() {
         return nodeType;
     }
 
-    public void setNodeType(NodeType nodeType) {
+    public void setNodeType(NodeTypeId nodeType) {
         this.nodeType = nodeType;
     }
 

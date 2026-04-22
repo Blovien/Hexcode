@@ -48,7 +48,7 @@ import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
 import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
 import com.riprod.hexcode.core.state.crafting.session.SessionUtils;
 import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
-import com.riprod.hexcode.core.state.crafting.constants.NodeType;
+import com.riprod.hexcode.core.state.crafting.constants.NodeTypeId;
 import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
 import com.riprod.hexcode.core.state.crafting.entity.GlyphSpawner;
 import com.riprod.hexcode.core.state.crafting.entity.PedestalEntity;
@@ -59,7 +59,7 @@ import com.riprod.hexcode.utils.CleanupUtils;
 import com.riprod.hexcode.utils.GlyphMath;
 import com.hypixel.hytale.logger.HytaleLogger;
 
-public class ContainerNodeHandler implements NodeInterface {
+public class ContainerNodeHandler extends BaseContainerHandler {
     private static final HytaleLogger logger = HytaleLogger.forEnclosingClass();
 
     public static final ContainerNodeHandler INSTANCE = new ContainerNodeHandler();
@@ -110,7 +110,7 @@ public class ContainerNodeHandler implements NodeInterface {
 
         holder.addComponent(BoundingBox.getComponentType(), new BoundingBox(PREVIEW_BOUNDING_BOX));
         holder.addComponent(HoverableComponent.getComponentType(), new HoverableComponent(HoverableType.NODE));
-        holder.addComponent(NodeComponent.getComponentType(), new NodeComponent(anchorRef, NodeType.Container));
+        holder.addComponent(NodeComponent.getComponentType(), new NodeComponent(anchorRef, NodeTypeId.CONTAINER));
         holder.addComponent(DebugComponent.getComponentType(),
                 new DebugComponent(DebugShape.Sphere, isEmpty ? CraftingColors.EMPTY_SLOT : CraftingColors.FILLED_SLOT,
                         0.5, 2.0f));
@@ -239,57 +239,8 @@ public class ContainerNodeHandler implements NodeInterface {
     }
 
     @Override
-    public InteractionState tick(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
-            Ref<EntityStore> playerRef) {
-
-        return InteractionState.Finished;
-    }
-
-    @Override
-    public InteractionState exit(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
-            Ref<EntityStore> playerRef) {
-
-        return InteractionState.Finished;
-    }
-
-    @Override
-    public InteractionState click(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
-            Ref<EntityStore> playerRef) {
-
-        return InteractionState.Finished;
-    }
-
-    @Override
-    public InteractionState ability(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
-            InteractionType inputType, Ref<EntityStore> playerRef) {
-
-        return InteractionState.Finished;
-    }
-
-    @Override
     public void despawn(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'despawn'");
-    }
-
-    @Override
-    public void hover(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
-        DebugComponent debug = accessor.getComponent(nodeRef, DebugComponent.getComponentType());
-        if (debug == null)
-            return;
-        debug.setScaleMultiplier(1.3f);
-        debug.setIntervalMultiplier(0.25f);
-        debug.setFadeMultiplier(0.25f);
-        debug.setTimer(0);
-    }
-
-    @Override
-    public void unhover(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
-        DebugComponent debug = accessor.getComponent(nodeRef, DebugComponent.getComponentType());
-        if (debug == null)
-            return;
-        debug.resetScaleMultiplier();
-        debug.resetFadeMultipler();
-        debug.resetIntervalMultiplier();
     }
 }

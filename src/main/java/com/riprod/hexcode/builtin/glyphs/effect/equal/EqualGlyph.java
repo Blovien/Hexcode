@@ -16,8 +16,8 @@ public class EqualGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar a = glyph.readSlot("a", hexContext);
-        HexVar b = glyph.readSlot("b", hexContext);
+        HexVar a = glyph.readSlot(EqualGlyphSlots.A, hexContext);
+        HexVar b = glyph.readSlot(EqualGlyphSlots.B, hexContext);
 
         if (b == null) {
             assign(glyph, hexContext, a);
@@ -29,7 +29,7 @@ public class EqualGlyph implements GlyphHandler {
 
     private void assign(Glyph glyph, HexContext hexContext, HexVar value) {
         if (value != null) {
-            glyph.writeSlot("result", value, hexContext);
+            glyph.writeOutput(value, hexContext);
         }
         Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }

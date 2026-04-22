@@ -1,0 +1,38 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Multiply",
+  "Description": "Multiplies two values together",
+  "ModelPath": "Multiply",
+  "BasePower": 0,
+  "ManaConsumption": 0,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Slash",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Antislash",
+      "Size": 1.0
+    }
+  ],
+  "Slots": {
+    "a": {
+      "Style": "Input",
+      "Label": "A",
+      "Description": "First operand",
+      "DefaultValue": 0
+    },
+    "b": {
+      "Style": "Input",
+      "Label": "B",
+      "Description": "Second operand",
+      "DefaultValue": 0
+    },
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain"
+    }
+  },
+  "VolatilityCost": 1
+}

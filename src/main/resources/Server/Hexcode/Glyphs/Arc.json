@@ -1,0 +1,49 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Arc",
+  "Description": "Chain lightning that fires each child on the next chain target",
+  "ModelPath": "Arc",
+  "BasePower": 1.0,
+  "ManaConsumption": 20,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Circle",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Circle",
+      "Size": 0.8
+    },
+    {
+      "ShapeId": "Antisquare",
+      "Size": 0.55
+    }
+  ],
+  "Slots": {
+    "target": {
+      "Style": "Input",
+      "Label": "Target",
+      "Description": "Variable containing the targets to affect"
+    },
+    "jump": {
+      "Style": "Input",
+      "Label": "Jump",
+      "Description": "Number of blocks to jump",
+      "DefaultValue": 15,
+      "Unique": true
+    },
+    "delay": {
+      "Style": "Input",
+      "Label": "Delay",
+      "Description": "Seconds between each arc jump",
+      "DefaultValue": 0.75,
+      "Unique": true
+    },
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain"
+    }
+  },
+  "VolatilityCost": 8
+}

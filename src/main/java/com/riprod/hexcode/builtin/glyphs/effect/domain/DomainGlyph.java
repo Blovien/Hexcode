@@ -51,7 +51,7 @@ public class DomainGlyph implements GlyphHandler {
             return;
         }
 
-        HexVar targetVar = glyph.readSlot("target", hexContext);
+        HexVar targetVar = glyph.readSlot(DomainGlyphSlots.TARGET, hexContext);
         if (targetVar == null) {
             LOGGER.atInfo().log("domain: no target provided");
             Executor.fail(hexContext);
@@ -67,13 +67,13 @@ public class DomainGlyph implements GlyphHandler {
 
         double radius = Math.max(MIN_RADIUS, Math.min(MAX_RADIUS,
                 SpellVarUtil.resolveNumberOrDefault(
-                        glyph.readSlot("magnitude", hexContext), DEFAULT_RADIUS)));
+                        glyph.readSlot(DomainGlyphSlots.MAGNITUDE, hexContext), DEFAULT_RADIUS)));
 
         float durationSeconds = SpellVarUtil.resolveNumberOrDefault(
-                glyph.readSlot("duration", hexContext), DEFAULT_DURATION).floatValue();
+                glyph.readSlot(DomainGlyphSlots.DURATION, hexContext), DEFAULT_DURATION).floatValue();
 
         float power = SpellVarUtil.resolveNumberOrDefault(
-                glyph.readSlot("power", hexContext), DEFAULT_POWER).floatValue();
+                glyph.readSlot(DomainGlyphSlots.POWER, hexContext), DEFAULT_POWER).floatValue();
         power = Math.max(0.1f, power);
 
         float upfrontCost = BASE_MANA_COST * (1 + (power - 1) * 0.5f);
@@ -86,7 +86,7 @@ public class DomainGlyph implements GlyphHandler {
         float baseDrainPerSecond = BASE_MANA_COST * ((float) radius / 5.0f) * 0.1f;
 
         List<String> conditionalBranchIds = glyph.getNextLinks();
-        Slot immediateSlot = glyph.getSlot("immediate");
+        Slot immediateSlot = glyph.getSlot(DomainGlyphSlots.IMMEDIATE);
         String[] immediateLinks = immediateSlot != null ? immediateSlot.getLinks() : null;
         List<String> immediateBranchIds = (immediateLinks != null && immediateLinks.length > 0)
                 ? Arrays.asList(immediateLinks) : null;
@@ -96,7 +96,7 @@ public class DomainGlyph implements GlyphHandler {
         UUID casterUuid = casterUuidComp != null ? casterUuidComp.getUuid() : UUID.randomUUID();
 
         EntityVar zoneEntityVar = new EntityVar(UUID.randomUUID(), null);
-        glyph.writeSlot("domain", zoneEntityVar, hexContext);
+        glyph.writeSelfOutput(zoneEntityVar, hexContext);
 
         Holder<EntityStore> holder = HexConstructSpawner.create(
                 hexContext.getAccessor(), hexContext, glyph,
@@ -126,7 +126,7 @@ public class DomainGlyph implements GlyphHandler {
         UUIDComponent zoneUuidComp = holder.getComponent(UUIDComponent.getComponentType());
         if (zoneUuidComp != null) {
             zoneEntityVar = new EntityVar(zoneUuidComp.getUuid(), zoneRef);
-            glyph.writeSlot("domain", zoneEntityVar, hexContext);
+            glyph.writeSelfOutput(zoneEntityVar, hexContext);
         }
 
         DomainStyle.renderSpawn(anchorPos, (float) radius, hexContext.getColors(), hexContext.getAccessor());

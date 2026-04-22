@@ -7,7 +7,6 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
-import com.riprod.hexcode.core.common.glyphs.variables.NumberVar;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 
@@ -18,25 +17,6 @@ public interface GlyphHandler {
 
     default HexVar readValue(Glyph glyph, HexContext hexContext) {
         return null;
-    }
-
-    /**
-     * Stores `value` somewhere in the hex context. Called when something writes
-     * through this glyph as a destination. The handler does the setVariable
-     * itself; no key is exposed across the boundary.
-     *
-     * Default rule: if this handler produces a NumberVar via readValue, the
-     * destination key IS that number (as a string). Otherwise it's the glyph's
-     * own UUID. Variable overrides this — its destination is its dereference
-     * target, not the value at that target.
-     */
-    default void writeValue(Glyph glyph, HexContext hexContext, HexVar value) {
-        String key = glyph.getId();
-        HexVar v = readValue(glyph, hexContext);
-        if (v instanceof NumberVar nv) {
-            key = String.valueOf(nv.getValue().intValue());
-        }
-        hexContext.setVariable(key, value);
     }
 
     default boolean consumeResources(Glyph glyph, HexContext hexContext) {

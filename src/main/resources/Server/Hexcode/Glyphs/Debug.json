@@ -1,0 +1,31 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Debug",
+  "Description": "Debugs hex state.",
+  "ModelPath": "Debug",
+  "BasePower": 0,
+  "ManaConsumption": 0,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Triangle",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Triangle",
+      "Size": 0.5
+    }
+  ],
+  "Slots": {
+    "slot": {
+      "Style": "Input",
+      "Label": "Inspect",
+      "Description": "Connect to several variables to inspect their values."
+    },
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain"
+    }
+  },
+  "VolatilityCost": 0.1
+}

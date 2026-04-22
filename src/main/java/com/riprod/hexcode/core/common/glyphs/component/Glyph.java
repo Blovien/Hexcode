@@ -22,6 +22,7 @@ import com.riprod.hexcode.core.state.execution.component.HexContext;
 
 public class Glyph {
     public static final String NEXT_SLOT = "Next";
+    public static final String DEFAULT_SLOT = "0";
 
     private static final int MAX_RESOLVE_DEPTH = 8;
     private static final ThreadLocal<Integer> resolveDepth = ThreadLocal.withInitial(() -> 0);
@@ -143,91 +144,61 @@ public class Glyph {
 
     @Nullable
     public HexVar readSlot(String key, HexContext hexContext) {
+        return readSlot(key, hexContext, null);
+    }
+
+    @Nullable
+    public HexVar readSlot(String key, HexContext hexContext, @Nullable HexVar javaDefault) {
         int depth = resolveDepth.get();
         if (depth >= MAX_RESOLVE_DEPTH) return null;
 
         Slot slot = slots.get(key);
         String firstLink = slot != null ? slot.getFirstLink() : null;
-        if (firstLink == null) return resolveAssetDefault(key, hexContext);
+        if (firstLink == null) return resolveAssetDefault(key, hexContext, javaDefault);
 
         Glyph linked = hexContext.getGlyph(firstLink);
-        if (linked == null) return null;
+        if (linked == null) return resolveAssetDefault(key, hexContext, javaDefault);
 
         GlyphHandler handler = GlyphRegistry.get(linked.getGlyphId());
-        if (handler == null) return null;
+        if (handler == null) return resolveAssetDefault(key, hexContext, javaDefault);
 
         resolveDepth.set(depth + 1);
         try {
-            return handler.readValue(linked, hexContext);
+            HexVar v = handler.readValue(linked, hexContext);
+            return v != null ? v : resolveAssetDefault(key, hexContext, javaDefault);
         } finally {
             resolveDepth.set(depth);
         }
     }
 
-    public void writeSlot(String key, HexVar value, HexContext hexContext) {
-        Slot slot = slots.get(key);
-        if (slot == null) return;
-        String[] links = slot.getLinks();
-        if (links.length == 0) {
-            // if no links, try writing to default asset variable
-            writeAssetDefault(key, value, hexContext);
-            return;
-        };
-        for (String linkId : links) {
-            Glyph linked = hexContext.getGlyph(linkId);
-            if (linked == null) continue;
-            GlyphHandler handler = GlyphRegistry.get(linked.getGlyphId());
-            if (handler == null) continue;
-            handler.writeValue(linked, hexContext, value);
-        }
+    public void writeOutput(HexVar value, HexContext hexContext) {
+        hexContext.setVariable(DEFAULT_SLOT, value);
+        hexContext.setVariable(this.id, value);
     }
 
-    private void writeAssetDefault(String key, HexVar value, HexContext hexContext) {
-        GlyphAsset asset =
-                GlyphAsset.getAssetMap().getAsset(glyphId);
-        if (asset == null) return;
-        SlotAsset slotAsset = asset.getSlot(key);
-        if (slotAsset == null) return;
+    public void writeOutput(HexVar defaultSlotValue, HexVar selfValue, HexContext hexContext) {
+        hexContext.setVariable(DEFAULT_SLOT, defaultSlotValue);
+        hexContext.setVariable(this.id, selfValue);
+    }
 
-        Double defaultVar = slotAsset.getDefaultValue();
-        if (defaultVar != null) {
-            hexContext.setVariable(String.valueOf(defaultVar.intValue()), value);
-            return;
-        }
+    public void writeDefaultOutput(HexVar value, HexContext hexContext) {
+        hexContext.setVariable(DEFAULT_SLOT, value);
+    }
 
-        String defaultVariable = slotAsset.getDefaultVariable();
-        if (defaultVariable != null) {
-            HexVar resolved = hexContext.getVariable(defaultVariable);
-            if (resolved != null) {
-                hexContext.setVariable(resolved.toString(), value);
-            }
-        }
+    public void writeSelfOutput(HexVar value, HexContext hexContext) {
+        hexContext.setVariable(this.id, value);
     }
 
     @Nullable
-    private HexVar resolveAssetDefault(String key, HexContext hexContext) {
-        GlyphAsset asset =
-                GlyphAsset.getAssetMap().getAsset(glyphId);
-        if (asset == null) return null;
-        SlotAsset slotAsset = asset.getSlot(key);
-        if (slotAsset == null) return null;
-
-        String defaultVar = slotAsset.getDefaultVariable();
-        if (defaultVar != null) {
-            HexVar resolved = hexContext.getVariable(defaultVar);
-            if (resolved != null) return resolved;
-        }
-
-        Double defaultNum = slotAsset.getDefaultValue();
+    private HexVar resolveAssetDefault(String key, HexContext hexContext, @Nullable HexVar javaDefault) {
+        GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyphId);
+        SlotAsset slotAsset = asset != null ? asset.getSlot(key) : null;
+        Double defaultNum = slotAsset != null ? slotAsset.getDefaultValue() : null;
         if (defaultNum != null) return new NumberVar(defaultNum);
-
-        return null;
-    }
-
-    @Nullable
-    public HexVar readSlotOrDefault(String key, HexContext hexContext, HexVar defaultValue) {
-        HexVar resolved = readSlot(key, hexContext);
-        return resolved != null ? resolved : defaultValue;
+        if (javaDefault != null) return javaDefault;
+        HexVar slotZero = hexContext.getVariable(DEFAULT_SLOT);
+        if (slotZero != null) return slotZero;
+        return new NumberVar(0.0);
     }
 
     public List<String> getNextLinks() {

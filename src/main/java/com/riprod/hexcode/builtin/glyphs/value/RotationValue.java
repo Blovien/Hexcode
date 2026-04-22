@@ -30,9 +30,9 @@ public class RotationValue implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     private HexVar compute(Glyph glyph, HexContext hexContext) {
-        HexVar xVar = glyph.readSlot("x", hexContext);
-        HexVar yVar = glyph.readSlot("y", hexContext);
-        HexVar zVar = glyph.readSlot("z", hexContext);
+        HexVar xVar = glyph.readSlot(RotationValueSlots.X, hexContext);
+        HexVar yVar = glyph.readSlot(RotationValueSlots.Y, hexContext);
+        HexVar zVar = glyph.readSlot(RotationValueSlots.Z, hexContext);
 
         int count = (xVar != null ? 1 : 0) + (yVar != null ? 1 : 0) + (zVar != null ? 1 : 0);
 
@@ -65,12 +65,12 @@ public class RotationValue implements GlyphHandler {
         HexVar result = compute(glyph, hexContext);
 
         if (result != null) {
-            glyph.writeSlot("result", result, hexContext);
+            glyph.writeOutput(result, hexContext);
         }
 
         // effect mode: if a target is wired, apply rotation to it
         if (result instanceof RotationVar rotVar && rotVar.getValue() != null) {
-            HexVar target = glyph.readSlot("target", hexContext);
+            HexVar target = glyph.readSlot(RotationValueSlots.TARGET, hexContext);
             EntityVar entityVar = SpellVarUtil.resolveEntityVar(target, hexContext);
             if (entityVar != null) {
                 applyToEntity(entityVar, rotVar.getValue(), hexContext);

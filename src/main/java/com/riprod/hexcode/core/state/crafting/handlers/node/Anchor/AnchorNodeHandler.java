@@ -32,15 +32,14 @@ import com.hypixel.hytale.server.core.util.TargetUtil;
 import com.riprod.hexcode.core.state.crafting.utils.LinkRenderer;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
 import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
-import com.riprod.hexcode.core.state.crafting.constants.NodeType;
-import com.riprod.hexcode.core.state.crafting.handlers.node.NodeInterface;
+import com.riprod.hexcode.core.state.crafting.constants.NodeTypeId;
 import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Glyph.GlyphNodeHandler;
 
 /**
  * ParentRef = Root hex ref
  */
-public class AnchorNodeHandler implements NodeInterface {
+public class AnchorNodeHandler extends BaseAnchorHandler {
 
     private static final double ROOT_NODE_SCALE = 0.2;
 
@@ -169,7 +168,7 @@ public class AnchorNodeHandler implements NodeInterface {
         holder.addComponent(TransformComponent.getComponentType(),
                 new TransformComponent(rootPos, new Vector3f(0, 0, 0)));
 
-        NodeComponent node = new NodeComponent(parentRef, NodeType.Anchor);
+        NodeComponent node = new NodeComponent(parentRef, NodeTypeId.ANCHOR);
 
         holder.addComponent(NodeComponent.getComponentType(), node);
 
@@ -236,26 +235,5 @@ public class AnchorNodeHandler implements NodeInterface {
     public void despawn(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'despawn'");
-    }
-
-    @Override
-    public void hover(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
-        DebugComponent debug = accessor.getComponent(nodeRef, DebugComponent.getComponentType());
-        if (debug == null)
-            return;
-        debug.setScaleMultiplier(1.3f);
-        debug.setIntervalMultiplier(0.25f);
-        debug.setFadeMultiplier(0.25f);
-        debug.setTimer(0);
-    }
-
-    @Override
-    public void unhover(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
-        DebugComponent debug = accessor.getComponent(nodeRef, DebugComponent.getComponentType());
-        if (debug == null)
-            return;
-        debug.resetScaleMultiplier();
-        debug.resetFadeMultipler();
-        debug.resetIntervalMultiplier();
     }
 }

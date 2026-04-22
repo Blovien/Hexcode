@@ -1,0 +1,62 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Domain",
+  "Description": "Domain Expansion. Decreases volatility within domain.",
+  "ModelPath": "Domain",
+  "BasePower": 1.0,
+  "ManaConsumption": 20,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Circle",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Circle",
+      "Size": 0.75
+    },
+    {
+      "ShapeId": "Circle",
+      "Size": 0.5
+    }
+  ],
+  "Slots": {
+    "target": {
+      "Style": "Input",
+      "Label": "Target",
+      "Description": "Anchor position for domain center",
+      "Unique": true
+    },
+    "magnitude": {
+      "Style": "Input",
+      "Label": "Radius",
+      "Description": "Sphere radius (2-15 blocks)",
+      "DefaultValue": 5,
+      "Unique": true
+    },
+    "duration": {
+      "Style": "Input",
+      "Label": "Duration",
+      "Description": "Lifetime in seconds",
+      "DefaultValue": 10,
+      "Unique": true
+    },
+    "power": {
+      "Style": "Input",
+      "Label": "Power",
+      "Description": "Contestation power (higher wins, costs more upfront mana)",
+      "DefaultValue": 0,
+      "Unique": true
+    },
+    "immediate": {
+      "Style": "Next",
+      "Label": "Immediate",
+      "Description": "Fires immediately after the domain is spawned"
+    },
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "Fires per entity entering the domain (excluding caster)"
+    }
+  },
+  "VolatilityCost": 14
+}

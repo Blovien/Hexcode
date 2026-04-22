@@ -18,14 +18,14 @@ public class ChaosGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar minValVar = glyph.readSlot("min", hexContext);
-        HexVar maxValVar = glyph.readSlot("max", hexContext);
+        HexVar minValVar = glyph.readSlot(ChaosGlyphSlots.MIN, hexContext);
+        HexVar maxValVar = glyph.readSlot(ChaosGlyphSlots.MAX, hexContext);
 
         if (minValVar != null && maxValVar != null) {
             int minVal = (int) Math.round(SpellVarUtil.resolveNumber(minValVar));
             int maxVal = (int) Math.round(SpellVarUtil.resolveNumber(maxValVar));
             int randomValue = ThreadLocalRandom.current().nextInt(minVal, maxVal + 1);
-            glyph.writeSlot("result", new NumberVar(randomValue), hexContext);
+            glyph.writeOutput(new NumberVar(randomValue), hexContext);
             LOGGER.atInfo().log("chaos: range [%d, %d], result=%d", minVal, maxVal, randomValue);
         }
 
@@ -34,8 +34,8 @@ public class ChaosGlyph implements GlyphHandler {
 
     @Override
     public HexVar readValue(Glyph glyph, HexContext hexContext) {
-        HexVar minValVar = glyph.readSlot("min", hexContext);
-        HexVar maxValVar = glyph.readSlot("max", hexContext);
+        HexVar minValVar = glyph.readSlot(ChaosGlyphSlots.MIN, hexContext);
+        HexVar maxValVar = glyph.readSlot(ChaosGlyphSlots.MAX, hexContext);
 
         if (minValVar == null || maxValVar == null) return new NumberVar(0);
 

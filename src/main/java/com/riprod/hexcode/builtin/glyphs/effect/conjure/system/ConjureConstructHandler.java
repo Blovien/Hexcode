@@ -107,17 +107,8 @@ public class ConjureConstructHandler implements ConstructHandler {
             }
 
             if (construct.getTriggeringGlyph() != null) {
-                construct.getTriggeringGlyph().writeSlot("entity",
+                construct.getTriggeringGlyph().writeDefaultOutput(
                         new EntityVar(entityUuid.getUuid(), entityRef), hexCtx);
-
-                if (zone.getZoneRef() != null && zone.getZoneRef().isValid()) {
-                    UUIDComponent zoneUuid = ctx.getBuffer().getComponent(
-                            zone.getZoneRef(), UUIDComponent.getComponentType());
-                    if (zoneUuid != null) {
-                        construct.getTriggeringGlyph().writeSlot("conjuration",
-                                new EntityVar(zoneUuid.getUuid(), zone.getZoneRef()), hexCtx);
-                    }
-                }
             }
         });
     }

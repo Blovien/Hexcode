@@ -41,7 +41,7 @@ public class BoltGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        HexVar target = glyph.readSlot("target", hexContext);
+        HexVar target = glyph.readSlot(BoltGlyphSlots.TARGET, hexContext);
         if (target == null) {
             LOGGER.atWarning().log("bolt: no target provided");
             Executor.fail(hexContext);
@@ -90,7 +90,7 @@ public class BoltGlyph implements GlyphHandler {
         BoltStyle.applyShockEffect(accessor, targetRef);
 
         double damageAmount = SpellVarUtil.resolveNumberOrDefault(
-                glyph.readSlot("power", hexContext), 5.0);
+                glyph.readSlot(BoltGlyphSlots.POWER, hexContext), 5.0);
         damageAmount *= hexContext.getMagicPowerMultiplier();
         applyDamage(accessor, targetRef, (float) damageAmount);
 
@@ -113,7 +113,7 @@ public class BoltGlyph implements GlyphHandler {
 
         triggerBlockInteraction(accessor, hexContext.getCasterRef(), world, blockPos);
 
-        glyph.writeSlot("result", new BlockVar(blockPos), hexContext);
+        glyph.writeOutput(new BlockVar(blockPos), hexContext);
 
         LOGGER.atInfo().log("bolt: hit block at %d %d %d", blockPos.x, blockPos.y, blockPos.z);
     }

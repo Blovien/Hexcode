@@ -1,0 +1,40 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Force",
+  "Description": "Applies directional force to all targets in a variable",
+  "ModelPath": "Force",
+  "BasePower": 1.0,
+  "ManaConsumption": 8,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Circle",
+      "Size": 1.0
+    }
+  ],
+  "Slots": {
+    "target": {
+      "Style": "Input",
+      "Label": "Target",
+      "Description": "Variable containing the targets to affect"
+    },
+    "direction": {
+      "Style": "Input",
+      "Label": "Direction",
+      "Description": "Direction vector for the effect",
+      "Unique": true
+    },
+    "magnitude": {
+      "Style": "Input",
+      "Label": "Magnitude",
+      "Description": "Strength of the applied force",
+      "DefaultValue": 20,
+      "Unique": true
+    },
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain"
+    }
+  },
+  "VolatilityCost": 4
+}

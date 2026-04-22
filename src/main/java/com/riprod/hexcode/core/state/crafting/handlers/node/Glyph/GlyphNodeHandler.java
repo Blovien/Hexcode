@@ -28,13 +28,13 @@ import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
 import com.riprod.hexcode.core.state.crafting.session.SessionUtils;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
-import com.riprod.hexcode.core.state.crafting.constants.NodeType;
+import com.riprod.hexcode.core.state.crafting.constants.NodeTypeId;
 import com.riprod.hexcode.core.state.crafting.handlers.CraftingDragHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeInterface;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Slot.SlotNodeHandler;
 import com.riprod.hexcode.core.state.crafting.utils.CraftingPositionUtil;
 
-public class GlyphNodeHandler implements NodeInterface {
+public class GlyphNodeHandler extends BaseGlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     public static final GlyphNodeHandler INSTANCE = new GlyphNodeHandler();
 
@@ -199,7 +199,7 @@ public class GlyphNodeHandler implements NodeInterface {
 
         glyphHolder.addComponent(HoverableComponent.getComponentType(), hoverComp);
         glyphHolder.addComponent(NodeComponent.getComponentType(),
-                new NodeComponent(hexEntityRef, NodeType.Glyph));
+                new NodeComponent(hexEntityRef, NodeTypeId.GLYPH));
 
         Ref<EntityStore> glyphNodeRef = accessor.addEntity(glyphHolder, AddReason.SPAWN);
         glyphComp.setSelfRef(glyphNodeRef);
@@ -232,17 +232,4 @@ public class GlyphNodeHandler implements NodeInterface {
         accessor.tryRemoveEntity(nodeRef, RemoveReason.REMOVE);
     }
 
-    @Override
-    public void hover(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
-        GlyphComponent glyphComp = accessor.getComponent(nodeRef, GlyphComponent.getComponentType());
-        if (glyphComp == null) return;
-        GlyphStyler.enterGlyphHover(accessor, glyphComp);
-    }
-
-    @Override
-    public void unhover(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
-        GlyphComponent glyphComp = accessor.getComponent(nodeRef, GlyphComponent.getComponentType());
-        if (glyphComp == null) return;
-        GlyphStyler.exitGlyphHover(accessor, glyphComp);
-    }
 }

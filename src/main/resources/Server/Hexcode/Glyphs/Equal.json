@@ -1,0 +1,37 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Equal",
+  "Description": "Branches execution if A equals B. Assigns A to output if B is absent.",
+  "ModelPath": "Equal",
+  "BasePower": 0,
+  "ManaConsumption": 0,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Antiline",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Antiline",
+      "Size": 1.0
+    }
+  ],
+  "Slots": {
+    "a": {
+      "Style": "Input",
+      "Label": "A",
+      "Description": "First operand or value to assign",
+      "DefaultValue": 1
+    },
+    "b": {
+      "Style": "Input",
+      "Label": "B",
+      "Description": "Second operand (omit for assignment mode)"
+    },
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain"
+    }
+  },
+  "VolatilityCost": 1
+}

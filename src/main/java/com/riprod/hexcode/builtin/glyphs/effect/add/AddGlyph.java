@@ -15,8 +15,8 @@ public class AddGlyph implements GlyphHandler {
     public static final String ID = "Glyph_Add";
 
     private HexVar compute(Glyph glyph, HexContext hexContext) {
-        HexVar a = glyph.readSlot("a", hexContext);
-        HexVar b = glyph.readSlot("b", hexContext);
+        HexVar a = glyph.readSlot(AddGlyphSlots.A, hexContext);
+        HexVar b = glyph.readSlot(AddGlyphSlots.B, hexContext);
         if (a instanceof EntityVar && !(b instanceof EntityVar)) {
             Vector3d aPos = SpellVarUtil.resolveAsPosition(a, hexContext.getAccessor());
             a = new PositionVar(aPos, true);
@@ -37,7 +37,7 @@ public class AddGlyph implements GlyphHandler {
         HexVar result = compute(glyph, hexContext);
 
         if (result != null) {
-            glyph.writeSlot("result", result, hexContext);
+            glyph.writeOutput(result, hexContext);
         }
 
         Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);

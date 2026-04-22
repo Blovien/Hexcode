@@ -25,11 +25,6 @@ public class VariableValue implements GlyphHandler {
     }
 
     @Override
-    public void writeValue(Glyph glyph, HexContext hexContext, HexVar value) {
-        hexContext.setVariable(computeKey(glyph, hexContext), value);
-    }
-
-    @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }

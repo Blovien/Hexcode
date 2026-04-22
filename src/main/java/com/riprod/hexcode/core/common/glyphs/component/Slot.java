@@ -11,6 +11,8 @@ import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.DebugShape;
 import com.riprod.hexcode.core.common.glyphs.registry.SlotAsset;
+import com.riprod.hexcode.core.common.glyphs.registry.StyleResolution;
+import com.riprod.hexcode.core.common.glyphs.registry.StyleResolution.ResolvedStyle;
 
 public class Slot {
     private String[] links = new String[0];
@@ -21,8 +23,6 @@ public class Slot {
     private transient Vector3f color;
     private transient Vector3f offset;
     private transient DebugShape shape;
-    @Nullable
-    private transient String defaultDisplay;
     private transient boolean unique;
 
     public Slot() {
@@ -64,14 +64,14 @@ public class Slot {
         return this.links.length > 0 ? this.links[0] : null;
     }
 
-    public void hydrateFrom(SlotAsset asset, String key, Vector3f resolvedOffset) {
+    public void hydrateFrom(SlotAsset asset, String key, Vector3f resolvedOffset, String glyphId) {
+        ResolvedStyle rs = StyleResolution.resolve(asset, glyphId, key);
         this.key = key;
         this.label = asset.getLabel();
         this.description = asset.getDescription();
-        this.color = asset.getColor();
+        this.color = rs.color();
         this.offset = resolvedOffset;
-        this.shape = asset.getShape();
-        this.defaultDisplay = asset.getDefaultDisplay();
+        this.shape = rs.shape();
         this.unique = asset.isUnique();
     }
 
@@ -103,11 +103,6 @@ public class Slot {
         return this.shape;
     }
 
-    @Nullable
-    public String getDefaultDisplay() {
-        return this.defaultDisplay;
-    }
-
     public static final BuilderCodec<Slot> CODEC = BuilderCodec.builder(Slot.class, Slot::new)
             .append(new KeyedCodec<>("Links", Codec.STRING_ARRAY),
                     (s, v) -> s.links = v != null ? v : new String[0],
@@ -125,7 +120,6 @@ public class Slot {
         copy.color = this.color;
         copy.offset = this.offset;
         copy.shape = this.shape;
-        copy.defaultDisplay = this.defaultDisplay;
         copy.unique = this.unique;
         return copy;
     }

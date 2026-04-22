@@ -17,8 +17,8 @@ public class SubtractGlyph implements GlyphHandler {
     public static final String ID = "Glyph_Subtract";
 
     private HexVar compute(Glyph glyph, HexContext hexContext) {
-        HexVar a = glyph.readSlot("a", hexContext);
-        HexVar b = glyph.readSlot("b", hexContext);
+        HexVar a = glyph.readSlot(SubtractGlyphSlots.A, hexContext);
+        HexVar b = glyph.readSlot(SubtractGlyphSlots.B, hexContext);
         if (a != null && b == null)
             return HexMathUtil.negate(a);
         if (a == null && b != null)
@@ -40,7 +40,7 @@ public class SubtractGlyph implements GlyphHandler {
         HexVar result = compute(glyph, hexContext);
 
         if (result != null) {
-            glyph.writeSlot("result", result, hexContext);
+            glyph.writeOutput(result, hexContext);
         }
 
         Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);

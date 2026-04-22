@@ -1,0 +1,23 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Number 16",
+  "Description": "Provides the constant value 16",
+  "ModelPath": "Number_16",
+  "ShapeStructure": [
+    {
+      "ShapeId": "Line",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Antislash",
+      "Size": 1.0
+    }
+  ],
+  "Slots": {
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain"
+    }
+  }
+}

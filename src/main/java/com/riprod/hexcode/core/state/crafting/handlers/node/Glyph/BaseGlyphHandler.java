@@ -1,0 +1,27 @@
+package com.riprod.hexcode.core.state.crafting.handlers.node.Glyph;
+
+import com.hypixel.hytale.component.CommandBuffer;
+import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.state.casting.utils.GlyphStyler;
+import com.riprod.hexcode.core.state.crafting.handlers.node.BaseNodeHandler;
+
+public abstract class BaseGlyphHandler extends BaseNodeHandler {
+
+    @Override
+    public void hover(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
+            Ref<EntityStore> playerRef) {
+        GlyphComponent glyphComp = accessor.getComponent(nodeRef, GlyphComponent.getComponentType());
+        if (glyphComp == null) return;
+        GlyphStyler.enterGlyphHover(accessor, glyphComp);
+    }
+
+    @Override
+    public void unhover(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
+            Ref<EntityStore> playerRef) {
+        GlyphComponent glyphComp = accessor.getComponent(nodeRef, GlyphComponent.getComponentType());
+        if (glyphComp == null) return;
+        GlyphStyler.exitGlyphHover(accessor, glyphComp);
+    }
+}

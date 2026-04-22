@@ -27,7 +27,7 @@ public class SelfGlyph implements GlyphHandler {
         HexVar result = compute(glyph, hexContext);
 
         if (result != null) {
-            glyph.writeSlot("result", result, hexContext);
+            glyph.writeOutput(result, hexContext);
         }
 
         Executor.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);

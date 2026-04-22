@@ -1,0 +1,29 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Delay",
+  "Description": "Delays execution of child glyphs by a duration in seconds",
+  "ModelPath": "Delay",
+  "BasePower": 1.0,
+  "ManaConsumption": 0,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Triangle",
+      "Size": 1.0
+    }
+  ],
+  "Slots": {
+    "duration": {
+      "Style": "Input",
+      "Label": "Duration",
+      "Description": "How long to delay in seconds",
+      "Unique": true,
+      "DefaultValue": 1
+    },
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain"
+    }
+  },
+  "VolatilityCost": 1
+}
