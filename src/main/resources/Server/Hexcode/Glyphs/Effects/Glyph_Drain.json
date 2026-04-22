@@ -53,7 +53,7 @@
         1.0
       ],
       "Shape": "Cube",
-      "DefaultValue": 5,
+      "DefaultValue": 1,
       "Unique": true
     },
     "destination": {

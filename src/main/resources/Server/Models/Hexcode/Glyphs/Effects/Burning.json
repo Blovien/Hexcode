@@ -1,0 +1,17 @@
+{
+  "Parent": "Base_Glyph",
+  "DefaultAttachments": [
+    {
+      "Model": "NPC/Glyphs/Models/Glyph_1.blockymodel",
+      "Texture": "NPC/Glyphs/Textures/Square.png"
+    },
+    {
+      "Model": "NPC/Glyphs/Models/Glyph_1.blockymodel",
+      "Texture": "NPC/Glyphs/Textures/Circle.png"
+    },
+    {
+      "Model": "NPC/Glyphs/Models/Glyph_3.blockymodel",
+      "Texture": "NPC/Glyphs/Textures/Antisquare.png"
+    }
+  ]
+}

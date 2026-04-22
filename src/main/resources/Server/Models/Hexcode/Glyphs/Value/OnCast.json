@@ -3,10 +3,10 @@
   "DefaultAttachments": [
     {
       "Model": "NPC/Glyphs/Models/Glyph_1.blockymodel",
-      "Texture": "NPC/Glyphs/Textures/Less.png"
+      "Texture": "NPC/Glyphs/Textures/Line.png"
     },
     {
-      "Model": "NPC/Glyphs/Models/Glyph_2.blockymodel",
+      "Model": "NPC/Glyphs/Models/Glyph_1.blockymodel",
       "Texture": "NPC/Glyphs/Textures/Square.png"
     }
   ]

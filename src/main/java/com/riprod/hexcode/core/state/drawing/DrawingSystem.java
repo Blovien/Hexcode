@@ -278,7 +278,7 @@ public class DrawingSystem extends HexcodeManager {
         .getPingMetricSet()
         .getLastValue();
 
-    float forgiveness = 1f + Math.min(pingMs, 500) / 1000f; // cap at +30% at 300ms
+    float forgiveness = Math.min(3f, 1f + Math.min(pingMs, 500) / 1000f); // cap at +200% forgiveness for 500ms ping or higher
     result.setVolatility(Math.min(1f, result.getVolatility() * forgiveness));
     drawSpeed = (long) (drawSpeed / forgiveness); // pretend they drew faster
 

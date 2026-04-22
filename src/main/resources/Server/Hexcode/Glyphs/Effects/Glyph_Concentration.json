@@ -4,7 +4,7 @@
   "Description": "Sustains downstream glyphs while the caster holds the primary interaction. Releasing too early invalidates the hex.",
   "ModelPath": "Glyph_Concentration",
   "BasePower": 0,
-  "ManaConsumption": 3,
+  "ManaConsumption": 1,
   "ShapeStructure": [
     {
       "ShapeId": "Circle",

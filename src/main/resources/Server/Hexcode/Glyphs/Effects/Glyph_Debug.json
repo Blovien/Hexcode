@@ -38,5 +38,5 @@
       "Shape": "Sphere"
     }
   },
-  "VolatilityCost": 1
+  "VolatilityCost": 0.1
 }

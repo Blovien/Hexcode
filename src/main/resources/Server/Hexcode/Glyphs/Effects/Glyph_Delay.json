@@ -4,7 +4,7 @@
   "Description": "Delays execution of child glyphs by a duration in seconds",
   "ModelPath": "Glyph_Delay",
   "BasePower": 1.0,
-  "ManaConsumption": 3,
+  "ManaConsumption": 0,
   "ShapeStructure": [
     {
       "ShapeId": "Triangle",

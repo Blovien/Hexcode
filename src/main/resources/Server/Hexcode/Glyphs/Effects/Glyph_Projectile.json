@@ -4,7 +4,7 @@
   "Description": "Launches a projectile that triggers child glyphs on collision",
   "ModelPath": "Glyph_Projectile",
   "BasePower": 1.0,
-  "ManaConsumption": 10,
+  "ManaConsumption": 2,
   "ShapeStructure": [
     {
       "ShapeId": "Circle",
