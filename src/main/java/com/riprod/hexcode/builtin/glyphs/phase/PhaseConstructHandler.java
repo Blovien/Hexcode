@@ -16,23 +16,24 @@ import com.hypixel.hytale.server.core.modules.entity.damage.DamageSystems;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.TargetUtil;
-import com.riprod.hexcode.core.common.construct.ConstructHandler;
+import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
 import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
-import com.riprod.hexcode.core.common.construct.component.HexEffectsComponent;
+import com.riprod.hexcode.core.common.construct.component.HexStatus;
+import com.riprod.hexcode.core.common.construct.state.NoState;
 
-public class PhaseConstructHandler implements ConstructHandler {
+public class PhaseConstructHandler implements ConstructHandler<NoState> {
 
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     private static final float BASE_CRUSH_DAMAGE = 4.0f;
     private static int damageCauseIndex = -1;
 
     @Override
-    public boolean onTick(float dt, HexEffectsComponent construct, ConstructTickContext ctx) {
+    public boolean onTick(float dt, HexStatus<NoState> status, ConstructTickContext ctx) {
         return false;
     }
 
     @Override
-    public void onCleanup(HexEffectsComponent construct, ConstructTickContext ctx) {
+    public void onCleanup(HexStatus<NoState> status, ConstructTickContext ctx) {
         PhaseComponent phase = ctx.getBuffer().getComponent(
                 ctx.getEntityRef(), PhaseComponent.getComponentType());
         if (phase == null) return;
@@ -50,7 +51,7 @@ public class PhaseConstructHandler implements ConstructHandler {
             world.getChunk(ChunkUtil.indexChunkFromBlock(pos.x, pos.z))
                     .setBlock(pos.x, pos.y, pos.z, blockId, blockType, block.getRotationIndex(), 0, 0);
 
-            PhaseStyle.renderPhaseIn(blockCenter, construct.getHexContext().getColors(),
+            PhaseStyle.renderPhaseIn(blockCenter, status.getHexContext().getColors(),
                     ctx.getBuffer());
         }
 

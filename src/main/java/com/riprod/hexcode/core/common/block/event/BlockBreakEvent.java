@@ -18,9 +18,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.block.component.UnbreakableBlockComponent;
 import com.riprod.hexcode.core.common.obelisk.component.ObeliskBlockComponent;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
 import com.riprod.hexcode.core.state.crafting.session.SessionUtils;
-import com.riprod.hexcode.core.state.crafting.entity.AnchorEntity;
 import com.hypixel.hytale.logger.HytaleLogger;
 
 public class BlockBreakEvent extends EntityEventSystem<EntityStore, BreakBlockEvent> {

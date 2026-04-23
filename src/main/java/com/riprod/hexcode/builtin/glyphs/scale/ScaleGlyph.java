@@ -33,7 +33,6 @@ import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
 public class ScaleGlyph implements GlyphHandler {
@@ -138,10 +137,7 @@ public static final String ID = "Scale";
                     targetRef, originalScale, originalBox, hadEntityScaleBefore);
 
             Holder<EntityStore> holder = HexConstructSpawner.create(
-                    accessor, hexContext, glyph,
-                    HANDLER_ID, (float) duration, 0f,
-                    null, null, nextLinks,
-                    spawnPos);
+                    accessor, hexContext, glyph, ScaleGlyph.ID, spawnPos);
 
             holder.addComponent(ScaleComponent.getComponentType(), scaleMarker);
             holder.addComponent(MountedComponent.getComponentType(),
@@ -161,11 +157,7 @@ public static final String ID = "Scale";
 
             ScaleStyle.renderApply(spawnPos, hexContext.getColors(), accessor);
 
-            RootGlyph rootGlyph = accessor.getComponent(
-                    hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
-            if (rootGlyph != null) {
-                rootGlyph.addDependent(constructRef);
-            }
+            hexContext.getRoot().addDependency(hexContext, constructRef);
         } catch (Exception e) {
             LOGGER.atSevere().log("[hexcode] scale: apply failed: %s", e.getMessage());
             HexExecuter.fail(hexContext);

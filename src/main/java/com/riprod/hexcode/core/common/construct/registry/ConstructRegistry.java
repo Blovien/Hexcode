@@ -10,22 +10,22 @@ import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
 
 public class ConstructRegistry {
 
-    private static final Map<String, ConstructHandler> handlers = new HashMap<>();
+    private static final Map<String, ConstructHandler<?>> handlers = new HashMap<>();
 
     private ConstructRegistry() {
     }
 
-    public static void register(@Nonnull String id, @Nonnull ConstructHandler handler) {
+    public static void register(@Nonnull String id, @Nonnull ConstructHandler<?> handler) {
         handlers.put(id, handler);
     }
 
     @Nullable
-    public static ConstructHandler get(@Nonnull String id) {
+    public static ConstructHandler<?> get(@Nonnull String id) {
         return handlers.get(id);
     }
 
     @Nonnull
-    public static Map<String, ConstructHandler> getAll() {
+    public static Map<String, ConstructHandler<?>> getAll() {
         return new HashMap<>(handlers);
     }
 }

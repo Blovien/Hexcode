@@ -37,7 +37,6 @@ import com.riprod.hexcode.core.common.glyphs.variables.NumberVar;
 import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
 public class GlaciateGlyph implements GlyphHandler {
@@ -127,10 +126,7 @@ public static final String ID = "Glaciate";
                 : List.of();
 
         Holder<EntityStore> holder = HexConstructSpawner.create(
-                hexContext.getAccessor(), hexContext, glyph,
-                "glaciate", duration, 0,
-                firstBranchIds, entryNext, null,
-                new Vector3d(spawnPos));
+                hexContext.getAccessor(), hexContext, glyph, GlaciateGlyph.ID, new Vector3d(spawnPos));
 
         Vector3f rotation = new Vector3f();
         holder.getComponent(TransformComponent.getComponentType())
@@ -163,11 +159,7 @@ public static final String ID = "Glaciate";
         UUID iceUuid = iceUuidComp != null ? iceUuidComp.getUuid() : UUID.randomUUID();
         glyph.writeSelfOutput(new EntityVar(iceUuid, iceRef), hexContext);
 
-        RootGlyph execComp = hexContext.getAccessor().getComponent(
-                hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
-        if (execComp != null) {
-            execComp.addDependent(iceRef);
-        }
+        hexContext.getRoot().addDependency(hexContext, iceRef);
 
         GlaciateStyle.renderSpawn(spawnPos, hexContext.getColors(), hexContext.getAccessor());
     }

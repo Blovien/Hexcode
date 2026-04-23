@@ -14,7 +14,7 @@ public class HexEffectsComponent implements Component<EntityStore> {
 
     private static ComponentType<EntityStore, HexEffectsComponent> componentType;
 
-    private Map<UUID, HexStatus> activeEffects = new HashMap<>();
+    private Map<UUID, HexStatus<?>> activeEffects = new HashMap<>();
 
     public HexEffectsComponent() {
 
@@ -28,7 +28,7 @@ public class HexEffectsComponent implements Component<EntityStore> {
         return componentType;
     }
 
-    public void addEffect(UUID id, HexStatus status) {
+    public void addEffect(UUID id, HexStatus<?> status) {
         activeEffects.put(id, status);
     }
 
@@ -36,7 +36,7 @@ public class HexEffectsComponent implements Component<EntityStore> {
         activeEffects.remove(id);
     }
 
-    public Map<UUID, HexStatus> getEffects() {
+    public Map<UUID, HexStatus<?>> getEffects() {
         return activeEffects;
     }
 
@@ -44,7 +44,10 @@ public class HexEffectsComponent implements Component<EntityStore> {
     @Override
     public HexEffectsComponent clone() {
         HexEffectsComponent copy = new HexEffectsComponent();
-        copy.activeEffects = new HashMap<>(this.activeEffects);
+        copy.activeEffects = new HashMap<>();
+        for (Map.Entry<UUID, HexStatus<?>> e : this.activeEffects.entrySet()) {
+            copy.activeEffects.put(e.getKey(), e.getValue().clone());
+        }
         return copy;
     }
 }

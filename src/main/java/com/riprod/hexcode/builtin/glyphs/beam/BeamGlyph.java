@@ -66,7 +66,7 @@ public static final String ID = "Beam";
         double entityHitDistSq = Double.MAX_VALUE;
 
         if (blockHitLocation != null) {
-            blockHitDistSq = new Vector3d(origin).subtract(blockHitLocation).lengthSquared();
+            blockHitDistSq = new Vector3d(origin).subtract(blockHitLocation).length();
         }
 
         EntityVar sourceEntityVar = SpellVarUtil.resolveEntityVar(posVar, hexContext);
@@ -77,7 +77,7 @@ public static final String ID = "Beam";
                 if (entityHit != null) {
                     Vector3d entityPos = hexContext.getAccessor().getComponent(entityHit,
                             TransformComponent.getComponentType()).getPosition();
-                    entityHitDistSq = new Vector3d(origin).subtract(entityPos).lengthSquared();
+                    entityHitDistSq = new Vector3d(origin).subtract(entityPos).length();
                 }
             }
         }

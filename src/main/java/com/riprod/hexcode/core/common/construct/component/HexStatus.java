@@ -5,10 +5,11 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.riprod.hexcode.core.common.construct.state.ConstructState;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 
-public class HexStatus {
+public class HexStatus<S extends ConstructState> {
 
     @Nullable
     private String handlerId;
@@ -24,6 +25,9 @@ public class HexStatus {
     @Nullable
     private Glyph triggeringGlyph;
 
+    @Nullable
+    private S state;
+
     public HexStatus() {
         this.hexContext = new HexContext();
     }
@@ -38,6 +42,15 @@ public class HexStatus {
         this.hexContext = hexContext;
         this.constructId = constructId;
         this.triggeringGlyph = triggeringGlyph;
+    }
+
+    public HexStatus(@Nullable String handlerId,
+            @Nonnull HexContext hexContext,
+            @Nonnull UUID constructId,
+            @Nullable Glyph triggeringGlyph,
+            @Nullable S state) {
+        this(handlerId, hexContext, constructId, triggeringGlyph);
+        this.state = state;
     }
 
     @Nullable
@@ -96,10 +109,20 @@ public class HexStatus {
         return constructId;
     }
 
+    @Nullable
+    public S getState() {
+        return state;
+    }
+
+    public void setState(@Nullable S state) {
+        this.state = state;
+    }
+
     @Nonnull
     @Override
-    public HexStatus clone() {
-        HexStatus copy = new HexStatus();
+    @SuppressWarnings("unchecked")
+    public HexStatus<S> clone() {
+        HexStatus<S> copy = new HexStatus<>();
         copy.handlerId = this.handlerId;
         copy.killRequested = this.killRequested;
         copy.firedFirstTick = this.firedFirstTick;
@@ -107,6 +130,7 @@ public class HexStatus {
         copy.triggeringGlyph = this.triggeringGlyph;
         copy.elapsedTime = this.elapsedTime;
         copy.constructId = this.constructId;
+        copy.state = this.state != null ? (S) this.state.copy() : null;
         return copy;
     }
 }

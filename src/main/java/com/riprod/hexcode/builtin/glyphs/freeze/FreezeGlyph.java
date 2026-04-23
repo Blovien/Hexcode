@@ -29,7 +29,6 @@ import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
@@ -141,20 +140,13 @@ public static final String ID = "Freeze";
         }
 
         Holder<EntityStore> holder = HexConstructSpawner.create(
-                accessor, hexContext, null,
-                "freeze", durationSeconds, 0,
-                null, null, null,
-                trackerPos);
+                accessor, hexContext, null, FreezeGlyph.ID, trackerPos);
 
         holder.addComponent(FreezeComponent.getComponentType(),
                 new FreezeComponent(frozenBlocks, durationSeconds));
 
         Ref<EntityStore> trackerRef = accessor.addEntity(holder, AddReason.SPAWN);
 
-        RootGlyph execComp = accessor.getComponent(
-                hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
-        if (execComp != null) {
-            execComp.addDependent(trackerRef);
-        }
+        hexContext.getRoot().addDependency(hexContext, trackerRef);
     }
 }

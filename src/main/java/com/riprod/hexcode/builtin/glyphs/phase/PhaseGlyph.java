@@ -24,7 +24,6 @@ import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
@@ -145,21 +144,14 @@ public static final String ID = "Phase";
         List<String> nextLinks = glyph.getNextLinks();
 
         Holder<EntityStore> holder = HexConstructSpawner.create(
-                accessor, hexContext, glyph,
-                "phase", (float) duration, 0f,
-                null, null, nextLinks,
-                blockCenter);
+                accessor, hexContext, glyph, PhaseGlyph.ID, blockCenter);
 
         holder.addComponent(PhaseComponent.getComponentType(),
                 new PhaseComponent(phasedBlocks));
 
         Ref<EntityStore> phaseRef = accessor.addEntity(holder, AddReason.SPAWN);
 
-        RootGlyph execComp = accessor.getComponent(
-                hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
-        if (execComp != null) {
-            execComp.addDependent(phaseRef);
-        }
+        hexContext.getRoot().addDependency(hexContext, phaseRef);
 
         LOGGER.atInfo().log("phase: phased block for %.1f seconds", duration);
     }

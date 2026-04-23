@@ -35,7 +35,6 @@ public class ArmorManaConfig implements JsonAssetWithMap<String, DefaultAssetMap
         return ASSET_STORE;
     }
 
-    @SuppressWarnings("unchecked")
     public static DefaultAssetMap<String, ArmorManaConfig> getAssetMap() {
         return (DefaultAssetMap<String, ArmorManaConfig>) getAssetStore().getAssetMap();
     }

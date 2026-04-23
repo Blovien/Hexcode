@@ -50,6 +50,10 @@ public class HexContext {
         return root;
     }
 
+    public Ref<EntityStore> getCasterRef() {
+        return root != null ? root.getSourceRef() : null;
+    }
+
     public CommandBuffer<EntityStore> getAccessor() {
         return accessor;
     }

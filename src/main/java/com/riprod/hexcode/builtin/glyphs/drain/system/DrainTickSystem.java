@@ -19,7 +19,6 @@ import com.riprod.hexcode.builtin.glyphs.drain.component.DrainComponent.DrainEnt
 import com.riprod.hexcode.builtin.glyphs.drain.style.DrainStyle;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 
 public class DrainTickSystem extends EntityTickingSystem<EntityStore> {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -152,13 +151,6 @@ public class DrainTickSystem extends EntityTickingSystem<EntityStore> {
     private void completeEntry(DrainEntry entry, Ref<EntityStore> targetRef,
             CommandBuffer<EntityStore> buffer) {
         Ref<EntityStore> hexEntityRef = entry.getHexEntityRef();
-        if (hexEntityRef != null && hexEntityRef.isValid()) {
-            RootGlyph rootGlyph = buffer.getComponent(hexEntityRef, RootGlyph.getComponentType());
-            if (rootGlyph != null) {
-                rootGlyph.removeDependent(targetRef);
-            }
-        }
-
         HexContext ctx = entry.getHexContext();
         if (ctx != null) {
             ctx.UpdateAccessor(buffer);

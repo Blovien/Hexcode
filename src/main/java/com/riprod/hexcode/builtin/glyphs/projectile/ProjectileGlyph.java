@@ -25,7 +25,6 @@ import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
 public class ProjectileGlyph implements GlyphHandler {
@@ -89,10 +88,7 @@ public static final String ID = "Projectile";
     rotation.setPitch((float) Math.asin(-direction.y));
 
     Holder<EntityStore> holder = HexConstructSpawner.create(
-        hexContext.getAccessor(), hexContext, glyph, HANDLER_ID,
-        -1, 0,
-        null, glyph.getNextLinks(), null,
-        new Vector3d(spawnPos));
+        hexContext.getAccessor(), hexContext, glyph, ProjectileGlyph.ID, new Vector3d(spawnPos));
 
     TransformComponent transform = holder.getComponent(TransformComponent.getComponentType());
     if (transform != null) {
@@ -122,11 +118,7 @@ public static final String ID = "Projectile";
 
     Ref<EntityStore> projectileRef = hexContext.getAccessor().addEntity(holder, AddReason.SPAWN);
 
-    RootGlyph execComp = hexContext.getAccessor().getComponent(
-        hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
-    if (execComp != null) {
-      execComp.addDependent(projectileRef);
-    }
+    hexContext.getRoot().addDependency(hexContext, projectileRef);
 
     ProjectileStyle.renderLaunch(spawnPos, direction, hexContext.getColors(), hexContext.getAccessor());
     LOGGER.atInfo().log("propel: launched projectile at speed %.1f", speed);

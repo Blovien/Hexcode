@@ -14,15 +14,19 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.TargetUtil;
 import com.riprod.hexcode.builtin.glyphs.conjure.component.ConjureZoneComponent;
 import com.riprod.hexcode.builtin.glyphs.conjure.style.ConjureStyle;
-import com.riprod.hexcode.core.common.construct.ConstructHandler;
+import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
 import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
-import com.riprod.hexcode.core.common.construct.component.HexEffectsComponent;
+import com.riprod.hexcode.core.common.construct.component.HexStatus;
+import com.riprod.hexcode.core.common.construct.state.NoState;
+import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
+import com.riprod.hexcode.core.state.execution.HexExecuter;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
 
-public class ConjureConstructHandler implements ConstructHandler {
+public class ConjureConstructHandler implements ConstructHandler<NoState> {
 
     @Override
-    public boolean onTick(float dt, HexEffectsComponent construct, ConstructTickContext ctx) {
+    public boolean onTick(float dt, HexStatus<NoState> status, ConstructTickContext ctx) {
         ConjureZoneComponent zone = ctx.getChunk().getComponent(
                 ctx.getIndex(), ConjureZoneComponent.getComponentType());
         TransformComponent transform = ctx.getChunk().getComponent(
@@ -32,7 +36,7 @@ public class ConjureConstructHandler implements ConstructHandler {
         Velocity vel = ctx.getChunk().getComponent(ctx.getIndex(), Velocity.getComponentType());
         if (vel != null) {
             Vector3d velocity = vel.getVelocity();
-            if (velocity.lengthSquared() > 0) {
+            if (velocity.length() > 0) {
                 Vector3d pos = transform.getPosition();
                 transform.setPosition(new Vector3d(
                         pos.x + velocity.x * dt,
@@ -64,7 +68,7 @@ public class ConjureConstructHandler implements ConstructHandler {
             zone.getNewOccupants().add(entityId);
 
             if (!previousOccupants.contains(entityId)) {
-                fireOnEntity(construct, ctx, zone, ref, uuid);
+                fireOnEntity(status, ctx, zone, ref, uuid);
             }
         }
 
@@ -77,7 +81,7 @@ public class ConjureConstructHandler implements ConstructHandler {
                     UUIDComponent uuid = ctx.getBuffer().getComponent(ref, UUIDComponent.getComponentType());
                     if (uuid == null) continue;
                     if (!zone.getNewOccupants().contains(uuid.getUuid())) continue;
-                    fireOnEntity(construct, ctx, zone, ref, uuid);
+                    fireOnEntity(status, ctx, zone, ref, uuid);
                 }
             }
         }
@@ -86,30 +90,30 @@ public class ConjureConstructHandler implements ConstructHandler {
     }
 
     @Override
-    public void onCleanup(HexEffectsComponent construct, ConstructTickContext ctx) {
+    public void onCleanup(HexStatus<NoState> status, ConstructTickContext ctx) {
         TransformComponent transform = ctx.getBuffer().getComponent(
                 ctx.getEntityRef(), TransformComponent.getComponentType());
         if (transform != null) {
             ConjureStyle.renderDespawn(transform.getPosition(),
-                    construct.getHexContext().getColors(), ctx.getBuffer());
+                    status.getHexContext().getColors(), ctx.getBuffer());
         }
     }
 
-    private void fireOnEntity(HexEffectsComponent construct, ConstructTickContext ctx,
+    private void fireOnEntity(HexStatus<NoState> status, ConstructTickContext ctx,
             ConjureZoneComponent zone, Ref<EntityStore> entityRef, UUIDComponent entityUuid) {
         TransformComponent entityTransform = ctx.getBuffer().getComponent(
                 entityRef, TransformComponent.getComponentType());
 
-        ctx.fireConditional(hexCtx -> {
+        Glyph triggering = status.getTriggeringGlyph();
+        if (triggering != null) {
+            HexContext __hexCtx = status.getHexContext();
             if (entityTransform != null) {
                 ConjureStyle.renderTrigger(entityTransform.getPosition(),
-                        hexCtx.getColors(), ctx.getBuffer());
+                        __hexCtx.getColors(), ctx.getBuffer());
             }
-
-            if (construct.getTriggeringGlyph() != null) {
-                construct.getTriggeringGlyph().writeDefaultOutput(
-                        new EntityVar(entityUuid.getUuid(), entityRef), hexCtx);
-            }
-        });
+            triggering.writeDefaultOutput(
+                    new EntityVar(entityUuid.getUuid(), entityRef), __hexCtx);
+            HexExecuter.continueExecution(triggering.getNextLinks(), __hexCtx);
+        }
     }
 }

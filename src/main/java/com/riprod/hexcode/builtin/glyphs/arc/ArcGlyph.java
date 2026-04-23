@@ -28,7 +28,6 @@ import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexColors;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
 public class ArcGlyph implements GlyphHandler {
@@ -119,10 +118,7 @@ public class ArcGlyph implements GlyphHandler {
         ArcStyle.renderHit(accessor, firstJumpPos, colors);
 
         Holder<EntityStore> holder = HexConstructSpawner.create(
-                accessor, hexContext, glyph,
-                "arc", -1, 0,
-                null, null, null,
-                firstJumpPos);
+                accessor, hexContext, glyph, ArcGlyph.ID, firstJumpPos);
 
         ArcComponent arcComponent = new ArcComponent(
                 glyph, new ArrayList<>(branches), visited,
@@ -132,11 +128,7 @@ public class ArcGlyph implements GlyphHandler {
 
         Ref<EntityStore> constructRef = accessor.addEntity(holder, AddReason.SPAWN);
 
-        RootGlyph rootGlyph = accessor.getComponent(
-                hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
-        if (rootGlyph != null) {
-            rootGlyph.addDependent(constructRef);
-        }
+        hexContext.getRoot().addDependency(hexContext, constructRef);
 
         LOGGER.atInfo().log("arc: spawned construct, %d branches, first jump uuid=%s",
                 branches.size(), firstJumpUuid != null ? firstJumpUuid.getUuid() : "null");

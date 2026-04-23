@@ -28,7 +28,6 @@ import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
 public class DomainGlyph implements GlyphHandler {
@@ -103,10 +102,7 @@ public static final String ID = "Domain";
         glyph.writeSelfOutput(zoneEntityVar, hexContext);
 
         Holder<EntityStore> holder = HexConstructSpawner.create(
-                hexContext.getAccessor(), hexContext, glyph,
-                "domain", durationSeconds, baseDrainPerSecond,
-                immediateBranchIds, conditionalBranchIds, null,
-                new Vector3d(anchorPos));
+                hexContext.getAccessor(), hexContext, glyph, DomainGlyph.ID, new Vector3d(anchorPos));
 
         DomainZoneComponent zoneComp = new DomainZoneComponent(
                 (float) radius, baseDrainPerSecond, BASE_TRIGGER_COST, power, casterUuid, casterRef);
@@ -135,10 +131,6 @@ public static final String ID = "Domain";
 
         DomainStyle.renderSpawn(anchorPos, (float) radius, hexContext.getColors(), hexContext.getAccessor());
 
-        RootGlyph rootGlyph = hexContext.getAccessor().getComponent(
-                hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
-        if (rootGlyph != null) {
-            rootGlyph.addDependent(zoneRef);
-        }
+        hexContext.getRoot().addDependency(hexContext, zoneRef);
     }
 }

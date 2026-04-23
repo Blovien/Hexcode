@@ -35,7 +35,6 @@ public class ArmorVolatilityConfig implements JsonAssetWithMap<String, DefaultAs
         return ASSET_STORE;
     }
 
-    @SuppressWarnings("unchecked")
     public static DefaultAssetMap<String, ArmorVolatilityConfig> getAssetMap() {
         return (DefaultAssetMap<String, ArmorVolatilityConfig>) getAssetStore().getAssetMap();
     }

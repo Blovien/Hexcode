@@ -24,7 +24,6 @@ import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.HexcasterExecutionComponent;
-import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 
 public class ConcentrationGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -67,10 +66,7 @@ public static final String ID = "Concentration";
         ConcentrationTriggerComponent marker = new ConcentrationTriggerComponent(casterRef);
 
         Holder<EntityStore> holder = HexConstructSpawner.create(
-                accessor, hexContext, glyph,
-                HANDLER_ID, INFINITE_LIFETIME, 0f,
-                null, null, List.of(),
-                casterTransform.getPosition());
+                accessor, hexContext, glyph, ConcentrationGlyph.ID, casterTransform.getPosition());
 
         holder.addComponent(ConcentrationTriggerComponent.getComponentType(), marker);
         holder.addComponent(MountedComponent.getComponentType(),
@@ -90,10 +86,6 @@ public static final String ID = "Concentration";
 
         HexExecuter.continueFromSlot(glyph, "Next", hexContext);
 
-        RootGlyph rootGlyph = accessor.getComponent(
-                hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
-        if (rootGlyph != null) {
-            rootGlyph.addDependent(constructRef);
-        }
+        hexContext.getRoot().addDependency(hexContext, constructRef);
     }
 }

@@ -6,16 +6,18 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.builtin.glyphs.concentration.component.ConcentrationTriggerComponent;
 import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
-import com.riprod.hexcode.core.common.construct.component.HexEffectsComponent;
+import com.riprod.hexcode.core.common.construct.component.HexStatus;
+import com.riprod.hexcode.core.common.construct.state.NoState;
+import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexcasterExecutionComponent;
 
-public class ConcentrationConstructHandler implements ConstructHandler {
+public class ConcentrationConstructHandler implements ConstructHandler<NoState> {
 
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     @Override
-    public boolean onTick(float dt, HexEffectsComponent construct, ConstructTickContext ctx) {
+    public boolean onTick(float dt, HexStatus<NoState> status, ConstructTickContext ctx) {
         ConcentrationTriggerComponent marker = ctx.getChunk().getComponent(
                 ctx.getIndex(), ConcentrationTriggerComponent.getComponentType());
         if (marker == null) return true;
@@ -33,17 +35,16 @@ public class ConcentrationConstructHandler implements ConstructHandler {
     }
 
     @Override
-    public void onCleanup(HexEffectsComponent construct, ConstructTickContext ctx) {
-        if (construct.getHexContext() == null) return;
-
+    public void onCleanup(HexStatus<NoState> status, ConstructTickContext ctx) {
         try {
-            if (construct.getTriggeringGlyph() != null) {
-                ctx.fireBranch(construct.getTriggeringGlyph().getNextLinks());
+            if (status.getTriggeringGlyph() != null) {
+                HexExecuter.continueExecution(
+                        status.getTriggeringGlyph().getNextLinks(), status.getHexContext());
             }
         } catch (Exception e) {
             LOGGER.atWarning().log("concentration: cleanup fire failed: %s", e.getMessage());
         }
 
-        HexExecuter.fail(construct.getHexContext());
+        HexExecuter.fail(status.getHexContext());
     }
 }

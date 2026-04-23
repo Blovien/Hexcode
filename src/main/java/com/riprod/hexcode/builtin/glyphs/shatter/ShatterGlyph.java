@@ -31,7 +31,6 @@ import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
@@ -163,10 +162,7 @@ public static final String ID = "Shatter";
         rotation.setPitch((float) Math.asin(-direction.y));
 
         Holder<EntityStore> holder = HexConstructSpawner.create(
-                hexContext.getAccessor(), hexContext, glyph,
-                "shatter", -1, 0f,
-                null, nextGlyphs, null,
-                new Vector3d(position));
+                hexContext.getAccessor(), hexContext, glyph, ShatterGlyph.ID, new Vector3d(position));
 
         TransformComponent tc = holder.getComponent(TransformComponent.getComponentType());
         if (tc != null) {
@@ -192,10 +188,6 @@ public static final String ID = "Shatter";
 
         Ref<EntityStore> shardRef = hexContext.getAccessor().addEntity(holder, AddReason.SPAWN);
 
-        RootGlyph execComp = hexContext.getAccessor().getComponent(
-                hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
-        if (execComp != null) {
-            execComp.addDependent(shardRef);
-        }
+        hexContext.getRoot().addDependency(hexContext, shardRef);
     }
 }

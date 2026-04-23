@@ -33,7 +33,6 @@ import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
@@ -199,10 +198,7 @@ public static final String ID = "Ensnare";
             List<SpikeEntry> spikes, float durationSeconds, float spikeDamage,
             Vector3d center, double radius, CommandBuffer<EntityStore> accessor) {
         Holder<EntityStore> holder = HexConstructSpawner.create(
-                accessor, hexContext, glyph,
-                "ensnare", durationSeconds, 0,
-                null, null, glyph.getNextLinks(),
-                new Vector3d(center));
+                accessor, hexContext, glyph, EnsnareGlyph.ID, new Vector3d(center));
 
         holder.addComponent(EnsnareComponent.getComponentType(),
                 new EnsnareComponent(spikes, durationSeconds, spikeDamage,
@@ -210,11 +206,7 @@ public static final String ID = "Ensnare";
 
         Ref<EntityStore> trackerRef = accessor.addEntity(holder, AddReason.SPAWN);
 
-        RootGlyph execComp = accessor.getComponent(
-                hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
-        if (execComp != null) {
-            execComp.addDependent(trackerRef);
-        }
+        hexContext.getRoot().addDependency(hexContext, trackerRef);
     }
 
     private static double harshScale(double value, double reference, double threshold, double exponent) {

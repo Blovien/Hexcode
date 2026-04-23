@@ -1,5 +1,6 @@
 package com.riprod.hexcode.core.common.construct.system;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 
@@ -18,6 +19,7 @@ import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
 import com.riprod.hexcode.core.common.construct.component.HexEffectsComponent;
 import com.riprod.hexcode.core.common.construct.component.HexStatus;
 import com.riprod.hexcode.core.common.construct.registry.ConstructRegistry;
+import com.riprod.hexcode.core.common.construct.state.ConstructState;
 
 public class HexConstructSystem extends EntityTickingSystem<EntityStore> {
 
@@ -34,70 +36,84 @@ public class HexConstructSystem extends EntityTickingSystem<EntityStore> {
         try {
             HexEffectsComponent construct = chunk.getComponent(index, HexEffectsComponent.getComponentType());
             Ref<EntityStore> entityRef = chunk.getReferenceTo(index);
-            Map<UUID, HexStatus> effects = construct.getEffects();
 
-            if (construct == null || effects.isEmpty()) {
+            if (construct == null || construct.getEffects().isEmpty()) {
                 buffer.tryRemoveComponent(entityRef, HexEffectsComponent.getComponentType());
                 return;
             }
 
-            for (Map.Entry<UUID, HexStatus> entry : effects.entrySet()) {
+            Iterator<Map.Entry<UUID, HexStatus<?>>> it = construct.getEffects().entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry<UUID, HexStatus<?>> entry = it.next();
                 UUID effectId = entry.getKey();
-                HexStatus status = entry.getValue();
-                ConstructHandler handler = ConstructRegistry.get(status.getHandlerId());
+                HexStatus<?> status = entry.getValue();
+                ConstructHandler<?> handler = ConstructRegistry.get(status.getHandlerId());
                 ConstructTickContext ctx = new ConstructTickContext(chunk, index, buffer, entityRef);
 
                 if (handler == null) {
                     LOGGER.atSevere().log("no construct handler for: %s", status.getHandlerId());
-                    cleanup(construct, status, handler, ctx);
-                    return;
+                    cleanupWithoutHandler(status, ctx);
+                    it.remove();
+                    continue;
                 }
 
-                tickEffect(effectId, handler, status, construct, ctx, dt);
+                boolean removed = tickEffect(effectId, handler, status, ctx, dt, it);
+                if (removed) continue;
+
+                if (status.isKillRequested()
+                        || (status.getHexContext() != null
+                                && status.getHexContext().getVolatilityTracker().getRemainingBudget() <= 0)) {
+                    cleanup(handler, status, ctx);
+                    it.remove();
+                }
             }
         } catch (Exception e) {
             LOGGER.atSevere().log("HexConstructSystem failed: %s", e.getMessage());
         }
     }
 
-    private void tickEffect(UUID effectId, ConstructHandler handler, HexStatus status, HexEffectsComponent component, ConstructTickContext ctx, float dt) {
-        try {            
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private boolean tickEffect(UUID effectId, ConstructHandler<?> handler, HexStatus<?> status,
+            ConstructTickContext ctx, float dt, Iterator<Map.Entry<UUID, HexStatus<?>>> it) {
+        try {
+            ConstructHandler raw = handler;
+            HexStatus rawStatus = status;
 
             if (!status.hasFiredImmediate()) {
-                handler.onFirstTick(status, ctx);
+                Object initial = raw.createInitialState(rawStatus, ctx);
+                if (initial instanceof ConstructState cs) {
+                    rawStatus.setState(cs);
+                }
+                raw.onFirstTick(rawStatus, ctx);
+                status.markImmediateFired();
             } else {
-                boolean kill = handler.onTick(dt, status, ctx);
+                boolean kill = raw.onTick(dt, rawStatus, ctx);
                 if (kill) {
-                    cleanup(component, status, handler, ctx);
-                    return;
+                    cleanup(handler, status, ctx);
+                    it.remove();
+                    return true;
                 }
             }
-
-            if (status.isKillRequested()) {
-                cleanup(component, status, handler, ctx);
-            }
-
-            // cleanup once volatility is depleted
-            if (status.getHexContext() != null && status.getHexContext().getVolatilityTracker().getRemainingBudget() <= 0) {
-                cleanup(component, status, handler, ctx);
-            }
-
         } catch (Exception e) {
             LOGGER.atSevere().log("error ticking construct effect %s: %s", effectId, e.getMessage());
         }
+        return false;
     }
 
-    private void cleanup(HexEffectsComponent construct, HexStatus status, ConstructHandler handler,
-            ConstructTickContext ctx) {
-
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void cleanup(ConstructHandler<?> handler, HexStatus<?> status, ConstructTickContext ctx) {
         if (handler != null) {
             try {
-                handler.onCleanup(status, ctx);
+                ConstructHandler raw = handler;
+                HexStatus rawStatus = status;
+                raw.onCleanup(rawStatus, ctx);
             } catch (Exception e) {
                 LOGGER.atWarning().log("construct handler cleanup failed: %s", e.getMessage());
             }
         }
+    }
 
-        construct.removeEffect(status.getConstructId());
+    private void cleanupWithoutHandler(HexStatus<?> status, ConstructTickContext ctx) {
+        // nothing to invoke; caller removes the map entry
     }
 }

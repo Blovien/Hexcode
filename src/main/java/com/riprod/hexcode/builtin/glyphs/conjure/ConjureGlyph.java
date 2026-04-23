@@ -40,7 +40,6 @@ import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
 public class ConjureGlyph implements GlyphHandler {
@@ -134,10 +133,7 @@ public static final String ID = "Conjure";
         .getAsset(HARD_COLLISION_ID);
 
     Holder<EntityStore> holder = HexConstructSpawner.create(
-        hexContext.getAccessor(), hexContext, glyph,
-        "conjure", durationSeconds, 0f,
-        immediateBranchIds, conditionalBranchIds, null,
-        new Vector3d(center));
+        hexContext.getAccessor(), hexContext, glyph, ConjureGlyph.ID, new Vector3d(center));
 
     holder.ensureComponent(PropComponent.getComponentType());
     holder.ensureComponent(ProjectileModule.get().getProjectileComponentType());
@@ -180,11 +176,7 @@ public static final String ID = "Conjure";
     EntityVar zoneEntityVar = new EntityVar(zoneUuid, zoneRef);
     glyph.writeSelfOutput(zoneEntityVar, hexContext);
 
-    RootGlyph execComp = hexContext.getAccessor().getComponent(
-        hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
-    if (execComp != null) {
-      execComp.addDependent(zoneRef);
-    }
+    hexContext.getRoot().addDependency(hexContext, zoneRef);
 
   }
 }

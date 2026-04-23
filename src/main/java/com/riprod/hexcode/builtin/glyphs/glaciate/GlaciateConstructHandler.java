@@ -17,17 +17,21 @@ import com.hypixel.hytale.server.core.util.TargetUtil;
 import com.hypixel.hytale.protocol.ChangeVelocityType;
 import com.riprod.hexcode.builtin.glyphs.glaciate.component.GlaciateComponent;
 import com.riprod.hexcode.builtin.glyphs.glaciate.style.GlaciateStyle;
-import com.riprod.hexcode.core.common.construct.ConstructHandler;
+import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
 import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
-import com.riprod.hexcode.core.common.construct.component.HexEffectsComponent;
+import com.riprod.hexcode.core.common.construct.component.HexStatus;
+import com.riprod.hexcode.core.common.construct.state.NoState;
+import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
+import com.riprod.hexcode.core.state.execution.HexExecuter;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
 
-public class GlaciateConstructHandler implements ConstructHandler {
+public class GlaciateConstructHandler implements ConstructHandler<NoState> {
 
     private static int damageCauseIndex = -1;
 
     @Override
-    public boolean onTick(float dt, HexEffectsComponent construct, ConstructTickContext ctx) {
+    public boolean onTick(float dt, HexStatus<NoState> status, ConstructTickContext ctx) {
         GlaciateComponent glaciate = ctx.getChunk().getComponent(
                 ctx.getIndex(), GlaciateComponent.getComponentType());
         TransformComponent transform = ctx.getChunk().getComponent(
@@ -42,7 +46,7 @@ public class GlaciateConstructHandler implements ConstructHandler {
         List<Ref<EntityStore>> found = TargetUtil.getAllEntitiesInSphere(
                 center, glaciate.getDamageRadius(), ctx.getBuffer());
 
-        Ref<EntityStore> casterRef = construct.getHexContext().getCasterRef();
+        Ref<EntityStore> casterRef = status.getHexContext().getCasterRef();
 
         for (Ref<EntityStore> ref : found) {
             if (ref == null || !ref.isValid()) continue;
@@ -58,34 +62,35 @@ public class GlaciateConstructHandler implements ConstructHandler {
 
             if (speed > 0.1) {
                 float damage = (float) (speed * glaciate.getDamageMultiplier());
-                damage *= construct.getHexContext().getMagicPowerMultiplier();
+                damage *= status.getHexContext().getMagicPowerMultiplier();
                 applyDamage(ref, damage, ctx);
                 applyKnockback(ref, iceVelocity, speed, ctx);
             }
 
             GlaciateStyle.renderImpact(center,
-                    construct.getHexContext().getColors(), ctx.getBuffer());
+                    status.getHexContext().getColors(), ctx.getBuffer());
 
             final Ref<EntityStore> entityRef = ref;
             final UUIDComponent entityUuid = uuid;
-            ctx.fireConditional(hexCtx -> {
-                if (construct.getTriggeringGlyph() != null) {
-                    construct.getTriggeringGlyph().writeDefaultOutput(
-                            new EntityVar(entityUuid.getUuid(), entityRef), hexCtx);
-                }
-            });
+            Glyph triggering = status.getTriggeringGlyph();
+            if (triggering != null) {
+                HexContext __hexCtx = status.getHexContext();
+                triggering.writeDefaultOutput(
+                        new EntityVar(entityUuid.getUuid(), entityRef), __hexCtx);
+                HexExecuter.continueExecution(triggering.getNextLinks(), __hexCtx);
+            }
         }
 
         return false;
     }
 
     @Override
-    public void onCleanup(HexEffectsComponent construct, ConstructTickContext ctx) {
+    public void onCleanup(HexStatus<NoState> status, ConstructTickContext ctx) {
         TransformComponent transform = ctx.getBuffer().getComponent(
                 ctx.getEntityRef(), TransformComponent.getComponentType());
         if (transform != null) {
             GlaciateStyle.renderMelt(transform.getPosition(),
-                    construct.getHexContext().getColors(), ctx.getBuffer());
+                    status.getHexContext().getColors(), ctx.getBuffer());
         }
     }
 

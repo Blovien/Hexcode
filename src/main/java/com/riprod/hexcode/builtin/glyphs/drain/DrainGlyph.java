@@ -21,7 +21,6 @@ import com.riprod.hexcode.core.common.glyphs.variables.NumberVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexColors;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
 public class DrainGlyph implements GlyphHandler {
@@ -145,7 +144,7 @@ public static final String ID = "Drain";
         List<String> nextGlyphIds = nextSlot != null
                 ? new ArrayList<>(Arrays.asList(nextSlot.getLinks()))
                 : new ArrayList<>();
-        Ref<EntityStore> hexEntityRef = hexContext.getRoot().getRootEntityRef();
+        Ref<EntityStore> hexEntityRef = hexContext.getRoot().getSourceRef();
 
         DrainComponent.DrainEntry entry = new DrainComponent.DrainEntry(
                 sourceStatIndex, destRef, rate, totalDrainAmount, duration,
@@ -162,11 +161,7 @@ public static final String ID = "Drain";
                     targetRef, DrainComponent.getComponentType(), component);
         }
 
-        RootGlyph rootGlyph = hexContext.getAccessor().getComponent(
-                hexEntityRef, RootGlyph.getComponentType());
-        if (rootGlyph != null) {
-            rootGlyph.addDependent(targetRef);
-        }
+        hexContext.getRoot().addDependency(hexContext, targetRef);
     }
 
     @Override

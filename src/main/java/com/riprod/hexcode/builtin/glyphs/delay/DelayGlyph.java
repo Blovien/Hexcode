@@ -26,7 +26,6 @@ import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
 public class DelayGlyph implements GlyphHandler {
@@ -72,10 +71,7 @@ public static final String ID = "Delay";
         DelayStyle.render(hexContext);
 
         Holder<EntityStore> holder = HexConstructSpawner.create(
-                accessor, hexContext, glyph,
-                null, seconds, 0f,
-                null, null, nextLinks,
-                spawnPos);
+                accessor, hexContext, glyph, DelayGlyph.ID, spawnPos);
 
         ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(MODEL_ID);
         if (modelAsset != null) {
@@ -89,10 +85,6 @@ public static final String ID = "Delay";
 
         Ref<EntityStore> delayRef = accessor.addEntity(holder, AddReason.SPAWN);
 
-        RootGlyph rootGlyph = accessor.getComponent(
-                hexContext.getRoot().getRootEntityRef(), RootGlyph.getComponentType());
-        if (rootGlyph != null) {
-            rootGlyph.addDependent(delayRef);
-        }
+        hexContext.getRoot().addDependency(hexContext, delayRef);
     }
 }

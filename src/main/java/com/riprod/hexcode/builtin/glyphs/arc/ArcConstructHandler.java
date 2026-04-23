@@ -18,8 +18,8 @@ import com.riprod.hexcode.builtin.glyphs.arc.component.ArcComponent;
 import com.riprod.hexcode.builtin.glyphs.arc.style.ArcStyle;
 import com.riprod.hexcode.builtin.glyphs.arc.utils.ArcUtils;
 import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
-import com.riprod.hexcode.core.common.construct.component.HexEffectsComponent;
 import com.riprod.hexcode.core.common.construct.component.HexStatus;
+import com.riprod.hexcode.core.common.construct.state.NoState;
 import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
 import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
@@ -30,13 +30,13 @@ import com.riprod.hexcode.core.state.execution.component.HexColors;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 
-public class ArcConstructHandler implements ConstructHandler {
+public class ArcConstructHandler implements ConstructHandler<NoState> {
 
     private static final float DEFAULT_JUMP_RANGE = 15.0f;
     private static final float SHOCK_OVERLAP = 0.25f;
 
     @Override
-    public boolean onTick(float dt, HexStatus status, ConstructTickContext ctx) {
+    public boolean onTick(float dt, HexStatus<NoState> status, ConstructTickContext ctx) {
         ArcComponent arc = ctx.getChunk().getComponent(
                 ctx.getIndex(), ArcComponent.getComponentType());
         if (arc == null)
@@ -54,7 +54,7 @@ public class ArcConstructHandler implements ConstructHandler {
     }
 
     @Override
-    public void onCleanup(HexEffectsComponent construct, ConstructTickContext ctx) {
+    public void onCleanup(HexStatus<NoState> status, ConstructTickContext ctx) {
         ArcComponent arc = ctx.getBuffer().getComponent(
                 ctx.getEntityRef(), ArcComponent.getComponentType());
         if (arc != null && arc.isNaturalCompletion())
@@ -64,11 +64,11 @@ public class ArcConstructHandler implements ConstructHandler {
                 ctx.getEntityRef(), TransformComponent.getComponentType());
         if (tc != null) {
             ArcStyle.renderFizzle(ctx.getBuffer(), tc.getPosition(),
-                    construct.getHexContext().getColors());
+                    status.getHexContext().getColors());
         }
     }
 
-    private boolean fireAndPrepareHop(ArcComponent arc, HexStatus construct,
+    private boolean fireAndPrepareHop(ArcComponent arc, HexStatus<NoState> status,
             ConstructTickContext ctx) {
         String branch = arc.getCurrentBranch();
         if (branch == null) {
@@ -76,14 +76,14 @@ public class ArcConstructHandler implements ConstructHandler {
             return true;
         }
 
-        HexContext hexContext = construct.getHexContext();
+        HexContext hexContext = status.getHexContext();
         if (!tryConsumePerHopVolatility(arc, hexContext, ctx)) {
             return true;
         }
 
         final Ref<EntityStore> targetRef = arc.getCurrentTargetRef();
         final UUID targetUuid = arc.getCurrentTargetUuid();
-        final Glyph triggeringGlyph = construct.getTriggeringGlyph();
+        final Glyph triggeringGlyph = status.getTriggeringGlyph();
 
         if (targetRef != null && targetRef.isValid() && targetUuid != null
                 && triggeringGlyph != null) {
@@ -132,7 +132,7 @@ public class ArcConstructHandler implements ConstructHandler {
         return tracker.consumeVolatility(finalCost);
     }
 
-    private boolean hop(ArcComponent arc, HexStatus status, ConstructTickContext ctx) {
+    private boolean hop(ArcComponent arc, HexStatus<NoState> status, ConstructTickContext ctx) {
         TransformComponent tc = ctx.getBuffer().getComponent(
                 ctx.getEntityRef(), TransformComponent.getComponentType());
         if (tc == null)

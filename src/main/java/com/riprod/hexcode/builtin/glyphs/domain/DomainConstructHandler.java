@@ -18,36 +18,35 @@ import com.hypixel.hytale.server.core.util.TargetUtil;
 import com.riprod.hexcode.builtin.glyphs.domain.component.DomainAuraComponent;
 import com.riprod.hexcode.builtin.glyphs.domain.component.DomainZoneComponent;
 import com.riprod.hexcode.builtin.glyphs.domain.style.DomainStyle;
-import com.riprod.hexcode.core.common.construct.ConstructHandler;
+import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
 import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
-import com.riprod.hexcode.core.common.construct.component.HexEffectsComponent;
+import com.riprod.hexcode.core.common.construct.component.HexStatus;
+import com.riprod.hexcode.core.common.construct.state.NoState;
+import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
+import com.riprod.hexcode.core.state.execution.HexExecuter;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.HexRoot;
-import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 
-public class DomainConstructHandler implements ConstructHandler {
+public class DomainConstructHandler implements ConstructHandler<NoState> {
 
     private static final float AMBIENT_INTERVAL = 1.0f;
     private static final float DOMAIN_VOLATILITY_BOOST = 0.67f;
     private static final Vector3f CONTESTED_COLOR = new Vector3f(0.5f, 0.5f, 0.5f);
 
     @Override
-    public boolean onTick(float dt, HexEffectsComponent construct, ConstructTickContext ctx) {
+    public boolean onTick(float dt, HexStatus<NoState> status, ConstructTickContext ctx) {
         DomainZoneComponent zone = ctx.getChunk().getComponent(
                 ctx.getIndex(), DomainZoneComponent.getComponentType());
         TransformComponent transform = ctx.getChunk().getComponent(
                 ctx.getIndex(), TransformComponent.getComponentType());
         if (zone == null || transform == null) return true;
 
-        Ref<EntityStore> rootRef = construct.getRootEntityRef();
-        if (rootRef == null || !rootRef.isValid()) return true;
-
-        RootGlyph rootGlyph = ctx.getBuffer().getComponent(rootRef, RootGlyph.getComponentType());
-        if (rootGlyph == null) return true;
-
-        HexRoot root = rootGlyph.getRoot();
+        HexRoot root = status.getHexContext().getRoot();
         if (root == null || !root.isAlive()) return true;
+        Ref<EntityStore> rootRef = root.getSourceRef();
+        if (rootRef == null || !rootRef.isValid()) return true;
 
         updateContestation(zone, transform.getPosition(), ctx.getEntityRef(), ctx.getBuffer());
 
@@ -85,17 +84,18 @@ public class DomainConstructHandler implements ConstructHandler {
                         ref, TransformComponent.getComponentType());
                 if (entityTransform != null) {
                     DomainStyle.renderTrigger(entityTransform.getPosition(),
-                            construct.getHexContext().getColors(), ctx.getBuffer());
+                            status.getHexContext().getColors(), ctx.getBuffer());
                 }
 
                 final Ref<EntityStore> entityRef = ref;
                 final UUIDComponent entityUuid = uuid;
-                ctx.fireConditional(hexCtx -> {
-                    if (construct.getTriggeringGlyph() != null) {
-                        construct.getTriggeringGlyph().writeDefaultOutput(
-                                new EntityVar(entityUuid.getUuid(), entityRef), hexCtx);
-                    }
-                });
+                Glyph triggering = status.getTriggeringGlyph();
+                if (triggering != null) {
+                    HexContext __hexCtx = status.getHexContext();
+                    triggering.writeDefaultOutput(
+                            new EntityVar(entityUuid.getUuid(), entityRef), __hexCtx);
+                    HexExecuter.continueExecution(triggering.getNextLinks(), __hexCtx);
+                }
             }
         }
 
@@ -105,14 +105,14 @@ public class DomainConstructHandler implements ConstructHandler {
         if (zone.getAmbientTimer() <= 0) {
             zone.setAmbientTimer(AMBIENT_INTERVAL);
             DomainStyle.renderAmbient(center, zone.getRadius(),
-                    construct.getHexContext().getColors(), ctx.getBuffer());
+                    status.getHexContext().getColors(), ctx.getBuffer());
         }
 
         return false;
     }
 
     @Override
-    public void onCleanup(HexEffectsComponent construct, ConstructTickContext ctx) {
+    public void onCleanup(HexStatus<NoState> status, ConstructTickContext ctx) {
         DomainZoneComponent zone = ctx.getBuffer().getComponent(
                 ctx.getEntityRef(), DomainZoneComponent.getComponentType());
 
@@ -129,7 +129,7 @@ public class DomainConstructHandler implements ConstructHandler {
         if (transform != null) {
             float radius = zone != null ? zone.getRadius() : 5.0f;
             DomainStyle.renderDespawn(transform.getPosition(), radius,
-                    construct.getHexContext().getColors(), ctx.getBuffer());
+                    status.getHexContext().getColors(), ctx.getBuffer());
         }
     }
 

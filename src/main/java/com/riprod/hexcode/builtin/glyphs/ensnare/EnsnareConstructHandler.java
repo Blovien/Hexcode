@@ -19,18 +19,19 @@ import com.hypixel.hytale.server.core.util.TargetUtil;
 import com.riprod.hexcode.builtin.glyphs.ensnare.component.EnsnareComponent;
 import com.riprod.hexcode.builtin.glyphs.ensnare.component.SpikeEntry;
 import com.riprod.hexcode.builtin.glyphs.ensnare.style.EnsnareStyle;
-import com.riprod.hexcode.core.common.construct.ConstructHandler;
+import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
 import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
-import com.riprod.hexcode.core.common.construct.component.HexEffectsComponent;
+import com.riprod.hexcode.core.common.construct.component.HexStatus;
+import com.riprod.hexcode.core.common.construct.state.NoState;
 
-public class EnsnareConstructHandler implements ConstructHandler {
+public class EnsnareConstructHandler implements ConstructHandler<NoState> {
 
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     private static final double SPIKE_HIT_RADIUS_SQ = 0.7 * 0.7;
     private static int damageCauseIndex = -1;
 
     @Override
-    public boolean onTick(float dt, HexEffectsComponent construct, ConstructTickContext ctx) {
+    public boolean onTick(float dt, HexStatus<NoState> status, ConstructTickContext ctx) {
         EnsnareComponent ensnare = ctx.getChunk().getComponent(
                 ctx.getIndex(), EnsnareComponent.getComponentType());
         if (ensnare == null) return true;
@@ -41,7 +42,7 @@ public class EnsnareConstructHandler implements ConstructHandler {
     }
 
     @Override
-    public void onCleanup(HexEffectsComponent construct, ConstructTickContext ctx) {
+    public void onCleanup(HexStatus<NoState> status, ConstructTickContext ctx) {
         EnsnareComponent ensnare = ctx.getChunk().getComponent(
                 ctx.getIndex(), EnsnareComponent.getComponentType());
         if (ensnare == null) return;

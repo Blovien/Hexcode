@@ -13,17 +13,17 @@ import com.riprod.hexcode.builtin.glyphs.scale.component.ScaleComponent;
 import com.riprod.hexcode.builtin.glyphs.scale.component.ScaleTargetMarker;
 import com.riprod.hexcode.builtin.glyphs.scale.style.ScaleStyle;
 import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
-import com.riprod.hexcode.core.common.construct.component.HexEffectsComponent;
 import com.riprod.hexcode.core.common.construct.component.HexStatus;
+import com.riprod.hexcode.core.common.construct.state.NoState;
 import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
 import com.riprod.hexcode.core.state.execution.component.HexColors;
 
-public class ScaleConstructHandler implements ConstructHandler {
+public class ScaleConstructHandler implements ConstructHandler<NoState> {
 
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     @Override
-    public void onCleanup(HexStatus construct, ConstructTickContext ctx) {
+    public void onCleanup(HexStatus<NoState> status, ConstructTickContext ctx) {
         try {
             CommandBuffer<EntityStore> buffer = ctx.getBuffer();
             ScaleComponent scale = buffer.getComponent(ctx.getEntityRef(), ScaleComponent.getComponentType());
@@ -46,8 +46,8 @@ public class ScaleConstructHandler implements ConstructHandler {
                         box.setBoundingBox(originalBox);
                     }
 
-                    HexColors colors = construct.getHexContext() != null
-                            ? construct.getHexContext().getColors()
+                    HexColors colors = status.getHexContext() != null
+                            ? status.getHexContext().getColors()
                             : null;
                     TransformComponent tc = buffer.getComponent(
                             targetRef, TransformComponent.getComponentType());
