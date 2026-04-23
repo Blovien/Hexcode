@@ -1,5 +1,8 @@
 package com.riprod.hexcode.core.state.execution.component;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import com.hypixel.hytale.codec.Codec;
@@ -12,21 +15,19 @@ public class VolatilityTracker {
     private float startingBudget;
     private float remainingBudget;
     private float volatilityMultiplier;
-    private float manaCostMultiplier;
     private float magicPowerMultiplier;
-    private volatile boolean fizzled;
-    private volatile boolean failed;
+    private UUID executionId;
+    private Map<String, Integer> glyphUsageMap = new HashMap<>();
 
-    public VolatilityTracker(float startingBudget, float volatilityMultiplier, float manaCostMultiplier) {
-        this(startingBudget, volatilityMultiplier, manaCostMultiplier, 1.0f);
+    public VolatilityTracker(float startingBudget, float volatilityMultiplier) {
+        this(startingBudget, volatilityMultiplier, 1.0f);
     }
 
     public VolatilityTracker(float startingBudget, float volatilityMultiplier,
-            float manaCostMultiplier, float magicPowerMultiplier) {
+            float magicPowerMultiplier) {
         this.startingBudget = startingBudget;
         this.remainingBudget = startingBudget;
         this.volatilityMultiplier = volatilityMultiplier;
-        this.manaCostMultiplier = manaCostMultiplier;
         this.magicPowerMultiplier = magicPowerMultiplier;
     }
 
@@ -34,13 +35,13 @@ public class VolatilityTracker {
         this.startingBudget = 0f;
         this.remainingBudget = 0f;
         this.volatilityMultiplier = 1.0f;
-        this.manaCostMultiplier = 1.0f;
         this.magicPowerMultiplier = 1.0f;
     }
 
     public static float computeGlyphCost(Glyph glyph) {
         GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
-        if (asset == null) return 0;
+        if (asset == null)
+            return 0;
         float baseCost = asset.getVolatilityCost();
         // perfect draw (1.0) = 0.5x cost, worst draw (0.0) = 1.0x cost
         float qualityFactor = (1 - glyph.getVolatility()) * 0.5f + 0.5f;
@@ -48,16 +49,15 @@ public class VolatilityTracker {
     }
 
     public boolean consumeVolatility(float cost) {
-        if (fizzled) return false;
         float finalCost = cost * volatilityMultiplier;
-        if (finalCost <= 0) return true;
+        if (finalCost <= 0)
+            return true;
         float drain = finalCost <= 1f
                 ? finalCost
                 : 1f + ThreadLocalRandom.current().nextFloat() * (finalCost - 1f);
         remainingBudget -= drain;
         if (remainingBudget <= 0) {
             remainingBudget = 0;
-            fizzled = true;
             return false;
         }
         return true;
@@ -67,12 +67,16 @@ public class VolatilityTracker {
         return startingBudget;
     }
 
+    public void setStartingBudget(float startingBudget) {
+        this.startingBudget = startingBudget;
+    }
+
     public float getRemainingBudget() {
         return remainingBudget;
     }
 
-    public float getManaCostMultiplier() {
-        return manaCostMultiplier;
+    public void setBudget(float budget) {
+        this.remainingBudget = Math.max(0f, budget);
     }
 
     public float getVolatilityMultiplier() {
@@ -91,20 +95,25 @@ public class VolatilityTracker {
         this.magicPowerMultiplier = magicPowerMultiplier;
     }
 
-    public boolean isFizzled() {
-        return fizzled;
+    public int getGlyphUsage(String glyphId) {
+        return glyphUsageMap.getOrDefault(glyphId, 0);
     }
 
-    public void setFizzled(boolean fizzled) {
-        this.fizzled = fizzled;
+    public float getGlyphUsageScaled(String glyphId) {
+        int usage = getGlyphUsage(glyphId);
+        float k = 5.0f;
+        float usageScale = 1.0f + (usage / (usage + k));
+        return usageScale;
     }
 
-    public boolean isFailed() {
-        return failed;
+    public int incrementGlyphUsage(String glyphId) {
+        int usage = getGlyphUsage(glyphId) + 1;
+        glyphUsageMap.put(glyphId, usage);
+        return usage;
     }
 
-    public void setFailed(boolean failed) {
-        this.failed = failed;
+    public void setExecutionId(UUID executionId) {
+        this.executionId = executionId;
     }
 
     public static final BuilderCodec<VolatilityTracker> CODEC = BuilderCodec
@@ -121,13 +130,23 @@ public class VolatilityTracker {
                     (c, v) -> c.volatilityMultiplier = v,
                     (c) -> c.volatilityMultiplier)
             .add()
-            .append(new KeyedCodec<>("ManaCostMultiplier", Codec.FLOAT),
-                    (c, v) -> c.manaCostMultiplier = v,
-                    (c) -> c.manaCostMultiplier)
-            .add()
             .append(new KeyedCodec<>("MagicPowerMultiplier", Codec.FLOAT),
                     (c, v) -> c.magicPowerMultiplier = v,
                     (c) -> c.magicPowerMultiplier)
             .add()
+            .append(new KeyedCodec<>("ExecutionId", Codec.UUID_STRING),
+                    (c, v) -> c.executionId = v,
+                    (c) -> c.executionId)
+            .add()
             .build();
+
+    VolatilityTracker copy() {
+        VolatilityTracker copy = new VolatilityTracker();
+        copy.startingBudget = this.startingBudget;
+        copy.remainingBudget = this.remainingBudget;
+        copy.volatilityMultiplier = this.volatilityMultiplier;
+        copy.magicPowerMultiplier = this.magicPowerMultiplier;
+        copy.executionId = this.executionId;
+        return copy;
+    }
 }

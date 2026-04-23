@@ -1,6 +1,5 @@
 package com.riprod.hexcode.core.common.hexcaster.component;
 
-import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.codec.codecs.EnumCodec;
@@ -8,18 +7,11 @@ import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.state.HexState;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
-import com.riprod.hexcode.core.state.execution.component.HexContext;
 
 public class HexcasterComponent implements Component<EntityStore> {
 
@@ -69,35 +61,6 @@ public class HexcasterComponent implements Component<EntityStore> {
 
     // Crafting Mode
     private Map<String, Float> lastTickMap = new HashMap<>();
-
-    private transient List<HexContext> activeContexts = new ArrayList<>();
-
-    public void registerActiveHex(HexContext ctx) {
-        if (activeContexts == null) activeContexts = new ArrayList<>();
-        activeContexts.add(ctx);
-    }
-
-    public void removeActiveHex(HexContext ctx) {
-        if (activeContexts == null) return;
-        activeContexts.remove(ctx);
-    }
-
-    public void cancelAll() {
-        if (activeContexts == null || activeContexts.isEmpty()) return;
-        for (HexContext ctx : new ArrayList<>(activeContexts)) {
-            com.riprod.hexcode.core.state.execution.Executor.fail(ctx);
-        }
-        activeContexts.clear();
-    }
-
-    public int getActiveCount() {
-        return activeContexts == null ? 0 : activeContexts.size();
-    }
-
-    public List<HexContext> getActiveContexts() {
-        if (activeContexts == null) activeContexts = new ArrayList<>();
-        return activeContexts;
-    }
 
     public HexcasterComponent() {
     }

@@ -31,12 +31,12 @@ public class ImbuementUtils {
     @Nullable
     public static Hex resolveHex(ImbuementData data) {
         if (data.getHex() != null) return data.getHex().clone();
-        if (data.getHexAssetId() != null) {
-            Hex hex = HexUtils.deserialize(data.getHexAssetId());
+        if (data.getHexCompressedId() != null) {
+            Hex hex = HexUtils.deserialize(data.getHexCompressedId());
             if (hex != null) return hex.clone();
         }
-        if (data.getReferenceId() != null) {
-            SavedHexAsset saved = SavedHexAsset.getAssetMap().getAsset(data.getReferenceId());
+        if (data.getHexAssetId() != null) {
+            SavedHexAsset saved = SavedHexAsset.getAssetMap().getAsset(data.getHexAssetId());
             if (saved != null && saved.getHex() != null) return saved.getHex().clone();
         }
         return null;
@@ -50,7 +50,7 @@ public class ImbuementUtils {
 
     public static ImbuementData fromAsset(String hexAssetId) {
         ImbuementData data = new ImbuementData();
-        data.setHexAssetId(hexAssetId);
+        data.setHexCompressedId(hexAssetId);
         return data;
     }
 }

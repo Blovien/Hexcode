@@ -22,7 +22,7 @@ public class PlayerUtils {
         TransformComponent playerTransform = accessor.getComponent(playerRef,
                 TransformComponent.getComponentType());
         if (playerTransform == null) {
-            return Vector3d.ZERO; // Fallback to origin if we can't get the transform
+            return new Vector3d(0, 0, 0); // Fallback to origin if we can't get the transform
         }
 
         ModelComponent modelComp = accessor.getComponent(playerRef, ModelComponent.getComponentType());

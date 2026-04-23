@@ -7,11 +7,11 @@
   "ManaConsumption": 0,
   "ShapeStructure": [
     {
-      "ShapeId": "Slash",
+      "ShapeId": "Antislash",
       "Size": 1.0
     },
     {
-      "ShapeId": "Antislash",
+      "ShapeId": "Slash",
       "Size": 1.0
     }
   ],

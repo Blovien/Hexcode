@@ -1,0 +1,35 @@
+package com.riprod.hexcode.builtin.glyphs.number;
+
+import com.riprod.hexcode.core.common.glyphs.component.Glyph;
+import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
+import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.common.glyphs.variables.NumberVar;
+import com.riprod.hexcode.core.state.execution.HexExecuter;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
+
+public class NumberValue implements GlyphHandler {
+
+    @Override
+    public String getId() {
+        return "Number_" + this.number;
+    };
+
+    private int number;
+
+    public NumberValue() {
+    }
+
+    public NumberValue(int number) {
+        this.number = number;
+    }
+
+    @Override
+    public HexVar readValue(Glyph glyph, HexContext hexContext) {
+        return new NumberVar(this.number);
+    }
+
+    @Override
+    public void execute(Glyph glyph, HexContext hexContext) {
+        HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
+    }
+}

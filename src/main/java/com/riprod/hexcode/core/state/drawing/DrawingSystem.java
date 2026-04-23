@@ -15,13 +15,14 @@ import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.Color;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.packets.connection.PongType;
+import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.time.TimeResource;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.GlyphDrawnEvent;
-import com.riprod.hexcode.api.event.HexcodeEvents;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.core.common.obelisk.system.ObeliskDispatcher;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
@@ -105,7 +106,8 @@ public class DrawingSystem extends HexcodeManager {
         if (pedestal != null) {
           ObeliskDispatcher.dispatchGlyphDrawn(buffer, pedestal, ref, glyph);
         }
-        HexcodeEvents.fire(new GlyphDrawnEvent(ref, glyph, drawnShapes, matchedGlyph));
+        HytaleServer.get().getEventBus().dispatchFor(GlyphDrawnEvent.class)
+            .dispatch((new GlyphDrawnEvent(ref, glyph, drawnShapes, matchedGlyph)));
 
         HeadRotation hRotation = buffer.getComponent(ref, HeadRotation.getComponentType());
         Vector3d spawnPos = calculateDrawCenter(drawnShapes);
@@ -149,14 +151,15 @@ public class DrawingSystem extends HexcodeManager {
 
   @Override
   public void onPlayerJoin(Ref<EntityStore> playerRef, HexcasterComponent comp,
-                        Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
+      Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
   }
 
   @Override
   public void onPlayerLeave(Ref<EntityStore> ref, HexcasterComponent comp,
       Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
     HexcasterDrawingComponent drawingComp = buffer.getComponent(ref, HexcasterDrawingComponent.getComponentType());
-    if (drawingComp == null) return;
+    if (drawingComp == null)
+      return;
     drawingComp.clear(buffer);
   }
 
@@ -278,7 +281,8 @@ public class DrawingSystem extends HexcodeManager {
         .getPingMetricSet()
         .getLastValue();
 
-    float forgiveness = Math.min(3f, 1f + Math.min(pingMs, 500) / 1000f); // cap at +200% forgiveness for 500ms ping or higher
+    float forgiveness = Math.min(3f, 1f + Math.min(pingMs, 500) / 1000f); // cap at +200% forgiveness for 500ms ping or
+                                                                          // higher
     result.setVolatility(Math.min(1f, result.getVolatility() * forgiveness));
     drawSpeed = (long) (drawSpeed / forgiveness); // pretend they drew faster
 

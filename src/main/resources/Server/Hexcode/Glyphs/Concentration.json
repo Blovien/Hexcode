@@ -7,7 +7,7 @@
   "ManaConsumption": 1,
   "ShapeStructure": [
     {
-      "ShapeId": "Circle",
+      "ShapeId": "Triangle",
       "Size": 1.0
     },
     {

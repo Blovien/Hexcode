@@ -5,11 +5,11 @@
   "ModelPath": "Number_13",
   "ShapeStructure": [
     {
-      "ShapeId": "Line",
+      "ShapeId": "Less",
       "Size": 1.0
     },
     {
-      "ShapeId": "Antitriangle",
+      "ShapeId": "Circle",
       "Size": 1.0
     }
   ],

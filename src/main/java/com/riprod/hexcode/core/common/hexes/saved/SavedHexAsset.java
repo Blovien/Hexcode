@@ -1,6 +1,6 @@
 package com.riprod.hexcode.core.common.hexes.saved;
 
-import com.hypixel.hytale.assetstore.AssetExtraInfo;
+import com.hypixel.hytale.assetstore.AssetExtraInfo.Data;
 import com.hypixel.hytale.assetstore.AssetKeyValidator;
 import com.hypixel.hytale.assetstore.AssetRegistry;
 import com.hypixel.hytale.assetstore.AssetStore;
@@ -17,7 +17,7 @@ public class SavedHexAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
     private static AssetStore<String, SavedHexAsset, DefaultAssetMap<String, SavedHexAsset>> ASSET_STORE;
     public static final ValidatorCache<String> VALIDATOR_CACHE;
 
-    protected AssetExtraInfo.Data data;
+    protected Data data;
     protected String id;
     protected Hex hex;
     protected String displayName;

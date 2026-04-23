@@ -11,8 +11,12 @@
       "Size": 1.0
     },
     {
-      "ShapeId": "Square",
+      "ShapeId": "Triangle",
       "Size": 0.8
+    },
+    {
+      "ShapeId": "Square",
+      "Size": 0.6
     }
   ],
   "Slots": {

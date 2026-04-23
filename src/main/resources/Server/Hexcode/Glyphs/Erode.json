@@ -11,8 +11,12 @@
       "Size": 1.0
     },
     {
-      "ShapeId": "Circle",
+      "ShapeId": "Anticircle",
       "Size": 0.8
+    },
+    {
+      "ShapeId": "Antisquare",
+      "Size": 0.6
     }
   ],
   "Slots": {

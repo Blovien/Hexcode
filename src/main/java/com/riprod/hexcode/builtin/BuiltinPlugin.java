@@ -8,95 +8,95 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Int
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.builtin.glyphs.effect.add.AddGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.arc.ArcGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.arc.component.ArcComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.bolt.BoltGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.concentration.ConcentrationGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.concentration.ConcentrationConstructHandler;
-import com.riprod.hexcode.builtin.glyphs.effect.concentration.component.ConcentrationTriggerComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.chaos.ChaosGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.combust.CombustGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.conjure.ConjureGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.conjure.component.ConjureZoneComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.conjure.system.ConjureConstructHandler;
-import com.riprod.hexcode.builtin.glyphs.effect.debug.DebugGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.delay.DelayGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.arc.ArcConstructHandler;
-import com.riprod.hexcode.builtin.glyphs.effect.domain.DomainConstructHandler;
-import com.riprod.hexcode.builtin.glyphs.effect.glaciate.GlaciateConstructHandler;
-import com.riprod.hexcode.core.common.construct.ConstructRegistry;
-import com.riprod.hexcode.core.common.construct.component.HexConstruct;
+import com.riprod.hexcode.core.common.construct.component.HexEffectsComponent;
+import com.riprod.hexcode.core.common.construct.registry.ConstructRegistry;
 import com.riprod.hexcode.core.common.effect.HexEffectHandler;
 import com.riprod.hexcode.core.common.effect.HexEffectRegistry;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
 import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.domain.DomainGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.domain.component.DomainAuraComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.domain.component.DomainZoneComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.gust.GustGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.divide.DivideGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.drain.DrainGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.drain.component.DrainComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.drain.system.DrainTickSystem;
-import com.riprod.hexcode.builtin.glyphs.effect.equal.EqualGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.erode.ErodeGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.erode.component.ErodeComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.erode.system.ErodeDamageSystem;
-import com.riprod.hexcode.builtin.glyphs.effect.erode.system.ErodeTickSystem;
-import com.riprod.hexcode.builtin.glyphs.effect.phase.PhaseComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.phase.PhaseConstructHandler;
-import com.riprod.hexcode.builtin.glyphs.effect.phase.PhaseGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.force.ForceGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.fortify.FortifyGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.fortify.component.FortifyComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.fortify.system.FortifyDamageSystem;
-import com.riprod.hexcode.builtin.glyphs.effect.fortify.system.FortifyTickSystem;
-import com.riprod.hexcode.builtin.glyphs.effect.freeze.FreezeConstructHandler;
-import com.riprod.hexcode.builtin.glyphs.effect.freeze.FreezeGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.freeze.component.FreezeComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.area.AreaGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.glaciate.GlaciateGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.glaciate.component.GlaciateComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.greater.GreaterGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.growth.GrowthGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.halt.HaltGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.halt.component.HaltProjectileComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.halt.system.HaltProjectileTickSystem;
-import com.riprod.hexcode.builtin.glyphs.effect.ignite.IgniteGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.less.LessGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.levitate.LevitateGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.levitate.component.LevitateComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.levitate.system.LevitateTickSystem;
-import com.riprod.hexcode.builtin.glyphs.effect.multiply.MultiplyGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.output.OutputGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.interfere.InterfereGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.resonate.ResonateGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.projectile.ProjectileConstructHandler;
-import com.riprod.hexcode.builtin.glyphs.effect.scale.ScaleConstructHandler;
-import com.riprod.hexcode.builtin.glyphs.effect.scale.ScaleGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.scale.component.ScaleComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.scale.component.ScaleTargetMarker;
-import com.riprod.hexcode.builtin.glyphs.effect.projectile.ProjectileGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.projectile.component.ProjectileComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.ensnare.EnsnareConstructHandler;
-import com.riprod.hexcode.builtin.glyphs.effect.ensnare.EnsnareGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.ensnare.component.EnsnareComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.beam.BeamGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.self.SelfGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.shatter.ShatterConstructHandler;
-import com.riprod.hexcode.builtin.glyphs.effect.shatter.ShatterGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.shatter.component.ShatterComponent;
-import com.riprod.hexcode.builtin.glyphs.effect.smelt.SmeltGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.subtract.SubtractGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.swap.SwapGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.terraform.TerraformGlyph;
-import com.riprod.hexcode.builtin.glyphs.effect.warp.WarpGlyph;
-import com.riprod.hexcode.builtin.glyphs.value.IsHoldingValue;
-import com.riprod.hexcode.builtin.glyphs.value.NumberValue;
-import com.riprod.hexcode.builtin.glyphs.value.PositionValue;
-import com.riprod.hexcode.builtin.glyphs.value.RotationValue;
-import com.riprod.hexcode.builtin.glyphs.value.VariableValue;
+import com.riprod.hexcode.builtin.glyphs.isHolding.IsHoldingValue;
+import com.riprod.hexcode.builtin.glyphs.add.AddGlyph;
+import com.riprod.hexcode.builtin.glyphs.arc.ArcConstructHandler;
+import com.riprod.hexcode.builtin.glyphs.arc.ArcGlyph;
+import com.riprod.hexcode.builtin.glyphs.arc.component.ArcComponent;
+import com.riprod.hexcode.builtin.glyphs.area.AreaGlyph;
+import com.riprod.hexcode.builtin.glyphs.beam.BeamGlyph;
+import com.riprod.hexcode.builtin.glyphs.bolt.BoltGlyph;
+import com.riprod.hexcode.builtin.glyphs.chaos.ChaosGlyph;
+import com.riprod.hexcode.builtin.glyphs.combust.CombustGlyph;
+import com.riprod.hexcode.builtin.glyphs.concentration.ConcentrationConstructHandler;
+import com.riprod.hexcode.builtin.glyphs.concentration.ConcentrationGlyph;
+import com.riprod.hexcode.builtin.glyphs.concentration.component.ConcentrationTriggerComponent;
+import com.riprod.hexcode.builtin.glyphs.conjure.ConjureGlyph;
+import com.riprod.hexcode.builtin.glyphs.conjure.component.ConjureZoneComponent;
+import com.riprod.hexcode.builtin.glyphs.conjure.system.ConjureConstructHandler;
+import com.riprod.hexcode.builtin.glyphs.debug.DebugGlyph;
+import com.riprod.hexcode.builtin.glyphs.delay.DelayGlyph;
+import com.riprod.hexcode.builtin.glyphs.divide.DivideGlyph;
+import com.riprod.hexcode.builtin.glyphs.domain.DomainConstructHandler;
+import com.riprod.hexcode.builtin.glyphs.domain.DomainGlyph;
+import com.riprod.hexcode.builtin.glyphs.domain.component.DomainAuraComponent;
+import com.riprod.hexcode.builtin.glyphs.domain.component.DomainZoneComponent;
+import com.riprod.hexcode.builtin.glyphs.drain.DrainGlyph;
+import com.riprod.hexcode.builtin.glyphs.drain.component.DrainComponent;
+import com.riprod.hexcode.builtin.glyphs.drain.system.DrainTickSystem;
+import com.riprod.hexcode.builtin.glyphs.ensnare.EnsnareConstructHandler;
+import com.riprod.hexcode.builtin.glyphs.ensnare.EnsnareGlyph;
+import com.riprod.hexcode.builtin.glyphs.ensnare.component.EnsnareComponent;
+import com.riprod.hexcode.builtin.glyphs.equal.EqualGlyph;
+import com.riprod.hexcode.builtin.glyphs.erode.ErodeGlyph;
+import com.riprod.hexcode.builtin.glyphs.erode.component.ErodeComponent;
+import com.riprod.hexcode.builtin.glyphs.erode.system.ErodeDamageSystem;
+import com.riprod.hexcode.builtin.glyphs.erode.system.ErodeTickSystem;
+import com.riprod.hexcode.builtin.glyphs.force.ForceGlyph;
+import com.riprod.hexcode.builtin.glyphs.fortify.FortifyGlyph;
+import com.riprod.hexcode.builtin.glyphs.fortify.component.FortifyComponent;
+import com.riprod.hexcode.builtin.glyphs.fortify.system.FortifyDamageSystem;
+import com.riprod.hexcode.builtin.glyphs.fortify.system.FortifyTickSystem;
+import com.riprod.hexcode.builtin.glyphs.freeze.FreezeConstructHandler;
+import com.riprod.hexcode.builtin.glyphs.freeze.FreezeGlyph;
+import com.riprod.hexcode.builtin.glyphs.freeze.component.FreezeComponent;
+import com.riprod.hexcode.builtin.glyphs.glaciate.GlaciateConstructHandler;
+import com.riprod.hexcode.builtin.glyphs.glaciate.GlaciateGlyph;
+import com.riprod.hexcode.builtin.glyphs.glaciate.component.GlaciateComponent;
+import com.riprod.hexcode.builtin.glyphs.greater.GreaterGlyph;
+import com.riprod.hexcode.builtin.glyphs.growth.GrowthGlyph;
+import com.riprod.hexcode.builtin.glyphs.gust.GustGlyph;
+import com.riprod.hexcode.builtin.glyphs.halt.HaltGlyph;
+import com.riprod.hexcode.builtin.glyphs.halt.component.HaltProjectileComponent;
+import com.riprod.hexcode.builtin.glyphs.halt.system.HaltProjectileTickSystem;
+import com.riprod.hexcode.builtin.glyphs.ignite.IgniteGlyph;
+import com.riprod.hexcode.builtin.glyphs.interfere.InterfereGlyph;
+import com.riprod.hexcode.builtin.glyphs.less.LessGlyph;
+import com.riprod.hexcode.builtin.glyphs.levitate.LevitateGlyph;
+import com.riprod.hexcode.builtin.glyphs.levitate.component.LevitateComponent;
+import com.riprod.hexcode.builtin.glyphs.levitate.system.LevitateTickSystem;
+import com.riprod.hexcode.builtin.glyphs.multiply.MultiplyGlyph;
+import com.riprod.hexcode.builtin.glyphs.number.NumberValue;
+import com.riprod.hexcode.builtin.glyphs.output.OutputGlyph;
+import com.riprod.hexcode.builtin.glyphs.phase.PhaseComponent;
+import com.riprod.hexcode.builtin.glyphs.phase.PhaseConstructHandler;
+import com.riprod.hexcode.builtin.glyphs.phase.PhaseGlyph;
+import com.riprod.hexcode.builtin.glyphs.position.PositionValue;
+import com.riprod.hexcode.builtin.glyphs.projectile.ProjectileConstructHandler;
+import com.riprod.hexcode.builtin.glyphs.projectile.ProjectileGlyph;
+import com.riprod.hexcode.builtin.glyphs.projectile.component.ProjectileComponent;
+import com.riprod.hexcode.builtin.glyphs.resonate.ResonateGlyph;
+import com.riprod.hexcode.builtin.glyphs.rotation.RotationValue;
+import com.riprod.hexcode.builtin.glyphs.scale.ScaleConstructHandler;
+import com.riprod.hexcode.builtin.glyphs.scale.ScaleGlyph;
+import com.riprod.hexcode.builtin.glyphs.scale.component.ScaleComponent;
+import com.riprod.hexcode.builtin.glyphs.scale.component.ScaleTargetMarker;
+import com.riprod.hexcode.builtin.glyphs.self.SelfGlyph;
+import com.riprod.hexcode.builtin.glyphs.shatter.ShatterConstructHandler;
+import com.riprod.hexcode.builtin.glyphs.shatter.ShatterGlyph;
+import com.riprod.hexcode.builtin.glyphs.shatter.component.ShatterComponent;
+import com.riprod.hexcode.builtin.glyphs.smelt.SmeltGlyph;
+import com.riprod.hexcode.builtin.glyphs.subtract.SubtractGlyph;
+import com.riprod.hexcode.builtin.glyphs.swap.SwapGlyph;
+import com.riprod.hexcode.builtin.glyphs.terraform.TerraformGlyph;
+import com.riprod.hexcode.builtin.glyphs.variable.VariableValue;
+import com.riprod.hexcode.builtin.glyphs.warp.WarpGlyph;
 import com.riprod.hexcode.builtin.obelisks.accuracy.AccuracyObelisk;
 import com.riprod.hexcode.builtin.obelisks.efficiency.EfficiencyObelisk;
 import com.riprod.hexcode.builtin.obelisks.importexport.ImportExportObelisk;
@@ -136,71 +136,71 @@ public class BuiltinPlugin extends JavaPlugin {
     private void RegisterGlyphs() {
 
         // Tier 1
-        GlyphRegistry.register("Glyph_Self", new SelfGlyph());
-        GlyphRegistry.register("Glyph_Chaos", new ChaosGlyph());
-        GlyphRegistry.register("Glyph_Force", new ForceGlyph());
-        GlyphRegistry.register("Glyph_Delay", new DelayGlyph());
-        GlyphRegistry.register("Glyph_Drain", new DrainGlyph());
-        GlyphRegistry.register("Glyph_Halt", new HaltGlyph());
+        GlyphRegistry.register(new SelfGlyph());
+        GlyphRegistry.register(new ChaosGlyph());
+        GlyphRegistry.register(new ForceGlyph());
+        GlyphRegistry.register(new DelayGlyph());
+        GlyphRegistry.register(new DrainGlyph());
+        GlyphRegistry.register(new HaltGlyph());
 
         // Tier 2
-        GlyphRegistry.register("Glyph_Beam", new BeamGlyph());
-        GlyphRegistry.register("Glyph_Area", new AreaGlyph());
-        GlyphRegistry.register("Glyph_Projectile", new ProjectileGlyph());
-        GlyphRegistry.register("Glyph_Gust", new GustGlyph());
-        GlyphRegistry.register("Glyph_Conjure", new ConjureGlyph());
-        GlyphRegistry.register("Glyph_Growth", new GrowthGlyph());
-        GlyphRegistry.register("Glyph_Fortify", new FortifyGlyph());
-        GlyphRegistry.register("Glyph_Erode", new ErodeGlyph());
-        GlyphRegistry.register("Glyph_Interfere", new InterfereGlyph());
-        GlyphRegistry.register("Glyph_Resonate", new ResonateGlyph());
-        GlyphRegistry.register("Glyph_Levitate", new LevitateGlyph());
-        GlyphRegistry.register("Glyph_Scale", new ScaleGlyph());
-        GlyphRegistry.register("Glyph_Domain", new DomainGlyph());
+        GlyphRegistry.register(new BeamGlyph());
+        GlyphRegistry.register(new AreaGlyph());
+        GlyphRegistry.register(new ProjectileGlyph());
+        GlyphRegistry.register(new GustGlyph());
+        GlyphRegistry.register(new ConjureGlyph());
+        GlyphRegistry.register(new GrowthGlyph());
+        GlyphRegistry.register(new FortifyGlyph());
+        GlyphRegistry.register(new ErodeGlyph());
+        GlyphRegistry.register(new InterfereGlyph());
+        GlyphRegistry.register(new ResonateGlyph());
+        GlyphRegistry.register(new LevitateGlyph());
+        GlyphRegistry.register(new ScaleGlyph());
+        GlyphRegistry.register(new DomainGlyph());
 
         // Tier 3
-        GlyphRegistry.register("Glyph_Ignite", new IgniteGlyph());
-        GlyphRegistry.register("Glyph_Combust", new CombustGlyph());
-        GlyphRegistry.register("Glyph_Smelt", new SmeltGlyph());
-        GlyphRegistry.register("Glyph_Bolt", new BoltGlyph());
-        GlyphRegistry.register("Glyph_Arc", new ArcGlyph());
-        GlyphRegistry.register("Glyph_Freeze", new FreezeGlyph());
-        GlyphRegistry.register("Glyph_Shatter", new ShatterGlyph());
-        GlyphRegistry.register("Glyph_Glaciate", new GlaciateGlyph());
-        GlyphRegistry.register("Glyph_Terraform", new TerraformGlyph());
-        GlyphRegistry.register("Glyph_Ensnare", new EnsnareGlyph());
-        GlyphRegistry.register("Glyph_Phase", new PhaseGlyph());
-        GlyphRegistry.register("Glyph_Warp", new WarpGlyph());
-        GlyphRegistry.register("Glyph_Swap", new SwapGlyph());
+        GlyphRegistry.register(new IgniteGlyph());
+        GlyphRegistry.register(new CombustGlyph());
+        GlyphRegistry.register(new SmeltGlyph());
+        GlyphRegistry.register(new BoltGlyph());
+        GlyphRegistry.register(new ArcGlyph());
+        GlyphRegistry.register(new FreezeGlyph());
+        GlyphRegistry.register(new ShatterGlyph());
+        GlyphRegistry.register(new GlaciateGlyph());
+        GlyphRegistry.register(new TerraformGlyph());
+        GlyphRegistry.register(new EnsnareGlyph());
+        GlyphRegistry.register(new PhaseGlyph());
+        GlyphRegistry.register(new WarpGlyph());
+        GlyphRegistry.register(new SwapGlyph());
 
         // math glyphs (canReadValue + execute)
-        GlyphRegistry.register("Glyph_Multiply", new MultiplyGlyph());
-        GlyphRegistry.register("Glyph_Add", new AddGlyph());
-        GlyphRegistry.register("Glyph_Subtract", new SubtractGlyph());
-        GlyphRegistry.register("Glyph_Divide", new DivideGlyph());
-        GlyphRegistry.register("Glyph_Equal", new EqualGlyph());
-        GlyphRegistry.register("Glyph_Greater", new GreaterGlyph());
-        GlyphRegistry.register("Glyph_Less", new LessGlyph());
+        GlyphRegistry.register(new MultiplyGlyph());
+        GlyphRegistry.register(new AddGlyph());
+        GlyphRegistry.register(new SubtractGlyph());
+        GlyphRegistry.register(new DivideGlyph());
+        GlyphRegistry.register(new EqualGlyph());
+        GlyphRegistry.register(new GreaterGlyph());
+        GlyphRegistry.register(new LessGlyph());
 
         // constructor glyphs (canReadValue + execute)
-        GlyphRegistry.register("Glyph_Position", new PositionValue());
-        GlyphRegistry.register("Glyph_Rotation", new RotationValue());
+        GlyphRegistry.register(new PositionValue());
+        GlyphRegistry.register(new RotationValue());
 
         // numeric values
         for (int i = 1; i <= 16; i++) {
-            GlyphRegistry.register("Number_" + i, new NumberValue(i));
+            GlyphRegistry.register(new NumberValue(i));
         }
-        GlyphRegistry.register("Glyph_Variable", new VariableValue());
+        GlyphRegistry.register(new VariableValue());
 
         // debug / introspection
-        GlyphRegistry.register("Glyph_Debug", new DebugGlyph());
+        GlyphRegistry.register(new DebugGlyph());
 
         // output landmark (Wave 2)
-        GlyphRegistry.register("Glyph_Output", new OutputGlyph());
+        GlyphRegistry.register(new OutputGlyph());
 
         // caster state queries
-        GlyphRegistry.register("Glyph_IsHolding", new IsHoldingValue());
-        GlyphRegistry.register("Glyph_Concentration", new ConcentrationGlyph());
+        GlyphRegistry.register(new IsHoldingValue());
+        GlyphRegistry.register(new ConcentrationGlyph());
     }
 
     private void RegisterObelisks() {
@@ -299,14 +299,14 @@ public class BuiltinPlugin extends JavaPlugin {
                 .registerComponent(ConcentrationTriggerComponent.class, ConcentrationTriggerComponent::new);
         ConcentrationTriggerComponent.setComponentType(concentrationTriggerType);
 
-        ComponentType<EntityStore, HexConstruct> hexConstructType = entityStoreRegistry
-                .registerComponent(HexConstruct.class, HexConstruct::new);
-        HexConstruct.setComponentType(hexConstructType);
+        ComponentType<EntityStore, HexEffectsComponent> hexConstructType = entityStoreRegistry
+                .registerComponent(HexEffectsComponent.class, HexEffectsComponent::new);
+        HexEffectsComponent.setComponentType(hexConstructType);
     }
 
     private void RegisterSystems() {
         ComponentRegistryProxy<EntityStore> entityStoreRegistry = this.getEntityStoreRegistry();
-        
+
         entityStoreRegistry.registerSystem(new DrainTickSystem());
         entityStoreRegistry.registerSystem(new ErodeTickSystem());
         entityStoreRegistry.registerSystem(new ErodeDamageSystem());
@@ -359,7 +359,8 @@ public class BuiltinPlugin extends JavaPlugin {
             CommandBuffer<EntityStore> buffer) {
         EffectControllerComponent controller = buffer.getComponent(
                 ref, EffectControllerComponent.getComponentType());
-        if (controller == null) return;
+        if (controller == null)
+            return;
         int effectIndex = EntityEffect.getAssetMap().getIndex(effectId);
         if (effectIndex != Integer.MIN_VALUE) {
             controller.removeEffect(ref, effectIndex, buffer);
@@ -367,16 +368,16 @@ public class BuiltinPlugin extends JavaPlugin {
     }
 
     private void RegisterConstructs() {
-        ConstructRegistry.register("scale", new ScaleConstructHandler());
-        ConstructRegistry.register("concentration", new ConcentrationConstructHandler());
-        ConstructRegistry.register("domain", new DomainConstructHandler());
-        ConstructRegistry.register("glaciate", new GlaciateConstructHandler());
-        ConstructRegistry.register("arc", new ArcConstructHandler());
-        ConstructRegistry.register("phase", new PhaseConstructHandler());
-        ConstructRegistry.register("shatter", new ShatterConstructHandler());
-        ConstructRegistry.register("conjure", new ConjureConstructHandler());
-        ConstructRegistry.register("projectile", new ProjectileConstructHandler());
-        ConstructRegistry.register("ensnare", new EnsnareConstructHandler());
-        ConstructRegistry.register("freeze", new FreezeConstructHandler());
+        ConstructRegistry.register(ScaleGlyph.ID, new ScaleConstructHandler());
+        ConstructRegistry.register(ConcentrationGlyph.ID, new ConcentrationConstructHandler());
+        ConstructRegistry.register(DomainGlyph.ID, new DomainConstructHandler());
+        ConstructRegistry.register(GlaciateGlyph.ID, new GlaciateConstructHandler());
+        ConstructRegistry.register(ArcGlyph.ID, new ArcConstructHandler());
+        ConstructRegistry.register(PhaseGlyph.ID, new PhaseConstructHandler());
+        ConstructRegistry.register(ShatterGlyph.ID, new ShatterConstructHandler());
+        ConstructRegistry.register(ConjureGlyph.ID, new ConjureConstructHandler());
+        ConstructRegistry.register(ProjectileGlyph.ID, new ProjectileConstructHandler());
+        ConstructRegistry.register(EnsnareGlyph.ID, new EnsnareConstructHandler());
+        ConstructRegistry.register(FreezeGlyph.ID, new FreezeConstructHandler());
     }
 }

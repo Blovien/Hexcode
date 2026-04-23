@@ -7,12 +7,16 @@
   "ManaConsumption": 12,
   "ShapeStructure": [
     {
-      "ShapeId": "Antisquare",
+      "ShapeId": "Square",
       "Size": 1.0
     },
     {
-      "ShapeId": "Triangle",
+      "ShapeId": "Antisquare",
       "Size": 0.55
+    },
+    {
+      "ShapeId": "Triangle",
+      "Size": 0.6
     }
   ],
   "Slots": {

@@ -21,9 +21,6 @@ import com.riprod.hexcode.core.common.hexes.component.Hex;
 
 public class WeaponImbuementSystem extends DamageEventSystem {
 
-    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
-    private static final String SLOT_KEY = "weapon";
-
     @Override
     public Query<EntityStore> getQuery() {
         return Archetype.empty();
@@ -53,20 +50,9 @@ public class WeaponImbuementSystem extends DamageEventSystem {
         ImbuementData data = ImbuementUtils.read(weapon);
         if (data == null) return;
 
-        ImbuementCooldownComponent cooldown = buffer.ensureAndGetComponent(
-                attackerRef, ImbuementCooldownComponent.getComponentType());
-        if (cooldown.isOnCooldown(SLOT_KEY)) return;
-
         Hex hex = ImbuementUtils.resolveHex(data);
         if (hex == null) return;
 
-        ImbuementExecutor.Request request = new ImbuementExecutor.Request(
-                attackerRef, targetRef, hex, data, buffer, data.getColors());
-        boolean success = ImbuementExecutor.execute(request);
-
-        if (success) {
-            long cooldownMs = data.getCooldownTicks() * 50L;
-            cooldown.setCooldown(SLOT_KEY, cooldownMs);
-        }
+        ImbuementExecutor.execute(buffer, data, attackerRef, targetRef);
     }
 }

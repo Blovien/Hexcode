@@ -1,13 +1,10 @@
 package com.riprod.hexcode.core.state.execution.component;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.codec.codecs.map.MapCodec;
@@ -19,25 +16,28 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
+import com.riprod.hexcode.core.common.imbuement.ImbuementData;
+import com.riprod.hexcode.core.state.execution.events.CastingEventData;
 
 public class HexContext {
     private HexRoot root;
-    private Ref<EntityStore> casterRef;
     private CommandBuffer<EntityStore> accessor;
     private ComponentAccessor<ChunkStore> chunkAccessor;
     private Hex hex;
     private Map<String, HexVar> variables;
     private VolatilityTracker volatilityTracker;
     private HexColors colors;
+    private UUID executionId = UUID.randomUUID();
 
-    /** Initial HexContext object before initialization */
-    public HexContext(HexRoot root, Hex hex) {
-        this.root = root;
-        this.casterRef = root.getSourceRef();
-        this.accessor = null;
-        this.chunkAccessor = null;
-        this.hex = hex;
+    public HexContext(CommandBuffer<EntityStore> accessor, ComponentAccessor<ChunkStore> chunkAccessor, CastingEventData castingData) {
+        this.accessor = accessor;
+        this.chunkAccessor = chunkAccessor;
+        this.root = castingData.getHexRoot();
+        this.hex = castingData.getHex();
         this.variables = new HashMap<>();
+        this.volatilityTracker = castingData.getVolatilityTracker();
+        this.colors = castingData.getColors();
+        this.executionId = UUID.randomUUID();
     }
 
     // For the codec
@@ -45,23 +45,9 @@ public class HexContext {
         this.variables = new HashMap<>();
     }
 
-    public HexContext(HexRoot root, CommandBuffer<EntityStore> accessor,
-            ComponentAccessor<ChunkStore> chunkAccessor, Hex hex) {
-        this.root = root;
-        this.casterRef = root.getSourceRef();
-        this.accessor = accessor;
-        this.chunkAccessor = chunkAccessor;
-        this.hex = hex;
-        this.variables = new HashMap<>();
-    }
-
     /** Getters and Setters */
     public HexRoot getRoot() {
         return root;
-    }
-
-    public Ref<EntityStore> getCasterRef() {
-        return casterRef;
     }
 
     public CommandBuffer<EntityStore> getAccessor() {
@@ -110,6 +96,7 @@ public class HexContext {
 
     public void setVolatilityTracker(VolatilityTracker volatilityTracker) {
         this.volatilityTracker = volatilityTracker;
+        volatilityTracker.setExecutionId(this.executionId);
     }
 
     public HexColors getColors() {
@@ -124,15 +111,25 @@ public class HexContext {
         return volatilityTracker != null ? volatilityTracker.getMagicPowerMultiplier() : 1.0f;
     }
 
+    public UUID getExecutionId() {
+        return executionId;
+    }
+
     /** Utility Functions */
 
-    public HexContext copy() {
-        HexContext copy = new HexContext(this.root, this.accessor, this.chunkAccessor, this.hex);
-        copy.variables = new HashMap<>(this.variables);
-        copy.volatilityTracker = this.volatilityTracker;
+    public HexContext branch() {
+        HexContext branch = new HexContext();
+        // persistent variables
+        branch.root = this.root;
+        branch.accessor = this.accessor;
+        branch.chunkAccessor = this.chunkAccessor;
+        branch.hex = this.hex;
+        branch.volatilityTracker = this.volatilityTracker;
+        // copied variables
+        branch.variables = new HashMap<>(this.variables);
         if (this.colors != null)
-            copy.colors = this.colors.clone();
-        return copy;
+            branch.colors = this.colors.clone();
+        return branch;
     }
 
     public void toStringWalk(String id, StringBuilder sb, String prefix, boolean last, Set<String> visited) {
@@ -186,12 +183,18 @@ public class HexContext {
             .add()
             .build();
 
-    public HexContext clone() {
-        HexContext copy = new HexContext(this.root, this.accessor, this.chunkAccessor, this.hex.clone());
-        copy.variables = new HashMap<>(this.variables);
-        copy.volatilityTracker = this.volatilityTracker;
+    public HexContext copy() {
+        HexContext branch = new HexContext();
+        // persistent variables
+        branch.root = this.root.copy();
+        branch.accessor = this.accessor;
+        branch.chunkAccessor = this.chunkAccessor;
+        branch.hex = this.hex.clone();
+        branch.volatilityTracker = this.volatilityTracker.copy();
+        // copied variables
+        branch.variables = new HashMap<>(this.variables);
         if (this.colors != null)
-            copy.colors = this.colors.clone();
-        return copy;
+            branch.colors = this.colors.clone();
+        return branch;
     }
 }

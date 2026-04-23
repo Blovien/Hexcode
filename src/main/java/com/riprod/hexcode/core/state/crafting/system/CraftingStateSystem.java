@@ -8,9 +8,10 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
+import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.api.event.HexcodeEvents;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.api.event.HoverChangeEvent;
 import com.riprod.hexcode.core.common.obelisk.system.ObeliskDispatcher;
 import com.riprod.hexcode.core.common.pedestal.events.PedestalSystem;
@@ -127,7 +128,8 @@ public class CraftingStateSystem {
             pedestal.setTickLength(HOVER_PARTICLE, 1f);
 
             HoverStyleUtils.hover(accessor, targetRef, ref);
-            HexcodeEvents.fire(new HoverChangeEvent(ref, targetRef, previousHovered));
+            HytaleServer.get().getEventBus().dispatchFor(HoverChangeEvent.class)
+                    .dispatch(new HoverChangeEvent(ref, targetRef, previousHovered));
 
             PedestalBlockComponent ped = PedestalBlockUtil.resolvePedestal(ref, accessor);
             if (ped != null) {

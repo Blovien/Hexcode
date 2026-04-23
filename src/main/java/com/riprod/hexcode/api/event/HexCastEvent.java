@@ -2,51 +2,36 @@ package com.riprod.hexcode.api.event;
 
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.system.CancellableEcsEvent;
+import com.hypixel.hytale.event.IEvent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
+import com.riprod.hexcode.core.state.execution.events.CastingEventData;
 
-public class HexCastEvent extends CancellableEcsEvent {
+/**
+ * Emitted while a hex is being cast, prior to any mana being consumed or effects being applied. This is cancellable, and any changes to the event's data will be applied to the cast if not cancelled.
+ */
+public class HexCastEvent extends CancellableEcsEvent implements IEvent<Void> {
 
-    private final Ref<EntityStore> wielderRef;
-    private final Hex hex;
-    private float powerModifier = 1.0f;
-    private float manaCostMultiplier = 1.0f;
-    private float volatilityMultiplier = 1.0f;
+    private final CastingEventData castingData;
 
-    public HexCastEvent(Ref<EntityStore> wielderRef, Hex hex) {
-        this.wielderRef = wielderRef;
-        this.hex = hex;
+    public HexCastEvent(Ref<EntityStore> targetRef, CastingEventData castingData) {
+        castingData.hydrate(targetRef, castingData.getHexRoot());
+        this.castingData = castingData;
     }
 
     public Ref<EntityStore> getWielderRef() {
-        return wielderRef;
+        return castingData.getHexRoot().getSourceRef();
+    }
+
+    public Ref<EntityStore> getTargetRef() {
+        return castingData.getTargetRef();
     }
 
     public Hex getHex() {
-        return hex;
+        return castingData.getHex();
     }
 
-    public float getPowerModifier() {
-        return powerModifier;
-    }
-
-    public void setPowerModifier(float powerModifier) {
-        this.powerModifier = powerModifier;
-    }
-
-    public float getManaCostMultiplier() {
-        return manaCostMultiplier;
-    }
-
-    public void setManaCostMultiplier(float manaCostMultiplier) {
-        this.manaCostMultiplier = manaCostMultiplier;
-    }
-
-    public float getVolatilityMultiplier() {
-        return volatilityMultiplier;
-    }
-
-    public void setVolatilityMultiplier(float volatilityMultiplier) {
-        this.volatilityMultiplier = volatilityMultiplier;
+    public CastingEventData getCastingData() {
+        return castingData;
     }
 }

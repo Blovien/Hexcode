@@ -13,6 +13,7 @@ import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.protocol.AnimationSlot;
+import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.entity.AnimationUtils;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
@@ -27,7 +28,7 @@ import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.hexes.utils.HexUtils;
 import com.riprod.hexcode.api.event.EnterSelectingEvent;
-import com.riprod.hexcode.api.event.HexcodeEvents;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.core.common.obelisk.system.ObeliskDispatcher;
 import com.riprod.hexcode.core.common.obelisk.component.ObeliskBlockComponent;
 import com.riprod.hexcode.core.common.obelisk.system.ObeliskSystem;
@@ -103,7 +104,8 @@ public class PedestalSystem {
             PedestalBlockComponent pedestal, Ref<EntityStore> selectedAnchorNodeRef) {
 
         HexcodeSessionComponent session = SessionUtils.resolveSession(pedestal, buffer);
-        if (session == null) return;
+        if (session == null)
+            return;
 
         List<Ref<EntityStore>> refs = session.getHexPreviewRefs();
         if (refs == null || refs.isEmpty()) {
@@ -207,22 +209,27 @@ public class PedestalSystem {
             HexcodeSessionComponent session) {
 
         int slotIndex = session.getActiveSlotIndex();
-        if (slotIndex < 0) return;
+        if (slotIndex < 0)
+            return;
 
         List<Ref<EntityStore>> previewRefs = session.getHexPreviewRefs();
-        if (previewRefs == null || previewRefs.isEmpty()) return;
+        if (previewRefs == null || previewRefs.isEmpty())
+            return;
 
         Ref<EntityStore> activeHexRef = previewRefs.get(0);
-        if (activeHexRef == null || !activeHexRef.isValid()) return;
+        if (activeHexRef == null || !activeHexRef.isValid())
+            return;
 
         HexComponent hexComp = store.getComponent(activeHexRef, HexComponent.getComponentType());
-        if (hexComp == null) return;
+        if (hexComp == null)
+            return;
 
         Hex hex = hexComp.getHex().clone();
         HexUtils.compress(hex);
 
         HexBookComponent bookComp = session.getStoredBookComponent();
-        if (bookComp == null) return;
+        if (bookComp == null)
+            return;
 
         if (hex.getGlyphs().isEmpty()) {
             if (slotIndex < bookComp.getHexes().size()) {
@@ -360,7 +367,8 @@ public class PedestalSystem {
         ObeliskSystem.cleanupObelisks(buffer, world, removedObelisks);
 
         updateState(buffer, pedestalComponent, session, world, PedestalState.SELECTING);
-        HexcodeEvents.fire(new EnterSelectingEvent(player.getReference(), pedestalComponent.getLocation()));
+        HytaleServer.get().getEventBus().dispatchFor(EnterSelectingEvent.class)
+                .dispatch(new EnterSelectingEvent(player.getReference(), pedestalComponent.getLocation()));
     }
 
     public static void handleReady(CommandBuffer<EntityStore> accessor, HexcodeSessionComponent session,

@@ -7,7 +7,7 @@
   "ManaConsumption": 25,
   "ShapeStructure": [
     {
-      "ShapeId": "Antitriangle",
+      "ShapeId": "Anticircle",
       "Size": 1.0
     },
     {
@@ -15,7 +15,7 @@
       "Size": 0.8
     },
     {
-      "ShapeId": "Square",
+      "ShapeId": "Anticircle",
       "Size": 0.55
     }
   ],

@@ -11,27 +11,55 @@ import com.riprod.hexcode.core.state.execution.component.HexColors;
 
 public class ImbuementData {
 
-    @Nullable private String hexAssetId;
-    @Nullable private Hex hex;
-    @Nullable private String referenceId;
+    @Nullable
+    private String hexCompressedId;
+    @Nullable
+    private Hex hex;
+    @Nullable
+    private String hexAssetId;
+    private float manaOverride = -1f;
+    private float manaMultiplier = 1.0f;
     private float volatilityOverride = -1f;
-    private float efficiencyOverride = -1f;
-    private float volatilityBudgetOverride = -1f;
-    private float powerModifier = 1.0f;
-    private float manaCostMultiplier = 1.0f;
-    private int cooldownTicks = 20;
-    @Nullable private HexColors colors;
+    private float volatilityMultiplier = 1.0f;
+    private float powerOverride = -1f;
+    private float powerMultiplier = 1.0f;
+    @Nullable
+    private HexColors colors;
 
     public ImbuementData() {
     }
 
-    @Nullable
-    public String getHexAssetId() {
-        return hexAssetId;
+    // copy / clone
+
+    public ImbuementData copy() {
+        ImbuementData copy = new ImbuementData();
+        copy.hexCompressedId = this.hexCompressedId;
+        copy.hex = this.hex;
+        copy.hexAssetId = this.hexAssetId;
+        copy.manaOverride = this.manaOverride;
+        copy.manaMultiplier = this.manaMultiplier;
+        copy.volatilityOverride = this.volatilityOverride;
+        copy.volatilityMultiplier = this.volatilityMultiplier;
+        copy.powerOverride = this.powerOverride;
+        copy.powerMultiplier = this.powerMultiplier;
+        copy.colors = this.colors;
+        return copy;
     }
 
-    public void setHexAssetId(@Nullable String hexAssetId) {
-        this.hexAssetId = hexAssetId;
+    @Override
+    public ImbuementData clone() {
+        return copy();
+    }
+
+    // persistence
+
+    @Nullable
+    public String getHexCompressedId() {
+        return hexCompressedId;
+    }
+
+    public void setHexCompressedId(@Nullable String hexCompressedId) {
+        this.hexCompressedId = hexCompressedId;
     }
 
     @Nullable
@@ -44,12 +72,28 @@ public class ImbuementData {
     }
 
     @Nullable
-    public String getReferenceId() {
-        return referenceId;
+    public String getHexAssetId() {
+        return hexAssetId;
     }
 
-    public void setReferenceId(@Nullable String referenceId) {
-        this.referenceId = referenceId;
+    public void setHexAssetId(@Nullable String hexAssetId) {
+        this.hexAssetId = hexAssetId;
+    }
+
+    public float getManaOverride() {
+        return manaOverride;
+    }
+
+    public void setManaOverride(float manaOverride) {
+        this.manaOverride = manaOverride;
+    }
+
+    public float getManaMultiplier() {
+        return manaMultiplier;
+    }
+
+    public void setManaMultiplier(float manaMultiplier) {
+        this.manaMultiplier = manaMultiplier;
     }
 
     public float getVolatilityOverride() {
@@ -60,44 +104,28 @@ public class ImbuementData {
         this.volatilityOverride = volatilityOverride;
     }
 
-    public float getEfficiencyOverride() {
-        return efficiencyOverride;
+    public float getVolatilityMultiplier() {
+        return volatilityMultiplier;
     }
 
-    public void setEfficiencyOverride(float efficiencyOverride) {
-        this.efficiencyOverride = efficiencyOverride;
+    public void setVolatilityMultiplier(float volatilityMultiplier) {
+        this.volatilityMultiplier = volatilityMultiplier;
     }
 
-    public float getVolatilityBudgetOverride() {
-        return volatilityBudgetOverride;
+    public float getPowerOverride() {
+        return powerOverride;
     }
 
-    public void setVolatilityBudgetOverride(float volatilityBudgetOverride) {
-        this.volatilityBudgetOverride = volatilityBudgetOverride;
+    public void setPowerOverride(float powerOverride) {
+        this.powerOverride = powerOverride;
     }
 
-    public float getPowerModifier() {
-        return powerModifier;
+    public float getPowerMultiplier() {
+        return powerMultiplier;
     }
 
-    public void setPowerModifier(float powerModifier) {
-        this.powerModifier = powerModifier;
-    }
-
-    public float getManaCostMultiplier() {
-        return manaCostMultiplier;
-    }
-
-    public void setManaCostMultiplier(float manaCostMultiplier) {
-        this.manaCostMultiplier = manaCostMultiplier;
-    }
-
-    public int getCooldownTicks() {
-        return cooldownTicks;
-    }
-
-    public void setCooldownTicks(int cooldownTicks) {
-        this.cooldownTicks = cooldownTicks;
+    public void setPowerMultiplier(float powerMultiplier) {
+        this.powerMultiplier = powerMultiplier;
     }
 
     @Nullable
@@ -111,42 +139,42 @@ public class ImbuementData {
 
     public static final BuilderCodec<ImbuementData> CODEC = BuilderCodec
             .builder(ImbuementData.class, ImbuementData::new)
-            .append(new KeyedCodec<>("HexAssetId", Codec.STRING),
-                    (c, v) -> c.hexAssetId = v,
-                    c -> c.hexAssetId)
+            .append(new KeyedCodec<>("CompressedId", Codec.STRING),
+                    (c, v) -> c.hexCompressedId = v,
+                    c -> c.hexCompressedId)
             .add()
             .append(new KeyedCodec<>("Hex", Hex.CODEC),
                     (c, v) -> c.hex = v,
                     c -> c.hex)
             .add()
-            .append(new KeyedCodec<>("ReferenceId", Codec.STRING),
-                    (c, v) -> c.referenceId = v,
-                    c -> c.referenceId)
+            .append(new KeyedCodec<>("AssetId", Codec.STRING),
+                    (c, v) -> c.hexAssetId = v,
+                    c -> c.hexAssetId)
             .addValidatorLate(() -> SavedHexAsset.VALIDATOR_CACHE.getValidator().late())
+            .add()
+            .append(new KeyedCodec<>("ManaOverride", Codec.FLOAT),
+                    (c, v) -> c.manaOverride = v,
+                    c -> c.manaOverride)
+            .add()
+            .append(new KeyedCodec<>("ManaMultiplier", Codec.FLOAT),
+                    (c, v) -> c.manaMultiplier = v,
+                    c -> c.manaMultiplier)
             .add()
             .append(new KeyedCodec<>("VolatilityOverride", Codec.FLOAT),
                     (c, v) -> c.volatilityOverride = v,
                     c -> c.volatilityOverride)
             .add()
-            .append(new KeyedCodec<>("EfficiencyOverride", Codec.FLOAT),
-                    (c, v) -> c.efficiencyOverride = v,
-                    c -> c.efficiencyOverride)
+            .append(new KeyedCodec<>("VolatilityMultiplier", Codec.FLOAT),
+                    (c, v) -> c.volatilityMultiplier = v,
+                    c -> c.volatilityMultiplier)
             .add()
-            .append(new KeyedCodec<>("VolatilityBudgetOverride", Codec.FLOAT),
-                    (c, v) -> c.volatilityBudgetOverride = v,
-                    c -> c.volatilityBudgetOverride)
+            .append(new KeyedCodec<>("PowerOverride", Codec.FLOAT),
+                    (c, v) -> c.powerOverride = v,
+                    c -> c.powerOverride)
             .add()
-            .append(new KeyedCodec<>("PowerModifier", Codec.FLOAT),
-                    (c, v) -> c.powerModifier = v,
-                    c -> c.powerModifier)
-            .add()
-            .append(new KeyedCodec<>("ManaCostMultiplier", Codec.FLOAT),
-                    (c, v) -> c.manaCostMultiplier = v,
-                    c -> c.manaCostMultiplier)
-            .add()
-            .append(new KeyedCodec<>("CooldownTicks", Codec.INTEGER),
-                    (c, v) -> c.cooldownTicks = v,
-                    c -> c.cooldownTicks)
+            .append(new KeyedCodec<>("PowerMultiplier", Codec.FLOAT),
+                    (c, v) -> c.powerMultiplier = v,
+                    c -> c.powerMultiplier)
             .add()
             .append(new KeyedCodec<>("Colors", HexColors.CODEC),
                     (c, v) -> c.colors = v,

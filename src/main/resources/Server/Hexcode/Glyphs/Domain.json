@@ -7,15 +7,15 @@
   "ManaConsumption": 20,
   "ShapeStructure": [
     {
-      "ShapeId": "Circle",
+      "ShapeId": "Square",
       "Size": 1.0
     },
     {
-      "ShapeId": "Circle",
+      "ShapeId": "Square",
       "Size": 0.75
     },
     {
-      "ShapeId": "Circle",
+      "ShapeId": "Square",
       "Size": 0.5
     }
   ],

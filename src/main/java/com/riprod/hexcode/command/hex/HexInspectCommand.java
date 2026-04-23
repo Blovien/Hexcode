@@ -228,7 +228,7 @@ public class HexInspectCommand extends AbstractPlayerCommand {
     private String shortName(String glyphId) {
         int colon = glyphId.indexOf(':');
         String name = colon >= 0 ? glyphId.substring(colon + 1) : glyphId;
-        if (name.startsWith("glyph_")) {
+        if (name.startsWith("")) {
             name = name.substring(6);
         }
         return name;

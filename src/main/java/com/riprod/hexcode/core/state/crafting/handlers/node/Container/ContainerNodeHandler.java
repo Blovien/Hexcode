@@ -15,6 +15,7 @@ import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.DebugShape;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
+import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
@@ -32,7 +33,7 @@ import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.hexes.utils.CreateHex;
 import com.riprod.hexcode.api.event.EnterCraftingModeEvent;
-import com.riprod.hexcode.api.event.HexcodeEvents;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.core.common.obelisk.system.ObeliskDispatcher;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableType;
@@ -191,7 +192,8 @@ public class ContainerNodeHandler extends BaseContainerHandler {
             Map<String, Ref<EntityStore>> oldChildren = hexComp.getChildGlyphRefs();
             if (oldChildren != null) {
                 for (Ref<EntityStore> childRef : oldChildren.values()) {
-                    if (childRef == null || !childRef.isValid()) continue;
+                    if (childRef == null || !childRef.isValid())
+                        continue;
                     SlotNodeHandler.INSTANCE.despawnSlotsForGlyph(accessor, childRef);
                     accessor.tryRemoveEntity(childRef, RemoveReason.REMOVE);
                 }
@@ -220,7 +222,8 @@ public class ContainerNodeHandler extends BaseContainerHandler {
         }
 
         PedestalSystem.enterCrafting(accessor, playerRef, pedestal, node);
-        HexcodeEvents.fire(new EnterCraftingModeEvent(playerRef, originalHex, pedestal));
+        HytaleServer.get().getEventBus().dispatchFor(EnterCraftingModeEvent.class)
+                .dispatch(new EnterCraftingModeEvent(playerRef, originalHex, pedestal));
         ObeliskDispatcher.dispatchEnterCrafting(accessor, pedestal, playerRef);
         craftingComp.setHoveredRef(null);
         accessor.removeComponent(node, DebugComponent.getComponentType());

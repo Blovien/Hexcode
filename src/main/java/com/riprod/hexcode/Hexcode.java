@@ -1,6 +1,7 @@
 package com.riprod.hexcode;
 
 import com.riprod.hexcode.builtin.BuiltinPlugin;
+import com.riprod.hexcode.builtin.glyphs.domain.DomainSpellCastListener;
 import com.riprod.hexcode.command.HexcodeCommand;
 import com.riprod.hexcode.core.common.armor.ArmorManaConfig;
 import com.riprod.hexcode.core.common.armor.ArmorManaPatcher;
@@ -8,7 +9,6 @@ import com.riprod.hexcode.core.common.armor.ArmorVolatilityConfig;
 import com.riprod.hexcode.core.common.armor.ArmorVolatilityPatcher;
 import com.riprod.hexcode.core.common.block.component.UnbreakableBlockComponent;
 import com.riprod.hexcode.core.common.block.event.BlockBreakEvent;
-import com.riprod.hexcode.core.common.construct.system.HexConstructCleanupSystem;
 import com.riprod.hexcode.core.common.construct.system.HexConstructSystem;
 import com.riprod.hexcode.core.common.construct.system.MountOrphanReaperSystem;
 import com.riprod.hexcode.core.common.hexcaster.StaffUnequipEvent;
@@ -38,8 +38,6 @@ import com.riprod.hexcode.core.common.pedestal.events.PedestalBlockEvent;
 import com.riprod.hexcode.core.common.pedestal.events.PedestalPlaceEvent;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.common.effect.GlyphEffectSystem;
-import com.riprod.hexcode.core.common.imbuement.HexCastEventSystem;
-import com.riprod.hexcode.core.common.imbuement.ImbuementCooldownComponent;
 import com.riprod.hexcode.core.common.imbuement.WeaponImbuementSystem;
 import com.riprod.hexcode.core.common.utilities.system.DebugTickSystem;
 import com.riprod.hexcode.core.state.casting.CastingSystem;
@@ -57,8 +55,7 @@ import com.riprod.hexcode.core.state.drawing.registry.ShapeAsset;
 import com.riprod.hexcode.core.state.drawing.registry.TemplateAsset;
 import com.riprod.hexcode.core.state.execution.ExecutionSystem;
 import com.riprod.hexcode.core.state.execution.component.HexcasterExecutionComponent;
-import com.riprod.hexcode.core.state.execution.component.RootGlyph;
-import com.riprod.hexcode.core.state.execution.system.ExecutionTickSystem;
+import com.riprod.hexcode.core.state.execution.events.HexCastEventSystem;
 import com.riprod.hexcode.core.state.idle.IdleSystem;
 import com.riprod.hexcode.interaction.HexStateChange;
 import com.riprod.hexcode.interaction.HexHold;
@@ -91,8 +88,8 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.asset.HytaleAssetStore;
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
-import com.riprod.hexcode.api.event.SpellCastEvent;
-import com.riprod.hexcode.builtin.glyphs.effect.domain.DomainSpellCastListener;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
+import com.riprod.hexcode.builtin.listeners.FizzleMessageListener;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
@@ -256,11 +253,6 @@ public class Hexcode extends JavaPlugin {
             NodeComponent::new);
     NodeComponent.setComponentType(nodeComponentType);
 
-    ComponentType<EntityStore, RootGlyph> rootGlyphComponent = entityStoreRegistry.registerComponent(
-        RootGlyph.class,
-        RootGlyph::new);
-    RootGlyph.setComponentType(rootGlyphComponent);
-
     ComponentType<EntityStore, SlotComponent> slotComponentType = entityStoreRegistry
         .registerComponent(SlotComponent.class, SlotComponent::new);
     SlotComponent.setComponentType(slotComponentType);
@@ -268,10 +260,6 @@ public class Hexcode extends JavaPlugin {
     ComponentType<EntityStore, HoverableComponent> hoverableComponentType = entityStoreRegistry
         .registerComponent(HoverableComponent.class, HoverableComponent::new);
     HoverableComponent.setComponentType(hoverableComponentType);
-
-    ComponentType<EntityStore, ImbuementCooldownComponent> imbuementCooldownType = entityStoreRegistry
-        .registerComponent(ImbuementCooldownComponent.class, ImbuementCooldownComponent::new);
-    ImbuementCooldownComponent.setComponentType(imbuementCooldownType);
 
     ComponentType<EntityStore, DebugComponent> debugComponentType = entityStoreRegistry
         .registerComponent(DebugComponent.class, DebugComponent::new);
@@ -329,7 +317,6 @@ public class Hexcode extends JavaPlugin {
 
     // Ticking Systems
     entityStoreRegistry.registerSystem(new HexTick());
-    entityStoreRegistry.registerSystem(new ExecutionTickSystem());
     entityStoreRegistry.registerSystem(new PedestalBlockEvent());
     entityStoreRegistry.registerSystem(new BlockBreakEvent());
     entityStoreRegistry.registerSystem(new DrawingSlotLockEvent());
@@ -344,7 +331,7 @@ public class Hexcode extends JavaPlugin {
     // Events
     this.getEventRegistry().registerGlobal(PlayerConnectEvent.class, Hexcode::onPlayerConnect);
     this.getEventRegistry().registerGlobal(PlayerDisconnectEvent.class, Hexcode::onPlayerDisconnect);
-    this.getEventRegistry().registerGlobal(SpellCastEvent.class, new DomainSpellCastListener());
+    this.getEventRegistry().registerGlobal(GlyphFizzleEvent.class, new FizzleMessageListener());
     this.getEventRegistry().register(LoadedAssetsEvent.class, Item.class,
         ArmorManaPatcher::onItemsLoaded);
     this.getEventRegistry().register(LoadedAssetsEvent.class, Item.class,
@@ -368,7 +355,6 @@ public class Hexcode extends JavaPlugin {
   protected void start() {
     EntityStore.REGISTRY.registerSystem(new MountOrphanReaperSystem());
     EntityStore.REGISTRY.registerSystem(new HexConstructSystem());
-    EntityStore.REGISTRY.registerSystem(new HexConstructCleanupSystem());
   }
 
   private static void onPlayerConnect(PlayerConnectEvent event) {

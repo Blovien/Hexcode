@@ -19,23 +19,32 @@ import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.stats.HexcodeEntityStatTypes;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexcaster.utils.CasterInventory;
+import com.riprod.hexcode.core.common.hexcaster.utils.PlayerUtils;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.utils.HexUtils;
+import com.riprod.hexcode.core.common.hexstaff.component.HexStaffAsset;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffComponent;
+import com.riprod.hexcode.core.common.imbuement.ImbuementData;
 import com.riprod.hexcode.utils.HexStaffUtil;
-import com.riprod.hexcode.core.state.execution.Executor;
+import com.riprod.hexcode.core.state.execution.HexExecuter;
+import com.riprod.hexcode.core.state.execution.component.HexColors;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.HexcasterExecutionComponent;
 import com.riprod.hexcode.core.state.execution.component.PlayerHexRoot;
-import com.riprod.hexcode.core.state.execution.component.RootGlyph;
 import com.riprod.hexcode.utils.CleanupUtils;
-import com.riprod.hexcode.api.event.HexcodeEvents;
-import com.riprod.hexcode.api.event.SpellCastEvent;
+import com.riprod.hexcode.utils.HexSlot;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
+import com.riprod.hexcode.api.event.HexCastEvent;
+import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
+import com.riprod.hexcode.core.state.execution.events.CastingEventData;
+import com.riprod.hexcode.utils.SpellMana;
+import com.hypixel.hytale.server.core.modules.entitystats.asset.DefaultEntityStatTypes;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatValue;
 import com.hypixel.hytale.protocol.InteractionType;
+import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.Message;
 
 import java.util.ArrayList;
@@ -101,20 +110,19 @@ public class ExecutionSystem extends HexcodeManager {
     @Override
     public void onPlayerLeave(Ref<EntityStore> ref, HexcasterComponent comp,
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
-        for (HexContext ctx : new ArrayList<>(comp.getActiveContexts())) {
-            if (ctx.getRoot() != null) {
-                CleanupUtils.safeRemoveConstruct(buffer, ctx.getRoot().getRootEntityRef());
-            }
-        }
-        comp.cancelAll();
+
+        HexcasterExecutionComponent execComp = buffer.getComponent(ref, HexcasterExecutionComponent.getComponentType());
+        execComp.cancelAll(ref);
     }
 
     @Override
     public InteractionState enterAbility(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref,
             HexcasterComponent comp, InteractionType inputType) {
+        HexcasterExecutionComponent execComp = buffer.getComponent(ref,
+                HexcasterExecutionComponent.getComponentType());
         if (inputType == InteractionType.Ability1) {
-            int count = comp.getActiveCount();
-            comp.cancelAll();
+            int count = execComp.getActiveCount();
+            execComp.cancelAll(ref);
             PlayerRef pr = buffer.getComponent(ref, PlayerRef.getComponentType());
             if (pr != null && count > 0) {
                 pr.sendMessage(Message.raw("dispelled " + count + " active spell(s)"));
@@ -167,79 +175,61 @@ public class ExecutionSystem extends HexcodeManager {
             return InteractionState.Finished;
         }
 
-        int chargesIndex = HexcodeEntityStatTypes.getMagicCharges();
-        if (chargesIndex != Integer.MIN_VALUE) {
-            EntityStatMap statMap = accessor.getComponent(ref, EntityStatMap.getComponentType());
-            if (statMap != null) {
-                EntityStatValue chargesStat = statMap.get(chargesIndex);
-                if (chargesStat != null) {
-                    int cap = (int) chargesStat.getMax();
-                    if (cap > 0 && comp.getActiveCount() >= cap) {
-                        PlayerRef pr = accessor.getComponent(ref, PlayerRef.getComponentType());
-                        if (pr != null) {
-                            pr.sendMessage(Message.raw("at maximum active spells (" + cap + ")"));
-                        }
-                        return InteractionState.Finished;
-                    }
-                }
-            }
-        }
-
         Hex hexClone = activeHex.clone();
         HexUtils.validate(hexClone);
 
-        SpellCastEvent spellCastEventInit = new SpellCastEvent(ref, hexClone);
-        spellCastEventInit.setPowerModifier(resolveMagicPower(accessor, ref));
-        SpellCastEvent spellCastEvent = HexcodeEvents.dispatch(spellCastEventInit);
-        if (spellCastEvent.isCancelled())
-            return InteractionState.Failed;
+        // -- collecting data phase --
 
-        RootGlyph rootGlyph = new RootGlyph();
-        rootGlyph.setHex(hexClone);
-        rootGlyph.setNeedsInitialExecution(true);
-        rootGlyph.setManaCostMultiplier(spellCastEvent.getManaCostMultiplier());
-        rootGlyph.setVolatilityMultiplier(spellCastEvent.getVolatilityMultiplier());
-        rootGlyph.setPowerModifier(spellCastEvent.getPowerModifier());
+        PlayerHexRoot hexRoot = new PlayerHexRoot(ref);
 
-        Holder<EntityStore> holder = buildHexEntityHolder(accessor, ref, rootGlyph);
-        Ref<EntityStore> hexEntityRef = accessor.addEntity(holder, AddReason.SPAWN);
+        // check if there is an available charge for this spell, if the stat exists
+        float availableCharges = hexRoot.resolveMagicCharges(accessor);
+        if (availableCharges <= 0) {
+            // TODO: Improve UX, do not send directly to player ref.
+            PlayerRef pr = accessor.getComponent(ref, PlayerRef.getComponentType());
+            if (pr != null) {
+                pr.sendMessage(Message.raw("at maximum active spells (" + (int) availableCharges + ")"));
+            }
+            return InteractionState.Finished;
+        }
 
-        PlayerHexRoot root = new PlayerHexRoot(ref, hexEntityRef);
-        rootGlyph.setRoot(root);
+        float volatilityMax = hexRoot.resolveVolatility(accessor);
 
-        // keep the interaction alive so tickInteraction/exitInteraction fire while LMB
-        // is held
+        float startingBudget = Math.max(0, volatilityMax - execComp.getCumulativeDecay());
+        HexStaffComponent staff = CasterInventory.getHexStaffComponent(accessor, ref);
+        if (staff != null) {
+            execComp.advanceCast(staff.getCastDecayRate(), volatilityMax);
+            CasterInventory.saveHexStaffComponent(accessor, ref, staff);
+        }
+
+        // Compute base mana cost by walking the glyphs (no variables yet resolved).
+        float baseMana = SpellMana.computeTotalMana(hexClone);
+        float resolvedPower = hexRoot.resolveSpellPower(accessor);
+
+        // -- Getting the event built --
+
+        // get the colors
+        HexColors colors;
+        HexStaffAsset staffAsset = CasterInventory.getHexStaffAsset(
+                PlayerUtils.getHandItem(accessor,
+                        ref, HexSlot.MainHand));
+        if (staffAsset != null && staffAsset.getColors() != null) {
+            colors = staffAsset.getColors().clone();
+        } else {
+            colors = null;
+        }
+
         execComp.setHoldingPrimary(true);
         comp.setTickLength(HOLD_STALE_KEY, 0f);
+
+        VolatilityTracker tracker = new VolatilityTracker(startingBudget, 1.0f, resolvedPower);
+        CastingEventData castData = new CastingEventData(hexClone, ref, baseMana, hexRoot, colors, tracker);
+        execComp.registerActiveTracker(tracker);
+
+        var hexCastEvent = new HexCastEvent(ref, castData);
+
+        HytaleServer.get().getEventBus().dispatchFor(HexCastEvent.class)
+                .dispatch(hexCastEvent);
         return InteractionState.NotFinished;
-    }
-
-    private static float resolveMagicPower(CommandBuffer<EntityStore> accessor, Ref<EntityStore> casterRef) {
-        EntityStatMap statMap = accessor.getComponent(casterRef, EntityStatMap.getComponentType());
-        if (statMap == null)
-            return 1.0f;
-        int idx = HexcodeEntityStatTypes.getMagicPower();
-        if (idx == Integer.MIN_VALUE)
-            return 1.0f;
-        EntityStatValue stat = statMap.get(idx);
-        return stat != null ? stat.getMax() : 1.0f;
-    }
-
-    private Holder<EntityStore> buildHexEntityHolder(ComponentAccessor<EntityStore> accessor,
-            Ref<EntityStore> playerRef, RootGlyph execComp) {
-        Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
-
-        TransformComponent playerTransform = accessor.getComponent(playerRef, TransformComponent.getComponentType());
-        holder.addComponent(TransformComponent.getComponentType(),
-                new TransformComponent(playerTransform.getPosition(), new Vector3f(0, 0, 0)));
-
-        holder.addComponent(UUIDComponent.getComponentType(), new UUIDComponent(UUID.randomUUID()));
-        holder.addComponent(RootGlyph.getComponentType(), execComp);
-        holder.ensureComponent(EntityStore.REGISTRY.getNonSerializedComponentType());
-
-        int networkId = accessor.getExternalData().takeNextNetworkId();
-        holder.addComponent(NetworkId.getComponentType(), new NetworkId(networkId));
-
-        return holder;
     }
 }

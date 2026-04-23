@@ -6,8 +6,8 @@
       "Texture": "NPC/Glyphs/Textures/Circle.png"
     },
     {
-      "Model": "NPC/Glyphs/Models/Glyph_2.blockymodel",
-      "Texture": "NPC/Glyphs/Textures/Antisquare.png"
+      "Model": "NPC/Glyphs/Models/Anti_Triangle_2.blockymodel",
+      "Texture": "NPC/Glyphs/Textures/Triangle.png"
     },
     {
       "Model": "NPC/Glyphs/Models/Anti_Triangle_3.blockymodel",
