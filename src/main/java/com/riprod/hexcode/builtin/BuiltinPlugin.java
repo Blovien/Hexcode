@@ -10,10 +10,7 @@ import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.construct.component.HexEffectsComponent;
 import com.riprod.hexcode.core.common.construct.registry.ConstructRegistry;
-import com.riprod.hexcode.core.common.effect.HexEffectHandler;
 import com.riprod.hexcode.core.common.effect.HexEffectRegistry;
-import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
-import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
 import com.riprod.hexcode.builtin.glyphs.isHolding.IsHoldingValue;
 import com.riprod.hexcode.builtin.glyphs.add.AddGlyph;
 import com.riprod.hexcode.builtin.glyphs.arc.ArcConstructHandler;
@@ -46,7 +43,6 @@ import com.riprod.hexcode.builtin.glyphs.erode.ErodeConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.erode.ErodeGlyph;
 import com.riprod.hexcode.builtin.glyphs.erode.ErodeState;
 import com.riprod.hexcode.builtin.glyphs.erode.system.ErodeDamageSystem;
-import com.riprod.hexcode.core.common.construct.state.ConstructStateUtil;
 import com.riprod.hexcode.core.common.construct.state.ConstructStripper;
 import com.riprod.hexcode.builtin.glyphs.force.ForceGlyph;
 import com.riprod.hexcode.builtin.glyphs.fortify.FortifyGlyph;
@@ -270,18 +266,6 @@ public class BuiltinPlugin extends JavaPlugin {
         HexEffectRegistry.register("fortify",  new ConstructStripper<>(FortifyGlyph.ID,  FortifyState.class));
         HexEffectRegistry.register("halt",     new ConstructStripper<>(HaltGlyph.ID,     HaltState.class));
         HexEffectRegistry.register("levitate", new ConstructStripper<>(LevitateGlyph.ID, LevitateState.class));
-    }
-
-    private static void removeEntityEffect(Ref<EntityStore> ref, String effectId,
-            CommandBuffer<EntityStore> buffer) {
-        EffectControllerComponent controller = buffer.getComponent(
-                ref, EffectControllerComponent.getComponentType());
-        if (controller == null)
-            return;
-        int effectIndex = EntityEffect.getAssetMap().getIndex(effectId);
-        if (effectIndex != Integer.MIN_VALUE) {
-            controller.removeEffect(ref, effectIndex, buffer);
-        }
     }
 
     private void RegisterConstructs() {
