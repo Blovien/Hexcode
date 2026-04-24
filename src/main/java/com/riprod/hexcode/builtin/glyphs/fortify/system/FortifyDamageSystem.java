@@ -5,6 +5,7 @@ import javax.annotation.Nullable;
 
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
+import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.SystemGroup;
 import com.hypixel.hytale.component.query.Query;
@@ -13,7 +14,10 @@ import com.hypixel.hytale.server.core.modules.entity.damage.Damage;
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageEventSystem;
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageModule;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.builtin.glyphs.fortify.component.FortifyComponent;
+import com.riprod.hexcode.builtin.glyphs.fortify.FortifyGlyph;
+import com.riprod.hexcode.builtin.glyphs.fortify.FortifyState;
+import com.riprod.hexcode.core.common.construct.component.HexEffectsComponent;
+import com.riprod.hexcode.core.common.construct.state.ConstructStateUtil;
 
 public class FortifyDamageSystem extends DamageEventSystem {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -21,7 +25,7 @@ public class FortifyDamageSystem extends DamageEventSystem {
 
     @Override
     public Query<EntityStore> getQuery() {
-        return FortifyComponent.getComponentType();
+        return HexEffectsComponent.getComponentType();
     }
 
     @Nullable
@@ -35,15 +39,17 @@ public class FortifyDamageSystem extends DamageEventSystem {
             @Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> buffer,
             @Nonnull Damage damage) {
         try {
-            FortifyComponent fortify = chunk.getComponent(index, FortifyComponent.getComponentType());
-            if (fortify == null) return;
+            Ref<EntityStore> ref = chunk.getReferenceTo(index);
+            FortifyState state = ConstructStateUtil.findState(
+                    buffer, ref, FortifyGlyph.ID, FortifyState.class);
+            if (state == null) return;
 
             float original = damage.getAmount();
-            float reduced = Math.max(MIN_DAMAGE_FLOOR, original - fortify.getDamageReduction());
+            float reduced = Math.max(MIN_DAMAGE_FLOOR, original - state.getDamageReduction());
             damage.setAmount(reduced);
 
             LOGGER.atInfo().log("fortify: reduced damage %.2f -> %.2f (%.2f flat reduction)",
-                    original, reduced, fortify.getDamageReduction());
+                    original, reduced, state.getDamageReduction());
         } catch (Exception e) {
             LOGGER.atSevere().log("[hexcode] FortifyDamageSystem failed: %s", e.getMessage());
         }

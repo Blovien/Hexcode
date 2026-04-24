@@ -84,6 +84,7 @@ public class ProjectileConstructHandler implements ConstructHandler<NoState> {
             return true;
         }
 
+        hexContext.getVolatilityTracker().consumeVolatility(dt);
         return false;
     }
 

@@ -23,8 +23,9 @@ import com.hypixel.hytale.server.core.modules.time.TimeResource;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.builtin.glyphs.erode.component.ErodeComponent;
 import com.riprod.hexcode.builtin.glyphs.erode.style.ErodeStyle;
+import com.riprod.hexcode.core.common.construct.state.ConstructStateUtil;
+import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
@@ -109,7 +110,7 @@ public static final String ID = "Erode";
 
         EntityVar entityVar = SpellVarUtil.resolveEntityVar(targets, hexContext);
         if (entityVar != null) {
-            applyToEntities(entityVar, vulnerabilityMultiplier, durationSeconds, hexContext, accessor);
+            applyToEntities(entityVar, vulnerabilityMultiplier, durationSeconds, glyph, hexContext, accessor);
         } else {
             BlockVar blockVar = SpellVarUtil.resolveBlockVar(targets, hexContext);
             if (blockVar != null) applyToBlocks(blockVar, amount, durationSeconds, hexContext, accessor);
@@ -119,7 +120,8 @@ public static final String ID = "Erode";
     }
 
     private void applyToEntities(EntityVar entityVar, float vulnerabilityMultiplier,
-            float durationSeconds, HexContext hexContext, CommandBuffer<EntityStore> accessor) {
+            float durationSeconds, Glyph glyph, HexContext hexContext,
+            CommandBuffer<EntityStore> accessor) {
         Ref<EntityStore> ref = entityVar.getRef(accessor);
         if (ref == null || !ref.isValid()) return;
 
@@ -129,20 +131,23 @@ public static final String ID = "Erode";
             return;
         }
 
-        ErodeComponent existing = accessor.getComponent(ref, ErodeComponent.getComponentType());
-        if (existing != null) {
-            existing.setVulnerabilityMultiplier(vulnerabilityMultiplier);
-            existing.setRemainingDuration(durationSeconds);
-        } else {
-            accessor.addComponent(ref, ErodeComponent.getComponentType(),
-                    new ErodeComponent(vulnerabilityMultiplier, durationSeconds));
-        }
-
         EffectControllerComponent controller = accessor.getComponent(
                 ref, EffectControllerComponent.getComponentType());
         if (controller != null) {
             controller.addEffect(ref, erodeEffect, durationSeconds,
                     OverlapBehavior.OVERWRITE, accessor);
+        }
+
+        // refresh existing Erode status if present, else apply a fresh one
+        ErodeState existing = ConstructStateUtil.findState(
+                accessor, ref, ErodeGlyph.ID, ErodeState.class);
+        if (existing != null) {
+            existing.setVulnerabilityMultiplier(vulnerabilityMultiplier);
+            existing.setRemainingDuration(durationSeconds);
+        } else {
+            ErodeState state = new ErodeState(vulnerabilityMultiplier, durationSeconds);
+            HexConstructSpawner.applyWithState(
+                    accessor, ref, hexContext, glyph, ErodeGlyph.ID, state);
         }
 
         TransformComponent tc = accessor.getComponent(ref, TransformComponent.getComponentType());

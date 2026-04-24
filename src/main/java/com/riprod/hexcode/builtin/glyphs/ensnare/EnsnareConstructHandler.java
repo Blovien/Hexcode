@@ -44,6 +44,7 @@ public class EnsnareConstructHandler implements ConstructHandler<NoState> {
         if (ensnare.getElapsedSeconds() >= ensnare.getDurationSeconds()) return true;
 
         processDamage(ensnare, status, ctx);
+        status.getHexContext().getVolatilityTracker().consumeVolatility(dt);
         return false;
     }
 

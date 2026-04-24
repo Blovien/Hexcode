@@ -80,6 +80,7 @@ public class ShatterConstructHandler implements ConstructHandler<NoState> {
             return true;
         }
 
+        hexContext.getVolatilityTracker().consumeVolatility(dt);
         return false;
     }
 

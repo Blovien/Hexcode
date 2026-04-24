@@ -3,14 +3,12 @@ package com.riprod.hexcode.builtin.glyphs.fortify;
 import java.time.Instant;
 
 import com.hypixel.hytale.component.CommandBuffer;
-import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3i;
-import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockGathering;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.OverlapBehavior;
@@ -22,11 +20,11 @@ import com.hypixel.hytale.server.core.modules.time.TimeResource;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.builtin.glyphs.fortify.component.FortifyComponent;
 import com.riprod.hexcode.builtin.glyphs.fortify.style.FortifyStyle;
+import com.riprod.hexcode.core.common.construct.state.ConstructStateUtil;
+import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
-import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
@@ -37,10 +35,11 @@ import com.riprod.hexcode.utils.SpellVarUtil;
 
 public class FortifyGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
-    @Override
-public String getId() { return ID; };
 
-public static final String ID = "Fortify";
+    @Override
+    public String getId() { return ID; }
+
+    public static final String ID = "Fortify";
 
     private static final String FORTIFY_EFFECT_ID = "Hexcode_Fortify";
     private static final double DEFAULT_AMOUNT = 5.0;
@@ -61,30 +60,6 @@ public static final String ID = "Fortify";
 
         float cost = VolatilityTracker.computeGlyphCost(glyph) * amountScale;
         return tracker.consumeVolatility(cost);
-    }
-
-    private int computeBlockVolatilityRolls(BlockVar blockVar, float amountFactor,
-            HexContext hexContext) {
-        Vector3i pos = blockVar.getValue();
-        if (pos == null) return 0;
-
-        World world = hexContext.getAccessor().getExternalData().getWorld();
-        int blockId = world.getBlock(pos.x, pos.y, pos.z);
-        if (blockId == BlockType.EMPTY_ID) return 0;
-
-        BlockType blockType = BlockType.getAssetMap().getAsset(blockId);
-        if (blockType == null) return 0;
-
-        BlockGathering gathering = blockType.getGathering();
-        if (gathering == null) return 0;
-
-        int quality = 0;
-        var breaking = gathering.getBreaking();
-        if (breaking != null) {
-            quality = breaking.getQuality();
-        }
-
-        return (int) ((1 + quality) * amountFactor) - 1;
     }
 
     @Override
@@ -126,27 +101,22 @@ public static final String ID = "Fortify";
             return;
         }
 
-        FortifyComponent existing = accessor.getComponent(ref, FortifyComponent.getComponentType());
-        if (existing != null) {
-            existing.setDamageReduction(damageReduction);
-            existing.setRemainingDuration(durationSeconds);
-        } else {
-            GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
-            VolatilityTracker tracker = hexContext.getVolatilityTracker();
-            float castMultiplier = (tracker != null) ? tracker.getMagicPowerMultiplier() : 1.0f;
-            float baseCost = ((asset != null) ? asset.getManaConsumption() : 1.0f)
-                    * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
-
-            float manaCost = baseCost * castMultiplier * damageReduction;
-            accessor.addComponent(ref, FortifyComponent.getComponentType(),
-                    new FortifyComponent(damageReduction, durationSeconds, hexContext.copy(), manaCost));
-        }
-
         EffectControllerComponent controller = accessor.getComponent(
                 ref, EffectControllerComponent.getComponentType());
         if (controller != null) {
             controller.addEffect(ref, fortifyEffect, durationSeconds,
                     OverlapBehavior.OVERWRITE, accessor);
+        }
+
+        FortifyState existing = ConstructStateUtil.findState(
+                accessor, ref, FortifyGlyph.ID, FortifyState.class);
+        if (existing != null) {
+            existing.setDamageReduction(damageReduction);
+            existing.setRemainingDuration(durationSeconds);
+        } else {
+            FortifyState state = new FortifyState(damageReduction, durationSeconds);
+            HexConstructSpawner.applyWithState(
+                    accessor, ref, hexContext, glyph, FortifyGlyph.ID, state);
         }
 
         TransformComponent tc = accessor.getComponent(ref, TransformComponent.getComponentType());

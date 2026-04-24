@@ -30,6 +30,7 @@ public class PhaseConstructHandler implements ConstructHandler<NoState> {
 
     @Override
     public boolean onTick(float dt, HexStatus<NoState> status, ConstructTickContext ctx) {
+        status.getHexContext().getVolatilityTracker().consumeVolatility(dt);
         return false;
     }
 

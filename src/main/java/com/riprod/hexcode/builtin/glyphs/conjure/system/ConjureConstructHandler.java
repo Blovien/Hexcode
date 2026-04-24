@@ -87,6 +87,7 @@ public class ConjureConstructHandler implements ConstructHandler<NoState> {
             }
         }
 
+        status.getHexContext().getVolatilityTracker().consumeVolatility(dt);
         return false;
     }
 

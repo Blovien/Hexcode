@@ -25,6 +25,7 @@ public class FreezeConstructHandler implements ConstructHandler<FreezeState> {
         FreezeState state = status.getState();
         if (state == null) return true;
         state.tick(dt);
+        status.getHexContext().getVolatilityTracker().consumeVolatility(dt);
         return state.isExpired();
     }
 

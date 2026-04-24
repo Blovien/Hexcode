@@ -36,20 +36,6 @@ public class FreezeGlyph implements GlyphHandler {
     public static final String ID = "Freeze";
 
     private static final double DEFAULT_DURATION = 3.0;
-    private static final double VOLATILITY_REFERENCE_DURATION = 3.0;
-
-    @Override
-    public boolean consumeVolatility(Glyph glyph, HexContext hexContext) {
-        VolatilityTracker tracker = hexContext.getVolatilityTracker();
-        if (tracker == null) return true;
-
-        double duration = SpellVarUtil.resolveNumberOrDefault(
-                glyph.readSlot(FreezeGlyphSlots.DURATION, hexContext), DEFAULT_DURATION);
-        float durationScale = (float) Math.max(1.0, duration / VOLATILITY_REFERENCE_DURATION);
-
-        float cost = VolatilityTracker.computeGlyphCost(glyph) * durationScale;
-        return tracker.consumeVolatility(cost);
-    }
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {

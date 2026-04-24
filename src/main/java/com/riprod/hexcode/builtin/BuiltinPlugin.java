@@ -36,21 +36,23 @@ import com.riprod.hexcode.builtin.glyphs.domain.DomainGlyph;
 import com.riprod.hexcode.builtin.glyphs.domain.DomainAuraConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.domain.component.DomainZoneComponent;
 import com.riprod.hexcode.builtin.glyphs.drain.DrainGlyph;
-import com.riprod.hexcode.builtin.glyphs.drain.component.DrainComponent;
-import com.riprod.hexcode.builtin.glyphs.drain.system.DrainTickSystem;
+import com.riprod.hexcode.builtin.glyphs.drain.DrainConstructHandler;
+import com.riprod.hexcode.builtin.glyphs.drain.DrainState;
 import com.riprod.hexcode.builtin.glyphs.ensnare.EnsnareConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.ensnare.EnsnareGlyph;
 import com.riprod.hexcode.builtin.glyphs.ensnare.component.EnsnareComponent;
 import com.riprod.hexcode.builtin.glyphs.equal.EqualGlyph;
+import com.riprod.hexcode.builtin.glyphs.erode.ErodeConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.erode.ErodeGlyph;
-import com.riprod.hexcode.builtin.glyphs.erode.component.ErodeComponent;
+import com.riprod.hexcode.builtin.glyphs.erode.ErodeState;
 import com.riprod.hexcode.builtin.glyphs.erode.system.ErodeDamageSystem;
-import com.riprod.hexcode.builtin.glyphs.erode.system.ErodeTickSystem;
+import com.riprod.hexcode.core.common.construct.state.ConstructStateUtil;
+import com.riprod.hexcode.core.common.construct.state.ConstructStripper;
 import com.riprod.hexcode.builtin.glyphs.force.ForceGlyph;
 import com.riprod.hexcode.builtin.glyphs.fortify.FortifyGlyph;
-import com.riprod.hexcode.builtin.glyphs.fortify.component.FortifyComponent;
+import com.riprod.hexcode.builtin.glyphs.fortify.FortifyConstructHandler;
+import com.riprod.hexcode.builtin.glyphs.fortify.FortifyState;
 import com.riprod.hexcode.builtin.glyphs.fortify.system.FortifyDamageSystem;
-import com.riprod.hexcode.builtin.glyphs.fortify.system.FortifyTickSystem;
 import com.riprod.hexcode.builtin.glyphs.freeze.FreezeConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.freeze.FreezeGlyph;
 import com.riprod.hexcode.builtin.glyphs.glaciate.GlaciateConstructHandler;
@@ -60,14 +62,14 @@ import com.riprod.hexcode.builtin.glyphs.greater.GreaterGlyph;
 import com.riprod.hexcode.builtin.glyphs.growth.GrowthGlyph;
 import com.riprod.hexcode.builtin.glyphs.gust.GustGlyph;
 import com.riprod.hexcode.builtin.glyphs.halt.HaltGlyph;
-import com.riprod.hexcode.builtin.glyphs.halt.component.HaltProjectileComponent;
-import com.riprod.hexcode.builtin.glyphs.halt.system.HaltProjectileTickSystem;
+import com.riprod.hexcode.builtin.glyphs.halt.HaltConstructHandler;
+import com.riprod.hexcode.builtin.glyphs.halt.HaltState;
 import com.riprod.hexcode.builtin.glyphs.ignite.IgniteGlyph;
 import com.riprod.hexcode.builtin.glyphs.interfere.InterfereGlyph;
 import com.riprod.hexcode.builtin.glyphs.less.LessGlyph;
+import com.riprod.hexcode.builtin.glyphs.levitate.LevitateConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.levitate.LevitateGlyph;
-import com.riprod.hexcode.builtin.glyphs.levitate.component.LevitateComponent;
-import com.riprod.hexcode.builtin.glyphs.levitate.system.LevitateTickSystem;
+import com.riprod.hexcode.builtin.glyphs.levitate.LevitateState;
 import com.riprod.hexcode.builtin.glyphs.multiply.MultiplyGlyph;
 import com.riprod.hexcode.builtin.glyphs.number.NumberValue;
 import com.riprod.hexcode.builtin.glyphs.output.OutputGlyph;
@@ -230,22 +232,6 @@ public class BuiltinPlugin extends JavaPlugin {
 
         // Arc Component
         // Drain Component
-        ComponentType<EntityStore, DrainComponent> drainComponentType = entityStoreRegistry
-                .registerComponent(DrainComponent.class, DrainComponent::new);
-        DrainComponent.setComponentType(drainComponentType);
-
-        ComponentType<EntityStore, ErodeComponent> erodeComponentType = entityStoreRegistry
-                .registerComponent(ErodeComponent.class, ErodeComponent::new);
-        ErodeComponent.setComponentType(erodeComponentType);
-
-        ComponentType<EntityStore, FortifyComponent> fortifyComponentType = entityStoreRegistry
-                .registerComponent(FortifyComponent.class, FortifyComponent::new);
-        FortifyComponent.setComponentType(fortifyComponentType);
-
-        ComponentType<EntityStore, LevitateComponent> levitateComponentType = entityStoreRegistry
-                .registerComponent(LevitateComponent.class, LevitateComponent::new);
-        LevitateComponent.setComponentType(levitateComponentType);
-
         ComponentType<EntityStore, PhaseComponent> phaseComponentType = entityStoreRegistry
                 .registerComponent(PhaseComponent.class, PhaseComponent::new);
         PhaseComponent.setComponentType(phaseComponentType);
@@ -262,10 +248,6 @@ public class BuiltinPlugin extends JavaPlugin {
                 .registerComponent(ShatterComponent.class, ShatterComponent::new);
         ShatterComponent.setComponentType(shatterComponentType);
 
-        ComponentType<EntityStore, HaltProjectileComponent> haltProjectileComponentType = entityStoreRegistry
-                .registerComponent(HaltProjectileComponent.class, HaltProjectileComponent::new);
-        HaltProjectileComponent.setComponentType(haltProjectileComponentType);
-
         ComponentType<EntityStore, DomainZoneComponent> domainZoneComponentType = entityStoreRegistry
                 .registerComponent(DomainZoneComponent.class, DomainZoneComponent::new);
         DomainZoneComponent.setComponentType(domainZoneComponentType);
@@ -278,52 +260,16 @@ public class BuiltinPlugin extends JavaPlugin {
     private void RegisterSystems() {
         ComponentRegistryProxy<EntityStore> entityStoreRegistry = this.getEntityStoreRegistry();
 
-        entityStoreRegistry.registerSystem(new DrainTickSystem());
-        entityStoreRegistry.registerSystem(new ErodeTickSystem());
         entityStoreRegistry.registerSystem(new ErodeDamageSystem());
-        entityStoreRegistry.registerSystem(new FortifyTickSystem());
         entityStoreRegistry.registerSystem(new FortifyDamageSystem());
-        entityStoreRegistry.registerSystem(new LevitateTickSystem());
-        entityStoreRegistry.registerSystem(new HaltProjectileTickSystem());
     }
 
     private void RegisterEffects() {
-        HexEffectRegistry.register("fortify", new HexEffectHandler() {
-            @Override
-            public boolean isPresent(CommandBuffer<EntityStore> buffer, Ref<EntityStore> target) {
-                return buffer.getComponent(target, FortifyComponent.getComponentType()) != null;
-            }
-
-            @Override
-            public void strip(CommandBuffer<EntityStore> buffer, Ref<EntityStore> target) {
-                buffer.removeComponent(target, FortifyComponent.getComponentType());
-                removeEntityEffect(target, "Hexcode_Fortify", buffer);
-            }
-        });
-        HexEffectRegistry.register("erode", new HexEffectHandler() {
-            @Override
-            public boolean isPresent(CommandBuffer<EntityStore> buffer, Ref<EntityStore> target) {
-                return buffer.getComponent(target, ErodeComponent.getComponentType()) != null;
-            }
-
-            @Override
-            public void strip(CommandBuffer<EntityStore> buffer, Ref<EntityStore> target) {
-                buffer.removeComponent(target, ErodeComponent.getComponentType());
-                removeEntityEffect(target, "Hexcode_Erode", buffer);
-            }
-        });
-        HexEffectRegistry.register("levitate", new HexEffectHandler() {
-            @Override
-            public boolean isPresent(CommandBuffer<EntityStore> buffer, Ref<EntityStore> target) {
-                return buffer.getComponent(target, LevitateComponent.getComponentType()) != null;
-            }
-
-            @Override
-            public void strip(CommandBuffer<EntityStore> buffer, Ref<EntityStore> target) {
-                buffer.removeComponent(target, LevitateComponent.getComponentType());
-                removeEntityEffect(target, "Hexcode_Levitate", buffer);
-            }
-        });
+        HexEffectRegistry.register("drain",    new ConstructStripper<>(DrainGlyph.ID,    DrainState.class));
+        HexEffectRegistry.register("erode",    new ConstructStripper<>(ErodeGlyph.ID,    ErodeState.class));
+        HexEffectRegistry.register("fortify",  new ConstructStripper<>(FortifyGlyph.ID,  FortifyState.class));
+        HexEffectRegistry.register("halt",     new ConstructStripper<>(HaltGlyph.ID,     HaltState.class));
+        HexEffectRegistry.register("levitate", new ConstructStripper<>(LevitateGlyph.ID, LevitateState.class));
     }
 
     private static void removeEntityEffect(Ref<EntityStore> ref, String effectId,
@@ -349,6 +295,11 @@ public class BuiltinPlugin extends JavaPlugin {
         ConstructRegistry.register(ShatterGlyph.ID, new ShatterConstructHandler());
         ConstructRegistry.register(ConjureGlyph.ID, new ConjureConstructHandler());
         ConstructRegistry.register(ProjectileGlyph.ID, new ProjectileConstructHandler());
+        ConstructRegistry.register(ErodeGlyph.ID, new ErodeConstructHandler());
+        ConstructRegistry.register(LevitateGlyph.ID, new LevitateConstructHandler());
+        ConstructRegistry.register(HaltGlyph.ID, new HaltConstructHandler());
+        ConstructRegistry.register(FortifyGlyph.ID, new FortifyConstructHandler());
+        ConstructRegistry.register(DrainGlyph.ID, new DrainConstructHandler());
         ConstructRegistry.register(EnsnareGlyph.ID, new EnsnareConstructHandler());
         ConstructRegistry.register(FreezeGlyph.ID, new FreezeConstructHandler());
     }

@@ -110,6 +110,7 @@ public class DomainConstructHandler implements ConstructHandler<NoState> {
                     status.getHexContext().getColors(), ctx.getBuffer());
         }
 
+        status.getHexContext().getVolatilityTracker().consumeVolatility(dt);
         return false;
     }
 

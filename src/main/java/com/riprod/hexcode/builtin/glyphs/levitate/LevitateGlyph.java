@@ -14,8 +14,9 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.modules.physics.component.PhysicsValues;
 import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.builtin.glyphs.levitate.component.LevitateComponent;
 import com.riprod.hexcode.builtin.glyphs.levitate.style.LevitateStyle;
+import com.riprod.hexcode.core.common.construct.state.ConstructStateUtil;
+import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
@@ -63,34 +64,37 @@ public static final String ID = "Levitate";
         float durationSeconds = (float) duration;
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
-        applyToEntity(entityVar, (float) intensity, durationSeconds, hexContext, accessor);
+        applyToEntity(entityVar, (float) intensity, durationSeconds, glyph, hexContext, accessor);
 
         HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 
-    private void applyToEntity(EntityVar entityVar, float intensity,
-            float durationSeconds, HexContext hexContext, CommandBuffer<EntityStore> accessor) {
+    private void applyToEntity(EntityVar entityVar, float intensity, float durationSeconds,
+            Glyph glyph, HexContext hexContext, CommandBuffer<EntityStore> accessor) {
         Ref<EntityStore> ref = entityVar.getRef(accessor);
         if (ref == null || !ref.isValid()) return;
 
         PhysicsValues currentPhysics = EntityUtils.getPhysicsValues(ref, accessor);
-        PhysicsValues originalCopy = new PhysicsValues(currentPhysics);
 
-        LevitateComponent existing = accessor.getComponent(ref, LevitateComponent.getComponentType());
+        LevitateState existing = ConstructStateUtil.findState(
+                accessor, ref, LevitateGlyph.ID, LevitateState.class);
+        PhysicsValues originalCopy = existing != null && existing.getOriginalPhysicsValues() != null
+                ? new PhysicsValues(existing.getOriginalPhysicsValues())
+                : new PhysicsValues(currentPhysics);
+
         if (existing != null) {
             existing.setIntensity(intensity);
             existing.setRemainingDuration(durationSeconds);
             existing.setColors(hexContext.getColors());
         } else {
-            accessor.addComponent(ref, LevitateComponent.getComponentType(),
-                    new LevitateComponent(intensity, durationSeconds,
-                            hexContext.getColors(), originalCopy));
+            LevitateState state = new LevitateState(intensity, durationSeconds,
+                    hexContext.getColors(), originalCopy);
+            HexConstructSpawner.applyWithState(
+                    accessor, ref, hexContext, glyph, LevitateGlyph.ID, state);
         }
 
         double mass = currentPhysics.getMass();
-        double originalDrag = existing != null
-                ? existing.getOriginalPhysicsValues().getDragCoefficient()
-                : currentPhysics.getDragCoefficient();
+        double originalDrag = originalCopy.getDragCoefficient();
         double drag = intensity <= 0 ? WEIGHTLESS_DRAG : originalDrag;
         PhysicsValues levitatePhysics = new PhysicsValues(mass, drag, true);
         accessor.putComponent(ref, PhysicsValues.getComponentType(), levitatePhysics);

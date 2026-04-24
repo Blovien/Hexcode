@@ -11,7 +11,7 @@ import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatValue;
 import com.hypixel.hytale.server.core.modules.entitystats.asset.DefaultEntityStatTypes;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.builtin.glyphs.drain.component.DrainComponent;
+import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.component.Slot;
@@ -144,22 +144,12 @@ public static final String ID = "Drain";
         List<String> nextGlyphIds = nextSlot != null
                 ? new ArrayList<>(Arrays.asList(nextSlot.getLinks()))
                 : new ArrayList<>();
-        Ref<EntityStore> hexEntityRef = hexContext.getRoot().getSourceRef();
 
-        DrainComponent.DrainEntry entry = new DrainComponent.DrainEntry(
-                sourceStatIndex, destRef, rate, totalDrainAmount, duration,
-                hexContext.branch(), nextGlyphIds, hexEntityRef, colors);
+        DrainState state = new DrainState(
+                sourceStatIndex, destRef, rate, totalDrainAmount, duration, nextGlyphIds, colors);
 
-        DrainComponent existing = hexContext.getAccessor().getComponent(
-                targetRef, DrainComponent.getComponentType());
-        if (existing != null) {
-            existing.addEntry(entry);
-        } else {
-            DrainComponent component = new DrainComponent();
-            component.addEntry(entry);
-            hexContext.getAccessor().addComponent(
-                    targetRef, DrainComponent.getComponentType(), component);
-        }
+        HexConstructSpawner.applyWithState(
+                hexContext.getAccessor(), targetRef, hexContext, glyph, DrainGlyph.ID, state);
 
         hexContext.getRoot().addDependency(hexContext, targetRef);
     }

@@ -15,8 +15,8 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.modules.physics.component.PhysicsValues;
 import com.hypixel.hytale.server.core.modules.projectile.config.StandardPhysicsProvider;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.builtin.glyphs.halt.component.HaltProjectileComponent;
 import com.riprod.hexcode.builtin.glyphs.halt.style.HaltStyle;
+import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
@@ -36,28 +36,6 @@ public static final String ID = "Halt";
 
     private static final String HALT_EFFECT_ID = "Hexcode_Halt";
     private static final double DEFAULT_DURATION = 0.0;
-
-    // mana: cost(t) = base * (1 + e^(k_mana * (t - t_mana)))
-    // at t=0 cost ≈ base, ramps steeply around t_mana
-    private static final double MANA_KNEE = 2.0;
-    private static final double MANA_STEEPNESS = 1.5;
-
-    // cost scales exponentially past the knee duration
-    private static final double VOLATILITY_KNEE = 4.0;
-    private static final double VOLATILITY_STEEPNESS = 0.8;
-
-    @Override
-    public boolean consumeVolatility(Glyph glyph, HexContext hexContext) {
-        VolatilityTracker tracker = hexContext.getVolatilityTracker();
-        if (tracker == null) return true;
-
-        double duration = SpellVarUtil.resolveNumberOrDefault(
-                glyph.readSlot(HaltGlyphSlots.DURATION, hexContext), DEFAULT_DURATION);
-
-        float expScale = (float) Math.max(1.0, Math.exp(VOLATILITY_STEEPNESS * (duration - VOLATILITY_KNEE)));
-        float cost = VolatilityTracker.computeGlyphCost(glyph) * expScale;
-        return tracker.consumeVolatility(cost);
-    }
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
@@ -79,14 +57,13 @@ public static final String ID = "Halt";
                 glyph.readSlot(HaltGlyphSlots.DURATION, hexContext), DEFAULT_DURATION);
 
         try {
+            PhysicsValues originalForState = null;
             StandardPhysicsProvider physics = accessor.getComponent(ref,
                     StandardPhysicsProvider.getComponentType());
             if (physics != null) {
                 physics.getForceProviderStandardState().nextTickVelocity.assign(Vector3d.ZERO);
                 if (duration > 0) {
                     physics.setState(StandardPhysicsProvider.STATE.INACTIVE);
-                    accessor.putComponent(ref, HaltProjectileComponent.getComponentType(),
-                            new HaltProjectileComponent((float) duration, null));
                 }
             } else {
                 KnockbackComponent kb = new KnockbackComponent();
@@ -99,9 +76,13 @@ public static final String ID = "Halt";
                     PhysicsValues original = EntityUtils.getPhysicsValues(ref, accessor);
                     PhysicsValues halted = new PhysicsValues(original.getMass(), 999.0, false);
                     accessor.putComponent(ref, PhysicsValues.getComponentType(), halted);
-                    accessor.putComponent(ref, HaltProjectileComponent.getComponentType(),
-                            new HaltProjectileComponent((float) duration, new PhysicsValues(original)));
+                    originalForState = new PhysicsValues(original);
                 }
+            }
+
+            if (duration > 0) {
+                HexConstructSpawner.applyWithState(accessor, ref, hexContext, glyph, HaltGlyph.ID,
+                        new HaltState((float) duration, originalForState));
             }
 
             if (duration > 0) {
