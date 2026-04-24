@@ -140,5 +140,34 @@
       0,
       -13.5
     ]
-  }
+  },
+  "Recipe": {
+    "BenchRequirement": [
+      {
+        "Id": "Arcanebench",
+        "Categories": [
+          "Arcane_Hexcode"
+        ]
+      }
+    ],
+    "Input": [
+      {
+        "ItemId": "Rock_Crystal_Cyan_Small",
+        "Quantity": 1
+      },
+      {
+        "ItemId": "Potion_Empty",
+        "Quantity": 3
+      },
+      {
+        "ItemId": "Ingredient_Bar_Silver",
+        "Quantity": 5
+      },
+      {
+        "ResourceTypeId": "Rock",
+        "Quantity": 1
+      }
+    ]
+  },
+  "Quality": "Common"
 }

@@ -7,7 +7,7 @@
     "Hexcode.Books"
   ],
   "Icon": "Icons/ItemsGenerated/Arcane_Hexbook.png",
-  "Quality": "Epic",
+  "Quality": "Legendary",
   "ItemLevel": 40,
   "Model": "Items/Tools/Book/Blue_Grimoire.blockymodel",
   "Texture": "Items/Tools/Book/Blue_Grimoire.png",
@@ -32,5 +32,40 @@
     ]
   },
   "Weapon": {},
-  "ItemSoundSetId": "ISS_Weapons_Books"
+  "ItemSoundSetId": "ISS_Weapons_Books",
+  "Recipe": {
+    "Input": [
+      {
+        "ItemId": "Life_Hexbook",
+        "Quantity": 1
+      },
+      {
+        "ItemId": "Rock_Gem_Diamond"
+      },
+      {
+        "ItemId": "Void_Hexbook",
+        "Quantity": 1
+      },
+      {
+        "ItemId": "Ice_Hexbook",
+        "Quantity": 1
+      },
+      {
+        "ItemId": "Fire_Hexbook",
+        "Quantity": 1
+      },
+      {
+        "ItemId": "Ingredient_Fabric_Scrap_Linen",
+        "Quantity": 30
+      }
+    ],
+    "BenchRequirement": [
+      {
+        "Categories": [
+          "Arcane_Hexcode"
+        ],
+        "Id": "Arcanebench"
+      }
+    ]
+  }
 }

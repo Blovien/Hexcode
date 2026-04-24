@@ -184,5 +184,34 @@
       0,
       -16
     ]
-  }
+  },
+  "Recipe": {
+    "Input": [
+      {
+        "ItemId": "Ingredient_Fire_Essence_Concentrated",
+        "Quantity": 1
+      },
+      {
+        "ItemId": "Rock_Volcanic_Cobble",
+        "Quantity": 100
+      },
+      {
+        "ItemId": "Ingredient_Bar_Gold",
+        "Quantity": 10
+      },
+      {
+        "ItemId": "Ingredient_Bar_Adamantite",
+        "Quantity": 10
+      }
+    ],
+    "BenchRequirement": [
+      {
+        "Id": "Arcanebench",
+        "Categories": [
+          "Arcane_Hexcode"
+        ]
+      }
+    ]
+  },
+  "Quality": "Rare"
 }

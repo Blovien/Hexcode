@@ -6,7 +6,7 @@
   "Categories": [
     "Hexcode.Books"
   ],
-  "Quality": "Uncommon",
+  "Quality": "Rare",
   "ItemLevel": 30,
   "Model": "Items/Tools/Book/Hex_Book.blockymodel",
   "Texture": "Items/Tools/Book/Hex_Book_Texture.png",
@@ -31,5 +31,33 @@
   },
   "Scale": 1.1,
   "ItemSoundSetId": "ISS_Weapons_Books",
-  "MaxStack": 1
+  "MaxStack": 1,
+  "Recipe": {
+    "Input": [
+      {
+        "ItemId": "Ingredient_Leather_Medium",
+        "Quantity": 15
+      },
+      {
+        "ItemId": "Ingredient_Bar_Gold",
+        "Quantity": 8
+      },
+      {
+        "ItemId": "Ingredient_Charcoal",
+        "Quantity": 30
+      },
+      {
+        "ItemId": "Ingredient_Fabric_Scrap_Linen",
+        "Quantity": 30
+      }
+    ],
+    "BenchRequirement": [
+      {
+        "Categories": [
+          "Arcane_Hexcode"
+        ],
+        "Id": "Arcanebench"
+      }
+    ]
+  }
 }

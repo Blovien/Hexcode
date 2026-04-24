@@ -1,12 +1,12 @@
 {
   "Parent": "Template_HexStaff",
   "TranslationProperties": {
-    "Name": "hexcode.items.Hex_Staff.name"
+    "Name": "hexcode.items.Hex_Fire_Staff.name"
   },
   "Categories": [
     "Hexcode.Staves"
   ],
-  "Quality": "Uncommon",
+  "Quality": "Rare",
   "ItemLevel": 30,
   "PlayerAnimationsId": "HexStaff",
   "Utility": {

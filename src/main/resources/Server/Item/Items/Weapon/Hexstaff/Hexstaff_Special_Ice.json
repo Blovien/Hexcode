@@ -6,7 +6,7 @@
   "Categories": [
     "Hexcode.Staves"
   ],
-  "Quality": "Rare",
+  "Quality": "Uncommon",
   "ItemLevel": 35,
   "PlayerAnimationsId": "HexStaff",
   "Utility": {
@@ -71,7 +71,7 @@
   "Recipe": {
     "Input": [
       {
-        "ItemId": "Ingredient_Ice_Essence_Greater",
+        "ItemId": "Ingredient_Ice_Essence_Concentrated",
         "Quantity": 1
       },
       {

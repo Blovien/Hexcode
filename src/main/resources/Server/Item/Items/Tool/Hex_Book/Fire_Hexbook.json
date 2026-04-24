@@ -32,5 +32,33 @@
     ]
   },
   "Weapon": {},
-  "ItemSoundSetId": "ISS_Weapons_Books"
+  "ItemSoundSetId": "ISS_Weapons_Books",
+  "Recipe": {
+    "Input": [
+      {
+        "ItemId": "Weapon_Spellbook_Rekindle_Embers",
+        "Quantity": 1
+      },
+      {
+        "ItemId": "Ingredient_Bar_Gold",
+        "Quantity": 10
+      },
+      {
+        "ItemId": "Ingredient_Fire_Essence",
+        "Quantity": 20
+      },
+      {
+        "ItemId": "Ingredient_Fabric_Scrap_Cindercloth",
+        "Quantity": 30
+      }
+    ],
+    "BenchRequirement": [
+      {
+        "Categories": [
+          "Arcane_Hexcode"
+        ],
+        "Id": "Arcanebench"
+      }
+    ]
+  }
 }

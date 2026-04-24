@@ -8,7 +8,7 @@
     "Hexcode.Staves",
     "Items.Weapons"
   ],
-  "Quality": "Rare",
+  "Quality": "Epic",
   "ItemLevel": 40,
   "Model": "Items/Weapons/Staff/Adamantite.blockymodel",
   "Texture": "Items/Weapons/Staff/Adamantite_Texture.png",

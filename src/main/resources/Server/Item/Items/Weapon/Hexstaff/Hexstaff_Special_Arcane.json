@@ -6,7 +6,7 @@
   "Categories": [
     "Hexcode.Staves"
   ],
-  "Quality": "Rare",
+  "Quality": "Legendary",
   "ItemLevel": 35,
   "Model": "Items/Weapons/Staff/Blue_Staff.blockymodel",
   "Texture": "Items/Weapons/Staff/Blue_Staff.png",
@@ -67,5 +67,33 @@
   "Utility": {
     "Compatible": true
   },
-  "MaxStack": 1
+  "MaxStack": 1,
+  "Recipe": {
+    "Input": [
+      {
+        "ItemId": "Hexstaff_Basic_Thorium"
+      },
+      {
+        "ItemId": "Hexstaff_Special_Ice"
+      },
+      {
+        "ItemId": "Hexstaff_Special_Fire"
+      },
+      {
+        "ItemId": "Hexstaff_Special_Astral"
+      },
+      {
+        "ItemId": "Rock_Gem_Diamond",
+        "Quantity": 2
+      }
+    ],
+    "BenchRequirement": [
+      {
+        "Categories": [
+          "Arcane_Hexcode"
+        ],
+        "Id": "Arcanebench"
+      }
+    ]
+  }
 }
