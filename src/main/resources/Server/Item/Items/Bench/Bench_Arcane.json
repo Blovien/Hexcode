@@ -65,7 +65,8 @@
         },
         {
           "Id": "Arcane_Hexcode",
-          "Name": "hexcode.workbench.benchCategories.hex"
+          "Name": "hexcode.workbench.benchCategories.hex",
+          "Icon": "Icons/CraftingCategories/Arcane/Arcane_Hexbook.png"
         }
       ],
       "Id": "Arcanebench"

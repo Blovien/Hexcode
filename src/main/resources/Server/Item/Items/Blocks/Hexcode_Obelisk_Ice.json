@@ -134,5 +134,35 @@
       0,
       -26
     ]
-  }
+  },
+  "Recipe": {
+    "BenchRequirement": [
+      {
+        "Id": "Arcanebench",
+        "Categories": [
+          "Arcane_Hexcode"
+        ]
+      }
+    ],
+    "Input": [
+      {
+        "ItemId": "Ingredient_Ice_Essence_Concentrated",
+        "Quantity": 15
+      },
+      {
+        "ItemId": "Ingredient_Bar_Cobalt",
+        "ResourceTypeId": "",
+        "Quantity": 20
+      },
+      {
+        "ItemId": "Plant_Petals_Azure",
+        "Quantity": 30
+      },
+      {
+        "ItemId": "Rock_Shale_Cobble",
+        "Quantity": 100
+      }
+    ]
+  },
+  "Quality": "Epic"
 }

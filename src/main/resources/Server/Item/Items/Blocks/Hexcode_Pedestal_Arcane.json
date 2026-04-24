@@ -191,5 +191,34 @@
       0,
       -15
     ]
-  }
+  },
+  "Recipe": {
+    "Input": [
+      {
+        "ItemId": "Ingredient_Ice_Essence_Concentrated",
+        "Quantity": 1
+      },
+      {
+        "ItemId": "Wood_Ice_Trunk",
+        "Quantity": 100
+      },
+      {
+        "ItemId": "Ingredient_Bar_Silver",
+        "Quantity": 10
+      },
+      {
+        "ItemId": "Ingredient_Bar_Cobalt",
+        "Quantity": 10
+      }
+    ],
+    "BenchRequirement": [
+      {
+        "Id": "Arcanebench",
+        "Categories": [
+          "Arcane_Hexcode"
+        ]
+      }
+    ]
+  },
+  "Quality": "Rare"
 }

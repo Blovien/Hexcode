@@ -147,5 +147,35 @@
       0,
       -28
     ]
-  }
+  },
+  "Recipe": {
+    "BenchRequirement": [
+      {
+        "Id": "Arcanebench",
+        "Categories": [
+          "Arcane_Hexcode"
+        ]
+      }
+    ],
+    "Input": [
+      {
+        "ItemId": "Ingredient_Void_Essence_Concentrated",
+        "Quantity": 20
+      },
+      {
+        "ItemId": "Ingredient_Bar_Adamantite",
+        "ResourceTypeId": "",
+        "Quantity": 30
+      },
+      {
+        "ItemId": "Ingredient_Voidheart",
+        "Quantity": 30
+      },
+      {
+        "ItemId": "Rock_Volcanic_Cobble",
+        "Quantity": 100
+      }
+    ]
+  },
+  "Quality": "Legendary"
 }

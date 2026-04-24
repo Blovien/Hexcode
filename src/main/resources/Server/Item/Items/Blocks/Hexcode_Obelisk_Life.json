@@ -147,5 +147,36 @@
       0,
       -34
     ]
-  }
+  },
+  "Recipe": {
+    "BenchRequirement": [
+      {
+        "Id": "Arcanebench",
+        "Categories": [
+          "Arcane_Hexcode"
+        ]
+      }
+    ],
+    "Input": [
+      {
+        "ItemId": "Ingredient_Life_Essence_Concentrated",
+        "Quantity": 15
+      },
+      {
+        "ItemId": "Ingredient_Bar_Cobalt",
+        "ResourceTypeId": "",
+        "Quantity": 20
+      },
+      {
+        "ItemId": "Plant_Petals_Storm",
+        "Quantity": 30
+      },
+      {
+        "ItemId": "",
+        "Quantity": 100,
+        "ResourceTypeId": "Rock"
+      }
+    ]
+  },
+  "Quality": "Rare"
 }
