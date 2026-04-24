@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
@@ -97,6 +98,7 @@ public class ConjureConstructHandler implements ConstructHandler<NoState> {
             ConjureStyle.renderDespawn(transform.getPosition(),
                     status.getHexContext().getColors(), ctx.getBuffer());
         }
+        ctx.getBuffer().tryRemoveEntity(ctx.getEntityRef(), RemoveReason.REMOVE);
     }
 
     private void fireOnEntity(HexStatus<NoState> status, ConstructTickContext ctx,

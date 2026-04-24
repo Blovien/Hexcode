@@ -85,9 +85,23 @@ public class HexExecuter {
     }
 
     public static void fail(Glyph glyph, HexContext hexContext, GlyphFizzleEvent.Reason reason) {
+        fail(glyph, hexContext, reason, null, null);
+    }
+
+    public static void fail(Glyph glyph, HexContext hexContext, GlyphFizzleEvent.Reason reason,
+            String detail) {
+        fail(glyph, hexContext, reason, detail, null);
+    }
+
+    public static void fail(Glyph glyph, HexContext hexContext, GlyphFizzleEvent.Reason reason,
+            Throwable cause) {
+        fail(glyph, hexContext, reason, null, cause);
+    }
+
+    public static void fail(Glyph glyph, HexContext hexContext, GlyphFizzleEvent.Reason reason,
+            String detail, Throwable cause) {
         HytaleServer.get().getEventBus().dispatchFor(GlyphFizzleEvent.class)
-                .dispatch(
-                        new GlyphFizzleEvent(glyph, reason, hexContext));
+                .dispatch(new GlyphFizzleEvent(glyph, reason, hexContext, detail, cause));
     }
 
     public static void continueExecution(List<String> nextGlyphs, HexContext hexContext) {
@@ -131,7 +145,7 @@ public class HexExecuter {
             }
             nextHandler.execute(nextNode, hexContext);
         } catch (Exception e) {
-            fail(nextNode, hexContext);
+            fail(nextNode, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED, e);
         }
     }
 }

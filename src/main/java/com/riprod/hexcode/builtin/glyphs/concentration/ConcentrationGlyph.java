@@ -1,10 +1,7 @@
 package com.riprod.hexcode.builtin.glyphs.concentration;
 
-import java.util.List;
-
 import com.hypixel.hytale.builtin.mounts.MountedComponent;
 import com.hypixel.hytale.component.AddReason;
-import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
@@ -13,11 +10,12 @@ import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.MountController;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
+import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.builtin.glyphs.concentration.component.ConcentrationTriggerComponent;
 import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
@@ -29,13 +27,11 @@ public class ConcentrationGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     @Override
-public String getId() { return ID; };
+    public String getId() { return ID; }
 
-public static final String ID = "Concentration";
-    public static final String HANDLER_ID = "concentration";
+    public static final String ID = "Concentration";
     private static final String MODEL_ID = "Concentration";
 
-    private static final float INFINITE_LIFETIME = 86400f;
     private static final Vector3f MOUNT_OFFSET = new Vector3f(0f, 1.4f, 1.2f);
 
     @Override
@@ -63,12 +59,24 @@ public static final String ID = "Concentration";
             return;
         }
 
-        ConcentrationTriggerComponent marker = new ConcentrationTriggerComponent(casterRef);
+        Ref<EntityStore> visualRef = spawnVisual(accessor, casterTransform, casterRef);
 
-        Holder<EntityStore> holder = HexConstructSpawner.create(
-                accessor, hexContext, glyph, ConcentrationGlyph.ID, casterTransform.getPosition());
+        ConcentrationState state = new ConcentrationState(visualRef);
+        HexConstructSpawner.applyWithState(
+                accessor, casterRef, hexContext, glyph, ConcentrationGlyph.ID, state);
 
-        holder.addComponent(ConcentrationTriggerComponent.getComponentType(), marker);
+        HexExecuter.continueFromSlot(glyph, "Next", hexContext);
+    }
+
+    private Ref<EntityStore> spawnVisual(CommandBuffer<EntityStore> accessor,
+            TransformComponent casterTransform, Ref<EntityStore> casterRef) {
+        Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
+        holder.addComponent(TransformComponent.getComponentType(),
+                new TransformComponent(casterTransform.getPosition(), new Vector3f()));
+        holder.ensureComponent(UUIDComponent.getComponentType());
+        holder.addComponent(NetworkId.getComponentType(),
+                new NetworkId(accessor.getExternalData().takeNextNetworkId()));
+        holder.ensureComponent(EntityStore.REGISTRY.getNonSerializedComponentType());
         holder.addComponent(MountedComponent.getComponentType(),
                 new MountedComponent(casterRef, MOUNT_OFFSET, MountController.Minecart));
 
@@ -82,10 +90,6 @@ public static final String ID = "Concentration";
             LOGGER.atWarning().log("concentration: model asset '%s' not found", MODEL_ID);
         }
 
-        Ref<EntityStore> constructRef = accessor.addEntity(holder, AddReason.SPAWN);
-
-        HexExecuter.continueFromSlot(glyph, "Next", hexContext);
-
-        hexContext.getRoot().addDependency(hexContext, constructRef);
+        return accessor.addEntity(holder, AddReason.SPAWN);
     }
 }

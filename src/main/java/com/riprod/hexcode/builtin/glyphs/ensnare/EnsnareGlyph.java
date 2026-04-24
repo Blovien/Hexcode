@@ -150,8 +150,6 @@ public static final String ID = "Ensnare";
             return;
         }
 
-        glyph.writeOutput(new PositionVar(new Vector3d(center), true), hexContext);
-
         spawnTrackerEntity(glyph, hexContext, spikes, (float) duration,
                 (float) damage, center, radius, accessor);
 

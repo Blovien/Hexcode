@@ -3,10 +3,7 @@ package com.riprod.hexcode.builtin.glyphs.freeze;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.CommandBuffer;
-import com.hypixel.hytale.component.CommandBuffer;
-import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
@@ -18,13 +15,11 @@ import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.builtin.glyphs.freeze.component.FreezeComponent;
 import com.riprod.hexcode.builtin.glyphs.freeze.component.FrozenBlock;
 import com.riprod.hexcode.builtin.glyphs.freeze.style.FreezeStyle;
 import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
-import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
@@ -32,18 +27,16 @@ import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
-
 public class FreezeGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
-    @Override
-public String getId() { return ID; };
 
-public static final String ID = "Freeze";
+    @Override
+    public String getId() { return ID; }
+
+    public static final String ID = "Freeze";
 
     private static final double DEFAULT_DURATION = 3.0;
-
     private static final double VOLATILITY_REFERENCE_DURATION = 3.0;
-    private static final double MANA_REFERENCE_DURATION = 3.0;
 
     @Override
     public boolean consumeVolatility(Glyph glyph, HexContext hexContext) {
@@ -61,7 +54,6 @@ public static final String ID = "Freeze";
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targets = glyph.readSlot(FreezeGlyphSlots.TARGET, hexContext);
-
         if (targets == null) {
             HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
@@ -79,35 +71,40 @@ public static final String ID = "Freeze";
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
         World world = accessor.getExternalData().getWorld();
-        List<FrozenBlock> frozenBlocks = new ArrayList<>();
 
         EntityVar entityVar = SpellVarUtil.resolveEntityVar(targets, hexContext);
-        if (entityVar != null) {
-            Ref<EntityStore> ref = entityVar.getRef(accessor);
-            if (ref != null && ref.isValid()) {
-                try {
-                    EffectControllerComponent controller = accessor.getComponent(
-                            ref, EffectControllerComponent.getComponentType());
-                    if (controller != null) {
-                        controller.addEffect(ref, freezeEffect, (float) duration,
-                                OverlapBehavior.OVERWRITE, accessor);
-
-                        TransformComponent tc = accessor.getComponent(ref,
-                                TransformComponent.getComponentType());
-                        if (tc != null) {
-                            Vector3d pos = tc.getPosition();
-                            placeIceBlock(world, pos, frozenBlocks);
-                            FreezeStyle.renderFreeze(pos, hexContext.getColors(), accessor);
-                        }
-                    }
-                } catch (Exception e) {
-                    LOGGER.atWarning().log("freeze: failed on entity: %s", e.getMessage());
-                }
-            }
+        if (entityVar == null) {
+            HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
+            return;
         }
 
-        if (!frozenBlocks.isEmpty()) {
-            spawnFreezeTracker(hexContext, frozenBlocks, (float) duration, accessor);
+        Ref<EntityStore> targetRef = entityVar.getRef(accessor);
+        if (targetRef == null || !targetRef.isValid()) {
+            HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
+            return;
+        }
+
+        try {
+            EffectControllerComponent controller = accessor.getComponent(
+                    targetRef, EffectControllerComponent.getComponentType());
+            if (controller != null) {
+                controller.addEffect(targetRef, freezeEffect, (float) duration,
+                        OverlapBehavior.OVERWRITE, accessor);
+            }
+
+            List<FrozenBlock> frozenBlocks = new ArrayList<>();
+            TransformComponent tc = accessor.getComponent(targetRef, TransformComponent.getComponentType());
+            if (tc != null) {
+                Vector3d pos = tc.getPosition();
+                placeIceBlock(world, pos, frozenBlocks);
+                FreezeStyle.renderFreeze(pos, hexContext.getColors(), accessor);
+            }
+
+            FreezeState state = new FreezeState(frozenBlocks, (float) duration);
+            HexConstructSpawner.applyWithState(
+                    accessor, targetRef, hexContext, glyph, FreezeGlyph.ID, state);
+        } catch (Exception e) {
+            LOGGER.atWarning().log("freeze: failed on entity: %s", e.getMessage());
         }
 
         HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
@@ -129,24 +126,5 @@ public static final String ID = "Freeze";
         frozenBlocks.add(new FrozenBlock(new Vector3i(footX, footY, footZ), typeId, rotationIndex));
 
         world.setBlock(footX, footY, footZ, "Rock_Ice");
-    }
-
-    private void spawnFreezeTracker(HexContext hexContext, List<FrozenBlock> frozenBlocks,
-            float durationSeconds, CommandBuffer<EntityStore> accessor) {
-        Vector3d trackerPos = Vector3d.ZERO;
-        if (!frozenBlocks.isEmpty()) {
-            Vector3i first = frozenBlocks.get(0).getPosition();
-            trackerPos = new Vector3d(first.x + 0.5, first.y + 0.5, first.z + 0.5);
-        }
-
-        Holder<EntityStore> holder = HexConstructSpawner.create(
-                accessor, hexContext, null, FreezeGlyph.ID, trackerPos);
-
-        holder.addComponent(FreezeComponent.getComponentType(),
-                new FreezeComponent(frozenBlocks, durationSeconds));
-
-        Ref<EntityStore> trackerRef = accessor.addEntity(holder, AddReason.SPAWN);
-
-        hexContext.getRoot().addDependency(hexContext, trackerRef);
     }
 }

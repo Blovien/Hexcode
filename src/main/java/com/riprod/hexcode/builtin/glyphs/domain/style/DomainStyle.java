@@ -1,5 +1,6 @@
 package com.riprod.hexcode.builtin.glyphs.domain.style;
 
+import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 
 import com.hypixel.hytale.component.CommandBuffer;

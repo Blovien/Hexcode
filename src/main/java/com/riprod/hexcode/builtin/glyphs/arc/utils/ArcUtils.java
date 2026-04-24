@@ -13,7 +13,6 @@ import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.selector.Selector;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.builtin.glyphs.arc.component.ArcComponent;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.OverlapBehavior;
@@ -50,9 +49,6 @@ public class ArcUtils {
         List<Ref<EntityStore>> candidates = new ArrayList<>();
 
         Selector.selectNearbyEntities(buffer, fromPosition, maxDistance, candidates::add, ref -> {
-
-            if (buffer.getComponent(ref, ArcComponent.getComponentType()) != null) return false;
-
             UUIDComponent uuid = buffer.getComponent(ref, UUIDComponent.getComponentType());
             if (uuid == null) return false;
             if (visited.contains(uuid.getUuid())) return false;

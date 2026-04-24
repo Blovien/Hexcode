@@ -44,7 +44,6 @@ import com.riprod.hexcode.state.HexcodeManager;
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatValue;
 import com.hypixel.hytale.protocol.InteractionType;
-import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.Message;
 
 import java.util.ArrayList;
@@ -228,8 +227,7 @@ public class ExecutionSystem extends HexcodeManager {
 
         var hexCastEvent = new HexCastEvent(ref, castData);
 
-        HytaleServer.get().getEventBus().dispatchFor(HexCastEvent.class)
-                .dispatch(hexCastEvent);
+        accessor.invoke(hexCastEvent);
         return InteractionState.NotFinished;
     }
 }

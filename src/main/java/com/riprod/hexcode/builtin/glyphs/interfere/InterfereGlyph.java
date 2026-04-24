@@ -13,6 +13,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.builtin.glyphs.interfere.style.InterfereStyle;
 import com.riprod.hexcode.core.common.construct.component.HexEffectsComponent;
+import com.riprod.hexcode.core.common.construct.component.HexStatus;
 import com.riprod.hexcode.core.common.effect.HexEffectHandler;
 import com.riprod.hexcode.core.common.effect.HexEffectRegistry;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
@@ -80,10 +81,18 @@ public static final String ID = "Interfere";
     }
 
     private void hijackConstruct(HexEffectsComponent construct, Glyph glyph, HexContext hexContext) {
-        HexContext targetCtx = construct.getHexContext();
+        // TODO: PHASE_2 - interfere should target a specific HexStatus; currently uses first
+        HexStatus<?> status = construct.getEffects().values().stream().findFirst().orElse(null);
+        if (status == null) return;
+
+        HexContext targetCtx = status.getHexContext();
         Hex hex = targetCtx.gethex();
 
-        List<String> displaced = new ArrayList<>(construct.getConditionalBranchIds());
+        // TODO: PHASE_2 - conditional branch ids no longer exist; use triggering glyph's next-links as displaced set
+        Glyph trigger = status.getTriggeringGlyph();
+        List<String> displaced = trigger != null && trigger.getNextLinks() != null
+                ? new ArrayList<>(trigger.getNextLinks())
+                : new ArrayList<>();
 
         List<String> interfereChildren = glyph.getNextLinks();
         if (interfereChildren == null || interfereChildren.isEmpty()) return;
@@ -93,7 +102,7 @@ public static final String ID = "Interfere";
             hex.put(g.getId(), g);
         }
 
-        construct.setConditionalBranchIds(new ArrayList<>(interfereChildren));
+        // TODO: PHASE_2 - no setConditionalBranchIds equivalent; hijack semantics disabled
 
         if (!displaced.isEmpty()) {
             Glyph outputGlyph = findOutputGlyph(interfereChildren, hexContext);

@@ -75,8 +75,8 @@ public class PositionVar extends HexVar {
     public static final BuilderCodec<PositionVar> CODEC = BuilderCodec
             .builder(PositionVar.class, PositionVar::new, HexVar.BASE_CODEC)
             .append(new KeyedCodec<>("Position", com.hypixel.hytale.math.vector.Vector3d.CODEC),
-                    (v, pos) -> v.position = new Vector3d(pos.x, pos.y, pos.z),
-                    v -> new com.hypixel.hytale.math.vector.Vector3d(v.position.x, v.position.y, v.position.z))
+                    (v, pos) -> v.position = pos,
+                    v -> v.position)
             .add()
             .append(new KeyedCodec<>("Absolute", Codec.BOOLEAN),
                     (v, abs) -> v.absolute = abs,

@@ -3,7 +3,6 @@ package com.riprod.hexcode.core.common.imbuement;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.HexCastEvent;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
@@ -50,8 +49,7 @@ public class ImbuementExecutor {
                 volatilityTracker);
 
         HexCastEvent castEvent = new HexCastEvent(sourceRef, castData);
-        HytaleServer.get().getEventBus().dispatchFor(HexCastEvent.class)
-                .dispatch(castEvent);
+        accessor.invoke(castEvent);
 
         return true;
     }

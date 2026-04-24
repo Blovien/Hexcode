@@ -1,7 +1,6 @@
 package com.riprod.hexcode;
 
 import com.riprod.hexcode.builtin.BuiltinPlugin;
-import com.riprod.hexcode.builtin.glyphs.domain.DomainSpellCastListener;
 import com.riprod.hexcode.command.HexcodeCommand;
 import com.riprod.hexcode.core.common.armor.ArmorManaConfig;
 import com.riprod.hexcode.core.common.armor.ArmorManaPatcher;
@@ -89,7 +88,11 @@ import com.hypixel.hytale.server.core.asset.HytaleAssetStore;
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import com.riprod.hexcode.api.event.GlyphFizzleEvent;
+import com.riprod.hexcode.api.event.HexStateChangeEvent;
 import com.riprod.hexcode.builtin.listeners.FizzleMessageListener;
+import com.riprod.hexcode.builtin.listeners.GlyphDiagnosticListener;
+import com.riprod.hexcode.builtin.listeners.HexCastDiagnosticListener;
+import com.riprod.hexcode.builtin.listeners.HexStateDiagnosticListener;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
@@ -325,6 +328,7 @@ public class Hexcode extends JavaPlugin {
     entityStoreRegistry.registerSystem(new GlyphEffectSystem());
     entityStoreRegistry.registerSystem(new WeaponImbuementSystem());
     entityStoreRegistry.registerSystem(new HexCastEventSystem());
+    entityStoreRegistry.registerSystem(new HexCastDiagnosticListener());
     entityStoreRegistry.registerSystem(new HexcasterCleanupSystem());
     entityStoreRegistry.registerSystem(new SessionTickSystem());
 
@@ -332,6 +336,8 @@ public class Hexcode extends JavaPlugin {
     this.getEventRegistry().registerGlobal(PlayerConnectEvent.class, Hexcode::onPlayerConnect);
     this.getEventRegistry().registerGlobal(PlayerDisconnectEvent.class, Hexcode::onPlayerDisconnect);
     this.getEventRegistry().registerGlobal(GlyphFizzleEvent.class, new FizzleMessageListener());
+    this.getEventRegistry().registerGlobal(GlyphFizzleEvent.class, new GlyphDiagnosticListener());
+    this.getEventRegistry().registerGlobal(HexStateChangeEvent.class, new HexStateDiagnosticListener());
     this.getEventRegistry().register(LoadedAssetsEvent.class, Item.class,
         ArmorManaPatcher::onItemsLoaded);
     this.getEventRegistry().register(LoadedAssetsEvent.class, Item.class,

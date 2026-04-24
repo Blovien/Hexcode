@@ -35,6 +35,7 @@ public class DomainGlyph implements GlyphHandler {
 public String getId() { return ID; };
 
 public static final String ID = "Domain";
+    public static final String AURA_ID = "Domain_Aura";
 
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 

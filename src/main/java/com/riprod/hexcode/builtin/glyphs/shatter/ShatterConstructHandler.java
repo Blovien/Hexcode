@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
@@ -80,6 +81,11 @@ public class ShatterConstructHandler implements ConstructHandler<NoState> {
         }
 
         return false;
+    }
+
+    @Override
+    public void onCleanup(HexStatus<NoState> status, ConstructTickContext ctx) {
+        ctx.getBuffer().tryRemoveEntity(ctx.getEntityRef(), RemoveReason.REMOVE);
     }
 
     private void fireWithResult(HexStatus<NoState> status, ConstructTickContext ctx, HexVar resultVar) {

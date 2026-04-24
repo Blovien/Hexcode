@@ -6,7 +6,6 @@ import java.util.UUID;
 import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
@@ -35,12 +34,12 @@ import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.glyphs.variables.NumberVar;
 import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.utils.SpellVarUtil;
 
 public class GlaciateGlyph implements GlyphHandler {
-    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     @Override
 public String getId() { return ID; };
 
@@ -58,15 +57,15 @@ public static final String ID = "Glaciate";
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targetVar = glyph.readSlot(GlaciateGlyphSlots.TARGET, hexContext);
         if (targetVar == null) {
-            LOGGER.atWarning().log("glaciate: no target provided");
-            HexExecuter.fail(hexContext);
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "no target provided");
             return;
         }
 
         Vector3d targetPos = SpellVarUtil.resolvePosition(targetVar, hexContext.getAccessor());
         if (targetPos == null) {
-            LOGGER.atWarning().log("glaciate: could not resolve target position");
-            HexExecuter.fail(hexContext);
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "could not resolve target position");
             return;
         }
 
@@ -77,8 +76,8 @@ public static final String ID = "Glaciate";
 
         ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(ICE_MODEL);
         if (modelAsset == null) {
-            LOGGER.atWarning().log("glaciate: model asset not found: %s", ICE_MODEL);
-            HexExecuter.fail(hexContext);
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "model asset not found: " + ICE_MODEL);
             return;
         }
 

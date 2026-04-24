@@ -14,6 +14,7 @@ import com.hypixel.hytale.server.core.modules.entitystats.asset.DefaultEntitySta
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.builtin.glyphs.resonate.style.ResonateStyle;
 import com.riprod.hexcode.core.common.construct.component.HexEffectsComponent;
+import com.riprod.hexcode.core.common.construct.component.HexStatus;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
@@ -63,9 +64,18 @@ public static final String ID = "Resonate";
             HexEffectsComponent construct, Ref<EntityStore> ref,
             CommandBuffer<EntityStore> accessor) {
 
+        // TODO: PHASE_2 - resonate should target a specific HexStatus, not the first one
+        HexStatus<?> status = construct.getEffects().values().stream().findFirst().orElse(null);
+        if (status == null) {
+            Vector3d pos = resolvePosition(ref, accessor);
+            if (pos != null) ResonateStyle.renderNoSignal(pos, hexContext.getColors(), accessor);
+            HexExecuter.fail(hexContext);
+            return;
+        }
+
         List<String> children = glyph.getNextLinks();
         if (children != null && !children.isEmpty()) {
-            HexContext targetCtx = construct.getHexContext();
+            HexContext targetCtx = status.getHexContext();
             Hex hex = targetCtx.gethex();
 
             Hex sourceHex = hexContext.gethex();
@@ -73,7 +83,7 @@ public static final String ID = "Resonate";
                 hex.put(g.getId(), g);
             }
 
-            construct.getConditionalBranchIds().addAll(children);
+            // TODO: PHASE_2 - conditional branch ids no longer exist on HexStatus; no-op
 
             for (Map.Entry<String, HexVar> entry : hexContext.getVariables().entrySet()) {
                 targetCtx.getVariables().putIfAbsent(entry.getKey(), entry.getValue());
@@ -87,7 +97,7 @@ public static final String ID = "Resonate";
             LOGGER.atInfo().log("resonate: injected %d glyphs into construct", children.size());
         }
 
-        transferManaToRoot(glyph, hexContext, construct.getHexContext().getRoot(), accessor);
+        transferManaToRoot(glyph, hexContext, status.getHexContext().getRoot(), accessor);
 
         Vector3d pos = resolvePosition(ref, accessor);
         if (pos != null) ResonateStyle.renderResonate(pos, hexContext.getColors(), accessor);

@@ -23,6 +23,10 @@ import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
 import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
 import com.riprod.hexcode.core.common.construct.component.HexStatus;
 import com.riprod.hexcode.core.common.construct.state.NoState;
+import com.riprod.hexcode.core.common.glyphs.component.Glyph;
+import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
+import com.riprod.hexcode.core.state.execution.HexExecuter;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
 
 public class EnsnareConstructHandler implements ConstructHandler<NoState> {
 
@@ -37,7 +41,9 @@ public class EnsnareConstructHandler implements ConstructHandler<NoState> {
         if (ensnare == null) return true;
 
         ensnare.incrementElapsed(dt);
-        processDamage(ensnare, ctx.getBuffer());
+        if (ensnare.getElapsedSeconds() >= ensnare.getDurationSeconds()) return true;
+
+        processDamage(ensnare, status, ctx);
         return false;
     }
 
@@ -45,15 +51,18 @@ public class EnsnareConstructHandler implements ConstructHandler<NoState> {
     public void onCleanup(HexStatus<NoState> status, ConstructTickContext ctx) {
         EnsnareComponent ensnare = ctx.getChunk().getComponent(
                 ctx.getIndex(), EnsnareComponent.getComponentType());
-        if (ensnare == null) return;
+        if (ensnare != null) {
+            removeSpikes(ensnare, ctx.getBuffer());
+            LOGGER.atInfo().log("ensnare: expired after %.1fs, removed %d spikes",
+                    ensnare.getDurationSeconds(), ensnare.getSpikes().size());
+        }
 
-        removeSpikes(ensnare, ctx.getBuffer());
-
-        LOGGER.atInfo().log("ensnare: expired after %.1fs, removed %d spikes",
-                ensnare.getDurationSeconds(), ensnare.getSpikes().size());
+        ctx.getBuffer().tryRemoveEntity(ctx.getEntityRef(), RemoveReason.REMOVE);
     }
 
-    private void processDamage(EnsnareComponent ensnare, CommandBuffer<EntityStore> buffer) {
+    private void processDamage(EnsnareComponent ensnare, HexStatus<NoState> status,
+            ConstructTickContext ctx) {
+        CommandBuffer<EntityStore> buffer = ctx.getBuffer();
         Vector3d center = ensnare.getCenter();
         double radius = ensnare.getRadius() + 1.0;
         Vector3d min = new Vector3d(center.x - radius, center.y - 3, center.z - radius);
@@ -81,7 +90,17 @@ public class EnsnareConstructHandler implements ConstructHandler<NoState> {
             applyDamage(buffer, targetRef, ensnare.getSpikeDamage());
             ensnare.recordDamage(targetId);
             EnsnareStyle.renderSpikeDamage(nearestSpike.getPosition(), buffer);
+
+            fireOnHit(status, targetRef, targetId);
         }
+    }
+
+    private void fireOnHit(HexStatus<NoState> status, Ref<EntityStore> targetRef, UUID targetId) {
+        Glyph triggering = status.getTriggeringGlyph();
+        if (triggering == null) return;
+        HexContext hc = status.getHexContext();
+        triggering.writeDefaultOutput(new EntityVar(targetId, targetRef), hc);
+        HexExecuter.continueExecution(triggering.getNextLinks(), hc);
     }
 
     private SpikeEntry findNearestSpike(Vector3d entityPos, List<SpikeEntry> spikes) {

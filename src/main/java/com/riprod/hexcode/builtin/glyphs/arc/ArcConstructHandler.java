@@ -6,20 +6,19 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import com.hypixel.hytale.component.AddReason;
-import com.hypixel.hytale.component.Holder;
+import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
+import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.builtin.glyphs.arc.component.ArcComponent;
 import com.riprod.hexcode.builtin.glyphs.arc.style.ArcStyle;
 import com.riprod.hexcode.builtin.glyphs.arc.utils.ArcUtils;
 import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
 import com.riprod.hexcode.core.common.construct.component.HexStatus;
-import com.riprod.hexcode.core.common.construct.state.NoState;
 import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
 import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
@@ -30,159 +29,139 @@ import com.riprod.hexcode.core.state.execution.component.HexColors;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 
-public class ArcConstructHandler implements ConstructHandler<NoState> {
+public class ArcConstructHandler implements ConstructHandler<ArcState> {
 
     private static final float DEFAULT_JUMP_RANGE = 15.0f;
     private static final float SHOCK_OVERLAP = 0.25f;
+    private static final String SHOCK_EFFECT_ID = "Hexcode_Shock";
 
     @Override
-    public boolean onTick(float dt, HexStatus<NoState> status, ConstructTickContext ctx) {
-        ArcComponent arc = ctx.getChunk().getComponent(
-                ctx.getIndex(), ArcComponent.getComponentType());
-        if (arc == null)
-            return true;
-
-        if (!arc.hasFired()) {
-            return fireAndPrepareHop(arc, status, ctx);
-        }
-
-        float timer = status.incrementElapsedTime(dt);
-        if (timer < arc.getDelay())
-            return false;
-
-        return hop(arc, status, ctx);
+    public void onFirstTick(HexStatus<ArcState> status, ConstructTickContext ctx) {
+        // shock the entity we just struck for the hop delay + overlap
+        ArcState state = status.getState();
+        if (state == null) return;
+        ArcUtils.applyShockEffect(ctx.getBuffer(), ctx.getEntityRef(), state.getDelay() + SHOCK_OVERLAP);
     }
 
     @Override
-    public void onCleanup(HexStatus<NoState> status, ConstructTickContext ctx) {
-        ArcComponent arc = ctx.getBuffer().getComponent(
-                ctx.getEntityRef(), ArcComponent.getComponentType());
-        if (arc != null && arc.isNaturalCompletion())
-            return;
+    public boolean onTick(float dt, HexStatus<ArcState> status, ConstructTickContext ctx) {
+        ArcState state = status.getState();
+        if (state == null) return true;
 
-        TransformComponent tc = ctx.getBuffer().getComponent(
-                ctx.getEntityRef(), TransformComponent.getComponentType());
-        if (tc != null) {
-            ArcStyle.renderFizzle(ctx.getBuffer(), tc.getPosition(),
-                    status.getHexContext().getColors());
+        if (!state.hasFired()) {
+            return fireCurrentBranch(state, status, ctx);
+        }
+
+        state.tick(dt);
+        if (state.getElapsedSeconds() < state.getDelay()) return false;
+
+        return hopToNext(state, status, ctx);
+    }
+
+    @Override
+    public void onCleanup(HexStatus<ArcState> status, ConstructTickContext ctx) {
+        // strip the shock effect off the target we were attached to
+        Ref<EntityStore> target = ctx.getEntityRef();
+        if (target != null && target.isValid()) {
+            EffectControllerComponent controller = ctx.getBuffer().getComponent(
+                    target, EffectControllerComponent.getComponentType());
+            if (controller != null) {
+                int effectIndex = EntityEffect.getAssetMap().getIndex(SHOCK_EFFECT_ID);
+                if (effectIndex != Integer.MIN_VALUE) {
+                    controller.removeEffect(target, effectIndex, ctx.getBuffer());
+                }
+            }
         }
     }
 
-    private boolean fireAndPrepareHop(ArcComponent arc, HexStatus<NoState> status,
+    private boolean fireCurrentBranch(ArcState state, HexStatus<ArcState> status,
             ConstructTickContext ctx) {
-        String branch = arc.getCurrentBranch();
-        if (branch == null) {
-            arc.setNaturalCompletion(true);
-            return true;
-        }
+        String branch = state.getCurrentBranch();
+        if (branch == null) return true;
 
         HexContext hexContext = status.getHexContext();
-        if (!tryConsumePerHopVolatility(arc, hexContext, ctx)) {
-            return true;
-        }
+        if (!tryConsumePerHopVolatility(state, hexContext)) return true;
 
-        final Ref<EntityStore> targetRef = arc.getCurrentTargetRef();
-        final UUID targetUuid = arc.getCurrentTargetUuid();
-        final Glyph triggeringGlyph = status.getTriggeringGlyph();
+        Ref<EntityStore> targetRef = ctx.getEntityRef();
+        UUIDComponent targetUuid = ctx.getBuffer().getComponent(
+                targetRef, UUIDComponent.getComponentType());
+        Glyph triggeringGlyph = status.getTriggeringGlyph();
 
         if (targetRef != null && targetRef.isValid() && targetUuid != null
                 && triggeringGlyph != null) {
             triggeringGlyph.writeOutput(
-                    new EntityVar(targetUuid, targetRef), hexContext);
+                    new EntityVar(targetUuid.getUuid(), targetRef), hexContext);
         }
 
         HexExecuter.continueExecution(List.of(branch), hexContext);
 
-        arc.advanceBranch();
-        arc.setHasFired(true);
-        arc.resetTimer();
+        state.advanceBranch();
+        state.setHasFired(true);
+        state.resetTimer();
 
-        if (!arc.hasMoreBranches()) {
-            arc.setNaturalCompletion(true);
-            return true;
-        }
-
-        return false;
+        // no more branches means no more hops — let volatility or expiry finish it
+        return !state.hasMoreBranches();
     }
 
-    private boolean tryConsumePerHopVolatility(ArcComponent arc, HexContext hexContext,
-            ConstructTickContext ctx) {
-        Glyph arcGlyph = arc.getArcGlyph();
-        if (arcGlyph == null)
-            return true;
+    private boolean tryConsumePerHopVolatility(ArcState state, HexContext hexContext) {
+        Glyph arcGlyph = state.getArcGlyph();
+        if (arcGlyph == null) return true;
 
         GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(arcGlyph.getGlyphId());
-        if (asset == null)
-            return true;
+        if (asset == null) return true;
 
         float baseCost = asset.getVolatilityCost() * arcGlyph.getVolatility();
 
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
-        if (tracker == null) {
-            return false;
-        }
+        if (tracker == null) return false;
 
         float glyphUsage = tracker.getGlyphUsageScaled(arcGlyph.getId());
-
-        float rangeScale = arc.getMaxJumpDistance() / DEFAULT_JUMP_RANGE;
+        float rangeScale = state.getMaxJumpDistance() / DEFAULT_JUMP_RANGE;
         float finalCost = baseCost * glyphUsage * rangeScale;
 
-        if (hexContext.getRoot() == null)
-            return true;
+        if (hexContext.getRoot() == null) return true;
         return tracker.consumeVolatility(finalCost);
     }
 
-    private boolean hop(ArcComponent arc, HexStatus<NoState> status, ConstructTickContext ctx) {
-        TransformComponent tc = ctx.getBuffer().getComponent(
-                ctx.getEntityRef(), TransformComponent.getComponentType());
-        if (tc == null)
-            return true;
+    private boolean hopToNext(ArcState state, HexStatus<ArcState> status, ConstructTickContext ctx) {
+        CommandBuffer<EntityStore> buffer = ctx.getBuffer();
+        Ref<EntityStore> currentRef = ctx.getEntityRef();
 
-        Vector3d fromPos = tc.getPosition();
+        TransformComponent fromTc = buffer.getComponent(
+                currentRef, TransformComponent.getComponentType());
+        if (fromTc == null) return true;
+
+        Vector3d fromPos = fromTc.getPosition();
         HexContext hexContext = status.getHexContext();
 
         Ref<EntityStore> nextTarget = ArcUtils.getNextArcTarget(
-                fromPos, arc.getMaxJumpDistance(), arc.getVisitedEntities(), ctx.getBuffer());
+                fromPos, state.getMaxJumpDistance(), state.getVisited(), buffer);
+        if (nextTarget == null) return true;
 
-        if (nextTarget == null)
-            return true;
+        UUIDComponent nextUuid = buffer.getComponent(nextTarget, UUIDComponent.getComponentType());
+        Set<UUID> nextVisited = new HashSet<>(state.getVisited());
+        if (nextUuid != null) nextVisited.add(nextUuid.getUuid());
 
-        UUIDComponent nextUuid = ctx.getBuffer().getComponent(nextTarget, UUIDComponent.getComponentType());
-        if (nextUuid != null) {
-            arc.getVisitedEntities().add(nextUuid.getUuid());
-        }
-
-        TransformComponent nextTc = ctx.getBuffer().getComponent(nextTarget, TransformComponent.getComponentType());
+        TransformComponent nextTc = buffer.getComponent(nextTarget, TransformComponent.getComponentType());
         Vector3d nextPos = nextTc != null ? nextTc.getPosition() : fromPos;
 
         HexColors colors = hexContext.getColors();
-        World world = ctx.getBuffer().getExternalData().getWorld();
-        ArcStyle.renderArc(ctx.getBuffer(), world, fromPos, nextPos, colors);
-        ArcUtils.applyShockEffect(ctx.getBuffer(), nextTarget, arc.getDelay() + SHOCK_OVERLAP);
-        ArcStyle.renderHit(ctx.getBuffer(), nextPos, colors);
+        World world = buffer.getExternalData().getWorld();
+        ArcStyle.renderArc(buffer, world, fromPos, nextPos, colors);
+        ArcStyle.renderHit(buffer, nextPos, colors);
 
-        List<String> remainingBranches = new ArrayList<>(
-                arc.getBranches().subList(arc.getBranchIndex(), arc.getBranches().size()));
+        // hand remaining branches to the next target
+        List<String> remaining = new ArrayList<>(
+                state.getBranches().subList(state.getBranchIndex(), state.getBranches().size()));
 
-        Set<UUID> visited = new HashSet<>(arc.getVisitedEntities());
+        ArcState nextState = new ArcState(state.getArcGlyph(), remaining, nextVisited,
+                state.getMaxJumpDistance(), state.getDelay());
 
-        Holder<EntityStore> holder = HexConstructSpawner.create(
-                ctx.getBuffer(), hexContext, status.getTriggeringGlyph(),
-                ArcGlyph.ID,
-                nextPos);
+        HexConstructSpawner.applyWithState(
+                buffer, nextTarget, hexContext, status.getTriggeringGlyph(),
+                ArcGlyph.ID, nextState);
 
-        ArcComponent nextHop = new ArcComponent(
-                arc.getArcGlyph(), remainingBranches, visited,
-                arc.getMaxJumpDistance(), arc.getDelay(),
-                nextTarget, nextUuid != null ? nextUuid.getUuid() : null);
-        holder.addComponent(ArcComponent.getComponentType(), nextHop);
-
-        Ref<EntityStore> newRef = ctx.getBuffer().addEntity(holder, AddReason.SPAWN);
-
-        status.getHexContext().getRoot().addDependency(hexContext, newRef);
-        
-
-        arc.setNaturalCompletion(true);
+        // this status ends — onCleanup will strip shock from the previous target
         return true;
     }
 }

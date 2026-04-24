@@ -6,10 +6,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.CommandBuffer;
-import com.hypixel.hytale.component.CommandBuffer;
-import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
@@ -17,7 +14,6 @@ import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.builtin.glyphs.arc.component.ArcComponent;
 import com.riprod.hexcode.builtin.glyphs.arc.style.ArcStyle;
 import com.riprod.hexcode.builtin.glyphs.arc.utils.ArcUtils;
 import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
@@ -36,7 +32,7 @@ public class ArcGlyph implements GlyphHandler {
     @Override
     public String getId() {
         return ID;
-    };
+    }
 
     public static final String ID = "Arc";
 
@@ -76,13 +72,11 @@ public class ArcGlyph implements GlyphHandler {
         Set<UUID> visited = new HashSet<>();
         UUIDComponent casterUuid = accessor.getComponent(
                 hexContext.getCasterRef(), UUIDComponent.getComponentType());
-        if (casterUuid != null)
-            visited.add(casterUuid.getUuid());
+        if (casterUuid != null) visited.add(casterUuid.getUuid());
 
         UUIDComponent originUuid = accessor.getComponent(
                 originRef, UUIDComponent.getComponentType());
-        if (originUuid != null)
-            visited.add(originUuid.getUuid());
+        if (originUuid != null) visited.add(originUuid.getUuid());
 
         TransformComponent originTc = accessor.getComponent(
                 originRef, TransformComponent.getComponentType());
@@ -94,8 +88,7 @@ public class ArcGlyph implements GlyphHandler {
         Vector3d originPos = originTc.getPosition();
 
         Ref<EntityStore> firstJump = ArcUtils.getNextArcTarget(
-                originPos, (float) maxJump, visited,
-                hexContext.getCasterRef(), accessor);
+                originPos, (float) maxJump, visited, accessor);
         if (firstJump == null) {
             LOGGER.atInfo().log("arc: no nearby entity within %.1f to jump to, fizzling", maxJump);
             ArcStyle.renderFizzle(accessor, originPos, colors);
@@ -105,8 +98,7 @@ public class ArcGlyph implements GlyphHandler {
 
         UUIDComponent firstJumpUuid = accessor.getComponent(
                 firstJump, UUIDComponent.getComponentType());
-        if (firstJumpUuid != null)
-            visited.add(firstJumpUuid.getUuid());
+        if (firstJumpUuid != null) visited.add(firstJumpUuid.getUuid());
 
         TransformComponent firstJumpTc = accessor.getComponent(
                 firstJump, TransformComponent.getComponentType());
@@ -114,23 +106,15 @@ public class ArcGlyph implements GlyphHandler {
 
         World world = accessor.getExternalData().getWorld();
         ArcStyle.renderArc(accessor, world, originPos, firstJumpPos, colors);
-        ArcUtils.applyShockEffect(accessor, firstJump, (float) (delay + 0.25));
         ArcStyle.renderHit(accessor, firstJumpPos, colors);
 
-        Holder<EntityStore> holder = HexConstructSpawner.create(
-                accessor, hexContext, glyph, ArcGlyph.ID, firstJumpPos);
+        ArcState state = new ArcState(glyph, new ArrayList<>(branches), visited,
+                (float) maxJump, (float) delay);
 
-        ArcComponent arcComponent = new ArcComponent(
-                glyph, new ArrayList<>(branches), visited,
-                (float) maxJump, (float) delay,
-                firstJump, firstJumpUuid != null ? firstJumpUuid.getUuid() : null);
-        holder.addComponent(ArcComponent.getComponentType(), arcComponent);
+        HexConstructSpawner.applyWithState(
+                accessor, firstJump, hexContext, glyph, ArcGlyph.ID, state);
 
-        Ref<EntityStore> constructRef = accessor.addEntity(holder, AddReason.SPAWN);
-
-        hexContext.getRoot().addDependency(hexContext, constructRef);
-
-        LOGGER.atInfo().log("arc: spawned construct, %d branches, first jump uuid=%s",
+        LOGGER.atInfo().log("arc: applied to first-jump target (%d branches), uuid=%s",
                 branches.size(), firstJumpUuid != null ? firstJumpUuid.getUuid() : "null");
     }
 }

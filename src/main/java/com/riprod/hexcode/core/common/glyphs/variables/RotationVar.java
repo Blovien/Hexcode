@@ -69,8 +69,8 @@ public class RotationVar extends HexVar {
     public static final BuilderCodec<RotationVar> CODEC = BuilderCodec
             .builder(RotationVar.class, RotationVar::new, HexVar.BASE_CODEC)
             .append(new KeyedCodec<>("Rotation", com.hypixel.hytale.math.vector.Vector3f.CODEC),
-                    (v, rot) -> v.rotation = new Vector3f(rot.x, rot.y, rot.z),
-                    v -> new com.hypixel.hytale.math.vector.Vector3f(v.rotation.x, v.rotation.y, v.rotation.z))
+                    (v, rot) -> v.rotation = rot,
+                    v -> v.rotation)
             .add()
             .build();
 

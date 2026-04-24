@@ -133,13 +133,13 @@ public static final String ID = "Fortify";
         } else {
             GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
             VolatilityTracker tracker = hexContext.getVolatilityTracker();
-            float castMultiplier = (tracker != null) ? tracker.getManaMultiplier() : 1.0f;
+            float castMultiplier = (tracker != null) ? tracker.getMagicPowerMultiplier() : 1.0f;
             float baseCost = ((asset != null) ? asset.getManaConsumption() : 1.0f)
                     * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
 
             float manaCost = baseCost * castMultiplier * damageReduction;
             accessor.addComponent(ref, FortifyComponent.getComponentType(),
-                    new FortifyComponent(damageReduction, durationSeconds, hexContext.clone(), manaCost));
+                    new FortifyComponent(damageReduction, durationSeconds, hexContext.copy(), manaCost));
         }
 
         EffectControllerComponent controller = accessor.getComponent(

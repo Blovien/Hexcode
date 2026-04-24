@@ -12,6 +12,13 @@ import com.riprod.hexcode.core.state.execution.component.HexcasterExecutionCompo
 
 public class IsHoldingValue implements GlyphHandler {
 
+    public static final String ID = "IsHolding";
+
+    @Override
+    public String getId() {
+        return ID;
+    }
+
     @Override
     public HexVar readValue(Glyph glyph, HexContext hexContext) {
         Ref<EntityStore> casterRef = hexContext.getCasterRef();

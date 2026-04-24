@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.entity.knockback.KnockbackComponent;
@@ -92,6 +93,7 @@ public class GlaciateConstructHandler implements ConstructHandler<NoState> {
             GlaciateStyle.renderMelt(transform.getPosition(),
                     status.getHexContext().getColors(), ctx.getBuffer());
         }
+        ctx.getBuffer().tryRemoveEntity(ctx.getEntityRef(), RemoveReason.REMOVE);
     }
 
     private void applyDamage(Ref<EntityStore> targetRef, float amount, ConstructTickContext ctx) {
