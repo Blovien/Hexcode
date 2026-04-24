@@ -1,0 +1,9 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "Hexstaff_Sparks_Heavy"
+    }
+  ],
+  "LifeSpan": 999,
+  "CullDistance": 50
+}

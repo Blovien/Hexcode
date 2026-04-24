@@ -19,8 +19,9 @@ public class SeekerObelisk implements ObeliskInterface {
         HoverableComponent hoverable = buffer.getComponent(hoveredRef, HoverableComponent.getComponentType());
         if (hoverable == null) return;
 
-        String hintText = hoverable.getHintText();
-        if (hintText == null || hintText.isEmpty()) return;
+        String hintTextTitle = hoverable.getHintText("title");
+        String hintTextDescription = hoverable.getHintText("description");
+        if ((hintTextTitle == null || hintTextTitle.isEmpty()) && (hintTextDescription == null || hintTextDescription.isEmpty())) return;
 
         PlayerRef ref = buffer.getComponent(playerRef, PlayerRef.getComponentType());
         if (ref == null) return;
@@ -28,7 +29,7 @@ public class SeekerObelisk implements ObeliskInterface {
         Player player = buffer.getComponent(playerRef, Player.getComponentType());
         if (player == null) return;
 
-        player.getHudManager().setCustomHud(ref, new GlyphInfoHud(ref, hintText));
+        player.getHudManager().setCustomHud(ref, new GlyphInfoHud(ref, hintTextTitle, hintTextDescription));
     }
 
     public void onUnhover(CommandBuffer<EntityStore> buffer, Ref<EntityStore> playerRef,

@@ -1,5 +1,6 @@
 package com.riprod.hexcode.utils;
 
+import com.hypixel.hytale.builtin.mounts.MountedByComponent;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
@@ -22,6 +23,21 @@ public class CleanupUtils {
     public static void safeRemoveEntities(CommandBuffer<EntityStore> buffer, Iterable<Ref<EntityStore>> entityRefs) {
         for (Ref<EntityStore> ref : entityRefs) {
             safeRemoveEntity(buffer, ref);
+        }
+    }
+
+    public static void safeRemoveConstruct(CommandBuffer<EntityStore> buffer, Ref<EntityStore> constructRef) {
+        if (constructRef == null || !constructRef.isValid()) return;
+        try {
+            MountedByComponent ridden = buffer.getComponent(constructRef, MountedByComponent.getComponentType());
+            if (ridden != null) {
+                for (Ref<EntityStore> passenger : ridden.getPassengers()) {
+                    safeRemoveEntity(buffer, passenger);
+                }
+            }
+            buffer.tryRemoveEntity(constructRef, RemoveReason.REMOVE);
+        } catch (Exception e) {
+            LOGGER.atWarning().log("Error occurred while removing construct", e);
         }
     }
 }

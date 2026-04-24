@@ -1,0 +1,60 @@
+{
+  "Parent": "Template_HexStaff",
+  "TranslationProperties": {
+    "Name": "hexcode.items.hexstaff.basic.crude.name",
+    "Description": "hexcode.items.hexstaff.basic.crude.description"
+  },
+  "Categories": [
+    "Hexcode.Staves",
+    "Items.Weapons"
+  ],
+  "Quality": "Common",
+  "ItemLevel": 40,
+  "Model": "Items/Weapons/Staff/Bo_Wood.blockymodel",
+  "Texture": "Items/Weapons/Staff/Bo_Wood_Texture.png",
+  "IconProperties": {
+    "Scale": 0.28,
+    "Translation": [
+      -54,
+      -54
+    ],
+    "Rotation": [
+      45,
+      90,
+      0
+    ]
+  },
+  "Icon": "Icons/ItemsGenerated/Weapon_Staff_Bo_Wood.png",
+  "DroppedItemAnimation": "Items/Animations/Dropped/Dropped_Diagonal_Left.blockyanim",
+  "Tags": {
+    "Type": [
+      "Weapon"
+    ],
+    "Family": [
+      "Staff"
+    ]
+  },
+  "Weapon": {
+    "StatModifiers": {
+      "Volatility": [
+        {
+          "Target": "Max",
+          "CalculationType": "Additive",
+          "Amount": 2
+        }
+      ],
+      "MagicCharges": [
+        {
+          "CalculationType": "Additive",
+          "Amount": 1
+        }
+      ]
+    },
+    "EntityStatsToClear": [
+      "Magic_Power",
+      "MagicCharges",
+      "Volatility"
+    ]
+  },
+  "ItemSoundSetId": "ISS_Weapons_Wood"
+}

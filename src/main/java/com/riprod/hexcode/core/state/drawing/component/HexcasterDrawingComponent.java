@@ -6,10 +6,13 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.utils.CleanupUtils;
+
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 
 
@@ -95,6 +98,14 @@ public class HexcasterDrawingComponent implements Component<EntityStore> {
 
     public void setDrawStartTimeMillis(long drawStartTimeMillis) {
         this.drawStartTimeMillis = drawStartTimeMillis;
+    }
+
+    public void clear(CommandBuffer<EntityStore> buffer) {
+        clearDrawingState();
+        if (trailRef != null) {
+            CleanupUtils.safeRemoveEntity(buffer, trailRef);
+            trailRef = null;
+        }
     }
 
     @Nonnull

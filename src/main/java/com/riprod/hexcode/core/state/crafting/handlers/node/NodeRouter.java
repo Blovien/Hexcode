@@ -1,41 +1,45 @@
 package com.riprod.hexcode.core.state.crafting.handlers.node;
 
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
-import com.riprod.hexcode.core.state.crafting.constants.NodeType;
+import com.riprod.hexcode.core.state.crafting.constants.NodeTypeId;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Anchor.AnchorNodeHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Container.ContainerNodeHandler;
-import com.riprod.hexcode.core.state.crafting.handlers.node.Effect.EffectNodeHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Glyph.GlyphNodeHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Slot.SlotNodeHandler;
 import com.riprod.hexcode.utils.VfxUtil;
 
 public class NodeRouter {
 
-    private static final EnumMap<NodeType, NodeInterface> HANDLERS = new EnumMap<>(NodeType.class);
+    private static final Map<String, NodeInterface> HANDLERS = new HashMap<>();
+
     static {
-        HANDLERS.put(NodeType.Anchor, AnchorNodeHandler.INSTANCE);
-        HANDLERS.put(NodeType.Container, ContainerNodeHandler.INSTANCE);
-        HANDLERS.put(NodeType.Effect, EffectNodeHandler.INSTANCE);
-        HANDLERS.put(NodeType.Glyph, GlyphNodeHandler.INSTANCE);
-        HANDLERS.put(NodeType.Slot, SlotNodeHandler.INSTANCE);
+        register(NodeTypeId.ANCHOR, AnchorNodeHandler.INSTANCE);
+        register(NodeTypeId.CONTAINER, ContainerNodeHandler.INSTANCE);
+        register(NodeTypeId.GLYPH, GlyphNodeHandler.INSTANCE);
+        register(NodeTypeId.SLOT_STANDARD, SlotNodeHandler.INSTANCE);
     }
 
-    public static NodeInterface getHandler(NodeType type) {
-        return HANDLERS.get(type);
+    public static void register(NodeTypeId id, NodeInterface handler) {
+        HANDLERS.put(id.value(), handler);
+    }
+
+    public static NodeInterface get(NodeTypeId id) {
+        return HANDLERS.get(id.value());
     }
 
     public static InteractionState enter(CommandBuffer<EntityStore> accessor,
             Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
-        NodeInterface handler = getHandler(accessor, nodeRef);
+        NodeInterface handler = resolve(accessor, nodeRef);
         if (handler == null)
             return InteractionState.Failed;
         InteractionState result = handler.enter(accessor, nodeRef, playerRef);
@@ -47,7 +51,7 @@ public class NodeRouter {
 
     public static InteractionState click(CommandBuffer<EntityStore> accessor,
             Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
-        NodeInterface handler = getHandler(accessor, nodeRef);
+        NodeInterface handler = resolve(accessor, nodeRef);
         if (handler == null)
             return InteractionState.Failed;
         InteractionState result = handler.click(accessor, nodeRef, playerRef);
@@ -59,7 +63,7 @@ public class NodeRouter {
 
     public static InteractionState drag(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
             Ref<EntityStore> playerRef) {
-        NodeInterface handler = getHandler(accessor, nodeRef);
+        NodeInterface handler = resolve(accessor, nodeRef);
         if (handler == null)
             return InteractionState.Failed;
         return handler.tick(accessor, nodeRef, playerRef);
@@ -67,7 +71,7 @@ public class NodeRouter {
 
     public static InteractionState exit(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
             Ref<EntityStore> playerRef) {
-        NodeInterface handler = getHandler(accessor, nodeRef);
+        NodeInterface handler = resolve(accessor, nodeRef);
         if (handler == null)
             return InteractionState.Failed;
 
@@ -101,7 +105,7 @@ public class NodeRouter {
 
     public static InteractionState ability(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
             InteractionType inputType, Ref<EntityStore> playerRef) {
-        NodeInterface handler = getHandler(accessor, nodeRef);
+        NodeInterface handler = resolve(accessor, nodeRef);
         if (handler == null)
             return InteractionState.Failed;
 
@@ -129,7 +133,7 @@ public class NodeRouter {
 
     public static void hover(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
             Ref<EntityStore> playerRef) {
-        NodeInterface handler = getHandler(accessor, nodeRef);
+        NodeInterface handler = resolve(accessor, nodeRef);
         if (handler == null)
             return;
         handler.hover(accessor, nodeRef, playerRef);
@@ -138,18 +142,20 @@ public class NodeRouter {
 
     public static void unhover(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
             Ref<EntityStore> playerRef) {
-        NodeInterface handler = getHandler(accessor, nodeRef);
+        NodeInterface handler = resolve(accessor, nodeRef);
         if (handler == null)
             return;
         handler.unhover(accessor, nodeRef, playerRef);
     }
 
-    private static NodeInterface getHandler(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef) {
+    private static NodeInterface resolve(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef) {
         NodeComponent nodeComp = accessor.getComponent(nodeRef, NodeComponent.getComponentType());
         if (nodeComp == null)
             return null;
-        NodeInterface handler = HANDLERS.get(nodeComp.getNodeType());
-        return handler;
+        NodeTypeId id = nodeComp.getNodeType();
+        if (id == null)
+            return null;
+        return HANDLERS.get(id.value());
     }
 
     private static void playSound(String soundId, CommandBuffer<EntityStore> accessor,

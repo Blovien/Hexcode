@@ -1,0 +1,23 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Number 14",
+  "Description": "Provides the constant value 14",
+  "ModelPath": "Number_14",
+  "ShapeStructure": [
+    {
+      "ShapeId": "Less",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Line",
+      "Size": 1.0
+    }
+  ],
+  "Slots": {
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain"
+    }
+  }
+}

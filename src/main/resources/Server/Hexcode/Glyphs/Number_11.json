@@ -1,0 +1,23 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Number 11",
+  "Description": "Provides the constant value 11",
+  "ModelPath": "Number_11",
+  "ShapeStructure": [
+    {
+      "ShapeId": "Down",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Triangle",
+      "Size": 1.0
+    }
+  ],
+  "Slots": {
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain"
+    }
+  }
+}

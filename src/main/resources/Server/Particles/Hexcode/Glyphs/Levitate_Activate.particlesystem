@@ -1,10 +1,12 @@
 {
   "Spawners": [
     { "SpawnerId": "Levitate_Flash", "PositionOffset": { "Y": 0 }, "StartDelay": 0 },
-    { "SpawnerId": "Levitate_Updraft", "PositionOffset": { "Y": -0.5 }, "StartDelay": 0.02 }
+    { "SpawnerId": "Levitate_Updraft", "PositionOffset": { "Y": -0.5 }, "StartDelay": 0.02 },
+    { "SpawnerId": "Levitate_Sparks", "PositionOffset": { "Y": -0.3 }, "StartDelay": 0.03 },
+    { "SpawnerId": "Levitate_Dust", "PositionOffset": { "Y": -0.5 }, "StartDelay": 0.05 }
   ],
-  "LifeSpan": 1.0,
+  "LifeSpan": 1.5,
   "CullDistance": 100,
-  "BoundingRadius": 5.0,
+  "BoundingRadius": 10.0,
   "IsImportant": true
 }

@@ -6,10 +6,8 @@ import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.common.hexes.component.Hex;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 public class HexStaffComponent implements Component<EntityStore> {
 
@@ -19,17 +17,9 @@ public class HexStaffComponent implements Component<EntityStore> {
                     (c, v) -> c.styleId = v,
                     c -> c.styleId)
             .add()
-            .append(new KeyedCodec<>("Hex", Hex.CODEC),
-                    (c, v) -> c.hex = v,
-                    c -> c.hex)
-            .add()
-            .append(new KeyedCodec<>("CastCount", Codec.INTEGER),
-                    (c, v) -> c.castCount = v,
-                    c -> c.castCount)
-            .add()
-            .append(new KeyedCodec<>("StaffModifier", Codec.FLOAT),
-                    (c, v) -> c.staffModifier = v,
-                    c -> c.staffModifier)
+            .append(new KeyedCodec<>("CastDecayRate", Codec.FLOAT),
+                    (c, v) -> c.castDecayRate = v,
+                    c -> c.castDecayRate)
             .add()
             .build();
 
@@ -37,17 +27,14 @@ public class HexStaffComponent implements Component<EntityStore> {
 
     @Nonnull
     private String styleId = "ring";
-    @Nullable
-    private Hex hex;
-    private int castCount = 0;
-    private float staffModifier = 1.0f;
+    private float castDecayRate = 0.05f;
 
     public HexStaffComponent() {
     }
 
     public HexStaffComponent(@Nonnull HexStaffAsset staffAsset) {
         this.styleId = staffAsset.getCastStyleId();
-        this.staffModifier = staffAsset.getStaffModifier();
+        this.castDecayRate = staffAsset.getCastDecayRate();
     }
 
     public static void setComponentType(ComponentType<EntityStore, HexStaffComponent> type) {
@@ -67,29 +54,8 @@ public class HexStaffComponent implements Component<EntityStore> {
         this.styleId = styleId;
     }
 
-    @Nullable
-    public Hex getActiveHex() {
-        return hex;
-    }
-
-    public void setActiveHex(@Nullable Hex hex) {
-        this.hex = hex;
-    }
-
-    public boolean hasActiveHex() {
-        return hex != null;
-    }
-
-    public int getCastCount() {
-        return castCount;
-    }
-
-    public void incrementCastCount() {
-        this.castCount++;
-    }
-
-    public float getStaffModifier() {
-        return staffModifier;
+    public float getCastDecayRate() {
+        return castDecayRate;
     }
 
     @Nonnull
@@ -97,9 +63,7 @@ public class HexStaffComponent implements Component<EntityStore> {
     public HexStaffComponent clone() {
         HexStaffComponent copy = new HexStaffComponent();
         copy.styleId = this.styleId;
-        copy.hex = this.hex != null ? this.hex.clone() : null;
-        copy.castCount = this.castCount;
-        copy.staffModifier = this.staffModifier;
+        copy.castDecayRate = this.castDecayRate;
         return copy;
     }
 }

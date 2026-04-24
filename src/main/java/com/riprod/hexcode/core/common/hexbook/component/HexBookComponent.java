@@ -4,15 +4,21 @@ import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.codec.codecs.array.ArrayCodec;
+import com.hypixel.hytale.codec.codecs.map.MapCodec;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
+import com.hypixel.hytale.protocol.Color;
+import com.hypixel.hytale.server.core.codec.ProtocolCodecs;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class HexBookComponent implements Component<EntityStore> {
 
@@ -36,6 +42,14 @@ public class HexBookComponent implements Component<EntityStore> {
                     (c, v) -> c.bookId = v,
                     c -> c.bookId)
             .add()
+            .append(new KeyedCodec<>("HexNames", new MapCodec<>(Codec.STRING, HashMap::new, false)),
+                    (c, v) -> { if (v != null) c.hexNames = new HashMap<>(v); },
+                    c -> c.hexNames)
+            .add()
+            .append(new KeyedCodec<>("HexColors", new MapCodec<>(ProtocolCodecs.COLOR, HashMap::new, false)),
+                    (c, v) -> { if (v != null) c.hexColors = new HashMap<>(v); },
+                    c -> c.hexColors)
+            .add()
             .build();
 
     private static ComponentType<EntityStore, HexBookComponent> componentType;
@@ -45,6 +59,10 @@ public class HexBookComponent implements Component<EntityStore> {
     private int maxCapacity = 10;
     @Nonnull
     private String bookId = "";
+    @Nonnull
+    private Map<String, String> hexNames = new HashMap<>();
+    @Nonnull
+    private Map<String, Color> hexColors = new HashMap<>();
 
     public HexBookComponent() {
     }
@@ -100,6 +118,24 @@ public class HexBookComponent implements Component<EntityStore> {
         return hexes;
     }
 
+    @Nullable
+    public String getHexName(String hexId) {
+        return hexNames.get(hexId);
+    }
+
+    public void setHexName(String hexId, String name) {
+        hexNames.put(hexId, name);
+    }
+
+    @Nullable
+    public Color getHexColor(String hexId) {
+        return hexColors.get(hexId);
+    }
+
+    public void setHexColor(String hexId, Color color) {
+        hexColors.put(hexId, color);
+    }
+
     @Nonnull
     @Override
     public HexBookComponent clone() {
@@ -107,6 +143,8 @@ public class HexBookComponent implements Component<EntityStore> {
         copy.hexes = new ArrayList<>(this.hexes);
         copy.maxCapacity = this.maxCapacity;
         copy.bookId = this.bookId;
+        copy.hexNames = new HashMap<>(this.hexNames);
+        copy.hexColors = new HashMap<>(this.hexColors);
         return copy;
     }
 }

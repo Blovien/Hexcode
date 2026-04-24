@@ -1,7 +1,5 @@
 package com.riprod.hexcode.utils;
 
-import java.util.List;
-
 import javax.annotation.Nullable;
 
 import com.hypixel.hytale.component.Ref;
@@ -66,7 +64,6 @@ public class BlockUtils {
             for (int dy = dist; dy >= -dist; dy--) {
                 for (int dx = -(dist - Math.abs(dy)); dx <= dist - Math.abs(dy); dx++) {
                     int dz = dist - Math.abs(dy) - Math.abs(dx);
-                    // check both +dz and -dz
                     for (int sz = (dz == 0 ? 0 : -1); sz <= 1; sz += 2) {
                         int cx = x + dx;
                         int cy = y + dy;
@@ -85,11 +82,9 @@ public class BlockUtils {
         return null;
     }
 
-    public static void moveToDestination(HexVar var, int index, Vector3d dest, World world, HexContext hexContext) {
-        if (index < 0 || index >= var.size()) return;
-
+    public static void moveToDestination(HexVar var, Vector3d dest, World world, HexContext hexContext) {
         if (var instanceof EntityVar entityVar) {
-            Ref<EntityStore> entityRef = entityVar.getRef(index, hexContext.getAccessor());
+            Ref<EntityStore> entityRef = entityVar.getRef(hexContext.getAccessor());
             if (entityRef == null || !entityRef.isValid()) return;
 
             TransformComponent tc = hexContext.getAccessor().getComponent(entityRef,
@@ -104,24 +99,24 @@ public class BlockUtils {
             } else {
                 tc.setPosition(new Vector3d(dest.getX(), dest.getY(), dest.getZ()));
             }
-        } else if (var instanceof BlockVar blockVar && blockVar.getAt(index) != null) {
-            moveBlock(blockVar.getAt(index), dest, world);
-        } else if (var instanceof PositionVar posVar && posVar.getAt(index) != null) {
+        } else if (var instanceof BlockVar blockVar && blockVar.getValue() != null) {
+            moveBlock(blockVar.getValue(), dest, world);
+        } else if (var instanceof PositionVar posVar && posVar.getValue() != null) {
             Vector3i sourceBlock = new Vector3i(
-                    (int) Math.floor(posVar.getAt(index).getX()),
-                    (int) Math.floor(posVar.getAt(index).getY()),
-                    (int) Math.floor(posVar.getAt(index).getZ()));
+                    (int) Math.floor(posVar.getValue().getX()),
+                    (int) Math.floor(posVar.getValue().getY()),
+                    (int) Math.floor(posVar.getValue().getZ()));
             moveBlock(sourceBlock, dest, world);
         }
     }
 
-    public static void swapPair(HexVar a, HexVar b, int index, World world, HexContext hexContext) {
-        Vector3d posA = SpellVarUtil.resolvePositionAt(a, index, hexContext.getAccessor());
-        Vector3d posB = SpellVarUtil.resolvePositionAt(b, index, hexContext.getAccessor());
+    public static void swapPair(HexVar a, HexVar b, World world, HexContext hexContext) {
+        Vector3d posA = SpellVarUtil.resolvePosition(a, hexContext.getAccessor());
+        Vector3d posB = SpellVarUtil.resolvePosition(b, hexContext.getAccessor());
 
         if (posA != null && posB != null) {
-            moveToDestination(a, index, posB, world, hexContext);
-            moveToDestination(b, index, posA, world, hexContext);
+            moveToDestination(a, posB, world, hexContext);
+            moveToDestination(b, posA, world, hexContext);
         }
     }
 }

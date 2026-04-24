@@ -1,0 +1,32 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Output",
+  "Description": "End-Glyph that allows predetermined dropping in crafting mode",
+  "ModelPath": "Output",
+  "BasePower": 0,
+  "ManaConsumption": 2,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Square",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Antitriangle",
+      "Size": 0.5
+    }
+  ],
+  "Slots": {
+    "color": {
+      "Style": "Input",
+      "Label": "Color",
+      "Description": "Number for grayscale (0-255) or PositionVar for RGB (x=R, y=G, z=B, 0-255 each)",
+      "Unique": true
+    },
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain"
+    }
+  },
+  "VolatilityCost": 1
+}

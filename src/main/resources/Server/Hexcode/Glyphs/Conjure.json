@@ -1,0 +1,63 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Conjure",
+  "Description": "Spawns a temporary area zone at a position",
+  "ModelPath": "Conjure",
+  "BasePower": 1.0,
+  "ManaConsumption": 15,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Square",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Triangle",
+      "Size": 0.8
+    }
+  ],
+  "Slots": {
+    "anchor": {
+      "Style": "Input",
+      "Label": "Anchor",
+      "Description": "Center position or entity for the zone",
+      "Unique": true
+    },
+    "coordsA": {
+      "Style": "Input",
+      "Label": "First Corner",
+      "Description": "First corner offset from anchor",
+      "Unique": true
+    },
+    "coordsB": {
+      "Style": "Input",
+      "Label": "Second Corner",
+      "Description": "Second corner offset from anchor",
+      "Unique": true
+    },
+    "duration": {
+      "Style": "Input",
+      "Label": "Duration",
+      "Description": "Duration of the conjured zone in seconds",
+      "DefaultValue": 5,
+      "Unique": true
+    },
+    "interval": {
+      "Style": "Input",
+      "Label": "Interval",
+      "Description": "Interval between executions, -1 for none",
+      "DefaultValue": -1,
+      "Unique": true
+    },
+    "immediate": {
+      "Style": "Next",
+      "Label": "Immediate",
+      "Description": "Fires immediately after the conjuration is created"
+    },
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "Executes on every entity in the area"
+    }
+  },
+  "VolatilityCost": 8
+}

@@ -1,7 +1,7 @@
 {
   "LifeSpan": 5.0,
   "CullDistance": 100.0,
-  "BoundingRadius": 3.0,
+  "BoundingRadius": 8.0,
   "IsImportant": true,
   "Spawners": [
     { "SpawnerId": "Ignite_Fire_Sparks_Up" },

@@ -4,7 +4,7 @@
   },
   "Icon": "Icons/ItemsGenerated/Hexcode_Obelisk.png",
   "Categories": [
-    "Blocks.Deco"
+    "Hexcode.Obelisks"
   ],
   "PlayerAnimationsId": "Block",
   "BlockType": {
@@ -31,7 +31,7 @@
       "Components": {
         "Hexcode_ObeliskBlock": {
           "Power": 10,
-          "HandlerId": "seeker"
+          "HandlerId": ""
         }
       }
     },

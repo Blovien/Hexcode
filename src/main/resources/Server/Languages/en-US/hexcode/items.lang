@@ -1,0 +1,36 @@
+Hex_Staff.name=Hex Staff
+Hex_Ice_Staff.name=Ice Hex Staff
+Hex_Astral_Staff.name=Astral Hex Staff
+Arcane_Hexstaff.name=Arcane Hex Staff
+
+Hex_Book.name=Hex Book
+Fire_Hexbook.name=Fire Hex Book
+Ice_Hexbook.name=Ice Hex Book
+Life_Hexbook.name=Life Hex Book
+Void_Hexbook.name=Void Hex Book
+Arcane_Hexbook.name=Arcane Hex Book
+
+hexstaff.basic.crude.name=Crude Hex Staff
+hexstaff.basic.crude.description=A knotted branch still weeping sap, bound with rawhide. Barely more than a dowsing rod -- but it hums.
+hexstaff.basic.bronze.name=Bronze Hex Staff
+hexstaff.basic.bronze.description=Cast in the first forges, its warmth smells of smoke and ambition.
+hexstaff.basic.copper.name=Copper Hex Staff
+hexstaff.basic.copper.description=Veined with patina. Lightning-hungry, conducts thought as readily as current.
+hexstaff.basic.iron.name=Iron Hex Staff
+hexstaff.basic.iron.description=Plain, honest, unremarkable. The apprentice's staff -- until it isn't.
+hexstaff.basic.thorium.name=Thorium Hex Staff
+hexstaff.basic.thorium.description=Green-cored and restless. Old apothecaries carved these from storm-fallen yew.
+hexstaff.basic.cobalt.name=Cobalt Hex Staff
+hexstaff.basic.cobalt.description=Cold to the touch even at noon. Deepwater stone drinks the sun.
+hexstaff.basic.adamantite.name=Adamantite Hex Staff
+hexstaff.basic.adamantite.description=Forged where the mountain bleeds. The haft remembers every oath sworn over it.
+hexstaff.basic.mithril.name=Mithril Hex Staff
+hexstaff.basic.mithril.description=Weighs less than thought. Elder-crafters tuned each rod to a single chord.
+hexstaff.basic.onyxium.name=Onyxium Hex Staff
+hexstaff.basic.onyxium.description=Carved from the hollow between stars. Whoever carries it is already partway gone.
+
+ingredient.essence.fire_concentrated=Greater Essence of Fire
+ingredient.essence.ice_concentrated=Greater Essence of Ice
+ingredient.essence.void_concentrated=Greater Essence of Void
+
+

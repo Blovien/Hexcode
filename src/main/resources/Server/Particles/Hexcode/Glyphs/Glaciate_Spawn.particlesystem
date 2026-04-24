@@ -1,10 +1,11 @@
 {
   "LifeSpan": 2.5,
   "CullDistance": 100,
-  "BoundingRadius": 3.0,
+  "BoundingRadius": 6.0,
   "IsImportant": true,
   "Spawners": [
     { "SpawnerId": "Glaciate_Snow" },
-    { "SpawnerId": "Glaciate_Dust", "StartDelay": 0.1 }
+    { "SpawnerId": "Glaciate_Dust", "StartDelay": 0.1 },
+    { "SpawnerId": "Glaciate_Mist", "StartDelay": 0.2 }
   ]
 }

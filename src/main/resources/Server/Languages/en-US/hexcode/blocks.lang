@@ -1,0 +1,20 @@
+Hexcode_Pedestal_Fire.name=Fire Pedestal
+Hexcode_Pedestal_Arcane.name=Arcane Pedestal
+Hexcode_Pedestal_Thorium.name=Thorium Pedestal
+Hexcode_Pedestal_Void.name=Void Pedestal
+
+Hexcode_Obelisk_Life.name=Life Obelisk
+Hexcode_Obelisk_Void.name=Void Obelisk
+Hexcode_Obelisk_Seeker.name=Seeker Obelisk
+Hexcode_Obelisk_Ice.name=Ice Obelisk
+Hexcode_Obelisk_Import_Export.name=Import/Export Obelisk
+
+pedestal.interact.idle=Press [{key}] to add HexBook
+pedestal.interact.ready=Press [{key}] to Activate Pedestals
+pedestal.interact.selecting=Press [{key}] to Exit. Click Glyph with Staff to select
+pedestal.interact.crafting=Press [{key}] to Exit
+
+ui.itemcategory.pedestals=Pedestals
+ui.itemcategory.obelisks=Obelisks
+ui.itemcategory.staves=Staves
+ui.itemcategory.books=Books

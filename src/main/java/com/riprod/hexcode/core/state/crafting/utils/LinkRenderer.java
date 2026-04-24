@@ -1,61 +1,62 @@
 package com.riprod.hexcode.core.state.crafting.utils;
 
-import java.util.List;
-
-import javax.annotation.Nullable;
-
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.server.core.modules.debug.DebugUtils;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.common.glyphs.component.Slot;
+import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.common.utilities.OrientedDebugUtil;
+import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
-import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
-import com.riprod.hexcode.core.common.glyphs.utils.GlyphSlotType;
-import com.riprod.hexcode.core.state.crafting.component.SlotComponent;
-import com.hypixel.hytale.server.core.modules.debug.DebugUtils;
 import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 import com.riprod.hexcode.utils.VfxUtil;
 
 public class LinkRenderer {
 
     private static final double LINK_THICKNESS = 0.05;
+    private static final double CONE_DIAMETER_NORMAL = 0.06;
+    private static final double CONE_DIAMETER_HIDDEN = 0.03;
+    private static final float CONE_TIME = 0.6f;
+    private static final float THROTTLE_INTERVAL = -0.5f;
 
-    public static void renderLinks(CommandBuffer<EntityStore> accessor, CraftingDataComponent playerData,
-            PedestalBlockComponent pedestal, float dt, @Nullable Ref<EntityStore> playerRef) {
-        Ref<EntityStore> hexRootRef = playerData.getAnchorRef();
-        if (hexRootRef == null || !hexRootRef.isValid())
-            return;
-
+    public static void renderLinks(CommandBuffer<EntityStore> accessor, HexcodeSessionComponent session,
+            PedestalBlockComponent pedestal, float dt) {
         if (pedestal.getTickLength("LINK_RENDER") < 0) {
             pedestal.incrementTickLength("LINK_RENDER", dt);
             return;
         }
-        pedestal.setTickLength("LINK_RENDER", -0.5f);
+        pedestal.setTickLength("LINK_RENDER", THROTTLE_INTERVAL);
 
-        HexComponent hexComp = accessor.getComponent(hexRootRef,
-                HexComponent.getComponentType());
-        if (hexComp == null)
-            return;
+        Ref<EntityStore> anchorNodeRef = session.getAnchorNodeRef();
+        if (anchorNodeRef == null || !anchorNodeRef.isValid()) return;
+
+        NodeComponent anchorNode = accessor.getComponent(anchorNodeRef, NodeComponent.getComponentType());
+        if (anchorNode == null) return;
+
+        Ref<EntityStore> hexRootRef = anchorNode.getParentEntity();
+        if (hexRootRef == null || !hexRootRef.isValid()) return;
+
+        HexComponent hexComp = accessor.getComponent(hexRootRef, HexComponent.getComponentType());
+        if (hexComp == null) return;
 
         World world = accessor.getExternalData().getWorld();
+        Hex hex = hexComp.getHex();
 
-        Vector3f glyphLinkColor = playerData.getGlyphColor();
-        com.hypixel.hytale.protocol.Color glyphParticleColor = playerData.getGlyphProtocolColor();
+        for (Glyph glyph : hex.getGlyphs()) {
+            renderGlyphLinks(accessor, world, hexComp, glyph);
+        }
 
-        VfxUtil.advanceFlowPhase();
-
-        LinkRenderer.renderAllLinks(accessor, hexComp, world, playerData.getAnchorNodeRef(),
-                playerRef, glyphLinkColor, glyphParticleColor);
-
-        renderSlotValueLinks(accessor, hexComp, world, playerData.getSlotNodeRefs(), playerRef);
+        renderAnchorLink(accessor, world, hexComp, anchorNodeRef, hex);
     }
 
     public static void renderActiveLink(ComponentAccessor<EntityStore> accessor,
@@ -63,108 +64,63 @@ public class LinkRenderer {
         VfxUtil.line(accessor, world, source, target, color, LINK_THICKNESS, 0.04f, DebugUtils.FLAG_NONE);
     }
 
-    public static void renderAllLinks(ComponentAccessor<EntityStore> accessor,
-            HexComponent hexComp, World world, Ref<EntityStore> rootNodeRef,
-            @Nullable Ref<EntityStore> playerRef, Vector3f glyphLinkColor,
-            @Nullable com.hypixel.hytale.protocol.Color glyphParticleColor) {
+    private static void renderGlyphLinks(CommandBuffer<EntityStore> accessor, World world,
+            HexComponent hexComp, Glyph glyph) {
+        Ref<EntityStore> sourceRef = hexComp.getChildGlyphRef(glyph.getId());
+        if (sourceRef == null || !sourceRef.isValid()) return;
 
-        String firstId = hexComp.getHex().getFirstGlyphId();
-        if (rootNodeRef != null && rootNodeRef.isValid() && firstId != null) {
-            Ref<EntityStore> firstGlyphRef = hexComp.getChildGlyphRef(firstId);
-            if (firstGlyphRef != null && firstGlyphRef.isValid()) {
-                TransformComponent rootTransform = accessor.getComponent(rootNodeRef,
-                        TransformComponent.getComponentType());
-                TransformComponent firstTransform = accessor.getComponent(firstGlyphRef,
-                        TransformComponent.getComponentType());
-                if (rootTransform != null && firstTransform != null) {
-                    VfxUtil.line(accessor, world, rootTransform.getPosition(),
-                            firstTransform.getPosition(), CraftingColors.ANCHOR, LINK_THICKNESS, 1f, DebugUtils.FLAG_NONE, playerRef);
-                    VfxUtil.particleAlongPath("Link_Flow", rootTransform.getPosition(),
-                            firstTransform.getPosition(), 3, accessor);
-                }
+        TransformComponent sourceTransform = accessor.getComponent(sourceRef, TransformComponent.getComponentType());
+        if (sourceTransform == null) return;
+
+        GlyphComponent sourceComp = accessor.getComponent(sourceRef, GlyphComponent.getComponentType());
+        if (sourceComp == null) return;
+
+        boolean slotsVisible = sourceComp.areSlotsVisible();
+        Vector3d glyphCenter = sourceTransform.getPosition();
+
+        for (Slot slot : glyph.getSlots().values()) {
+            for (String linkId : slot.getLinks()) {
+                renderSlotLink(accessor, world, hexComp, glyphCenter, slot, slotsVisible, linkId);
             }
-        }
-
-        List<Glyph> glyphs = hexComp.getHex().getGlyphs();
-
-        for (Glyph glyph : glyphs) {
-            Ref<EntityStore> sourceRef = hexComp.getChildGlyphRef(glyph.getId());
-            if (sourceRef == null || !sourceRef.isValid())
-                continue;
-
-            TransformComponent sourceTransform = accessor.getComponent(sourceRef,
-                    TransformComponent.getComponentType());
-            if (sourceTransform == null)
-                continue;
-
-            for (String nextId : glyph.getNext()) {
-                Ref<EntityStore> targetRef = hexComp.getChildGlyphRef(nextId);
-                if (targetRef == null || !targetRef.isValid())
-                    continue;
-
-                TransformComponent targetTransform = accessor.getComponent(targetRef,
-                        TransformComponent.getComponentType());
-                if (targetTransform == null)
-                    continue;
-
-                VfxUtil.line(accessor, world, sourceTransform.getPosition(),
-                        targetTransform.getPosition(), glyphLinkColor, LINK_THICKNESS, 1f, DebugUtils.FLAG_NONE, playerRef);
-                if (glyphParticleColor != null) {
-                    VfxUtil.particleAlongPath("Link_Flow", sourceTransform.getPosition(),
-                            targetTransform.getPosition(), 3, glyphParticleColor, playerRef, accessor);
-                } else {
-                    VfxUtil.particleAlongPath("Link_Flow", sourceTransform.getPosition(),
-                            targetTransform.getPosition(), 3, accessor);
-                }
-            }
-
         }
     }
 
-    private static void renderSlotValueLinks(ComponentAccessor<EntityStore> accessor,
-            HexComponent hexComp, World world,
-            @Nullable List<Ref<EntityStore>> slotRefs, @Nullable Ref<EntityStore> playerRef) {
-        if (slotRefs == null || slotRefs.isEmpty())
-            return;
+    private static void renderSlotLink(CommandBuffer<EntityStore> accessor, World world,
+            HexComponent hexComp, Vector3d glyphCenter, Slot slot, boolean slotsVisible, String linkId) {
+        Ref<EntityStore> targetRef = hexComp.getChildGlyphRef(linkId);
+        if (targetRef == null || !targetRef.isValid()) return;
 
-        for (Ref<EntityStore> slotRef : slotRefs) {
-            if (slotRef == null || !slotRef.isValid())
-                continue;
+        TransformComponent targetTransform = accessor.getComponent(targetRef, TransformComponent.getComponentType());
+        if (targetTransform == null) return;
 
-            SlotComponent slotComp = accessor.getComponent(slotRef, SlotComponent.getComponentType());
-            NodeComponent nodeComp = accessor.getComponent(slotRef, NodeComponent.getComponentType());
-            if (slotComp == null || nodeComp == null)
-                continue;
-
-            Ref<EntityStore> parentGlyphRef = nodeComp.getParentEntity();
-            if (parentGlyphRef == null || !parentGlyphRef.isValid())
-                continue;
-
-            GlyphComponent glyphComp = accessor.getComponent(parentGlyphRef, GlyphComponent.getComponentType());
-            if (glyphComp == null)
-                continue;
-
-            boolean isOutput = slotComp.getSlotType() == GlyphSlotType.Output;
-            String valueGlyphId = isOutput
-                    ? glyphComp.getGlyph().getOutputs().get(slotComp.getSlotKey())
-                    : glyphComp.getGlyph().getInputs().get(slotComp.getSlotKey());
-            if (valueGlyphId == null)
-                continue;
-
-            Ref<EntityStore> valueRef = hexComp.getChildGlyphRef(valueGlyphId);
-            if (valueRef == null || !valueRef.isValid())
-                continue;
-
-            TransformComponent slotTransform = accessor.getComponent(slotRef, TransformComponent.getComponentType());
-            TransformComponent valueTransform = accessor.getComponent(valueRef, TransformComponent.getComponentType());
-            if (slotTransform == null || valueTransform == null)
-                continue;
-
-            Vector3f color = isOutput ? CraftingColors.OUTPUT : CraftingColors.INPUT;
-            VfxUtil.line(accessor, world, slotTransform.getPosition(),
-                    valueTransform.getPosition(), color, LINK_THICKNESS, 1f, DebugUtils.FLAG_NONE, playerRef);
-            VfxUtil.particleAlongPath("Slot_Flow", slotTransform.getPosition(),
-                    valueTransform.getPosition(), 3, accessor);
+        Vector3d origin;
+        double diameter;
+        if (slotsVisible && slot.getOffset() != null) {
+            Vector3f off = slot.getOffset();
+            origin = new Vector3d(glyphCenter.x + off.x, glyphCenter.y + off.y, glyphCenter.z + off.z);
+            diameter = CONE_DIAMETER_NORMAL;
+        } else {
+            origin = glyphCenter;
+            diameter = CONE_DIAMETER_HIDDEN;
         }
+
+        Vector3f color = slot.getColor() != null ? slot.getColor() : CraftingColors.GLYPH_LINK;
+        OrientedDebugUtil.addCone(world, origin, targetTransform.getPosition(), color, diameter, CONE_TIME);
+    }
+
+    private static void renderAnchorLink(CommandBuffer<EntityStore> accessor, World world,
+            HexComponent hexComp, Ref<EntityStore> anchorRef, Hex hex) {
+        String firstId = hex.getFirstGlyphId();
+        if (firstId == null) return;
+
+        Ref<EntityStore> targetRef = hexComp.getChildGlyphRef(firstId);
+        if (targetRef == null || !targetRef.isValid()) return;
+
+        TransformComponent anchorTransform = accessor.getComponent(anchorRef, TransformComponent.getComponentType());
+        TransformComponent targetTransform = accessor.getComponent(targetRef, TransformComponent.getComponentType());
+        if (anchorTransform == null || targetTransform == null) return;
+
+        OrientedDebugUtil.addCone(world, anchorTransform.getPosition(), targetTransform.getPosition(),
+                CraftingColors.ANCHOR, CONE_DIAMETER_NORMAL, CONE_TIME);
     }
 }

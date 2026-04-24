@@ -1,7 +1,9 @@
 package com.riprod.hexcode.core.state.casting.utils;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 
 import com.hypixel.hytale.component.CommandBuffer;
@@ -12,7 +14,9 @@ import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.utils.GlyphMath;
 
@@ -24,6 +28,37 @@ public class HexSelector {
 
         return findHoveredGlyph(accessor, playerRotation, hex, List.of(hex.getHex().getFirstGlyphId()),
                 new Vector3f(0, 0, 0), new ArrayList<>());
+    }
+
+    public static GlyphComponent findOutputChild(CommandBuffer<EntityStore> accessor, HexComponent hex,
+            GlyphComponent targetGlyph) {
+        if (hex == null || targetGlyph == null) return null;
+        Hex hexData = hex.getHex();
+        Glyph glyph = hexData.get(targetGlyph.getId());
+        if (glyph == null) return null;
+        List<String> nextLinks = glyph.getNextLinks();
+        if (nextLinks.isEmpty()) return null;
+        return findOutputDepthFirst(accessor, hex, hexData, nextLinks, new HashSet<>());
+    }
+
+    private static GlyphComponent findOutputDepthFirst(CommandBuffer<EntityStore> accessor, HexComponent hex,
+            Hex hexData, List<String> glyphIds, Set<String> visited) {
+        for (String id : glyphIds) {
+            if (id == null || !visited.add(id)) continue;
+            Ref<EntityStore> ref = hex.getChildGlyphRef(id);
+            if (ref == null || !ref.isValid()) continue;
+            GlyphComponent comp = accessor.getComponent(ref, GlyphComponent.getComponentType());
+            if (comp == null) continue;
+            if ("Glyph_Output".equals(comp.getGlyphId())) return comp;
+            Glyph g = hexData.get(id);
+            if (g == null) continue;
+            List<String> next = g.getNextLinks();
+            if (!next.isEmpty()) {
+                GlyphComponent found = findOutputDepthFirst(accessor, hex, hexData, next, visited);
+                if (found != null) return found;
+            }
+        }
+        return null;
     }
 
     public static GlyphComponent findHoveredGlyph(CommandBuffer<EntityStore> accessor, Vector3f playerRotation,

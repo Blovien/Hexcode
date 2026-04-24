@@ -1,0 +1,28 @@
+{
+  "Parent": "Glyph_Template",
+  "DefaultAttachments": [
+    {
+      "Model": "NPC/Glyphs/Models/Glyph_1.blockymodel",
+      "Texture": "NPC/Glyphs/Textures/Circle.png"
+    },
+    {
+      "Model": "NPC/Glyphs/Models/Triangle_2.blockymodel",
+      "Texture": "NPC/Glyphs/Textures/Triangle.png"
+    }
+  ],
+  "Particles": [
+    {
+      "SystemId": "Hexcode_Projectile_Flames",
+      "TargetEntityPart": "Self"
+    },
+    {
+      "SystemId": "Sword_Charged_Trail_Praetorian",
+      "TargetEntityPart": "Self"
+    }
+  ],
+  "Trails": [
+    {
+      "TrailId": "Hexcode_Conjure_Trail"
+    }
+  ]
+}

@@ -8,10 +8,10 @@
   "ParticleRotationInfluence": "Billboard",
   "LinearFiltering": false,
   "LightInfluence": 0,
-  "MaxConcurrentParticles": 15,
+  "MaxConcurrentParticles": 25,
   "ParticleLifeSpan": { "Min": 1.0, "Max": 2.0 },
-  "SpawnRate": { "Min": 15, "Max": 20 },
-  "TotalParticles": { "Min": 10, "Max": 15 },
+  "SpawnRate": { "Min": 22, "Max": 30 },
+  "TotalParticles": { "Min": 18, "Max": 25 },
   "SpawnBurst": true,
   "InitialVelocity": {
     "Speed": { "Max": 0.5, "Min": 0.2 },
@@ -37,7 +37,7 @@
       "100": { "Opacity": 0, "Color": "#a2f7ff" }
     },
     "InitialAnimationFrame": {
-      "Scale": { "X": { "Min": 0.15, "Max": 0.3 } },
+      "Scale": { "X": { "Min": 0.2, "Max": 0.4 } },
       "Opacity": 0.7,
       "FrameIndex": { "Min": 0, "Max": 3 }
     }

@@ -3,21 +3,26 @@ Group {
 
   Group #GlyphInfoPanel {
     LayoutMode: Left;
-    Anchor: (Bottom: 80, Left: 20, Height: 40);
+    Anchor: (Bottom: 80, Left: 20, Height: 56);
 
     Group #AccentBar {
       Background: #7b5cff;
-      Anchor: (Width: 3, Height: 40);
+      Anchor: (Width: 3, Height: 56);
     }
 
     Group #Content {
       Background: #0a0a14(0.85);
-      Anchor: (Left: 3, Height: 40);
-      Padding: (Left: 12, Right: 16, Vertical: 8);
-      LayoutMode: Left;
+      Anchor: (Left: 3, Height: 56);
+      Padding: (Left: 12, Right: 16, Vertical: 6);
+      LayoutMode: Top;
 
       Label #GlyphName {
         Style: (FontSize: 18, TextColor: #c4b5ff);
+        Text: "";
+      }
+
+      Label #Description {
+        Style: (FontSize: 14, TextColor: #a0a0a0);
         Text: "";
       }
     }

@@ -24,10 +24,12 @@ import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
-import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 
 public class CreateGlyph {
   private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+
+  // compensates for the eliminated graph node debug sphere visual after the merge
+  public static final float MERGED_HANDLER_SCALE_BUMP = 1.3f;
 
   public static Ref<EntityStore> createHeadAnchor(ComponentAccessor<EntityStore> accessor,
       Ref<EntityStore> playerRef, float eyeHeight) {
@@ -83,7 +85,7 @@ public class CreateGlyph {
       return holder;
     }
 
-    Model model = Model.createScaledModel(modelAsset, glyph.getScale());
+    Model model = Model.createScaledModel(modelAsset, glyph.getScale() * MERGED_HANDLER_SCALE_BUMP);
 
     holder.addComponent(ModelComponent.getComponentType(), new ModelComponent(model));
 
@@ -121,7 +123,6 @@ public class CreateGlyph {
       Vector3d parentPos, Vector3f parentRot, Ref<EntityStore> playerRef) {
 
     Holder<EntityStore> holder = createGlyphHolder(accessor, glyph, parentPos, parentRot);
-    HiddenUtils.addHiddenToHolder(accessor, holder, playerRef);
     Ref<EntityStore> ref = createEntity(accessor, holder);
     glyph.setSelfRef(ref);
 

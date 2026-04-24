@@ -2,9 +2,6 @@ package com.riprod.hexcode.core.common.block.event;
 
 import javax.annotation.Nonnull;
 
-import java.util.List;
-import java.util.Set;
-
 import com.hypixel.hytale.component.Archetype;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
@@ -19,11 +16,10 @@ import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.block.component.UnbreakableBlockComponent;
+import com.riprod.hexcode.core.common.obelisk.component.ObeliskBlockComponent;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
-import com.riprod.hexcode.core.state.crafting.entity.AnchorEntity;
+import com.riprod.hexcode.core.state.crafting.session.SessionUtils;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
 
 public class BlockBreakEvent extends EntityEventSystem<EntityStore, BreakBlockEvent> {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -52,48 +48,46 @@ public class BlockBreakEvent extends EntityEventSystem<EntityStore, BreakBlockEv
                     PedestalBlockComponent.getComponentType(), world,
                     pos.x, pos.y, pos.z);
             if (pedestal != null) {
-                cleanupPedestal(buffer, pedestal);
+                cleanupPedestal(buffer, pedestal, world);
+            }
+
+            ObeliskBlockComponent obelisk = BlockModule.getComponent(
+                    ObeliskBlockComponent.getComponentType(), world,
+                    pos.x, pos.y, pos.z);
+            if (obelisk != null) {
+                handleObeliskBreak(world, obelisk, pos);
             }
         } catch (Exception e) {
             LOGGER.atSevere().log("[hexcode] BlockBreakEvent failed: %s", e.getMessage());
         }
     }
 
-    private static void cleanupPedestal(CommandBuffer<EntityStore> buffer, PedestalBlockComponent pedestal) {
-        Set<Ref<EntityStore>> activePlayers = pedestal.getActivePlayerRefs();
-        for (Ref<EntityStore> playerRef : activePlayers) {
-            if (playerRef == null || !playerRef.isValid())
-                continue;
-            CraftingDataComponent playerData = buffer.getComponent(playerRef,
-                    CraftingDataComponent.getComponentType());
-            if (playerData == null)
-                continue;
-
-            AnchorEntity.DespawnHexPreviews(buffer, pedestal, playerData);
-
-            List<Ref<EntityStore>> allRefs = playerData.getAllRefs();
-            for (Ref<EntityStore> ref : allRefs) {
-                if (ref != null && ref.isValid()) {
-                    buffer.tryRemoveEntity(ref, RemoveReason.REMOVE);
-                }
-            }
+    private static void cleanupPedestal(CommandBuffer<EntityStore> buffer, PedestalBlockComponent pedestal, World world) {
+        Ref<EntityStore> sessionRef = SessionUtils.getSessionRef(pedestal);
+        if (sessionRef != null) {
+            SessionUtils.endSession(buffer, sessionRef, world);
         }
 
-        Ref<EntityStore> pedestalEntityRef = pedestal.getPedestalEntityRef();
-        if (pedestalEntityRef != null && pedestalEntityRef.isValid()) {
-            CraftingDataComponent sharedData = buffer.getComponent(pedestalEntityRef,
-                    CraftingDataComponent.getComponentType());
-            if (sharedData != null) {
-                AnchorEntity.DespawnHexPreviews(buffer, pedestal, sharedData);
-                List<Ref<EntityStore>> allRefs = sharedData.getAllRefs();
-                for (Ref<EntityStore> ref : allRefs) {
-                    if (ref != null && ref.isValid()) {
-                        buffer.tryRemoveEntity(ref, RemoveReason.REMOVE);
-                    }
-                }
-            }
-            buffer.tryRemoveEntity(pedestalEntityRef, RemoveReason.REMOVE);
+        Ref<EntityStore> anchorRef = pedestal.getAnchorRef();
+        if (anchorRef != null && anchorRef.isValid()) {
+            buffer.tryRemoveEntity(anchorRef, RemoveReason.REMOVE);
+            pedestal.setAnchorRef(null);
         }
+    }
+
+    private static void handleObeliskBreak(World world, ObeliskBlockComponent obelisk, Vector3i pos) {
+        Vector3i pedestalLoc = obelisk.getRegisteredPedestalLoc();
+        if (pedestalLoc == null) {
+            return;
+        }
+
+        PedestalBlockComponent pedestal = BlockModule.getComponent(
+                PedestalBlockComponent.getComponentType(), world,
+                pedestalLoc.x, pedestalLoc.y, pedestalLoc.z);
+        if (pedestal != null) {
+            pedestal.removeObelisk(pos);
+        }
+        obelisk.clearRegistration();
     }
 
     @Override

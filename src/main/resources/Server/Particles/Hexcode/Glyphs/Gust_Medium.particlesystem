@@ -1,0 +1,15 @@
+{
+  "Spawners": [
+    { "SpawnerId": "Gust_Flash", "PositionOffset": { "Y": 0 }, "StartDelay": 0 },
+    { "SpawnerId": "Gust_Glow", "PositionOffset": { "Y": 0.5 }, "StartDelay": 0 },
+    { "SpawnerId": "Gust_Shockwave", "PositionOffset": { "Y": 0 }, "StartDelay": 0.02 },
+    { "SpawnerId": "Gust_Sparks", "PositionOffset": { "Y": 0 }, "StartDelay": 0.02 },
+    { "SpawnerId": "Gust_Sparks_Linger", "PositionOffset": { "Y": 0.3 }, "StartDelay": 0.05 },
+    { "SpawnerId": "Gust_Smoke", "PositionOffset": { "Y": 0 }, "StartDelay": 0.05 },
+    { "SpawnerId": "Gust_Smoke_Ground", "PositionOffset": { "Y": 0.1 }, "StartDelay": 0.3 }
+  ],
+  "LifeSpan": 3.0,
+  "CullDistance": 100,
+  "BoundingRadius": 30.0,
+  "IsImportant": true
+}

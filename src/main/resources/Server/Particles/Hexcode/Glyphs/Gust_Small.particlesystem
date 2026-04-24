@@ -1,0 +1,13 @@
+{
+  "Spawners": [
+    { "SpawnerId": "Gust_Flash", "PositionOffset": { "Y": 0 }, "StartDelay": 0 },
+    { "SpawnerId": "Gust_Glow", "PositionOffset": { "Y": 0.5 }, "StartDelay": 0 },
+    { "SpawnerId": "Gust_Shockwave", "PositionOffset": { "Y": 0 }, "StartDelay": 0.02 },
+    { "SpawnerId": "Gust_Sparks", "PositionOffset": { "Y": 0 }, "StartDelay": 0.02 },
+    { "SpawnerId": "Gust_Sparks_Linger", "PositionOffset": { "Y": 0.3 }, "StartDelay": 0.05 }
+  ],
+  "LifeSpan": 2.0,
+  "CullDistance": 100,
+  "BoundingRadius": 15.0,
+  "IsImportant": true
+}

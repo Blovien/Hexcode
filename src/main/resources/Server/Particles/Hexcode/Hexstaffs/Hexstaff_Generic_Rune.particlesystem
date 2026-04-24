@@ -1,0 +1,17 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "Rune_Ring_Component_Inner_Spawner",
+      "PositionOffset": {
+        "Y": 0
+      }
+    },
+    {
+      "SpawnerId": "Rune_Ring_Component_Outer_Spawner"
+    },
+    {
+      "SpawnerId": "Rune_Glyphs_Component_Spawner"
+    }
+  ],
+  "CullDistance": 50
+}

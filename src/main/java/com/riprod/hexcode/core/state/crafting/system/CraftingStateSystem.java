@@ -8,23 +8,24 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
+import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.api.event.HexcodeEvents;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.api.event.HoverChangeEvent;
 import com.riprod.hexcode.core.common.obelisk.system.ObeliskDispatcher;
+import com.riprod.hexcode.core.common.pedestal.events.PedestalSystem;
 import com.riprod.hexcode.core.common.pedestal.utils.PedestalBlockUtil;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
-import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
-import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
+import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
+import com.riprod.hexcode.core.state.crafting.session.SessionUtils;
 import com.riprod.hexcode.core.state.crafting.handlers.CraftingDragHandler;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeRouter;
 import com.riprod.hexcode.core.state.crafting.utils.HoverStyleUtils;
 import com.riprod.hexcode.core.state.crafting.utils.LinkRenderer;
-import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
 
 public class CraftingStateSystem {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -63,7 +64,6 @@ public class CraftingStateSystem {
     }
 
     public static InteractionState exitInteraction(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref) {
-
         HexcasterCraftingComponent craftingComp = accessor.getComponent(ref,
                 HexcasterCraftingComponent.getComponentType());
         if (craftingComp == null)
@@ -87,7 +87,7 @@ public class CraftingStateSystem {
             result = NodeRouter.exit(accessor, draggedRef, ref);
         }
 
-        CraftingDragHandler.endDrag(accessor, draggedRef, craftingComp.getHeadAnchorRef());
+        CraftingDragHandler.endDrag(accessor, draggedRef, craftingComp.getHeadAnchorRef(), craftingComp);
 
         craftingComp.setDraggingRef(null);
         craftingComp.setHeadAnchorRef(accessor, null);
@@ -115,8 +115,6 @@ public class CraftingStateSystem {
             nearby.remove(draggedRef); // remove the dragged ref from the hovered list
         }
 
-        HiddenUtils.filterByOwner(accessor, nearby, ref);
-
         Ref<EntityStore> targetRef = HoverableUtils.getSmallestTarget(accessor, ref, nearby);
 
         Ref<EntityStore> previousHovered = craftingComp.getHoveredRef();
@@ -130,26 +128,29 @@ public class CraftingStateSystem {
             pedestal.setTickLength(HOVER_PARTICLE, 1f);
 
             HoverStyleUtils.hover(accessor, targetRef, ref);
-            HexcodeEvents.fire(new HoverChangeEvent(ref, targetRef, previousHovered));
+            HytaleServer.get().getEventBus().dispatchFor(HoverChangeEvent.class)
+                    .dispatch(new HoverChangeEvent(ref, targetRef, previousHovered));
 
             PedestalBlockComponent ped = PedestalBlockUtil.resolvePedestal(ref, accessor);
             if (ped != null) {
-                if (previousHovered != null) ObeliskDispatcher.dispatchUnhover(accessor, ped, ref, previousHovered);
-                if (targetRef != null) ObeliskDispatcher.dispatchHover(accessor, ped, ref, targetRef);
+                if (previousHovered != null)
+                    ObeliskDispatcher.dispatchUnhover(accessor, ped, ref, previousHovered);
+                if (targetRef != null)
+                    ObeliskDispatcher.dispatchHover(accessor, ped, ref, targetRef);
             }
         }
 
-        Ref<EntityStore> playerRefFlag = pedestal.isPerPlayer() ? ref : null;
+        HoverStyleUtils.hoverParticles(accessor, craftingComp.getHoveredRef(), dt, pedestal);
 
-        HoverStyleUtils.hoverParticles(accessor, craftingComp.getHoveredRef(), dt, pedestal, ref);
+        HexcodeSessionComponent session = SessionUtils.resolveSession(pedestal, accessor);
 
-        CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(accessor, ref);
-        if (playerData != null) {
-            LinkRenderer.renderLinks(accessor, playerData, pedestal, dt, playerRefFlag);
+        if (session != null) {
+            LinkRenderer.renderLinks(accessor, session, pedestal, dt);
         }
     }
 
-    public static InteractionState enterAbility(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref, InteractionType inputType) {
+    public static InteractionState enterAbility(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref,
+            InteractionType inputType) {
         HexcasterCraftingComponent craftingComp = accessor.getComponent(ref,
                 HexcasterCraftingComponent.getComponentType());
         if (craftingComp == null)

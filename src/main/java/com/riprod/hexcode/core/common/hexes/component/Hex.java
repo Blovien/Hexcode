@@ -11,6 +11,7 @@ import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.codec.codecs.map.MapCodec;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
+import com.riprod.hexcode.core.common.glyphs.component.Slot;
 
 public class Hex {
 
@@ -29,7 +30,7 @@ public class Hex {
         this.firstGlyphId = firstGlyphId;
     }
 
-    public Hex(Glyph ... glyphs) {
+    public Hex(Glyph... glyphs) {
         this.hexGraph = new HashMap<>();
         for (Glyph glyph : glyphs) {
             this.hexGraph.put(glyph.getId(), glyph);
@@ -38,9 +39,20 @@ public class Hex {
         this.hexId = UUID.randomUUID().toString();
     }
 
+    public void replaceWith(Hex other) {
+        this.hexGraph.clear();
+        this.hexGraph.putAll(other.hexGraph);
+        this.hexId = other.hexId;
+        this.firstGlyphId = other.firstGlyphId;
+    }
+
     public void absorb(Hex other, String insertLocation) {
-        other.hexGraph.get(other.getFirstGlyphId()).setPrevious(new ArrayList<>(List.of(insertLocation)));
-        hexGraph.get(insertLocation).addNext(other.getFirstGlyphId());
+        Glyph insertGlyph = hexGraph.get(insertLocation);
+        if (insertGlyph == null) return;
+        String otherFirst = other.getFirstGlyphId();
+        if (otherFirst != null) {
+            insertGlyph.addSlotLink(Glyph.NEXT_SLOT, otherFirst);
+        }
         hexGraph.putAll(other.hexGraph);
     }
 
@@ -65,10 +77,16 @@ public class Hex {
 
     public List<Glyph> getNextGlyphs(String id) {
         Glyph glyph = hexGraph.get(id);
-        if (glyph == null) {
-            return new ArrayList<>();
+        if (glyph == null) return new ArrayList<>();
+        Slot nextSlot = glyph.getSlot(Glyph.NEXT_SLOT);
+        if (nextSlot == null) return new ArrayList<>();
+        String[] links = nextSlot.getLinks();
+        List<Glyph> result = new ArrayList<>(links.length);
+        for (String linkId : links) {
+            Glyph linked = hexGraph.get(linkId);
+            if (linked != null) result.add(linked);
         }
-        return getGlyphs(glyph.getNext());
+        return result;
     }
 
     public void put(String id, Glyph glyph) {
@@ -77,6 +95,18 @@ public class Hex {
 
     public void remove(String id) {
         hexGraph.remove(id);
+    }
+
+    public void removeGlyph(String id) {
+        if (hexGraph.remove(id) == null) return;
+        for (Glyph remaining : hexGraph.values()) {
+            for (Slot slot : remaining.getSlots().values()) {
+                slot.removeLink(id);
+            }
+        }
+        if (id.equals(firstGlyphId)) {
+            firstGlyphId = null;
+        }
     }
 
     public String getHexId() {

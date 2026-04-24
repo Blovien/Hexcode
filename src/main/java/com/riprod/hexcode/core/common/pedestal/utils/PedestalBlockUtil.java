@@ -9,9 +9,9 @@ import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.common.pedestal.component.PedestalEntityComponent;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
+import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
 
 public class PedestalBlockUtil {
 
@@ -40,24 +40,18 @@ public class PedestalBlockUtil {
     public static PedestalBlockComponent resolvePedestal(Ref<EntityStore> playerRef,
             CommandBuffer<EntityStore> buffer) {
 
-        HexcasterCraftingComponent craftingComp = buffer.getComponent(playerRef,
-                HexcasterCraftingComponent.getComponentType());
-        if (craftingComp == null) {
-            return null;
+        HexcodeSessionComponent session = buffer.getComponent(playerRef,
+                HexcodeSessionComponent.getComponentType());
+        if (session == null) {
+            HexcasterCraftingComponent craftingComp = buffer.getComponent(playerRef,
+                    HexcasterCraftingComponent.getComponentType());
+            if (craftingComp == null || !craftingComp.hasActiveSession()) return null;
+            session = buffer.getComponent(craftingComp.getSessionRef(),
+                    HexcodeSessionComponent.getComponentType());
+            if (session == null) return null;
         }
 
-        Ref<EntityStore> anchorRef = craftingComp.getPedestalEntityRef();
-        if (anchorRef == null || !anchorRef.isValid()) {
-            return null;
-        }
-
-        PedestalEntityComponent pedestalEntity = buffer.getComponent(anchorRef,
-                PedestalEntityComponent.getComponentType());
-        if (pedestalEntity == null || pedestalEntity.getPedestalLoc() == null) {
-            return null;
-        }
-
-        Vector3i pos = pedestalEntity.getPedestalLoc();
+        Vector3i pos = session.getPedestalLocation();
         return BlockModule.getComponent(
                 PedestalBlockComponent.getComponentType(),
                 buffer.getExternalData().getWorld(),

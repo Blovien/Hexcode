@@ -1,0 +1,99 @@
+{
+  "Parent": "Template_HexStaff",
+  "TranslationProperties": {
+    "Name": "hexcode.items.Hex_Ice_Staff.name"
+  },
+  "Categories": [
+    "Hexcode.Staves"
+  ],
+  "Quality": "Rare",
+  "ItemLevel": 35,
+  "PlayerAnimationsId": "HexStaff",
+  "Utility": {
+    "Compatible": true
+  },
+  "IconProperties": {
+    "Scale": 0.25,
+    "Rotation": [
+      45,
+      90,
+      0
+    ],
+    "Translation": [
+      -51.6,
+      -54.6
+    ]
+  },
+  "Model": "Items/Weapons/Staff/Hex_Ice_Staff.blockymodel",
+  "Texture": "Items/Weapons/Staff/Hex_Ice_Staff.png",
+  "Icon": "Icons/ItemsGenerated/Hex_Ice_Staff.png",
+  "Scale": 1.3,
+  "DroppedItemAnimation": "Items/Animations/Dropped/Dropped_Diagonal_Left.blockyanim",
+  "Tags": {
+    "Family": [
+      "Staff"
+    ],
+    "Type": [
+      "Weapon"
+    ]
+  },
+  "Weapon": {
+    "StatModifiers": {
+      "Magic_Power": [
+        {
+          "Target": "Max",
+          "CalculationType": "Additive",
+          "Amount": 0.7
+        }
+      ],
+      "Volatility": [
+        {
+          "Target": "Max",
+          "CalculationType": "Additive",
+          "Amount": 125
+        }
+      ],
+      "MagicCharges": [
+        {
+          "CalculationType": "Additive",
+          "Amount": 5
+        }
+      ]
+    },
+    "EntityStatsToClear": [
+      "Magic_Power",
+      "MagicCharges",
+      "Volatility"
+    ]
+  },
+  "ItemSoundSetId": "ISS_Weapons_Wood",
+  "MaxStack": 1,
+  "Recipe": {
+    "Input": [
+      {
+        "ItemId": "Ingredient_Ice_Essence_Greater",
+        "Quantity": 1
+      },
+      {
+        "ItemId": "Ingredient_Bar_Silver",
+        "Quantity": 8
+      },
+      {
+        "ItemId": "Rock_Gem_Sapphire"
+      },
+      {
+        "ItemId": "Rock_Gem_Zephyr",
+        "Quantity": 1
+      }
+    ],
+    "BenchRequirement": [
+      {
+        "Type": "Crafting",
+        "Id": "Arcanebench",
+        "Categories": [
+          "Arcane_Hexcode"
+        ]
+      }
+    ]
+  }
+}

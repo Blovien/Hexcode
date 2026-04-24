@@ -1,0 +1,10 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "Void_Ready_Spawner",
+      "PositionOffset": {
+        "Y": 0.5
+      }
+    }
+  ]
+}

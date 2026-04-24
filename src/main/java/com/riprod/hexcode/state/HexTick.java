@@ -2,15 +2,14 @@ package com.riprod.hexcode.state;
 
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
-import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.HexStateChangeEvent;
-import com.riprod.hexcode.api.event.HexcodeEvents;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 
 public class HexTick extends EntityTickingSystem<EntityStore> {
@@ -41,7 +40,8 @@ public class HexTick extends EntityTickingSystem<EntityStore> {
 
         comp.applyState(pending);
 
-        HexcodeEvents.fire(new HexStateChangeEvent(ref, current, pending));
+             HytaleServer.get().getEventBus().dispatchFor(HexStateChangeEvent.class)
+                .dispatch(new HexStateChangeEvent(ref, current, pending));
 
         HexcodeManager next = StateRouter.route(pending);
         if (next != null) {
@@ -55,7 +55,7 @@ public class HexTick extends EntityTickingSystem<EntityStore> {
         manager.tick(ref, comp, dt, store, buffer);
       }
     } catch (Exception e) {
-      LOGGER.atSevere().log("[hexcode] HexTick failed: %s", e.getMessage());
+      LOGGER.atSevere().withCause(e).log("[hexcode] HexTick failed: %s", e.getMessage());
     }
   }
 }

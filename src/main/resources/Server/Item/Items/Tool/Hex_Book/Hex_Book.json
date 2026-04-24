@@ -1,10 +1,10 @@
 {
   "Parent": "Template_HexBook",
   "TranslationProperties": {
-    "Name": "server.items.Hex_Book.name"
+    "Name": "hexcode.items.Hex_Book.name"
   },
   "Categories": [
-    "Items.Tools"
+    "Hexcode.Books"
   ],
   "Quality": "Uncommon",
   "ItemLevel": 30,

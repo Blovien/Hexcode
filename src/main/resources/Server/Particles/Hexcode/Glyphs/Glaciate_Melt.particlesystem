@@ -5,6 +5,7 @@
   "IsImportant": true,
   "Spawners": [
     { "SpawnerId": "Glaciate_Snow" },
-    { "SpawnerId": "Glaciate_Dust", "StartDelay": 0.2 }
+    { "SpawnerId": "Glaciate_Dust", "StartDelay": 0.2 },
+    { "SpawnerId": "Glaciate_Mist", "StartDelay": 0.3 }
   ]
 }

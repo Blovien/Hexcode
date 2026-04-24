@@ -1,8 +1,5 @@
 package com.riprod.hexcode.utils;
 
-import java.util.List;
-import java.util.Vector;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -10,6 +7,7 @@ import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -20,6 +18,7 @@ import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.glyphs.variables.NumberVar;
 import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.common.glyphs.variables.RotationVar;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
 
 public class SpellVarUtil {
 
@@ -30,13 +29,63 @@ public class SpellVarUtil {
         return var instanceof PositionVar || var instanceof RotationVar || var instanceof EntityVar;
     }
 
+    /**
+     * If `var` is already an EntityVar, return it. If it's a NumberVar, treat the
+     * number as a slot key and dereference via hexContext. Otherwise return null.
+     * Lets handlers accept either a wired entity or a numeric slot reference uniformly.
+     */
+    @Nullable
+    public static EntityVar resolveEntityVar(@Nullable HexVar var,
+            @Nonnull HexContext ctx) {
+        if (var instanceof EntityVar ev) return ev;
+        if (var instanceof NumberVar nv) {
+            HexVar deref = ctx.getVariable(String.valueOf(nv.getValue().intValue()));
+            return deref instanceof EntityVar ? (EntityVar) deref : null;
+        }
+        return null;
+    }
+
+    @Nullable
+    public static BlockVar resolveBlockVar(@Nullable HexVar var,
+            @Nonnull HexContext ctx) {
+        if (var instanceof BlockVar bv) return bv;
+        if (var instanceof NumberVar nv) {
+            HexVar deref = ctx.getVariable(String.valueOf(nv.getValue().intValue()));
+            return deref instanceof BlockVar ? (BlockVar) deref : null;
+        }
+        return null;
+    }
+
+    @Nullable
+    public static PositionVar resolvePositionVar(@Nullable HexVar var,
+            @Nonnull HexContext ctx) {
+        if (var instanceof PositionVar pv) return pv;
+        if (var instanceof NumberVar nv) {
+            HexVar deref = ctx.getVariable(String.valueOf(nv.getValue().intValue()));
+            return deref instanceof PositionVar ? (PositionVar) deref : null;
+        }
+        return null;
+    }
+
+    @Nullable
+    public static RotationVar resolveRotationVar(@Nullable HexVar var,
+            @Nonnull HexContext ctx) {
+        if (var instanceof RotationVar rv) return rv;
+        if (var instanceof NumberVar nv) {
+            HexVar deref = ctx.getVariable(String.valueOf(nv.getValue().intValue()));
+            return deref instanceof RotationVar ? (RotationVar) deref : null;
+        }
+        return null;
+    }
+
     @Nullable
     public static Vector3d resolveAsPosition(@Nullable HexVar var,
             @Nonnull ComponentAccessor<EntityStore> accessor) {
-        if (var == null || var.size() == 0) return null;
-        if (var instanceof PositionVar posVar) return posVar.getAt(0);
+        if (var == null) return null;
+        if (var instanceof PositionVar posVar) return posVar.getValue();
         if (var instanceof RotationVar rotVar) {
-            Vector3f r = rotVar.getAt(0);
+            Vector3f r = rotVar.getValue();
+            if (r == null) return null;
             return new Vector3d(r.getYaw(), r.getPitch());
         }
         return resolvePosition(var, accessor);
@@ -45,20 +94,20 @@ public class SpellVarUtil {
     @Nullable
     public static Vector3f resolveAsRotation(@Nullable HexVar var,
             @Nonnull ComponentAccessor<EntityStore> accessor) {
-        if (var == null || var.size() == 0) return null;
-        if (var instanceof RotationVar rotVar) return rotVar.getAt(0);
+        if (var == null) return null;
+        if (var instanceof RotationVar rotVar) return rotVar.getValue();
         if (var instanceof PositionVar posVar) {
-            Vector3d p = posVar.getAt(0);
+            Vector3d p = posVar.getValue();
+            if (p == null) return null;
             return new Vector3f((float) p.getX(), (float) p.getY(), (float) p.getZ());
         }
         if (var instanceof EntityVar entityVar) {
-            Ref<EntityStore> entityRef = entityVar.getRef(0, accessor);
+            Ref<EntityStore> entityRef = entityVar.getRef(accessor);
             if (entityRef == null || !entityRef.isValid()) return null;
             try {
                 HeadRotation headRot = accessor.getComponent(entityRef, HeadRotation.getComponentType());
                 if (headRot != null) return headRot.getRotation();
             } catch (Exception e) {
-                // no head rotation, fall back to transform
             }
             return accessor.getComponent(entityRef, TransformComponent.getComponentType()).getRotation();
         }
@@ -100,38 +149,31 @@ public class SpellVarUtil {
     }
 
     @Nullable
-    public static Vector3d resolvePosition(@Nonnull HexVar var,
+    public static Vector3d resolvePosition(@Nullable HexVar var,
             @Nonnull ComponentAccessor<EntityStore> accessor) {
-        return resolvePositionAt(var, 0, accessor);
-    }
-
-    @Nullable
-    public static Vector3d resolvePositionAt(@Nonnull HexVar var, int index,
-            @Nonnull ComponentAccessor<EntityStore> accessor) {
-        if (index < 0 || index >= var.size()) return null;
+        if (var == null) return null;
 
         if (var instanceof EntityVar entityVar) {
-            Ref<EntityStore> entityRef = entityVar.getRef(index, accessor);
+            Ref<EntityStore> entityRef = entityVar.getRef(accessor);
             if (entityRef != null && entityRef.isValid()) {
                 return accessor.getComponent(entityRef, TransformComponent.getComponentType()).getPosition().clone();
             }
         }
-        if (var instanceof BlockVar blockVar && blockVar.getAt(index) != null) {
-            return new Vector3d(blockVar.getAt(index).x + 0.5, blockVar.getAt(index).y + 0.5,
-                    blockVar.getAt(index).z + 0.5);
+        if (var instanceof BlockVar blockVar && blockVar.getValue() != null) {
+            Vector3i pos = blockVar.getValue();
+            return new Vector3d(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5);
         }
-        if (var instanceof PositionVar posVar && posVar.getAt(index) != null) {
-            return posVar.getAt(index);
+        if (var instanceof PositionVar posVar) {
+            return posVar.getValue();
         }
         return null;
     }
 
     @Nullable
-    public static Vector3d resolveEyePosition(@Nonnull HexVar var,
+    public static Vector3d resolveEyePosition(@Nullable HexVar var,
             @Nonnull ComponentAccessor<EntityStore> accessor) {
-
-        if (var instanceof EntityVar entityVar && entityVar.getAt(0) != null && entityVar.getAt(0).isValid()) {
-            Ref<EntityStore> entityRef = entityVar.getAt(0).getEntity(accessor);
+        if (var instanceof EntityVar entityVar && entityVar.getValue() != null && entityVar.getValue().isValid()) {
+            Ref<EntityStore> entityRef = entityVar.getValue().getEntity(accessor);
             if (entityRef != null && entityRef.isValid()) {
                 return TargetUtil.getLook(entityRef, accessor).getPosition();
             }
@@ -140,71 +182,62 @@ public class SpellVarUtil {
     }
 
     @Nullable
-    public static Vector3d resolveDirection(@Nonnull HexVar var,
+    public static Vector3d resolveDirection(@Nullable HexVar var,
             @Nullable Vector3d sourcePosition,
             @Nonnull ComponentAccessor<EntityStore> accessor) {
+        if (var == null) return null;
 
-        if (var instanceof EntityVar entityVar && entityVar.getAt(0) != null && entityVar.getAt(0).isValid()) {
-            Ref<EntityStore> entityRef = entityVar.getAt(0).getEntity(accessor);
-            if (entityRef == null || !entityRef.isValid()) {
-                return null;
-            }
+        if (var instanceof EntityVar entityVar && entityVar.getValue() != null && entityVar.getValue().isValid()) {
+            Ref<EntityStore> entityRef = entityVar.getValue().getEntity(accessor);
+            if (entityRef == null || !entityRef.isValid()) return null;
 
             try {
                 HeadRotation headRot = accessor.getComponent(entityRef, HeadRotation.getComponentType());
-                if (headRot != null) {
-                    return headRot.getDirection();
-                }
+                if (headRot != null) return headRot.getDirection();
             } catch (Exception e) {
-                // no head rotation component, fall back to transform
             }
             Vector3f bodyRot = accessor.getComponent(entityRef, TransformComponent.getComponentType())
                     .getRotation();
             return new Vector3d(bodyRot.getYaw(), bodyRot.getPitch());
         }
-        if (var instanceof RotationVar rotVar && rotVar.getValues().get(0) != null) {
-            return new Vector3d(rotVar.getValues().get(0).getYaw(), rotVar.getValues().get(0).getPitch());
+        if (var instanceof RotationVar rotVar && rotVar.getValue() != null) {
+            return new Vector3d(rotVar.getValue().getYaw(), rotVar.getValue().getPitch());
         }
-        if (sourcePosition != null) {
-            if (var instanceof BlockVar blockVar && blockVar.getValues().get(0) != null) {
-                Vector3d blockCenter = new Vector3d(blockVar.getValues().get(0).x + 0.5,
-                        blockVar.getValues().get(0).y + 0.5,
-                        blockVar.getValues().get(0).z + 0.5);
-                return Vector3d.directionTo(sourcePosition, blockCenter);
+        if (var instanceof PositionVar posVar && posVar.getValue() != null) {
+            if (posVar.isAbsolute()) {
+                if (sourcePosition != null) {
+                    return Vector3d.directionTo(sourcePosition, posVar.getValue());
+                }
+                return null;
             }
-            if (var instanceof PositionVar posVar && posVar.getValues().get(0) != null) {
-                return Vector3d.directionTo(sourcePosition, posVar.getValues().get(0));
-            }
+            return new Vector3d(posVar.getValue()).normalize();
+        }
+        if (sourcePosition != null && var instanceof BlockVar blockVar && blockVar.getValue() != null) {
+            Vector3i bv = blockVar.getValue();
+            Vector3d blockCenter = new Vector3d(bv.x + 0.5, bv.y + 0.5, bv.z + 0.5);
+            return Vector3d.directionTo(sourcePosition, blockCenter);
         }
         return null;
     }
 
     @Nullable
-    public static Vector3f resolveRotation(@Nonnull HexVar vars,
+    public static Vector3f resolveRotation(@Nullable HexVar vars,
             @Nonnull ComponentAccessor<EntityStore> accessor) {
         Vector3d dir = resolveDirection(vars, null, accessor);
         return dir != null ? Vector3f.lookAt(dir) : null;
     }
 
-    public static Double resolveNumberOrDefault(@Nonnull HexVar var, Double defaultValue) {
+    public static Double resolveNumberOrDefault(@Nullable HexVar var, Double defaultValue) {
         Double result = resolveNumber(var);
         return result != null ? result : defaultValue;
     }
 
     @Nullable
-    public static Double resolveNumber(@Nonnull HexVar var) {
-        if (var == null || var.size() == 0)
-            return null;
-
+    public static Double resolveNumber(@Nullable HexVar var) {
+        if (var == null) return null;
         if (var instanceof NumberVar numberVar) {
-            return numberVar.getAt(0);
+            return numberVar.getValue();
         }
-
-        // if entity or block vars - return length
-        if (var instanceof EntityVar || var instanceof BlockVar) {
-            return (double) var.size();
-        }
-
         return null;
     }
 }

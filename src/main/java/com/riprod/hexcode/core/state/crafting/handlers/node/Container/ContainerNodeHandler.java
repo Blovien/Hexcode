@@ -15,6 +15,7 @@ import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.DebugShape;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
+import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
@@ -26,13 +27,13 @@ import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.state.crafting.handlers.node.Slot.SlotNodeHandler;
 import com.riprod.hexcode.core.common.glyphs.utils.CreateGlyph;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.hexes.utils.CreateHex;
-import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
 import com.riprod.hexcode.api.event.EnterCraftingModeEvent;
-import com.riprod.hexcode.api.event.HexcodeEvents;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.core.common.obelisk.system.ObeliskDispatcher;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableType;
@@ -45,24 +46,22 @@ import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.state.casting.utils.GlyphStyler;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
-import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
+import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
+import com.riprod.hexcode.core.state.crafting.session.SessionUtils;
 import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
-import com.riprod.hexcode.core.state.crafting.constants.NodeType;
+import com.riprod.hexcode.core.state.crafting.constants.NodeTypeId;
 import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
 import com.riprod.hexcode.core.state.crafting.entity.GlyphSpawner;
 import com.riprod.hexcode.core.state.crafting.entity.PedestalEntity;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeInterface;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeRouter;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Anchor.AnchorNodeHandler;
-import com.riprod.hexcode.core.state.crafting.handlers.node.Effect.EffectNodeHandler;
-import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
 import com.riprod.hexcode.utils.CleanupUtils;
 import com.riprod.hexcode.utils.GlyphMath;
+import com.hypixel.hytale.logger.HytaleLogger;
 
-/**
- * ParentRef = Pedestal anchor entity ref
- */
-public class ContainerNodeHandler implements NodeInterface {
+public class ContainerNodeHandler extends BaseContainerHandler {
+    private static final HytaleLogger logger = HytaleLogger.forEnclosingClass();
 
     public static final ContainerNodeHandler INSTANCE = new ContainerNodeHandler();
 
@@ -96,8 +95,6 @@ public class ContainerNodeHandler implements NodeInterface {
             holder.addComponent(NetworkId.getComponentType(), new NetworkId(networkId));
         }
 
-        HiddenUtils.addHiddenToHolder(accessor, holder, playerRef);
-
         ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset("Selection_Anchor");
 
         if (modelAsset == null) {
@@ -114,10 +111,10 @@ public class ContainerNodeHandler implements NodeInterface {
 
         holder.addComponent(BoundingBox.getComponentType(), new BoundingBox(PREVIEW_BOUNDING_BOX));
         holder.addComponent(HoverableComponent.getComponentType(), new HoverableComponent(HoverableType.NODE));
-        holder.addComponent(NodeComponent.getComponentType(), new NodeComponent(anchorRef, NodeType.Container));
+        holder.addComponent(NodeComponent.getComponentType(), new NodeComponent(anchorRef, NodeTypeId.CONTAINER));
         holder.addComponent(DebugComponent.getComponentType(),
                 new DebugComponent(DebugShape.Sphere, isEmpty ? CraftingColors.EMPTY_SLOT : CraftingColors.FILLED_SLOT,
-                        0.5, 2.0f, playerRef));
+                        0.5, 2.0f));
 
         Ref<EntityStore> hexRef = CreateHex.createEntity(accessor, holder);
         if (isEmpty || hex == null) {
@@ -128,7 +125,7 @@ public class ContainerNodeHandler implements NodeInterface {
         hexComponent.setSelfRef(hexRef);
 
         int numGlyphs = (int) hex.getGlyphs().stream()
-                .filter(glyph -> glyph != null && glyph.getPrevious().size() > 0)
+                .filter(glyph -> glyph != null)
                 .count();
 
         float scaleMultiplier = 1 + (numGlyphs * GlyphStyler.SCALE_PER_GLYPH);
@@ -156,15 +153,27 @@ public class ContainerNodeHandler implements NodeInterface {
     public InteractionState enter(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
             Ref<EntityStore> playerRef) {
         PedestalBlockComponent pedestal = PedestalBlockUtil.resolvePedestal(playerRef, accessor);
-        if (pedestal == null)
+        if (pedestal == null) {
+            logger.atWarning().log("container enter: pedestal is null");
             return InteractionState.Failed;
+        }
 
-        CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(accessor, playerRef);
-        if (playerData == null)
+        HexcodeSessionComponent session = SessionUtils.resolveSession(pedestal, accessor);
+        if (session == null) {
+            logger.atWarning().log("container enter: session is null");
             return InteractionState.Failed;
+        }
 
-        if (playerData.getState() != PedestalState.SELECTING)
-            return InteractionState.Failed; // only interact whilst in selecting state
+        if (!session.isOwner(playerRef)) {
+            logger.atWarning().log("container enter: not owner — ownerRef=%s, playerRef=%s, same=%s",
+                    session.getOwnerRef(), playerRef, session.getOwnerRef() == playerRef);
+            return InteractionState.Failed;
+        }
+
+        if (session.getState() != PedestalState.SELECTING) {
+            logger.atWarning().log("container enter: wrong state=%s", session.getState());
+            return InteractionState.Failed;
+        }
 
         HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
                 HexcasterCraftingComponent.getComponentType());
@@ -177,24 +186,21 @@ public class ContainerNodeHandler implements NodeInterface {
         Hex originalHex = null;
 
         if (isFilled) {
-            int slotIndex = playerData.getHexPreviewRefs().indexOf(node);
-            playerData.setActiveSlotIndex(slotIndex);
+            int slotIndex = session.getHexPreviewRefs().indexOf(node);
+            session.setActiveSlotIndex(slotIndex);
 
             Map<String, Ref<EntityStore>> oldChildren = hexComp.getChildGlyphRefs();
             if (oldChildren != null) {
                 for (Ref<EntityStore> childRef : oldChildren.values()) {
                     if (childRef == null || !childRef.isValid())
                         continue;
-                    GlyphComponent effect = accessor.getComponent(childRef, GlyphComponent.getComponentType());
-                    if (effect != null && effect.getNodeRef() != null && effect.getNodeRef().isValid()) {
-                        accessor.removeEntity(effect.getNodeRef(), RemoveReason.REMOVE);
-                    }
-                    accessor.removeEntity(childRef, RemoveReason.REMOVE);
+                    SlotNodeHandler.INSTANCE.despawnSlotsForGlyph(accessor, childRef);
+                    accessor.tryRemoveEntity(childRef, RemoveReason.REMOVE);
                 }
                 oldChildren.clear();
             }
 
-            List<Hex> bookHexes = playerData.getHexes();
+            List<Hex> bookHexes = session.getHexes();
             if (slotIndex >= 0 && slotIndex < bookHexes.size()) {
                 Hex hex = bookHexes.get(slotIndex).clone();
                 HexComponent freshComp = new HexComponent(hex);
@@ -205,7 +211,7 @@ public class ContainerNodeHandler implements NodeInterface {
             }
 
         } else {
-            playerData.setActiveSlotIndex(playerData.getHexes().size());
+            session.setActiveSlotIndex(session.getHexes().size());
 
             originalHex = new Hex();
             HexComponent newHexComp = new HexComponent(originalHex);
@@ -216,12 +222,13 @@ public class ContainerNodeHandler implements NodeInterface {
         }
 
         PedestalSystem.enterCrafting(accessor, playerRef, pedestal, node);
-        HexcodeEvents.fire(new EnterCraftingModeEvent(playerRef, originalHex, pedestal));
+        HytaleServer.get().getEventBus().dispatchFor(EnterCraftingModeEvent.class)
+                .dispatch(new EnterCraftingModeEvent(playerRef, originalHex, pedestal));
         ObeliskDispatcher.dispatchEnterCrafting(accessor, pedestal, playerRef);
         craftingComp.setHoveredRef(null);
         accessor.removeComponent(node, DebugComponent.getComponentType());
 
-        Vector3d anchorPos = PedestalEntity.getAnchorPosition(pedestal.getLocation());
+        Vector3d anchorPos = PedestalEntity.getAnchorPosition(session.getPedestalLocation());
         Vector3d activePos = new Vector3d(
                 anchorPos.x + PedestalSystem.ACTIVE_HEX_OFFSET.x,
                 anchorPos.y + PedestalSystem.ACTIVE_HEX_OFFSET.y,
@@ -229,35 +236,7 @@ public class ContainerNodeHandler implements NodeInterface {
 
         Ref<EntityStore> rootNodeRef = AnchorNodeHandler.INSTANCE.spawnNode(accessor, originalHex,
                 node, activePos, playerRef);
-        playerData.setAnchorNodeRef(rootNodeRef);
-
-        return InteractionState.Finished;
-    }
-
-    @Override
-    public InteractionState tick(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
-            Ref<EntityStore> playerRef) {
-
-        return InteractionState.Finished;
-    }
-
-    @Override
-    public InteractionState exit(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
-            Ref<EntityStore> playerRef) {
-
-        return InteractionState.Finished;
-    }
-
-    @Override
-    public InteractionState click(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
-            Ref<EntityStore> playerRef) {
-
-        return InteractionState.Finished;
-    }
-
-    @Override
-    public InteractionState ability(CommandBuffer<EntityStore> accessor, Ref<EntityStore> node,
-            InteractionType inputType, Ref<EntityStore> playerRef) {
+        session.setAnchorNodeRef(rootNodeRef);
 
         return InteractionState.Finished;
     }
@@ -266,26 +245,5 @@ public class ContainerNodeHandler implements NodeInterface {
     public void despawn(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'despawn'");
-    }
-
-    @Override
-    public void hover(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
-        DebugComponent debug = accessor.getComponent(nodeRef, DebugComponent.getComponentType());
-        if (debug == null)
-            return;
-        debug.setScaleMultiplier(1.3f);
-        debug.setIntervalMultiplier(0.25f);
-        debug.setFadeMultiplier(0.25f);
-        debug.setTimer(0);
-    }
-
-    @Override
-    public void unhover(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
-        DebugComponent debug = accessor.getComponent(nodeRef, DebugComponent.getComponentType());
-        if (debug == null)
-            return;
-        debug.resetScaleMultiplier();
-        debug.resetFadeMultipler();
-        debug.resetIntervalMultiplier();
     }
 }

@@ -21,7 +21,7 @@ public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
   protected String castStyleId;
   protected ModelParticle[] castingAuraParticles;
   protected ModelParticle[] craftingAuraParticles;
-  protected float staffModifier = 1.0f;
+  protected float castDecayRate = 0.05f;
   protected HexColors colors;
 
   public static AssetStore<String, HexStaffAsset, DefaultAssetMap<String, HexStaffAsset>> getAssetStore() {
@@ -56,8 +56,8 @@ public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
     return this.craftingAuraParticles;
   }
 
-  public float getStaffModifier() {
-    return this.staffModifier;
+  public float getCastDecayRate() {
+    return this.castDecayRate;
   }
 
   public HexColors getColors() {
@@ -87,10 +87,10 @@ public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
           a -> a.craftingAuraParticles,
           (a, p) -> a.craftingAuraParticles = p.craftingAuraParticles)
       .add()
-      .<Float>appendInherited(new KeyedCodec<>("StaffModifier", Codec.FLOAT),
-          (a, v) -> a.staffModifier = v,
-          a -> a.staffModifier,
-          (a, p) -> a.staffModifier = p.staffModifier)
+      .<Float>appendInherited(new KeyedCodec<>("CastDecayRate", Codec.FLOAT),
+          (a, v) -> a.castDecayRate = v,
+          a -> a.castDecayRate,
+          (a, p) -> a.castDecayRate = p.castDecayRate)
       .add()
       .appendInherited(new KeyedCodec<>("Colors", HexColors.CODEC),
           (a, v) -> a.colors = v,

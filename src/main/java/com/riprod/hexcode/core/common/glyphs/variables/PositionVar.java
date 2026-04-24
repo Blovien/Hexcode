@@ -1,63 +1,57 @@
 package com.riprod.hexcode.core.common.glyphs.variables;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
+import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
-import com.hypixel.hytale.codec.codecs.array.ArrayCodec;
+
 import com.hypixel.hytale.math.vector.Vector3d;
 
 public class PositionVar extends HexVar {
-    private List<Vector3d> positions = new ArrayList<>();
+    private Vector3d position;
+    private boolean absolute;
 
     public PositionVar() {
     }
 
-    public PositionVar(List<Vector3d> positions) {
-        this.positions = positions;
-    }
-
     public PositionVar(Vector3d position) {
-        this.positions = new ArrayList<>();
-        this.positions.add(position);
+        this.position = position;
     }
 
-    public List<Vector3d> getValues() {
-        return positions;
+    public PositionVar(Vector3d position, boolean absolute) {
+        this.position = position;
+        this.absolute = absolute;
     }
 
-    public void setPositions(List<Vector3d> positions) {
-        this.positions = positions;
+    public boolean isAbsolute() {
+        return absolute;
     }
 
-    public Vector3d getAt(int index) {
-        return positions.get(index);
-    }
-
-    public void addPosition(Vector3d position) {
-        this.positions.add(position);
-    }
-
-    public void removePosition(Vector3d position) {
-        this.positions.remove(position);
+    public Vector3d getValue() {
+        return position;
     }
 
     @Override
-    public int size() {
-        return positions.size();
+    public Object getRawValue() {
+        return position;
     }
 
     @Override
-    public double toScalar() {
-        return positions.isEmpty() ? 0 : positions.get(0).length();
+    public Double toScalar() {
+        return position == null ? 0 : position.length();
+    }
+
+    @Override
+    public String describe() {
+        if (position == null) return "PositionVar: [null]";
+        return String.format("PositionVar: (%.2f, %.2f, %.2f) [%s]",
+                position.x, position.y, position.z, absolute ? "abs" : "rel");
     }
 
     @Override
     public boolean equalTo(HexVar other) {
         if (other instanceof PositionVar pb) {
-            return !positions.isEmpty() && !pb.positions.isEmpty() && positions.get(0).equals(pb.positions.get(0));
+            if (position == null || pb.position == null) return position == pb.position;
+            return position.equals(pb.position);
         }
         return super.equalTo(other);
     }
@@ -65,17 +59,28 @@ public class PositionVar extends HexVar {
     @Override
     public int compareTo(HexVar other) {
         if (other instanceof PositionVar pb) {
-            if (positions.isEmpty() || pb.positions.isEmpty()) return 0;
-            return Double.compare(positions.get(0).length(), pb.positions.get(0).length());
+            if (position == null && pb.position == null) return 0;
+            if (position == null) return -1;
+            if (pb.position == null) return 1;
+            return Double.compare(position.length(), pb.position.length());
         }
         return super.compareTo(other);
     }
 
+    @Override
+    public String toString() {
+        return "PositionVar(" + position + ", absolute=" + absolute + ")";
+    }
+
     public static final BuilderCodec<PositionVar> CODEC = BuilderCodec
             .builder(PositionVar.class, PositionVar::new, HexVar.BASE_CODEC)
-            .append(new KeyedCodec<>("Positions", new ArrayCodec<>(Vector3d.CODEC, Vector3d[]::new)),
-                    (v, pos) -> v.positions = new ArrayList<>(Arrays.asList(pos)),
-                    v -> v.positions.toArray(Vector3d[]::new))
+            .append(new KeyedCodec<>("Position", com.hypixel.hytale.math.vector.Vector3d.CODEC),
+                    (v, pos) -> v.position = pos,
+                    v -> v.position)
+            .add()
+            .append(new KeyedCodec<>("Absolute", Codec.BOOLEAN),
+                    (v, abs) -> v.absolute = abs,
+                    v -> v.absolute)
             .add()
             .build();
 

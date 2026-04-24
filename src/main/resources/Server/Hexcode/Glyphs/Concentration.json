@@ -1,0 +1,26 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Concentration",
+  "Description": "Sustains downstream glyphs while the caster holds the primary interaction. Releasing too early invalidates the hex.",
+  "ModelPath": "Concentration",
+  "BasePower": 0,
+  "ManaConsumption": 1,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Triangle",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Circle",
+      "Size": 0.55
+    }
+  ],
+  "Slots": {
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "Children sustained while concentrating"
+    }
+  },
+  "VolatilityCost": 1
+}

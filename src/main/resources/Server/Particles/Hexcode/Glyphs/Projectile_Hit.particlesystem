@@ -1,0 +1,12 @@
+{
+  "Spawners": [
+    { "SpawnerId": "Projectile_Hit_Glow", "StartDelay": 0 },
+    { "SpawnerId": "Projectile_Hit_Burst", "PositionOffset": { "Y": 0 }, "StartDelay": 0 },
+    { "SpawnerId": "Projectile_Hit_Sparks", "PositionOffset": { "Y": 0 }, "StartDelay": 0.02 },
+    { "SpawnerId": "Projectile_Hit_Smoke", "PositionOffset": { "Y": 0 }, "StartDelay": 0.05 }
+  ],
+  "LifeSpan": 1.5,
+  "CullDistance": 100,
+  "BoundingRadius": 15.0,
+  "IsImportant": true
+}

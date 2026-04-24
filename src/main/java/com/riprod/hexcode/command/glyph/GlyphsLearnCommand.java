@@ -13,7 +13,8 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
-import com.riprod.hexcode.core.common.glyphs.utils.GlyphType;
+import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
+import com.riprod.hexcode.core.common.glyphs.registry.GlyphRegistry;
 import com.riprod.hexcode.core.common.hexcaster.utils.CasterInventory;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.utils.HexSlot;
@@ -56,7 +57,8 @@ public class GlyphsLearnCommand extends AbstractPlayerCommand {
             return;
         }
 
-        if (asset.getGlyphType() == GlyphType.Value) {
+        GlyphHandler handler = GlyphRegistry.get(glyphId);
+        if (handler != null) {
             playerRef.sendMessage(Message.raw("Cannot learn value glyphs: " + glyphId));
             return;
         }

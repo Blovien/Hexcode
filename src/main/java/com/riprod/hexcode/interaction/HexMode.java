@@ -12,6 +12,7 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
+import com.hypixel.hytale.protocol.WaitForDataFrom;
 import com.hypixel.hytale.server.core.entity.InteractionContext;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHandler;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
@@ -60,6 +61,11 @@ public class HexMode extends ChargingInteraction {
     public HexMode() {
     }
 
+    @Nonnull
+    public WaitForDataFrom getWaitForDataFrom() {
+        return WaitForDataFrom.Client;
+    }
+
     @Override
     protected void tick0(boolean firstRun, float dt, @Nonnull InteractionType type,
             @Nonnull InteractionContext ctx, @Nonnull CooldownHandler cooldown) {
@@ -75,7 +81,7 @@ public class HexMode extends ChargingInteraction {
                 return;
             }
 
-            Ref<EntityStore> playerRef = ctx.getEntity();
+            Ref<EntityStore> playerRef = ctx.getOwningEntity();
             if (playerRef == null || !playerRef.isValid()) {
                 ctx.getState().state = InteractionState.Failed;
                 return;
@@ -88,7 +94,6 @@ public class HexMode extends ChargingInteraction {
             }
 
             if (hexcaster.getState() != targetState) {
-                LOGGER.atInfo().log("hexmode: state mismatch, current=%s target=%s", hexcaster.getState(), targetState);
                 ctx.getState().state = InteractionState.Finished;
                 return;
             }

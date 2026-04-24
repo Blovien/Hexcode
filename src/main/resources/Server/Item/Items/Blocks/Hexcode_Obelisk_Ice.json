@@ -1,0 +1,138 @@
+{
+  "TranslationProperties": {
+    "Name": "hexcode.blocks.Hexcode_Obelisk_Ice.name"
+  },
+  "Icon": "Icons/ItemsGenerated/Hexcode_Obelisk_Ice.png",
+  "Categories": [
+    "Hexcode.Obelisks"
+  ],
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "DrawType": "Model",
+    "Material": "Solid",
+    "Opacity": "Transparent",
+    "CustomModel": "Blocks/Hexcode/Obelisks/Ice_Obelisk.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "Blocks/Hexcode/Obelisks/Ice_Obelisk.png",
+        "Weight": 1
+      }
+    ],
+    "HitboxType": "Full",
+    "BlockSoundSetId": "Stone",
+    "BlockParticleSetId": "Stone",
+    "Flags": {},
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "SoftBlocks"
+      }
+    },
+    "BlockEntity": {
+      "Components": {
+        "Hexcode_ObeliskBlock": {
+          "Power": 10,
+          "HandlerId": "efficiency"
+        }
+      }
+    },
+    "State": {
+      "Definitions": {
+        "Idle": {
+          "Light": {
+            "Color": "#00bbdd",
+            "Intensity": 1
+          }
+        },
+        "Ready": {
+          "Light": {
+            "Color": "#00ddff",
+            "Intensity": 2
+          },
+          "Particles": [
+            {
+              "SystemId": "Ice_Obelisk_Ready",
+              "DetachedFromModel": false,
+              "PositionOffset": {
+                "Y": 0
+              }
+            }
+          ]
+        },
+        "Selecting": {
+          "Light": {
+            "Color": "#44eeff",
+            "Intensity": 4
+          },
+          "Particles": [
+            {
+              "SystemId": "Ice_Obelisk_Selecting",
+              "DetachedFromModel": false,
+              "PositionOffset": {
+                "Y": 0
+              }
+            }
+          ]
+        },
+        "Crafting": {
+          "Light": {
+            "Color": "#88ffff",
+            "Intensity": 6
+          },
+          "Particles": [
+            {
+              "SystemId": "Ice_Obelisk_Crafting",
+              "DetachedFromModel": false
+            }
+          ]
+        }
+      }
+    },
+    "HexObelisk": {
+      "Type": "Modifier",
+      "Modifiers": [
+        {
+          "Type": "",
+          "Value": -1
+        }
+      ]
+    },
+    "Support": {
+      "Down": [
+        {
+          "FaceType": "Full"
+        }
+      ]
+    },
+    "Supporting": {
+      "Down": [
+        {}
+      ],
+      "Up": [
+        {}
+      ]
+    },
+    "VariantRotation": "NESW",
+    "CustomModelScale": 1.5
+  },
+  "Tags": {
+    "Type": [
+      "Deco"
+    ],
+    "Family": [
+      "Hexcode"
+    ]
+  },
+  "ItemSoundSetId": "ISS_Blocks_Stone",
+  "IconProperties": {
+    "Scale": 0.5,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      0,
+      -26
+    ]
+  }
+}

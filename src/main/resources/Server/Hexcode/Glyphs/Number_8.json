@@ -1,0 +1,23 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Number 8",
+  "Description": "Provides the constant value 8",
+  "ModelPath": "Number_8",
+  "ShapeStructure": [
+    {
+      "ShapeId": "Greater",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Square",
+      "Size": 1.0
+    }
+  ],
+  "Slots": {
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain"
+    }
+  }
+}

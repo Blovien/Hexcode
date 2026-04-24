@@ -5,32 +5,7 @@
     "Cooldown": 0.3
   },
   "Interactions": [
-    {
-      "Type": "HexItemCondition",
-      "CheckMode": "Both",
-      "MainHandItem": "HexStaff",
-      "OffHandItem": "HexBook",
-      "Next": {
-        "Type": "HexStateBranch",
-        "Branches": {
-          "Idle": "Root_Hexcode_Secondary_CastingFlow",
-          "Execution": "Root_Hexcode_Secondary_CastingFlow",
-          "Crafting": "Root_Hexcode_Secondary_DrawingFlow",
-          "Casting": "Root_Hexcode_Secondary_CastingFlow"
-        },
-        "CancelOnItemChange": true,
-        "Effects": {
-          "ClearAnimationOnFinish": true
-        }
-      },
-      "Failed": {
-        "Type": "Charging",
-        "Next": {
-          "0.5": "Unarmed_Swing_Right"
-        },
-        "DisplayProgress": false
-      }
-    }
+    "Hexbook_Secondary"
   ],
   "Rules": {
     "Interrupting": [

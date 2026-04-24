@@ -7,7 +7,12 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 public interface HexRoot {
     boolean isAlive();
     Ref<EntityStore> getSourceRef();
-    Ref<EntityStore> getRootEntityRef();
+    void addDependency(HexContext ctx, Ref<EntityStore> ref);
     boolean tryConsumeMana(float cost, ComponentAccessor<EntityStore> accessor);
     float getCurrentMana(ComponentAccessor<EntityStore> accessor);
+    boolean addMana(float amount, ComponentAccessor<EntityStore> accessor);
+
+    // runtime sht
+    HexRoot copy();
+
 }

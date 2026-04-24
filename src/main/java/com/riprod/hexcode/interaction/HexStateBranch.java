@@ -12,6 +12,7 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
+import com.hypixel.hytale.protocol.WaitForDataFrom;
 import com.hypixel.hytale.server.core.entity.InteractionContext;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHandler;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.RootInteraction;
@@ -66,7 +67,11 @@ public class HexStateBranch extends SimpleInteraction {
             HexState state = hexcaster.getState();
 
             if (branches != null && branches.containsKey(state)) {
-                RootInteraction branch = RootInteraction.getRootInteractionOrUnknown(branches.get(state));
+                RootInteraction branch = RootInteraction.getAssetMap().getAsset(branches.get(state));
+                if (branch == null) {
+                    ctx.getState().state = InteractionState.Failed;
+                    return;
+                }
                 ctx.getState().state = InteractionState.Finished;
                 ctx.execute(branch);
             } else {
@@ -76,10 +81,5 @@ public class HexStateBranch extends SimpleInteraction {
             LOGGER.atSevere().log("[hexcode] HexStateBranch failed: %s", e.getMessage());
             ctx.getState().state = InteractionState.Failed;
         }
-    }
-
-    @Override
-    protected void simulateTick0(boolean firstRun, float time, @Nonnull InteractionType type,
-            @Nonnull InteractionContext ctx, @Nonnull CooldownHandler cooldown) {
     }
 }

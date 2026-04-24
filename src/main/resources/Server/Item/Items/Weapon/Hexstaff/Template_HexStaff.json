@@ -1,0 +1,45 @@
+{
+  "Tags": {
+    "Family": [
+      "HexStaff"
+    ],
+    "Type": [
+      "Weapon"
+    ]
+  },
+  "Model": "Items/Weapons/Staff/Hex_Staff.blockymodel",
+  "Texture": "Items/Weapons/Staff/Hex_Staff_Texture.png",
+  "Icon": "Icons/ItemsGenerated/Hex_Staff.png",
+  "PlayerAnimationsId": "HexStaff",
+  "Utility": {
+    "Compatible": true
+  },
+  "Interactions": {
+    "Primary": "Hexstaff_Primary",
+    "Secondary": "Hexstaff_Secondary",
+    "Ability1": "Hexstaff_Ability1",
+    "Ability3": "Hexstaff_Ability3"
+  },
+  "ItemAppearanceConditions": {
+    "SignatureEnergy": [
+      {
+        "Condition": [
+          100,
+          100
+        ],
+        "ConditionValueType": "Percent"
+      }
+    ]
+  },
+  "Weapon": {
+    "RenderDualWielded": false
+  },
+  "Categories": [
+    "Items.Weapons"
+  ],
+  "Quality": "Template",
+  "MaxStack": 1,
+  "DisplayEntityStatsHUD": [
+    "SignatureEnergy"
+  ]
+}

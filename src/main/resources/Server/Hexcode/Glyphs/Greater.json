@@ -1,0 +1,34 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Greater",
+  "Description": "Branches execution if A is greater than B",
+  "ModelPath": "Greater",
+  "BasePower": 0,
+  "ManaConsumption": 0,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Greater",
+      "Size": 1.0
+    }
+  ],
+  "Slots": {
+    "a": {
+      "Style": "Input",
+      "Label": "A",
+      "Description": "First operand",
+      "DefaultValue": 0
+    },
+    "b": {
+      "Style": "Input",
+      "Label": "B",
+      "Description": "Second operand",
+      "DefaultValue": 0
+    },
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain"
+    }
+  },
+  "VolatilityCost": 1
+}

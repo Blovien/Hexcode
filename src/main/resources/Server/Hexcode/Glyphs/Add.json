@@ -1,0 +1,38 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Add",
+  "Description": "Adds two values together",
+  "ModelPath": "Add",
+  "BasePower": 0,
+  "ManaConsumption": 0,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Line",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Antiline",
+      "Size": 1.0
+    }
+  ],
+  "Slots": {
+    "a": {
+      "Style": "Input",
+      "Label": "A",
+      "Description": "First operand",
+      "DefaultValue": 0
+    },
+    "b": {
+      "Style": "Input",
+      "Label": "B",
+      "Description": "Second operand",
+      "DefaultValue": 0
+    },
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain"
+    }
+  },
+  "VolatilityCost": 1
+}

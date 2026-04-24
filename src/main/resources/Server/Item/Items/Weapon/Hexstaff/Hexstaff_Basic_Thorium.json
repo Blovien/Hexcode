@@ -1,0 +1,95 @@
+{
+  "Parent": "Template_HexStaff",
+  "TranslationProperties": {
+    "Name": "hexcode.items.hexstaff.basic.thorium.name",
+    "Description": "hexcode.items.hexstaff.basic.thorium.description"
+  },
+  "Categories": [
+    "Hexcode.Staves",
+    "Items.Weapons"
+  ],
+  "Quality": "Rare",
+  "ItemLevel": 30,
+  "Model": "Items/Weapons/Staff/Thorium.blockymodel",
+  "Texture": "Items/Weapons/Staff/Thorium_Texture.png",
+  "IconProperties": {
+    "Scale": 0.27,
+    "Translation": [
+      -58,
+      -58
+    ],
+    "Rotation": [
+      22.5,
+      45,
+      315
+    ]
+  },
+  "Icon": "Icons/ItemsGenerated/Weapon_Staff_Thorium.png",
+  "DroppedItemAnimation": "Items/Animations/Dropped/Dropped_Diagonal_Left.blockyanim",
+  "Tags": {
+    "Type": [
+      "Weapon"
+    ],
+    "Family": [
+      "Staff"
+    ]
+  },
+  "Weapon": {
+    "StatModifiers": {
+      "Magic_Power": [
+        {
+          "Target": "Max",
+          "CalculationType": "Additive",
+          "Amount": 0.7
+        }
+      ],
+      "Volatility": [
+        {
+          "Target": "Max",
+          "CalculationType": "Additive",
+          "Amount": 60
+        }
+      ],
+      "MagicCharges": [
+        {
+          "CalculationType": "Additive",
+          "Amount": 5
+        }
+      ]
+    },
+    "EntityStatsToClear": [
+      "Magic_Power",
+      "MagicCharges",
+      "Volatility"
+    ]
+  },
+  "ItemSoundSetId": "ISS_Weapons_Wood",
+  "Recipe": {
+    "BenchRequirement": [
+      {
+        "Id": "Arcanebench",
+        "Categories": [
+          "Arcane_Hexcode"
+        ]
+      }
+    ],
+    "Input": [
+      {
+        "ItemId": "Ingredient_Life_Essence_Concentrated",
+        "Quantity": 1
+      },
+      {
+        "ItemId": "Ingredient_Bar_Silver",
+        "Quantity": 8
+      },
+      {
+        "ItemId": "Rock_Gem_Emerald",
+        "Quantity": 1
+      },
+      {
+        "ItemId": "Ingredient_Bar_Thorium",
+        "Quantity": 8
+      }
+    ]
+  }
+}

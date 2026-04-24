@@ -1,8 +1,7 @@
 package com.riprod.hexcode.core.common.glyphs.component;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -12,20 +11,19 @@ import javax.annotation.Nullable;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
-import com.hypixel.hytale.codec.codecs.EnumCodec;
 import com.hypixel.hytale.codec.codecs.map.MapCodec;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
-import com.riprod.hexcode.core.common.glyphs.registry.HexValueRegistry;
-import com.riprod.hexcode.core.common.glyphs.registry.SlotDefinition;
-import com.riprod.hexcode.core.common.glyphs.utils.GlyphType;
-import com.riprod.hexcode.core.common.glyphs.values.HexValInterface;
+import com.riprod.hexcode.core.common.glyphs.registry.GlyphRegistry;
+import com.riprod.hexcode.core.common.glyphs.registry.SlotAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.glyphs.variables.NumberVar;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.utils.SpellVarUtil;
 
 public class Glyph {
+    public static final String NEXT_SLOT = "Next";
+    public static final String DEFAULT_SLOT = "0";
+
     private static final int MAX_RESOLVE_DEPTH = 8;
     private static final ThreadLocal<Integer> resolveDepth = ThreadLocal.withInitial(() -> 0);
 
@@ -33,26 +31,18 @@ public class Glyph {
     private String id;
     private float volatility;
     private float efficiency;
-    private Map<String, String> inputs;
-    private Map<String, String> outputs;
-    private List<String> next;
-    private List<String> previous;
+    private Map<String, Slot> slots;
     private Vector3f relPosition;
     private Vector3f relRotation;
-    private GlyphType type;
 
     public Glyph() {
         this.glyphId = "";
         this.id = "";
         this.volatility = 0;
         this.efficiency = 0;
-        this.inputs = new HashMap<>();
-        this.outputs = new HashMap<>();
-        this.next = new ArrayList<>();
-        this.previous = new ArrayList<>();
+        this.slots = new LinkedHashMap<>();
         this.relPosition = new Vector3f(0, 0, 0);
         this.relRotation = new Vector3f(0, 0, 0);
-        this.type = GlyphType.Effect;
     }
 
     public Glyph(GlyphAsset glyphAsset, float volatility, float efficiency) {
@@ -60,33 +50,33 @@ public class Glyph {
         this.id = UUID.randomUUID().toString();
         this.volatility = volatility;
         this.efficiency = efficiency;
-        this.inputs = new HashMap<>();
-        this.outputs = new HashMap<>();
-        this.next = new ArrayList<>();
-        this.previous = new ArrayList<>();
+        this.slots = new LinkedHashMap<>();
         this.relPosition = new Vector3f(0, 0, 0);
         this.relRotation = new Vector3f(0, 0, 0);
-        this.type = glyphAsset.getGlyphType();
     }
 
     public String getGlyphId() {
         return glyphId;
     }
 
+    public void setGlyphId(String glyphId) {
+        this.glyphId = glyphId;
+    }
+
     public float getVolatility() {
         return volatility;
     }
 
-    public void setVolatility(float accuracy) {
-        this.volatility = accuracy;
+    public void setVolatility(float volatility) {
+        this.volatility = volatility;
     }
 
     public float getEfficiency() {
         return efficiency;
     }
 
-    public void setEfficiency(float speed) {
-        this.efficiency = speed;
+    public void setEfficiency(float efficiency) {
+        this.efficiency = efficiency;
     }
 
     public String getId() {
@@ -113,142 +103,146 @@ public class Glyph {
         this.relRotation = rotation;
     }
 
-    public GlyphType getType() {
-        return type;
+    public Map<String, Slot> getSlots() {
+        return slots;
     }
 
     @Nullable
-    public HexVar resolveInput(String key, HexContext hexContext) {
-        int depth = resolveDepth.get();
-        if (depth >= MAX_RESOLVE_DEPTH) {
-            return null;
-        }
+    public Slot getSlot(String key) {
+        return slots.get(key);
+    }
 
-        String valueGlyphId = inputs.get(key);
+    public Slot getOrCreateSlot(String key) {
+        Slot existing = slots.get(key);
+        if (existing != null) return existing;
+        Slot created = new Slot();
+        slots.put(key, created);
+        return created;
+    }
 
-        if (valueGlyphId == null) {
-            GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyphId);
-            if (asset == null) return null;
-            SlotDefinition def = asset.getInputDef(key);
-            if (def == null) return null;
-            if (def.getDefaultValue() != null) return new NumberVar(def.getDefaultValue());
-            if (def.getDefaultSlot() != null) return hexContext.getVariable(def.getDefaultSlot());
-            return null;
-        }
+    public void addSlotLink(String key, String linkedGlyphId) {
+        getOrCreateSlot(key).addLink(linkedGlyphId);
+    }
 
-        Glyph valueGlyph = hexContext.gethex().get(valueGlyphId);
-        if (valueGlyph == null) return null;
+    public void removeSlotLink(String key, String linkedGlyphId) {
+        Slot slot = slots.get(key);
+        if (slot == null) return;
+        slot.removeLink(linkedGlyphId);
+    }
 
-        HexValInterface resolver = HexValueRegistry.get(valueGlyph.getGlyphId());
-        if (resolver == null) return null;
+    public void clearSlot(String key) {
+        Slot slot = slots.get(key);
+        if (slot == null) return;
+        slot.clearLinks();
+    }
 
-        resolveDepth.set(depth + 1);
-        try {
-            return resolver.getValue(valueGlyph, hexContext);
-        } finally {
-            resolveDepth.set(depth);
+    public void clearAllSlots() {
+        for (Slot slot : slots.values()) {
+            slot.clearLinks();
         }
     }
 
     @Nullable
-    public HexVar resolveInputOrDefault(String key, HexContext hexContext, HexVar defaultValue) {
-        HexVar result = resolveInput(key, hexContext);
-        return result != null ? result : defaultValue;
+    public HexVar readSlot(String key, HexContext hexContext) {
+        return readSlot(key, hexContext, null);
     }
 
     @Nullable
-    public Integer resolveOutput(String key, HexContext hexContext) {
-        String valueGlyphId = outputs.get(key);
-
-        if (valueGlyphId == null) {
-            GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyphId);
-            if (asset == null) return null;
-            SlotDefinition def = asset.getOutputDef(key);
-            if (def == null) return null;
-            return def.getDefaultSlot();
-        }
-
-        Glyph valueGlyph = hexContext.gethex().get(valueGlyphId);
-        if (valueGlyph == null) return null;
-
-        HexValInterface resolver = HexValueRegistry.get(valueGlyph.getGlyphId());
-        if (resolver == null) return null;
-
+    public HexVar readSlot(String key, HexContext hexContext, @Nullable HexVar javaDefault) {
         int depth = resolveDepth.get();
         if (depth >= MAX_RESOLVE_DEPTH) return null;
 
+        Slot slot = slots.get(key);
+        String firstLink = slot != null ? slot.getFirstLink() : null;
+        if (firstLink == null) return resolveAssetDefault(key, hexContext, javaDefault);
+
+        Glyph linked = hexContext.getGlyph(firstLink);
+        if (linked == null) return resolveAssetDefault(key, hexContext, javaDefault);
+
+        GlyphHandler handler = GlyphRegistry.get(linked.getGlyphId());
+        if (handler == null) return resolveAssetDefault(key, hexContext, javaDefault);
+
         resolveDepth.set(depth + 1);
         try {
-            HexVar resolved = resolver.getValue(valueGlyph, hexContext);
-            Double num = SpellVarUtil.resolveNumber(resolved);
-            return num != null ? num.intValue() : null;
+            HexVar v = handler.readValue(linked, hexContext);
+            return v != null ? v : resolveAssetDefault(key, hexContext, javaDefault);
         } finally {
             resolveDepth.set(depth);
         }
     }
 
-    public Map<String, String> getInputs() {
-        return inputs;
+    public void writeOutput(HexVar value, HexContext hexContext) {
+        hexContext.setVariable(DEFAULT_SLOT, value);
+        hexContext.setVariable(this.id, value);
     }
 
-    public void setInput(String key, String valueGlyphId) {
-        this.inputs.put(key, valueGlyphId);
+    public void writeOutput(HexVar defaultSlotValue, HexVar selfValue, HexContext hexContext) {
+        hexContext.setVariable(DEFAULT_SLOT, defaultSlotValue);
+        hexContext.setVariable(this.id, selfValue);
     }
 
-    public void removeInput(String key) {
-        this.inputs.remove(key);
+    public void writeDefaultOutput(HexVar value, HexContext hexContext) {
+        hexContext.setVariable(DEFAULT_SLOT, value);
     }
 
-    public Map<String, String> getOutputs() {
-        return outputs;
+    public void writeSelfOutput(HexVar value, HexContext hexContext) {
+        hexContext.setVariable(this.id, value);
     }
 
-    public void setOutput(String key, String valueGlyphId) {
-        this.outputs.put(key, valueGlyphId);
+    @Nullable
+    private HexVar resolveAssetDefault(String key, HexContext hexContext, @Nullable HexVar javaDefault) {
+        GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyphId);
+        SlotAsset slotAsset = asset != null ? asset.getSlot(key) : null;
+        Double defaultNum = slotAsset != null ? slotAsset.getDefaultValue() : null;
+        if (defaultNum != null) return new NumberVar(defaultNum);
+        if (javaDefault != null) return javaDefault;
+        HexVar slotZero = hexContext.getVariable(DEFAULT_SLOT);
+        if (slotZero != null) return slotZero;
+        return new NumberVar(0.0);
     }
 
-    public void removeOutput(String key) {
-        this.outputs.remove(key);
+    public List<String> getNextLinks() {
+        Slot slot = slots.get(NEXT_SLOT);
+        if (slot == null) return List.of();
+        String[] links = slot.getLinks();
+        if (links.length == 0) return List.of();
+        return java.util.Arrays.asList(links);
     }
 
-    public List<String> getNext() {
-        return next;
-    }
+    public List<HexVar> readSlotAll(String key, HexContext hexContext) {
+        Slot slot = slots.get(key);
+        if (slot == null) return List.of();
 
-    public void setNext(List<String> next) {
-        this.next = next;
-    }
+        String[] links = slot.getLinks();
+        if (links.length == 0) return List.of();
 
-    public void addNext(String nextId) {
-        this.next.add(nextId);
-    }
+        int depth = resolveDepth.get();
+        if (depth >= MAX_RESOLVE_DEPTH) return List.of();
 
-    public void removeNext(String nextId) {
-        this.next.remove(nextId);
-    }
+        List<HexVar> resolved = new ArrayList<>(links.length);
+        for (String linkId : links) {
+            Glyph linked = hexContext.getGlyph(linkId);
+            if (linked == null) continue;
+            GlyphHandler handler = GlyphRegistry.get(linked.getGlyphId());
+            if (handler == null) continue;
 
-    public List<String> getPrevious() {
-        return previous;
-    }
-
-    public void setPrevious(List<String> previous) {
-        this.previous = previous;
-    }
-
-    public void addPrevious(String previousId) {
-        this.previous.add(previousId);
-    }
-
-    public void removePrevious(String previousId) {
-        this.previous.remove(previousId);
+            resolveDepth.set(depth + 1);
+            try {
+                HexVar value = handler.readValue(linked, hexContext);
+                if (value != null) resolved.add(value);
+            } finally {
+                resolveDepth.set(depth);
+            }
+        }
+        return resolved;
     }
 
     public static final BuilderCodec<Glyph> CODEC = buildCodec();
 
     @SuppressWarnings("unchecked")
     private static BuilderCodec<Glyph> buildCodec() {
-        Codec<Map<String, String>> stringMapCodec =
-                (Codec<Map<String, String>>) (Codec<?>) new MapCodec<>(Codec.STRING, HashMap::new, false);
+        Codec<Map<String, Slot>> slotMapCodec =
+                (Codec<Map<String, Slot>>) (Codec<?>) new MapCodec<>(Slot.CODEC, LinkedHashMap::new, false);
         return BuilderCodec
                 .builder(Glyph.class, Glyph::new)
                 .append(new KeyedCodec<>("GlyphId", Codec.STRING),
@@ -263,25 +257,9 @@ public class Glyph {
                 .append(new KeyedCodec<>("Speed", Codec.FLOAT),
                         (n, v) -> n.efficiency = v, n -> n.efficiency)
                 .add()
-                .<Map<String, String>>append(new KeyedCodec<>("Inputs", stringMapCodec),
-                        (n, v) -> n.inputs = v != null ? new HashMap<>(v) : new HashMap<>(),
-                        n -> n.inputs)
-                .add()
-                .<Map<String, String>>append(new KeyedCodec<>("Outputs", stringMapCodec),
-                        (n, v) -> n.outputs = v != null ? new HashMap<>(v) : new HashMap<>(),
-                        n -> n.outputs)
-                .add()
-                .append(new KeyedCodec<>("Next", Codec.STRING_ARRAY),
-                        (n, v) -> n.next = v != null
-                                ? new ArrayList<>(Arrays.asList(v))
-                                : new ArrayList<>(),
-                        n -> n.next.toArray(String[]::new))
-                .add()
-                .append(new KeyedCodec<>("Previous", Codec.STRING_ARRAY),
-                        (n, v) -> n.previous = v != null
-                                ? new ArrayList<>(Arrays.asList(v))
-                                : new ArrayList<>(),
-                        n -> n.previous.toArray(String[]::new))
+                .<Map<String, Slot>>append(new KeyedCodec<>("Slots", slotMapCodec),
+                        (n, v) -> n.slots = v != null ? new LinkedHashMap<>(v) : new LinkedHashMap<>(),
+                        n -> n.slots)
                 .add()
                 .append(new KeyedCodec<>("RelativePosition", Codec.FLOAT_ARRAY),
                         (c, v) -> c.relPosition = new Vector3f(v[0], v[1], v[2]),
@@ -290,10 +268,6 @@ public class Glyph {
                 .append(new KeyedCodec<>("RelativeRotation", Codec.FLOAT_ARRAY),
                         (c, v) -> c.relRotation = new Vector3f(v[0], v[1], v[2]),
                         c -> new float[] { c.relRotation.x, c.relRotation.y, c.relRotation.z })
-                .add()
-                .append(new KeyedCodec<>("Type", new EnumCodec<>(GlyphType.class)),
-                        (c, v) -> c.type = v,
-                        c -> c.type)
                 .add()
                 .build();
     }
@@ -304,13 +278,12 @@ public class Glyph {
         clone.id = this.id;
         clone.volatility = this.volatility;
         clone.efficiency = this.efficiency;
-        clone.inputs = new HashMap<>(this.inputs);
-        clone.outputs = new HashMap<>(this.outputs);
-        clone.next = new ArrayList<>(this.next);
-        clone.previous = new ArrayList<>(this.previous);
+        clone.slots = new LinkedHashMap<>();
+        for (Map.Entry<String, Slot> entry : this.slots.entrySet()) {
+            clone.slots.put(entry.getKey(), entry.getValue().clone());
+        }
         clone.relPosition = new Vector3f(this.relPosition.x, this.relPosition.y, this.relPosition.z);
         clone.relRotation = new Vector3f(this.relRotation.x, this.relRotation.y, this.relRotation.z);
-        clone.type = this.type;
         return clone;
     }
 

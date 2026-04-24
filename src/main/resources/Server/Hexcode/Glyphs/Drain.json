@@ -1,0 +1,51 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Drain",
+  "Description": "Channels HP or Stamina into Mana over time. As a value, reads resource fill percentage.",
+  "ModelPath": "Drain",
+  "BasePower": 1.0,
+  "ManaConsumption": 0,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Anticircle",
+      "Size": 1.0
+    }
+  ],
+  "Slots": {
+    "hp": {
+      "Style": "Input",
+      "Label": "HP",
+      "Description": "Drain HP > Mana (1:1)"
+    },
+    "stamina": {
+      "Style": "Input",
+      "Label": "Stamina",
+      "Description": "Drain Stamina > Mana (lossy)"
+    },
+    "target": {
+      "Style": "Input",
+      "Label": "Target",
+      "Description": "Entity to drain. Filter slot for Mana",
+      "Unique": true
+    },
+    "duration": {
+      "Style": "Input",
+      "Label": "Duration",
+      "Description": "Seconds to channel over",
+      "DefaultValue": 1,
+      "Unique": true
+    },
+    "destination": {
+      "Style": "Input",
+      "Label": "Destination",
+      "Description": "Entity whose Mana will receive the drained resource. Defaults to caster. HP source is only allowed when draining self.",
+      "Unique": true
+    },
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain"
+    }
+  },
+  "VolatilityCost": 4
+}

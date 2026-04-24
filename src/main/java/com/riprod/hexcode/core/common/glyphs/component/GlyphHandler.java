@@ -1,8 +1,11 @@
 package com.riprod.hexcode.core.common.glyphs.component;
 
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.server.core.HytaleServer;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
+import com.riprod.hexcode.api.event.HexCastEvent;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
-import com.riprod.hexcode.core.common.glyphs.utils.GlyphType;
+import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 
@@ -11,44 +14,39 @@ public interface GlyphHandler {
 
     void execute(Glyph glyph, HexContext hexContext);
 
-    default boolean canExecute(Glyph glyph, HexContext hexContext) {
-        if (glyph.getType() != GlyphType.Effect) return true;
-        return resolveVolatility(glyph, hexContext)
-            && resolveMana(glyph, hexContext);
+    String getId();
+
+    default HexVar readValue(Glyph glyph, HexContext hexContext) {
+        return null;
     }
 
-    default boolean resolveVolatility(Glyph glyph, HexContext hexContext) {
+    /**
+     * Per-glyph mana cost for upfront consumption. Called before any glyph
+     * executes, so no slot variables are resolved yet. Default uses the
+     * asset's ManaConsumption scaled by the glyph's efficiency. Handlers
+     * with dynamic mana needs override.
+     */
+    default float collectMana(Glyph glyph, GlyphAsset asset) {
+        if (asset == null) return 0f;
+        return asset.getManaConsumption()
+                * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
+    }
+
+    default boolean consumeVolatility(Glyph glyph, HexContext hexContext) {
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
         if (tracker == null) return true;
-        boolean passed = tracker.rollAndIncrement(glyph);
-        if (!passed) {
-            tracker.setFizzled(true);
-            LOGGER.atInfo().log("glyph %s fizzled: rolled %.3f against %.3f chance (cast #%d, type count %d)",
-                    glyph.getGlyphId(), tracker.getLastRoll(), tracker.getLastChance(),
-                    tracker.getCastCount(),
-                    tracker.getGlyphTypeCount(glyph.getGlyphId()));
-        }
-        return passed;
-    }
-
-    default boolean resolveMana(Glyph glyph, HexContext hexContext) {
-        GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
-        if (asset == null) return true;
-
-        float baseCost = asset.getManaConsumption()
-            * ((1 - glyph.getEfficiency()) * 0.25f + 0.75f);
-
-        VolatilityTracker tracker = hexContext.getVolatilityTracker();
-        float castMultiplier = (tracker != null) ? tracker.getManaCostMultiplier() : 1.0f;
-        float finalCost = baseCost * castMultiplier;
-
-        boolean consumed = hexContext.getRoot().tryConsumeMana(finalCost, hexContext.getAccessor());
+        float cost = VolatilityTracker.computeGlyphCost(glyph);
+        if (cost <= 0) return true;
+        boolean consumed = tracker.consumeVolatility(cost);
         if (!consumed) {
-            float currentMana = hexContext.getRoot().getCurrentMana(hexContext.getAccessor());
-            LOGGER.atInfo().log("glyph %s insufficient mana: needs %.1f, has %.1f (base %d, efficiency %.2f, multiplier %.2f)",
-                    glyph.getGlyphId(), finalCost, currentMana,
-                    asset.getManaConsumption(), glyph.getEfficiency(), castMultiplier);
+            HytaleServer.get().getEventBus().dispatchFor(GlyphFizzleEvent.class)
+                .dispatch(new GlyphFizzleEvent(
+                    glyph, GlyphFizzleEvent.Reason.VOLATILITY_DEPLETED, hexContext));
         }
         return consumed;
+    }
+
+    default boolean consumeResources(Glyph glyph, HexContext hexContext) {
+        return consumeVolatility(glyph, hexContext);
     }
 }

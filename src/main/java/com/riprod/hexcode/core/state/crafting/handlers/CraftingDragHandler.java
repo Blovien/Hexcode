@@ -4,7 +4,6 @@ import com.hypixel.hytale.builtin.mounts.MountedComponent;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
-import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.MountController;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
@@ -12,9 +11,9 @@ import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.utils.CreateGlyph;
+import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 
 public class CraftingDragHandler {
-    private static HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     public static Ref<EntityStore> startDrag(CommandBuffer<EntityStore> accessor,
             Ref<EntityStore> playerRef, Ref<EntityStore> entityRef) {
@@ -47,13 +46,18 @@ public class CraftingDragHandler {
     }
 
     public static void endDrag(CommandBuffer<EntityStore> accessor,
-            Ref<EntityStore> entityRef, Ref<EntityStore> headAnchorRef) {
+            Ref<EntityStore> entityRef, Ref<EntityStore> headAnchorRef,
+            HexcasterCraftingComponent craftingComp) {
         if (entityRef != null && entityRef.isValid()) {
             accessor.tryRemoveComponent(entityRef, MountedComponent.getComponentType());
         }
-        if (headAnchorRef != null && headAnchorRef.isValid()) {
-            accessor.tryRemoveComponent(headAnchorRef, MountedComponent.getComponentType());
-            accessor.tryRemoveEntity(headAnchorRef, RemoveReason.REMOVE);
+        if (headAnchorRef != null) {
+            if (headAnchorRef.isValid()) {
+                accessor.tryRemoveComponent(headAnchorRef, MountedComponent.getComponentType());
+                accessor.tryRemoveEntity(headAnchorRef, RemoveReason.REMOVE);
+            } else if (craftingComp != null) {
+                craftingComp.addPendingDespawn(headAnchorRef);
+            }
         }
     }
 }

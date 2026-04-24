@@ -1,0 +1,45 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Beam",
+  "Description": "Raycasts from an entity in a direction, storing the first hit",
+  "ModelPath": "Beam",
+  "BasePower": 1.0,
+  "ManaConsumption": 3,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Square",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Circle",
+      "Size": 0.8
+    }
+  ],
+  "Slots": {
+    "entity": {
+      "Style": "Input",
+      "Label": "Source",
+      "Description": "Entity to raycast from",
+      "Unique": true
+    },
+    "rotation": {
+      "Style": "Input",
+      "Label": "Direction",
+      "Description": "Aim direction override, defaults to source entity's look direction",
+      "Unique": true
+    },
+    "distance": {
+      "Style": "Input",
+      "Label": "Distance",
+      "Description": "Maximum range in blocks",
+      "DefaultValue": 48,
+      "Unique": true
+    },
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain"
+    }
+  },
+  "VolatilityCost": 8
+}

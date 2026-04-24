@@ -1,0 +1,64 @@
+package com.riprod.hexcode.builtin.glyphs.scale;
+
+import com.hypixel.hytale.component.CommandBuffer;
+import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.RemoveReason;
+import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.math.shape.Box;
+import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
+import com.hypixel.hytale.server.core.modules.entity.component.EntityScaleComponent;
+import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.modules.entity.player.PlayerSkinComponent;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.builtin.glyphs.scale.style.ScaleStyle;
+import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
+import com.riprod.hexcode.core.common.construct.component.HexStatus;
+import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
+import com.riprod.hexcode.core.state.execution.component.HexColors;
+
+public class ScaleConstructHandler implements ConstructHandler<ScaleState> {
+
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+
+    @Override
+    public void onCleanup(HexStatus<ScaleState> status, ConstructTickContext ctx) {
+        try {
+            ScaleState state = status.getState();
+            if (state == null) return;
+
+            CommandBuffer<EntityStore> buffer = ctx.getBuffer();
+            Ref<EntityStore> targetRef = ctx.getEntityRef();
+            if (targetRef != null && targetRef.isValid()) {
+                EntityScaleComponent scaleComp = buffer.getComponent(
+                        targetRef, EntityScaleComponent.getComponentType());
+                if (scaleComp != null) {
+                    scaleComp.setScale(state.getOriginalScale());
+                }
+                PlayerSkinComponent skinComp = buffer.getComponent(
+                        targetRef, PlayerSkinComponent.getComponentType());
+                if (skinComp != null) {
+                    skinComp.setNetworkOutdated();
+                }
+                Box originalBox = state.getOriginalBoundingBox();
+                BoundingBox box = buffer.getComponent(targetRef, BoundingBox.getComponentType());
+                if (box != null && originalBox != null) {
+                    box.setBoundingBox(originalBox);
+                }
+
+                HexColors colors = status.getHexContext().getColors();
+                TransformComponent tc = buffer.getComponent(
+                        targetRef, TransformComponent.getComponentType());
+                if (tc != null) {
+                    ScaleStyle.renderRestore(tc.getPosition(), colors, buffer);
+                }
+            }
+
+            Ref<EntityStore> visualRef = state.getVisualRef();
+            if (visualRef != null && visualRef.isValid()) {
+                buffer.tryRemoveEntity(visualRef, RemoveReason.REMOVE);
+            }
+        } catch (Exception e) {
+            LOGGER.atSevere().log("[hexcode] ScaleConstructHandler.onCleanup failed: %s", e.getMessage());
+        }
+    }
+}

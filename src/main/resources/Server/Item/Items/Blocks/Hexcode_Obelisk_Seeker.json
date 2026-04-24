@@ -1,0 +1,144 @@
+{
+  "TranslationProperties": {
+    "Name": "hexcode.blocks.Hexcode_Obelisk_Seeker.name"
+  },
+  "Icon": "Icons/ItemsGenerated/Hexcode_Obelisk_Seeker.png",
+  "Categories": [
+    "Hexcode.Obelisks"
+  ],
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "DrawType": "Model",
+    "Material": "Solid",
+    "Opacity": "Transparent",
+    "CustomModel": "Blocks/Hexcode/Obelisks/Info_Obelisk.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "Blocks/Hexcode/Obelisks/Info_Obelisk.png",
+        "Weight": 1
+      }
+    ],
+    "HitboxType": "Full",
+    "BlockSoundSetId": "Stone",
+    "BlockParticleSetId": "Stone",
+    "Flags": {},
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "SoftBlocks"
+      }
+    },
+    "BlockEntity": {
+      "Components": {
+        "Hexcode_ObeliskBlock": {
+          "Power": 10,
+          "HandlerId": "seeker"
+        }
+      }
+    },
+    "State": {
+      "Definitions": {
+        "Idle": {
+          "Light": {
+            "Color": "#554400",
+            "Intensity": 1
+          },
+          "CustomModelAnimation": "Blocks/Hexcode/Obelisks/Animations/Obelisk_Seeker_Idle.blockyanim",
+          "CustomModel": "Blocks/Hexcode/Obelisks/Info_Obelisk.blockymodel"
+        },
+        "Ready": {
+          "Light": {
+            "Color": "#aa8800",
+            "Intensity": 2
+          },
+          "Particles": [
+            {
+              "SystemId": "Seeker_Obelisk_Ready",
+              "DetachedFromModel": false,
+              "PositionOffset": {
+                "Y": 0
+              }
+            }
+          ]
+        },
+        "Selecting": {
+          "Light": {
+            "Color": "#ccaa00",
+            "Intensity": 4
+          },
+          "Particles": [
+            {
+              "SystemId": "Seeker_Obelisk_Selecting",
+              "DetachedFromModel": false,
+              "PositionOffset": {
+                "Y": 0
+              }
+            }
+          ],
+          "CustomModelAnimation": "Blocks/Hexcode/Obelisks/Animations/Obelisk_Seeker_Selecting.blockyanim",
+          "Looping": false
+        },
+        "Crafting": {
+          "Light": {
+            "Color": "#ffcc33",
+            "Intensity": 6
+          },
+          "Particles": [
+            {
+              "SystemId": "Seeker_Obelisk_Crafting",
+              "DetachedFromModel": false
+            }
+          ],
+          "CustomModelAnimation": "Blocks/Hexcode/Obelisks/Animations/Obelisk_Seeker_Crafting.blockyanim",
+          "Looping": true
+        }
+      }
+    },
+    "HexObelisk": {
+      "Type": "Modifier",
+      "Modifiers": [
+        {
+          "Type": "",
+          "Value": -1
+        }
+      ]
+    },
+    "Support": {
+      "Down": [
+        {
+          "FaceType": "Full"
+        }
+      ]
+    },
+    "Supporting": {
+      "Down": [
+        {}
+      ],
+      "Up": [
+        {}
+      ]
+    },
+    "VariantRotation": "NESW",
+    "CustomModelScale": 1.3
+  },
+  "Tags": {
+    "Type": [
+      "Deco"
+    ],
+    "Family": [
+      "Hexcode"
+    ]
+  },
+  "ItemSoundSetId": "ISS_Blocks_Stone",
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      0,
+      -13.5
+    ]
+  }
+}

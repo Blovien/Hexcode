@@ -5,7 +5,7 @@ import java.util.List;
 import com.hypixel.hytale.builtin.mounts.MountedComponent;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentAccessor;
-import com.hypixel.hytale.component.Holder;
+import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
@@ -21,7 +21,6 @@ import com.hypixel.hytale.server.core.inventory.InventoryComponent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
-import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.glyphs.utils.CreateGlyph;
@@ -40,8 +39,10 @@ import com.riprod.hexcode.core.state.casting.utils.GlyphStyler;
 import com.riprod.hexcode.core.state.casting.utils.HexSelector;
 import com.riprod.hexcode.core.state.casting.utils.HexSpawner;
 import com.riprod.hexcode.core.state.casting.utils.RootSpawner;
+import com.riprod.hexcode.core.state.execution.component.HexcasterExecutionComponent;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
+import com.riprod.hexcode.utils.CleanupUtils;
 import com.riprod.hexcode.utils.GlyphMath;
 import com.riprod.hexcode.utils.HexSlot;
 
@@ -52,8 +53,11 @@ public class CastingSystem extends HexcodeManager {
     public void firstTick(Ref<EntityStore> ref, HexcasterComponent comp,
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer,
             HexState previousState) {
-        HexcasterCastingComponent castingComp = new HexcasterCastingComponent();
-        buffer.addComponent(ref, HexcasterCastingComponent.getComponentType(), castingComp);
+        HexcasterCastingComponent castingComp = buffer.getComponent(ref, HexcasterCastingComponent.getComponentType());
+        if (castingComp == null) {
+            castingComp = new HexcasterCastingComponent();
+            buffer.addComponent(ref, HexcasterCastingComponent.getComponentType(), castingComp);
+        }
 
         HexStaffComponent staff = CasterInventory.getHexStaffComponent(buffer, ref);
         HexBookComponent book = CasterInventory.getHexBookComponent(buffer, ref);
@@ -92,20 +96,26 @@ public class CastingSystem extends HexcodeManager {
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer,
             HexState nextState) {
         HexcasterCastingComponent castingComp = buffer.getComponent(ref, HexcasterCastingComponent.getComponentType());
+        if (castingComp == null) {
+            return;
+        }
+        HexcasterExecutionComponent execComp = buffer.ensureAndGetComponent(ref,
+                HexcasterExecutionComponent.getComponentType());
 
         cleanupEntities(buffer, castingComp);
 
         HexStaffComponent staff = CasterInventory.getHexStaffComponent(buffer, ref);
-        HexComponent rootGlyph = castingComp.getLastSelectedHex();
+        HexComponent rootGlyph = castingComp.getLastHoveredHex();
 
         if (rootGlyph != null && staff != null) {
-            staff.setActiveHex(rootGlyph.getHex());
+            execComp.resetCastState();
+            execComp.setActiveHex(rootGlyph.getHex());
             CasterInventory.saveHexStaffComponent(buffer, ref, staff);
             comp.requestStateChange(HexState.EXECUTION);
         }
 
         castingComp.clearCastingState();
-        buffer.tryRemoveComponent(ref, HexcasterCastingComponent.getComponentType());
+        castingComp.clear(buffer);
     }
 
     @Override
@@ -113,8 +123,11 @@ public class CastingSystem extends HexcodeManager {
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
 
         HexcasterCastingComponent castingComp = buffer.getComponent(ref, HexcasterCastingComponent.getComponentType());
+        if (castingComp == null) {
+            comp.requestStateChange(HexState.IDLE);
+            return;
+        }
 
-        // despawn head anchor if not dragging a hex
         Ref<EntityStore> headAnchor = castingComp.getHeadAnchorRef();
         if (castingComp.getDraggingHex() == null && headAnchor != null && headAnchor.isValid()) {
             buffer.tryRemoveComponent(headAnchor, MountedComponent.getComponentType());
@@ -145,40 +158,38 @@ public class CastingSystem extends HexcodeManager {
     }
 
     @Override
-    public void onPlayerJoin(Holder<EntityStore> holder, HexcasterComponent comp) {
+    public void onPlayerJoin(Ref<EntityStore> playerRef, HexcasterComponent comp,
+            Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
     }
 
     @Override
-    public void onPlayerLeave(PlayerRef playerRef) {
-        Ref<EntityStore> ref = playerRef.getReference();
-        if (ref == null || !ref.isValid()) return;
-        Store<EntityStore> store = ref.getStore();
+    public void onPlayerLeave(Ref<EntityStore> ref, HexcasterComponent comp,
+            Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
+        HexcasterCastingComponent castingComp = buffer.getComponent(ref, HexcasterCastingComponent.getComponentType());
+        if (castingComp == null)
+            return;
 
-        HexcasterCastingComponent castingComp = store.getComponent(ref, HexcasterCastingComponent.getComponentType());
-        if (castingComp == null) return;
-
-        Ref<EntityStore> headAnchorRef = castingComp.getHeadAnchorRef();
-        if (headAnchorRef != null && headAnchorRef.isValid()) {
-            store.removeEntity(headAnchorRef, RemoveReason.REMOVE);
-        }
-
-        Ref<EntityStore> castingRoot = castingComp.getCastingRootRef();
-        if (castingRoot != null && castingRoot.isValid()) {
-            store.removeEntity(castingRoot, RemoveReason.REMOVE);
-        }
+        CleanupUtils.safeRemoveEntity(buffer, castingComp.getHeadAnchorRef());
 
         List<Ref<EntityStore>> activeHexes = castingComp.getActiveHexes();
         if (activeHexes != null) {
             for (Ref<EntityStore> hexRef : activeHexes) {
-                if (hexRef != null && hexRef.isValid()) {
-                    store.removeEntity(hexRef, RemoveReason.REMOVE);
+                if (hexRef == null || !hexRef.isValid())
+                    continue;
+                HexComponent hexComp = buffer.getComponent(hexRef, HexComponent.getComponentType());
+                if (hexComp != null) {
+                    CleanupUtils.safeRemoveEntities(buffer, hexComp.getChildGlyphRefsList());
                 }
+                CleanupUtils.safeRemoveEntity(buffer, hexRef);
             }
         }
+
+        CleanupUtils.safeRemoveEntity(buffer, castingComp.getCastingRootRef());
     }
 
     @Override
-    public InteractionState enterInteraction(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref, HexcasterComponent comp) {
+    public InteractionState enterInteraction(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref,
+            HexcasterComponent comp) {
 
         HexcasterCastingComponent castingComp = accessor.getComponent(ref,
                 HexcasterCastingComponent.getComponentType());
@@ -221,7 +232,8 @@ public class CastingSystem extends HexcodeManager {
     }
 
     @Override
-    public InteractionState tickInteraction(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref, float dt, HexcasterComponent comp) {
+    public InteractionState tickInteraction(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref, float dt,
+            HexcasterComponent comp) {
 
         HexcasterCastingComponent castingComp = accessor.getComponent(ref,
                 HexcasterCastingComponent.getComponentType());
@@ -250,6 +262,12 @@ public class CastingSystem extends HexcodeManager {
             GlyphComponent targetGlyph = null;
             if (targetHex != null && targetHex != castingComp.getDraggingHex()) {
                 targetGlyph = HexSelector.findHoveredGlyph(accessor, headRot2.getRotation(), targetHex);
+                if (targetGlyph != null) {
+                    GlyphComponent outputChild = HexSelector.findOutputChild(accessor, targetHex, targetGlyph);
+                    if (outputChild != null) {
+                        targetGlyph = outputChild;
+                    }
+                }
             }
             GlyphStyler.hoverGlyph(accessor, targetGlyph, castingComp);
         }
@@ -258,7 +276,8 @@ public class CastingSystem extends HexcodeManager {
     }
 
     @Override
-    public InteractionState exitInteraction(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref, HexcasterComponent comp) {
+    public InteractionState exitInteraction(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref,
+            HexcasterComponent comp) {
 
         HexcasterCastingComponent castingComp = accessor.getComponent(ref,
                 HexcasterCastingComponent.getComponentType());

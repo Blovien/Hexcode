@@ -1,0 +1,24 @@
+$C = "../../Common.ui";
+
+Group {
+  LayoutMode: Center;
+  Anchor: (Height: 40, Top: 4);
+  Background: #0a0a14(0.6);
+  Padding: (Horizontal: 12, Vertical: 4);
+
+  Group #ColorSwatch {
+    Anchor: (Width: 20, Height: 20);
+    Background: #ffffff;
+  }
+
+  Label #HexName {
+    Style: (FontSize: 15, TextColor: #c4b5ff, VerticalAlignment: Center);
+    FlexWeight: 3;
+    Anchor: (Left: 10);
+  }
+
+  $C.@SmallSecondaryTextButton #ColorBtn {
+    Text: "Color";
+    FlexWeight: 1;
+  }
+}

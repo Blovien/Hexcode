@@ -3,7 +3,7 @@ package com.riprod.hexcode.core.state.drawing;
 import java.util.List;
 
 import com.hypixel.hytale.component.CommandBuffer;
-import com.hypixel.hytale.component.Holder;
+import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
@@ -14,34 +14,28 @@ import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.Color;
 import com.hypixel.hytale.protocol.InteractionState;
-import com.hypixel.hytale.server.core.modules.block.BlockModule;
+import com.hypixel.hytale.protocol.packets.connection.PongType;
+import com.hypixel.hytale.server.core.HytaleServer;
+import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.time.TimeResource;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.GlyphDrawnEvent;
-import com.riprod.hexcode.api.event.HexcodeEvents;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.core.common.obelisk.system.ObeliskDispatcher;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
-import com.riprod.hexcode.core.common.glyphs.utils.CreateGlyph;
-import com.riprod.hexcode.core.common.glyphs.utils.GlyphType;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
-import com.riprod.hexcode.core.common.hidden.utils.HiddenUtils;
-import com.riprod.hexcode.core.common.hover.component.HoverableType;
-import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
-import com.riprod.hexcode.core.common.pedestal.component.PedestalEntityComponent;
+import com.riprod.hexcode.core.common.pedestal.utils.PedestalBlockUtil;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
-import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
-import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
-import com.riprod.hexcode.core.state.crafting.constants.NodeType;
+import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
+import com.riprod.hexcode.core.state.crafting.session.SessionUtils;
 import com.riprod.hexcode.core.state.crafting.entity.PedestalEntity;
-import com.riprod.hexcode.core.state.crafting.handlers.node.NodeRouter;
-import com.riprod.hexcode.core.state.crafting.handlers.node.Effect.EffectNodeHandler;
-import com.riprod.hexcode.core.state.crafting.utils.CraftingDataUtil;
+import com.riprod.hexcode.core.state.crafting.handlers.node.Glyph.GlyphNodeHandler;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.riprod.hexcode.core.state.drawing.component.DrawnShapeComponent;
 import com.riprod.hexcode.core.state.drawing.component.HexcasterDrawingComponent;
@@ -53,6 +47,7 @@ import com.riprod.hexcode.core.state.drawing.system.shapes.ShapeDetector;
 import com.riprod.hexcode.core.state.drawing.utils.ShapeComparator;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
+import com.riprod.hexcode.utils.VfxUtil;
 
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 
@@ -87,7 +82,11 @@ public class DrawingSystem extends HexcodeManager {
       HexState nextState) {
 
     HexcasterDrawingComponent drawingComp = buffer.getComponent(ref, HexcasterDrawingComponent.getComponentType());
-    CraftingDataComponent playerData = CraftingDataUtil.getPedestalData(buffer, ref);
+    PedestalBlockComponent pedestal = PedestalBlockUtil.resolvePedestal(ref, buffer);
+    if (pedestal == null) {
+      return;
+    }
+    HexcodeSessionComponent session = SessionUtils.resolveSession(pedestal, buffer);
 
     List<DrawnShapeComponent> drawnShapes = drawingComp.getDrawnGlyphs();
     if (drawnShapes != null && !drawnShapes.isEmpty()) {
@@ -104,11 +103,11 @@ public class DrawingSystem extends HexcodeManager {
 
         Glyph glyph = new Glyph(matchedGlyph, volatility, efficiency);
 
-        PedestalBlockComponent pedestal = resolvePedestal(resolveAnchorRef(ref, buffer), buffer);
         if (pedestal != null) {
           ObeliskDispatcher.dispatchGlyphDrawn(buffer, pedestal, ref, glyph);
         }
-        HexcodeEvents.fire(new GlyphDrawnEvent(ref, glyph, drawnShapes, matchedGlyph));
+        HytaleServer.get().getEventBus().dispatchFor(GlyphDrawnEvent.class)
+            .dispatch((new GlyphDrawnEvent(ref, glyph, drawnShapes, matchedGlyph)));
 
         HeadRotation hRotation = buffer.getComponent(ref, HeadRotation.getComponentType());
         Vector3d spawnPos = calculateDrawCenter(drawnShapes);
@@ -117,14 +116,14 @@ public class DrawingSystem extends HexcodeManager {
         if (spawnPos == null) {
           LOGGER.atInfo().log("cannot spawn drawn hex: missing pedestal or draw position");
         } else {
-          Vector3d anchorPos = PedestalEntity.getAnchorPosition(playerData.getPedestalLocation());
-          double maxRadius = playerData.getPedestalRadius();
+          Vector3d anchorPos = PedestalEntity.getAnchorPosition(session.getPedestalLocation());
+          double maxRadius = pedestal.getMaxRadius();
           double distSq = spawnPos.distanceSquaredTo(anchorPos);
 
           if (distSq > maxRadius * maxRadius) {
             LOGGER.atInfo().log("drawn hex outside pedestal radius");
           } else {
-            spawnDrawnGlyph(buffer, glyph, playerData, transform, ref);
+            spawnDrawnGlyph(buffer, glyph, session, transform, ref);
           }
         }
       }
@@ -136,7 +135,7 @@ public class DrawingSystem extends HexcodeManager {
     }
 
     drawingComp.clearDrawingState();
-    buffer.removeComponent(ref, HexcasterDrawingComponent.getComponentType());
+    drawingComp.clear(buffer);
   }
 
   @Override
@@ -151,16 +150,24 @@ public class DrawingSystem extends HexcodeManager {
   }
 
   @Override
-  public void onPlayerJoin(Holder<EntityStore> holder, HexcasterComponent comp) {
+  public void onPlayerJoin(Ref<EntityStore> playerRef, HexcasterComponent comp,
+      Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
   }
 
   @Override
-  public void onPlayerLeave(PlayerRef playerRef) {
+  public void onPlayerLeave(Ref<EntityStore> ref, HexcasterComponent comp,
+      Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
+    HexcasterDrawingComponent drawingComp = buffer.getComponent(ref, HexcasterDrawingComponent.getComponentType());
+    if (drawingComp == null)
+      return;
+    drawingComp.clear(buffer);
   }
 
   @Override
   public InteractionState enterInteraction(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref,
       HexcasterComponent comp) {
+
+    HexcasterDrawingComponent drawingComp = accessor.getComponent(ref, HexcasterDrawingComponent.getComponentType());
 
     HeadRotation head = accessor.getComponent(ref, HeadRotation.getComponentType());
     if (head == null)
@@ -168,7 +175,7 @@ public class DrawingSystem extends HexcodeManager {
 
     TimeResource timeResource = accessor.getResource(TimeResource.getResourceType());
     Long curTime = timeResource.getNow().toEpochMilli();
-    comp.setDrawStartTimeMillis(curTime);
+    drawingComp.setDrawStartTimeMillis(curTime);
 
     InterfaceManager.spawnTrails(accessor, ref, head);
     return InteractionState.NotFinished;
@@ -268,10 +275,22 @@ public class DrawingSystem extends HexcodeManager {
     long drawSpeed = curTime - startTime;
     result.setSpeed(drawSpeed);
 
+    int pingMs = (int) accessor.getComponent(ref, PlayerRef.getComponentType())
+        .getPacketHandler()
+        .getPingInfo(PongType.Direct)
+        .getPingMetricSet()
+        .getLastValue();
+
+    float forgiveness = Math.min(3f, 1f + Math.min(pingMs, 500) / 1000f); // cap at +200% forgiveness for 500ms ping or
+                                                                          // higher
+    result.setVolatility(Math.min(1f, result.getVolatility() * forgiveness));
+    drawSpeed = (long) (drawSpeed / forgiveness); // pretend they drew faster
+
     float maxSize = Math.max(Math.abs(maxYaw - minYaw), Math.abs(maxPitch - minPitch));
     result.setSize(maxSize);
 
-    LOGGER.atInfo().log("%d ms (%f score) | S: %f | A: %f", drawSpeed, result.getEfficiency(), maxSize,
+    LOGGER.atInfo().log("%d ms (%f score) | S: %f | A: %f", drawSpeed,
+        result.getEfficiency(), maxSize,
         result.getVolatility());
 
     InterfaceManager.removeTrails(accessor, ref);
@@ -281,34 +300,6 @@ public class DrawingSystem extends HexcodeManager {
     InterfaceManager.createIndicator(accessor, ref, drawingComp);
 
     return InteractionState.Finished;
-  }
-
-  private static Ref<EntityStore> resolveAnchorRef(Ref<EntityStore> playerRef,
-      CommandBuffer<EntityStore> buffer) {
-    HexcasterCraftingComponent craftingComp = buffer.getComponent(playerRef,
-        HexcasterCraftingComponent.getComponentType());
-    if (craftingComp == null) {
-      return null;
-    }
-    return craftingComp.getPedestalEntityRef();
-  }
-
-  private static PedestalBlockComponent resolvePedestal(Ref<EntityStore> anchorRef,
-      CommandBuffer<EntityStore> buffer) {
-    if (anchorRef == null || !anchorRef.isValid()) {
-      return null;
-    }
-    PedestalEntityComponent pedestalEntity = buffer.getComponent(anchorRef,
-        PedestalEntityComponent.getComponentType());
-    if (pedestalEntity == null || pedestalEntity.getPedestalLoc() == null) {
-      return null;
-    }
-    return BlockModule.getComponent(
-        PedestalBlockComponent.getComponentType(),
-        buffer.getExternalData().getWorld(),
-        pedestalEntity.getPedestalLoc().getX(),
-        pedestalEntity.getPedestalLoc().getY(),
-        pedestalEntity.getPedestalLoc().getZ());
   }
 
   private static Vector3d calculateDrawCenter(List<DrawnShapeComponent> drawnShapes) {
@@ -333,9 +324,9 @@ public class DrawingSystem extends HexcodeManager {
   }
 
   private static void spawnDrawnGlyph(CommandBuffer<EntityStore> accessor, Glyph glyph,
-      CraftingDataComponent playerData, Transform spawnPos, Ref<EntityStore> playerRef) {
+      HexcodeSessionComponent session, Transform spawnPos, Ref<EntityStore> playerRef) {
 
-    Ref<EntityStore> anchorRef = playerData.getAnchorNodeRef();
+    Ref<EntityStore> anchorRef = session.getAnchorNodeRef();
     if (anchorRef == null || !anchorRef.isValid()) {
       LOGGER.atWarning().log("cannot spawn drawn glyph: no active anchor entity ref on pedestal");
       return;
@@ -375,8 +366,10 @@ public class DrawingSystem extends HexcodeManager {
           (float) (worldPos.z - hexPos.z)));
     }
 
-    Ref<EntityStore> effectRef = EffectNodeHandler.INSTANCE.spawnNode(accessor, hexRef, worldPos, playerRef,
+    Ref<EntityStore> effectRef = GlyphNodeHandler.INSTANCE.spawnNode(accessor, hexRef, worldPos, playerRef,
         glyphComponent, hexRef);
+
+    VfxUtil.sound("SFX_Eye_Void_Attack_Summon", worldPos, accessor);
 
     hexComp.addChildGlyphRef(glyph.getId(), effectRef);
     hexComp.getHex().put(glyph.getId(), glyph);

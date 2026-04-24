@@ -6,12 +6,24 @@ public class GlyphStyleUtil {
     public static EntityEffect getGlyphEffect(float volatility, float efficiency) {
         float combinedScore = (volatility + efficiency) / 2f;
 
+        String assetId;
         if (combinedScore >= 0.95f) {
-            return EntityEffect.getAssetMap().getAsset("Hexcode_Tint_Purple");
+            assetId = "Hexcode_Tint_Tier_8";
+        } else if (combinedScore >= 0.92f) {
+            assetId = "Hexcode_Tint_Tier_7";
+        } else if (combinedScore >= 0.89f) {
+            assetId = "Hexcode_Tint_Tier_6";
+        } else if (combinedScore >= 0.86f) {
+            assetId = "Hexcode_Tint_Tier_5";
+        } else if (combinedScore >= 0.83f) {
+            assetId = "Hexcode_Tint_Tier_4";
+        } else if (combinedScore >= 0.80f) {
+            assetId = "Hexcode_Tint_Tier_3";
         } else if (combinedScore >= 0.75f) {
-            return EntityEffect.getAssetMap().getAsset("Hexcode_Tint_Arcane");
+            assetId = "Hexcode_Tint_Tier_2";
         } else {
-            return EntityEffect.getAssetMap().getAsset("Hexcode_Tint_Red");
+            assetId = "Hexcode_Tint_Tier_1";
         }
+        return EntityEffect.getAssetMap().getAsset(assetId);
     }
 }

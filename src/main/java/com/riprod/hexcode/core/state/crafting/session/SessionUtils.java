@@ -1,0 +1,213 @@
+package com.riprod.hexcode.core.state.crafting.session;
+
+import java.util.Set;
+
+import javax.annotation.Nullable;
+
+import com.hypixel.hytale.component.CommandBuffer;
+import com.hypixel.hytale.component.ComponentAccessor;
+import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.RemoveReason;
+import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.math.vector.Vector3i;
+import com.hypixel.hytale.server.core.inventory.ItemStack;
+import com.hypixel.hytale.server.core.modules.block.BlockModule;
+import com.hypixel.hytale.server.core.universe.world.World;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
+import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.common.pedestal.events.PedestalSystem;
+import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
+import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
+import com.riprod.hexcode.core.state.crafting.entity.AnchorEntity;
+import com.riprod.hexcode.core.state.crafting.handlers.node.Slot.SlotNodeHandler;
+import com.riprod.hexcode.core.state.crafting.utils.PedestalItemUtil;
+import com.riprod.hexcode.state.HexState;
+
+public class SessionUtils {
+
+    private static final HytaleLogger logger = HytaleLogger.forEnclosingClass();
+
+    public static HexcodeSessionComponent createSession(CommandBuffer<EntityStore> buffer,
+            PedestalBlockComponent pedestal, Vector3i pedestalLocation,
+            Ref<EntityStore> ownerRef, boolean isOpen) {
+
+        HexcodeSessionComponent session = new HexcodeSessionComponent(pedestalLocation, ownerRef, isOpen);
+
+        Ref<EntityStore> anchorRef = pedestal.getAnchorRef();
+        if (anchorRef != null && anchorRef.isValid()) {
+            session.setAnchorEntityRef(anchorRef);
+        }
+
+        buffer.addComponent(ownerRef, HexcodeSessionComponent.getComponentType(), session);
+
+        pedestal.setSessionRef(ownerRef);
+
+        HexcasterCraftingComponent craftingComp = buffer.getComponent(ownerRef,
+                HexcasterCraftingComponent.getComponentType());
+        if (craftingComp != null) {
+            craftingComp.setSessionRef(ownerRef);
+        }
+
+        logger.atInfo().log("session created at %s, open=%s", pedestalLocation, isOpen);
+        return session;
+    }
+
+    public static void joinSession(CommandBuffer<EntityStore> buffer,
+            Ref<EntityStore> ownerRef, Ref<EntityStore> participantRef) {
+
+        HexcodeSessionComponent session = buffer.getComponent(ownerRef,
+                HexcodeSessionComponent.getComponentType());
+        if (session == null) return;
+
+        session.addParticipant(participantRef);
+
+        HexcasterCraftingComponent craftingComp = buffer.getComponent(participantRef,
+                HexcasterCraftingComponent.getComponentType());
+        if (craftingComp != null) {
+            craftingComp.setSessionRef(ownerRef);
+        }
+
+        logger.atInfo().log("player joined session at %s", session.getPedestalLocation());
+    }
+
+    public static void leaveSession(CommandBuffer<EntityStore> buffer, Ref<EntityStore> participantRef,
+            World world) {
+
+        HexcasterCraftingComponent craftingComp = buffer.getComponent(participantRef,
+                HexcasterCraftingComponent.getComponentType());
+        if (craftingComp == null || !craftingComp.hasActiveSession()) return;
+
+        Ref<EntityStore> ownerRef = craftingComp.getSessionRef();
+        HexcodeSessionComponent session = buffer.getComponent(ownerRef,
+                HexcodeSessionComponent.getComponentType());
+        if (session == null) {
+            craftingComp.clear(buffer);
+            return;
+        }
+
+        session.removeParticipant(participantRef);
+        craftingComp.clear(buffer);
+
+        boolean isOwner = session.isOwner(participantRef);
+        boolean noParticipants = session.getParticipantRefs().isEmpty();
+
+        if (isOwner || noParticipants) {
+            endSession(buffer, ownerRef, world);
+        }
+    }
+
+    public static void endSession(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ownerRef,
+            World world) {
+
+        if (ownerRef == null || !ownerRef.isValid()) return;
+
+        HexcodeSessionComponent session = buffer.getComponent(ownerRef,
+                HexcodeSessionComponent.getComponentType());
+        if (session == null) return;
+
+        logger.atInfo().log("ending session at %s", session.getPedestalLocation());
+
+        Set<Ref<EntityStore>> participants = session.getParticipantRefs();
+        for (Ref<EntityStore> pRef : participants) {
+            if (pRef == null || !pRef.isValid()) continue;
+            HexcasterComponent hexcaster = buffer.getComponent(pRef, HexcasterComponent.getComponentType());
+            if (hexcaster != null
+                    && (hexcaster.getState() == HexState.CRAFTING || hexcaster.getState() == HexState.DRAWING)) {
+                hexcaster.requestStateChange(HexState.IDLE);
+            }
+            HexcasterCraftingComponent craftingComp = buffer.getComponent(pRef,
+                    HexcasterCraftingComponent.getComponentType());
+            if (craftingComp != null) {
+                craftingComp.clear(buffer);
+            }
+        }
+        participants.clear();
+
+        SlotNodeHandler.INSTANCE.despawn(buffer, session);
+
+        AnchorEntity.DespawnHexPreviews(buffer, session);
+
+        Ref<EntityStore> anchorNodeRef = session.getAnchorNodeRef();
+        if (anchorNodeRef != null && anchorNodeRef.isValid()) {
+            buffer.tryRemoveEntity(anchorNodeRef, RemoveReason.REMOVE);
+            session.setAnchorNodeRef(null);
+        }
+
+        ItemStack bookStack = session.getStoredBook();
+        if (bookStack != null && !bookStack.isEmpty()) {
+            PedestalItemUtil.returnBookToPlayer(buffer, ownerRef, bookStack, session.getBookSourceSlot());
+            session.setStoredBook(ItemStack.EMPTY);
+        }
+
+        PedestalItemUtil.returnEssenceToPlayer(buffer, ownerRef, session.getEssence());
+
+        Ref<EntityStore> bookRef = session.getBookDisplayRef();
+        if (bookRef != null && bookRef.isValid()) {
+            buffer.removeEntity(bookRef, RemoveReason.REMOVE);
+            session.setBookDisplayRef(null);
+        }
+
+        Ref<EntityStore> essenceRef = session.getEssenceDisplayRef();
+        if (essenceRef != null && essenceRef.isValid()) {
+            buffer.removeEntity(essenceRef, RemoveReason.REMOVE);
+            session.setEssenceDisplayRef(null);
+        }
+
+        Vector3i pedestalLoc = session.getPedestalLocation();
+        PedestalBlockComponent pedestal = BlockModule.getComponent(
+                PedestalBlockComponent.getComponentType(), world,
+                pedestalLoc.x, pedestalLoc.y, pedestalLoc.z);
+        if (pedestal != null) {
+            PedestalSystem.updateState(buffer, pedestal, session, world, PedestalState.IDLE);
+            pedestal.setSessionRef(null);
+            pedestal.setBookAssetId(null);
+        }
+
+        session.setEssence(null);
+        session.setOwnerRef(null);
+        session.setActiveSlotIndex(-1);
+        session.setAnchorEntityRef(null);
+
+        buffer.tryRemoveComponent(ownerRef, HexcodeSessionComponent.getComponentType());
+    }
+
+    @Nullable
+    public static HexcodeSessionComponent resolveSession(PedestalBlockComponent pedestal,
+            ComponentAccessor<EntityStore> accessor) {
+        Ref<EntityStore> ownerRef = pedestal.getSessionRef();
+        if (ownerRef == null || !ownerRef.isValid()) return null;
+        return accessor.getComponent(ownerRef, HexcodeSessionComponent.getComponentType());
+    }
+
+    @Nullable
+    public static Ref<EntityStore> getSessionRef(PedestalBlockComponent pedestal) {
+        Ref<EntityStore> ownerRef = pedestal.getSessionRef();
+        if (ownerRef == null || !ownerRef.isValid()) return null;
+        return ownerRef;
+    }
+
+    @Nullable
+    public static HexcodeSessionComponent resolveSessionByPlayer(Ref<EntityStore> playerRef,
+            ComponentAccessor<EntityStore> accessor) {
+        HexcodeSessionComponent session = accessor.getComponent(playerRef,
+                HexcodeSessionComponent.getComponentType());
+        if (session != null) return session;
+        HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
+                HexcasterCraftingComponent.getComponentType());
+        if (craftingComp == null || !craftingComp.hasActiveSession()) return null;
+        return accessor.getComponent(craftingComp.getSessionRef(), HexcodeSessionComponent.getComponentType());
+    }
+
+    @Nullable
+    public static Ref<EntityStore> getSessionRefByPlayer(Ref<EntityStore> playerRef,
+            ComponentAccessor<EntityStore> accessor) {
+        HexcodeSessionComponent session = accessor.getComponent(playerRef,
+                HexcodeSessionComponent.getComponentType());
+        if (session != null) return playerRef;
+        HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
+                HexcasterCraftingComponent.getComponentType());
+        if (craftingComp == null || !craftingComp.hasActiveSession()) return null;
+        return craftingComp.getSessionRef();
+    }
+}

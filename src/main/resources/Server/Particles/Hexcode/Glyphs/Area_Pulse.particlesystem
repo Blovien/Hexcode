@@ -1,0 +1,10 @@
+{
+  "Spawners": [
+    { "SpawnerId": "Area_Pulse_Center", "StartDelay": 0 },
+    { "SpawnerId": "Area_Pulse_Ring", "StartDelay": 0.05 }
+  ],
+  "LifeSpan": 1.5,
+  "CullDistance": 100,
+  "BoundingRadius": 5.0,
+  "IsImportant": true
+}

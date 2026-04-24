@@ -10,7 +10,13 @@
       "Next": {
         "Type": "HexModeExit",
         "TargetState": "CRAFTING",
-        "RunTime": 0.05,
+        "Effects": {
+          "ItemAnimationId": "HexCrafting_Active"
+        }
+      },
+      "Failed": {
+        "Type": "HexModeExit",
+        "TargetState": "CRAFTING",
         "Effects": {
           "ItemAnimationId": "HexCrafting_Active"
         }

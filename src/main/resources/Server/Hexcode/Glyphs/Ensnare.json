@@ -1,0 +1,57 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Ensnare",
+  "Description": "Creates spike formations that trap and damage entities in the area",
+  "ModelPath": "Ensnare",
+  "BasePower": 1.0,
+  "ManaConsumption": 22,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Square",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Antitriangle",
+      "Size": 0.8
+    },
+    {
+      "ShapeId": "Square",
+      "Size": 0.55
+    }
+  ],
+  "Slots": {
+    "target": {
+      "Style": "Input",
+      "Label": "Target",
+      "Description": "Center position or entity for the rupture area",
+      "Unique": true
+    },
+    "radius": {
+      "Style": "Input",
+      "Label": "Radius",
+      "Description": "Radius of the rupture area in blocks",
+      "DefaultValue": 2.1,
+      "Unique": true
+    },
+    "damage": {
+      "Style": "Input",
+      "Label": "Damage",
+      "Description": "Spike damage per hit",
+      "DefaultValue": 3,
+      "Unique": true
+    },
+    "duration": {
+      "Style": "Input",
+      "Label": "Duration",
+      "Description": "Duration in ticks before spikes despawn",
+      "DefaultValue": 4,
+      "Unique": true
+    },
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain"
+    }
+  },
+  "VolatilityCost": 8
+}

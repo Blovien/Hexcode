@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ArcStyle implements CastingStyle {
-
     public static final String ID = "arc";
     private static final float DEFAULT_DISTANCE = 3.0f;
     private static final float ARC_PITCH = 0.0f;

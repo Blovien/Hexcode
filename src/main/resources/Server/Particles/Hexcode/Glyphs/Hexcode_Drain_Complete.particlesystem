@@ -1,10 +1,11 @@
 {
   "Spawners": [
     { "SpawnerId": "Drain_Complete_Flash", "StartDelay": 0 },
-    { "SpawnerId": "Drain_Complete_Burst", "StartDelay": 0.05 }
+    { "SpawnerId": "Drain_Complete_Burst", "StartDelay": 0.05 },
+    { "SpawnerId": "Drain_Complete_Sparks", "StartDelay": 0.03 }
   ],
   "LifeSpan": 1.0,
   "CullDistance": 100,
-  "BoundingRadius": 4.0,
+  "BoundingRadius": 8.0,
   "IsImportant": true
 }

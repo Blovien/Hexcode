@@ -2,10 +2,20 @@ package com.riprod.hexcode;
 
 import com.riprod.hexcode.builtin.BuiltinPlugin;
 import com.riprod.hexcode.command.HexcodeCommand;
+import com.riprod.hexcode.core.common.armor.ArmorManaConfig;
+import com.riprod.hexcode.core.common.armor.ArmorManaPatcher;
+import com.riprod.hexcode.core.common.armor.ArmorVolatilityConfig;
+import com.riprod.hexcode.core.common.armor.ArmorVolatilityPatcher;
 import com.riprod.hexcode.core.common.block.component.UnbreakableBlockComponent;
 import com.riprod.hexcode.core.common.block.event.BlockBreakEvent;
+import com.riprod.hexcode.core.common.construct.system.HexConstructSystem;
+import com.riprod.hexcode.core.common.construct.system.MountOrphanReaperSystem;
+import com.riprod.hexcode.core.common.hexcaster.StaffUnequipEvent;
+import com.riprod.hexcode.core.common.hexcaster.system.HexcasterCleanupSystem;
+import com.riprod.hexcode.core.state.drawing.DrawingSlotLockEvent;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
+import com.riprod.hexcode.core.common.glyphs.registry.StyleAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
@@ -16,34 +26,35 @@ import com.riprod.hexcode.core.common.hexbook.component.HexBookAsset;
 import com.riprod.hexcode.core.common.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
+import com.riprod.hexcode.core.common.hexes.saved.SavedHexAsset;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffAsset;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffComponent;
-import com.riprod.hexcode.core.common.hidden.component.HiddenComponent;
-import com.riprod.hexcode.core.common.hidden.system.HiddenFilterSystem;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.system.HoverableSpatialSystem;
 import com.riprod.hexcode.core.common.obelisk.component.ObeliskBlockComponent;
-import com.riprod.hexcode.core.common.pedestal.component.PedestalEntityComponent;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.common.pedestal.events.PedestalBlockEvent;
-import com.riprod.hexcode.core.common.pedestal.events.PedestalTickEvent;
+import com.riprod.hexcode.core.common.pedestal.events.PedestalPlaceEvent;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.common.effect.GlyphEffectSystem;
+import com.riprod.hexcode.core.common.imbuement.WeaponImbuementSystem;
 import com.riprod.hexcode.core.common.utilities.system.DebugTickSystem;
 import com.riprod.hexcode.core.state.casting.CastingSystem;
 import com.riprod.hexcode.core.state.casting.component.HexcasterCastingComponent;
 import com.riprod.hexcode.core.state.crafting.CraftingSystem;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
+import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
+import com.riprod.hexcode.core.state.crafting.session.SessionLifecycleHandler;
+import com.riprod.hexcode.core.state.crafting.session.SessionTickSystem;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
-import com.riprod.hexcode.core.state.crafting.component.CraftingDataComponent;
 import com.riprod.hexcode.core.state.crafting.component.SlotComponent;
 import com.riprod.hexcode.core.state.drawing.DrawingSystem;
 import com.riprod.hexcode.core.state.drawing.component.HexcasterDrawingComponent;
 import com.riprod.hexcode.core.state.drawing.registry.ShapeAsset;
 import com.riprod.hexcode.core.state.drawing.registry.TemplateAsset;
 import com.riprod.hexcode.core.state.execution.ExecutionSystem;
-import com.riprod.hexcode.core.state.execution.component.RootGlyph;
-import com.riprod.hexcode.core.state.execution.system.ExecutionTickSystem;
+import com.riprod.hexcode.core.state.execution.component.HexcasterExecutionComponent;
+import com.riprod.hexcode.core.state.execution.events.HexCastEventSystem;
 import com.riprod.hexcode.core.state.idle.IdleSystem;
 import com.riprod.hexcode.interaction.HexStateChange;
 import com.riprod.hexcode.interaction.HexHold;
@@ -51,13 +62,16 @@ import com.riprod.hexcode.interaction.HexMode;
 import com.riprod.hexcode.interaction.HexModeExit;
 import com.riprod.hexcode.interaction.HexStateBranch;
 import com.riprod.hexcode.interaction.HexAbility;
+import com.riprod.hexcode.interaction.HexExecutionExit;
 import com.riprod.hexcode.interaction.HexItemCondition;
+import com.riprod.hexcode.interaction.GlyphBookInteraction;
 import com.riprod.hexcode.interaction.PedestalInteraction;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexTick;
 import com.riprod.hexcode.state.HexcodeManager;
 import com.riprod.hexcode.state.StateRouter;
 import com.hypixel.hytale.assetstore.AssetRegistry;
+import com.hypixel.hytale.assetstore.event.LoadedAssetsEvent;
 import com.hypixel.hytale.assetstore.map.DefaultAssetMap;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.asset.type.particle.config.ParticleSystem;
@@ -73,6 +87,12 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.asset.HytaleAssetStore;
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
+import com.riprod.hexcode.api.event.HexStateChangeEvent;
+import com.riprod.hexcode.builtin.listeners.FizzleMessageListener;
+import com.riprod.hexcode.builtin.listeners.GlyphDiagnosticListener;
+import com.riprod.hexcode.builtin.listeners.HexCastDiagnosticListener;
+import com.riprod.hexcode.builtin.listeners.HexStateDiagnosticListener;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
@@ -93,17 +113,24 @@ public class Hexcode extends JavaPlugin {
     builtinPlugin = new BuiltinPlugin(init);
   }
 
-
   @SuppressWarnings("null")
   @Override
   protected void setup() {
     // Custom asset registries
     AssetRegistry.register(
         HytaleAssetStore
+            .builder(StyleAsset.class, new DefaultAssetMap<String, StyleAsset>())
+            .setPath("Hexcode/Styles")
+            .setCodec(StyleAsset.CODEC)
+            .setKeyFunction(StyleAsset::getId)
+            .build());
+    AssetRegistry.register(
+        HytaleAssetStore
             .builder(GlyphAsset.class, new DefaultAssetMap<String, GlyphAsset>())
             .setPath("Hexcode/Glyphs")
             .setCodec(GlyphAsset.CODEC)
             .setKeyFunction(GlyphAsset::getId)
+            .loadsAfter(StyleAsset.class)
             .build());
     AssetRegistry.register(
         HytaleAssetStore
@@ -141,6 +168,32 @@ public class Hexcode extends JavaPlugin {
             .loadsAfter(ParticleSystem.class)
             .loadsAfter(Item.class)
             .build());
+    AssetRegistry.register(
+        HytaleAssetStore
+            .builder(SavedHexAsset.class,
+                new DefaultAssetMap<String, SavedHexAsset>())
+            .setPath("Hexcode/SavedHexes")
+            .setCodec(SavedHexAsset.CODEC)
+            .setKeyFunction(SavedHexAsset::getId)
+            .build());
+    AssetRegistry.register(
+        HytaleAssetStore
+            .builder(ArmorManaConfig.class,
+                new DefaultAssetMap<String, ArmorManaConfig>())
+            .setPath(ArmorManaConfig.ASSET_PATH)
+            .setCodec(ArmorManaConfig.CODEC)
+            .setKeyFunction(ArmorManaConfig::getId)
+            .loadsBefore(Item.class)
+            .build());
+    AssetRegistry.register(
+        HytaleAssetStore
+            .builder(ArmorVolatilityConfig.class,
+                new DefaultAssetMap<String, ArmorVolatilityConfig>())
+            .setPath(ArmorVolatilityConfig.ASSET_PATH)
+            .setCodec(ArmorVolatilityConfig.CODEC)
+            .setKeyFunction(ArmorVolatilityConfig::getId)
+            .loadsBefore(Item.class)
+            .build());
 
     // Entity Component Registries
     ComponentRegistryProxy<EntityStore> entityStoreRegistry = this.getEntityStoreRegistry();
@@ -173,6 +226,11 @@ public class Hexcode extends JavaPlugin {
             HexcasterComponent.CODEC);
     HexcasterComponent.setComponentType(hexcasterComponentType);
 
+    ComponentType<EntityStore, HexcasterExecutionComponent> executionComponentType = entityStoreRegistry
+        .registerComponent(HexcasterExecutionComponent.class,
+            HexcasterExecutionComponent::new);
+    HexcasterExecutionComponent.setComponentType(executionComponentType);
+
     ComponentType<EntityStore, HexcasterCastingComponent> castingRootComponentType = entityStoreRegistry
         .registerComponent(HexcasterCastingComponent.class,
             HexcasterCastingComponent::new);
@@ -183,33 +241,24 @@ public class Hexcode extends JavaPlugin {
             HexcasterCraftingComponent::new);
     HexcasterCraftingComponent.setComponentType(craftingRootComponentType);
 
+    ComponentType<EntityStore, HexcodeSessionComponent> sessionComponentType = entityStoreRegistry
+        .registerComponent(HexcodeSessionComponent.class, "HexcodeSession",
+            HexcodeSessionComponent.CODEC);
+    HexcodeSessionComponent.setComponentType(sessionComponentType);
+
     ComponentType<EntityStore, HexcasterDrawingComponent> drawingRootComponentType = entityStoreRegistry
         .registerComponent(HexcasterDrawingComponent.class,
             HexcasterDrawingComponent::new);
     HexcasterDrawingComponent.setComponentType(drawingRootComponentType);
-
-    ComponentType<EntityStore, CraftingDataComponent> pedestalPlayerRootComponentType = entityStoreRegistry
-        .registerComponent(CraftingDataComponent.class, "PedestalDataComponent",
-            CraftingDataComponent.CODEC);
-    CraftingDataComponent.setComponentType(pedestalPlayerRootComponentType);
 
     ComponentType<EntityStore, NodeComponent> nodeComponentType = entityStoreRegistry
         .registerComponent(NodeComponent.class,
             NodeComponent::new);
     NodeComponent.setComponentType(nodeComponentType);
 
-    ComponentType<EntityStore, RootGlyph> executionComponentType = entityStoreRegistry.registerComponent(
-        RootGlyph.class,
-        RootGlyph::new);
-    RootGlyph.setComponentType(executionComponentType);
-
     ComponentType<EntityStore, SlotComponent> slotComponentType = entityStoreRegistry
         .registerComponent(SlotComponent.class, SlotComponent::new);
     SlotComponent.setComponentType(slotComponentType);
-
-    ComponentType<EntityStore, PedestalEntityComponent> pedestalComponentType = entityStoreRegistry
-        .registerComponent(PedestalEntityComponent.class, PedestalEntityComponent::new);
-    PedestalEntityComponent.setComponentType(pedestalComponentType);
 
     ComponentType<EntityStore, HoverableComponent> hoverableComponentType = entityStoreRegistry
         .registerComponent(HoverableComponent.class, HoverableComponent::new);
@@ -218,10 +267,6 @@ public class Hexcode extends JavaPlugin {
     ComponentType<EntityStore, DebugComponent> debugComponentType = entityStoreRegistry
         .registerComponent(DebugComponent.class, DebugComponent::new);
     DebugComponent.setComponentType(debugComponentType);
-
-    ComponentType<EntityStore, HiddenComponent> hiddenComponentType = entityStoreRegistry
-        .registerComponent(HiddenComponent.class, HiddenComponent::new);
-    HiddenComponent.setComponentType(hiddenComponentType);
 
     // Block Component Registries
     ComponentRegistryProxy<ChunkStore> chunkStoreRegistry = this.getChunkStoreRegistry();
@@ -242,6 +287,8 @@ public class Hexcode extends JavaPlugin {
         .registerComponent(UnbreakableBlockComponent.class, UnbreakableBlockComponent::new);
     UnbreakableBlockComponent.setComponentType(unbreakableComponentType);
 
+    chunkStoreRegistry.registerSystem(new PedestalPlaceEvent());
+
     // Glyph Var Variables
     HexVar.CODEC.register("Entity", EntityVar.class, EntityVar.CODEC);
     HexVar.CODEC.register("Block", BlockVar.class, BlockVar.CODEC);
@@ -252,12 +299,15 @@ public class Hexcode extends JavaPlugin {
     // Interaction Registries
     Interaction.CODEC.register("HexStateBranch", HexStateBranch.class, HexStateBranch.CODEC);
     Interaction.CODEC.register("HexStateChange", HexStateChange.class, HexStateChange.CODEC);
+    Interaction.CODEC.register("HexExecutionExit", HexExecutionExit.class, HexExecutionExit.CODEC);
     Interaction.CODEC.register("HexHold", HexHold.class, HexHold.CODEC);
     Interaction.CODEC.register("HexMode", HexMode.class, HexMode.CODEC);
     Interaction.CODEC.register("HexModeExit", HexModeExit.class, HexModeExit.CODEC);
     Interaction.CODEC.register("PedestalInteraction", PedestalInteraction.class, PedestalInteraction.CODEC);
     Interaction.CODEC.register("HexItemCondition", HexItemCondition.class, HexItemCondition.CODEC);
     Interaction.CODEC.register("HexAbility", HexAbility.class, HexAbility.CODEC);
+    Interaction.CODEC.register("GlyphBookInteraction", GlyphBookInteraction.class,
+        GlyphBookInteraction.CODEC);
 
     // State Managers
     StateRouter.registerState(HexState.IDLE, new IdleSystem());
@@ -270,16 +320,28 @@ public class Hexcode extends JavaPlugin {
 
     // Ticking Systems
     entityStoreRegistry.registerSystem(new HexTick());
-    entityStoreRegistry.registerSystem(new ExecutionTickSystem());
-    entityStoreRegistry.registerSystem(new PedestalTickEvent());
     entityStoreRegistry.registerSystem(new PedestalBlockEvent());
     entityStoreRegistry.registerSystem(new BlockBreakEvent());
+    entityStoreRegistry.registerSystem(new DrawingSlotLockEvent());
+    entityStoreRegistry.registerSystem(new StaffUnequipEvent());
     entityStoreRegistry.registerSystem(new DebugTickSystem());
     entityStoreRegistry.registerSystem(new GlyphEffectSystem());
+    entityStoreRegistry.registerSystem(new WeaponImbuementSystem());
+    entityStoreRegistry.registerSystem(new HexCastEventSystem());
+    entityStoreRegistry.registerSystem(new HexCastDiagnosticListener());
+    entityStoreRegistry.registerSystem(new HexcasterCleanupSystem());
+    entityStoreRegistry.registerSystem(new SessionTickSystem());
 
     // Events
     this.getEventRegistry().registerGlobal(PlayerConnectEvent.class, Hexcode::onPlayerConnect);
     this.getEventRegistry().registerGlobal(PlayerDisconnectEvent.class, Hexcode::onPlayerDisconnect);
+    this.getEventRegistry().registerGlobal(GlyphFizzleEvent.class, new FizzleMessageListener());
+    this.getEventRegistry().registerGlobal(GlyphFizzleEvent.class, new GlyphDiagnosticListener());
+    this.getEventRegistry().registerGlobal(HexStateChangeEvent.class, new HexStateDiagnosticListener());
+    this.getEventRegistry().register(LoadedAssetsEvent.class, Item.class,
+        ArmorManaPatcher::onItemsLoaded);
+    this.getEventRegistry().register(LoadedAssetsEvent.class, Item.class,
+        ArmorVolatilityPatcher::onItemsLoaded);
 
     // Commands
     this.getCommandRegistry().registerCommand(new HexcodeCommand());
@@ -297,17 +359,14 @@ public class Hexcode extends JavaPlugin {
 
   @Override
   protected void start() {
-    EntityStore.REGISTRY.registerSystem(new HiddenFilterSystem());
+    EntityStore.REGISTRY.registerSystem(new MountOrphanReaperSystem());
+    EntityStore.REGISTRY.registerSystem(new HexConstructSystem());
   }
 
   private static void onPlayerConnect(PlayerConnectEvent event) {
     try {
       Holder<EntityStore> holder = event.getHolder();
-      HexcasterComponent comp = holder.ensureAndGetComponent(HexcasterComponent.getComponentType());
-
-      for (HexcodeManager manager : StateRouter.allManagers()) {
-        manager.onPlayerJoin(holder, comp);
-      }
+      holder.ensureComponent(HexcasterComponent.getComponentType());
     } catch (Exception e) {
       LOGGER.atSevere().log("[hexcode] onPlayerConnect failed: %s", e.getMessage());
     }
@@ -325,16 +384,15 @@ public class Hexcode extends JavaPlugin {
             if (ref.isValid()) {
               HexcasterComponent hexcaster = store.getComponent(ref,
                   HexcasterComponent.getComponentType());
-              if (hexcaster != null && hexcaster.getState() != HexState.IDLE) {
+              if (hexcaster != null
+                  && hexcaster.getState() != HexState.IDLE) {
                 hexcaster.requestStateChange(HexState.IDLE);
               }
             }
-
-            for (HexcodeManager manager : StateRouter.allManagers()) {
-              manager.onPlayerLeave(playerRef);
-            }
           } catch (Exception e) {
-            LOGGER.atSevere().log("[hexcode] onPlayerDisconnect world.execute failed: %s", e.getMessage());
+            LOGGER.atSevere().log(
+                "[hexcode] onPlayerDisconnect world.execute failed: %s",
+                e.getMessage());
           }
         });
       }

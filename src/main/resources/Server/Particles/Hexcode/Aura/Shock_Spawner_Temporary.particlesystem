@@ -1,0 +1,13 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "Shock_Spawner_Temporary",
+      "PositionOffset": {
+        "Y": -1.5
+      },
+      "StartDelay": 0
+    }
+  ],
+  "LifeSpan": 3.0,
+  "CullDistance": 50
+}

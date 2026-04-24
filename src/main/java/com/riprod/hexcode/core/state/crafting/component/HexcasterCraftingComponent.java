@@ -2,6 +2,7 @@ package com.riprod.hexcode.core.state.crafting.component;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -27,26 +28,32 @@ public class HexcasterCraftingComponent implements Component<EntityStore> {
         return componentType;
     }
 
-    private Ref<EntityStore> pedestalEntityRef;
+    private Ref<EntityStore> sessionRef;
     private Ref<EntityStore> headAnchorRef;
-
-    // dragging and grabbing
     private Ref<EntityStore> draggingRef;
     private Ref<EntityStore> hoveredRef;
-
     private int dragTickCount;
+    private final List<Ref<EntityStore>> pendingDespawn = new ArrayList<>();
 
-    public Ref<EntityStore> getPedestalEntityRef() {
-        return pedestalEntityRef;
+    public void addPendingDespawn(@Nullable Ref<EntityStore> ref) {
+        if (ref != null) pendingDespawn.add(ref);
     }
 
-    public void setPedestalEntityRef(CommandBuffer<EntityStore> accessor, @Nullable Ref<EntityStore> pedestalRef) {
-        CleanupUtils.safeRemoveEntity(accessor, this.pedestalEntityRef);
-        this.pedestalEntityRef = pedestalRef;
+    public List<Ref<EntityStore>> getPendingDespawn() {
+        return pendingDespawn;
     }
 
-    public void setPedestalEntityRef(@Nullable Ref<EntityStore> pedestalRef) {
-        this.pedestalEntityRef = pedestalRef;
+    @Nullable
+    public Ref<EntityStore> getSessionRef() {
+        return sessionRef;
+    }
+
+    public void setSessionRef(@Nullable Ref<EntityStore> sessionRef) {
+        this.sessionRef = sessionRef;
+    }
+
+    public boolean hasActiveSession() {
+        return sessionRef != null && sessionRef.isValid();
     }
 
     @Nullable
@@ -55,7 +62,13 @@ public class HexcasterCraftingComponent implements Component<EntityStore> {
     }
 
     public void setHeadAnchorRef(CommandBuffer<EntityStore> accessor, @Nullable Ref<EntityStore> headAnchorRef) {
-        CleanupUtils.safeRemoveEntity(accessor, this.headAnchorRef);
+        if (this.headAnchorRef != null) {
+            if (this.headAnchorRef.isValid()) {
+                CleanupUtils.safeRemoveEntity(accessor, this.headAnchorRef);
+            } else {
+                pendingDespawn.add(this.headAnchorRef);
+            }
+        }
         this.headAnchorRef = headAnchorRef;
     }
 
@@ -98,11 +111,20 @@ public class HexcasterCraftingComponent implements Component<EntityStore> {
         this.dragTickCount = 0;
     }
 
+    public void clear(CommandBuffer<EntityStore> buffer) {
+        CleanupUtils.safeRemoveEntity(buffer, this.headAnchorRef);
+        this.headAnchorRef = null;
+        this.draggingRef = null;
+        this.hoveredRef = null;
+        this.dragTickCount = 0;
+        this.sessionRef = null;
+    }
+
     @Nonnull
     @Override
     public HexcasterCraftingComponent clone() {
         HexcasterCraftingComponent copy = new HexcasterCraftingComponent();
-        copy.pedestalEntityRef = this.pedestalEntityRef;
+        copy.sessionRef = this.sessionRef;
         copy.headAnchorRef = this.headAnchorRef;
         copy.draggingRef = this.draggingRef;
         copy.hoveredRef = this.hoveredRef;

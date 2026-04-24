@@ -1,0 +1,8 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "Ice_Obelisk_Crafting"
+    }
+  ],
+  "CullDistance": 50
+}
