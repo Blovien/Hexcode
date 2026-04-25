@@ -1,5 +1,7 @@
 package com.riprod.hexcode.builtin.glyphs.delay;
 
+import java.util.List;
+
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.logger.HytaleLogger;
@@ -25,15 +27,11 @@ public class DelayConstructHandler implements ConstructHandler<DelayState> {
     }
 
     @Override
-    public void onCleanup(HexStatus<DelayState> status, ConstructTickContext ctx) {
+    public void onEnd(HexStatus<DelayState> status, ConstructTickContext ctx) {
         DelayState state = status.getState();
         CommandBuffer<EntityStore> buffer = ctx.getBuffer();
 
-        // only fire Next on natural expiry. counterspell (requestKill) and
-        // volatility-budget exhaustion both route through onCleanup but must
-        // NOT release the chain — the budget is the duration-pricing mechanism
-        // and must have teeth.
-        if (state != null && state.isExpired()) {
+        if (state != null) {
             TransformComponent tc = buffer.getComponent(
                     ctx.getEntityRef(), TransformComponent.getComponentType());
             if (tc != null) {
@@ -41,13 +39,30 @@ public class DelayConstructHandler implements ConstructHandler<DelayState> {
             }
             status.getHexContext().UpdateAccessor(buffer);
             HexExecuter.continueExecution(state.getNextGlyphIds(), status.getHexContext());
-            LOGGER.atInfo().log("delay: naturally expired, firing %d next glyphs",
+            LOGGER.atInfo().log("delay: ended, firing %d next glyphs",
                     state.getNextGlyphIds().size());
-        } else {
-            LOGGER.atInfo().log("delay: terminated early (killRequested or budget exhausted); chain suppressed");
         }
 
-        // always despawn the carrier entity regardless of cleanup cause
         buffer.tryRemoveEntity(ctx.getEntityRef(), RemoveReason.REMOVE);
+    }
+
+    @Override
+    public void onAbort(HexStatus<DelayState> status, ConstructTickContext ctx) {
+        // counterspell / budget exhaustion: chain MUST be suppressed.
+        // budget is the duration-pricing mechanism and must have teeth.
+        LOGGER.atInfo().log("delay: terminated early; chain suppressed");
+        ctx.getBuffer().tryRemoveEntity(ctx.getEntityRef(), RemoveReason.REMOVE);
+    }
+
+    @Override
+    public List<String> getPendingNextGlyphIds(HexStatus<DelayState> status) {
+        DelayState state = status.getState();
+        return state != null ? state.getNextGlyphIds() : List.of();
+    }
+
+    @Override
+    public void setPendingNextGlyphIds(HexStatus<DelayState> status, List<String> ids) {
+        DelayState state = status.getState();
+        if (state != null) state.setNextGlyphIds(ids);
     }
 }

@@ -1,5 +1,7 @@
 package com.riprod.hexcode.core.common.construct.handler;
 
+import java.util.List;
+
 import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
 import com.riprod.hexcode.core.common.construct.component.HexStatus;
 import com.riprod.hexcode.core.common.construct.state.ConstructState;
@@ -21,6 +23,27 @@ public interface ConstructHandler<S extends ConstructState> {
     }
 
     default void onCleanup(HexStatus<S> status, ConstructTickContext ctx) {
+    }
+
+    // natural-end path: fires the pending chain, runs end visuals, despawns carriers.
+    // construct system routes here on natural expiry; Resonate/Interfere call directly.
+    default void onEnd(HexStatus<S> status, ConstructTickContext ctx) {
+        onCleanup(status, ctx);
+    }
+
+    // early-termination path: cleanup without firing the chain.
+    // construct system routes here on killRequested or budget exhaustion.
+    default void onAbort(HexStatus<S> status, ConstructTickContext ctx) {
+        onCleanup(status, ctx);
+    }
+
+    // pending chain accessors for splice operations (Resonate / Interfere only).
+    // handlers that don't manage a chain leave defaults (empty list / no-op).
+    default List<String> getPendingNextGlyphIds(HexStatus<S> status) {
+        return List.of();
+    }
+
+    default void setPendingNextGlyphIds(HexStatus<S> status, List<String> ids) {
     }
 
     // pulls drainPerSecond from the triggering glyph's asset and bills the tracker.

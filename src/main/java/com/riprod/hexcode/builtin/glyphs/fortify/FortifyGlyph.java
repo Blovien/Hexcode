@@ -87,12 +87,13 @@ public class FortifyGlyph implements GlyphHandler {
         EntityVar entityVar = HexVarUtil.resolveEntityVar(targets, hexContext);
         if (entityVar != null) {
             applyToEntities(glyph, entityVar, damageReduction, (float) duration, hexContext, accessor);
+            // entity branch fires Next on construct expiry, not now
         } else {
             BlockVar blockVar = HexVarUtil.resolveBlockVar(targets, hexContext);
             if (blockVar != null) applyToBlocks(blockVar, amount, hexContext, accessor);
+            // block branch is one-shot; fire Next immediately
+            HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
         }
-
-        HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 
     private void applyToEntities(Glyph glyph, EntityVar entityVar, float damageReduction,
@@ -118,8 +119,9 @@ public class FortifyGlyph implements GlyphHandler {
         if (existing != null) {
             existing.setDamageReduction(damageReduction);
             existing.setRemainingDuration(durationSeconds);
+            existing.setNextGlyphIds(glyph.getNextLinks());
         } else {
-            FortifyState state = new FortifyState(damageReduction, durationSeconds);
+            FortifyState state = new FortifyState(damageReduction, durationSeconds, glyph.getNextLinks());
             HexConstructSpawner.applyWithState(
                     accessor, ref, hexContext, glyph, FortifyGlyph.ID, state);
         }

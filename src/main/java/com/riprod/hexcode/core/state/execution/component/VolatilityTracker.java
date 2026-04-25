@@ -83,6 +83,10 @@ public class VolatilityTracker {
         this.remainingBudget = Math.max(0f, budget);
     }
 
+    public void addBudget(float budget) {
+        this.remainingBudget = Math.max(0f, this.remainingBudget + budget);
+    }
+
     public float getVolatilityMultiplier() {
         return volatilityMultiplier;
     }

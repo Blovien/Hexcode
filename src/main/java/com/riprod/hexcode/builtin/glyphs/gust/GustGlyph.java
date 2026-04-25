@@ -1,7 +1,5 @@
 package com.riprod.hexcode.builtin.glyphs.gust;
 
-import java.util.concurrent.ThreadLocalRandom;
-
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;

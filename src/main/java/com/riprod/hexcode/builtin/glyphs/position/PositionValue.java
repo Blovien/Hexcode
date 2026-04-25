@@ -25,18 +25,6 @@ public class PositionValue implements GlyphHandler {
         HexVar yVar = glyph.readSlot(PositionValueSlots.Y, hexContext);
         HexVar zVar = glyph.readSlot(PositionValueSlots.Z, hexContext);
 
-        int count = (xVar != null ? 1 : 0) + (yVar != null ? 1 : 0) + (zVar != null ? 1 : 0);
-
-        if (count == 1) {
-            HexVar single = xVar != null ? xVar : (yVar != null ? yVar : zVar);
-            if (single instanceof PositionVar || single instanceof RotationVar || single instanceof EntityVar) {
-                Vector3d pos = HexVarUtil.position(single, hexContext.getAccessor());
-                if (pos == null)
-                    return null;
-                return new PositionVar(pos, single instanceof EntityVar);
-            }
-        }
-
         var accessor = hexContext.getAccessor();
         return new PositionVar(new Vector3d(
                 HexVarUtil.positionAxis(xVar, 0, accessor),

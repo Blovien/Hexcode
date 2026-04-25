@@ -2,15 +2,7 @@
   "Parent": "Glyph_Template",
   "DefaultAttachments": [
     {
-      "Model": "NPC/Glyphs/Models/Glyph_1.blockymodel",
-      "Texture": "NPC/Glyphs/Textures/Anticircle.png"
-    },
-    {
-      "Model": "NPC/Glyphs/Models/Glyph_3.blockymodel",
-      "Texture": "NPC/Glyphs/Textures/Anticircle.png"
-    },
-    {
-      "Model": "NPC/Glyphs/Models/Glyph_4.blockymodel",
+      "Model": "NPC/Glyphs/Models/Anti_Triangle_1.blockymodel",
       "Texture": "NPC/Glyphs/Textures/Anticircle.png"
     }
   ]

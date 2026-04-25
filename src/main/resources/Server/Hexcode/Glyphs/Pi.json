@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
   "Title": "Pi",
-  "Description": "The mathematical constant \u03c0 (\u2248 3.14159)",
+  "Description": "The value of Pi",
   "ModelPath": "Pi",
   "ShapeStructure": [
     {
@@ -9,7 +9,7 @@
       "Size": 1.0
     },
     {
-      "ShapeId": "Circle",
+      "ShapeId": "Down",
       "Size": 1.0
     }
   ],

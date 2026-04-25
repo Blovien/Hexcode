@@ -7,6 +7,7 @@ import java.util.Map;
 import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.InteractionType;
@@ -30,6 +31,7 @@ import com.riprod.hexcode.builtin.glyphs.projectile.component.ProjectileState;
 import com.riprod.hexcode.builtin.glyphs.projectile.style.ProjectileStyle;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
+import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
@@ -37,6 +39,7 @@ import com.riprod.hexcode.utils.HexDirectionUtil;
 import com.riprod.hexcode.utils.HexVarUtil;
 
 public class ProjectileGlyph implements GlyphHandler {
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     @Override
     public String getId() {
@@ -84,6 +87,14 @@ public class ProjectileGlyph implements GlyphHandler {
             return;
         }
 
+        double dirLen = direction.length();
+        if (!Double.isFinite(dirLen) || dirLen < 1e-9) {
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "direction is degenerate (zero or NaN)");
+            return;
+        }
+        direction = new Vector3d(direction.x / dirLen, direction.y / dirLen, direction.z / dirLen);
+
         spawnPos.add(new Vector3d(direction).scale(1.5));
 
         double speed = HexVarUtil.numberOrDefault(speedVar, 30.0);
@@ -93,6 +104,8 @@ public class ProjectileGlyph implements GlyphHandler {
 
         int bounces = HexVarUtil.numberOrDefault(bouncesVar, 0.0).intValue();
         if (bounces < 0) bounces = 0;
+
+        LOGGER.atInfo().log("[projectile] spawn speed=%s gravity=%s bounces=%s", speed, gravity, bounces);
 
         ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(PROJECTILE_MODEL);
         if (modelAsset == null) {
@@ -105,7 +118,7 @@ public class ProjectileGlyph implements GlyphHandler {
 
         Vector3f rotation = new Vector3f();
         rotation.setYaw((float) Math.atan2(-direction.x, direction.z));
-        rotation.setPitch((float) Math.asin(-direction.y));
+        rotation.setPitch((float) Math.asin(Math.max(-1.0, Math.min(1.0, -direction.y))));
 
         holder.addComponent(TransformComponent.getComponentType(),
                 new TransformComponent(new Vector3d(spawnPos), rotation));
@@ -126,7 +139,15 @@ public class ProjectileGlyph implements GlyphHandler {
                 new Interactions(buildInteractionsMap()));
 
         Vector3d launchVelocity = new Vector3d(direction).scale(speed);
-        new ProjectilePhysicsConfig(gravity, bounces).apply(holder, hexContext.getCasterRef(),
+        ProjectilePhysicsConfig physicsConfig = new ProjectilePhysicsConfig(gravity, bounces);
+
+        Ref<EntityStore> parent = sourceVar instanceof EntityVar var ? var.getRef(hexContext.getAccessor()) : hexContext.getCasterRef();
+
+        LOGGER.atInfo().log("[projectile] physicsConfig bounciness=%s bounceCount=%s bounceLimit=%s allowRolling=%s sticksVertically=%s",
+                physicsConfig.getBounciness(), physicsConfig.getBounceCount(),
+                physicsConfig.getBounceLimit(), physicsConfig.isAllowRolling(),
+                physicsConfig.isSticksVertically());
+        physicsConfig.apply(holder, parent,
                 launchVelocity, hexContext.getAccessor(), false);
 
         holder.addComponent(DespawnComponent.getComponentType(),

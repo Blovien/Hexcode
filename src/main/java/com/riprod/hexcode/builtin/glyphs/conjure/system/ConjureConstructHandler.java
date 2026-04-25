@@ -43,6 +43,13 @@ public class ConjureConstructHandler implements ConstructHandler<NoState> {
 
     @Override
     public boolean onTick(float dt, HexStatus<NoState> status, ConstructTickContext ctx) {
+        
+        Glyph triggering = status.getTriggeringGlyph();
+
+        if (triggering.getNextLinks() == null || triggering.getNextLinks().size() == 0) {
+            return true;
+        }
+
         ConjureZoneComponent zone = ctx.getChunk().getComponent(
                 ctx.getIndex(), ConjureZoneComponent.getComponentType());
         TransformComponent transform = ctx.getChunk().getComponent(

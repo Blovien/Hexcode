@@ -2,7 +2,6 @@ package com.riprod.hexcode.builtin.glyphs.less;
 
 import java.util.List;
 
-import com.hypixel.hytale.logger.HytaleLogger;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
@@ -11,9 +10,8 @@ import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.utils.HexCompareUtil;
 
 public class LessGlyph implements GlyphHandler {
-    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     @Override
-public String getId() { return ID; };
+public String getId() { return ID; }
 
 public static final String ID = "Less";
 

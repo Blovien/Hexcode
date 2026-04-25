@@ -1,9 +1,8 @@
 package com.riprod.hexcode.builtin.glyphs.resonate;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
@@ -14,34 +13,34 @@ import com.hypixel.hytale.server.core.modules.entitystats.asset.DefaultEntitySta
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.builtin.glyphs.resonate.style.ResonateStyle;
+import com.riprod.hexcode.builtin.utils.ConstructSplicer;
 import com.riprod.hexcode.core.common.construct.component.HexEffectsComponent;
 import com.riprod.hexcode.core.common.construct.component.HexStatus;
+import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
+import com.riprod.hexcode.core.common.construct.registry.ConstructRegistry;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
-import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
-import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.HexRoot;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
-import com.riprod.hexcode.utils.HexDirectionUtil;
 import com.riprod.hexcode.utils.HexVarUtil;
 
 public class ResonateGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
-    @Override
-public String getId() { return ID; };
 
-public static final String ID = "Resonate";
+    public static final String ID = "Resonate";
+
+    @Override
+    public String getId() { return ID; }
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targetVar = glyph.readSlot(ResonateGlyphSlots.TARGET, hexContext);
         EntityVar entityVar = HexVarUtil.resolveEntityVar(targetVar, hexContext);
         if (entityVar == null) {
-            LOGGER.atWarning().log("Resonate: target must be Entity");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
                     "Resonate: target must be Entity");
             return;
@@ -51,7 +50,6 @@ public static final String ID = "Resonate";
 
         Ref<EntityStore> ref = entityVar.getRef(accessor);
         if (ref == null || !ref.isValid()) {
-            LOGGER.atWarning().log("Resonate: target ref unresolved");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
                     "Resonate: target ref unresolved");
             return;
@@ -69,47 +67,39 @@ public static final String ID = "Resonate";
             HexEffectsComponent construct, Ref<EntityStore> ref,
             CommandBuffer<EntityStore> accessor) {
 
-        // TODO: PHASE_2 - resonate should target a specific HexStatus, not the first one
-        HexStatus<?> status = construct.getEffects().values().stream().findFirst().orElse(null);
-        if (status == null) {
+        List<HexStatus<?>> targets = new ArrayList<>(construct.getEffects().values());
+        if (targets.isEmpty()) {
             Vector3d pos = resolvePosition(ref, accessor);
             if (pos != null) ResonateStyle.renderNoSignal(pos, hexContext.getColors(), accessor);
-            LOGGER.atWarning().log("Resonate: target has no active status");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Resonate: target has no active status");
+                    "Resonate: target has no active statuses");
             return;
         }
 
-        List<String> children = glyph.getNextLinks();
-        if (children != null && !children.isEmpty()) {
-            HexContext targetCtx = status.getHexContext();
-            Hex hex = targetCtx.gethex();
+        VolatilityTracker tracker = hexContext.getVolatilityTracker();
+        float donation = tracker != null ? tracker.getRemainingBudget() : 0f;
 
-            Hex sourceHex = hexContext.gethex();
-            for (Glyph g : sourceHex.getGlyphs()) {
-                hex.put(g.getId(), g);
-            }
+        for (HexStatus<?> target : targets) {
+            ConstructHandler<?> handler = ConstructRegistry.get(target.getHandlerId());
+            if (handler == null) continue;
 
-            // TODO: PHASE_2 - conditional branch ids no longer exist on HexStatus; no-op
+            ConstructSplicer.splice(target, handler, hexContext, glyph,
+                    ConstructSplicer.ChainMode.APPEND_TAIL,
+                    ConstructSplicer.VariablePolicy.PREFER_TARGET,
+                    donation);
 
-            for (Map.Entry<String, HexVar> entry : hexContext.getVariables().entrySet()) {
-                targetCtx.getVariables().putIfAbsent(entry.getKey(), entry.getValue());
-            }
-
-            // intentional: resonate bills the TARGET construct's tracker, not caster's.
-            // this is the only glyph that drains another spell's volatility — design feature, not bug.
-            VolatilityTracker targetTracker = targetCtx.getVolatilityTracker();
-            if (targetTracker != null) {
-                targetTracker.consumeVolatility(children.size());
-            }
-
-            LOGGER.atInfo().log("resonate: injected %d glyphs into construct", children.size());
+            transferManaToRoot(glyph, hexContext, target.getHexContext().getRoot(), accessor);
         }
 
-        transferManaToRoot(glyph, hexContext, status.getHexContext().getRoot(), accessor);
+        // drain caster fully — ends Resonate's chain
+        if (tracker != null && donation > 0f) {
+            tracker.consumeVolatility(donation);
+        }
 
         Vector3d pos = resolvePosition(ref, accessor);
         if (pos != null) ResonateStyle.renderResonate(pos, hexContext.getColors(), accessor);
+
+        LOGGER.atInfo().log("resonate: spliced %d active effects on target", targets.size());
     }
 
     private void resonateEntity(Glyph glyph, HexContext hexContext,
@@ -119,7 +109,6 @@ public static final String ID = "Resonate";
         if (targetStats == null) {
             Vector3d pos = resolvePosition(ref, accessor);
             if (pos != null) ResonateStyle.renderNoSignal(pos, hexContext.getColors(), accessor);
-            LOGGER.atWarning().log("Resonate: target has no mana pool");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
                     "Resonate: target has no mana pool");
             return;
@@ -128,7 +117,6 @@ public static final String ID = "Resonate";
         HexVar manaVar = glyph.readSlot(ResonateGlyphSlots.MANA, hexContext);
         double percentage = HexVarUtil.numberOrDefault(manaVar, 0.0);
         if (percentage <= 0) {
-            LOGGER.atWarning().log("Resonate: mana percentage required");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
                     "Resonate: mana percentage required");
             return;

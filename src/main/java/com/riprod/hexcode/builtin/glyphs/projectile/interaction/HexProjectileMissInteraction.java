@@ -18,9 +18,10 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Int
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.SimpleInteraction;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.data.Collector;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.builtin.glyphs.projectile.component.ProjectileState;
 import com.riprod.hexcode.builtin.glyphs.projectile.style.ProjectileStyle;
+import com.riprod.hexcode.core.common.glyphs.component.Glyph;
+import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 
@@ -60,17 +61,22 @@ public class HexProjectileMissInteraction extends SimpleInteraction {
             HexContext hexContext = state.getHexContext();
             hexContext.UpdateAccessor(buffer);
 
+            LOGGER.atInfo().log("[projectile] miss/block-hit ref=%s", projectileRef);
+
             Vector4d hitLocation = ctx.getMetaStore().getMetaObject(Interaction.HIT_LOCATION);
             Vector3d hitPos = hitLocation != null
                     ? new Vector3d(hitLocation.x, hitLocation.y, hitLocation.z)
                     : null;
 
+            Glyph triggering = state.getTriggeringGlyph();
             if (hitPos != null) {
-                ProjectileStyle.renderMiss(hitPos, hexContext.getColors(), buffer);
+                if (triggering != null) {
+                    triggering.writeOutput(new BlockVar(hitPos.toVector3i()), hexContext);
+                }
+                ProjectileStyle.renderBlockHit(hitPos, hexContext.getColors(), buffer);
             }
 
-            HexExecuter.fail(state.getTriggeringGlyph(), hexContext,
-                    GlyphFizzleEvent.Reason.HANDLER_FAILED, "projectile missed");
+            HexExecuter.continueExecution(state.getNextLinks(), hexContext);
 
             buffer.tryRemoveEntity(projectileRef, RemoveReason.REMOVE);
 

@@ -17,9 +17,10 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Int
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.SimpleInteraction;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.data.Collector;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.builtin.glyphs.shatter.component.ShatterState;
 import com.riprod.hexcode.builtin.glyphs.shatter.style.ShatterStyle;
+import com.riprod.hexcode.core.common.glyphs.component.Glyph;
+import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 
@@ -64,12 +65,15 @@ public class HexShatterMissInteraction extends SimpleInteraction {
                     ? new Vector3d(hitLocation.x, hitLocation.y, hitLocation.z)
                     : null;
 
+            Glyph triggering = state.getTriggeringGlyph();
             if (hitPos != null) {
-                ShatterStyle.renderMiss(hitPos, hexContext.getColors(), buffer);
+                if (triggering != null) {
+                    triggering.writeOutput(new BlockVar(hitPos.toVector3i()), hexContext);
+                }
+                ShatterStyle.renderShardHit(hitPos, hexContext.getColors(), buffer);
             }
 
-            HexExecuter.fail(state.getTriggeringGlyph(), hexContext,
-                    GlyphFizzleEvent.Reason.HANDLER_FAILED, "shatter shard missed");
+            HexExecuter.continueExecution(state.getNextLinks(), hexContext);
 
             ctx.getState().state = InteractionState.Finished;
         } catch (Exception e) {

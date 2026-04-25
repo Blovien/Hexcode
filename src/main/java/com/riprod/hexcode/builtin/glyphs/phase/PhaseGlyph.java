@@ -5,7 +5,6 @@ import java.util.List;
 
 import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.CommandBuffer;
-import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
@@ -19,7 +18,6 @@ import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
-import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
@@ -57,32 +55,6 @@ public static final String ID = "Phase";
         int repeatCount = tracker.getGlyphUsage(glyph.getId());
         float cost = VolatilityTracker.computeGlyphCost(glyph, repeatCount) * intensityScale;
         return tracker.consumeVolatility(cost);
-    }
-
-    private int computeBlockVolatilityRolls(BlockVar blockVar, double intensity,
-            HexContext hexContext) {
-        World world = hexContext.getAccessor().getExternalData().getWorld();
-        int maxQuality = 0;
-
-        Vector3i pos = blockVar.getValue();
-        if (pos != null) {
-            int blockId = world.getBlock(pos.x, pos.y, pos.z);
-            if (blockId != BlockType.EMPTY_ID) {
-                BlockType blockType = BlockType.getAssetMap().getAsset(blockId);
-                if (blockType != null) {
-                    BlockGathering gathering = blockType.getGathering();
-                    if (gathering != null) {
-                        var breaking = gathering.getBreaking();
-                        if (breaking != null) {
-                            maxQuality = breaking.getQuality();
-                        }
-                    }
-                }
-            }
-        }
-
-        float intensityFactor = (float) (intensity / DEFAULT_INTENSITY);
-        return (int) ((1 + maxQuality) * intensityFactor) - 1;
     }
 
     @Override

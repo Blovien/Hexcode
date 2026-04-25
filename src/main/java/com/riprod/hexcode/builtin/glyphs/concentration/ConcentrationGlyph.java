@@ -74,9 +74,8 @@ public class ConcentrationGlyph implements GlyphHandler {
 
         var tracker = hexContext.getVolatilityTracker();
 
-        var existingMultiplier = tracker.getVolatilityMultiplier();
-        tracker.setVolatilityMultiplier(existingMultiplier + VOLATILITY_INCREASE);
-
+        float budget = tracker.getRemainingBudget();
+        tracker.addBudget(budget * VOLATILITY_INCREASE);
 
         HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }

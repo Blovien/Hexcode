@@ -17,17 +17,20 @@
     "x": {
       "Style": "Input",
       "Label": "X",
-      "Description": "X component"
+      "Description": "X component",
+      "DefaultValue": 0
     },
     "y": {
       "Style": "Input",
       "Label": "Y",
-      "Description": "Y component"
+      "Description": "Y component",
+      "DefaultValue": 0
     },
     "z": {
       "Style": "Input",
       "Label": "Z",
-      "Description": "Z component"
+      "Description": "Z component",
+      "DefaultValue": 0
     },
     "Next": {
       "Style": "Next",

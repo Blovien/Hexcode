@@ -1,18 +1,25 @@
 package com.riprod.hexcode.builtin.glyphs.fortify;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.riprod.hexcode.core.common.construct.state.ConstructState;
 
 public class FortifyState implements ConstructState {
 
     private float damageReduction;
     private float remainingDuration;
+    private List<String> nextGlyphIds;
 
     public FortifyState() {
+        this.nextGlyphIds = new ArrayList<>();
     }
 
-    public FortifyState(float damageReduction, float remainingDuration) {
+    public FortifyState(float damageReduction, float remainingDuration,
+            List<String> nextGlyphIds) {
         this.damageReduction = damageReduction;
         this.remainingDuration = remainingDuration;
+        this.nextGlyphIds = nextGlyphIds != null ? nextGlyphIds : new ArrayList<>();
     }
 
     public float getDamageReduction() {
@@ -39,8 +46,17 @@ public class FortifyState implements ConstructState {
         return remainingDuration <= 0f;
     }
 
+    public List<String> getNextGlyphIds() {
+        return nextGlyphIds;
+    }
+
+    public void setNextGlyphIds(List<String> ids) {
+        this.nextGlyphIds = ids != null ? ids : new ArrayList<>();
+    }
+
     @Override
     public FortifyState copy() {
-        return new FortifyState(damageReduction, remainingDuration);
+        return new FortifyState(damageReduction, remainingDuration,
+                new ArrayList<>(nextGlyphIds));
     }
 }

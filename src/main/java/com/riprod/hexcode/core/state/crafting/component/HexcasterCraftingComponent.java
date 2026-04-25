@@ -32,6 +32,7 @@ public class HexcasterCraftingComponent implements Component<EntityStore> {
     private Ref<EntityStore> headAnchorRef;
     private Ref<EntityStore> draggingRef;
     private Ref<EntityStore> hoveredRef;
+    private Ref<EntityStore> expandedGlyphRef;
     private int dragTickCount;
     private final List<Ref<EntityStore>> pendingDespawn = new ArrayList<>();
 
@@ -96,6 +97,15 @@ public class HexcasterCraftingComponent implements Component<EntityStore> {
         this.hoveredRef = hoveredGlyphRef;
     }
 
+    @Nullable
+    public Ref<EntityStore> getExpandedGlyphRef() {
+        return expandedGlyphRef;
+    }
+
+    public void setExpandedGlyphRef(@Nullable Ref<EntityStore> expandedGlyphRef) {
+        this.expandedGlyphRef = expandedGlyphRef;
+    }
+
     public int getDragTickCount() {
         return dragTickCount;
     }
@@ -108,6 +118,7 @@ public class HexcasterCraftingComponent implements Component<EntityStore> {
         this.headAnchorRef = null;
         this.draggingRef = null;
         this.hoveredRef = null;
+        this.expandedGlyphRef = null;
         this.dragTickCount = 0;
     }
 
@@ -116,6 +127,7 @@ public class HexcasterCraftingComponent implements Component<EntityStore> {
         this.headAnchorRef = null;
         this.draggingRef = null;
         this.hoveredRef = null;
+        this.expandedGlyphRef = null;
         this.dragTickCount = 0;
         this.sessionRef = null;
     }
@@ -128,6 +140,7 @@ public class HexcasterCraftingComponent implements Component<EntityStore> {
         copy.headAnchorRef = this.headAnchorRef;
         copy.draggingRef = this.draggingRef;
         copy.hoveredRef = this.hoveredRef;
+        copy.expandedGlyphRef = this.expandedGlyphRef;
         copy.dragTickCount = this.dragTickCount;
         return copy;
     }

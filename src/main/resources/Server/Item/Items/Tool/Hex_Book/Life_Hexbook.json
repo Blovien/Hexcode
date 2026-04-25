@@ -5,7 +5,8 @@
     "Description": "hexcode.items.Life_Hexbook.description"
   },
   "Categories": [
-    "Hexcode.Books"
+    "Hexcode.Books",
+    "Items.Weapons"
   ],
   "Icon": "Icons/ItemsGenerated/Life_Hexbook.png",
   "Quality": "Epic",

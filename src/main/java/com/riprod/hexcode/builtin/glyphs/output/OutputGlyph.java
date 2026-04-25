@@ -26,21 +26,17 @@ public class OutputGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
+        // color is best-effort cosmetic; forwarding is the structural contract.
+        // splice/mixin usage (Interfere/Resonate) wires Output without a color input,
+        // so we must never let a missing/invalid color abort the chain.
         HexVar colorInput = glyph.readSlot(OutputGlyphSlots.COLOR, hexContext);
-        if (!applyColor(colorInput, glyph, hexContext)) return;
-        // end-cap at craft time: Next is empty, continueFromSlot returns immediately.
-        // Wave 3 drag-snap mutates Next to inject a child hex; this same call forwards into it.
+        applyColor(colorInput, hexContext);
         HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 
-    private boolean applyColor(HexVar input, Glyph glyph, HexContext hexContext) {
+    private void applyColor(HexVar input, HexContext hexContext) {
         Color newColor = resolveAsColor(input);
-        if (newColor == null) {
-            LOGGER.atWarning().log("output: color input must be Number or Position");
-            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Output: color input must be Number or Position");
-            return false;
-        }
+        if (newColor == null) return;
 
         HexColors colors = hexContext.getColors();
         if (colors == null) {
@@ -48,7 +44,6 @@ public class OutputGlyph implements GlyphHandler {
             hexContext.setColors(colors);
         }
         colors.setPrimaryColor(newColor);
-        return true;
     }
 
     private Color resolveAsColor(HexVar input) {

@@ -1,5 +1,7 @@
 package com.riprod.hexcode.builtin.glyphs.fortify;
 
+import java.util.List;
+
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
@@ -9,6 +11,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
 import com.riprod.hexcode.core.common.construct.component.HexStatus;
 import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
+import com.riprod.hexcode.core.state.execution.HexExecuter;
 
 public class FortifyConstructHandler implements ConstructHandler<FortifyState> {
 
@@ -25,7 +28,34 @@ public class FortifyConstructHandler implements ConstructHandler<FortifyState> {
     }
 
     @Override
-    public void onCleanup(HexStatus<FortifyState> status, ConstructTickContext ctx) {
+    public void onEnd(HexStatus<FortifyState> status, ConstructTickContext ctx) {
+        cleanup(ctx);
+        FortifyState state = status.getState();
+        if (state == null) return;
+        status.getHexContext().UpdateAccessor(ctx.getBuffer());
+        HexExecuter.continueExecution(state.getNextGlyphIds(), status.getHexContext());
+        LOGGER.atInfo().log("fortify: ended, firing %d next glyphs", state.getNextGlyphIds().size());
+    }
+
+    @Override
+    public void onAbort(HexStatus<FortifyState> status, ConstructTickContext ctx) {
+        cleanup(ctx);
+        LOGGER.atInfo().log("fortify: terminated early; chain suppressed");
+    }
+
+    @Override
+    public List<String> getPendingNextGlyphIds(HexStatus<FortifyState> status) {
+        FortifyState state = status.getState();
+        return state != null ? state.getNextGlyphIds() : List.of();
+    }
+
+    @Override
+    public void setPendingNextGlyphIds(HexStatus<FortifyState> status, List<String> ids) {
+        FortifyState state = status.getState();
+        if (state != null) state.setNextGlyphIds(ids);
+    }
+
+    private void cleanup(ConstructTickContext ctx) {
         CommandBuffer<EntityStore> buffer = ctx.getBuffer();
         Ref<EntityStore> target = ctx.getEntityRef();
         if (target == null || !target.isValid()) return;
@@ -38,7 +68,5 @@ public class FortifyConstructHandler implements ConstructHandler<FortifyState> {
                 controller.removeEffect(target, effectIndex, buffer);
             }
         }
-
-        LOGGER.atInfo().log("fortify: cleaned up");
     }
 }

@@ -5,7 +5,8 @@
     "Description": "hexcode.items.Arcane_Hexbook.description"
   },
   "Categories": [
-    "Hexcode.Books"
+    "Hexcode.Books",
+    "Items.Weapons"
   ],
   "Icon": "Icons/ItemsGenerated/Arcane_Hexbook.png",
   "Quality": "Legendary",

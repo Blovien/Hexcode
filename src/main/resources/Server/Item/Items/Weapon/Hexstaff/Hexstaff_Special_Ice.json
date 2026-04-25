@@ -4,9 +4,6 @@
     "Name": "hexcode.items.hexstaff.special.ice.name",
     "Description": "hexcode.items.hexstaff.special.ice.description"
   },
-  "Categories": [
-    "Hexcode.Staves"
-  ],
   "Quality": "Uncommon",
   "ItemLevel": 35,
   "PlayerAnimationsId": "HexStaff",

@@ -34,28 +34,12 @@ public class RotationValue implements GlyphHandler {
     @Override
     public String getId() {
         return ID;
-    };
-
-    
+    }
 
     private HexVar compute(Glyph glyph, HexContext hexContext) {
         HexVar xVar = glyph.readSlot(RotationValueSlots.X, hexContext);
         HexVar yVar = glyph.readSlot(RotationValueSlots.Y, hexContext);
         HexVar zVar = glyph.readSlot(RotationValueSlots.Z, hexContext);
-
-        int count = (xVar != null ? 1 : 0) + (yVar != null ? 1 : 0) + (zVar != null ? 1 : 0);
-
-        if (count == 1) {
-            HexVar single = xVar != null ? xVar : (yVar != null ? yVar : zVar);
-            // absolute positions don't resolve as rotations
-            if (single instanceof PositionVar posVar && posVar.isAbsolute()) {
-                return null;
-            }
-            if (single instanceof PositionVar || single instanceof RotationVar || single instanceof EntityVar) {
-                Vector3f rot = HexVarUtil.rotation(single, hexContext.getAccessor());
-                return rot != null ? new RotationVar(rot) : null;
-            }
-        }
 
         var accessor = hexContext.getAccessor();
         return new RotationVar(new Vector3f(

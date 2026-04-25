@@ -4,9 +4,6 @@
     "Name": "hexcode.items.hexstaff.special.astral.name",
     "Description": "hexcode.items.hexstaff.special.astral.description"
   },
-  "Categories": [
-    "Hexcode.Staves"
-  ],
   "Quality": "Epic",
   "ItemLevel": 40,
   "PlayerAnimationsId": "HexStaff",

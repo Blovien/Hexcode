@@ -20,6 +20,13 @@ public class ConstructTickContext {
         this.entityRef = entityRef;
     }
 
+    // off-tick context for splice operations (Resonate/Interfere) that need
+    // to invoke handler.onEnd outside the construct system tick. chunk/index
+    // are unused by all current handlers; if a handler reads them, this will NPE.
+    public ConstructTickContext(CommandBuffer<EntityStore> buffer, Ref<EntityStore> entityRef) {
+        this(null, -1, buffer, entityRef);
+    }
+
     public ArchetypeChunk<EntityStore> getChunk() {
         return chunk;
     }

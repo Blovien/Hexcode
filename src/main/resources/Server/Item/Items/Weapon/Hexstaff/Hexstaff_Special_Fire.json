@@ -4,9 +4,6 @@
     "Name": "hexcode.items.hexstaff.special.fire.name",
     "Description": "hexcode.items.hexstaff.special.fire.description"
   },
-  "Categories": [
-    "Hexcode.Staves"
-  ],
   "Quality": "Rare",
   "ItemLevel": 30,
   "PlayerAnimationsId": "HexStaff",

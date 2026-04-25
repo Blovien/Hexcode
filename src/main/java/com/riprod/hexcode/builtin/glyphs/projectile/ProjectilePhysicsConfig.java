@@ -11,6 +11,8 @@ public class ProjectilePhysicsConfig extends StandardPhysicsConfig {
     public ProjectilePhysicsConfig(double gravity, int bounces) {
         this.gravity = gravity;
         this.bounceCount = bounces;
+        this.bounciness = 0.999;
+        this.bounceLimit = 0.001;
         this.sticksVertically = true;
         this.computeYaw = true;
         this.computePitch = true;

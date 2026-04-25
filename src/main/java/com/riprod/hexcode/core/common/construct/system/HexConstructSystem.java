@@ -67,7 +67,7 @@ public class HexConstructSystem extends EntityTickingSystem<EntityStore> {
                     LOGGER.atInfo().log("construct '%s' terminated (%s)",
                             status.getHandlerId(),
                             killRequested ? "kill requested" : "volatility depleted");
-                    cleanup(handler, status, ctx);
+                    abort(handler, status, ctx);
                     it.remove();
                 }
             }
@@ -97,7 +97,7 @@ public class HexConstructSystem extends EntityTickingSystem<EntityStore> {
             } else {
                 boolean kill = raw.onTick(dt, rawStatus, ctx);
                 if (kill) {
-                    cleanup(handler, status, ctx);
+                    end(handler, status, ctx);
                     it.remove();
                     return true;
                 }
@@ -109,15 +109,26 @@ public class HexConstructSystem extends EntityTickingSystem<EntityStore> {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private void cleanup(ConstructHandler<?> handler, HexStatus<?> status, ConstructTickContext ctx) {
-        if (handler != null) {
-            try {
-                ConstructHandler raw = handler;
-                HexStatus rawStatus = status;
-                raw.onCleanup(rawStatus, ctx);
-            } catch (Exception e) {
-                LOGGER.atWarning().log("construct handler cleanup failed: %s", e.getMessage());
-            }
+    private void end(ConstructHandler<?> handler, HexStatus<?> status, ConstructTickContext ctx) {
+        if (handler == null) return;
+        try {
+            ConstructHandler raw = handler;
+            HexStatus rawStatus = status;
+            raw.onEnd(rawStatus, ctx);
+        } catch (Exception e) {
+            LOGGER.atWarning().log("construct handler onEnd failed: %s", e.getMessage());
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void abort(ConstructHandler<?> handler, HexStatus<?> status, ConstructTickContext ctx) {
+        if (handler == null) return;
+        try {
+            ConstructHandler raw = handler;
+            HexStatus rawStatus = status;
+            raw.onAbort(rawStatus, ctx);
+        } catch (Exception e) {
+            LOGGER.atWarning().log("construct handler onAbort failed: %s", e.getMessage());
         }
     }
 

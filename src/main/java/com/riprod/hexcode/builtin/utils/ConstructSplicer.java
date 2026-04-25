@@ -1,0 +1,124 @@
+package com.riprod.hexcode.builtin.utils;
+
+// Resonate and Interfere are the only consumers permitted to assume that
+// a construct's pending chain corresponds to "Next slot" semantics.
+// All other glyphs must remain agnostic to handler-specific chain semantics.
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import com.hypixel.hytale.logger.HytaleLogger;
+import com.riprod.hexcode.core.common.construct.component.HexStatus;
+import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
+import com.riprod.hexcode.core.common.glyphs.component.Glyph;
+import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.common.hexes.component.Hex;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
+import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
+
+public final class ConstructSplicer {
+
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+    private static final String OUTPUT_GLYPH_ID = "Output";
+
+    public enum VariablePolicy { PREFER_TARGET, PREFER_CASTER }
+    public enum ChainMode { APPEND_TAIL, REPLACE }
+
+    private ConstructSplicer() {
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static void splice(
+            HexStatus<?> target,
+            ConstructHandler<?> handler,
+            HexContext caster,
+            Glyph casterGlyph,
+            ChainMode chainMode,
+            VariablePolicy varPolicy,
+            float donationAmount) {
+
+        ConstructHandler raw = handler;
+        HexStatus rawStatus = target;
+
+        List<String> originalNext = new ArrayList<>(raw.getPendingNextGlyphIds(rawStatus));
+        List<String> casterChildren = casterGlyph.getNextLinks();
+
+        HexContext targetCtx = target.getHexContext();
+        Hex targetHex = targetCtx.gethex();
+        Hex casterHex = caster.gethex();
+
+        // wire every Output glyph in the caster's hex back to originalNext (fork).
+        // done before moving glyphs so we don't have to re-scan post-clone.
+        int outputsRewired = rewireOutputs(casterHex, originalNext);
+
+        // move all of caster's glyphs into target hex (deep-clone to avoid aliasing)
+        int glyphsCopied = 0;
+        for (Glyph g : casterHex.getGlyphs()) {
+            targetHex.put(g.getId(), g.clone());
+            glyphsCopied++;
+        }
+
+        // merge variables per policy. no special-case for Self.
+        mergeVariables(targetCtx, caster.getVariables(), varPolicy);
+
+        // donate volatility — caller drains caster fully after the splice loop
+        VolatilityTracker targetTracker = targetCtx.getVolatilityTracker();
+        if (targetTracker != null && donationAmount > 0f) {
+            targetTracker.addBudget(donationAmount);
+        }
+
+        // compute and install new pending chain
+        List<String> newChain = computeNewChain(chainMode, originalNext, casterChildren);
+        if (newChain != null) {
+            raw.setPendingNextGlyphIds(rawStatus, newChain);
+        }
+
+        LOGGER.atInfo().log(
+                "splice: mode=%s policy=%s glyphs=%d outputs=%d originalNext=%d casterChildren=%d",
+                chainMode, varPolicy, glyphsCopied, outputsRewired,
+                originalNext.size(), casterChildren.size());
+    }
+
+    private static int rewireOutputs(Hex casterHex, List<String> originalNext) {
+        int count = 0;
+        for (Glyph g : casterHex.getGlyphs()) {
+            if (!OUTPUT_GLYPH_ID.equals(g.getGlyphId())) continue;
+            g.clearSlot(Glyph.NEXT_SLOT);
+            for (String id : originalNext) {
+                g.addSlotLink(Glyph.NEXT_SLOT, id);
+            }
+            count++;
+        }
+        return count;
+    }
+
+    private static void mergeVariables(HexContext targetCtx,
+            Map<String, HexVar> casterVars, VariablePolicy policy) {
+        if (casterVars == null || casterVars.isEmpty()) return;
+        Map<String, HexVar> targetVars = targetCtx.getVariables();
+        for (Map.Entry<String, HexVar> e : casterVars.entrySet()) {
+            if (policy == VariablePolicy.PREFER_TARGET) {
+                targetVars.putIfAbsent(e.getKey(), e.getValue());
+            } else {
+                targetVars.put(e.getKey(), e.getValue());
+            }
+        }
+    }
+
+    private static List<String> computeNewChain(ChainMode mode,
+            List<String> originalNext, List<String> casterChildren) {
+        switch (mode) {
+            case APPEND_TAIL: {
+                if (casterChildren.isEmpty()) return null;
+                List<String> combined = new ArrayList<>(originalNext.size() + casterChildren.size());
+                combined.addAll(originalNext);
+                combined.addAll(casterChildren);
+                return combined;
+            }
+            case REPLACE:
+            default:
+                return new ArrayList<>(casterChildren);
+        }
+    }
+}

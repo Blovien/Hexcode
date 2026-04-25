@@ -3,14 +3,12 @@ package com.riprod.hexcode.builtin.glyphs.erode;
 import java.time.Instant;
 
 import com.hypixel.hytale.component.CommandBuffer;
-import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3i;
-import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockGathering;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.OverlapBehavior;
@@ -29,7 +27,6 @@ import com.riprod.hexcode.core.common.construct.state.ConstructStateUtil;
 import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
-import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
@@ -69,30 +66,6 @@ public static final String ID = "Erode";
         return tracker.consumeVolatility(cost);
     }
 
-    private int computeBlockVolatilityRolls(BlockVar blockVar, float amountFactor,
-            HexContext hexContext) {
-        Vector3i pos = blockVar.getValue();
-        if (pos == null) return 0;
-
-        World world = hexContext.getAccessor().getExternalData().getWorld();
-        int blockId = world.getBlock(pos.x, pos.y, pos.z);
-        if (blockId == BlockType.EMPTY_ID) return 0;
-
-        BlockType blockType = BlockType.getAssetMap().getAsset(blockId);
-        if (blockType == null) return 0;
-
-        BlockGathering gathering = blockType.getGathering();
-        if (gathering == null) return 0;
-
-        int quality = 0;
-        var breaking = gathering.getBreaking();
-        if (breaking != null) {
-            quality = breaking.getQuality();
-        }
-
-        return (int) ((1 + quality) * amountFactor) - 1;
-    }
-
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targets = glyph.readSlot(ErodeGlyphSlots.TARGET, hexContext);
@@ -116,12 +89,13 @@ public static final String ID = "Erode";
         EntityVar entityVar = HexVarUtil.resolveEntityVar(targets, hexContext);
         if (entityVar != null) {
             applyToEntities(entityVar, vulnerabilityMultiplier, durationSeconds, glyph, hexContext, accessor);
+            // entity branch fires Next on construct expiry, not now
         } else {
             BlockVar blockVar = HexVarUtil.resolveBlockVar(targets, hexContext);
             if (blockVar != null) applyToBlocks(blockVar, amount, durationSeconds, hexContext, accessor);
+            // block branch is one-shot; fire Next immediately
+            HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
         }
-
-        HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 
     private void applyToEntities(EntityVar entityVar, float vulnerabilityMultiplier,
@@ -149,8 +123,9 @@ public static final String ID = "Erode";
         if (existing != null) {
             existing.setVulnerabilityMultiplier(vulnerabilityMultiplier);
             existing.setRemainingDuration(durationSeconds);
+            existing.setNextGlyphIds(glyph.getNextLinks());
         } else {
-            ErodeState state = new ErodeState(vulnerabilityMultiplier, durationSeconds);
+            ErodeState state = new ErodeState(vulnerabilityMultiplier, durationSeconds, glyph.getNextLinks());
             HexConstructSpawner.applyWithState(
                     accessor, ref, hexContext, glyph, ErodeGlyph.ID, state);
         }

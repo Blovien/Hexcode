@@ -72,7 +72,7 @@ public class DebugGlyph implements GlyphHandler {
         }
 
         // multi-read: dump every wired slot input
-        List<HexVar> slotValues = glyph.readSlotAll("slot", hexContext);
+        List<HexVar> slotValues = glyph.readSlotAll(DebugGlyphSlots.SLOT, hexContext);
         if (!slotValues.isEmpty()) {
             if (slotValues.size() == 1) {
                 sb.append("Slot: ").append(slotValues.get(0).describe()).append("\n");

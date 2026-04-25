@@ -41,10 +41,7 @@ public class FreezeGlyph implements GlyphHandler {
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targets = glyph.readSlot(FreezeGlyphSlots.TARGET, hexContext);
-        if (targets == null) {
-            HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
-            return;
-        }
+        if (targets == null) return;
 
         double duration = HexVarUtil.numberOrDefault(
                 glyph.readSlot(FreezeGlyphSlots.DURATION, hexContext), DEFAULT_DURATION);
@@ -52,7 +49,6 @@ public class FreezeGlyph implements GlyphHandler {
         EntityEffect freezeEffect = EntityEffect.getAssetMap().getAsset("Hexcode_Freeze");
         if (freezeEffect == null) {
             LOGGER.atWarning().log("freeze: Freeze effect asset not found");
-            HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
@@ -60,16 +56,10 @@ public class FreezeGlyph implements GlyphHandler {
         World world = accessor.getExternalData().getWorld();
 
         EntityVar entityVar = HexVarUtil.resolveEntityVar(targets, hexContext);
-        if (entityVar == null) {
-            HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
-            return;
-        }
+        if (entityVar == null) return;
 
         Ref<EntityStore> targetRef = entityVar.getRef(accessor);
-        if (targetRef == null || !targetRef.isValid()) {
-            HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
-            return;
-        }
+        if (targetRef == null || !targetRef.isValid()) return;
 
         try {
             EffectControllerComponent controller = accessor.getComponent(
@@ -87,14 +77,12 @@ public class FreezeGlyph implements GlyphHandler {
                 FreezeStyle.renderFreeze(pos, hexContext.getColors(), accessor);
             }
 
-            FreezeState state = new FreezeState(frozenBlocks, (float) duration);
+            FreezeState state = new FreezeState(frozenBlocks, (float) duration, glyph.getNextLinks());
             HexConstructSpawner.applyWithState(
                     accessor, targetRef, hexContext, glyph, FreezeGlyph.ID, state);
         } catch (Exception e) {
             LOGGER.atWarning().log("freeze: failed on entity: %s", e.getMessage());
         }
-
-        HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 
     private static void placeIceBlock(World world, Vector3d pos, List<FrozenBlock> frozenBlocks) {

@@ -5,7 +5,8 @@
     "Description": "hexcode.items.Hex_Book.description"
   },
   "Categories": [
-    "Hexcode.Books"
+    "Hexcode.Books",
+    "Items.Weapons"
   ],
   "Quality": "Rare",
   "ItemLevel": 30,

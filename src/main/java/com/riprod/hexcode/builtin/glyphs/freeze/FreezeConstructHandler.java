@@ -1,5 +1,7 @@
 package com.riprod.hexcode.builtin.glyphs.freeze;
 
+import java.util.List;
+
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
@@ -14,6 +16,7 @@ import com.riprod.hexcode.builtin.glyphs.freeze.style.FreezeStyle;
 import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
 import com.riprod.hexcode.core.common.construct.component.HexStatus;
 import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
+import com.riprod.hexcode.core.state.execution.HexExecuter;
 
 public class FreezeConstructHandler implements ConstructHandler<FreezeState> {
 
@@ -30,14 +33,40 @@ public class FreezeConstructHandler implements ConstructHandler<FreezeState> {
     }
 
     @Override
-    public void onCleanup(HexStatus<FreezeState> status, ConstructTickContext ctx) {
+    public void onEnd(HexStatus<FreezeState> status, ConstructTickContext ctx) {
+        cleanup(status, ctx);
+        FreezeState state = status.getState();
+        if (state == null) return;
+        status.getHexContext().UpdateAccessor(ctx.getBuffer());
+        HexExecuter.continueExecution(state.getNextGlyphIds(), status.getHexContext());
+        LOGGER.atInfo().log("freeze: ended, firing %d next glyphs", state.getNextGlyphIds().size());
+    }
+
+    @Override
+    public void onAbort(HexStatus<FreezeState> status, ConstructTickContext ctx) {
+        cleanup(status, ctx);
+        LOGGER.atInfo().log("freeze: terminated early; chain suppressed");
+    }
+
+    @Override
+    public List<String> getPendingNextGlyphIds(HexStatus<FreezeState> status) {
+        FreezeState state = status.getState();
+        return state != null ? state.getNextGlyphIds() : List.of();
+    }
+
+    @Override
+    public void setPendingNextGlyphIds(HexStatus<FreezeState> status, List<String> ids) {
+        FreezeState state = status.getState();
+        if (state != null) state.setNextGlyphIds(ids);
+    }
+
+    private void cleanup(HexStatus<FreezeState> status, ConstructTickContext ctx) {
         FreezeState state = status.getState();
         if (state == null) return;
 
         CommandBuffer<EntityStore> buffer = ctx.getBuffer();
         Ref<EntityStore> frozenRef = ctx.getEntityRef();
 
-        // remove the Hytale entity effect off the frozen target
         if (frozenRef != null && frozenRef.isValid()) {
             EffectControllerComponent controller = buffer.getComponent(
                     frozenRef, EffectControllerComponent.getComponentType());
@@ -49,7 +78,6 @@ public class FreezeConstructHandler implements ConstructHandler<FreezeState> {
             }
         }
 
-        // restore the ice blocks to whatever was there before
         World world = buffer.getExternalData().getWorld();
         for (FrozenBlock block : state.getFrozenBlocks()) {
             Vector3i pos = block.getPosition();

@@ -1,5 +1,7 @@
 package com.riprod.hexcode.builtin.glyphs.drain;
 
+import java.util.List;
+
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
@@ -87,7 +89,7 @@ public class DrainConstructHandler implements ConstructHandler<DrainState> {
     }
 
     @Override
-    public void onCleanup(HexStatus<DrainState> status, ConstructTickContext ctx) {
+    public void onEnd(HexStatus<DrainState> status, ConstructTickContext ctx) {
         DrainState state = status.getState();
         if (state == null) return;
 
@@ -97,10 +99,29 @@ public class DrainConstructHandler implements ConstructHandler<DrainState> {
             DrainStyle.renderComplete(tc.getPosition(), state.getColors(), ctx.getBuffer());
         }
 
-        // chain fires on completion — "what happens after the drain fills"
         status.getHexContext().UpdateAccessor(ctx.getBuffer());
         HexExecuter.continueExecution(state.getNextGlyphIds(), status.getHexContext());
 
         LOGGER.atInfo().log("drain: completed (%.2f drained)", state.getDrainedSoFar());
+    }
+
+    @Override
+    public void onAbort(HexStatus<DrainState> status, ConstructTickContext ctx) {
+        // counterspell / budget exhaustion: chain suppressed.
+        DrainState state = status.getState();
+        LOGGER.atInfo().log("drain: terminated early (%.2f drained); chain suppressed",
+                state != null ? state.getDrainedSoFar() : 0f);
+    }
+
+    @Override
+    public List<String> getPendingNextGlyphIds(HexStatus<DrainState> status) {
+        DrainState state = status.getState();
+        return state != null ? state.getNextGlyphIds() : List.of();
+    }
+
+    @Override
+    public void setPendingNextGlyphIds(HexStatus<DrainState> status, List<String> ids) {
+        DrainState state = status.getState();
+        if (state != null) state.setNextGlyphIds(ids);
     }
 }

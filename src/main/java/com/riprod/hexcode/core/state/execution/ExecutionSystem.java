@@ -111,6 +111,7 @@ public class ExecutionSystem extends HexcodeManager {
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
 
         HexcasterExecutionComponent execComp = buffer.getComponent(ref, HexcasterExecutionComponent.getComponentType());
+        if (execComp == null) return;
         execComp.cancelAll(ref);
     }
 

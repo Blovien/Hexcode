@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
   "Title": "Interfere",
-  "Description": "Hijacks active hex constructs or strips hex effects from targets",
+  "Description": "Hijacks all active hex constructs on the target, replacing their continuation with this chain. Strips hex effects from targets without active constructs.",
   "ModelPath": "Interfere",
   "BasePower": 1.0,
   "ManaConsumption": 22,
@@ -19,7 +19,7 @@
     "target": {
       "Style": "Input",
       "Label": "Target",
-      "Description": "Entities or blocks to interfere with"
+      "Description": "Entity to interfere with"
     },
     "Next": {
       "Style": "Next",

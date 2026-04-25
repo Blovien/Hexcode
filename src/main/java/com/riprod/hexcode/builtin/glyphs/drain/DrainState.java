@@ -81,6 +81,10 @@ public class DrainState implements ConstructState {
         return nextGlyphIds;
     }
 
+    public void setNextGlyphIds(List<String> ids) {
+        this.nextGlyphIds = ids != null ? ids : new ArrayList<>();
+    }
+
     @Nullable
     public HexColors getColors() {
         return colors;

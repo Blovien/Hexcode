@@ -19,7 +19,7 @@ public class MultiplyGlyph implements GlyphHandler {
     @Override
     public String getId() {
         return ID;
-    };
+    }
 
     public static final String ID = "Multiply";
 

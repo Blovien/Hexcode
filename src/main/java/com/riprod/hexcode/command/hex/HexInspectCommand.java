@@ -24,7 +24,9 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.BsonUtil;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
+import com.riprod.hexcode.core.common.glyphs.component.Slot;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
+import com.riprod.hexcode.core.common.glyphs.registry.SlotAsset;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexcaster.utils.CasterInventory;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
@@ -105,7 +107,13 @@ public class HexInspectCommand extends AbstractPlayerCommand {
 
             indexMap.put(id, idx++);
             effectGlyphs.add(g);
-            execQueue.addAll(g.getNextLinks());
+            for (Map.Entry<String, Slot> entry : g.getSlots().entrySet()) {
+                if (isBranchSlot(g, entry.getKey())) {
+                    for (String linkId : entry.getValue().getLinks()) {
+                        execQueue.add(linkId);
+                    }
+                }
+            }
         }
 
         // assign indices to all value glyphs referenced by inputs/outputs
@@ -133,11 +141,11 @@ public class HexInspectCommand extends AbstractPlayerCommand {
 
             lines.add(sb.toString());
 
-            for (Map.Entry<String, com.riprod.hexcode.core.common.glyphs.component.Slot> entry : g.getSlots().entrySet()) {
+            for (Map.Entry<String, Slot> entry : g.getSlots().entrySet()) {
                 String key = entry.getKey();
                 String[] links = entry.getValue().getLinks();
                 if (links.length == 0) continue;
-                if (com.riprod.hexcode.core.common.glyphs.component.Glyph.NEXT_SLOT.equals(key)) continue;
+                if (isBranchSlot(g, key)) continue;
                 StringBuilder slotSb = new StringBuilder("     ").append(key).append(": ");
                 for (int i = 0; i < links.length; i++) {
                     Glyph v = hex.get(links[i]);
@@ -150,18 +158,20 @@ public class HexInspectCommand extends AbstractPlayerCommand {
                 lines.add(slotSb.toString());
             }
 
-            String[] nextIds = g.getSlot(com.riprod.hexcode.core.common.glyphs.component.Glyph.NEXT_SLOT) != null
-                    ? g.getSlot(com.riprod.hexcode.core.common.glyphs.component.Glyph.NEXT_SLOT).getLinks()
-                    : new String[0];
-            if (nextIds.length > 0) {
-                StringBuilder nextSb = new StringBuilder("     next -> [");
-                for (int i = 0; i < nextIds.length; i++) {
-                    Integer nextIdx = indexMap.get(nextIds[i]);
-                    nextSb.append(nextIdx != null ? nextIdx : "?");
-                    if (i < nextIds.length - 1) nextSb.append(", ");
+            for (Map.Entry<String, Slot> entry : g.getSlots().entrySet()) {
+                String key = entry.getKey();
+                if (!isBranchSlot(g, key)) continue;
+                String[] links = entry.getValue().getLinks();
+                if (links.length == 0) continue;
+                StringBuilder branchSb = new StringBuilder("     ")
+                        .append(key.equals(Glyph.NEXT_SLOT) ? "next" : key).append(" -> [");
+                for (int i = 0; i < links.length; i++) {
+                    Integer linkIdx = indexMap.get(links[i]);
+                    branchSb.append(linkIdx != null ? linkIdx : "?");
+                    if (i < links.length - 1) branchSb.append(", ");
                 }
-                nextSb.append("]");
-                lines.add(nextSb.toString());
+                branchSb.append("]");
+                lines.add(branchSb.toString());
             }
         }
 
@@ -178,9 +188,9 @@ public class HexInspectCommand extends AbstractPlayerCommand {
                 sb.append("  #").append(indexMap.get(vId)).append(" ").append(formatGlyph(v));
 
                 List<String> parts = new ArrayList<>();
-                for (Map.Entry<String, com.riprod.hexcode.core.common.glyphs.component.Slot> entry : v.getSlots().entrySet()) {
+                for (Map.Entry<String, Slot> entry : v.getSlots().entrySet()) {
                     String key = entry.getKey();
-                    if (com.riprod.hexcode.core.common.glyphs.component.Glyph.NEXT_SLOT.equals(key)) continue;
+                    if (isBranchSlot(v, key)) continue;
                     for (String linkId : entry.getValue().getLinks()) {
                         Glyph nested = hex.get(linkId);
                         if (nested == null) continue;
@@ -201,14 +211,23 @@ public class HexInspectCommand extends AbstractPlayerCommand {
     }
 
     private void collectValues(Hex hex, Glyph glyph, Set<String> valueGlyphIds, Map<String, Integer> indexMap) {
-        for (com.riprod.hexcode.core.common.glyphs.component.Slot slot : glyph.getSlots().values()) {
-            for (String refId : slot.getLinks()) {
+        for (Map.Entry<String, Slot> entry : glyph.getSlots().entrySet()) {
+            if (isBranchSlot(glyph, entry.getKey())) continue;
+            for (String refId : entry.getValue().getLinks()) {
                 Glyph v = hex.get(refId);
                 if (v != null && valueGlyphIds.add(v.getId())) {
                     collectValues(hex, v, valueGlyphIds, indexMap);
                 }
             }
         }
+    }
+
+    private static boolean isBranchSlot(Glyph glyph, String slotKey) {
+        if (Glyph.NEXT_SLOT.equals(slotKey)) return true;
+        GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
+        if (asset == null) return false;
+        SlotAsset slotAsset = asset.getSlot(slotKey);
+        return slotAsset != null && "Next".equals(slotAsset.getStyleId());
     }
 
     private String formatGlyph(Glyph glyph) {
@@ -227,11 +246,7 @@ public class HexInspectCommand extends AbstractPlayerCommand {
 
     private String shortName(String glyphId) {
         int colon = glyphId.indexOf(':');
-        String name = colon >= 0 ? glyphId.substring(colon + 1) : glyphId;
-        if (name.startsWith("")) {
-            name = name.substring(6);
-        }
-        return name;
+        return colon >= 0 ? glyphId.substring(colon + 1) : glyphId;
     }
 
     private void send(PlayerRef playerRef, String message) {

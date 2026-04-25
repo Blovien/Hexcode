@@ -105,17 +105,44 @@ public class GlyphNodeHandler extends BaseGlyphHandler {
         GlyphComponent glyphComp = accessor.getComponent(nodeRef, GlyphComponent.getComponentType());
         if (glyphComp == null) return InteractionState.Failed;
 
-        if (glyphComp.areSlotsVisible()) {
-            SlotNodeHandler.INSTANCE.despawnSlotsForGlyph(accessor, nodeRef);
-            glyphComp.setSlotsVisible(false);
-        } else {
-            glyphComp.setSlotsVisible(true);
-            SlotNodeHandler.INSTANCE.spawnSlotsForGlyph(accessor, nodeRef, playerRef);
-        }
+        HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
+                HexcasterCraftingComponent.getComponentType());
 
-        // reset position so the click doesn't accidentally drag the glyph
+        Ref<EntityStore> previouslyExpanded = craftingComp != null ? craftingComp.getExpandedGlyphRef() : null;
+        boolean clickedIsExpanded = previouslyExpanded != null && previouslyExpanded.equals(nodeRef);
+
+        setExpandedGlyph(accessor, craftingComp, clickedIsExpanded ? null : nodeRef, playerRef);
+
         resetGlyphTransform(accessor, nodeRef, playerRef, glyphComp);
         return InteractionState.Finished;
+    }
+
+    // single chokepoint for "this player's expanded glyph". collapses the previous
+    // expansion (if any, valid, and different) and applies the new one. pass null
+    // to collapse without expanding anything.
+    private static void setExpandedGlyph(CommandBuffer<EntityStore> accessor,
+            HexcasterCraftingComponent craftingComp, Ref<EntityStore> newRef,
+            Ref<EntityStore> playerRef) {
+        if (craftingComp == null) return;
+
+        Ref<EntityStore> previous = craftingComp.getExpandedGlyphRef();
+        if (previous != null && previous.isValid() && !previous.equals(newRef)) {
+            GlyphComponent prevComp = accessor.getComponent(previous, GlyphComponent.getComponentType());
+            if (prevComp != null) {
+                SlotNodeHandler.INSTANCE.despawnSlotsForGlyph(accessor, previous);
+                prevComp.setSlotsVisible(false);
+            }
+        }
+
+        craftingComp.setExpandedGlyphRef(newRef);
+
+        if (newRef != null && newRef.isValid()) {
+            GlyphComponent newComp = accessor.getComponent(newRef, GlyphComponent.getComponentType());
+            if (newComp != null && !newComp.areSlotsVisible()) {
+                newComp.setSlotsVisible(true);
+                SlotNodeHandler.INSTANCE.spawnSlotsForGlyph(accessor, newRef, playerRef);
+            }
+        }
     }
 
     private void resetGlyphTransform(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
@@ -171,10 +198,23 @@ public class GlyphNodeHandler extends BaseGlyphHandler {
             hexComp.removeChildGlyph(glyphId);
         }
 
+        clearExpandedIfMatches(accessor, playerRef, nodeRef);
         SlotNodeHandler.INSTANCE.despawnSlotsForGlyph(accessor, nodeRef);
         accessor.tryRemoveEntity(nodeRef, RemoveReason.REMOVE);
         LOGGER.atInfo().log("glyph node: deleted glyph %s", glyphId);
         return InteractionState.Finished;
+    }
+
+    private static void clearExpandedIfMatches(CommandBuffer<EntityStore> accessor,
+            Ref<EntityStore> playerRef, Ref<EntityStore> nodeRef) {
+        if (playerRef == null) return;
+        HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
+                HexcasterCraftingComponent.getComponentType());
+        if (craftingComp == null) return;
+        Ref<EntityStore> expanded = craftingComp.getExpandedGlyphRef();
+        if (expanded != null && expanded.equals(nodeRef)) {
+            craftingComp.setExpandedGlyphRef(null);
+        }
     }
 
     public Ref<EntityStore> spawnNode(CommandBuffer<EntityStore> accessor, Ref<EntityStore> parentRef,
@@ -228,6 +268,7 @@ public class GlyphNodeHandler extends BaseGlyphHandler {
             }
         }
 
+        clearExpandedIfMatches(accessor, playerRef, nodeRef);
         SlotNodeHandler.INSTANCE.despawnSlotsForGlyph(accessor, nodeRef);
         accessor.tryRemoveEntity(nodeRef, RemoveReason.REMOVE);
     }

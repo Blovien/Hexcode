@@ -19,7 +19,7 @@ public class SubtractGlyph implements GlyphHandler {
     @Override
     public String getId() {
         return ID;
-    };
+    }
 
     public static final String ID = "Subtract";
 
