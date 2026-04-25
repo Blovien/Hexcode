@@ -17,6 +17,7 @@ import com.hypixel.hytale.server.core.modules.debug.DebugUtils;
 import com.hypixel.hytale.server.core.modules.entity.component.PropComponent;
 import com.hypixel.hytale.server.core.modules.projectile.ProjectileModule;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.builtin.glyphs.domain.component.DomainZoneComponent;
 import com.riprod.hexcode.builtin.glyphs.domain.style.DomainStyle;
 import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
@@ -28,7 +29,10 @@ import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.utils.SpellVarUtil;
+import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
+import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
+import com.riprod.hexcode.utils.HexDirectionUtil;
+import com.riprod.hexcode.utils.HexVarUtil;
 
 public class DomainGlyph implements GlyphHandler {
     @Override
@@ -48,52 +52,67 @@ public static final String ID = "Domain";
     private static final float BASE_TRIGGER_COST = 5.0f;
 
     @Override
+    public boolean consumeVolatility(Glyph glyph, HexContext hexContext) {
+        VolatilityTracker tracker = hexContext.getVolatilityTracker();
+        if (tracker == null) return true;
+
+        double radius = Math.max(MIN_RADIUS, Math.min(MAX_RADIUS,
+                HexVarUtil.numberOrDefault(
+                        glyph.readSlot(DomainGlyphSlots.MAGNITUDE, hexContext), DEFAULT_RADIUS)));
+        GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
+        float areaScale = computeAreaScale(radius, asset);
+
+        int repeatCount = tracker.getGlyphUsage(glyph.getId());
+        float cost = VolatilityTracker.computeGlyphCost(glyph, repeatCount) * areaScale;
+        return tracker.consumeVolatility(cost);
+    }
+
+    @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         Ref<EntityStore> casterRef = hexContext.getCasterRef();
         if (casterRef == null || !casterRef.isValid()) {
-            HexExecuter.fail(hexContext);
+            LOGGER.atWarning().log("Domain: caster not found");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Domain: caster not found");
             return;
         }
 
         HexVar targetVar = glyph.readSlot(DomainGlyphSlots.TARGET, hexContext);
         if (targetVar == null) {
-            LOGGER.atInfo().log("domain: no target provided");
-            HexExecuter.fail(hexContext);
+            LOGGER.atWarning().log("Domain: target required");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Domain: target required");
             return;
         }
 
-        Vector3d anchorPos = SpellVarUtil.resolvePosition(targetVar, hexContext.getAccessor());
+        Vector3d anchorPos = HexVarUtil.position(targetVar, hexContext.getAccessor());
         if (anchorPos == null) {
-            LOGGER.atInfo().log("domain: invalid target position");
-            HexExecuter.fail(hexContext);
+            LOGGER.atWarning().log("Domain: target ref unresolved");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Domain: target ref unresolved");
             return;
         }
 
         double radius = Math.max(MIN_RADIUS, Math.min(MAX_RADIUS,
-                SpellVarUtil.resolveNumberOrDefault(
+                HexVarUtil.numberOrDefault(
                         glyph.readSlot(DomainGlyphSlots.MAGNITUDE, hexContext), DEFAULT_RADIUS)));
 
-        float durationSeconds = SpellVarUtil.resolveNumberOrDefault(
+        float durationSeconds = HexVarUtil.numberOrDefault(
                 glyph.readSlot(DomainGlyphSlots.DURATION, hexContext), DEFAULT_DURATION).floatValue();
 
-        float power = SpellVarUtil.resolveNumberOrDefault(
+        float power = HexVarUtil.numberOrDefault(
                 glyph.readSlot(DomainGlyphSlots.POWER, hexContext), DEFAULT_POWER).floatValue();
         power = Math.max(0.1f, power);
 
         float upfrontCost = BASE_MANA_COST * (1 + (power - 1) * 0.5f);
         if (!hexContext.getRoot().tryConsumeMana(upfrontCost, hexContext.getAccessor())) {
-            LOGGER.atInfo().log("domain: insufficient mana for upfront cost %.1f", upfrontCost);
-            HexExecuter.fail(hexContext);
+            LOGGER.atWarning().log("Domain: insufficient mana for upfront cost %.1f", upfrontCost);
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Domain: insufficient mana for upfront cost");
             return;
         }
 
         float baseDrainPerSecond = BASE_MANA_COST * ((float) radius / 5.0f) * 0.1f;
-
-        List<String> conditionalBranchIds = glyph.getNextLinks();
-        Slot immediateSlot = glyph.getSlot(DomainGlyphSlots.IMMEDIATE);
-        String[] immediateLinks = immediateSlot != null ? immediateSlot.getLinks() : null;
-        List<String> immediateBranchIds = (immediateLinks != null && immediateLinks.length > 0)
-                ? Arrays.asList(immediateLinks) : null;
 
         UUIDComponent casterUuidComp = hexContext.getAccessor().getComponent(
                 casterRef, UUIDComponent.getComponentType());
@@ -113,6 +132,7 @@ public static final String ID = "Domain";
         DebugComponent debugComp = new DebugComponent(DebugShape.Sphere, debugColor, debugScale, 0.1f);
         debugComp.setOpacity(0.15f);
         debugComp.setIntervalMultiplier(0.01f);
+        debugComp.setFadeMultiplier(2.0f);
         debugComp.setFlags(DebugUtils.FLAG_NO_WIREFRAME);
 
         holder.ensureComponent(PropComponent.getComponentType());

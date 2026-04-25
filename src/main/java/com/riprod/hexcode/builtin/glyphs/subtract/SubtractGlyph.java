@@ -1,41 +1,81 @@
 package com.riprod.hexcode.builtin.glyphs.subtract;
 
-import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
-import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
+import com.riprod.hexcode.core.common.glyphs.variables.ColorVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.common.glyphs.variables.NumberVar;
 import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
+import com.riprod.hexcode.core.common.glyphs.variables.RotationVar;
+import com.riprod.hexcode.core.common.glyphs.variables.TypeMismatchException;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.utils.HexMathUtil;
-import com.riprod.hexcode.utils.SpellVarUtil;
 
 public class SubtractGlyph implements GlyphHandler {
-    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     @Override
-public String getId() { return ID; };
+    public String getId() {
+        return ID;
+    };
 
-public static final String ID = "Subtract";
+    public static final String ID = "Subtract";
 
     private HexVar compute(Glyph glyph, HexContext hexContext) {
         HexVar a = glyph.readSlot(SubtractGlyphSlots.A, hexContext);
         HexVar b = glyph.readSlot(SubtractGlyphSlots.B, hexContext);
-        if (a != null && b == null)
-            return HexMathUtil.negate(a);
-        if (a == null && b != null)
-            return HexMathUtil.negate(b);
+        if (a == null && b == null) return null;
+        if (b == null) return a;
+        if (a == null) return negate(b);
 
-        if (a instanceof EntityVar && !(b instanceof EntityVar)) {
-            Vector3d aPos = SpellVarUtil.resolveAsPosition(a, hexContext.getAccessor());
-            a = new PositionVar(aPos, true);
-        } else if (b instanceof EntityVar && !(a instanceof EntityVar)) {
-            Vector3d bPos = SpellVarUtil.resolveAsPosition(b, hexContext.getAccessor());
-            b = new PositionVar(bPos, true);
-        }
+        ComponentAccessor<EntityStore> buf = hexContext.getAccessor();
+        a = a.resolveSelf(b, buf);
+        b = b.resolveSelf(a, buf);
+        b = b.convertTo(a.getClass(), buf);
 
-        return HexMathUtil.subtract(a, b);
+        return switch (a) {
+            case NumberVar na -> {
+                NumberVar nb = (NumberVar) b;
+                yield new NumberVar(na.getValue() - nb.getValue());
+            }
+            case PositionVar pa -> {
+                PositionVar pb = (PositionVar) b;
+                yield new PositionVar(
+                        new Vector3d(pa.getValue()).subtract(pb.getValue()),
+                        pa.isAbsolute() && !pb.isAbsolute());
+            }
+            case RotationVar ra -> {
+                RotationVar rb = (RotationVar) b;
+                yield new RotationVar(new Vector3f(ra.getValue()).subtract(rb.getValue()));
+            }
+            case ColorVar ca -> {
+                ColorVar cb = (ColorVar) b;
+                yield new ColorVar(
+                        ca.getR() - cb.getR(),
+                        ca.getG() - cb.getG(),
+                        ca.getB() - cb.getB(),
+                        ca.getA());
+            }
+            default -> throw new TypeMismatchException(ID, a, b);
+        };
+    }
+
+    private HexVar negate(HexVar v) {
+        return switch (v) {
+            case NumberVar nv -> new NumberVar(nv.getValue() == null ? 0.0 : -nv.getValue());
+            case PositionVar pv -> {
+                Vector3d p = pv.getValue();
+                yield p == null ? pv : new PositionVar(new Vector3d(-p.x, -p.y, -p.z), false);
+            }
+            case RotationVar rv -> {
+                Vector3f r = rv.getValue();
+                yield r == null ? rv : new RotationVar(new Vector3f(-r.x, -r.y, -r.z));
+            }
+            case ColorVar cv -> new ColorVar(-cv.getR(), -cv.getG(), -cv.getB(), cv.getA());
+            default -> v;
+        };
     }
 
     @Override

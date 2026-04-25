@@ -3,20 +3,24 @@ package com.riprod.hexcode.builtin.glyphs.gust;
 import java.util.concurrent.ThreadLocalRandom;
 
 import com.hypixel.hytale.component.CommandBuffer;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.entity.ExplosionConfig;
 import com.hypixel.hytale.server.core.entity.ExplosionUtils;
 import com.hypixel.hytale.server.core.modules.entity.damage.Damage;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.server.combat.PointKnockback;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.utils.SpellVarUtil;
+import com.riprod.hexcode.utils.HexDirectionUtil;
+import com.riprod.hexcode.utils.HexVarUtil;
 
 public class GustGlyph implements GlyphHandler {
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     @Override
 public String getId() { return ID; };
 
@@ -29,21 +33,25 @@ public static final String ID = "Gust";
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar centerVar = glyph.readSlot(GustGlyphSlots.CENTER, hexContext);
-        double radius = SpellVarUtil.resolveNumberOrDefault(glyph.readSlot(GustGlyphSlots.RADIUS, hexContext), 5.0);
-        double mag = SpellVarUtil.resolveNumberOrDefault(glyph.readSlot(GustGlyphSlots.MAGNITUDE, hexContext), 10.0);
+        double radius = HexVarUtil.numberOrDefault(glyph.readSlot(GustGlyphSlots.RADIUS, hexContext), 5.0);
+        double mag = HexVarUtil.numberOrDefault(glyph.readSlot(GustGlyphSlots.MAGNITUDE, hexContext), 10.0);
 
         if (centerVar == null) {
-            HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
+            LOGGER.atWarning().log("Gust: center required");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Gust: center required");
             return;
         }
 
-        Vector3d center = SpellVarUtil.resolvePosition(centerVar, hexContext.getAccessor());
+        Vector3d center = HexVarUtil.position(centerVar, hexContext.getAccessor());
         if (center == null) {
-            center = SpellVarUtil.resolvePosition(
-                    hexContext.getVariable("1"), hexContext.getAccessor());
+            center = HexVarUtil.position(
+                    hexContext.getVariable(Glyph.DEFAULT_SLOT), hexContext.getAccessor());
         }
         if (center == null) {
-            HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
+            LOGGER.atWarning().log("Gust: center ref unresolved");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Gust: center ref unresolved");
             return;
         }
 

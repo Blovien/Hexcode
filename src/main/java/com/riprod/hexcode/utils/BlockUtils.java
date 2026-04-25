@@ -111,8 +111,8 @@ public class BlockUtils {
     }
 
     public static void swapPair(HexVar a, HexVar b, World world, HexContext hexContext) {
-        Vector3d posA = SpellVarUtil.resolvePosition(a, hexContext.getAccessor());
-        Vector3d posB = SpellVarUtil.resolvePosition(b, hexContext.getAccessor());
+        Vector3d posA = HexVarUtil.position(a, hexContext.getAccessor());
+        Vector3d posB = HexVarUtil.position(b, hexContext.getAccessor());
 
         if (posA != null && posB != null) {
             moveToDestination(a, posB, world, hexContext);

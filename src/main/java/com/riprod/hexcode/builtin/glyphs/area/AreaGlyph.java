@@ -7,6 +7,7 @@ import java.util.List;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
@@ -14,6 +15,7 @@ import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.TargetUtil;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.builtin.glyphs.area.style.AreaStyle;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
@@ -26,9 +28,11 @@ import com.hypixel.hytale.server.core.entity.reference.PersistentRef;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
-import com.riprod.hexcode.utils.SpellVarUtil;
+import com.riprod.hexcode.utils.HexDirectionUtil;
+import com.riprod.hexcode.utils.HexVarUtil;
 
 public class AreaGlyph implements GlyphHandler {
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     @Override
 public String getId() { return ID; };
 
@@ -41,7 +45,15 @@ public static final String ID = "Area";
     public boolean consumeVolatility(Glyph glyph, HexContext hexContext) {
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
         if (tracker == null) return true;
-        float cost = VolatilityTracker.computeGlyphCost(glyph) * VOLATILITY_COST_MULTIPLIER;
+
+        double radius = HexVarUtil.numberOrDefault(
+                glyph.readSlot(AreaGlyphSlots.RADIUS, hexContext), DEFAULT_RADIUS);
+        GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
+        float areaScale = computeAreaScale(radius, asset);
+
+        int repeatCount = tracker.getGlyphUsage(glyph.getId());
+        float cost = VolatilityTracker.computeGlyphCost(glyph, repeatCount)
+                * VOLATILITY_COST_MULTIPLIER * areaScale;
         if (cost <= 0) return true;
         return tracker.consumeVolatility(cost);
     }
@@ -49,14 +61,16 @@ public static final String ID = "Area";
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar centerVar = glyph.readSlot(AreaGlyphSlots.CENTER, hexContext);
-        double radius = SpellVarUtil.resolveNumberOrDefault(
+        double radius = HexVarUtil.numberOrDefault(
                 glyph.readSlot(AreaGlyphSlots.RADIUS, hexContext), DEFAULT_RADIUS);
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
-        Vector3d center = SpellVarUtil.resolvePosition(centerVar, accessor);
+        Vector3d center = HexVarUtil.position(centerVar, accessor);
 
         if (center == null) {
-            HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
+            LOGGER.atWarning().log("Area: center required");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Area: center required");
             return;
         }
 

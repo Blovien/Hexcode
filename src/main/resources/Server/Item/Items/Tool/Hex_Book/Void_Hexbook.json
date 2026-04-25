@@ -1,7 +1,8 @@
 {
   "Parent": "Template_HexBook",
   "TranslationProperties": {
-    "Name": "hexcode.items.Void_Hexbook.name"
+    "Name": "hexcode.items.Void_Hexbook.name",
+    "Description": "hexcode.items.Void_Hexbook.description"
   },
   "Categories": [
     "Hexcode.Books"

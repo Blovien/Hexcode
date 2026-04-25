@@ -12,6 +12,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
 import com.hypixel.hytale.server.core.modules.entitystats.asset.DefaultEntityStatTypes;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.builtin.glyphs.resonate.style.ResonateStyle;
 import com.riprod.hexcode.core.common.construct.component.HexEffectsComponent;
 import com.riprod.hexcode.core.common.construct.component.HexStatus;
@@ -25,7 +26,8 @@ import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.HexRoot;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
-import com.riprod.hexcode.utils.SpellVarUtil;
+import com.riprod.hexcode.utils.HexDirectionUtil;
+import com.riprod.hexcode.utils.HexVarUtil;
 
 public class ResonateGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -37,10 +39,11 @@ public static final String ID = "Resonate";
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targetVar = glyph.readSlot(ResonateGlyphSlots.TARGET, hexContext);
-        EntityVar entityVar = SpellVarUtil.resolveEntityVar(targetVar, hexContext);
+        EntityVar entityVar = HexVarUtil.resolveEntityVar(targetVar, hexContext);
         if (entityVar == null) {
-            LOGGER.atInfo().log("resonate: targets must be entities");
-            HexExecuter.fail(hexContext);
+            LOGGER.atWarning().log("Resonate: target must be Entity");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Resonate: target must be Entity");
             return;
         }
 
@@ -48,7 +51,9 @@ public static final String ID = "Resonate";
 
         Ref<EntityStore> ref = entityVar.getRef(accessor);
         if (ref == null || !ref.isValid()) {
-            HexExecuter.fail(hexContext);
+            LOGGER.atWarning().log("Resonate: target ref unresolved");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Resonate: target ref unresolved");
             return;
         }
 
@@ -69,7 +74,9 @@ public static final String ID = "Resonate";
         if (status == null) {
             Vector3d pos = resolvePosition(ref, accessor);
             if (pos != null) ResonateStyle.renderNoSignal(pos, hexContext.getColors(), accessor);
-            HexExecuter.fail(hexContext);
+            LOGGER.atWarning().log("Resonate: target has no active status");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Resonate: target has no active status");
             return;
         }
 
@@ -89,6 +96,8 @@ public static final String ID = "Resonate";
                 targetCtx.getVariables().putIfAbsent(entry.getKey(), entry.getValue());
             }
 
+            // intentional: resonate bills the TARGET construct's tracker, not caster's.
+            // this is the only glyph that drains another spell's volatility — design feature, not bug.
             VolatilityTracker targetTracker = targetCtx.getVolatilityTracker();
             if (targetTracker != null) {
                 targetTracker.consumeVolatility(children.size());
@@ -110,16 +119,18 @@ public static final String ID = "Resonate";
         if (targetStats == null) {
             Vector3d pos = resolvePosition(ref, accessor);
             if (pos != null) ResonateStyle.renderNoSignal(pos, hexContext.getColors(), accessor);
-            LOGGER.atInfo().log("resonate: target has no mana pool");
-            HexExecuter.fail(hexContext);
+            LOGGER.atWarning().log("Resonate: target has no mana pool");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Resonate: target has no mana pool");
             return;
         }
 
         HexVar manaVar = glyph.readSlot(ResonateGlyphSlots.MANA, hexContext);
-        double percentage = SpellVarUtil.resolveNumberOrDefault(manaVar, 0.0);
+        double percentage = HexVarUtil.numberOrDefault(manaVar, 0.0);
         if (percentage <= 0) {
-            LOGGER.atInfo().log("resonate: no mana percentage specified for entity transfer");
-            HexExecuter.fail(hexContext);
+            LOGGER.atWarning().log("Resonate: mana percentage required");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Resonate: mana percentage required");
             return;
         }
         percentage = Math.min(percentage, 100.0);
@@ -151,7 +162,7 @@ public static final String ID = "Resonate";
             HexRoot targetRoot, CommandBuffer<EntityStore> accessor) {
 
         HexVar manaVar = glyph.readSlot(ResonateGlyphSlots.MANA, hexContext);
-        double percentage = SpellVarUtil.resolveNumberOrDefault(manaVar, 0.0);
+        double percentage = HexVarUtil.numberOrDefault(manaVar, 0.0);
         if (percentage <= 0) return;
         percentage = Math.min(percentage, 100.0);
 

@@ -102,21 +102,6 @@ public class PlayerHexRoot implements HexRoot {
         return 0.0f;
     }
 
-    public float resolveMagicCharges(ComponentAccessor<EntityStore> accessor) {
-        int chargesIndex = HexcodeEntityStatTypes.getMagicCharges();
-        if (chargesIndex != Integer.MIN_VALUE) {
-            EntityStatMap statMap = accessor.getComponent(playerRef, EntityStatMap.getComponentType());
-            if (statMap != null) {
-                EntityStatValue chargesStat = statMap.get(chargesIndex);
-                if (chargesStat != null) {
-                    float cap = chargesStat.get();
-                    return cap;
-                }
-            }
-        }
-        return 0.0f;
-    }
-
     public float resolveMaxMagicCharges(ComponentAccessor<EntityStore> accessor) {
         int chargesIndex = HexcodeEntityStatTypes.getMagicCharges();
         if (chargesIndex != Integer.MIN_VALUE) {

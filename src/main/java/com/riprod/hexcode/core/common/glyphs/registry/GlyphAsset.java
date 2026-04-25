@@ -37,7 +37,7 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
     protected String description;
     protected float basePower = 1.0f;
     protected int manaConsumption = 10;
-    protected float volatilityCost = 10f;
+    protected VolatilityAsset volatility = new VolatilityAsset();
     protected ArrayList<DrawnShapeComponent> shapes = new ArrayList<>();
     protected LinkedHashMap<String, SlotAsset> slots = new LinkedHashMap<>();
 
@@ -75,8 +75,8 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
         return this.manaConsumption;
     }
 
-    public float getVolatilityCost() {
-        return this.volatilityCost;
+    public VolatilityAsset getVolatility() {
+        return this.volatility;
     }
 
     public List<DrawnShapeComponent> getShapes() {
@@ -135,8 +135,8 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
 
     @SuppressWarnings("unchecked")
     private static AssetBuilderCodec<String, GlyphAsset> buildCodec() {
-        Codec<Map<String, SlotAsset>> slotMapCodec =
-                (Codec<Map<String, SlotAsset>>) (Codec<?>) new MapCodec<>(SlotAsset.CODEC, LinkedHashMap::new, false);
+        Codec<Map<String, SlotAsset>> slotMapCodec = (Codec<Map<String, SlotAsset>>) (Codec<?>) new MapCodec<>(
+                SlotAsset.CODEC, LinkedHashMap::new, false);
         return AssetBuilderCodec
                 .builder(GlyphAsset.class, GlyphAsset::new, Codec.STRING, (glyphAsset, s) -> {
                     glyphAsset.id = s;
@@ -152,31 +152,31 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
                         (a, p) -> a.modelPath = p.modelPath)
                 .addValidatorLate(() -> ModelAsset.VALIDATOR_CACHE.getValidator().late())
                 .add()
-                .<Float>appendInherited(new KeyedCodec<>("BasePower", Codec.FLOAT),
-                        (a, v) -> a.basePower = v, a -> a.basePower,
-                        (a, p) -> a.basePower = p.basePower)
-                .add()
                 .<String>appendInherited(new KeyedCodec<>("ImagePath", Codec.STRING),
                         (a, v) -> a.imagePath = v, a -> a.imagePath,
                         (a, p) -> a.imagePath = p.imagePath)
+                .add()
+                .<Float>appendInherited(new KeyedCodec<>("BasePower", Codec.FLOAT),
+                        (a, v) -> a.basePower = v, a -> a.basePower,
+                        (a, p) -> a.basePower = p.basePower)
                 .add()
                 .<String>appendInherited(new KeyedCodec<>("Title", Codec.STRING),
                         (a, v) -> a.title = v, a -> a.title,
                         (a, p) -> a.title = p.title)
                 .add()
-                .<String>appendInherited(new KeyedCodec<>("Description", Codec.STRING),
+                .appendInherited(new KeyedCodec<>("Description", Codec.STRING),
                         (a, v) -> a.description = v, a -> a.description,
                         (a, p) -> a.description = p.description)
                 .add()
-                .<Integer>appendInherited(new KeyedCodec<>("ManaConsumption", Codec.INTEGER),
+                .appendInherited(new KeyedCodec<>("ManaConsumption", Codec.INTEGER),
                         (a, v) -> a.manaConsumption = v, a -> a.manaConsumption,
                         (a, p) -> a.manaConsumption = p.manaConsumption)
                 .add()
-                .<Float>appendInherited(new KeyedCodec<>("VolatilityCost", Codec.FLOAT),
-                        (a, v) -> a.volatilityCost = v, a -> a.volatilityCost,
-                        (a, p) -> a.volatilityCost = p.volatilityCost)
+                .appendInherited(new KeyedCodec<>("Volatility", VolatilityAsset.CODEC),
+                        (a, v) -> a.volatility = v, a -> a.volatility,
+                        (a, p) -> a.volatility = p.volatility)
                 .add()
-                .<DrawnShapeComponent[]>appendInherited(
+                .appendInherited(
                         new KeyedCodec<>("ShapeStructure",
                                 new ArrayCodec<>(DrawnShapeComponent.CODEC, DrawnShapeComponent[]::new)),
                         (c, v) -> {
@@ -189,7 +189,7 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
                         c -> c.shapes.toArray(DrawnShapeComponent[]::new),
                         (a, p) -> a.shapes = new ArrayList<>(p.shapes))
                 .add()
-                .<Map<String, SlotAsset>>appendInherited(
+                .appendInherited(
                         new KeyedCodec<>("Slots", slotMapCodec),
                         (a, v) -> {
                             a.slots = v != null ? new LinkedHashMap<>(v) : new LinkedHashMap<>();

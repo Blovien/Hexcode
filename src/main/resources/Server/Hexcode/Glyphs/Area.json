@@ -4,7 +4,7 @@
   "Description": "Collects all like-typed targets within a radius around a center point and executes the branch once per target",
   "ModelPath": "Area",
   "BasePower": 1.0,
-  "ManaConsumption": 12,
+  "ManaConsumption": 5,
   "ShapeStructure": [
     {
       "ShapeId": "Circle",
@@ -35,5 +35,16 @@
       "Description": "The next glyph in the execution chain"
     }
   },
-  "VolatilityCost": 8
+  "Volatility": {
+    "InstantCost": 3,
+    "DrainPerSecond": 0.0,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 5.0
+    },
+    "AreaTax": {
+      "DefaultMagnitude": 5.0,
+      "Exponent": 2.0
+    }
+  }
 }

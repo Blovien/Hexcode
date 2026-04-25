@@ -1,0 +1,49 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Power",
+  "Description": "A raised to the power of B",
+  "ModelPath": "Power",
+  "BasePower": 0,
+  "ManaConsumption": 0,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Up",
+      "Size": 1.0
+    }
+  ],
+  "Slots": {
+    "a": {
+      "Style": "Input",
+      "Label": "A",
+      "Description": "Base",
+      "DefaultValue": 0
+    },
+    "b": {
+      "Style": "Input",
+      "Label": "B",
+      "Description": "Exponent",
+      "DefaultValue": 1
+    },
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain"
+    }
+  },
+  "VolatilityEscalation": {
+    "InstantCost": 0.5,
+    "DrainPerSecond": 0,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 5.0
+    }
+  },
+  "Volatility": {
+    "InstantCost": 0.1,
+    "DrainPerSecond": 0.0,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 10.0
+    }
+  }
+}

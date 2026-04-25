@@ -4,7 +4,7 @@
   "Description": "Domain Expansion. Decreases volatility within domain.",
   "ModelPath": "Domain",
   "BasePower": 1.0,
-  "ManaConsumption": 20,
+  "ManaConsumption": 40,
   "ShapeStructure": [
     {
       "ShapeId": "Square",
@@ -58,5 +58,16 @@
       "Description": "Fires per entity entering the domain (excluding caster)"
     }
   },
-  "VolatilityCost": 14
+  "Volatility": {
+    "InstantCost": 10,
+    "DrainPerSecond": 0.5,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 5.0
+    },
+    "AreaTax": {
+      "DefaultMagnitude": 5.0,
+      "Exponent": 2.0
+    }
+  }
 }

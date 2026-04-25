@@ -25,5 +25,12 @@
       "Description": "The next glyph in the execution chain"
     }
   },
-  "VolatilityCost": 1
+  "Volatility": {
+    "InstantCost": 0.5,
+    "DrainPerSecond": 0.05,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 5.0
+    }
+  }
 }

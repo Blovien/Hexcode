@@ -4,7 +4,7 @@
   "Description": "Instant single-target energy discharge or remote block interaction",
   "ModelPath": "Bolt",
   "BasePower": 1.0,
-  "ManaConsumption": 15,
+  "ManaConsumption": 20,
   "ShapeStructure": [
     {
       "ShapeId": "Circle",
@@ -38,5 +38,12 @@
       "Description": "The next glyph in the execution chain"
     }
   },
-  "VolatilityCost": 8
+  "Volatility": {
+    "InstantCost": 6,
+    "DrainPerSecond": 0.0,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 5.0
+    }
+  }
 }

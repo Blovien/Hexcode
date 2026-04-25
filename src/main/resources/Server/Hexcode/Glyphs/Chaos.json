@@ -1,10 +1,10 @@
 {
   "Parent": "Glyph_Template",
   "Title": "Chaos",
-  "Description": "Generates a random number or randomly samples elements from a variable",
+  "Description": "Generates a random number in the range [Min, Max)",
   "ModelPath": "Chaos",
   "BasePower": 1.0,
-  "ManaConsumption": 3,
+  "ManaConsumption": 0,
   "ShapeStructure": [
     {
       "ShapeId": "Antisquare",
@@ -12,24 +12,19 @@
     }
   ],
   "Slots": {
-    "source": {
-      "Style": "Input",
-      "Label": "Source",
-      "Description": "Variable to sample from, or slot to store generated values"
-    },
     "min": {
       "Style": "Input",
       "Label": "Min",
-      "Description": "Minimum value to generate between",
+      "Description": "Lower bound (inclusive)",
       "DefaultValue": 0,
       "Unique": true
     },
     "max": {
       "Style": "Input",
       "Label": "Max",
-      "Description": "Maximum value to generate between",
-      "Unique": true,
-      "DefaultValue": 1
+      "Description": "Upper bound (exclusive)",
+      "DefaultValue": 1,
+      "Unique": true
     },
     "Next": {
       "Style": "Next",
@@ -37,5 +32,12 @@
       "Description": "The next glyph in the execution chain"
     }
   },
-  "VolatilityCost": 1
+  "Volatility": {
+    "InstantCost": 0.1,
+    "DrainPerSecond": 0.0,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 10.0
+    }
+  }
 }

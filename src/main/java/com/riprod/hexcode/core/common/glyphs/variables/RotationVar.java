@@ -2,10 +2,12 @@ package com.riprod.hexcode.core.common.glyphs.variables;
 
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
-
+import com.hypixel.hytale.component.ComponentAccessor;
+import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
-public class RotationVar extends HexVar {
+public final class RotationVar extends HexVar {
     private Vector3f rotation;
 
     public RotationVar() {
@@ -26,7 +28,28 @@ public class RotationVar extends HexVar {
 
     @Override
     public Double toScalar() {
-        return rotation == null ? 0.0 : rotation.length();
+        return rotation == null ? 0.0 : 1.0;
+    }
+
+    @Override
+    public PositionVar toPosition(ComponentAccessor<EntityStore> accessor) {
+        return new PositionVar(forward(), false);
+    }
+
+    @Override
+    public RotationVar toRotation(ComponentAccessor<EntityStore> accessor) {
+        return this;
+    }
+
+    public Vector3d forward() {
+        if (rotation == null) return new Vector3d(0, 0, 1);
+        double yawRad = Math.toRadians(rotation.getYaw());
+        double pitchRad = Math.toRadians(rotation.getPitch());
+        double cosPitch = Math.cos(pitchRad);
+        return new Vector3d(
+                -Math.sin(yawRad) * cosPitch,
+                -Math.sin(pitchRad),
+                Math.cos(yawRad) * cosPitch);
     }
 
     @Override

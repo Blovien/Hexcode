@@ -1,6 +1,7 @@
 {
   "TranslationProperties": {
-    "Name": "hexcode.blocks.Hexcode_Obelisk_Ice.name"
+    "Name": "hexcode.blocks.Hexcode_Obelisk_Ice.name",
+    "Description": "hexcode.blocks.Hexcode_Obelisk_Ice.description"
   },
   "Icon": "Icons/ItemsGenerated/Hexcode_Obelisk_Ice.png",
   "Categories": [

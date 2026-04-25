@@ -4,7 +4,7 @@
   "Description": "Chain lightning that fires each child on the next chain target",
   "ModelPath": "Arc",
   "BasePower": 1.0,
-  "ManaConsumption": 20,
+  "ManaConsumption": 25,
   "ShapeStructure": [
     {
       "ShapeId": "Circle",
@@ -45,5 +45,12 @@
       "Description": "The next glyph in the execution chain"
     }
   },
-  "VolatilityCost": 8
+  "Volatility": {
+    "InstantCost": 5,
+    "DrainPerSecond": 0.0,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 3.0
+    }
+  }
 }

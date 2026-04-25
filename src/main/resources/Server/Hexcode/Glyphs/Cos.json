@@ -1,0 +1,47 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Cos",
+  "Description": "Cosine of A (degrees)",
+  "ModelPath": "Cos",
+  "BasePower": 0,
+  "ManaConsumption": 0,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Triangle",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Greater",
+      "Size": 1.0
+    }
+  ],
+  "Slots": {
+    "a": {
+      "Style": "Input",
+      "Label": "A",
+      "Description": "Angle in degrees",
+      "DefaultValue": 0
+    },
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain"
+    }
+  },
+  "VolatilityEscalation": {
+    "InstantCost": 0.25,
+    "DrainPerSecond": 0,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 5.0
+    }
+  },
+  "Volatility": {
+    "InstantCost": 0.1,
+    "DrainPerSecond": 0.0,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 10.0
+    }
+  }
+}

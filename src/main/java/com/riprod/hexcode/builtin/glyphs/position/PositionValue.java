@@ -6,9 +6,11 @@ import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
+import com.riprod.hexcode.core.common.glyphs.variables.RotationVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.utils.SpellVarUtil;
+import com.riprod.hexcode.utils.HexDirectionUtil;
+import com.riprod.hexcode.utils.HexVarUtil;
 
 public class PositionValue implements GlyphHandler {
     public static final String ID = "Position";
@@ -27,8 +29,8 @@ public class PositionValue implements GlyphHandler {
 
         if (count == 1) {
             HexVar single = xVar != null ? xVar : (yVar != null ? yVar : zVar);
-            if (SpellVarUtil.isVectorVar(single)) {
-                Vector3d pos = SpellVarUtil.resolveAsPosition(single, hexContext.getAccessor());
+            if (single instanceof PositionVar || single instanceof RotationVar || single instanceof EntityVar) {
+                Vector3d pos = HexVarUtil.position(single, hexContext.getAccessor());
                 if (pos == null)
                     return null;
                 return new PositionVar(pos, single instanceof EntityVar);
@@ -37,9 +39,9 @@ public class PositionValue implements GlyphHandler {
 
         var accessor = hexContext.getAccessor();
         return new PositionVar(new Vector3d(
-                SpellVarUtil.resolvePositionAxis(xVar, 0, accessor),
-                SpellVarUtil.resolvePositionAxis(yVar, 1, accessor),
-                SpellVarUtil.resolvePositionAxis(zVar, 2, accessor)));
+                HexVarUtil.positionAxis(xVar, 0, accessor),
+                HexVarUtil.positionAxis(yVar, 1, accessor),
+                HexVarUtil.positionAxis(zVar, 2, accessor)));
     }
 
     @Override

@@ -21,6 +21,15 @@ public class ScaleConstructHandler implements ConstructHandler<ScaleState> {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     @Override
+    public boolean onTick(float dt, HexStatus<ScaleState> status, ConstructTickContext ctx) {
+        ScaleState state = status.getState();
+        if (state == null) return true;
+        if (state.isExpired()) return true;
+        state.tick(dt);
+        return !drainSustain(dt, status);
+    }
+
+    @Override
     public void onCleanup(HexStatus<ScaleState> status, ConstructTickContext ctx) {
         try {
             ScaleState state = status.getState();
@@ -28,21 +37,22 @@ public class ScaleConstructHandler implements ConstructHandler<ScaleState> {
 
             CommandBuffer<EntityStore> buffer = ctx.getBuffer();
             Ref<EntityStore> targetRef = ctx.getEntityRef();
-            if (targetRef != null && targetRef.isValid()) {
+            float magnitude = state.getAppliedMagnitude();
+            if (targetRef != null && targetRef.isValid() && magnitude != 0f) {
+                float inverse = 1.0f / magnitude;
                 EntityScaleComponent scaleComp = buffer.getComponent(
                         targetRef, EntityScaleComponent.getComponentType());
                 if (scaleComp != null) {
-                    scaleComp.setScale(state.getOriginalScale());
+                    scaleComp.setScale(scaleComp.getScale() * inverse);
                 }
                 PlayerSkinComponent skinComp = buffer.getComponent(
                         targetRef, PlayerSkinComponent.getComponentType());
                 if (skinComp != null) {
                     skinComp.setNetworkOutdated();
                 }
-                Box originalBox = state.getOriginalBoundingBox();
                 BoundingBox box = buffer.getComponent(targetRef, BoundingBox.getComponentType());
-                if (box != null && originalBox != null) {
-                    box.setBoundingBox(originalBox);
+                if (box != null) {
+                    box.setBoundingBox(new Box(box.getBoundingBox()).scale(inverse));
                 }
 
                 HexColors colors = status.getHexContext().getColors();

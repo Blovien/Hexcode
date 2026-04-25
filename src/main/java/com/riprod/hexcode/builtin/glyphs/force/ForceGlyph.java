@@ -7,6 +7,7 @@ import com.hypixel.hytale.protocol.ChangeVelocityType;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.splitvelocity.VelocityConfig;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.utils.VelocityUtil;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
@@ -16,7 +17,8 @@ import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
-import com.riprod.hexcode.utils.SpellVarUtil;
+import com.riprod.hexcode.utils.HexDirectionUtil;
+import com.riprod.hexcode.utils.HexVarUtil;
 
 public class ForceGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -38,11 +40,11 @@ public class ForceGlyph implements GlyphHandler {
     private double computeForcePower(Glyph glyph, HexContext hexContext) {
         HexVar dirInput = glyph.readSlot(ForceGlyphSlots.DIRECTION, hexContext);
         HexVar magInput = glyph.readSlot(ForceGlyphSlots.MAGNITUDE, hexContext);
-        double magnitude = SpellVarUtil.resolveNumberOrDefault(magInput, 20.0);
+        double magnitude = HexVarUtil.numberOrDefault(magInput, 20.0);
 
         Vector3d direction = null;
         if (dirInput != null) {
-            direction = SpellVarUtil.resolveDirection(dirInput, null, hexContext.getAccessor());
+            direction = HexDirectionUtil.resolveDirection(dirInput, null, hexContext.getAccessor());
         }
         if (direction == null) {
             direction = new Vector3d(0, 1, 0);
@@ -55,21 +57,25 @@ public class ForceGlyph implements GlyphHandler {
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targets = glyph.readSlot(ForceGlyphSlots.TARGET, hexContext);
-        EntityVar entityVar = SpellVarUtil.resolveEntityVar(targets, hexContext);
+        EntityVar entityVar = HexVarUtil.resolveEntityVar(targets, hexContext);
         if (entityVar == null) {
-            HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
+            LOGGER.atWarning().log("Force: target must be Entity");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Force: target must be Entity");
             return;
         }
 
         Ref<EntityStore> ref = entityVar.getRef(hexContext.getAccessor());
         if (ref == null || !ref.isValid()) {
-            HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
+            LOGGER.atWarning().log("Force: target ref unresolved");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Force: target ref unresolved");
             return;
         }
 
         HexVar dirInput = glyph.readSlot(ForceGlyphSlots.DIRECTION, hexContext);
         HexVar magInput = glyph.readSlot(ForceGlyphSlots.MAGNITUDE, hexContext);
-        double magnitude = SpellVarUtil.resolveNumberOrDefault(magInput, 20.0);
+        double magnitude = HexVarUtil.numberOrDefault(magInput, 20.0);
 
         try {
             TransformComponent tc = hexContext.getAccessor().getComponent(ref,
@@ -78,7 +84,7 @@ public class ForceGlyph implements GlyphHandler {
                 Vector3d targetPos = tc.getPosition();
                 Vector3d direction = null;
                 if (dirInput != null) {
-                    direction = SpellVarUtil.resolveDirection(dirInput, targetPos,
+                    direction = HexDirectionUtil.resolveDirection(dirInput, targetPos,
                             hexContext.getAccessor());
                 }
                 if (direction == null) {

@@ -39,10 +39,14 @@ public class VolatilityTracker {
     }
 
     public static float computeGlyphCost(Glyph glyph) {
+        return computeGlyphCost(glyph, 0);
+    }
+
+    public static float computeGlyphCost(Glyph glyph, int repeatCount) {
         GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
         if (asset == null)
             return 0;
-        float baseCost = asset.getVolatilityCost();
+        float baseCost = asset.getVolatility().getCostForRepeat(repeatCount);
         // perfect draw (1.0) = 0.5x cost, worst draw (0.0) = 1.0x cost
         float qualityFactor = (1 - glyph.getVolatility()) * 0.5f + 0.5f;
         return baseCost * qualityFactor;
@@ -99,17 +103,14 @@ public class VolatilityTracker {
         return glyphUsageMap.getOrDefault(glyphId, 0);
     }
 
-    public float getGlyphUsageScaled(String glyphId) {
-        int usage = getGlyphUsage(glyphId);
-        float k = 5.0f;
-        float usageScale = 1.0f + (usage / (usage + k));
-        return usageScale;
-    }
-
     public int incrementGlyphUsage(String glyphId) {
         int usage = getGlyphUsage(glyphId) + 1;
         glyphUsageMap.put(glyphId, usage);
         return usage;
+    }
+
+    public UUID getExecutionId() {
+        return executionId;
     }
 
     public void setExecutionId(UUID executionId) {

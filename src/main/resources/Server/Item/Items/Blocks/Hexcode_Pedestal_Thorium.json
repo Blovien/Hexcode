@@ -1,7 +1,8 @@
 {
   "Parent": "Hexcode_Pedestal_Template",
   "TranslationProperties": {
-    "Name": "hexcode.blocks.Hexcode_Pedestal_Thorium.name"
+    "Name": "hexcode.blocks.Hexcode_Pedestal_Thorium.name",
+    "Description": "hexcode.blocks.Hexcode_Pedestal_Thorium.description"
   },
   "Icon": "Icons/ItemsGenerated/Hexcode_Pedestal_Thorium.png",
   "Categories": [

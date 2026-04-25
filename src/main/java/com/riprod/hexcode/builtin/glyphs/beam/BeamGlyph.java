@@ -9,6 +9,7 @@ import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.TargetUtil;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.builtin.glyphs.beam.style.BeamStyle;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
@@ -18,7 +19,8 @@ import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.glyphs.variables.NumberVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.utils.SpellVarUtil;
+import com.riprod.hexcode.utils.HexDirectionUtil;
+import com.riprod.hexcode.utils.HexVarUtil;
 
 public class BeamGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -33,26 +35,29 @@ public static final String ID = "Beam";
         if (rotVar == null) rotVar = posVar;
 
         if (posVar == null) {
-            LOGGER.atWarning().log("beam glyph: no source provided");
-            HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
+            LOGGER.atWarning().log("Beam: source required");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Beam: source required");
             return;
         }
 
-        Vector3d origin = SpellVarUtil.resolveEyePosition(posVar, hexContext.getAccessor());
+        Vector3d origin = HexDirectionUtil.resolveEyePosition(posVar, hexContext.getAccessor());
         if (origin == null) {
-            LOGGER.atWarning().log("beam glyph: could not resolve origin position");
-            HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
+            LOGGER.atWarning().log("Beam: source ref unresolved");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Beam: source ref unresolved");
             return;
         }
 
-        Vector3d direction = SpellVarUtil.resolveDirection(rotVar, origin, hexContext.getAccessor());
+        Vector3d direction = HexDirectionUtil.resolveDirection(rotVar, origin, hexContext.getAccessor());
         if (direction == null) {
-            LOGGER.atWarning().log("beam glyph: could not resolve direction");
-            HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
+            LOGGER.atWarning().log("Beam: rotation ref unresolved");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Beam: rotation ref unresolved");
             return;
         }
 
-        int beamLength = (int) SpellVarUtil.resolveNumber(
+        int beamLength = (int) HexVarUtil.number(
                 glyph.readSlot(BeamGlyphSlots.RANGE, hexContext, new NumberVar(32.0))).doubleValue();
 
         Vector3f rotation = Vector3f.lookAt(direction);
@@ -62,22 +67,24 @@ public static final String ID = "Beam";
                 beamLength, hexContext.getAccessor());
 
         Ref<EntityStore> entityHit = null;
-        double blockHitDistSq = Double.MAX_VALUE;
-        double entityHitDistSq = Double.MAX_VALUE;
+        double blockHitDist = Double.MAX_VALUE;
+        double entityHitDist = Double.MAX_VALUE;
 
         if (blockHitLocation != null) {
-            blockHitDistSq = new Vector3d(origin).subtract(blockHitLocation).length();
+            blockHitDist = new Vector3d(origin).subtract(blockHitLocation).length();
         }
 
-        EntityVar sourceEntityVar = SpellVarUtil.resolveEntityVar(posVar, hexContext);
+        EntityVar sourceEntityVar = HexVarUtil.resolveEntityVar(posVar, hexContext);
         if (sourceEntityVar != null) {
             Ref<EntityStore> sourceRef = sourceEntityVar.getRef(hexContext.getAccessor());
-            if (sourceRef != null && sourceRef.isValid()) {
+            if (sourceRef != null && sourceRef.isValid()
+                    && hexContext.getAccessor().getComponent(sourceRef,
+                            com.hypixel.hytale.server.core.modules.entity.component.HeadRotation.getComponentType()) != null) {
                 entityHit = TargetUtil.getTargetEntity(sourceRef, (float) beamLength, hexContext.getAccessor());
                 if (entityHit != null) {
                     Vector3d entityPos = hexContext.getAccessor().getComponent(entityHit,
                             TransformComponent.getComponentType()).getPosition();
-                    entityHitDistSq = new Vector3d(origin).subtract(entityPos).length();
+                    entityHitDist = new Vector3d(origin).subtract(entityPos).length();
                 }
             }
         }
@@ -87,7 +94,7 @@ public static final String ID = "Beam";
         Vector3d endPoint;
         BeamStyle.HitType hitType;
 
-        if (entityHit != null && entityHitDistSq < blockHitDistSq) {
+        if (entityHit != null && entityHitDist < blockHitDist) {
             UUIDComponent uuidComp = hexContext.getAccessor().getComponent(entityHit, UUIDComponent.getComponentType());
             if (uuidComp == null) {
                 endPoint = new Vector3d(origin).add(new Vector3d(direction).scale(beamLength));
@@ -108,7 +115,9 @@ public static final String ID = "Beam";
             endPoint = new Vector3d(origin).add(new Vector3d(direction).scale(beamLength));
             hitType = BeamStyle.HitType.MISS;
             BeamStyle.render(beamOrigin, endPoint, hitType, hexContext.getColors(), hexContext.getAccessor());
-            HexExecuter.fail(hexContext);
+            LOGGER.atWarning().log("Beam: no hit within range");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Beam: no hit within range");
             return;
         }
 

@@ -85,6 +85,17 @@ public class HexcasterExecutionComponent implements Component<EntityStore> {
         return activeTrackers == null ? 0 : activeTrackers.size();
     }
 
+    public void evictOldest() {
+        if (activeTrackers == null || activeTrackers.isEmpty())
+            return;
+        VolatilityTracker oldest = activeTrackers.remove(0);
+        oldest.setBudget(0f);
+        UUID execId = oldest.getExecutionId();
+        if (execId != null) {
+            dependencies.remove(execId);
+        }
+    }
+
     public List<VolatilityTracker> getActiveTrackers() {
         if (activeTrackers == null)
             activeTrackers = new ArrayList<>();

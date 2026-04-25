@@ -1,7 +1,8 @@
 {
   "Parent": "Hexcode_Pedestal_Template",
   "TranslationProperties": {
-    "Name": "hexcode.blocks.Hexcode_Pedestal_Fire.name"
+    "Name": "hexcode.blocks.Hexcode_Pedestal_Fire.name",
+    "Description": "hexcode.blocks.Hexcode_Pedestal_Fire.description"
   },
   "Icon": "Icons/ItemsGenerated/Hexcode_Pedestal_Fire.png",
   "Categories": [

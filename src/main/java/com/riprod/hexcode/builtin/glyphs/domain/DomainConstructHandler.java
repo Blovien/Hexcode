@@ -25,7 +25,9 @@ import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
 import com.riprod.hexcode.core.common.construct.component.HexStatus;
 import com.riprod.hexcode.core.common.construct.state.NoState;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
+import com.riprod.hexcode.core.common.glyphs.component.Slot;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
+import com.riprod.hexcode.builtin.glyphs.domain.DomainGlyphSlots;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
@@ -38,17 +40,33 @@ public class DomainConstructHandler implements ConstructHandler<NoState> {
     private static final Vector3f CONTESTED_COLOR = new Vector3f(0.5f, 0.5f, 0.5f);
 
     @Override
+    public void onFirstTick(HexStatus<NoState> status, ConstructTickContext ctx) {
+        Glyph triggering = status.getTriggeringGlyph();
+        if (triggering == null) return;
+        Slot immediate = triggering.getSlot(DomainGlyphSlots.IMMEDIATE);
+        if (immediate == null) return;
+        String[] links = immediate.getLinks();
+        if (links == null || links.length == 0) return;
+        HexContext hexContext = status.getHexContext();
+        hexContext.UpdateAccessor(ctx.getBuffer());
+        HexExecuter.continueExecution(java.util.Arrays.asList(links), hexContext);
+    }
+
+    @Override
     public boolean onTick(float dt, HexStatus<NoState> status, ConstructTickContext ctx) {
         DomainZoneComponent zone = ctx.getChunk().getComponent(
                 ctx.getIndex(), DomainZoneComponent.getComponentType());
         TransformComponent transform = ctx.getChunk().getComponent(
                 ctx.getIndex(), TransformComponent.getComponentType());
-        if (zone == null || transform == null) return true;
+        if (zone == null || transform == null)
+            return true;
 
         HexRoot root = status.getHexContext().getRoot();
-        if (root == null || !root.isAlive()) return true;
+        if (root == null || !root.isAlive())
+            return true;
         Ref<EntityStore> rootRef = root.getSourceRef();
-        if (rootRef == null || !rootRef.isValid()) return true;
+        if (rootRef == null || !rootRef.isValid())
+            return true;
 
         updateContestation(zone, transform.getPosition(), ctx.getEntityRef(), ctx.getBuffer());
 
@@ -63,11 +81,14 @@ public class DomainConstructHandler implements ConstructHandler<NoState> {
         boolean casterInside = false;
 
         for (Ref<EntityStore> ref : found) {
-            if (ref == null || !ref.isValid()) continue;
-            if (ctx.getBuffer().getComponent(ref, DomainZoneComponent.getComponentType()) != null) continue;
+            if (ref == null || !ref.isValid())
+                continue;
+            if (ctx.getBuffer().getComponent(ref, DomainZoneComponent.getComponentType()) != null)
+                continue;
 
             UUIDComponent uuid = ctx.getBuffer().getComponent(ref, UUIDComponent.getComponentType());
-            if (uuid == null) continue;
+            if (uuid == null)
+                continue;
 
             UUID entityId = uuid.getUuid();
             zone.getNewOccupants().add(entityId);
@@ -78,7 +99,8 @@ public class DomainConstructHandler implements ConstructHandler<NoState> {
             }
 
             if (!previousOccupants.contains(entityId)) {
-                if (!root.tryConsumeMana(zone.getTriggerDrainCost(), ctx.getBuffer())) return true;
+                if (!root.tryConsumeMana(zone.getTriggerDrainCost(), ctx.getBuffer()))
+                    return true;
 
                 zone.incrementTriggerCount();
 
@@ -110,8 +132,7 @@ public class DomainConstructHandler implements ConstructHandler<NoState> {
                     status.getHexContext().getColors(), ctx.getBuffer());
         }
 
-        status.getHexContext().getVolatilityTracker().consumeVolatility(dt);
-        return false;
+        return !drainSustain(dt, status);
     }
 
     @Override
@@ -143,17 +164,14 @@ public class DomainConstructHandler implements ConstructHandler<NoState> {
             Ref<EntityStore> zoneEntityRef, CommandBuffer<EntityStore> buffer,
             HexStatus<NoState> status) {
         Ref<EntityStore> casterRef = zone.getCasterRef();
-        if (casterRef == null || !casterRef.isValid()) return;
+        if (casterRef == null || !casterRef.isValid())
+            return;
 
         DomainAuraState existing = ConstructStateUtil.findState(
                 buffer, casterRef, DomainGlyph.AURA_ID, DomainAuraState.class);
         boolean shouldHaveAura = casterInside && !zone.isContested();
 
-        if (shouldHaveAura && existing == null) {
-            HexConstructSpawner.applyWithState(
-                    buffer, casterRef, status.getHexContext(), status.getTriggeringGlyph(),
-                    DomainGlyph.AURA_ID, new DomainAuraState(zoneEntityRef, DOMAIN_VOLATILITY_BOOST));
-        } else if (shouldHaveAura && existing != null) {
+        if (shouldHaveAura && existing != null) {
             if (!zoneEntityRef.equals(existing.getZoneRef())) {
                 ConstructStateUtil.requestKillByHandlerId(buffer, casterRef, DomainGlyph.AURA_ID);
                 HexConstructSpawner.applyWithState(
@@ -169,18 +187,21 @@ public class DomainConstructHandler implements ConstructHandler<NoState> {
             Ref<EntityStore> selfRef, CommandBuffer<EntityStore> buffer) {
         Store<EntityStore> store = buffer.getExternalData().getWorld().getEntityStore().getStore();
         boolean wasContested = self.isContested();
-        final boolean[] nowContested = {false};
+        final boolean[] nowContested = { false };
 
         store.forEachChunk(DomainZoneComponent.getComponentType(), (otherChunk, buf) -> {
             for (int i = 0; i < otherChunk.size(); i++) {
                 Ref<EntityStore> otherRef = otherChunk.getReferenceTo(i);
-                if (otherRef.equals(selfRef)) continue;
+                if (otherRef.equals(selfRef))
+                    continue;
 
                 DomainZoneComponent other = otherChunk.getComponent(i, DomainZoneComponent.getComponentType());
-                if (other == null) continue;
+                if (other == null)
+                    continue;
 
                 TransformComponent otherTransform = buf.getComponent(otherRef, TransformComponent.getComponentType());
-                if (otherTransform == null) continue;
+                if (otherTransform == null)
+                    continue;
 
                 double dist = new Vector3d(selfCenter).subtract(otherTransform.getPosition()).length();
                 if (dist < self.getRadius() + other.getRadius()) {

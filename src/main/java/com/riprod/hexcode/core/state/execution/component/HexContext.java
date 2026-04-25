@@ -129,6 +129,7 @@ public class HexContext {
         branch.chunkAccessor = this.chunkAccessor;
         branch.hex = this.hex;
         branch.volatilityTracker = this.volatilityTracker;
+        branch.executionId = this.executionId;
         // copied variables
         branch.variables = new HashMap<>(this.variables);
         if (this.colors != null)

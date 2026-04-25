@@ -23,7 +23,8 @@ import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.common.glyphs.variables.RotationVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.utils.SpellVarUtil;
+import com.riprod.hexcode.utils.HexDirectionUtil;
+import com.riprod.hexcode.utils.HexVarUtil;
 import com.riprod.hexcode.utils.VelocityUtil;
 
 public class RotationValue implements GlyphHandler {
@@ -50,17 +51,17 @@ public class RotationValue implements GlyphHandler {
             if (single instanceof PositionVar posVar && posVar.isAbsolute()) {
                 return null;
             }
-            if (SpellVarUtil.isVectorVar(single)) {
-                Vector3f rot = SpellVarUtil.resolveAsRotation(single, hexContext.getAccessor());
+            if (single instanceof PositionVar || single instanceof RotationVar || single instanceof EntityVar) {
+                Vector3f rot = HexVarUtil.rotation(single, hexContext.getAccessor());
                 return rot != null ? new RotationVar(rot) : null;
             }
         }
 
         var accessor = hexContext.getAccessor();
         return new RotationVar(new Vector3f(
-                (float) SpellVarUtil.resolveRotationAxis(xVar, 0, accessor),
-                (float) SpellVarUtil.resolveRotationAxis(yVar, 1, accessor),
-                (float) SpellVarUtil.resolveRotationAxis(zVar, 2, accessor)));
+                (float) HexVarUtil.rotationAxis(xVar, 0, accessor),
+                (float) HexVarUtil.rotationAxis(yVar, 1, accessor),
+                (float) HexVarUtil.rotationAxis(zVar, 2, accessor)));
     }
 
     @Override
@@ -79,11 +80,11 @@ public class RotationValue implements GlyphHandler {
         // effect mode: if a target is wired, apply rotation to it
         if (result instanceof RotationVar rotVar && rotVar.getValue() != null) {
             HexVar target = glyph.readSlot(RotationValueSlots.TARGET, hexContext);
-            EntityVar entityVar = SpellVarUtil.resolveEntityVar(target, hexContext);
+            EntityVar entityVar = HexVarUtil.resolveEntityVar(target, hexContext);
             if (entityVar != null) {
                 applyToEntity(entityVar, rotVar.getValue(), hexContext);
             } else {
-                BlockVar blockVar = SpellVarUtil.resolveBlockVar(target, hexContext);
+                BlockVar blockVar = HexVarUtil.resolveBlockVar(target, hexContext);
                 if (blockVar != null && blockVar.getValue() != null) {
                     applyToBlock(blockVar.getValue(), rotVar.getValue(), hexContext);
                 }

@@ -143,6 +143,9 @@ public class HexExecuter {
                 fail(nextNode, hexContext);
                 return;
             }
+            if (tracker != null) {
+                tracker.incrementGlyphUsage(nextNode.getId());
+            }
             nextHandler.execute(nextNode, hexContext);
         } catch (Exception e) {
             fail(nextNode, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED, e);

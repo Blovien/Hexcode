@@ -1,0 +1,47 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Position",
+  "Description": "Constructs a position X Y and Z components",
+  "ModelPath": "Position",
+  "ShapeStructure": [
+    {
+      "ShapeId": "Less",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Greater",
+      "Size": 1.0
+    }
+  ],
+  "Slots": {
+    "x": {
+      "Style": "Input",
+      "Label": "X",
+      "Description": "X component"
+    },
+    "y": {
+      "Style": "Input",
+      "Label": "Y",
+      "Description": "Y component"
+    },
+    "z": {
+      "Style": "Input",
+      "Label": "Z",
+      "Description": "Z component"
+    },
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain"
+    }
+  },
+  "ManaConsumption": 0,
+  "Volatility": {
+    "InstantCost": 0.1,
+    "DrainPerSecond": 0.0,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 10.0
+    }
+  }
+}

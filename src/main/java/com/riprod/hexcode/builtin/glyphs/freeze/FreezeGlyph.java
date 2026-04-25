@@ -25,7 +25,8 @@ import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
-import com.riprod.hexcode.utils.SpellVarUtil;
+import com.riprod.hexcode.utils.HexDirectionUtil;
+import com.riprod.hexcode.utils.HexVarUtil;
 
 public class FreezeGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -45,7 +46,7 @@ public class FreezeGlyph implements GlyphHandler {
             return;
         }
 
-        double duration = SpellVarUtil.resolveNumberOrDefault(
+        double duration = HexVarUtil.numberOrDefault(
                 glyph.readSlot(FreezeGlyphSlots.DURATION, hexContext), DEFAULT_DURATION);
 
         EntityEffect freezeEffect = EntityEffect.getAssetMap().getAsset("Hexcode_Freeze");
@@ -58,7 +59,7 @@ public class FreezeGlyph implements GlyphHandler {
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
         World world = accessor.getExternalData().getWorld();
 
-        EntityVar entityVar = SpellVarUtil.resolveEntityVar(targets, hexContext);
+        EntityVar entityVar = HexVarUtil.resolveEntityVar(targets, hexContext);
         if (entityVar == null) {
             HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;

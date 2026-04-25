@@ -22,8 +22,7 @@ public class LevitateConstructHandler implements ConstructHandler<LevitateState>
         if (state == null) return true;
         if (state.isExpired()) return true;
         state.tick(dt);
-        status.getHexContext().getVolatilityTracker().consumeVolatility(dt);
-        return false;
+        return !drainSustain(dt, status);
     }
 
     @Override

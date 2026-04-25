@@ -2,9 +2,13 @@ package com.riprod.hexcode.core.common.glyphs.variables;
 
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
+import com.hypixel.hytale.component.ComponentAccessor;
+import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.math.vector.Vector3i;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
-public class BlockVar extends HexVar {
+public final class BlockVar extends HexVar {
     private Vector3i position;
 
     public BlockVar() {
@@ -25,8 +29,23 @@ public class BlockVar extends HexVar {
 
     @Override
     public Double toScalar() {
-        if (position == null) return 0.0;
-        return Math.sqrt(position.x * position.x + position.y * position.y + position.z * position.z);
+        return position == null ? 0.0 : 1.0;
+    }
+
+    @Override
+    public PositionVar toPosition(ComponentAccessor<EntityStore> accessor) {
+        if (position == null) return new PositionVar(new Vector3d(0, 0, 0), true);
+        return new PositionVar(new Vector3d(position.x + 0.5, position.y + 0.5, position.z + 0.5), true);
+    }
+
+    @Override
+    public RotationVar toRotation(ComponentAccessor<EntityStore> accessor) {
+        return new RotationVar(new Vector3f(0f, 0f, 0f));
+    }
+
+    @Override
+    public HexVar resolveSelf(HexVar partner, ComponentAccessor<EntityStore> accessor) {
+        return toPosition(accessor);
     }
 
     @Override

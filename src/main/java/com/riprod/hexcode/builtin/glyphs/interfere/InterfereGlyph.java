@@ -26,7 +26,8 @@ import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
-import com.riprod.hexcode.utils.SpellVarUtil;
+import com.riprod.hexcode.utils.HexDirectionUtil;
+import com.riprod.hexcode.utils.HexVarUtil;
 
 public class InterfereGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -46,7 +47,7 @@ public static final String ID = "Interfere";
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
 
-        EntityVar entityVar = SpellVarUtil.resolveEntityVar(targetVar, hexContext);
+        EntityVar entityVar = HexVarUtil.resolveEntityVar(targetVar, hexContext);
         if (entityVar != null) {
             Ref<EntityStore> ref = entityVar.getRef(accessor);
             if (ref == null || !ref.isValid()) {
@@ -71,9 +72,9 @@ public static final String ID = "Interfere";
             }
         }
 
-        BlockVar blockVar = SpellVarUtil.resolveBlockVar(targetVar, hexContext);
+        BlockVar blockVar = HexVarUtil.resolveBlockVar(targetVar, hexContext);
         if (blockVar != null) {
-            Vector3d blockCenter = SpellVarUtil.resolvePosition(blockVar, accessor);
+            Vector3d blockCenter = HexVarUtil.position(blockVar, accessor);
             if (blockCenter != null) {
                 InterfereStyle.renderBlockStrip(blockCenter, hexContext.getColors(), accessor);
             }

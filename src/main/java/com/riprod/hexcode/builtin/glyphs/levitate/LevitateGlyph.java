@@ -14,6 +14,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.modules.physics.component.PhysicsValues;
 import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.builtin.glyphs.levitate.style.LevitateStyle;
 import com.riprod.hexcode.core.common.construct.state.ConstructStateUtil;
 import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
@@ -26,14 +27,18 @@ import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
-import com.riprod.hexcode.utils.SpellVarUtil;
+import com.riprod.hexcode.utils.HexDirectionUtil;
+import com.riprod.hexcode.utils.HexVarUtil;
 
 public class LevitateGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
-    @Override
-public String getId() { return ID; };
 
-public static final String ID = "Levitate";
+    @Override
+    public String getId() {
+        return ID;
+    };
+
+    public static final String ID = "Levitate";
 
     private static final String LEVITATE_EFFECT_ID = "Hexcode_Levitate";
     private static final double DEFAULT_INTENSITY = 0.0;
@@ -46,9 +51,9 @@ public static final String ID = "Levitate";
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targets = glyph.readSlot(LevitateGlyphSlots.TARGET, hexContext);
-        EntityVar entityVar = SpellVarUtil.resolveEntityVar(targets, hexContext);
+        EntityVar entityVar = HexVarUtil.resolveEntityVar(targets, hexContext);
         if (entityVar == null) {
-            if (SpellVarUtil.resolveBlockVar(targets, hexContext) != null) {
+            if (HexVarUtil.resolveBlockVar(targets, hexContext) != null) {
                 LOGGER.atInfo().log("levitate: block targets not yet implemented");
             }
             HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
@@ -56,10 +61,10 @@ public static final String ID = "Levitate";
         }
 
         double intensity = Math.max(0, Math.min(MAX_INTENSITY,
-                SpellVarUtil.resolveNumberOrDefault(
+                HexVarUtil.numberOrDefault(
                         glyph.readSlot(LevitateGlyphSlots.INTENSITY, hexContext), DEFAULT_INTENSITY)));
         double duration = Math.max(1, Math.min(MAX_DURATION,
-                SpellVarUtil.resolveNumberOrDefault(
+                HexVarUtil.numberOrDefault(
                         glyph.readSlot(LevitateGlyphSlots.DURATION, hexContext), DEFAULT_DURATION)));
         float durationSeconds = (float) duration;
 
@@ -72,7 +77,12 @@ public static final String ID = "Levitate";
     private void applyToEntity(EntityVar entityVar, float intensity, float durationSeconds,
             Glyph glyph, HexContext hexContext, CommandBuffer<EntityStore> accessor) {
         Ref<EntityStore> ref = entityVar.getRef(accessor);
-        if (ref == null || !ref.isValid()) return;
+        if (ref == null || !ref.isValid()) {
+            LOGGER.atWarning().log("Levitate: target ref unresolved");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Levitate: target ref unresolved");
+            return;
+        }
 
         PhysicsValues currentPhysics = EntityUtils.getPhysicsValues(ref, accessor);
 

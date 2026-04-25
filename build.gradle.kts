@@ -3,8 +3,9 @@ plugins {
     id("hytale-mod") version "0.+"
 }
 
+
 group = "com.riprod"
-version = "0.4.0"
+version = "0.5.0"
 val javaVersion = 25
 
 repositories {

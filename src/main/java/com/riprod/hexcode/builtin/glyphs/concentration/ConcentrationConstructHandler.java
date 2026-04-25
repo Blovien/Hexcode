@@ -26,8 +26,7 @@ public class ConcentrationConstructHandler implements ConstructHandler<Concentra
         if (execComp == null || !execComp.isHoldingPrimary()) {
             return true;
         }
-        status.getHexContext().getVolatilityTracker().consumeVolatility(dt);
-        return false;
+        return !drainSustain(dt, status);
     }
 
     @Override

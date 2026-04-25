@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
@@ -58,6 +57,22 @@ public class ArcUtils {
         });
 
         if (candidates.isEmpty()) return null;
-        return candidates.get(ThreadLocalRandom.current().nextInt(candidates.size()));
+
+        Ref<EntityStore> best = null;
+        double bestDistSq = Double.POSITIVE_INFINITY;
+        for (Ref<EntityStore> candidate : candidates) {
+            TransformComponent tc = buffer.getComponent(candidate, TransformComponent.getComponentType());
+            if (tc == null) continue;
+            Vector3d p = tc.getPosition();
+            double dx = p.x - fromPosition.x;
+            double dy = p.y - fromPosition.y;
+            double dz = p.z - fromPosition.z;
+            double dSq = dx * dx + dy * dy + dz * dz;
+            if (dSq < bestDistSq) {
+                bestDistSq = dSq;
+                best = candidate;
+            }
+        }
+        return best;
     }
 }

@@ -2,5 +2,12 @@
   "ModelPath": "Base_Glyph",
   "BasePower": 1.0,
   "ManaConsumption": 25,
-  "VolatilityCost": 1
+  "Volatility": {
+    "InstantCost": 1,
+    "DrainPerSecond": 0.15,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 5.0
+    }
+  }
 }

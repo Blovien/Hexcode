@@ -21,8 +21,8 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.modules.entity.player.PlayerSkinComponent;
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.builtin.glyphs.scale.style.ScaleStyle;
-import com.riprod.hexcode.core.common.construct.state.ConstructStateUtil;
 import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
@@ -30,7 +30,8 @@ import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.utils.SpellVarUtil;
+import com.riprod.hexcode.utils.HexDirectionUtil;
+import com.riprod.hexcode.utils.HexVarUtil;
 
 public class ScaleGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -44,49 +45,46 @@ public class ScaleGlyph implements GlyphHandler {
     private static final double DEFAULT_MAGNITUDE = 2.0;
     private static final double MIN_MAGNITUDE = 0.25;
     private static final double MAX_MAGNITUDE = 4.0;
+    private static final double DEFAULT_DURATION = 5.0;
+    private static final double MIN_DURATION = 0.1;
 
     private static final Vector3f MOUNT_OFFSET = new Vector3f(0f, 2.5f, 0f);
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targets = glyph.readSlot(ScaleGlyphSlots.TARGET, hexContext);
-        EntityVar entityVar = SpellVarUtil.resolveEntityVar(targets, hexContext);
+        EntityVar entityVar = HexVarUtil.resolveEntityVar(targets, hexContext);
         if (entityVar == null) {
-            LOGGER.atWarning().log("scale: no entity target provided");
-            HexExecuter.fail(hexContext);
+            LOGGER.atWarning().log("Scale: target must be Entity");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Scale: target must be Entity");
             return;
         }
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
         Ref<EntityStore> targetRef = entityVar.getRef(accessor);
         if (targetRef == null || !targetRef.isValid()) {
-            LOGGER.atWarning().log("scale: target ref invalid");
-            HexExecuter.fail(hexContext);
+            LOGGER.atWarning().log("Scale: target ref unresolved");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Scale: target ref unresolved");
             return;
         }
 
-        // idempotent re-cast: if this target already has a Scale status, skip.
-        ScaleState existing = ConstructStateUtil.findState(
-                accessor, targetRef, ScaleGlyph.ID, ScaleState.class);
-        if (existing != null) {
-            return;
-        }
-
-        double magnitude = clamp(SpellVarUtil.resolveNumberOrDefault(
+        double magnitude = clamp(HexVarUtil.numberOrDefault(
                 glyph.readSlot(ScaleGlyphSlots.MAGNITUDE, hexContext), DEFAULT_MAGNITUDE),
                 MIN_MAGNITUDE, MAX_MAGNITUDE);
+
+        float durationSeconds = (float) Math.max(MIN_DURATION, HexVarUtil.numberOrDefault(
+                glyph.readSlot(ScaleGlyphSlots.DURATION, hexContext), DEFAULT_DURATION));
 
         try {
             EntityScaleComponent scaleComp = accessor.getComponent(
                     targetRef, EntityScaleComponent.getComponentType());
             BoundingBox box = accessor.getComponent(targetRef, BoundingBox.getComponentType());
 
-            boolean hadEntityScaleBefore = scaleComp != null;
-            float originalScale = hadEntityScaleBefore ? scaleComp.getScale() : 1.0f;
-            Box originalBox = box != null ? new Box(box.getBoundingBox()) : null;
-
-            float newScale = originalScale * (float) magnitude;
-            if (hadEntityScaleBefore) {
+            float currentScale = scaleComp != null ? scaleComp.getScale() : 1.0f;
+            float newScale = currentScale * (float) magnitude;
+            if (scaleComp != null) {
                 scaleComp.setScale(newScale);
             } else {
                 accessor.addComponent(targetRef, EntityScaleComponent.getComponentType(),
@@ -97,9 +95,8 @@ public class ScaleGlyph implements GlyphHandler {
             if (targetSkin != null) {
                 targetSkin.setNetworkOutdated();
             }
-            if (box != null && originalBox != null) {
-                Box scaled = new Box(originalBox).scale((float) magnitude);
-                box.setBoundingBox(scaled);
+            if (box != null) {
+                box.setBoundingBox(new Box(box.getBoundingBox()).scale((float) magnitude));
             }
 
             Vector3d spawnPos;
@@ -113,14 +110,17 @@ public class ScaleGlyph implements GlyphHandler {
 
             Ref<EntityStore> visualRef = spawnVisual(accessor, spawnPos, targetRef);
 
-            ScaleState state = new ScaleState(originalScale, originalBox, hadEntityScaleBefore, visualRef);
+            ScaleState state = new ScaleState((float) magnitude, visualRef, durationSeconds);
             HexConstructSpawner.applyWithState(
                     accessor, targetRef, hexContext, glyph, ScaleGlyph.ID, state);
 
             ScaleStyle.renderApply(spawnPos, hexContext.getColors(), accessor);
+
+            HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
         } catch (Exception e) {
-            LOGGER.atSevere().log("[hexcode] scale: apply failed: %s", e.getMessage());
-            HexExecuter.fail(hexContext);
+            LOGGER.atWarning().log("Scale: apply failed: %s", e.getMessage());
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    e.getMessage(), e);
         }
     }
 

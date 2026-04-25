@@ -1,7 +1,8 @@
 {
   "Parent": "Hexcode_Pedestal_Template",
   "TranslationProperties": {
-    "Name": "hexcode.blocks.Hexcode_Pedestal_Arcane.name"
+    "Name": "hexcode.blocks.Hexcode_Pedestal_Arcane.name",
+    "Description": "hexcode.blocks.Hexcode_Pedestal_Arcane.description"
   },
   "Icon": "Icons/ItemsGenerated/Hexcode_Pedestal_Arcane.png",
   "Categories": [

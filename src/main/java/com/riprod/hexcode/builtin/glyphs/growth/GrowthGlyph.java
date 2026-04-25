@@ -36,7 +36,8 @@ import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
-import com.riprod.hexcode.utils.SpellVarUtil;
+import com.riprod.hexcode.utils.HexDirectionUtil;
+import com.riprod.hexcode.utils.HexVarUtil;
 
 public class GrowthGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -47,7 +48,7 @@ public static final String ID = "Growth";
 
     private static final String GROWTH_EFFECT_ID = "Hexcode_Growth";
     private static final double DEFAULT_AMOUNT = 5.0;
-    private static final double DEFAULT_DURATION = 100.0;
+    private static final double DEFAULT_DURATION = 10.0;
     private static final double MIN_AMOUNT = 1.0;
     private static final double MAX_AMOUNT = 20.0;
     private static final int BONEMEAL_RADIUS = 2;
@@ -72,16 +73,16 @@ public static final String ID = "Growth";
         }
 
         double amount = Math.max(MIN_AMOUNT, Math.min(MAX_AMOUNT,
-                SpellVarUtil.resolveNumberOrDefault(
+                HexVarUtil.numberOrDefault(
                         glyph.readSlot(GrowthGlyphSlots.AMOUNT, hexContext), DEFAULT_AMOUNT)));
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
 
-        EntityVar entityVar = SpellVarUtil.resolveEntityVar(targets, hexContext);
+        EntityVar entityVar = HexVarUtil.resolveEntityVar(targets, hexContext);
         if (entityVar != null) {
             applyToEntity(entityVar, amount, glyph, hexContext, accessor);
         } else {
-            BlockVar blockVar = SpellVarUtil.resolveBlockVar(targets, hexContext);
+            BlockVar blockVar = HexVarUtil.resolveBlockVar(targets, hexContext);
             if (blockVar != null) applyToBlock(blockVar, amount, hexContext, accessor);
         }
 
@@ -99,8 +100,8 @@ public static final String ID = "Growth";
             return;
         }
 
-        double duration = SpellVarUtil.resolveNumberOrDefault(
-                glyph.readSlot("duration", hexContext), DEFAULT_DURATION);
+        double duration = HexVarUtil.numberOrDefault(
+                glyph.readSlot(GrowthGlyphSlots.DURATION, hexContext), DEFAULT_DURATION);
         float durationSeconds = (float) duration;
 
         EffectControllerComponent controller = accessor.getComponent(

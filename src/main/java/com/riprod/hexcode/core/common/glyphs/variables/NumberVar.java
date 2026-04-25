@@ -3,8 +3,12 @@ package com.riprod.hexcode.core.common.glyphs.variables;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
+import com.hypixel.hytale.component.ComponentAccessor;
+import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
-public class NumberVar extends HexVar {
+public final class NumberVar extends HexVar {
     private Double number;
 
     public NumberVar() {
@@ -30,6 +34,18 @@ public class NumberVar extends HexVar {
     @Override
     public Double toScalar() {
         return number;
+    }
+
+    @Override
+    public PositionVar toPosition(ComponentAccessor<EntityStore> accessor) {
+        double n = number == null ? 0.0 : number;
+        return new PositionVar(new Vector3d(n, n, n), false);
+    }
+
+    @Override
+    public RotationVar toRotation(ComponentAccessor<EntityStore> accessor) {
+        float n = number == null ? 0f : number.floatValue();
+        return new RotationVar(new Vector3f(n, n, n));
     }
 
     @Override

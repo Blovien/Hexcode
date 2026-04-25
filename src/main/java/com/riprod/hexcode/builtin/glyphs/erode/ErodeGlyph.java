@@ -23,6 +23,7 @@ import com.hypixel.hytale.server.core.modules.time.TimeResource;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.builtin.glyphs.erode.style.ErodeStyle;
 import com.riprod.hexcode.core.common.construct.state.ConstructStateUtil;
 import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
@@ -35,7 +36,8 @@ import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
-import com.riprod.hexcode.utils.SpellVarUtil;
+import com.riprod.hexcode.utils.HexDirectionUtil;
+import com.riprod.hexcode.utils.HexVarUtil;
 
 public class ErodeGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -58,11 +60,12 @@ public static final String ID = "Erode";
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
         if (tracker == null) return true;
 
-        double amount = SpellVarUtil.resolveNumberOrDefault(
+        double amount = HexVarUtil.numberOrDefault(
                 glyph.readSlot(ErodeGlyphSlots.AMOUNT, hexContext), DEFAULT_AMOUNT);
         float amountScale = (float) Math.max(1.0, amount / DEFAULT_AMOUNT);
 
-        float cost = VolatilityTracker.computeGlyphCost(glyph) * amountScale;
+        int repeatCount = tracker.getGlyphUsage(glyph.getId());
+        float cost = VolatilityTracker.computeGlyphCost(glyph, repeatCount) * amountScale;
         return tracker.consumeVolatility(cost);
     }
 
@@ -94,25 +97,27 @@ public static final String ID = "Erode";
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targets = glyph.readSlot(ErodeGlyphSlots.TARGET, hexContext);
         if (targets == null) {
-            HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
+            LOGGER.atWarning().log("Erode: target required");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Erode: target required");
             return;
         }
 
         double amount = Math.max(MIN_AMOUNT, Math.min(MAX_AMOUNT,
-                SpellVarUtil.resolveNumberOrDefault(
+                HexVarUtil.numberOrDefault(
                         glyph.readSlot(ErodeGlyphSlots.AMOUNT, hexContext), DEFAULT_AMOUNT)));
-        double duration = SpellVarUtil.resolveNumberOrDefault(
+        double duration = HexVarUtil.numberOrDefault(
                 glyph.readSlot(ErodeGlyphSlots.DURATION, hexContext), DEFAULT_DURATION);
         float vulnerabilityMultiplier = (float) (amount * VULNERABILITY_SCALE);
         float durationSeconds = (float) duration;
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
 
-        EntityVar entityVar = SpellVarUtil.resolveEntityVar(targets, hexContext);
+        EntityVar entityVar = HexVarUtil.resolveEntityVar(targets, hexContext);
         if (entityVar != null) {
             applyToEntities(entityVar, vulnerabilityMultiplier, durationSeconds, glyph, hexContext, accessor);
         } else {
-            BlockVar blockVar = SpellVarUtil.resolveBlockVar(targets, hexContext);
+            BlockVar blockVar = HexVarUtil.resolveBlockVar(targets, hexContext);
             if (blockVar != null) applyToBlocks(blockVar, amount, durationSeconds, hexContext, accessor);
         }
 

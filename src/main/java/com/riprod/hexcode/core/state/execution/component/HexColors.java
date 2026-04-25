@@ -1,5 +1,6 @@
 package com.riprod.hexcode.core.state.execution.component;
 
+import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.math.vector.Vector3f;
@@ -10,6 +11,7 @@ public class HexColors {
 
     private Color primaryColor;
     private Color secondaryColor;
+    private float primaryAlpha = 1.0f;
 
     public Color getPrimaryColor() {
         return primaryColor;
@@ -27,6 +29,26 @@ public class HexColors {
         this.secondaryColor = secondaryColor;
     }
 
+    public float getPrimaryAlpha() {
+        return primaryAlpha;
+    }
+
+    public void setPrimaryAlpha(float primaryAlpha) {
+        this.primaryAlpha = clamp01(primaryAlpha);
+    }
+
+    public void setOverride(double r, double g, double b, double a) {
+        byte rb = (byte) Math.round(clamp01((float) r) * 255f);
+        byte gb = (byte) Math.round(clamp01((float) g) * 255f);
+        byte bb = (byte) Math.round(clamp01((float) b) * 255f);
+        this.primaryColor = new Color(rb, gb, bb);
+        this.primaryAlpha = clamp01((float) a);
+    }
+
+    private static float clamp01(float v) {
+        return v < 0f ? 0f : v > 1f ? 1f : v;
+    }
+
     public static Vector3f toVector3f(Color color) {
         return new Vector3f((color.red & 0xFF) / 255f, (color.green & 0xFF) / 255f, (color.blue & 0xFF) / 255f);
     }
@@ -41,12 +63,17 @@ public class HexColors {
                     (c, v) -> c.secondaryColor = v,
                     c -> c.secondaryColor)
             .add()
+            .append(new KeyedCodec<>("PrimaryAlpha", Codec.FLOAT),
+                    (c, v) -> c.primaryAlpha = v,
+                    c -> c.primaryAlpha)
+            .add()
             .build();
 
     public HexColors clone() {
         HexColors copy = new HexColors();
         if (this.primaryColor != null) copy.primaryColor = this.primaryColor.clone();
         if (this.secondaryColor != null) copy.secondaryColor = this.secondaryColor.clone();
+        copy.primaryAlpha = this.primaryAlpha;
         return copy;
     }
 }

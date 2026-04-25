@@ -13,6 +13,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.TargetUtil;
+import com.riprod.hexcode.builtin.glyphs.conjure.ConjureGlyphSlots;
 import com.riprod.hexcode.builtin.glyphs.conjure.component.ConjureZoneComponent;
 import com.riprod.hexcode.builtin.glyphs.conjure.style.ConjureStyle;
 import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
@@ -20,11 +21,25 @@ import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
 import com.riprod.hexcode.core.common.construct.component.HexStatus;
 import com.riprod.hexcode.core.common.construct.state.NoState;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
+import com.riprod.hexcode.core.common.glyphs.component.Slot;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 
 public class ConjureConstructHandler implements ConstructHandler<NoState> {
+
+    @Override
+    public void onFirstTick(HexStatus<NoState> status, ConstructTickContext ctx) {
+        Glyph triggering = status.getTriggeringGlyph();
+        if (triggering == null) return;
+        Slot immediate = triggering.getSlot(ConjureGlyphSlots.IMMEDIATE);
+        if (immediate == null) return;
+        String[] links = immediate.getLinks();
+        if (links == null || links.length == 0) return;
+        HexContext hexContext = status.getHexContext();
+        hexContext.UpdateAccessor(ctx.getBuffer());
+        HexExecuter.continueExecution(java.util.Arrays.asList(links), hexContext);
+    }
 
     @Override
     public boolean onTick(float dt, HexStatus<NoState> status, ConstructTickContext ctx) {
@@ -87,8 +102,7 @@ public class ConjureConstructHandler implements ConstructHandler<NoState> {
             }
         }
 
-        status.getHexContext().getVolatilityTracker().consumeVolatility(dt);
-        return false;
+        return !drainSustain(dt, status);
     }
 
     @Override

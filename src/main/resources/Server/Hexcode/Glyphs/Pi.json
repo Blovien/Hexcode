@@ -1,0 +1,32 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Pi",
+  "Description": "The mathematical constant \u03c0 (\u2248 3.14159)",
+  "ModelPath": "Pi",
+  "ShapeStructure": [
+    {
+      "ShapeId": "Triangle",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Circle",
+      "Size": 1.0
+    }
+  ],
+  "Slots": {
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain"
+    }
+  },
+  "ManaConsumption": 0,
+  "Volatility": {
+    "InstantCost": 0.1,
+    "DrainPerSecond": 0.0,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 10.0
+    }
+  }
+}

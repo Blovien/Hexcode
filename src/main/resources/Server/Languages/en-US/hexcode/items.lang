@@ -5,33 +5,47 @@ Hex_Astral_Staff.name=Void Hex Staff
 Arcane_Hexstaff.name=Arcane Hex Staff
 
 Hex_Book.name=Hex Book
+Hex_Book.description=<color is="#aaaaaa">Hex Slots</color> <color is="#ffcc00"><b>8</b></color>
 Fire_Hexbook.name=Fire Hex Book
+Fire_Hexbook.description=<color is="#aaaaaa">Hex Slots</color> <color is="#ffcc00"><b>6</b></color>  <color is="#ff5555"><b>+Fire Damage</b></color>\n<color is="#aaaaaa">+Spell Power</color>
 Ice_Hexbook.name=Ice Hex Book
+Ice_Hexbook.description=<color is="#aaaaaa">Hex Slots</color> <color is="#ffcc00"><b>6</b></color>  <color is="#55ccff"><b>+Ice Damage</b></color>\n<color is="#aaaaaa">+Spell Power</color>
 Life_Hexbook.name=Life Hex Book
+Life_Hexbook.description=<color is="#aaaaaa">Hex Slots</color> <color is="#ffcc00"><b>6</b></color>  <color is="#55ff55"><b>+Life Damage</b></color>\n<color is="#aaaaaa">+Spell Power</color>
 Void_Hexbook.name=Void Hex Book
+Void_Hexbook.description=<color is="#aaaaaa">Hex Slots</color> <color is="#ffcc00"><b>6</b></color>  <color is="#cc88ff"><b>+Void Damage</b></color>\n<color is="#aaaaaa">+Spell Power</color>
 Arcane_Hexbook.name=Arcane Hex Book
+Arcane_Hexbook.description=<color is="#aaaaaa">Hex Slots</color> <color is="#ffcc00"><b>12</b></color>
 
 hexstaff.basic.crude.name=Crude Hex Staff
-hexstaff.basic.crude.description=A knotted branch still weeping sap, bound with rawhide. Barely more than a dowsing rod -- but it hums.
+hexstaff.basic.crude.description=<color is="#aaaaaa">Volatility</color> <color is="#ffcc00"><b>2</b></color>  <color is="#aaaaaa">Charges</color> <color is="#8888ff"><b>1</b></color>\n<color is="#aaaaaa">Style</color> <color is="#cc88ff"><b>Ring</b></color>
 hexstaff.basic.bronze.name=Bronze Hex Staff
-hexstaff.basic.bronze.description=Cast in the first forges, its warmth smells of smoke and ambition.
+hexstaff.basic.bronze.description=<color is="#aaaaaa">Volatility</color> <color is="#ffcc00"><b>8</b></color>  <color is="#aaaaaa">Power</color> <color is="#55ff55"><b>+0.1</b></color>\n<color is="#aaaaaa">Charges</color> <color is="#8888ff"><b>2</b></color>  <color is="#aaaaaa">Style</color> <color is="#cc88ff"><b>Ring</b></color>
 hexstaff.basic.copper.name=Copper Hex Staff
-hexstaff.basic.copper.description=Veined with patina. Lightning-hungry, conducts thought as readily as current.
+hexstaff.basic.copper.description=<color is="#aaaaaa">Volatility</color> <color is="#ffcc00"><b>18</b></color>  <color is="#aaaaaa">Power</color> <color is="#55ff55"><b>+0.25</b></color>\n<color is="#aaaaaa">Charges</color> <color is="#8888ff"><b>3</b></color>  <color is="#aaaaaa">Style</color> <color is="#cc88ff"><b>Ring</b></color>
 hexstaff.basic.iron.name=Iron Hex Staff
-hexstaff.basic.iron.description=Plain, honest, unremarkable. The apprentice's staff -- until it isn't.
+hexstaff.basic.iron.description=<color is="#aaaaaa">Volatility</color> <color is="#ffcc00"><b>35</b></color>  <color is="#aaaaaa">Power</color> <color is="#55ff55"><b>+0.45</b></color>\n<color is="#aaaaaa">Charges</color> <color is="#8888ff"><b>4</b></color>  <color is="#aaaaaa">Style</color> <color is="#cc88ff"><b>Ring</b></color>
 hexstaff.basic.thorium.name=Thorium Hex Staff
-hexstaff.basic.thorium.description=Green-cored and restless. Old apothecaries carved these from storm-fallen yew.
+hexstaff.basic.thorium.description=<color is="#aaaaaa">Volatility</color> <color is="#ffcc00"><b>60</b></color>  <color is="#aaaaaa">Power</color> <color is="#55ff55"><b>+0.7</b></color>\n<color is="#aaaaaa">Charges</color> <color is="#8888ff"><b>5</b></color>  <color is="#aaaaaa">Style</color> <color is="#cc88ff"><b>Ring</b></color>
 hexstaff.basic.cobalt.name=Cobalt Hex Staff
-hexstaff.basic.cobalt.description=Cold to the touch even at noon. Deepwater stone drinks the sun.
+hexstaff.basic.cobalt.description=<color is="#aaaaaa">Volatility</color> <color is="#ffcc00"><b>100</b></color>  <color is="#aaaaaa">Power</color> <color is="#55ff55"><b>+1.0</b></color>\n<color is="#aaaaaa">Charges</color> <color is="#8888ff"><b>6</b></color>  <color is="#aaaaaa">Style</color> <color is="#cc88ff"><b>Ring</b></color>
 hexstaff.basic.adamantite.name=Adamantite Hex Staff
-hexstaff.basic.adamantite.description=Forged where the mountain bleeds. The haft remembers every oath sworn over it.
+hexstaff.basic.adamantite.description=<color is="#aaaaaa">Volatility</color> <color is="#ffcc00"><b>170</b></color>  <color is="#aaaaaa">Power</color> <color is="#55ff55"><b>+1.4</b></color>\n<color is="#aaaaaa">Charges</color> <color is="#8888ff"><b>7</b></color>  <color is="#aaaaaa">Style</color> <color is="#cc88ff"><b>Ring</b></color>
 hexstaff.basic.mithril.name=Mithril Hex Staff
-hexstaff.basic.mithril.description=Weighs less than thought. Elder-crafters tuned each rod to a single chord.
+hexstaff.basic.mithril.description=<color is="#aaaaaa">Volatility</color> <color is="#ffcc00"><b>270</b></color>  <color is="#aaaaaa">Power</color> <color is="#55ff55"><b>+1.9</b></color>\n<color is="#aaaaaa">Charges</color> <color is="#8888ff"><b>8</b></color>  <color is="#aaaaaa">Style</color> <color is="#cc88ff"><b>Ring</b></color>
 hexstaff.basic.onyxium.name=Onyxium Hex Staff
-hexstaff.basic.onyxium.description=Carved from the hollow between stars. Whoever carries it is already partway gone.
+hexstaff.basic.onyxium.description=<color is="#aaaaaa">Volatility</color> <color is="#ffcc00"><b>440</b></color>  <color is="#aaaaaa">Power</color> <color is="#55ff55"><b>+2.5</b></color>\n<color is="#aaaaaa">Charges</color> <color is="#8888ff"><b>10</b></color>  <color is="#aaaaaa">Style</color> <color is="#cc88ff"><b>Ring</b></color>
+
+hexstaff.special.fire.name=Fire Hex Staff
+hexstaff.special.fire.description=<color is="#aaaaaa">Volatility</color> <color is="#ffcc00"><b>55</b></color>  <color is="#aaaaaa">Power</color> <color is="#55ff55"><b>+0.9</b></color>\n<color is="#aaaaaa">Charges</color> <color is="#8888ff"><b>5</b></color>  <color is="#aaaaaa">Style</color> <color is="#cc88ff"><b>Ring</b></color>
+hexstaff.special.ice.name=Ice Hex Staff
+hexstaff.special.ice.description=<color is="#aaaaaa">Volatility</color> <color is="#ffcc00"><b>125</b></color>  <color is="#aaaaaa">Power</color> <color is="#55ff55"><b>+0.7</b></color>\n<color is="#aaaaaa">Charges</color> <color is="#8888ff"><b>5</b></color>  <color is="#aaaaaa">Style</color> <color is="#cc88ff"><b>Arc</b></color>
+hexstaff.special.astral.name=Void Hex Staff
+hexstaff.special.astral.description=<color is="#aaaaaa">Volatility</color> <color is="#ffcc00"><b>200</b></color>  <color is="#aaaaaa">Power</color> <color is="#55ff55"><b>+1.6</b></color>\n<color is="#aaaaaa">Charges</color> <color is="#8888ff"><b>8</b></color>  <color is="#aaaaaa">Style</color> <color is="#cc88ff"><b>Sphere</b></color>
+hexstaff.special.arcane.name=Arcane Hex Staff
+hexstaff.special.arcane.description=<color is="#aaaaaa">Volatility</color> <color is="#ffcc00"><b>90</b></color>  <color is="#aaaaaa">Power</color> <color is="#55ff55"><b>+1.0</b></color>\n<color is="#aaaaaa">Charges</color> <color is="#8888ff"><b>8</b></color>  <color is="#aaaaaa">Style</color> <color is="#cc88ff"><b>Ring</b></color>
 
 ingredient.essence.fire_concentrated=Greater Essence of Fire
 ingredient.essence.ice_concentrated=Greater Essence of Ice
 ingredient.essence.void_concentrated=Greater Essence of Void
-
 

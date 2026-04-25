@@ -8,7 +8,7 @@ import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.utils.HexMathUtil;
+import com.riprod.hexcode.utils.HexCompareUtil;
 
 public class GreaterGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -21,7 +21,7 @@ public static final String ID = "Greater";
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar a = glyph.readSlot(GreaterGlyphSlots.A, hexContext);
         HexVar b = glyph.readSlot(GreaterGlyphSlots.B, hexContext);
-        boolean result = HexMathUtil.isGreater(a, b);
+        boolean result = HexCompareUtil.isGreater(a, b);
 
         List<String> next = glyph.getNextLinks();
         if (result) {

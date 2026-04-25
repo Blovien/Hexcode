@@ -4,7 +4,7 @@
   "Description": "Total stasis on targets with ice surfaces",
   "ModelPath": "Freeze",
   "BasePower": 1.0,
-  "ManaConsumption": 25,
+  "ManaConsumption": 20,
   "ShapeStructure": [
     {
       "ShapeId": "Anticircle",
@@ -38,5 +38,12 @@
       "Description": "The next glyph in the execution chain"
     }
   },
-  "VolatilityCost": 8
+  "Volatility": {
+    "InstantCost": 4,
+    "DrainPerSecond": 0.2,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 5.0
+    }
+  }
 }

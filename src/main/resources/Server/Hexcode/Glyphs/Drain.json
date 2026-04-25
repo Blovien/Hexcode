@@ -4,7 +4,7 @@
   "Description": "Channels HP or Stamina into Mana over time. As a value, reads resource fill percentage.",
   "ModelPath": "Drain",
   "BasePower": 1.0,
-  "ManaConsumption": 0,
+  "ManaConsumption": 12,
   "ShapeStructure": [
     {
       "ShapeId": "Anticircle",
@@ -47,5 +47,12 @@
       "Description": "The next glyph in the execution chain"
     }
   },
-  "VolatilityCost": 4
+  "Volatility": {
+    "InstantCost": 3,
+    "DrainPerSecond": 0.3,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 5.0
+    }
+  }
 }

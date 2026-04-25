@@ -4,7 +4,7 @@
   "Description": "Increases resilience of targets for a duration",
   "ModelPath": "Fortify",
   "BasePower": 1.0,
-  "ManaConsumption": 10,
+  "ManaConsumption": 15,
   "ShapeStructure": [
     {
       "ShapeId": "Square",
@@ -45,5 +45,12 @@
       "Description": "The next glyph in the execution chain"
     }
   },
-  "VolatilityCost": 8
+  "Volatility": {
+    "InstantCost": 4,
+    "DrainPerSecond": 0.1,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 5.0
+    }
+  }
 }

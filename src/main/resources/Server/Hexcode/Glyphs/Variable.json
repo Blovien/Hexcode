@@ -1,15 +1,11 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Skull",
-  "Description": "Launches a skull projectile at a target",
-  "ModelPath": "Skull",
+  "Title": "Variable",
+  "Description": "A variable",
+  "ModelPath": "Variable",
   "ShapeStructure": [
     {
-      "ShapeId": "Circle",
-      "Size": 1.0
-    },
-    {
-      "ShapeId": "Skull",
+      "ShapeId": "Down",
       "Size": 1.0
     }
   ],
@@ -25,5 +21,13 @@
       "Description": "The next glyph in the execution chain"
     }
   },
-  "VolatilityCost": 8
+  "ManaConsumption": 0,
+  "Volatility": {
+    "InstantCost": 0.1,
+    "DrainPerSecond": 0.0,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 10.0
+    }
+  }
 }

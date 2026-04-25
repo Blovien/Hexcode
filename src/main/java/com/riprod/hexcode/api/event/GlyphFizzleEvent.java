@@ -10,6 +10,7 @@ public class GlyphFizzleEvent implements IEvent<Void> {
         VOLATILITY_DEPLETED,
         INSUFFICIENT_MANA,
         HANDLER_FAILED,
+        NOT_IMPLEMENTED,
         MANUALLY_CANCELLED,
         ERROR
     }

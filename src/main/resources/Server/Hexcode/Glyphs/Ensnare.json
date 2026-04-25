@@ -4,7 +4,7 @@
   "Description": "Creates spike formations that trap and damage entities in the area",
   "ModelPath": "Ensnare",
   "BasePower": 1.0,
-  "ManaConsumption": 22,
+  "ManaConsumption": 18,
   "ShapeStructure": [
     {
       "ShapeId": "Square",
@@ -53,5 +53,12 @@
       "Description": "The next glyph in the execution chain"
     }
   },
-  "VolatilityCost": 8
+  "Volatility": {
+    "InstantCost": 4,
+    "DrainPerSecond": 0.15,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 5.0
+    }
+  }
 }

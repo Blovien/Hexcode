@@ -82,8 +82,7 @@ public class GlaciateConstructHandler implements ConstructHandler<NoState> {
             }
         }
 
-        status.getHexContext().getVolatilityTracker().consumeVolatility(dt);
-        return false;
+        return !drainSustain(dt, status);
     }
 
     @Override

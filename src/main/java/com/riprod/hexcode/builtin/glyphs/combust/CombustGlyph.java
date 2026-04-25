@@ -18,6 +18,7 @@ import com.hypixel.hytale.server.core.modules.entity.damage.Damage;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.server.combat.PointKnockback;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.builtin.glyphs.combust.style.CombustStyle;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
@@ -26,7 +27,8 @@ import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
-import com.riprod.hexcode.utils.SpellVarUtil;
+import com.riprod.hexcode.utils.HexDirectionUtil;
+import com.riprod.hexcode.utils.HexVarUtil;
 import com.hypixel.hytale.server.core.util.TargetUtil;
 
 public class CombustGlyph implements GlyphHandler {
@@ -48,15 +50,16 @@ public static final String ID = "Combust";
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar centerVar = glyph.readSlot(CombustGlyphSlots.CENTER, hexContext);
-        double radius = SpellVarUtil.resolveNumberOrDefault(
+        double radius = HexVarUtil.numberOrDefault(
                 glyph.readSlot(CombustGlyphSlots.RADIUS, hexContext), DEFAULT_RADIUS);
-        double magnitude = SpellVarUtil.resolveNumberOrDefault(
+        double magnitude = HexVarUtil.numberOrDefault(
                 glyph.readSlot(CombustGlyphSlots.MAGNITUDE, hexContext), DEFAULT_MAGNITUDE);
 
         Vector3d center = resolveCenter(centerVar, hexContext);
         if (center == null) {
-            LOGGER.atInfo().log("combust: no center resolved, skipping");
-            HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
+            LOGGER.atWarning().log("Combust: center ref unresolved");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Combust: center ref unresolved");
             return;
         }
 
@@ -89,12 +92,12 @@ public static final String ID = "Combust";
 
     private Vector3d resolveCenter(HexVar centerVar, HexContext hexContext) {
         if (centerVar != null) {
-            Vector3d pos = SpellVarUtil.resolvePosition(centerVar, hexContext.getAccessor());
+            Vector3d pos = HexVarUtil.position(centerVar, hexContext.getAccessor());
             if (pos != null) return pos;
         }
 
-        return SpellVarUtil.resolvePosition(
-                hexContext.getVariable("1"), hexContext.getAccessor());
+        return HexVarUtil.position(
+                hexContext.getVariable(Glyph.DEFAULT_SLOT), hexContext.getAccessor());
     }
 
     private void performExplosion(Vector3d center, double radius, double magnitude,

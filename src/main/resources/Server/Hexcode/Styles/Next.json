@@ -1,5 +1,9 @@
 {
-  "Color": [0.4, 1.0, 0.4],
+  "Color": [
+    0.1,
+    0.5,
+    1
+  ],
   "Shape": "Sphere",
   "NodeHandlerId": "slot.standard"
 }

@@ -1,0 +1,53 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Root",
+  "Description": "The B-th root of A",
+  "ModelPath": "Root",
+  "BasePower": 0,
+  "ManaConsumption": 0,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Antiline",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Up",
+      "Size": 1.0
+    }
+  ],
+  "Slots": {
+    "a": {
+      "Style": "Input",
+      "Label": "A",
+      "Description": "Radicand",
+      "DefaultValue": 0
+    },
+    "b": {
+      "Style": "Input",
+      "Label": "B",
+      "Description": "Degree",
+      "DefaultValue": 2
+    },
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain"
+    }
+  },
+  "VolatilityEscalation": {
+    "InstantCost": 0.5,
+    "DrainPerSecond": 0,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 5.0
+    }
+  },
+  "Volatility": {
+    "InstantCost": 0.1,
+    "DrainPerSecond": 0.0,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 10.0
+    }
+  }
+}

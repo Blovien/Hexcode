@@ -1,7 +1,8 @@
 {
   "Parent": "Hexcode_Pedestal_Template",
   "TranslationProperties": {
-    "Name": "hexcode.blocks.Hexcode_Pedestal_Void.name"
+    "Name": "hexcode.blocks.Hexcode_Pedestal_Void.name",
+    "Description": "hexcode.blocks.Hexcode_Pedestal_Void.description"
   },
   "Icon": "Icons/ItemsGenerated/Hexcode_Pedestal_Void.png",
   "Categories": [

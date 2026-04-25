@@ -181,15 +181,18 @@ public class ExecutionSystem extends HexcodeManager {
 
         PlayerHexRoot hexRoot = new PlayerHexRoot(ref);
 
-        // check if there is an available charge for this spell, if the stat exists
-        float availableCharges = hexRoot.resolveMagicCharges(accessor);
-        if (availableCharges <= 0) {
-            // TODO: Improve UX, do not send directly to player ref.
+        int maxCharges = (int) hexRoot.resolveMaxMagicCharges(accessor);
+        if (maxCharges <= 0) {
             PlayerRef pr = accessor.getComponent(ref, PlayerRef.getComponentType());
             if (pr != null) {
-                pr.sendMessage(Message.raw("at maximum active spells (" + (int) availableCharges + ")"));
+                pr.sendMessage(Message.raw("no spell slots available"));
             }
             return InteractionState.Finished;
+        }
+        int activeCount = execComp.getActiveCount();
+        while (activeCount >= maxCharges) {
+            execComp.evictOldest();
+            activeCount--;
         }
 
         float volatilityMax = hexRoot.resolveVolatility(accessor);

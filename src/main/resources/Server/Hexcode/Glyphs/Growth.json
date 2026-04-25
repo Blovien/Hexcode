@@ -4,7 +4,7 @@
   "Description": "Restores the natural state of targets: heals entities, grows crops, repairs blocks",
   "ModelPath": "Growth",
   "BasePower": 1.0,
-  "ManaConsumption": 22,
+  "ManaConsumption": 12,
   "ShapeStructure": [
     {
       "ShapeId": "Square",
@@ -36,7 +36,21 @@
       "Style": "Next",
       "Label": "Next",
       "Description": "The next glyph in the execution chain"
+    },
+    "duration": {
+      "Label": "Duration",
+      "Description": "The length of the growth in seconds",
+      "Style": "Input",
+      "Unique": true,
+      "DefaultValue": 10
     }
   },
-  "VolatilityCost": 4
+  "Volatility": {
+    "InstantCost": 3,
+    "DrainPerSecond": 0.0,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 5.0
+    }
+  }
 }

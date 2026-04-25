@@ -15,6 +15,7 @@ import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockGathering
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
@@ -25,7 +26,8 @@ import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
-import com.riprod.hexcode.utils.SpellVarUtil;
+import com.riprod.hexcode.utils.HexDirectionUtil;
+import com.riprod.hexcode.utils.HexVarUtil;
 
 public class PhaseGlyph implements GlyphHandler {
 
@@ -47,12 +49,13 @@ public static final String ID = "Phase";
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
         if (tracker == null) return true;
 
-        double intensity = clamp(SpellVarUtil.resolveNumberOrDefault(
+        double intensity = clamp(HexVarUtil.numberOrDefault(
                 glyph.readSlot(PhaseGlyphSlots.INTENSITY, hexContext), DEFAULT_INTENSITY),
                 MIN_INTENSITY, MAX_INTENSITY);
         float intensityScale = (float) Math.max(1.0, intensity / DEFAULT_INTENSITY);
 
-        float cost = VolatilityTracker.computeGlyphCost(glyph) * intensityScale;
+        int repeatCount = tracker.getGlyphUsage(glyph.getId());
+        float cost = VolatilityTracker.computeGlyphCost(glyph, repeatCount) * intensityScale;
         return tracker.consumeVolatility(cost);
     }
 
@@ -86,15 +89,16 @@ public static final String ID = "Phase";
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targets = glyph.readSlot(PhaseGlyphSlots.TARGET, hexContext);
         if (targets == null) {
-            LOGGER.atInfo().log("phase: no targets provided");
-            HexExecuter.fail(hexContext);
+            LOGGER.atWarning().log("Phase: target required");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Phase: target required");
             return;
         }
 
-        double duration = clamp(SpellVarUtil.resolveNumberOrDefault(
+        double duration = clamp(HexVarUtil.numberOrDefault(
                 glyph.readSlot(PhaseGlyphSlots.DURATION, hexContext), DEFAULT_DURATION),
                 MIN_DURATION, MAX_DURATION);
-        double intensity = clamp(SpellVarUtil.resolveNumberOrDefault(
+        double intensity = clamp(HexVarUtil.numberOrDefault(
                 glyph.readSlot(PhaseGlyphSlots.INTENSITY, hexContext), DEFAULT_INTENSITY),
                 MIN_INTENSITY, MAX_INTENSITY);
 
@@ -103,28 +107,33 @@ public static final String ID = "Phase";
 
         Vector3i pos = resolveBlockPosition(targets, hexContext);
         if (pos == null) {
-            LOGGER.atInfo().log("phase: could not resolve block position");
-            HexExecuter.fail(hexContext);
+            LOGGER.atWarning().log("Phase: target ref unresolved");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Phase: target ref unresolved");
             return;
         }
 
         int blockId = world.getBlock(pos.x, pos.y, pos.z);
         if (blockId == BlockType.EMPTY_ID) {
-            LOGGER.atInfo().log("phase: target block is empty");
-            HexExecuter.fail(hexContext);
+            LOGGER.atWarning().log("Phase: target block is empty");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Phase: target block is empty");
             return;
         }
 
         BlockType blockType = BlockType.getAssetMap().getAsset(blockId);
         if (blockType == null) {
-            HexExecuter.fail(hexContext);
+            LOGGER.atWarning().log("Phase: missing asset BlockType id=%d", blockId);
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Phase: missing asset BlockType");
             return;
         }
 
         int quality = getBlockQuality(blockType);
         if (quality > intensity) {
-            LOGGER.atInfo().log("phase: block quality %d exceeds intensity %.1f", quality, intensity);
-            HexExecuter.fail(hexContext);
+            LOGGER.atWarning().log("Phase: block quality %d exceeds intensity %.1f", quality, intensity);
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Phase: intensity domain error (quality > intensity)");
             return;
         }
 
@@ -157,9 +166,9 @@ public static final String ID = "Phase";
     }
 
     private Vector3i resolveBlockPosition(HexVar targets, HexContext hexContext) {
-        BlockVar blockVar = SpellVarUtil.resolveBlockVar(targets, hexContext);
+        BlockVar blockVar = HexVarUtil.resolveBlockVar(targets, hexContext);
         if (blockVar != null) return blockVar.getValue();
-        PositionVar posVar = SpellVarUtil.resolvePositionVar(targets, hexContext);
+        PositionVar posVar = HexVarUtil.resolvePositionVar(targets, hexContext);
         if (posVar != null) {
             Vector3d pos = posVar.getValue();
             if (pos != null) {

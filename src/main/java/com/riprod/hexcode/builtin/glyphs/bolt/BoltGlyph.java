@@ -23,6 +23,7 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Int
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.RootInteraction;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.builtin.glyphs.bolt.style.BoltStyle;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
@@ -31,7 +32,8 @@ import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.utils.SpellVarUtil;
+import com.riprod.hexcode.utils.HexDirectionUtil;
+import com.riprod.hexcode.utils.HexVarUtil;
 
 public class BoltGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -46,8 +48,9 @@ public static final String ID = "Bolt";
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar target = glyph.readSlot(BoltGlyphSlots.TARGET, hexContext);
         if (target == null) {
-            LOGGER.atWarning().log("bolt: no target provided");
-            HexExecuter.fail(hexContext);
+            LOGGER.atWarning().log("Bolt: target required");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Bolt: target required");
             return;
         }
 
@@ -56,15 +59,16 @@ public static final String ID = "Bolt";
         World world = accessor.getExternalData().getWorld();
         Vector3f color = BoltStyle.resolveColor(hexContext);
 
-        EntityVar entityVar = SpellVarUtil.resolveEntityVar(target, hexContext);
-        BlockVar blockVar = entityVar == null ? SpellVarUtil.resolveBlockVar(target, hexContext) : null;
+        EntityVar entityVar = HexVarUtil.resolveEntityVar(target, hexContext);
+        BlockVar blockVar = entityVar == null ? HexVarUtil.resolveBlockVar(target, hexContext) : null;
         if (entityVar != null) {
             handleEntityTarget(glyph, hexContext, entityVar, accessor, world, color);
         } else if (blockVar != null) {
             handleBlockTarget(glyph, hexContext, blockVar, accessor, world, color);
         } else {
-            LOGGER.atWarning().log("bolt: target is not entity or block");
-            HexExecuter.fail(hexContext);
+            LOGGER.atWarning().log("Bolt: target must be Entity or Block");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Bolt: target must be Entity or Block");
             return;
         }
 
@@ -92,7 +96,7 @@ public static final String ID = "Bolt";
         BoltStyle.renderImpact(accessor, targetPos);
         BoltStyle.applyShockEffect(accessor, targetRef);
 
-        double damageAmount = SpellVarUtil.resolveNumberOrDefault(
+        double damageAmount = HexVarUtil.numberOrDefault(
                 glyph.readSlot(BoltGlyphSlots.POWER, hexContext), 5.0);
         damageAmount *= hexContext.getMagicPowerMultiplier();
         applyDamage(accessor, targetRef, (float) damageAmount);

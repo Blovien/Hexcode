@@ -37,7 +37,8 @@ import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
 import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.utils.SpellVarUtil;
+import com.riprod.hexcode.utils.HexDirectionUtil;
+import com.riprod.hexcode.utils.HexVarUtil;
 
 public class GlaciateGlyph implements GlyphHandler {
     @Override
@@ -62,7 +63,7 @@ public static final String ID = "Glaciate";
             return;
         }
 
-        Vector3d targetPos = SpellVarUtil.resolvePosition(targetVar, hexContext.getAccessor());
+        Vector3d targetPos = HexVarUtil.position(targetVar, hexContext.getAccessor());
         if (targetPos == null) {
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
                     "could not resolve target position");
@@ -70,7 +71,7 @@ public static final String ID = "Glaciate";
         }
 
         HexVar offsetVar = glyph.readSlot(GlaciateGlyphSlots.OFFSET, hexContext);
-        double duration = SpellVarUtil.resolveNumberOrDefault(
+        double duration = HexVarUtil.numberOrDefault(
                 glyph.readSlot(GlaciateGlyphSlots.DURATION, hexContext), DEFAULT_DURATION);
         if (duration <= 0) duration = DEFAULT_DURATION;
 
@@ -95,7 +96,7 @@ public static final String ID = "Glaciate";
         }
 
         if (offsetVar instanceof EntityVar) {
-            Vector3d absPos = SpellVarUtil.resolvePosition(offsetVar, hexContext.getAccessor());
+            Vector3d absPos = HexVarUtil.position(offsetVar, hexContext.getAccessor());
             if (absPos != null) return absPos;
             return new Vector3d(targetPos).add(new Vector3d(0, DEFAULT_HEIGHT, 0));
         }
@@ -106,7 +107,7 @@ public static final String ID = "Glaciate";
         }
 
         if (offsetVar instanceof NumberVar) {
-            double height = SpellVarUtil.resolveNumberOrDefault(offsetVar, DEFAULT_HEIGHT);
+            double height = HexVarUtil.numberOrDefault(offsetVar, DEFAULT_HEIGHT);
             return new Vector3d(targetPos).add(new Vector3d(0, height, 0));
         }
 

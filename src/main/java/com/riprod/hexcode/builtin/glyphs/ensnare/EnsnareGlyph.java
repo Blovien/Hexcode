@@ -23,6 +23,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.builtin.glyphs.ensnare.component.EnsnareComponent;
 import com.riprod.hexcode.builtin.glyphs.ensnare.component.SpikeEntry;
 import com.riprod.hexcode.builtin.glyphs.ensnare.style.EnsnareStyle;
@@ -34,7 +35,8 @@ import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
-import com.riprod.hexcode.utils.SpellVarUtil;
+import com.riprod.hexcode.utils.HexDirectionUtil;
+import com.riprod.hexcode.utils.HexVarUtil;
 
 public class EnsnareGlyph implements GlyphHandler {
 
@@ -65,16 +67,17 @@ public static final String ID = "Ensnare";
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
         if (tracker == null) return true;
 
-        double radius = Math.max(0, SpellVarUtil.resolveNumberOrDefault(
+        double radius = Math.max(0, HexVarUtil.numberOrDefault(
                 glyph.readSlot(EnsnareGlyphSlots.RADIUS, hexContext), DEFAULT_RADIUS));
-        double damage = Math.max(0, SpellVarUtil.resolveNumberOrDefault(
+        double damage = Math.max(0, HexVarUtil.numberOrDefault(
                 glyph.readSlot(EnsnareGlyphSlots.DAMAGE, hexContext), DEFAULT_DAMAGE));
 
         float scale = (float) Math.max(1.0,
                 harshScale(radius, DEFAULT_RADIUS, RADIUS_THRESHOLD, 2.0)
                 + harshScale(damage, DEFAULT_DAMAGE, DAMAGE_THRESHOLD, 2.0));
 
-        float cost = VolatilityTracker.computeGlyphCost(glyph) * scale;
+        int repeatCount = tracker.getGlyphUsage(glyph.getId());
+        float cost = VolatilityTracker.computeGlyphCost(glyph, repeatCount) * scale;
         return tracker.consumeVolatility(cost);
     }
 
@@ -83,18 +86,19 @@ public static final String ID = "Ensnare";
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
         World world = accessor.getExternalData().getWorld();
 
-        double radius = Math.max(0, SpellVarUtil.resolveNumberOrDefault(
+        double radius = Math.max(0, HexVarUtil.numberOrDefault(
                 glyph.readSlot(EnsnareGlyphSlots.RADIUS, hexContext), DEFAULT_RADIUS));
-        double damage = Math.max(0, SpellVarUtil.resolveNumberOrDefault(
+        double damage = Math.max(0, HexVarUtil.numberOrDefault(
                 glyph.readSlot(EnsnareGlyphSlots.DAMAGE, hexContext), DEFAULT_DAMAGE));
-        double duration = Math.max(0, SpellVarUtil.resolveNumberOrDefault(
+        double duration = Math.max(0, HexVarUtil.numberOrDefault(
                 glyph.readSlot(EnsnareGlyphSlots.DURATION, hexContext), DEFAULT_DURATION));
 
-        Vector3d center = SpellVarUtil.resolvePosition(
+        Vector3d center = HexVarUtil.position(
                 glyph.readSlot(EnsnareGlyphSlots.TARGET, hexContext), accessor);
         if (center == null) {
-            LOGGER.atInfo().log("ensnare: could not resolve center position");
-            HexExecuter.fail(hexContext);
+            LOGGER.atWarning().log("Ensnare: target ref unresolved");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Ensnare: target ref unresolved");
             return;
         }
 
@@ -104,8 +108,9 @@ public static final String ID = "Ensnare";
 
         ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(SPIKE_MODEL);
         if (modelAsset == null) {
-            LOGGER.atWarning().log("ensnare: spike model asset not found: %s", SPIKE_MODEL);
-            HexExecuter.fail(hexContext);
+            LOGGER.atWarning().log("Ensnare: missing asset %s", SPIKE_MODEL);
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Ensnare: missing asset " + SPIKE_MODEL);
             return;
         }
 
@@ -145,8 +150,9 @@ public static final String ID = "Ensnare";
         }
 
         if (spikes.isEmpty()) {
-            LOGGER.atInfo().log("ensnare: no valid spike positions found");
-            HexExecuter.fail(hexContext);
+            LOGGER.atWarning().log("Ensnare: no valid spike positions found");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Ensnare: no valid spike positions");
             return;
         }
 
@@ -188,6 +194,7 @@ public static final String ID = "Ensnare";
         holder.addComponent(NetworkId.getComponentType(),
                 new NetworkId(accessor.getExternalData().takeNextNetworkId()));
         holder.ensureComponent(PropComponent.getComponentType());
+        holder.ensureComponent(EntityStore.REGISTRY.getNonSerializedComponentType());
 
         return accessor.addEntity(holder, AddReason.SPAWN);
     }

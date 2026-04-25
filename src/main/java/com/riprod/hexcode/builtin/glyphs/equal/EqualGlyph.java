@@ -8,7 +8,7 @@ import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.utils.HexMathUtil;
+import com.riprod.hexcode.utils.HexCompareUtil;
 
 public class EqualGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -38,7 +38,7 @@ public static final String ID = "Equal";
     }
 
     private void branch(Glyph glyph, HexContext hexContext, HexVar a, HexVar b) {
-        boolean result = HexMathUtil.isEqual(a, b);
+        boolean result = HexCompareUtil.isEqual(a, b);
 
         List<String> next = glyph.getNextLinks();
         if (result) {

@@ -1,38 +1,63 @@
 package com.riprod.hexcode.builtin.glyphs.multiply;
 
-import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
-import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
+import com.riprod.hexcode.core.common.glyphs.variables.ColorVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.common.glyphs.variables.NumberVar;
 import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
+import com.riprod.hexcode.core.common.glyphs.variables.RotationVar;
+import com.riprod.hexcode.core.common.glyphs.variables.TypeMismatchException;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.utils.HexMathUtil;
-import com.riprod.hexcode.utils.SpellVarUtil;
 
 public class MultiplyGlyph implements GlyphHandler {
-    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     @Override
-public String getId() { return ID; };
+    public String getId() {
+        return ID;
+    };
 
-public static final String ID = "Multiply";
+    public static final String ID = "Multiply";
 
     private HexVar compute(Glyph glyph, HexContext hexContext) {
         HexVar a = glyph.readSlot(MultiplyGlyphSlots.A, hexContext);
         HexVar b = glyph.readSlot(MultiplyGlyphSlots.B, hexContext);
+        if (a == null && b == null) return null;
+        if (a == null) return b;
+        if (b == null) return a;
 
-        if (a instanceof EntityVar) {
-            Vector3d aPos = SpellVarUtil.resolveAsPosition(a, hexContext.getAccessor());
-            a = new PositionVar(aPos, true);
-        }
-        if (b instanceof EntityVar) {
-            Vector3d bPos = SpellVarUtil.resolveAsPosition(b, hexContext.getAccessor());
-            b = new PositionVar(bPos, true);
-        }
+        ComponentAccessor<EntityStore> buf = hexContext.getAccessor();
+        a = a.resolveSelf(b, buf);
+        b = b.resolveSelf(a, buf);
+        b = b.convertTo(a.getClass(), buf);
 
-        return HexMathUtil.multiply(a, b);
+        return switch (a) {
+            case NumberVar na -> {
+                NumberVar nb = (NumberVar) b;
+                yield new NumberVar(na.getValue() * nb.getValue());
+            }
+            case PositionVar pa -> {
+                PositionVar pb = (PositionVar) b;
+                yield new PositionVar(new Vector3d(pa.getValue()).scale(pb.getValue()), false);
+            }
+            case RotationVar ra -> {
+                RotationVar rb = (RotationVar) b;
+                yield new RotationVar(new Vector3f(ra.getValue()).scale(rb.getValue()));
+            }
+            case ColorVar ca -> {
+                ColorVar cb = (ColorVar) b;
+                yield new ColorVar(
+                        ca.getR() * cb.getR(),
+                        ca.getG() * cb.getG(),
+                        ca.getB() * cb.getB(),
+                        ca.getA() * cb.getA());
+            }
+            default -> throw new TypeMismatchException(ID, a, b);
+        };
     }
 
     @Override

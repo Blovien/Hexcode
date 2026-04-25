@@ -23,8 +23,7 @@ public class HaltConstructHandler implements ConstructHandler<HaltState> {
         if (state == null) return true;
         if (state.isExpired()) return true;
         state.tick(dt);
-        status.getHexContext().getVolatilityTracker().consumeVolatility(dt);
-        return false;
+        return !drainSustain(dt, status);
     }
 
     @Override

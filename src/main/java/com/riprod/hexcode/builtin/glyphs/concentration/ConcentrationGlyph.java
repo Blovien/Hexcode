@@ -16,6 +16,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
@@ -31,6 +32,7 @@ public class ConcentrationGlyph implements GlyphHandler {
 
     public static final String ID = "Concentration";
     private static final String MODEL_ID = "Concentration";
+    private static final float VOLATILITY_INCREASE = 0.5f;
 
     private static final Vector3f MOUNT_OFFSET = new Vector3f(0f, 1.4f, 1.2f);
 
@@ -38,7 +40,9 @@ public class ConcentrationGlyph implements GlyphHandler {
     public void execute(Glyph glyph, HexContext hexContext) {
         Ref<EntityStore> casterRef = hexContext.getCasterRef();
         if (casterRef == null || !casterRef.isValid()) {
-            HexExecuter.fail(hexContext);
+            LOGGER.atWarning().log("Concentration: caster not found");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Concentration: caster not found");
             return;
         }
 
@@ -47,15 +51,18 @@ public class ConcentrationGlyph implements GlyphHandler {
         HexcasterExecutionComponent execComp = accessor.getComponent(
                 casterRef, HexcasterExecutionComponent.getComponentType());
         if (execComp == null || !execComp.isHoldingPrimary()) {
-            LOGGER.atInfo().log("concentration: caster not holding primary, failing");
-            HexExecuter.fail(hexContext);
+            LOGGER.atWarning().log("Concentration: caster not holding primary");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Concentration: caster not holding primary");
             return;
         }
 
         TransformComponent casterTransform = accessor.getComponent(
                 casterRef, TransformComponent.getComponentType());
         if (casterTransform == null) {
-            HexExecuter.fail(hexContext);
+            LOGGER.atWarning().log("Concentration: caster has no transform");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Concentration: caster has no transform");
             return;
         }
 
@@ -65,7 +72,13 @@ public class ConcentrationGlyph implements GlyphHandler {
         HexConstructSpawner.applyWithState(
                 accessor, casterRef, hexContext, glyph, ConcentrationGlyph.ID, state);
 
-        HexExecuter.continueFromSlot(glyph, "Next", hexContext);
+        var tracker = hexContext.getVolatilityTracker();
+
+        var existingMultiplier = tracker.getVolatilityMultiplier();
+        tracker.setVolatilityMultiplier(existingMultiplier + VOLATILITY_INCREASE);
+
+
+        HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 
     private Ref<EntityStore> spawnVisual(CommandBuffer<EntityStore> accessor,

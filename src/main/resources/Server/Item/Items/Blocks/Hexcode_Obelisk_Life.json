@@ -1,6 +1,7 @@
 {
   "TranslationProperties": {
-    "Name": "hexcode.blocks.Hexcode_Obelisk_Life.name"
+    "Name": "hexcode.blocks.Hexcode_Obelisk_Life.name",
+    "Description": "hexcode.blocks.Hexcode_Obelisk_Life.description"
   },
   "Icon": "Icons/ItemsGenerated/Hexcode_Obelisk_Life.png",
   "Categories": [

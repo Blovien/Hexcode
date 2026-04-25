@@ -4,7 +4,7 @@
   "Description": "Teleports targets to a destination position",
   "ModelPath": "Warp",
   "BasePower": 1.0,
-  "ManaConsumption": 10,
+  "ManaConsumption": 25,
   "ShapeStructure": [
     {
       "ShapeId": "Circle",
@@ -37,5 +37,16 @@
       "Description": "The next glyph in the execution chain"
     }
   },
-  "VolatilityCost": 14
+  "Volatility": {
+    "InstantCost": 6,
+    "DrainPerSecond": 0.0,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 5.0
+    },
+    "AreaTax": {
+      "DefaultMagnitude": 10.0,
+      "Exponent": 1.0
+    }
+  }
 }

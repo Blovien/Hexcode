@@ -1,0 +1,69 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Style",
+  "Description": "Override the active hex color with RGBA (0-255)",
+  "ModelPath": "Style",
+  "BasePower": 0,
+  "ManaConsumption": 0,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Less",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Circle",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Greater",
+      "Size": 1.0
+    }
+  ],
+  "Slots": {
+    "r": {
+      "Style": "Input",
+      "Label": "R",
+      "Description": "Red (0-255)",
+      "DefaultValue": 255
+    },
+    "g": {
+      "Style": "Input",
+      "Label": "G",
+      "Description": "Green (0-255)",
+      "DefaultValue": 255
+    },
+    "b": {
+      "Style": "Input",
+      "Label": "B",
+      "Description": "Blue (0-255)",
+      "DefaultValue": 255
+    },
+    "a": {
+      "Style": "Input",
+      "Label": "A",
+      "Description": "Alpha (0-255)",
+      "DefaultValue": 255
+    },
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain"
+    }
+  },
+  "VolatilityEscalation": {
+    "InstantCost": 0.5,
+    "DrainPerSecond": 0,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 5.0
+    }
+  },
+  "Volatility": {
+    "InstantCost": 0.1,
+    "DrainPerSecond": 0.0,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 10.0
+    }
+  }
+}

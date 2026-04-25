@@ -1,7 +1,9 @@
 package com.riprod.hexcode.builtin.glyphs.output;
 
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.protocol.Color;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
@@ -13,8 +15,10 @@ import com.riprod.hexcode.core.state.execution.component.HexContext;
 
 public class OutputGlyph implements GlyphHandler {
 
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+
     public static final String ID = "Output";
-    
+
     @Override
     public String getId() {
         return ID;
@@ -23,15 +27,20 @@ public class OutputGlyph implements GlyphHandler {
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar colorInput = glyph.readSlot(OutputGlyphSlots.COLOR, hexContext);
-        applyColor(colorInput, hexContext);
+        if (!applyColor(colorInput, glyph, hexContext)) return;
         // end-cap at craft time: Next is empty, continueFromSlot returns immediately.
         // Wave 3 drag-snap mutates Next to inject a child hex; this same call forwards into it.
         HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 
-    private void applyColor(HexVar input, HexContext hexContext) {
+    private boolean applyColor(HexVar input, Glyph glyph, HexContext hexContext) {
         Color newColor = resolveAsColor(input);
-        if (newColor == null) return;
+        if (newColor == null) {
+            LOGGER.atWarning().log("output: color input must be Number or Position");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Output: color input must be Number or Position");
+            return false;
+        }
 
         HexColors colors = hexContext.getColors();
         if (colors == null) {
@@ -39,6 +48,7 @@ public class OutputGlyph implements GlyphHandler {
             hexContext.setColors(colors);
         }
         colors.setPrimaryColor(newColor);
+        return true;
     }
 
     private Color resolveAsColor(HexVar input) {

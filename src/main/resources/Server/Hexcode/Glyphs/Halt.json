@@ -4,7 +4,7 @@
   "Description": "Instantly zeros all velocity on targets, optionally sustaining suppression",
   "ModelPath": "Halt",
   "BasePower": 1.0,
-  "ManaConsumption": 3,
+  "ManaConsumption": 10,
   "ShapeStructure": [
     {
       "ShapeId": "Antitriangle",
@@ -30,5 +30,12 @@
       "Description": "The next glyph in the execution chain"
     }
   },
-  "VolatilityCost": 4
+  "Volatility": {
+    "InstantCost": 2,
+    "DrainPerSecond": 0.1,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 5.0
+    }
+  }
 }

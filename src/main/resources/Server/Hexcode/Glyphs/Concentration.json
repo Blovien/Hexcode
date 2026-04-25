@@ -4,7 +4,7 @@
   "Description": "Sustains downstream glyphs while the caster holds the primary interaction. Releasing too early invalidates the hex.",
   "ModelPath": "Concentration",
   "BasePower": 0,
-  "ManaConsumption": 1,
+  "ManaConsumption": 0,
   "ShapeStructure": [
     {
       "ShapeId": "Triangle",
@@ -22,5 +22,12 @@
       "Description": "Children sustained while concentrating"
     }
   },
-  "VolatilityCost": 1
+  "Volatility": {
+    "InstantCost": 0.1,
+    "DrainPerSecond": 0.0,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 10.0
+    }
+  }
 }

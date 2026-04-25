@@ -1,6 +1,7 @@
 {
   "TranslationProperties": {
-    "Name": "hexcode.blocks.Hexcode_Obelisk_Void.name"
+    "Name": "hexcode.blocks.Hexcode_Obelisk_Void.name",
+    "Description": "hexcode.blocks.Hexcode_Obelisk_Void.description"
   },
   "Icon": "Icons/ItemsGenerated/Hexcode_Obelisk_Void.png",
   "Categories": [

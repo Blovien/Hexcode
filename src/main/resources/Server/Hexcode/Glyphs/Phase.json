@@ -4,7 +4,7 @@
   "Description": "Temporarily removes blocks from reality, restoring them after a delay",
   "ModelPath": "Phase",
   "BasePower": 1.0,
-  "ManaConsumption": 18,
+  "ManaConsumption": 20,
   "ShapeStructure": [
     {
       "ShapeId": "Square",
@@ -45,5 +45,12 @@
       "Description": "The next glyph in the execution chain"
     }
   },
-  "VolatilityCost": 8
+  "Volatility": {
+    "InstantCost": 4,
+    "DrainPerSecond": 0.2,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 5.0
+    }
+  }
 }

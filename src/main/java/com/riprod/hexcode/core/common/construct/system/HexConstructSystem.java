@@ -60,15 +60,23 @@ public class HexConstructSystem extends EntityTickingSystem<EntityStore> {
                 boolean removed = tickEffect(effectId, handler, status, ctx, dt, it);
                 if (removed) continue;
 
-                if (status.isKillRequested()
-                        || (status.getHexContext() != null
-                                && status.getHexContext().getVolatilityTracker().getRemainingBudget() <= 0)) {
+                boolean killRequested = status.isKillRequested();
+                boolean budgetDepleted = status.getHexContext() != null
+                        && status.getHexContext().getVolatilityTracker().getRemainingBudget() <= 0;
+                if (killRequested || budgetDepleted) {
+                    LOGGER.atInfo().log("construct '%s' terminated (%s)",
+                            status.getHandlerId(),
+                            killRequested ? "kill requested" : "volatility depleted");
                     cleanup(handler, status, ctx);
                     it.remove();
                 }
             }
+
+            if (construct.getEffects().isEmpty()) {
+                buffer.tryRemoveComponent(entityRef, HexEffectsComponent.getComponentType());
+            }
         } catch (Exception e) {
-            LOGGER.atSevere().log("HexConstructSystem failed: %s", e.getMessage());
+            LOGGER.atSevere().withCause(e).log("HexConstructSystem failed: %s", e);
         }
     }
 
@@ -95,7 +103,7 @@ public class HexConstructSystem extends EntityTickingSystem<EntityStore> {
                 }
             }
         } catch (Exception e) {
-            LOGGER.atSevere().log("error ticking construct effect %s: %s", effectId, e.getMessage());
+            LOGGER.atSevere().withCause(e).log("error ticking construct effect %s: %s", effectId, e);
         }
         return false;
     }

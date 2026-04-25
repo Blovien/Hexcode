@@ -99,7 +99,7 @@ public class HexConstructSpawner {
         HexEffectsComponent pending;
         synchronized (PENDING_APPLIES) {
             pending = PENDING_APPLIES.get(targetRef);
-            if (pending == null) {
+            if (pending == null || pending.getEffects().isEmpty()) {
                 pending = new HexEffectsComponent();
                 pending.addEffect(constructId, construct);
                 PENDING_APPLIES.put(targetRef, pending);

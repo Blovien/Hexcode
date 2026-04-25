@@ -1,12 +1,20 @@
 Hexcode_Pedestal_Fire.name=Fire Pedestal
+Hexcode_Pedestal_Fire.description=<color is="#aaaaaa">Crafting station for hexcode spells.\nPlace a hex book to begin.</color>\n\n<color is="#aaaaaa">Supports <b>5</b> obelisks within <b>10</b> blocks\nCrafting radius <b>30</b> blocks</color>
 Hexcode_Pedestal_Arcane.name=Ice Pedestal
+Hexcode_Pedestal_Arcane.description=<color is="#aaaaaa">Crafting station for hexcode spells.\nPlace a hex book to begin.</color>\n\n<color is="#aaaaaa">Supports <b>4</b> obelisks within <b>8</b> blocks\nCrafting radius <b>30</b> blocks</color>
 Hexcode_Pedestal_Thorium.name=Life Pedestal
+Hexcode_Pedestal_Thorium.description=<color is="#aaaaaa">A compact crafting station for hexcode spells.\nPlace a hex book to begin.</color>\n\n<color is="#aaaaaa">Supports <b>2</b> obelisks within <b>5</b> blocks\nCrafting radius <b>8</b> blocks</color>
 Hexcode_Pedestal_Void.name=Void Pedestal
+Hexcode_Pedestal_Void.description=<color is="#aaaaaa">Crafting station for hexcode spells.\nPlace a hex book to begin.</color>\n\n<color is="#aaaaaa">Supports <b>8</b> obelisks within <b>8</b> blocks\nCrafting radius <b>35</b> blocks</color>
 
 Hexcode_Obelisk_Life.name=Life Obelisk
+Hexcode_Obelisk_Life.description=<color is="#aaaaaa">Place near a pedestal to augment crafting.\n\nIncreases max <b>volatility</b> at the cost of efficiency.\nDraw bigger spells -- but less precisely.</color>
 Hexcode_Obelisk_Void.name=Void Obelisk
+Hexcode_Obelisk_Void.description=<color is="#aaaaaa">Place near a pedestal to augment crafting.\n\nAllows <b>importing</b> and <b>exporting</b> hex blueprints.\nSave your spells or load shared designs.</color>
 Hexcode_Obelisk_Seeker.name=Seeker Obelisk
+Hexcode_Obelisk_Seeker.description=<color is="#aaaaaa">Place near a pedestal to augment crafting.\n\nReveals <b>detailed information</b> about glyphs\nwhile hovering over them.</color>
 Hexcode_Obelisk_Ice.name=Ice Obelisk
+Hexcode_Obelisk_Ice.description=<color is="#aaaaaa">Place near a pedestal to augment crafting.\n\nIncreases max <b>efficiency</b> at the cost of volatility.\nDraw more precisely -- but with less room to work.</color>
 Hexcode_Obelisk_Import_Export.name=Import/Export Obelisk
 
 pedestal.interact.idle=Press [{key}] to add HexBook

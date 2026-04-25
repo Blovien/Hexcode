@@ -27,6 +27,7 @@ import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
 import com.hypixel.hytale.server.core.modules.projectile.ProjectileModule;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.builtin.glyphs.conjure.component.ConjureZoneComponent;
 import com.riprod.hexcode.builtin.glyphs.conjure.style.ConjureStyle;
 import com.riprod.hexcode.core.common.construct.component.HexEffectsComponent;
@@ -38,9 +39,12 @@ import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.glyphs.variables.NumberVar;
 import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
+import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.utils.SpellVarUtil;
+import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
+import com.riprod.hexcode.utils.HexDirectionUtil;
+import com.riprod.hexcode.utils.HexVarUtil;
 
 public class ConjureGlyph implements GlyphHandler {
   private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -49,6 +53,35 @@ public String getId() { return ID; };
 
 public static final String ID = "Conjure";
   private static final String HARD_COLLISION_ID = "Hexcode_Conjure_HardCollision";
+
+  @Override
+  public boolean consumeVolatility(Glyph glyph, HexContext hexContext) {
+    VolatilityTracker tracker = hexContext.getVolatilityTracker();
+    if (tracker == null) return true;
+
+    Vector3d a = HexVarUtil.position(
+        glyph.readSlot(ConjureGlyphSlots.COORDS_A, hexContext,
+            new PositionVar(new Vector3d(0.5, 0.5, 0.5))),
+        hexContext.getAccessor());
+    Vector3d b = HexVarUtil.position(
+        glyph.readSlot(ConjureGlyphSlots.COORDS_B, hexContext,
+            new PositionVar(new Vector3d(-0.5, -0.5, -0.5))),
+        hexContext.getAccessor());
+    double volume = 1.0;
+    if (a != null && b != null) {
+      double dx = Math.max(1.0, Math.abs(a.x - b.x));
+      double dy = Math.max(1.0, Math.abs(a.y - b.y));
+      double dz = Math.max(1.0, Math.abs(a.z - b.z));
+      volume = dx * dy * dz;
+    }
+
+    GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
+    float areaScale = computeAreaScale(volume, asset);
+
+    int repeatCount = tracker.getGlyphUsage(glyph.getId());
+    float cost = VolatilityTracker.computeGlyphCost(glyph, repeatCount) * areaScale;
+    return tracker.consumeVolatility(cost);
+  }
 
   @Override
   public void execute(Glyph glyph, HexContext hexContext) {
@@ -61,33 +94,37 @@ public static final String ID = "Conjure";
     HexVar anchorVar = glyph.readSlot(ConjureGlyphSlots.ANCHOR, hexContext);
 
     if (anchorVar == null) {
-      LOGGER.atInfo().log("conjure: no anchor, failing");
-      HexExecuter.fail(hexContext);
+      LOGGER.atWarning().log("Conjure: anchor required");
+      HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+          "Conjure: anchor required");
       return;
     }
     if (anchorVar instanceof NumberVar anchorNum) {
       HexVar resolvedVar = hexContext.getVariable(anchorNum.getValue().toString());
       if (resolvedVar == null) {
-        LOGGER.atInfo().log("conjure: anchor number %s does not resolve to a variable, failing",
+        LOGGER.atWarning().log("Conjure: anchor number %s does not resolve to a variable",
             anchorNum.getValue());
-        HexExecuter.fail(hexContext);
+        HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+            "Conjure: anchor ref unresolved");
         return;
       }
       anchorVar = resolvedVar;
     }
-    Vector3d anchorPos = SpellVarUtil.resolvePosition(anchorVar, hexContext.getAccessor());
+    Vector3d anchorPos = HexVarUtil.position(anchorVar, hexContext.getAccessor());
     if (anchorPos == null) {
-      LOGGER.atInfo().log("conjure: invalid anchor position, failing");
-      HexExecuter.fail(hexContext);
+      LOGGER.atWarning().log("Conjure: anchor ref unresolved");
+      HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+          "Conjure: anchor ref unresolved");
       return;
     }
 
-    Vector3d coordsA = SpellVarUtil.resolvePosition(coordsAVar, hexContext.getAccessor());
-    Vector3d coordsB = SpellVarUtil.resolvePosition(coordsBVar, hexContext.getAccessor());
+    Vector3d coordsA = HexVarUtil.position(coordsAVar, hexContext.getAccessor());
+    Vector3d coordsB = HexVarUtil.position(coordsBVar, hexContext.getAccessor());
 
     if (coordsA == null || coordsB == null) {
-      LOGGER.atInfo().log("conjure: invalid coords, failing");
-      HexExecuter.fail(hexContext);
+      LOGGER.atWarning().log("Conjure: coords ref unresolved");
+      HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+          "Conjure: coords ref unresolved");
       return;
     }
 
@@ -116,14 +153,8 @@ public static final String ID = "Conjure";
         (max.z - min.z) / 2);
     Vector3d size = new Vector3d(max.x - min.x, max.y - min.y, max.z - min.z);
 
-    float durationSeconds = SpellVarUtil.resolveNumberOrDefault(durationVar, 5.0).floatValue();
-    float interval = SpellVarUtil.resolveNumberOrDefault(intervalVar, -1.0).floatValue();
-
-    String[] immediate = glyph.getSlot(ConjureGlyphSlots.IMMEDIATE).getLinks();
-    String[] next = glyph.getSlot(Glyph.NEXT_SLOT).getLinks();
-
-    List<String> immediateBranchIds = Arrays.asList(immediate);
-    List<String> conditionalBranchIds = Arrays.asList(next);
+    float durationSeconds = HexVarUtil.numberOrDefault(durationVar, 5.0).floatValue();
+    float interval = HexVarUtil.numberOrDefault(intervalVar, -1.0).floatValue();
 
     ConjureZoneComponent zoneComp = new ConjureZoneComponent(halfExtents, interval);
 
@@ -175,8 +206,8 @@ public static final String ID = "Conjure";
     UUID zoneUuid = zoneUuidComp != null ? zoneUuidComp.getUuid() : UUID.randomUUID();
     EntityVar zoneEntityVar = new EntityVar(zoneUuid, zoneRef);
     glyph.writeSelfOutput(zoneEntityVar, hexContext);
+    glyph.writeOutput(zoneEntityVar, hexContext);
 
     hexContext.getRoot().addDependency(hexContext, zoneRef);
-
   }
 }

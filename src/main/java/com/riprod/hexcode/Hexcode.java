@@ -308,6 +308,24 @@ public class Hexcode extends JavaPlugin {
     Interaction.CODEC.register("HexAbility", HexAbility.class, HexAbility.CODEC);
     Interaction.CODEC.register("GlyphBookInteraction", GlyphBookInteraction.class,
         GlyphBookInteraction.CODEC);
+    Interaction.CODEC.register("HexProjectileHit",
+        com.riprod.hexcode.builtin.glyphs.projectile.interaction.HexProjectileHitInteraction.class,
+        com.riprod.hexcode.builtin.glyphs.projectile.interaction.HexProjectileHitInteraction.CODEC);
+    Interaction.CODEC.register("HexProjectileMiss",
+        com.riprod.hexcode.builtin.glyphs.projectile.interaction.HexProjectileMissInteraction.class,
+        com.riprod.hexcode.builtin.glyphs.projectile.interaction.HexProjectileMissInteraction.CODEC);
+    Interaction.CODEC.register("HexProjectileBounce",
+        com.riprod.hexcode.builtin.glyphs.projectile.interaction.HexProjectileBounceInteraction.class,
+        com.riprod.hexcode.builtin.glyphs.projectile.interaction.HexProjectileBounceInteraction.CODEC);
+    Interaction.CODEC.register("HexShatterHit",
+        com.riprod.hexcode.builtin.glyphs.shatter.interaction.HexShatterHitInteraction.class,
+        com.riprod.hexcode.builtin.glyphs.shatter.interaction.HexShatterHitInteraction.CODEC);
+    Interaction.CODEC.register("HexShatterMiss",
+        com.riprod.hexcode.builtin.glyphs.shatter.interaction.HexShatterMissInteraction.class,
+        com.riprod.hexcode.builtin.glyphs.shatter.interaction.HexShatterMissInteraction.CODEC);
+    Interaction.CODEC.register("HexShatterBounce",
+        com.riprod.hexcode.builtin.glyphs.shatter.interaction.HexShatterBounceInteraction.class,
+        com.riprod.hexcode.builtin.glyphs.shatter.interaction.HexShatterBounceInteraction.CODEC);
 
     // State Managers
     StateRouter.registerState(HexState.IDLE, new IdleSystem());

@@ -76,7 +76,7 @@ public class DrainConstructHandler implements ConstructHandler<DrainState> {
 
         state.addDrained(drainAmount);
         state.tick(dt);
-        status.getHexContext().getVolatilityTracker().consumeVolatility(dt);
+        if (!drainSustain(dt, status)) return true;
 
         TransformComponent tc = buffer.getComponent(target, TransformComponent.getComponentType());
         if (tc != null) {

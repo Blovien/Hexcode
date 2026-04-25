@@ -4,7 +4,7 @@
   "Description": "Raycasts from an entity in a direction, storing the first hit",
   "ModelPath": "Beam",
   "BasePower": 1.0,
-  "ManaConsumption": 3,
+  "ManaConsumption": 4,
   "ShapeStructure": [
     {
       "ShapeId": "Square",
@@ -41,5 +41,12 @@
       "Description": "The next glyph in the execution chain"
     }
   },
-  "VolatilityCost": 8
+  "Volatility": {
+    "InstantCost": 2,
+    "DrainPerSecond": 0.0,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 5.0
+    }
+  }
 }

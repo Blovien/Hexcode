@@ -1,0 +1,33 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Is Holding",
+  "Description": "Returns 1 if the caster is holding the primary cast button, 0 otherwise",
+  "ModelPath": "IsHolding",
+  "BasePower": 0,
+  "ManaConsumption": 0,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Antiline",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Slash",
+      "Size": 0.7
+    }
+  ],
+  "Slots": {
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain"
+    }
+  },
+  "Volatility": {
+    "InstantCost": 0.1,
+    "DrainPerSecond": 0.0,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 10.0
+    }
+  }
+}

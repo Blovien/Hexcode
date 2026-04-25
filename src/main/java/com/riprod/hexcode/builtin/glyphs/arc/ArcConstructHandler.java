@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
@@ -31,6 +32,7 @@ import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 
 public class ArcConstructHandler implements ConstructHandler<ArcState> {
 
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     private static final float DEFAULT_JUMP_RANGE = 15.0f;
     private static final float SHOCK_OVERLAP = 0.25f;
     private static final String SHOCK_EFFECT_ID = "Hexcode_Shock";
@@ -80,7 +82,11 @@ public class ArcConstructHandler implements ConstructHandler<ArcState> {
         if (branch == null) return true;
 
         HexContext hexContext = status.getHexContext();
-        if (!tryConsumePerHopVolatility(state, hexContext)) return true;
+        if (!tryConsumePerHopVolatility(state, hexContext)) {
+            LOGGER.atInfo().log("arc: chain ended — volatility depleted at hop %d/%d",
+                    state.getBranchIndex(), state.getBranches().size());
+            return true;
+        }
 
         Ref<EntityStore> targetRef = ctx.getEntityRef();
         UUIDComponent targetUuid = ctx.getBuffer().getComponent(
@@ -110,17 +116,20 @@ public class ArcConstructHandler implements ConstructHandler<ArcState> {
         GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(arcGlyph.getGlyphId());
         if (asset == null) return true;
 
-        float baseCost = asset.getVolatilityCost() * arcGlyph.getVolatility();
-
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
         if (tracker == null) return false;
 
-        float glyphUsage = tracker.getGlyphUsageScaled(arcGlyph.getId());
+        int usage = tracker.getGlyphUsage(arcGlyph.getId());
+        float baseCost = VolatilityTracker.computeGlyphCost(arcGlyph, usage);
         float rangeScale = state.getMaxJumpDistance() / DEFAULT_JUMP_RANGE;
-        float finalCost = baseCost * glyphUsage * rangeScale;
+        float finalCost = baseCost * rangeScale;
 
         if (hexContext.getRoot() == null) return true;
-        return tracker.consumeVolatility(finalCost);
+        boolean ok = tracker.consumeVolatility(finalCost);
+        if (ok) {
+            tracker.incrementGlyphUsage(arcGlyph.getId());
+        }
+        return ok;
     }
 
     private boolean hopToNext(ArcState state, HexStatus<ArcState> status, ConstructTickContext ctx) {
@@ -129,14 +138,21 @@ public class ArcConstructHandler implements ConstructHandler<ArcState> {
 
         TransformComponent fromTc = buffer.getComponent(
                 currentRef, TransformComponent.getComponentType());
-        if (fromTc == null) return true;
+        if (fromTc == null) {
+            LOGGER.atWarning().log("arc: current hop entity lost transform; ending chain");
+            return true;
+        }
 
         Vector3d fromPos = fromTc.getPosition();
         HexContext hexContext = status.getHexContext();
 
         Ref<EntityStore> nextTarget = ArcUtils.getNextArcTarget(
                 fromPos, state.getMaxJumpDistance(), state.getVisited(), buffer);
-        if (nextTarget == null) return true;
+        if (nextTarget == null) {
+            LOGGER.atInfo().log("arc: no nearby unvisited entity within %.1f; ending chain",
+                    state.getMaxJumpDistance());
+            return true;
+        }
 
         UUIDComponent nextUuid = buffer.getComponent(nextTarget, UUIDComponent.getComponentType());
         Set<UUID> nextVisited = new HashSet<>(state.getVisited());

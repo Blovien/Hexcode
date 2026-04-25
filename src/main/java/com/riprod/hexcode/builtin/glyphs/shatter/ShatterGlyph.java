@@ -1,47 +1,52 @@
 package com.riprod.hexcode.builtin.glyphs.shatter;
 
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
+import com.hypixel.hytale.server.core.modules.entity.DespawnComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel;
-import com.hypixel.hytale.server.core.modules.entity.component.PropComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
+import com.hypixel.hytale.server.core.modules.interaction.Interactions;
 import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
 import com.hypixel.hytale.server.core.modules.projectile.ProjectileModule;
+import com.hypixel.hytale.server.core.modules.time.TimeResource;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.builtin.glyphs.projectile.ProjectilePhysicsConfig;
-import com.riprod.hexcode.builtin.glyphs.shatter.component.ShatterComponent;
+import com.riprod.hexcode.builtin.glyphs.shatter.component.ShatterState;
 import com.riprod.hexcode.builtin.glyphs.shatter.style.ShatterStyle;
-import com.riprod.hexcode.core.common.construct.component.HexEffectsComponent;
-import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
-import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
-import com.riprod.hexcode.utils.SpellVarUtil;
+import com.riprod.hexcode.utils.HexDirectionUtil;
+import com.riprod.hexcode.utils.HexVarUtil;
 
 public class ShatterGlyph implements GlyphHandler {
-    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+
     @Override
-public String getId() { return ID; };
+    public String getId() {
+        return ID;
+    }
 
-public static final String ID = "Shatter";
+    public static final String ID = "Shatter";
 
-    private static final double MAX_DISTANCE = 48.0;
     private static final String SHARD_MODEL = "Shatter";
     private static final float SHARD_SCALE = 0.35f;
     private static final int DEFAULT_COUNT = 5;
@@ -49,7 +54,11 @@ public static final String ID = "Shatter";
     private static final double DEFAULT_SPEED = 20.0;
     private static final double DEFAULT_GRAVITY = 10.0;
     private static final int MAX_COUNT = 16;
-    private static final double MANA_REFERENCE_COUNT = 5.0;
+    private static final Duration SHARD_TTL = Duration.ofMinutes(10);
+
+    private static final String HIT_ROOT_INTERACTION = "Hex_Shatter_Hit";
+    private static final String MISS_ROOT_INTERACTION = "Hex_Shatter_Miss";
+    private static final String BOUNCE_ROOT_INTERACTION = "Hex_Shatter_Bounce";
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
@@ -61,53 +70,98 @@ public static final String ID = "Shatter";
         HexVar gravityVar = glyph.readSlot(ShatterGlyphSlots.GRAVITY, hexContext);
 
         if (sourceVar == null) {
-            LOGGER.atWarning().log("shatter: no source provided");
-            HexExecuter.fail(hexContext);
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "no source provided");
             return;
         }
 
-        Vector3d spawnPos = SpellVarUtil.resolveEyePosition(sourceVar, hexContext.getAccessor());
+        Vector3d spawnPos = HexDirectionUtil.resolveEyePosition(sourceVar, hexContext.getAccessor());
         if (spawnPos == null) {
-            spawnPos = SpellVarUtil.resolveAsPosition(sourceVar, hexContext.getAccessor());
+            spawnPos = HexVarUtil.position(sourceVar, hexContext.getAccessor());
         }
         if (spawnPos == null) {
-            LOGGER.atWarning().log("shatter: could not resolve spawn position");
-            HexExecuter.fail(hexContext);
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "could not resolve spawn position");
             return;
         }
 
-        Vector3d centralDir = SpellVarUtil.resolveDirection(
+        Vector3d centralDir = HexDirectionUtil.resolveDirection(
                 directionVar, spawnPos, hexContext.getAccessor());
         if (centralDir == null) {
-            LOGGER.atWarning().log("shatter: could not resolve direction");
-            HexExecuter.fail(hexContext);
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "could not resolve direction");
             return;
         }
 
-        int count = (int) SpellVarUtil.resolveNumberOrDefault(countVar, (double) DEFAULT_COUNT).intValue();
+        int count = HexVarUtil.numberOrDefault(countVar, (double) DEFAULT_COUNT).intValue();
         if (count < 1) count = 1;
         if (count > MAX_COUNT) count = MAX_COUNT;
 
-        double spreadDeg = SpellVarUtil.resolveNumberOrDefault(spreadVar, DEFAULT_SPREAD);
-        double speed = SpellVarUtil.resolveNumberOrDefault(speedVar, DEFAULT_SPEED);
+        double spreadDeg = HexVarUtil.numberOrDefault(spreadVar, DEFAULT_SPREAD);
+        double speed = HexVarUtil.numberOrDefault(speedVar, DEFAULT_SPEED);
         if (speed <= 0) speed = DEFAULT_SPEED;
-        double gravity = SpellVarUtil.resolveNumberOrDefault(gravityVar, DEFAULT_GRAVITY);
+        double gravity = HexVarUtil.numberOrDefault(gravityVar, DEFAULT_GRAVITY);
 
         double spreadRad = Math.toRadians(spreadDeg);
         List<Vector3d> shardDirections = computeConeDirections(centralDir, count, spreadRad);
 
         ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(SHARD_MODEL);
+        if (modelAsset == null) {
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "model asset not found: " + SHARD_MODEL);
+            return;
+        }
         Model model = Model.createScaledModel(modelAsset, SHARD_SCALE);
-
-        List<String> nextGlyphs = glyph.getNextLinks();
 
         for (Vector3d dir : shardDirections) {
             Vector3d shardSpawn = new Vector3d(spawnPos).add(new Vector3d(dir).scale(1.0));
-            spawnShard(hexContext, shardSpawn, dir, speed, gravity, model,
-                    nextGlyphs, glyph);
+            spawnShard(hexContext, glyph, shardSpawn, dir, speed, gravity, model);
         }
 
         ShatterStyle.renderLaunch(spawnPos, centralDir, hexContext.getColors(), hexContext.getAccessor());
+    }
+
+    private void spawnShard(HexContext hexContext, Glyph glyph, Vector3d position, Vector3d direction,
+            double speed, double gravity, Model model) {
+
+        HexContext branched = hexContext.branch();
+
+        Vector3f rotation = new Vector3f();
+        rotation.setYaw((float) Math.atan2(-direction.x, direction.z));
+        rotation.setPitch((float) Math.asin(-direction.y));
+
+        Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
+
+        holder.addComponent(TransformComponent.getComponentType(),
+                new TransformComponent(new Vector3d(position), rotation));
+        holder.addComponent(HeadRotation.getComponentType(), new HeadRotation(rotation));
+
+        holder.addComponent(ModelComponent.getComponentType(), new ModelComponent(model));
+        holder.addComponent(PersistentModel.getComponentType(), new PersistentModel(model.toReference()));
+        holder.addComponent(BoundingBox.getComponentType(), new BoundingBox(model.getBoundingBox()));
+
+        holder.addComponent(NetworkId.getComponentType(),
+                new NetworkId(hexContext.getAccessor().getExternalData().takeNextNetworkId()));
+
+        holder.ensureComponent(ProjectileModule.get().getProjectileComponentType());
+        holder.addComponent(Velocity.getComponentType(), new Velocity());
+
+        holder.addComponent(Interactions.getComponentType(),
+                new Interactions(buildInteractionsMap()));
+
+        Vector3d launchVelocity = new Vector3d(direction).scale(speed);
+        new ProjectilePhysicsConfig(gravity, 0).apply(holder, hexContext.getCasterRef(),
+                launchVelocity, hexContext.getAccessor(), false);
+
+        holder.addComponent(DespawnComponent.getComponentType(),
+                new DespawnComponent(hexContext.getAccessor()
+                        .getResource(TimeResource.getResourceType()).getNow().plus(SHARD_TTL)));
+
+        holder.addComponent(ShatterState.getComponentType(),
+                new ShatterState(branched, glyph));
+
+        Ref<EntityStore> shardRef = hexContext.getAccessor().addEntity(holder, AddReason.SPAWN);
+        hexContext.getRoot().addDependency(branched, shardRef);
     }
 
     private List<Vector3d> computeConeDirections(Vector3d center, int count, double spreadRad) {
@@ -153,41 +207,11 @@ public static final String ID = "Shatter";
         );
     }
 
-    private void spawnShard(HexContext hexContext, Vector3d position, Vector3d direction,
-            double speed, double gravity, Model model,
-            List<String> nextGlyphs, Glyph glyph) {
-
-        Vector3f rotation = new Vector3f();
-        rotation.setYaw((float) Math.atan2(-direction.x, direction.z));
-        rotation.setPitch((float) Math.asin(-direction.y));
-
-        Holder<EntityStore> holder = HexConstructSpawner.create(
-                hexContext.getAccessor(), hexContext, glyph, ShatterGlyph.ID, new Vector3d(position));
-
-        TransformComponent tc = holder.getComponent(TransformComponent.getComponentType());
-        if (tc != null) {
-            tc.setRotation(rotation);
-        }
-
-        holder.addComponent(HeadRotation.getComponentType(), new HeadRotation(rotation));
-        holder.addComponent(ModelComponent.getComponentType(), new ModelComponent(model));
-        holder.addComponent(PersistentModel.getComponentType(),
-                new PersistentModel(model.toReference()));
-        holder.addComponent(BoundingBox.getComponentType(),
-                new BoundingBox(model.getBoundingBox()));
-        holder.ensureComponent(PropComponent.getComponentType());
-        holder.ensureComponent(ProjectileModule.get().getProjectileComponentType());
-        holder.addComponent(Velocity.getComponentType(), new Velocity());
-
-        Vector3d launchVelocity = new Vector3d(direction).scale(speed);
-        new ProjectilePhysicsConfig(gravity, 0).apply(holder, hexContext.getCasterRef(),
-                launchVelocity, hexContext.getAccessor(), false);
-
-        holder.addComponent(ShatterComponent.getComponentType(),
-                new ShatterComponent(hexContext.getCasterRef(), MAX_DISTANCE, new Vector3d(position)));
-
-        Ref<EntityStore> shardRef = hexContext.getAccessor().addEntity(holder, AddReason.SPAWN);
-
-        hexContext.getRoot().addDependency(hexContext, shardRef);
+    private static Map<InteractionType, String> buildInteractionsMap() {
+        Map<InteractionType, String> map = new EnumMap<>(InteractionType.class);
+        map.put(InteractionType.ProjectileHit, HIT_ROOT_INTERACTION);
+        map.put(InteractionType.ProjectileMiss, MISS_ROOT_INTERACTION);
+        map.put(InteractionType.ProjectileBounce, BOUNCE_ROOT_INTERACTION);
+        return map;
     }
 }

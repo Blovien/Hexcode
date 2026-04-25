@@ -4,7 +4,7 @@
   "Description": "Appends a parallel glyph chain to an ally's active hex construct. Can transfer mana to the construct's owner or directly to entities with a mana pool.",
   "ModelPath": "Resonate",
   "BasePower": 1.0,
-  "ManaConsumption": 12,
+  "ManaConsumption": 20,
   "ShapeStructure": [
     {
       "ShapeId": "Antisquare",
@@ -32,5 +32,12 @@
       "Description": "The next glyph in the execution chain"
     }
   },
-  "VolatilityCost": 4
+  "Volatility": {
+    "InstantCost": 4,
+    "DrainPerSecond": 0.0,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 3.0
+    }
+  }
 }

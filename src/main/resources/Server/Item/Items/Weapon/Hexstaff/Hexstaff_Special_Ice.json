@@ -1,7 +1,8 @@
 {
   "Parent": "Template_HexStaff",
   "TranslationProperties": {
-    "Name": "hexcode.items.Hex_Ice_Staff.name"
+    "Name": "hexcode.items.hexstaff.special.ice.name",
+    "Description": "hexcode.items.hexstaff.special.ice.description"
   },
   "Categories": [
     "Hexcode.Staves"

@@ -4,7 +4,7 @@
   "Description": "End-Glyph that allows predetermined dropping in crafting mode",
   "ModelPath": "Output",
   "BasePower": 0,
-  "ManaConsumption": 2,
+  "ManaConsumption": 0,
   "ShapeStructure": [
     {
       "ShapeId": "Square",
@@ -28,5 +28,12 @@
       "Description": "The next glyph in the execution chain"
     }
   },
-  "VolatilityCost": 1
+  "Volatility": {
+    "InstantCost": 0.1,
+    "DrainPerSecond": 0.0,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 10.0
+    }
+  }
 }

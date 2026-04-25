@@ -1,7 +1,8 @@
 {
   "Parent": "Template_HexStaff",
   "TranslationProperties": {
-    "Name": "hexcode.items.Hex_Astral_Staff.name"
+    "Name": "hexcode.items.hexstaff.special.astral.name",
+    "Description": "hexcode.items.hexstaff.special.astral.description"
   },
   "Categories": [
     "Hexcode.Staves"
