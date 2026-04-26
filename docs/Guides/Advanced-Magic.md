@@ -110,4 +110,4 @@ Press **Primary (LMB)** to cast. The projectile launches, hits, and Force fires 
 
 You now have the full loop: craft, station, draw, link, save, cast. Every other Hex you ever build is some variation of these same six steps with different glyphs.
 
-For the full glyph catalog - tiers, slots, shape combinations, and what each one actually does - head to the [Glyph Index](../Hexcode/Codec/Glyph-Index.md).
+For the full glyph catalog - tiers, slots, shape combinations, and what each one actually does - head to the [Glyph Index](Glyph-Index).
