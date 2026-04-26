@@ -16,11 +16,11 @@ Open the Arcane Bench and look under **Arcane → Hexcode**. Every Hexcode item 
 
 Hexbooks come in five elemental variants - **Life, Fire, Ice, Arcane, and Void**. The element is mostly cosmetic (color, particles, flavor) with small stat differences. Pick whichever fits the loadout you're building. We'll use **Life** as the running example.
 
-![Life Hexbook](../Images/life-hexbook.png)
+![Life Hexbook](https://cdn.internal.hytalemodding.dev/wiki/hexcode/life-hexbook.png)
 
 You'll also need a **Pedestal**. Pedestals come in their own set of variants - **Arcane, Fire, Thorium, and Void** - and each one carries different limits on how many obelisks it accepts and how far it scans for them. Craft whichever one matches your playstyle; the book and the pedestal don't need to share an element.
 
-![A Pedestal](../Images/life-pedestal.png)
+![A Pedestal](https://cdn.internal.hytalemodding.dev/wiki/hexcode/life-pedestal.png)
 
 ## Setting up your station
 
@@ -32,9 +32,9 @@ Each Obelisk contributes a different handler. A **Life** obelisk feeds **accurac
 
 The Pedestal scans nearby blocks within its range and registers obelisks up to its limit - the exact numbers depend on which Pedestal you crafted, so a Void Pedestal will accept far more obelisks than a Life one. Stand them up around the workbench and the Pedestal will pick up everything in reach.
 
-![Pedestal with obelisks](../Images/pedestal-obelisk-items.png)
+![Pedestal with obelisks](https://cdn.internal.hytalemodding.dev/wiki/hexcode/pedestal-obelisk-items.png)
 
-![Seeker Obelisk](../Images/seeker-obelisk.png)
+![Seeker Obelisk](https://cdn.internal.hytalemodding.dev/wiki/hexcode/seeker-obelisk.png)
 
 > **NOTE:** Pedestals are global, not per-player. If a friend places their book down first, you'll see their session - wait your turn, or build somewhere private.
 
@@ -47,11 +47,11 @@ Walk up to your Pedestal and drop your Hexbook on top. The book sits on top of t
 Clicking it again will bring the pedestal from **Ready** to **Selecting** mode - glyphs you have access to will appear around the pedestal ready for you to select which one to edit.
 > **NOTE:** Your hexbook determines how many slots are visible. The "slots" when empty appear as grey circles. As you fill out your slots, you will see your hexes replace these spheres.
 
-<video autoplay loop muted playsinline src="../Images/entering-selection.mp4"></video>
+<video autoplay loop muted playsinline src="https://cdn.internal.hytalemodding.dev/wiki/hexcode/entering-selection.mp4"></video>
 
 To enter **Crafting Mode**, hold your hexstaff and click on one of the slots available. It doesn't matter which one you choose for now. You know you did it correctly when an Orange Sphere appears above the Pedestal,
 
-<video autoplay loop muted playsinline src="../Images/entering-crafting.mp4"></video>
+<video autoplay loop muted playsinline src="https://cdn.internal.hytalemodding.dev/wiki/hexcode/entering-crafting.mp4"></video>
 > **NOTE:** The orange sphere is your **Entrypoint** to your hex. It is what starts the execution chain
 
 ## Drawing your first two glyphs
@@ -64,11 +64,11 @@ We're building a **Projectile → Force** chain: a projectile that, on hit, appl
 
 Start with drawing **Force** - the single circle `◯`, pure Energy. Force pushes whatever the target is along the target's look direction.
 
-<video autoplay loop muted playsinline src="../Images/draw-force.mp4"></video>
+<video autoplay loop muted playsinline src="https://cdn.internal.hytalemodding.dev/wiki/hexcode/draw-force.mp4"></video>
 
 Then draw the **Projectile** glyph - the two-shape combo `◯△`, Energy over Time. It's your launcher: anything chained after it triggers when the projectile hits something.
 
-<video autoplay loop muted playsinline src="../Images/draw-projectile.mp4"></video>
+<video autoplay loop muted playsinline src="https://cdn.internal.hytalemodding.dev/wiki/hexcode/draw-projectile.mp4"></video>
 > **NOTE:** By default, **Projectile** writes what it hit to the "default variable" - think of this as your current target. When ****Force** follows **Projectile**, it applies force to whatever the current "default variable" is - and in this case, that is the thing hit by **Projectile**
 
 
@@ -84,7 +84,7 @@ Then, click the **Projectile** glyph to expose its slots. Find the **Next** slot
 
 > **Terminology:** A Slot is an input or output on a glyph - a target, a magnitude, a direction. One special slot, **Next**, is the output that wires one glyph into another.
 
-<video autoplay loop muted playsinline src="../Images/link-glyphs.mp4"></video>
+<video autoplay loop muted playsinline src="https://cdn.internal.hytalemodding.dev/wiki/hexcode/link-glyphs.mp4"></video>
 
 > **NOTE:** Higher-tier glyphs cost more volatility, and a linked chain pays the cost for every glyph it contains. If your staff's volatility budget can't cover the chain, the spell will misfire when you cast it. Check the [Glyph Index](../Codec/Glyph-Index.md) for tier costs.
 
@@ -102,7 +102,7 @@ Hold **Secondary (RMB)**. Your saved Hexes orbit you, the same way Casting Mode 
 
 Press **Primary (LMB)** to cast. The projectile launches, hits, and Force fires through the Next link - the target gets shoved in the direction they're looking.
 
-<video autoplay loop muted playsinline src="../Images/executing-glyph.mp4"></video>
+<video autoplay loop muted playsinline src="https://cdn.internal.hytalemodding.dev/wiki/hexcode/executing-glyph.mp4"></video>
 
 > **NOTE:** Decay still applies. Every cast wears the Hex down a little. Re-select the hex to refresh it!
 
