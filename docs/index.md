@@ -83,6 +83,6 @@ That is the promise of Hexcode. Not spells handed down from a menu, but spells b
 _Welcome to the craft. The door is open._
 
 # **GUIDES:**
-### [Getting Started](./Guides/Getting-Started.md)
-### [Advanced Crafting]("./Guides/Advanced-Magic.md")
-### [Shapes]("./Codec/Glyph-Index.md")
+### [Getting Started](./Hexcode/Guides/Getting-Started.md)
+### [Advanced Crafting](./Hexcode/Guides/Advanced-Magic.md)
+### [Shapes](./Hexcode/Codec/Glyph-Index.md)
