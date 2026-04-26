@@ -1,4 +1,9 @@
-
+---
+title: "Getting Started"
+order: 1
+published: true
+draft: false
+---
 # Getting Started
 
 First thing you’re going to wish to have is the **Crude Hex Staff**. It will teach you the basics, and that’s about **ALL** it will teach you. While limiting, it is a quick and cheap way to get into hexcode.

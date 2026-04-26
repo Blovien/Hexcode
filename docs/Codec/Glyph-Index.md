@@ -1,3 +1,9 @@
+---
+title: "Glyph Index"
+order: 1
+published: true
+draft: false
+---
 # Introduction
 
 Hexcode is built upon Three Basic Shapes. That is…

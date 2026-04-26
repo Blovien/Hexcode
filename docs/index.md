@@ -1,3 +1,9 @@
+---
+title: "Introduction"
+order: 1
+published: true
+draft: false
+---
 ![image](https://media.forgecdn.net/attachments/description/1448311/description_24df6807-f0ae-457a-a068-9cbaf45f3e11.png)
 
 ____Hexcode is in Early Access.  Things will break, progression may not be 100%. Join [https://discord.hexcodec.com](https://discord.hexcodec.com) to report bugs, give suggestions, and shape the future of magic___ 
@@ -77,6 +83,6 @@ That is the promise of Hexcode. Not spells handed down from a menu, but spells b
 _Welcome to the craft. The door is open._
 
 # **GUIDES:**
-### [Getting Started](./guides/started.md)
-### [Advanced Crafting](./guides/advanced.md)
-### [Shapes](./index/glyph-index.md)
+### [Getting Started](./Guides/Getting-Started.md)
+### [Advanced Crafting]("./Guides/Advanced-Magic.md")
+### [Shapes]("./Codec/Glyph-Index.md")
