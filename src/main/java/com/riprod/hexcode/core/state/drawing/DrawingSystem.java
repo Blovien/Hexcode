@@ -12,14 +12,11 @@ import com.hypixel.hytale.math.shape.Box;
 import com.hypixel.hytale.math.vector.Transform;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
-import com.hypixel.hytale.protocol.Color;
 import com.hypixel.hytale.protocol.InteractionState;
-import com.hypixel.hytale.protocol.packets.connection.PongType;
 import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.time.TimeResource;
-import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.GlyphDrawnEvent;
 import com.riprod.hexcode.api.event.GlyphFizzleEvent;
@@ -45,6 +42,7 @@ import com.riprod.hexcode.core.state.drawing.system.InterfaceManager;
 import com.riprod.hexcode.core.state.drawing.system.shapes.DollarOneFixedDetector;
 import com.riprod.hexcode.core.state.drawing.system.shapes.ShapeDetector;
 import com.riprod.hexcode.core.state.drawing.utils.ShapeComparator;
+import com.riprod.hexcode.core.state.drawing.utils.StrokeCapture;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
 import com.riprod.hexcode.utils.VfxUtil;
@@ -197,29 +195,9 @@ public class DrawingSystem extends HexcodeManager {
     if (head == null)
       return InteractionState.Failed;
 
-    float yaw = (float) Math.toDegrees(head.getRotation().getYaw());
-    float pitch = (float) Math.toDegrees(head.getRotation().getPitch());
-
-    if (!points.isEmpty()) {
-      float lastYaw = points.getFloat(points.size() - 2);
-      float lastPitch = points.getFloat(points.size() - 1);
-      // unwrap yaw so it stays continuous across the ±180 boundary
-      float dy = yaw - lastYaw;
-      if (dy > 180f)
-        dy -= 360f;
-      else if (dy < -180f)
-        dy += 360f;
-      yaw = lastYaw + dy;
-
-      float dp = pitch - lastPitch;
-      float dist = dy * dy + dp * dp;
-      if (dist < (0.5f * 0.5f)) {
-        return InteractionState.NotFinished;
-      }
+    if (!StrokeCapture.appendHeadSample(points, head)) {
+      return InteractionState.NotFinished;
     }
-
-    points.add(yaw);
-    points.add(pitch);
 
     InterfaceManager.positionTrail(accessor, ref, head);
     return InteractionState.NotFinished;
@@ -250,50 +228,21 @@ public class DrawingSystem extends HexcodeManager {
       return InteractionState.Finished;
     }
 
-    float minYaw = Float.MAX_VALUE, maxYaw = -Float.MAX_VALUE;
-    float minPitch = Float.MAX_VALUE, maxPitch = -Float.MAX_VALUE;
-    for (int i = 0; i < points.size(); i += 2) {
-      float yaw = points.getFloat(i);
-      float pitch = points.getFloat(i + 1);
-      minYaw = Math.min(minYaw, yaw);
-      maxYaw = Math.max(maxYaw, yaw);
-      minPitch = Math.min(minPitch, pitch);
-      maxPitch = Math.max(maxPitch, pitch);
+    TimeResource timeResource = accessor.getResource(TimeResource.getResourceType());
+    long curTime = timeResource.getNow().toEpochMilli();
+    long drawDuration = curTime - drawingComp.getDrawStartTimeMillis();
+
+    DrawnShapeComponent result = StrokeCapture.recognizeStroke(accessor, ref, points, shapeDetector, drawDuration);
+    InterfaceManager.removeTrails(accessor, ref);
+
+    if (result == null) {
+      drawingComp.clearStrokes();
+      return InteractionState.Finished;
     }
 
-    DrawnShapeComponent result = shapeDetector.detect(points, minYaw, maxYaw, minPitch, maxPitch);
+    LOGGER.atInfo().log("%d ms (%f score) | S: %f | A: %f", drawDuration,
+        result.getEfficiency(), result.getSize(), result.getVolatility());
 
-    List<Vector3d> drawnGlyphs = InterfaceManager.getPositionsFromAngles(accessor, points, ref, 4.0f);
-    Color color = InterfaceManager.getColorFromQuality(result.getVolatility());
-    result.setColor(color);
-    result.setPoints(drawnGlyphs);
-
-    TimeResource timeResource = accessor.getResource(TimeResource.getResourceType());
-    Long curTime = timeResource.getNow().toEpochMilli();
-    // time calculations
-    long startTime = drawingComp.getDrawStartTimeMillis();
-    long drawSpeed = curTime - startTime;
-    result.setSpeed(drawSpeed);
-
-    int pingMs = (int) accessor.getComponent(ref, PlayerRef.getComponentType())
-        .getPacketHandler()
-        .getPingInfo(PongType.Direct)
-        .getPingMetricSet()
-        .getLastValue();
-
-    float forgiveness = Math.min(3f, 1f + Math.min(pingMs, 500) / 1000f); // cap at +200% forgiveness for 500ms ping or
-                                                                          // higher
-    result.setVolatility(Math.min(1f, result.getVolatility() * forgiveness));
-    drawSpeed = (long) (drawSpeed / forgiveness); // pretend they drew faster
-
-    float maxSize = Math.max(Math.abs(maxYaw - minYaw), Math.abs(maxPitch - minPitch));
-    result.setSize(maxSize);
-
-    LOGGER.atInfo().log("%d ms (%f score) | S: %f | A: %f", drawSpeed,
-        result.getEfficiency(), maxSize,
-        result.getVolatility());
-
-    InterfaceManager.removeTrails(accessor, ref);
     drawingComp.addDrawnGlyph(result);
     drawingComp.clearStrokes();
     drawingComp.setLastParticleSpawnMillis(0L);

@@ -22,7 +22,7 @@ import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.HexcasterExecutionComponent;
+import com.riprod.hexcode.core.state.execution.component.HexcasterIdleComponent;
 
 public class ConcentrationGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -48,8 +48,8 @@ public class ConcentrationGlyph implements GlyphHandler {
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
 
-        HexcasterExecutionComponent execComp = accessor.getComponent(
-                casterRef, HexcasterExecutionComponent.getComponentType());
+        HexcasterIdleComponent execComp = accessor.getComponent(
+                casterRef, HexcasterIdleComponent.getComponentType());
         if (execComp == null || !execComp.isHoldingPrimary()) {
             LOGGER.atWarning().log("Concentration: caster not holding primary");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,

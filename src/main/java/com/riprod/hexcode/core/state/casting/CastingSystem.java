@@ -23,6 +23,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.utils.CreateGlyph;
 import com.riprod.hexcode.core.common.hexbook.component.HexBookAsset;
 import com.riprod.hexcode.core.common.hexbook.component.HexBookComponent;
@@ -34,12 +35,20 @@ import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffAsset;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffComponent;
 import com.riprod.hexcode.core.state.casting.component.HexcasterCastingComponent;
+import com.riprod.hexcode.core.state.casting.component.HexcasterCastingComponent.DraftSubState;
+import com.riprod.hexcode.core.state.casting.utils.DraftFeedback;
 import com.riprod.hexcode.core.state.casting.utils.GlyphPositioner;
 import com.riprod.hexcode.core.state.casting.utils.GlyphStyler;
 import com.riprod.hexcode.core.state.casting.utils.HexSelector;
 import com.riprod.hexcode.core.state.casting.utils.HexSpawner;
+import com.riprod.hexcode.core.state.casting.utils.InAirHexFactory;
 import com.riprod.hexcode.core.state.casting.utils.RootSpawner;
-import com.riprod.hexcode.core.state.execution.component.HexcasterExecutionComponent;
+import com.riprod.hexcode.core.state.drawing.component.DrawnShapeComponent;
+import com.riprod.hexcode.core.state.drawing.system.GlyphCreationManager;
+import com.riprod.hexcode.core.state.drawing.system.InterfaceManager;
+import com.riprod.hexcode.core.state.drawing.utils.ShapeComparator;
+import com.riprod.hexcode.core.state.drawing.utils.StrokeCapture;
+import com.riprod.hexcode.core.state.execution.component.HexcasterIdleComponent;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
 import com.riprod.hexcode.utils.CleanupUtils;
@@ -48,6 +57,7 @@ import com.riprod.hexcode.utils.HexSlot;
 
 public class CastingSystem extends HexcodeManager {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+    private static final float FINALIZE_DELAY_SECONDS = 0.70f;
 
     @Override
     public void firstTick(Ref<EntityStore> ref, HexcasterComponent comp,
@@ -58,17 +68,22 @@ public class CastingSystem extends HexcodeManager {
             castingComp = new HexcasterCastingComponent();
             buffer.addComponent(ref, HexcasterCastingComponent.getComponentType(), castingComp);
         }
+        castingComp.setDraftSubState(DraftSubState.Idle);
+        castingComp.clearCurrentStroke();
+        castingComp.clearPendingShapes();
+        castingComp.setFinalizeTimer(0f);
+        castingComp.setStrokeElapsedSeconds(0f);
 
         HexStaffComponent staff = CasterInventory.getHexStaffComponent(buffer, ref);
         HexBookComponent book = CasterInventory.getHexBookComponent(buffer, ref);
 
-        if (staff == null || book == null) {
-            LOGGER.atSevere()
-                    .log("Player is missing required HexStaffComponent or HexBookComponent to enter casting mode");
+        if (staff == null) {
+            LOGGER.atSevere().log("Player is missing required HexStaffComponent to enter casting mode");
+            comp.requestStateChange(HexState.IDLE);
             return;
         }
 
-        List<Hex> hexes = book.getHexes();
+        List<Hex> hexes = book != null ? book.getHexes() : List.of();
         String style = staff.getStyleId();
 
         ItemStack mainHand = InventoryComponent.getItemInHand(buffer, ref);
@@ -99,23 +114,70 @@ public class CastingSystem extends HexcodeManager {
         if (castingComp == null) {
             return;
         }
-        HexcasterExecutionComponent execComp = buffer.ensureAndGetComponent(ref,
-                HexcasterExecutionComponent.getComponentType());
+        HexcasterIdleComponent execComp = buffer.ensureAndGetComponent(ref,
+                HexcasterIdleComponent.getComponentType());
 
         cleanupEntities(buffer, castingComp);
 
         HexStaffComponent staff = CasterInventory.getHexStaffComponent(buffer, ref);
         HexComponent rootGlyph = castingComp.getLastHoveredHex();
 
-        if (rootGlyph != null && staff != null) {
+        boolean usedDraft = staff != null
+                && tryFinalizeDraftAsActiveHex(buffer, ref, castingComp, execComp, staff);
+        if (!usedDraft && rootGlyph != null && staff != null) {
             execComp.resetCastState();
             execComp.setActiveHex(rootGlyph.getHex());
             CasterInventory.saveHexStaffComponent(buffer, ref, staff);
-            comp.requestStateChange(HexState.EXECUTION);
         }
 
         castingComp.clearCastingState();
         castingComp.clear(buffer);
+    }
+
+    private boolean tryFinalizeDraftAsActiveHex(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref,
+            HexcasterCastingComponent castingComp, HexcasterIdleComponent execComp, HexStaffComponent staff) {
+        DraftSubState sub = castingComp.getDraftSubState();
+        if (sub == DraftSubState.Idle) {
+            return false;
+        }
+
+        if (sub == DraftSubState.Drawing) {
+            long durationMs = (long) (castingComp.getStrokeElapsedSeconds() * 1000f);
+            DrawnShapeComponent shape = StrokeCapture.recognizeStroke(buffer, ref,
+                    castingComp.getCurrentStrokePoints(), null, durationMs);
+            if (shape != null) {
+                castingComp.addPendingShape(shape);
+            }
+            castingComp.clearCurrentStroke();
+        }
+
+        if (castingComp.getPendingShapes().isEmpty()) {
+            return false;
+        }
+
+        try {
+            GlyphCreationManager.NormalizeShapeSizes(castingComp.getPendingShapes());
+            GlyphAsset matched = GlyphCreationManager.MatchGlyph(castingComp.getPendingShapes());
+            if (matched == null) {
+                DraftFeedback.playFailFeedback(buffer, ref);
+                return false;
+            }
+
+            float efficiency = ShapeComparator.calculateEfficiency(castingComp.getPendingShapes());
+            float volatility = ShapeComparator.calculateVolatility(castingComp.getPendingShapes());
+            Hex hex = InAirHexFactory.wrap(matched, volatility, efficiency);
+            if (hex == null) {
+                return false;
+            }
+
+            execComp.resetCastState();
+            execComp.setActiveHex(hex);
+            CasterInventory.saveHexStaffComponent(buffer, ref, staff);
+            return true;
+        } catch (Exception e) {
+            LOGGER.atWarning().withCause(e).log("Failed to finalize draft on casting exit; falling back to hovered hex");
+            return false;
+        }
     }
 
     @Override
@@ -155,6 +217,8 @@ public class CastingSystem extends HexcodeManager {
         HexComponent hoveredHex = HexSelector.findHoveredHex(buffer, headRotation.getRotation(), activeHexes);
 
         GlyphStyler.hoverHex(buffer, hoveredHex, castingComp);
+
+        tickDraftFinalize(buffer, ref, castingComp, dt);
     }
 
     @Override
@@ -170,6 +234,7 @@ public class CastingSystem extends HexcodeManager {
             return;
 
         CleanupUtils.safeRemoveEntity(buffer, castingComp.getHeadAnchorRef());
+        CleanupUtils.safeRemoveEntity(buffer, castingComp.getDrawTrailRef());
 
         List<Ref<EntityStore>> activeHexes = castingComp.getActiveHexes();
         if (activeHexes != null) {
@@ -193,10 +258,13 @@ public class CastingSystem extends HexcodeManager {
 
         HexcasterCastingComponent castingComp = accessor.getComponent(ref,
                 HexcasterCastingComponent.getComponentType());
+        if (castingComp == null) {
+            return InteractionState.Failed;
+        }
 
         HexComponent hoveredHex = castingComp.getHoveredHex();
         if (hoveredHex == null) {
-            return InteractionState.Failed;
+            return beginDraftStroke(accessor, ref, castingComp);
         }
 
         float eyeHeight = 0f;
@@ -237,6 +305,13 @@ public class CastingSystem extends HexcodeManager {
 
         HexcasterCastingComponent castingComp = accessor.getComponent(ref,
                 HexcasterCastingComponent.getComponentType());
+        if (castingComp == null) {
+            return InteractionState.Finished;
+        }
+
+        if (castingComp.getDraftSubState() == DraftSubState.Drawing) {
+            return tickDraftStroke(accessor, ref, castingComp, dt);
+        }
 
         if (castingComp.getDraggingHex() == null) {
             return InteractionState.Finished;
@@ -281,6 +356,13 @@ public class CastingSystem extends HexcodeManager {
 
         HexcasterCastingComponent castingComp = accessor.getComponent(ref,
                 HexcasterCastingComponent.getComponentType());
+        if (castingComp == null) {
+            return InteractionState.Finished;
+        }
+
+        if (castingComp.getDraftSubState() == DraftSubState.Drawing) {
+            return endDraftStroke(accessor, ref, castingComp);
+        }
 
         HexComponent draggedHex = castingComp.getDraggingHex();
         if (draggedHex == null) {
@@ -333,6 +415,138 @@ public class CastingSystem extends HexcodeManager {
         return InteractionState.Finished;
     }
 
+    private InteractionState beginDraftStroke(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref,
+            HexcasterCastingComponent castingComp) {
+        HeadRotation head = accessor.getComponent(ref, HeadRotation.getComponentType());
+        if (head == null) {
+            return InteractionState.Failed;
+        }
+
+        Ref<EntityStore> oldTrail = castingComp.getDrawTrailRef();
+        if (oldTrail != null && oldTrail.isValid()) {
+            InterfaceManager.removeTrailEntity(accessor, oldTrail);
+            castingComp.setDrawTrailRef(null);
+        }
+
+        castingComp.clearCurrentStroke();
+        castingComp.setFinalizeTimer(0f);
+        castingComp.setStrokeElapsedSeconds(0f);
+        castingComp.setDraftSubState(DraftSubState.Drawing);
+
+        Ref<EntityStore> trailRef = InterfaceManager.spawnTrailEntity(accessor, ref, head);
+        castingComp.setDrawTrailRef(trailRef);
+
+        return InteractionState.NotFinished;
+    }
+
+    private InteractionState tickDraftStroke(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref,
+            HexcasterCastingComponent castingComp, float dt) {
+        HeadRotation head = accessor.getComponent(ref, HeadRotation.getComponentType());
+        if (head == null) {
+            return InteractionState.Failed;
+        }
+        castingComp.addStrokeElapsedSeconds(dt);
+        StrokeCapture.appendHeadSample(castingComp.getCurrentStrokePoints(), head);
+        InterfaceManager.positionTrailEntity(accessor, ref, castingComp.getDrawTrailRef(), head);
+        return InteractionState.NotFinished;
+    }
+
+    private InteractionState endDraftStroke(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ref,
+            HexcasterCastingComponent castingComp) {
+        Ref<EntityStore> trailRef = castingComp.getDrawTrailRef();
+        if (trailRef != null) {
+            InterfaceManager.removeTrailEntity(accessor, trailRef);
+            castingComp.setDrawTrailRef(null);
+        }
+
+        long drawDuration = (long) (castingComp.getStrokeElapsedSeconds() * 1000f);
+
+        DrawnShapeComponent shape = StrokeCapture.recognizeStroke(accessor, ref,
+                castingComp.getCurrentStrokePoints(), null, drawDuration);
+        castingComp.clearCurrentStroke();
+        castingComp.setStrokeElapsedSeconds(0f);
+
+        if (shape == null) {
+            if (castingComp.getPendingShapes().isEmpty()) {
+                castingComp.setDraftSubState(DraftSubState.Idle);
+            } else {
+                castingComp.setFinalizeTimer(0f);
+                castingComp.setDraftSubState(DraftSubState.AwaitingFinalize);
+            }
+            return InteractionState.Finished;
+        }
+
+        castingComp.addPendingShape(shape);
+        castingComp.setFinalizeTimer(0f);
+        castingComp.setDraftSubState(DraftSubState.AwaitingFinalize);
+        return InteractionState.Finished;
+    }
+
+    private void tickDraftFinalize(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref,
+            HexcasterCastingComponent castingComp, float dt) {
+        if (castingComp.getDraftSubState() != DraftSubState.AwaitingFinalize) {
+            return;
+        }
+        float timer = castingComp.getFinalizeTimer() + dt;
+        if (timer < FINALIZE_DELAY_SECONDS) {
+            castingComp.setFinalizeTimer(timer);
+            return;
+        }
+
+        List<DrawnShapeComponent> pending = castingComp.getPendingShapes();
+        if (pending.isEmpty()) {
+            castingComp.setDraftSubState(DraftSubState.Idle);
+            castingComp.setFinalizeTimer(0f);
+            return;
+        }
+
+        try {
+            GlyphCreationManager.NormalizeShapeSizes(pending);
+            GlyphAsset matched = GlyphCreationManager.MatchGlyph(pending);
+            if (matched == null) {
+                DraftFeedback.playFailFeedback(buffer, ref);
+            } else {
+                spawnInAirHex(buffer, ref, castingComp, matched, pending);
+            }
+        } catch (Exception e) {
+            LOGGER.atWarning().withCause(e).log("Failed to finalize in-air glyph; treating as fizzle");
+            DraftFeedback.playFailFeedback(buffer, ref);
+        } finally {
+            castingComp.clearPendingShapes();
+            castingComp.setFinalizeTimer(0f);
+            castingComp.setDraftSubState(DraftSubState.Idle);
+        }
+    }
+
+    private void spawnInAirHex(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref,
+            HexcasterCastingComponent castingComp, GlyphAsset matched, List<DrawnShapeComponent> pending) {
+        HexStaffComponent staff = CasterInventory.getHexStaffComponent(buffer, ref);
+        if (staff == null) {
+            DraftFeedback.playFailFeedback(buffer, ref);
+            return;
+        }
+        Ref<EntityStore> castingRootRef = castingComp.getCastingRootRef();
+        if (castingRootRef == null || !castingRootRef.isValid()) {
+            return;
+        }
+
+        float efficiency = ShapeComparator.calculateEfficiency(pending);
+        float volatility = ShapeComparator.calculateVolatility(pending);
+        Hex hex = InAirHexFactory.wrap(matched, volatility, efficiency);
+        if (hex == null) {
+            DraftFeedback.playFailFeedback(buffer, ref);
+            return;
+        }
+
+        List<Ref<EntityStore>> activeHexes = castingComp.getActiveHexes();
+        Ref<EntityStore> hexRef = HexSpawner.spawnSingleHex(buffer, ref, castingRootRef, hex);
+        if (hexRef == null) {
+            DraftFeedback.playFailFeedback(buffer, ref);
+            return;
+        }
+        activeHexes.add(hexRef);
+    }
+
     private static ModelParticle[] mergeParticles(ModelParticle[] a, ModelParticle[] b) {
         if (a == null || a.length == 0)
             return b;
@@ -382,6 +596,15 @@ public class CastingSystem extends HexcodeManager {
                 accessor.tryRemoveEntity(headAnchor, RemoveReason.REMOVE);
             } catch (Exception e) {
                 LOGGER.atSevere().withCause(e).log("Failed to despawn head anchor entity");
+            }
+        }
+
+        Ref<EntityStore> drawTrail = comp.getDrawTrailRef();
+        if (drawTrail != null && drawTrail.isValid()) {
+            try {
+                accessor.tryRemoveEntity(drawTrail, RemoveReason.REMOVE);
+            } catch (Exception e) {
+                LOGGER.atSevere().withCause(e).log("Failed to despawn draw trail entity");
             }
         }
     }

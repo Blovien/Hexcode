@@ -1,10 +1,10 @@
 {
   "Type": "HexStateBranch",
   "Branches": {
+    "Idle": "Root_Hexcode_Mode_Idle",
     "Casting": "Root_Hexcode_Mode_Casting",
     "Drawing": "Root_Hexcode_Mode_Drawing",
-    "Crafting": "Root_Hexcode_Mode_Crafting",
-    "Execution": "Root_Hexcode_Mode_Execution"
+    "Crafting": "Root_Hexcode_Mode_Crafting"
   },
   "Effects": {
     "ClearAnimationOnFinish": true

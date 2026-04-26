@@ -26,7 +26,7 @@ import com.riprod.hexcode.core.common.hexes.codec.DecodeResult;
 import com.riprod.hexcode.core.common.hexes.codec.HexCodec;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.utils.HexUtils;
-import com.riprod.hexcode.core.state.execution.component.HexcasterExecutionComponent;
+import com.riprod.hexcode.core.state.execution.component.HexcasterIdleComponent;
 
 /**
  * /hexcode test-roundtrip
@@ -60,8 +60,8 @@ public class HexTestRoundtripCommand extends AbstractPlayerCommand {
     protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store,
             @Nonnull Ref<EntityStore> playerEntityRef, @Nonnull PlayerRef playerRef, @Nonnull World world) {
 
-        HexcasterExecutionComponent execComp =
-                store.getComponent(playerEntityRef, HexcasterExecutionComponent.getComponentType());
+        HexcasterIdleComponent execComp =
+                store.getComponent(playerEntityRef, HexcasterIdleComponent.getComponentType());
         if (execComp == null) {
             send(playerRef, "no execution component found on player");
             return;

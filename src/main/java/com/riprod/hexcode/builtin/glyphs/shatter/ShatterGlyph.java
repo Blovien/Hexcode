@@ -32,6 +32,7 @@ import com.riprod.hexcode.builtin.glyphs.shatter.component.ShatterState;
 import com.riprod.hexcode.builtin.glyphs.shatter.style.ShatterStyle;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
+import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
@@ -93,6 +94,18 @@ public class ShatterGlyph implements GlyphHandler {
             return;
         }
 
+        double dirLen = centralDir.length();
+        if (!Double.isFinite(dirLen) || dirLen < 1e-9) {
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "direction is degenerate (zero or NaN)");
+            return;
+        }
+        centralDir = new Vector3d(centralDir.x / dirLen, centralDir.y / dirLen, centralDir.z / dirLen);
+
+        Ref<EntityStore> parent = sourceVar instanceof EntityVar var
+                ? var.getRef(hexContext.getAccessor())
+                : hexContext.getCasterRef();
+
         int count = HexVarUtil.numberOrDefault(countVar, (double) DEFAULT_COUNT).intValue();
         if (count < 1) count = 1;
         if (count > MAX_COUNT) count = MAX_COUNT;
@@ -115,20 +128,21 @@ public class ShatterGlyph implements GlyphHandler {
 
         for (Vector3d dir : shardDirections) {
             Vector3d shardSpawn = new Vector3d(spawnPos).add(new Vector3d(dir).scale(1.0));
-            spawnShard(hexContext, glyph, shardSpawn, dir, speed, gravity, model);
+            spawnShard(hexContext, glyph, parent, shardSpawn, dir, speed, gravity, model);
         }
 
         ShatterStyle.renderLaunch(spawnPos, centralDir, hexContext.getColors(), hexContext.getAccessor());
     }
 
-    private void spawnShard(HexContext hexContext, Glyph glyph, Vector3d position, Vector3d direction,
+    private void spawnShard(HexContext hexContext, Glyph glyph, Ref<EntityStore> parent,
+            Vector3d position, Vector3d direction,
             double speed, double gravity, Model model) {
 
         HexContext branched = hexContext.branch();
 
         Vector3f rotation = new Vector3f();
         rotation.setYaw((float) Math.atan2(-direction.x, direction.z));
-        rotation.setPitch((float) Math.asin(-direction.y));
+        rotation.setPitch((float) Math.asin(Math.max(-1.0, Math.min(1.0, -direction.y))));
 
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
 
@@ -150,7 +164,7 @@ public class ShatterGlyph implements GlyphHandler {
                 new Interactions(buildInteractionsMap()));
 
         Vector3d launchVelocity = new Vector3d(direction).scale(speed);
-        new ProjectilePhysicsConfig(gravity, 0).apply(holder, hexContext.getCasterRef(),
+        new ProjectilePhysicsConfig(gravity, 0).apply(holder, parent,
                 launchVelocity, hexContext.getAccessor(), false);
 
         holder.addComponent(DespawnComponent.getComponentType(),

@@ -9,7 +9,7 @@ import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
 import com.riprod.hexcode.core.common.construct.component.HexStatus;
 import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
-import com.riprod.hexcode.core.state.execution.component.HexcasterExecutionComponent;
+import com.riprod.hexcode.core.state.execution.component.HexcasterIdleComponent;
 
 public class ConcentrationConstructHandler implements ConstructHandler<ConcentrationState> {
 
@@ -21,8 +21,8 @@ public class ConcentrationConstructHandler implements ConstructHandler<Concentra
         if (casterRef == null || !casterRef.isValid()) return true;
 
         CommandBuffer<EntityStore> buffer = ctx.getBuffer();
-        HexcasterExecutionComponent execComp = buffer.getComponent(
-                casterRef, HexcasterExecutionComponent.getComponentType());
+        HexcasterIdleComponent execComp = buffer.getComponent(
+                casterRef, HexcasterIdleComponent.getComponentType());
         if (execComp == null || !execComp.isHoldingPrimary()) {
             return true;
         }

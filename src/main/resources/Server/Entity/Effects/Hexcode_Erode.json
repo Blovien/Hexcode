@@ -6,5 +6,7 @@
     "EntityBottomTint": "#665533",
     "EntityTopTint": "#998866",
     "WorldSoundEventId": "SFX_Avatar_Powers_Disable"
-  }
+  },
+  "Name": "hexcode.effects.erode",
+  "StatusEffectIcon": "UI/StatusEffects/Hexcode/Erode.png"
 }
