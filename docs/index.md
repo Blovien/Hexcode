@@ -6,7 +6,7 @@ draft: false
 ---
 ![image](https://media.forgecdn.net/attachments/description/1448311/description_24df6807-f0ae-457a-a068-9cbaf45f3e11.png)
 
-____Hexcode is in Early Access.  Things will break, progression may not be 100%. Join [https://discord.hexcodec.com](https://discord.hexcodec.com) to report bugs, give suggestions, and shape the future of magic___ 
+___Hexcode is in Early Access.  Things will break, progression may not be 100%. Join [https://discord.hexcodec.com](https://discord.hexcodec.com) to report bugs, give suggestions, and shape the future of magic___ 
 
 "What is magic?" - It's an age-old question. Some say it's a myth; others, a legend. Some say it's our lifeblood. Others say it's divine intervention._
 
