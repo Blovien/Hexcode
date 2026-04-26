@@ -94,6 +94,49 @@ public class HexSpawner {
 
     }
 
+    private static final float IN_AIR_SPAWN_DISTANCE = 3.0f;
+
+    public static Ref<EntityStore> spawnSingleHex(CommandBuffer<EntityStore> accessor, Ref<EntityStore> ownerRef,
+            Ref<EntityStore> castingRootRef, Hex hex) {
+
+        String firstGlyphId = hex.getFirstGlyphId();
+        Glyph firstGlyph = firstGlyphId != null ? hex.get(firstGlyphId) : null;
+        if (firstGlyph == null) {
+            LOGGER.atWarning().log("skipping malformed in-air hex (no entry point): hexId=%s", hex.getHexId());
+            return null;
+        }
+
+        TransformComponent ownerTransform = accessor.getComponent(ownerRef, TransformComponent.getComponentType());
+        Vector3d ownerPos = ownerTransform.getPosition();
+        HeadRotation headRotation = accessor.getComponent(ownerRef, HeadRotation.getComponentType());
+        Vector3f ownerRotation = headRotation.getRotation();
+
+        Vector3f rot = new Vector3f(ownerRotation.getPitch(), ownerRotation.getYaw(), IN_AIR_SPAWN_DISTANCE);
+        Vector3d position = GlyphMath.sphericalToCartesian(rot);
+
+        HexComponent hexComponent = new HexComponent(hex);
+        hexComponent.setRootRef(castingRootRef);
+        hexComponent.setParentRef(castingRootRef);
+        hexComponent.setOffset(new Vector3f((float) position.x, (float) position.y, (float) position.z));
+        hexComponent.setRotation(rot);
+        Ref<EntityStore> hexRef = CreateHex.createHexEntity(accessor, hexComponent, ownerPos);
+        hexComponent.setSelfRef(hexRef);
+
+        int numGlyphs = (int) hex.getGlyphs().stream().filter(g -> g != null).count();
+        float scaleMultiplier = 1 + (numGlyphs * GlyphStyler.SCALE_PER_GLYPH);
+
+        GlyphComponent firstGlyphComponent = new GlyphComponent(firstGlyph);
+        firstGlyphComponent.setHexRef(hexRef);
+        firstGlyphComponent.setParentRef(hexRef);
+        firstGlyphComponent.setOffset(Vector3f.ZERO);
+        firstGlyphComponent.setRotation(rot);
+        firstGlyphComponent.setScale(scaleMultiplier);
+        hexComponent.setScale(scaleMultiplier);
+
+        GlyphSpawner.spawnGlyphs(accessor, hexComponent, firstGlyphComponent, ownerPos, rot);
+        return hexRef;
+    }
+
     /** Just logically merges the hex into the hex tree */
     public static void MergeGlyphs(CommandBuffer<EntityStore> accessor, GlyphComponent droppedOnGlyph,
             HexComponent draggedHex, float eyeHeight) {

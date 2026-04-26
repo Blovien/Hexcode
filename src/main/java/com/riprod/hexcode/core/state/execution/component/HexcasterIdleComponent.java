@@ -19,12 +19,12 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 
-public class HexcasterExecutionComponent implements Component<EntityStore> {
+public class HexcasterIdleComponent implements Component<EntityStore> {
 
-    private static ComponentType<EntityStore, HexcasterExecutionComponent> componentType;
+    private static ComponentType<EntityStore, HexcasterIdleComponent> componentType;
 
-    public static final BuilderCodec<HexcasterExecutionComponent> CODEC = BuilderCodec
-            .builder(HexcasterExecutionComponent.class, HexcasterExecutionComponent::new)
+    public static final BuilderCodec<HexcasterIdleComponent> CODEC = BuilderCodec
+            .builder(HexcasterIdleComponent.class, HexcasterIdleComponent::new)
             .append(new KeyedCodec<>("Hex", Hex.CODEC),
                     (c, v) -> c.hex = v,
                     c -> c.hex)
@@ -39,14 +39,14 @@ public class HexcasterExecutionComponent implements Component<EntityStore> {
             .add()
             .build();
 
-    public HexcasterExecutionComponent() {
+    public HexcasterIdleComponent() {
     }
 
-    public static void setComponentType(ComponentType<EntityStore, HexcasterExecutionComponent> type) {
+    public static void setComponentType(ComponentType<EntityStore, HexcasterIdleComponent> type) {
         componentType = type;
     }
 
-    public static ComponentType<EntityStore, HexcasterExecutionComponent> getComponentType() {
+    public static ComponentType<EntityStore, HexcasterIdleComponent> getComponentType() {
         return componentType;
     }
 
@@ -183,8 +183,8 @@ public class HexcasterExecutionComponent implements Component<EntityStore> {
 
     @Nonnull
     @Override
-    public HexcasterExecutionComponent clone() {
-        HexcasterExecutionComponent copy = new HexcasterExecutionComponent();
+    public HexcasterIdleComponent clone() {
+        HexcasterIdleComponent copy = new HexcasterIdleComponent();
         copy.hex = this.hex != null ? this.hex.clone() : null;
         copy.castCount = this.castCount;
         copy.cumulativeDecay = this.cumulativeDecay;

@@ -16,7 +16,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.saved.SavedHexAsset;
 import com.riprod.hexcode.core.common.hexes.saved.SavedHexWriter;
-import com.riprod.hexcode.core.state.execution.component.HexcasterExecutionComponent;
+import com.riprod.hexcode.core.state.execution.component.HexcasterIdleComponent;
 
 public class HexSaveCommand extends AbstractPlayerCommand {
 
@@ -50,7 +50,7 @@ public class HexSaveCommand extends AbstractPlayerCommand {
             return;
         }
 
-        HexcasterExecutionComponent execComp = store.getComponent(playerEntityRef, HexcasterExecutionComponent.getComponentType());
+        HexcasterIdleComponent execComp = store.getComponent(playerEntityRef, HexcasterIdleComponent.getComponentType());
         if (execComp == null) {
             playerRef.sendMessage(Message.raw("no execution component found on player"));
             return;

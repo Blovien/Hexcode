@@ -15,7 +15,10 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
+import com.riprod.hexcode.core.state.drawing.component.DrawnShapeComponent;
 import com.riprod.hexcode.utils.CleanupUtils;
+
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
 
 public class HexcasterCastingComponent implements Component<EntityStore> {
 
@@ -31,6 +34,15 @@ public class HexcasterCastingComponent implements Component<EntityStore> {
     private HexComponent hoveredHex = null;
     private GlyphComponent hoveredGlyph = null;
     private HexComponent lastHoveredHex = null;
+
+    public enum DraftSubState { Idle, Drawing, AwaitingFinalize }
+
+    private transient DraftSubState draftSubState = DraftSubState.Idle;
+    private transient FloatArrayList currentStrokePoints = new FloatArrayList();
+    private transient List<DrawnShapeComponent> pendingShapes = new ArrayList<>();
+    private transient float finalizeTimer = 0f;
+    private transient float strokeElapsedSeconds = 0f;
+    private transient Ref<EntityStore> drawTrailRef = null;
 
     public HexcasterCastingComponent() {
     }
@@ -120,12 +132,76 @@ public class HexcasterCastingComponent implements Component<EntityStore> {
         this.hoveredHex = null;
         this.hoveredGlyph = null;
         this.lastHoveredHex = null;
+        this.draftSubState = DraftSubState.Idle;
+        this.currentStrokePoints.clear();
+        this.pendingShapes.clear();
+        this.finalizeTimer = 0f;
+        this.strokeElapsedSeconds = 0f;
+        this.drawTrailRef = null;
+    }
+
+    public DraftSubState getDraftSubState() {
+        return draftSubState;
+    }
+
+    public void setDraftSubState(DraftSubState state) {
+        this.draftSubState = state;
+    }
+
+    public FloatArrayList getCurrentStrokePoints() {
+        return currentStrokePoints;
+    }
+
+    public void clearCurrentStroke() {
+        this.currentStrokePoints.clear();
+    }
+
+    public List<DrawnShapeComponent> getPendingShapes() {
+        return pendingShapes;
+    }
+
+    public void addPendingShape(DrawnShapeComponent shape) {
+        this.pendingShapes.add(shape);
+    }
+
+    public void clearPendingShapes() {
+        this.pendingShapes.clear();
+    }
+
+    public float getFinalizeTimer() {
+        return finalizeTimer;
+    }
+
+    public void setFinalizeTimer(float timer) {
+        this.finalizeTimer = timer;
+    }
+
+    public float getStrokeElapsedSeconds() {
+        return strokeElapsedSeconds;
+    }
+
+    public void setStrokeElapsedSeconds(float seconds) {
+        this.strokeElapsedSeconds = seconds;
+    }
+
+    public void addStrokeElapsedSeconds(float dt) {
+        this.strokeElapsedSeconds += dt;
+    }
+
+    @Nullable
+    public Ref<EntityStore> getDrawTrailRef() {
+        return drawTrailRef;
+    }
+
+    public void setDrawTrailRef(@Nullable Ref<EntityStore> ref) {
+        this.drawTrailRef = ref;
     }
 
     public void clear(CommandBuffer<EntityStore> buffer) {
         this.castingRootRef = null;
         CleanupUtils.safeRemoveEntity(buffer, this.headAnchorRef);
         CleanupUtils.safeRemoveEntities(buffer, activeHexes);
+        CleanupUtils.safeRemoveEntity(buffer, this.drawTrailRef);
         this.headAnchorRef = null;
         this.activeHexes.clear();
         this.hoveredChain = null;
@@ -133,6 +209,12 @@ public class HexcasterCastingComponent implements Component<EntityStore> {
         this.hoveredHex = null;
         this.hoveredGlyph = null;
         this.lastHoveredHex = null;
+        this.draftSubState = DraftSubState.Idle;
+        this.currentStrokePoints.clear();
+        this.pendingShapes.clear();
+        this.finalizeTimer = 0f;
+        this.strokeElapsedSeconds = 0f;
+        this.drawTrailRef = null;
     }
 
     @Nonnull

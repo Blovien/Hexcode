@@ -52,8 +52,7 @@ import com.riprod.hexcode.core.state.drawing.DrawingSystem;
 import com.riprod.hexcode.core.state.drawing.component.HexcasterDrawingComponent;
 import com.riprod.hexcode.core.state.drawing.registry.ShapeAsset;
 import com.riprod.hexcode.core.state.drawing.registry.TemplateAsset;
-import com.riprod.hexcode.core.state.execution.ExecutionSystem;
-import com.riprod.hexcode.core.state.execution.component.HexcasterExecutionComponent;
+import com.riprod.hexcode.core.state.execution.component.HexcasterIdleComponent;
 import com.riprod.hexcode.core.state.execution.events.HexCastEventSystem;
 import com.riprod.hexcode.core.state.idle.IdleSystem;
 import com.riprod.hexcode.interaction.HexStateChange;
@@ -62,7 +61,6 @@ import com.riprod.hexcode.interaction.HexMode;
 import com.riprod.hexcode.interaction.HexModeExit;
 import com.riprod.hexcode.interaction.HexStateBranch;
 import com.riprod.hexcode.interaction.HexAbility;
-import com.riprod.hexcode.interaction.HexExecutionExit;
 import com.riprod.hexcode.interaction.HexItemCondition;
 import com.riprod.hexcode.interaction.GlyphBookInteraction;
 import com.riprod.hexcode.interaction.PedestalInteraction;
@@ -226,10 +224,10 @@ public class Hexcode extends JavaPlugin {
             HexcasterComponent.CODEC);
     HexcasterComponent.setComponentType(hexcasterComponentType);
 
-    ComponentType<EntityStore, HexcasterExecutionComponent> executionComponentType = entityStoreRegistry
-        .registerComponent(HexcasterExecutionComponent.class,
-            HexcasterExecutionComponent::new);
-    HexcasterExecutionComponent.setComponentType(executionComponentType);
+    ComponentType<EntityStore, HexcasterIdleComponent> executionComponentType = entityStoreRegistry
+        .registerComponent(HexcasterIdleComponent.class,
+            HexcasterIdleComponent::new);
+    HexcasterIdleComponent.setComponentType(executionComponentType);
 
     ComponentType<EntityStore, HexcasterCastingComponent> castingRootComponentType = entityStoreRegistry
         .registerComponent(HexcasterCastingComponent.class,
@@ -299,7 +297,6 @@ public class Hexcode extends JavaPlugin {
     // Interaction Registries
     Interaction.CODEC.register("HexStateBranch", HexStateBranch.class, HexStateBranch.CODEC);
     Interaction.CODEC.register("HexStateChange", HexStateChange.class, HexStateChange.CODEC);
-    Interaction.CODEC.register("HexExecutionExit", HexExecutionExit.class, HexExecutionExit.CODEC);
     Interaction.CODEC.register("HexHold", HexHold.class, HexHold.CODEC);
     Interaction.CODEC.register("HexMode", HexMode.class, HexMode.CODEC);
     Interaction.CODEC.register("HexModeExit", HexModeExit.class, HexModeExit.CODEC);
@@ -334,7 +331,6 @@ public class Hexcode extends JavaPlugin {
     // HexcasterCastingComponent.getComponentType());
     StateRouter.registerState(HexState.DRAWING, new DrawingSystem());
     StateRouter.registerState(HexState.CRAFTING, new CraftingSystem());
-    StateRouter.registerState(HexState.EXECUTION, new ExecutionSystem());
 
     // Ticking Systems
     entityStoreRegistry.registerSystem(new HexTick());

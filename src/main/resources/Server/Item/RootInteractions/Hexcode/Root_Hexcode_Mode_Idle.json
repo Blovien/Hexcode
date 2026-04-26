@@ -2,12 +2,14 @@
   "Interactions": [
     {
       "Type": "HexMode",
-      "TargetState": "EXECUTION",
+      "TargetState": "IDLE",
+      "CancelOnOtherClick": false,
       "Effects": {
         "ItemAnimationId": "HexExecution_Primary"
       },
       "Next": {
-        "Type": "HexExecutionExit"
+        "Type": "HexModeExit",
+        "TargetState": "IDLE"
       }
     }
   ]

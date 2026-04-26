@@ -5,6 +5,7 @@ import javax.annotation.Nonnull;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector4d;
@@ -89,6 +90,8 @@ public class HexShatterHitInteraction extends SimpleInteraction {
             }
 
             HexExecuter.continueExecution(state.getNextLinks(), hexContext);
+
+            buffer.tryRemoveEntity(shardRef, RemoveReason.REMOVE);
 
             ctx.getState().state = InteractionState.Finished;
         } catch (Exception e) {

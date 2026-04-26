@@ -25,7 +25,8 @@ public class CasterInventory {
     @Nullable
     public static HexBookComponent getHexBookComponent(ComponentAccessor<EntityStore> store,
             Ref<EntityStore> playerRef) {
-        return getHexBookComponent(store, playerRef, HexSlot.OffHand).getSecond();
+        Pair<HexSlot, HexBookComponent> result = getHexBookComponent(store, playerRef, HexSlot.OffHand);
+        return result != null ? result.getSecond() : null;
     }
 
     @Nullable

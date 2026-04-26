@@ -2,9 +2,8 @@
   "Interactions": [
     {
       "Type": "HexItemCondition",
-      "CheckMode": "Both",
+      "CheckMode": "MainHand",
       "MainHandItem": "HexStaff",
-      "OffHandItem": "HexBook",
       "Next": {
         "Type": "Serial",
         "Interactions": [

@@ -28,7 +28,7 @@ public class StaffUnequipEvent extends EntityEventSystem<EntityStore, SwitchActi
         if (hexcaster == null) return;
 
         HexState state = hexcaster.getState();
-        if (state != HexState.CASTING && state != HexState.EXECUTION) return;
+        if (state != HexState.CASTING) return;
 
         hexcaster.requestStateChange(HexState.IDLE);
     }

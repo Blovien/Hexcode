@@ -4,6 +4,5 @@ public enum HexState {
     IDLE,
     CASTING,
     DRAWING,
-    CRAFTING,
-    EXECUTION
+    CRAFTING
 }

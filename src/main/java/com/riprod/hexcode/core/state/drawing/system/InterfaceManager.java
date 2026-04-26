@@ -83,6 +83,62 @@ public class InterfaceManager {
 
   }
 
+  public static Ref<EntityStore> spawnTrailEntity(ComponentAccessor<EntityStore> accessor,
+      Ref<EntityStore> playerRef, HeadRotation head) {
+    TransformComponent transform = accessor.getComponent(playerRef, TransformComponent.getComponentType());
+    ModelComponent playerModel = accessor.getComponent(playerRef, ModelComponent.getComponentType());
+    if (head == null || transform == null || playerModel == null) {
+      return null;
+    }
+
+    float eyeHeight = playerModel.getModel().getEyeHeight();
+    Vector3d eyePos = new Vector3d(transform.getPosition()).add(0, eyeHeight, 0);
+    Vector3f rotation = head.getRotation();
+    Vector3d position = GlyphMath.sphericalToCartesian(eyePos, head.getRotation().getYaw(),
+        head.getRotation().getPitch(), 2.0f);
+
+    ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset("Trail_Anchor");
+    Model model = Model.createUnitScaleModel(modelAsset);
+
+    Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
+    holder.addComponent(TransformComponent.getComponentType(),
+        new TransformComponent(position, rotation));
+    holder.ensureComponent(UUIDComponent.getComponentType());
+    holder.addComponent(ModelComponent.getComponentType(), new ModelComponent(model));
+    holder.addComponent(PersistentModel.getComponentType(),
+        new PersistentModel(model.toReference()));
+    holder.ensureComponent(PropComponent.getComponentType());
+
+    return accessor.addEntity(holder, AddReason.SPAWN);
+  }
+
+  public static void positionTrailEntity(ComponentAccessor<EntityStore> accessor,
+      Ref<EntityStore> playerRef, Ref<EntityStore> trailRef, HeadRotation head) {
+    if (trailRef == null || !trailRef.isValid()) {
+      return;
+    }
+    TransformComponent transform = accessor.getComponent(playerRef, TransformComponent.getComponentType());
+    ModelComponent playerModel = accessor.getComponent(playerRef, ModelComponent.getComponentType());
+    if (head == null || transform == null || playerModel == null) {
+      return;
+    }
+    float eyeHeight = playerModel.getModel().getEyeHeight();
+    Vector3d eyePos = new Vector3d(transform.getPosition()).add(0, eyeHeight, 0);
+    Vector3d position = GlyphMath.sphericalToCartesian(eyePos, head.getRotation().getYaw(),
+        head.getRotation().getPitch(), 2.0f);
+    TransformComponent trailTransform = accessor.getComponent(trailRef, TransformComponent.getComponentType());
+    if (trailTransform == null) return;
+    trailTransform.setPosition(position);
+  }
+
+  public static void removeTrailEntity(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> trailRef) {
+    if (trailRef == null || !trailRef.isValid()) {
+      return;
+    }
+    Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
+    accessor.removeEntity(trailRef, holder, RemoveReason.REMOVE);
+  }
+
   public static void removeTrails(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> playerRef) {
     HexcasterDrawingComponent hexcaster = accessor.getComponent(playerRef, HexcasterDrawingComponent.getComponentType());
     if (hexcaster == null) return;

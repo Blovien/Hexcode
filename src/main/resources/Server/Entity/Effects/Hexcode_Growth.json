@@ -9,5 +9,7 @@
   "ApplicationEffects": {
     "EntityBottomTint": "#336633",
     "EntityTopTint": "#66AA66"
-  }
+  },
+  "Name": "hexcode.effects.growth",
+  "StatusEffectIcon": "UI/StatusEffects/Hexcode/Growth.png"
 }

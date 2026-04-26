@@ -47,7 +47,7 @@ public class ConjureConstructHandler implements ConstructHandler<NoState> {
         Glyph triggering = status.getTriggeringGlyph();
 
         if (triggering.getNextLinks() == null || triggering.getNextLinks().size() == 0) {
-            return true;
+            return false;
         }
 
         ConjureZoneComponent zone = ctx.getChunk().getComponent(
