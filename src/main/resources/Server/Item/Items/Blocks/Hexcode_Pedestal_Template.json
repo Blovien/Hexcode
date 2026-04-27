@@ -1,6 +1,7 @@
 {
   "TranslationProperties": {
-    "Name": "Hexcode Pedestal"
+    "Name": "hexcode.blocks.Hexcode_Pedestal_Template.name",
+    "Description": "hexcode.blocks.Hexcode_Pedestal_Template.description"
   },
   "Icon": "Icons/ItemsGenerated/Hexcode_Pedestal_Template.png",
   "Categories": [

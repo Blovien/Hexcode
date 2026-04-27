@@ -19,5 +19,6 @@
   "PlayerAnimationsId": "HexBook",
   "Interactions": {
     "Secondary": "Hexbook_Secondary"
-  }
+  },
+  "Quality": "Template"
 }
