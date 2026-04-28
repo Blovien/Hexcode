@@ -8,7 +8,6 @@
     "Hexcode.Staves",
     "Items.Weapons"
   ],
-  "Quality": "Common",
   "ItemLevel": 40,
   "Model": "Items/Weapons/Staff/Bo_Wood.blockymodel",
   "Texture": "Items/Weapons/Staff/Bo_Wood_Texture.png",

@@ -24,19 +24,19 @@
       "Style": "Input",
       "Label": "R",
       "Description": "Red (0-255)",
-      "DefaultValue": 255
+      "DefaultValue": 0
     },
     "g": {
       "Style": "Input",
       "Label": "G",
       "Description": "Green (0-255)",
-      "DefaultValue": 255
+      "DefaultValue": 0
     },
     "b": {
       "Style": "Input",
       "Label": "B",
       "Description": "Blue (0-255)",
-      "DefaultValue": 255
+      "DefaultValue": 0
     },
     "a": {
       "Style": "Input",
