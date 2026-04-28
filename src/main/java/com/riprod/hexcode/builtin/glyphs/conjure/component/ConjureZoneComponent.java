@@ -27,6 +27,8 @@ public class ConjureZoneComponent implements Component<EntityStore> {
     private Vector3d halfExtents;
     private float interval;
     private float intervalTimer;
+    private float duration;
+    private float totallapsed = 0f;
     private Set<UUID> lastOccupants;
     private Set<UUID> newOccupants;
     private Ref<EntityStore> zoneRef;
@@ -34,10 +36,11 @@ public class ConjureZoneComponent implements Component<EntityStore> {
     public ConjureZoneComponent() {
     }
 
-    public ConjureZoneComponent(Vector3d halfExtents, float interval) {
+    public ConjureZoneComponent(Vector3d halfExtents, float interval, float duration) {
         this.halfExtents = halfExtents;
         this.interval = interval;
         this.intervalTimer = interval;
+        this.duration = duration;
         this.lastOccupants = new HashSet<>();
         this.newOccupants = new HashSet<>();
     }
@@ -56,6 +59,18 @@ public class ConjureZoneComponent implements Component<EntityStore> {
 
     public void setIntervalTimer(float intervalTimer) {
         this.intervalTimer = intervalTimer;
+    }
+
+    public float getDuration() {
+        return duration;
+    }
+
+    public float getTotallapsed() {
+        return totallapsed;
+    }
+
+    public void addToTotallapsed(float delta) {
+        this.totallapsed += delta;
     }
 
     public Set<UUID> getLastOccupants() {

@@ -156,7 +156,7 @@ public static final String ID = "Conjure";
     float durationSeconds = HexVarUtil.numberOrDefault(durationVar, 5.0).floatValue();
     float interval = HexVarUtil.numberOrDefault(intervalVar, -1.0).floatValue();
 
-    ConjureZoneComponent zoneComp = new ConjureZoneComponent(halfExtents, interval);
+    ConjureZoneComponent zoneComp = new ConjureZoneComponent(halfExtents, interval, durationSeconds);
 
     Vector3f debugColor = ConjureStyle.resolveColor(hexContext.getColors());
 

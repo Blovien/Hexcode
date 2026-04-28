@@ -31,30 +31,31 @@ public class ConjureConstructHandler implements ConstructHandler<NoState> {
     @Override
     public void onFirstTick(HexStatus<NoState> status, ConstructTickContext ctx) {
         Glyph triggering = status.getTriggeringGlyph();
-        if (triggering == null) return;
+        if (triggering == null)
+            return;
         Slot immediate = triggering.getSlot(ConjureGlyphSlots.IMMEDIATE);
-        if (immediate == null) return;
+        if (immediate == null)
+            return;
         String[] links = immediate.getLinks();
-        if (links == null || links.length == 0) return;
+        if (links == null || links.length == 0)
+            return;
         HexContext hexContext = status.getHexContext();
         hexContext.UpdateAccessor(ctx.getBuffer());
+        UUID entityId = ctx.getBuffer().getComponent(ctx.getEntityRef(), UUIDComponent.getComponentType())
+                .getUuid();
+        hexContext.setVariable(ConjureGlyphSlots.IMMEDIATE, new EntityVar(entityId, ctx.getEntityRef()));
         HexExecuter.continueExecution(java.util.Arrays.asList(links), hexContext);
     }
 
     @Override
     public boolean onTick(float dt, HexStatus<NoState> status, ConstructTickContext ctx) {
-        
-        Glyph triggering = status.getTriggeringGlyph();
-
-        if (triggering.getNextLinks() == null || triggering.getNextLinks().size() == 0) {
-            return false;
-        }
 
         ConjureZoneComponent zone = ctx.getChunk().getComponent(
                 ctx.getIndex(), ConjureZoneComponent.getComponentType());
         TransformComponent transform = ctx.getChunk().getComponent(
                 ctx.getIndex(), TransformComponent.getComponentType());
-        if (zone == null || transform == null) return false;
+        if (zone == null || transform == null)
+            return false;
 
         Velocity vel = ctx.getChunk().getComponent(ctx.getIndex(), Velocity.getComponentType());
         if (vel != null) {
@@ -66,6 +67,12 @@ public class ConjureConstructHandler implements ConstructHandler<NoState> {
                         pos.y + velocity.y * dt,
                         pos.z + velocity.z * dt));
             }
+        }
+
+        Glyph triggering = status.getTriggeringGlyph();
+
+        if (triggering.getNextLinks() == null || triggering.getNextLinks().size() == 0) {
+            return false;
         }
 
         Vector3d pos = transform.getPosition();
@@ -81,11 +88,14 @@ public class ConjureConstructHandler implements ConstructHandler<NoState> {
         zone.setNewOccupants(new HashSet<>());
 
         for (Ref<EntityStore> ref : found) {
-            if (ref == null || !ref.isValid()) continue;
-            if (ctx.getBuffer().getComponent(ref, ConjureZoneComponent.getComponentType()) != null) continue;
+            if (ref == null || !ref.isValid())
+                continue;
+            if (ctx.getBuffer().getComponent(ref, ConjureZoneComponent.getComponentType()) != null)
+                continue;
 
             UUIDComponent uuid = ctx.getBuffer().getComponent(ref, UUIDComponent.getComponentType());
-            if (uuid == null) continue;
+            if (uuid == null)
+                continue;
 
             UUID entityId = uuid.getUuid();
             zone.getNewOccupants().add(entityId);
@@ -100,12 +110,22 @@ public class ConjureConstructHandler implements ConstructHandler<NoState> {
             if (zone.getIntervalTimer() <= 0) {
                 zone.setIntervalTimer(zone.getInterval());
                 for (Ref<EntityStore> ref : found) {
-                    if (ref == null || !ref.isValid()) continue;
+                    if (ref == null || !ref.isValid())
+                        continue;
                     UUIDComponent uuid = ctx.getBuffer().getComponent(ref, UUIDComponent.getComponentType());
-                    if (uuid == null) continue;
-                    if (!zone.getNewOccupants().contains(uuid.getUuid())) continue;
+                    if (uuid == null)
+                        continue;
+                    if (!zone.getNewOccupants().contains(uuid.getUuid()))
+                        continue;
                     fireOnEntity(status, ctx, zone, ref, uuid);
                 }
+            }
+        }
+
+        if (zone.getDuration() > 0) {
+            zone.addToTotallapsed(dt);
+            if (zone.getTotallapsed() >= zone.getDuration()) {
+                return true;
             }
         }
 
