@@ -8,7 +8,7 @@
     "Hexcode.Staves",
     "Items.Weapons"
   ],
-  "Quality": "Uncommon",
+  "Quality": "Common",
   "ItemLevel": 10,
   "Model": "Items/Weapons/Staff/Copper.blockymodel",
   "Texture": "Items/Weapons/Staff/Copper_Texture.png",

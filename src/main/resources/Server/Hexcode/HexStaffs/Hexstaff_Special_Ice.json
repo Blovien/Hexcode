@@ -1,6 +1,6 @@
 {
   "Parent": "Template_Hexstaff",
-  "CastStyleId": "arc",
+  "CastStyleId": "ring",
   "CastingAuraParticles": [
     {
       "SystemId": "Hexstaff_Generic_Rune",
