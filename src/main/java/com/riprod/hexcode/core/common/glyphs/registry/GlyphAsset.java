@@ -20,6 +20,7 @@ import com.hypixel.hytale.codec.codecs.array.ArrayCodec;
 import com.hypixel.hytale.codec.codecs.map.MapCodec;
 import com.hypixel.hytale.codec.validation.ValidatorCache;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
+import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.state.drawing.component.DrawnShapeComponent;
 
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -32,11 +33,12 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
     protected AssetExtraInfo.Data data;
     protected String id;
     protected String modelPath;
-    protected String imagePath;
     protected String title;
     protected String description;
     protected float basePower = 1.0f;
     protected int manaConsumption = 10;
+    protected boolean isReversable = false;
+    protected boolean isEnabled = true;
     protected VolatilityAsset volatility = new VolatilityAsset();
     protected ArrayList<DrawnShapeComponent> shapes = new ArrayList<>();
     protected LinkedHashMap<String, SlotAsset> slots = new LinkedHashMap<>();
@@ -55,12 +57,26 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
         return (DefaultAssetMap<String, GlyphAsset>) getAssetStore().getAssetMap();
     }
 
+    protected GlyphConfig config = new GlyphConfig.Default();
+
     private GlyphAsset() {
     }
 
     @Override
     public String getId() {
         return this.id;
+    }
+
+    public GlyphConfig getConfig() {
+        return this.config;
+    }
+
+    public boolean isEnabled() {
+        return this.isEnabled;
+    }
+
+    public boolean isReversable() {
+        return this.isReversable;
     }
 
     public String getModelPath() {
@@ -147,14 +163,16 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
                 }, (asset) -> {
                     return asset.data;
                 })
+                .appendInherited(new KeyedCodec<>("IsEnabled", Codec.BOOLEAN),
+                        (a, v) -> a.isEnabled = v, a -> a.isEnabled,
+                        (a, p) -> a.isEnabled = p.isEnabled)
+                .documentation("Whether or not the glyph is enabled")
+                .add()
                 .<String>appendInherited(new KeyedCodec<>("ModelPath", Codec.STRING),
                         (a, v) -> a.modelPath = v, a -> a.modelPath,
                         (a, p) -> a.modelPath = p.modelPath)
                 .addValidatorLate(() -> ModelAsset.VALIDATOR_CACHE.getValidator().late())
-                .add()
-                .<String>appendInherited(new KeyedCodec<>("ImagePath", Codec.STRING),
-                        (a, v) -> a.imagePath = v, a -> a.imagePath,
-                        (a, p) -> a.imagePath = p.imagePath)
+                .documentation("The location of the glyph model")
                 .add()
                 .<Float>appendInherited(new KeyedCodec<>("BasePower", Codec.FLOAT),
                         (a, v) -> a.basePower = v, a -> a.basePower,
@@ -163,18 +181,22 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
                 .<String>appendInherited(new KeyedCodec<>("Title", Codec.STRING),
                         (a, v) -> a.title = v, a -> a.title,
                         (a, p) -> a.title = p.title)
+                .documentation("The human-readable name of the glyph")
                 .add()
                 .appendInherited(new KeyedCodec<>("Description", Codec.STRING),
                         (a, v) -> a.description = v, a -> a.description,
                         (a, p) -> a.description = p.description)
+                .documentation("The human-readable description of the glyph")
                 .add()
                 .appendInherited(new KeyedCodec<>("ManaConsumption", Codec.INTEGER),
                         (a, v) -> a.manaConsumption = v, a -> a.manaConsumption,
                         (a, p) -> a.manaConsumption = p.manaConsumption)
+                .documentation("How much mana the glyph consumes when cast")
                 .add()
                 .appendInherited(new KeyedCodec<>("Volatility", VolatilityAsset.CODEC),
                         (a, v) -> a.volatility = v, a -> a.volatility,
                         (a, p) -> a.volatility = p.volatility)
+                .documentation("The volatility config for the glyph")
                 .add()
                 .appendInherited(
                         new KeyedCodec<>("ShapeStructure",
@@ -188,6 +210,12 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
                         },
                         c -> c.shapes.toArray(DrawnShapeComponent[]::new),
                         (a, p) -> a.shapes = new ArrayList<>(p.shapes))
+                .documentation("The shape of the glyph - determines what it takes to draw")
+                .add()
+                .appendInherited(new KeyedCodec<>("IsReversable", Codec.BOOLEAN),
+                        (a, v) -> a.isReversable = v, a -> a.isReversable,
+                        (a, p) -> a.isReversable = p.isReversable)
+                .documentation("Whether or not the shape is reversable (drawn in any order)")
                 .add()
                 .appendInherited(
                         new KeyedCodec<>("Slots", slotMapCodec),
@@ -201,6 +229,31 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
                             a.slotIndexCache = null;
                         })
                 .add()
+                .appendInherited(new KeyedCodec<>("Config", GlyphConfig.CODEC),
+                        (a, v) -> a.config = v, a -> a.config,
+                        (a, p) -> a.config = p.config)
+                .documentation("Per-glyph tuning knobs, polymorphic on GlyphId")
+                .add()
+                .validator((asset, results) -> {
+                    if (asset.id == null || asset.config == null)
+                        return;
+                    if (!asset.id.equals(asset.config.getGlyphId())) {
+                        results.fail("GlyphAsset.Config.GlyphId ("
+                                + asset.config.getGlyphId()
+                                + ") must equal the parent asset Id ("
+                                + asset.id + ")");
+                    }
+                    GlyphHandler handler = GlyphRegistry.get(asset.id);
+                    if (handler == null)
+                        return;
+                    Class<? extends GlyphConfig> expected = handler.getConfigBinding().type();
+                    if (!expected.isInstance(asset.config)) {
+                        results.fail("GlyphAsset '" + asset.id
+                                + "' requires a Config block of type "
+                                + expected.getSimpleName() + " but got "
+                                + asset.config.getClass().getSimpleName());
+                    }
+                })
                 .build();
     }
 }

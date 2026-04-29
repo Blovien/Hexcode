@@ -14,12 +14,14 @@ public class PhaseComponent implements Component<EntityStore> {
     private static ComponentType<EntityStore, PhaseComponent> componentType;
 
     private List<PhasedBlock> phasedBlocks;
+    private List<String> next;
 
     public PhaseComponent() {
     }
 
-    public PhaseComponent(List<PhasedBlock> phasedBlocks) {
+    public PhaseComponent(List<PhasedBlock> phasedBlocks, List<String> next) {
         this.phasedBlocks = phasedBlocks;
+        this.next = next;
     }
 
     public static void setComponentType(ComponentType<EntityStore, PhaseComponent> type) {
@@ -32,6 +34,10 @@ public class PhaseComponent implements Component<EntityStore> {
 
     public List<PhasedBlock> getPhasedBlocks() {
         return phasedBlocks;
+    }
+
+    public List<String> getNext() {
+        return next;
     }
 
     @Nonnull

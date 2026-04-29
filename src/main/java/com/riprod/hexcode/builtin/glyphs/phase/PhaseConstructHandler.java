@@ -21,6 +21,7 @@ import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
 import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
 import com.riprod.hexcode.core.common.construct.component.HexStatus;
 import com.riprod.hexcode.core.common.construct.state.NoState;
+import com.riprod.hexcode.core.state.execution.HexExecuter;
 
 public class PhaseConstructHandler implements ConstructHandler<NoState> {
 
@@ -56,9 +57,11 @@ public class PhaseConstructHandler implements ConstructHandler<NoState> {
             }
 
             LOGGER.atInfo().log("phase: restored %d blocks", phase.getPhasedBlocks().size());
+            HexExecuter.continueExecution(phase.getNext(), status.getHexContext());
         }
 
         ctx.getBuffer().tryRemoveEntity(ctx.getEntityRef(), RemoveReason.REMOVE);
+
     }
 
     private void applyCrushDamage(Vector3i pos, Vector3d blockCenter,
@@ -72,10 +75,12 @@ public class PhaseConstructHandler implements ConstructHandler<NoState> {
         }
 
         for (Ref<EntityStore> ref : entities) {
-            if (ref == null || !ref.isValid()) continue;
+            if (ref == null || !ref.isValid())
+                continue;
 
             TransformComponent tc = buffer.getComponent(ref, TransformComponent.getComponentType());
-            if (tc == null) continue;
+            if (tc == null)
+                continue;
 
             if (damageCauseIndex >= 0) {
                 DamageCause cause = DamageCause.getAssetMap().getAsset(damageCauseIndex);

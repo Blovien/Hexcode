@@ -8,7 +8,6 @@ import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import java.util.HashMap;
 import java.util.Map;
 
-
 public class GlyphRegistry {
     private static final Map<String, GlyphHandler> glyphs = new HashMap<>();
     private static boolean initialized = false;
@@ -25,6 +24,8 @@ public class GlyphRegistry {
 
     public static void register(@Nonnull GlyphHandler glyph) {
         glyphs.put(glyph.getId(), glyph);
+        GlyphHandler.ConfigBinding<? extends GlyphConfig> binding = glyph.getConfigBinding();
+        GlyphConfig.CODEC.register(glyph.getId(), binding.type(), binding.codec());
     }
 
     @Nullable
