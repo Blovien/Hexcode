@@ -131,7 +131,7 @@ public class ShatterGlyph implements GlyphHandler {
             spawnShard(hexContext, glyph, parent, shardSpawn, dir, speed, gravity, model);
         }
 
-        ShatterStyle.renderLaunch(spawnPos, centralDir, hexContext.getColors(), hexContext.getAccessor());
+        ShatterStyle.renderLaunch(spawnPos, centralDir, hexContext, hexContext.getAccessor());
     }
 
     private void spawnShard(HexContext hexContext, Glyph glyph, Ref<EntityStore> parent,

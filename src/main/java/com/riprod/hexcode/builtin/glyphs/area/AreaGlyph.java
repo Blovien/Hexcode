@@ -73,7 +73,7 @@ public static final String ID = "Area";
 
         if (centerVar instanceof BlockVar) {
             List<Vector3i> blocks = gatherBlocks(center, radius, accessor);
-            AreaStyle.render(center, radius, hexContext.getColors(), accessor);
+            AreaStyle.render(center, radius, hexContext, accessor);
 
             if (blocks.isEmpty()) {
                 HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
@@ -87,7 +87,7 @@ public static final String ID = "Area";
             }
         } else {
             List<PersistentRef> entities = gatherEntities(center, radius, hexContext);
-            AreaStyle.render(center, radius, hexContext.getColors(), accessor);
+            AreaStyle.render(center, radius, hexContext, accessor);
 
             if (entities.isEmpty()) {
                 HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);

@@ -1,9 +1,11 @@
 package com.riprod.hexcode.builtin.glyphs.equal;
 
+import java.util.Arrays;
 import java.util.List;
 
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
+import com.riprod.hexcode.core.common.glyphs.component.Slot;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
@@ -11,9 +13,11 @@ import com.riprod.hexcode.utils.HexCompareUtil;
 
 public class EqualGlyph implements GlyphHandler {
     @Override
-public String getId() { return ID; }
+    public String getId() {
+        return ID;
+    }
 
-public static final String ID = "Equal";
+    public static final String ID = "Equal";
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
@@ -39,13 +43,22 @@ public static final String ID = "Equal";
         boolean result = HexCompareUtil.isEqual(a, b);
 
         List<String> next = glyph.getNextLinks();
+        Slot greaterSlot = glyph.getSlot(EqualGlyphSlots.GREATER);
+        List<String> greaterLinks = Arrays.asList(greaterSlot.getLinks());
+        Slot lessSlot = glyph.getSlot(EqualGlyphSlots.LESS);
+        List<String> lessLinks = Arrays.asList(lessSlot.getLinks());
+
         if (result) {
             if (!next.isEmpty()) {
-                HexExecuter.continueExecution(List.of(next.get(0)), hexContext);
+                HexExecuter.continueExecution(next, hexContext);
             }
-        } else {
-            if (next.size() > 1) {
-                HexExecuter.continueExecution(next.subList(1, next.size()), hexContext);
+        } else if (HexCompareUtil.isGreater(a, b)) {
+            if (!greaterLinks.isEmpty()) {
+                HexExecuter.continueExecution(greaterLinks, hexContext);
+            }
+        } else if (HexCompareUtil.isLess(a, b)) {
+            if (!lessLinks.isEmpty()) {
+                HexExecuter.continueExecution(lessLinks, hexContext);
             }
         }
     }

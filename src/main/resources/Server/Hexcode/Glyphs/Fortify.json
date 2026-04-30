@@ -1,5 +1,15 @@
 {
   "Parent": "Glyph_Template",
+  "Style": {
+    "PrimaryParticle": {
+      "SystemId": "Halt_Crystallize"
+    },
+    "PrimarySound": "SFX_Block_Break",
+    "SecondaryParticle": {
+      "SystemId": "Conjure_Despawn"
+    },
+    "SecondarySound": "SFX_Block_Break"
+  },
   "Title": "Fortify",
   "Description": "Increases resilience of targets for a duration",
   "ModelPath": "Fortify",

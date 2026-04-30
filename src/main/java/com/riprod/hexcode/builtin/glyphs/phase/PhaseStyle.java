@@ -1,28 +1,39 @@
 package com.riprod.hexcode.builtin.glyphs.phase;
 
-import com.hypixel.hytale.component.CommandBuffer;
+import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.state.execution.component.HexColors;
+import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
+import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.utils.VfxUtil;
 
 public class PhaseStyle {
 
+    private static final String GLYPH_ID = "Phase";
+
     private PhaseStyle() {
     }
 
-    public static void renderPhaseOut(Vector3d blockCenter, HexColors colors,
-            CommandBuffer<EntityStore> accessor) {
-        VfxUtil.effect("Phase_Out", "SFX_Phase_Out", blockCenter, accessor);
+    private static GlyphAsset asset() {
+        return GlyphAsset.getAssetMap().getAsset(GLYPH_ID);
     }
 
-    public static void renderPhaseIn(Vector3d blockCenter, HexColors colors,
-            CommandBuffer<EntityStore> accessor) {
-        VfxUtil.effect("Phase_In", "SFX_Phase_In", blockCenter, accessor);
+    public static void renderPhaseOut(Vector3d blockCenter, HexContext ctx,
+            ComponentAccessor<EntityStore> accessor) {
+        HexStyleAsset overrides = ctx != null ? ctx.getStyle() : null;
+        VfxUtil.spawnPrimary(overrides, asset(), blockCenter, accessor);
     }
 
-    public static void renderCrush(Vector3d blockCenter, HexColors colors,
-            CommandBuffer<EntityStore> accessor) {
-        VfxUtil.effect("Phase_Crush", "SFX_Phase_Crush", blockCenter, accessor);
+    public static void renderPhaseIn(Vector3d blockCenter, HexContext ctx,
+            ComponentAccessor<EntityStore> accessor) {
+        HexStyleAsset overrides = ctx != null ? ctx.getStyle() : null;
+        VfxUtil.spawnSecondary(overrides, asset(), blockCenter, accessor);
+    }
+
+    public static void renderCrush(Vector3d blockCenter, HexContext ctx,
+            ComponentAccessor<EntityStore> accessor) {
+        HexStyleAsset overrides = ctx != null ? ctx.getStyle() : null;
+        VfxUtil.spawnTertiary(overrides, asset(), blockCenter, accessor);
     }
 }

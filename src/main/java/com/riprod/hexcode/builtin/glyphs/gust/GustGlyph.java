@@ -81,7 +81,7 @@ public static final String ID = "Gust";
                 accessor,
                 hexContext.getChunkAccessor());
 
-        GustGlyphStyle.render(center, radius, hexContext.getColors(), accessor);
+        GustGlyphStyle.render(center, radius, hexContext, accessor);
 
         HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }

@@ -9,8 +9,7 @@
       "Color": "#E65100"
     }
   ],
-  "Colors": {
-    "PrimaryColor": "#E65100",
+  "Style": {
     "SecondaryColor": "#FFB74D"
   }
 }

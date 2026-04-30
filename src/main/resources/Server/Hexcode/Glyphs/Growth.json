@@ -1,5 +1,15 @@
 {
   "Parent": "Glyph_Template",
+  "Style": {
+    "PrimaryParticle": {
+      "SystemId": "Hexcode_Grow_Effect"
+    },
+    "PrimarySound": "SFX_Block_Break",
+    "SecondaryParticle": {
+      "SystemId": "Hexcode_Grow_Effect"
+    },
+    "SecondarySound": "SFX_Block_Break"
+  },
   "Title": "Growth",
   "Description": "Restores the natural state of targets: heals entities, grows crops, repairs blocks",
   "ModelPath": "Growth",

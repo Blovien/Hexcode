@@ -54,15 +54,14 @@ public class PhaseConstructHandler implements ConstructHandler<NoState> {
                 Vector3i pos = block.getPosition();
                 Vector3d blockCenter = new Vector3d(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5);
 
-                applyCrushDamage(pos, blockCenter, ctx.getBuffer());
+                applyCrushDamage(pos, blockCenter, status, ctx.getBuffer());
 
                 int blockId = BlockType.getAssetMap().getIndex(block.getBlockTypeId());
                 BlockType blockType = BlockType.getAssetMap().getAsset(blockId);
                 world.getChunk(ChunkUtil.indexChunkFromBlock(pos.x, pos.z))
                         .setBlock(pos.x, pos.y, pos.z, blockId, blockType, block.getRotationIndex(), 0, 0);
 
-                PhaseStyle.renderPhaseIn(blockCenter, status.getHexContext().getColors(),
-                        ctx.getBuffer());
+                PhaseStyle.renderPhaseIn(blockCenter, status.getHexContext(), ctx.getBuffer());
             }
 
             LOGGER.atInfo().log("phase: restored %d blocks", phase.getPhasedBlocks().size());
@@ -74,7 +73,7 @@ public class PhaseConstructHandler implements ConstructHandler<NoState> {
     }
 
     private void applyCrushDamage(Vector3i pos, Vector3d blockCenter,
-            CommandBuffer<EntityStore> buffer) {
+            HexStatus<NoState> status, CommandBuffer<EntityStore> buffer) {
         Vector3d min = new Vector3d(pos.x, pos.y, pos.z);
         Vector3d max = new Vector3d(pos.x + 1.0, pos.y + 1.0, pos.z + 1.0);
         List<Ref<EntityStore>> entities = TargetUtil.getAllEntitiesInBox(min, max, buffer);
@@ -100,7 +99,7 @@ public class PhaseConstructHandler implements ConstructHandler<NoState> {
                 }
             }
 
-            PhaseStyle.renderCrush(blockCenter, null, buffer);
+            PhaseStyle.renderCrush(blockCenter, status.getHexContext(), buffer);
         }
     }
 }

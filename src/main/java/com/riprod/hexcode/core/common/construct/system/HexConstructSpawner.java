@@ -19,6 +19,8 @@ import com.riprod.hexcode.core.common.construct.component.HexEffectsComponent;
 import com.riprod.hexcode.core.common.construct.component.HexStatus;
 import com.riprod.hexcode.core.common.construct.state.ConstructState;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
+import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 
 public class HexConstructSpawner {
@@ -70,7 +72,7 @@ public class HexConstructSpawner {
 
     public static void apply(
             @Nonnull CommandBuffer<EntityStore> buffer,
-            @Nonnull Ref<EntityStore> targetRef,
+            @Nullable Ref<EntityStore> targetRef,
             @Nonnull HexContext hexContext,
             @Nullable Glyph triggeringGlyph,
             @Nullable String handlerId) {
@@ -79,11 +81,18 @@ public class HexConstructSpawner {
 
     public static <S extends ConstructState> void applyWithState(
             @Nonnull CommandBuffer<EntityStore> buffer,
-            @Nonnull Ref<EntityStore> targetRef,
+            @Nullable Ref<EntityStore> targetRef,
             @Nonnull HexContext hexContext,
             @Nullable Glyph triggeringGlyph,
             @Nullable String handlerId,
             @Nullable S initialState) {
+
+        if (targetRef == null || !targetRef.isValid()) {
+            HexExecuter.fail(triggeringGlyph, hexContext,
+                    GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "construct target ref null/invalid");
+            return;
+        }
 
         UUID constructId = UUID.randomUUID();
         HexStatus<S> construct = new HexStatus<>(

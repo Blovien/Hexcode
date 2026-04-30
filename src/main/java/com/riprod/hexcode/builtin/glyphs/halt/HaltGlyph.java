@@ -102,7 +102,7 @@ public static final String ID = "Halt";
 
             TransformComponent tc = accessor.getComponent(ref, TransformComponent.getComponentType());
             if (tc != null) {
-                HaltStyle.render(tc.getPosition(), hexContext.getColors(), accessor);
+                HaltStyle.render(tc.getPosition(), hexContext, accessor);
             }
         } catch (Exception e) {
             LOGGER.atWarning().log("halt: could not halt entity: %s", e.getMessage());

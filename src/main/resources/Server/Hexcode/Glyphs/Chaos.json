@@ -1,5 +1,6 @@
 {
   "Parent": "Glyph_Template",
+  "Style": "Chaos_Void",
   "Title": "Chaos",
   "Description": "Generates a random number in the range [Min, Max)",
   "ModelPath": "Chaos",

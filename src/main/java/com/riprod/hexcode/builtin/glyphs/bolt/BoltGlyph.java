@@ -89,7 +89,7 @@ public static final String ID = "Bolt";
 
         Vector3d targetPos = targetTc.getPosition();
 
-        BoltStyle.renderImpact(accessor, targetPos);
+        BoltStyle.renderImpact(accessor, targetPos, hexContext);
         BoltStyle.applyShockEffect(accessor, targetRef);
 
         double damageAmount = HexVarUtil.numberOrDefault(
@@ -112,7 +112,7 @@ public static final String ID = "Bolt";
 
         Vector3d targetPos = new Vector3d(blockPos.x + 0.5, blockPos.y + 0.5, blockPos.z + 0.5);
 
-        BoltStyle.renderImpact(accessor, targetPos);
+        BoltStyle.renderImpact(accessor, targetPos, hexContext);
 
         triggerBlockInteraction(accessor, hexContext.getCasterRef(), world, blockPos);
 

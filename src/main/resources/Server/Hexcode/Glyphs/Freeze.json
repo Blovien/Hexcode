@@ -1,5 +1,15 @@
 {
   "Parent": "Glyph_Template",
+  "Style": {
+    "PrimaryParticle": {
+      "SystemId": "Freeze_Snow"
+    },
+    "PrimarySound": "SFX_Ice_Build",
+    "SecondaryParticle": {
+      "SystemId": "Freeze_Snow"
+    },
+    "SecondarySound": "SFX_Ice_Break"
+  },
   "Title": "Freeze",
   "Description": "Total stasis on targets with ice surfaces",
   "ModelPath": "Freeze",

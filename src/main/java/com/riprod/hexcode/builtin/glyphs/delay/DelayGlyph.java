@@ -22,6 +22,7 @@ import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.utils.HexVarUtil;
@@ -82,8 +83,14 @@ public class DelayGlyph implements GlyphHandler {
         DelayState state = new DelayState(seconds, new ArrayList<>(nextLinks), hexContext.getColors(), entityVar == null);
         
         if (entityVar != null) {
-            // apply delay to the default entity if it exists instead
-            HexConstructSpawner.applyWithState(accessor, entityVar.getRef(accessor), hexContext, glyph, ID, state);
+            Ref<EntityStore> targetRef = entityVar.getRef(accessor);
+            if (targetRef == null || !targetRef.isValid()) {
+                HexExecuter.fail(glyph, hexContext,
+                        GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                        "delay target entity gone");
+                return;
+            }
+            HexConstructSpawner.applyWithState(accessor, targetRef, hexContext, glyph, ID, state);
             return;
         }
         Holder<EntityStore> holder = HexConstructSpawner.createWithState(

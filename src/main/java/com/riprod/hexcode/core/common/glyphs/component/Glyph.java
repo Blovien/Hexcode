@@ -114,7 +114,8 @@ public class Glyph {
 
     public Slot getOrCreateSlot(String key) {
         Slot existing = slots.get(key);
-        if (existing != null) return existing;
+        if (existing != null)
+            return existing;
         Slot created = new Slot();
         slots.put(key, created);
         return created;
@@ -126,13 +127,15 @@ public class Glyph {
 
     public void removeSlotLink(String key, String linkedGlyphId) {
         Slot slot = slots.get(key);
-        if (slot == null) return;
+        if (slot == null)
+            return;
         slot.removeLink(linkedGlyphId);
     }
 
     public void clearSlot(String key) {
         Slot slot = slots.get(key);
-        if (slot == null) return;
+        if (slot == null)
+            return;
         slot.clearLinks();
     }
 
@@ -150,17 +153,21 @@ public class Glyph {
     @Nullable
     public HexVar readSlot(String key, HexContext hexContext, @Nullable HexVar javaDefault) {
         int depth = resolveDepth.get();
-        if (depth >= MAX_RESOLVE_DEPTH) return null;
+        if (depth >= MAX_RESOLVE_DEPTH)
+            return null;
 
         Slot slot = slots.get(key);
         String firstLink = slot != null ? slot.getFirstLink() : null;
-        if (firstLink == null) return resolveAssetDefault(key, hexContext, javaDefault);
+        if (firstLink == null)
+            return resolveAssetDefault(key, hexContext, javaDefault);
 
         Glyph linked = hexContext.getGlyph(firstLink);
-        if (linked == null) return resolveAssetDefault(key, hexContext, javaDefault);
+        if (linked == null)
+            return resolveAssetDefault(key, hexContext, javaDefault);
 
         GlyphHandler handler = GlyphRegistry.get(linked.getGlyphId());
-        if (handler == null) return resolveAssetDefault(key, hexContext, javaDefault);
+        if (handler == null)
+            return resolveAssetDefault(key, hexContext, javaDefault);
 
         resolveDepth.set(depth + 1);
         try {
@@ -194,42 +201,53 @@ public class Glyph {
         GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyphId);
         SlotAsset slotAsset = asset != null ? asset.getSlot(key) : null;
         Double defaultNum = slotAsset != null ? slotAsset.getDefaultValue() : null;
-        if (defaultNum != null) return new NumberVar(defaultNum);
-        if (javaDefault != null) return javaDefault;
+        if (defaultNum != null)
+            return new NumberVar(defaultNum);
+        if (javaDefault != null)
+            return javaDefault;
         HexVar slotZero = hexContext.getVariable(DEFAULT_SLOT);
-        if (slotZero != null) return slotZero;
+        if (slotZero != null)
+            return slotZero;
         return new NumberVar(0.0);
     }
 
     public List<String> getNextLinks() {
         Slot slot = slots.get(NEXT_SLOT);
-        if (slot == null) return List.of();
+        if (slot == null)
+            return List.of();
         String[] links = slot.getLinks();
-        if (links.length == 0) return List.of();
+        if (links.length == 0)
+            return List.of();
         return java.util.Arrays.asList(links);
     }
 
     public List<HexVar> readSlotAll(String key, HexContext hexContext) {
         Slot slot = slots.get(key);
-        if (slot == null) return List.of();
+        if (slot == null)
+            return List.of();
 
         String[] links = slot.getLinks();
-        if (links.length == 0) return List.of();
+        if (links.length == 0)
+            return List.of();
 
         int depth = resolveDepth.get();
-        if (depth >= MAX_RESOLVE_DEPTH) return List.of();
+        if (depth >= MAX_RESOLVE_DEPTH)
+            return List.of();
 
         List<HexVar> resolved = new ArrayList<>(links.length);
         for (String linkId : links) {
             Glyph linked = hexContext.getGlyph(linkId);
-            if (linked == null) continue;
+            if (linked == null)
+                continue;
             GlyphHandler handler = GlyphRegistry.get(linked.getGlyphId());
-            if (handler == null) continue;
+            if (handler == null)
+                continue;
 
             resolveDepth.set(depth + 1);
             try {
                 HexVar value = handler.readValue(linked, hexContext);
-                if (value != null) resolved.add(value);
+                if (value != null)
+                    resolved.add(value);
             } finally {
                 resolveDepth.set(depth);
             }
@@ -241,8 +259,8 @@ public class Glyph {
 
     @SuppressWarnings("unchecked")
     private static BuilderCodec<Glyph> buildCodec() {
-        Codec<Map<String, Slot>> slotMapCodec =
-                (Codec<Map<String, Slot>>) (Codec<?>) new MapCodec<>(Slot.CODEC, LinkedHashMap::new, false);
+        Codec<Map<String, Slot>> slotMapCodec = (Codec<Map<String, Slot>>) (Codec<?>) new MapCodec<>(Slot.CODEC,
+                LinkedHashMap::new, false);
         return BuilderCodec
                 .builder(Glyph.class, Glyph::new)
                 .append(new KeyedCodec<>("GlyphId", Codec.STRING),

@@ -1,5 +1,14 @@
 {
   "Parent": "Glyph_Template",
+  "Style": {
+    "PrimaryParticle": {
+      "SystemId": "Shock_Spawner_Temporary"
+    },
+    "PrimarySound": "SFX_Staff_Fire_Shoot",
+    "SecondaryParticle": {
+      "SystemId": "Shock_Spawner_Temporary"
+    }
+  },
   "Title": "Arc",
   "Description": "Chain lightning that fires each child on the next chain target",
   "ModelPath": "Arc",

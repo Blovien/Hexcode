@@ -152,7 +152,7 @@ public static final String ID = "Ensnare";
         spawnTrackerEntity(glyph, hexContext, spikes, (float) duration,
                 (float) damage, center, radius, accessor);
 
-        EnsnareStyle.renderSeismicBurst(center, hexContext.getColors(), accessor);
+        EnsnareStyle.renderSeismicBurst(center, hexContext, accessor);
     }
 
     private int findGround(World world, int x, int centerY, int z) {

@@ -103,7 +103,7 @@ public class GlaciateConstructHandler implements ConstructHandler<NoState> {
             }
 
             GlaciateStyle.renderImpact(center,
-                    status.getHexContext().getColors(), ctx.getBuffer());
+                    status.getHexContext(), ctx.getBuffer());
 
             final Ref<EntityStore> entityRef = ref;
             final UUIDComponent entityUuid = uuid;
@@ -125,7 +125,7 @@ public class GlaciateConstructHandler implements ConstructHandler<NoState> {
                 ctx.getEntityRef(), TransformComponent.getComponentType());
         if (transform != null) {
             GlaciateStyle.renderMelt(transform.getPosition(),
-                    status.getHexContext().getColors(), ctx.getBuffer());
+                    status.getHexContext(), ctx.getBuffer());
         }
         ctx.getBuffer().tryRemoveEntity(ctx.getEntityRef(), RemoveReason.REMOVE);
     }

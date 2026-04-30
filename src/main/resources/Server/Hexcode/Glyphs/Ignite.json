@@ -1,5 +1,11 @@
 {
   "Parent": "Glyph_Template",
+  "Style": {
+    "PrimaryParticle": {
+      "SystemId": "Ignite_Fire"
+    },
+    "PrimarySound": "SFX_Staff_Flame_Fireball_Impact"
+  },
   "Title": "Ignite",
   "Description": "Sets targets on fire, dealing damage over time",
   "ModelPath": "Ignite",

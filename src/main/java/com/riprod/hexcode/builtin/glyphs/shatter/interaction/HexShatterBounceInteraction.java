@@ -54,7 +54,7 @@ public class HexShatterBounceInteraction extends SimpleInteraction {
             Vector4d hitLocation = ctx.getMetaStore().getMetaObject(Interaction.HIT_LOCATION);
             if (hitLocation != null && hexContext != null) {
                 Vector3d hitPos = new Vector3d(hitLocation.x, hitLocation.y, hitLocation.z);
-                ShatterStyle.renderShardHit(hitPos, hexContext.getColors(), buffer);
+                ShatterStyle.renderShardHit(hitPos, hexContext, buffer);
             }
 
             ctx.getState().state = InteractionState.Finished;

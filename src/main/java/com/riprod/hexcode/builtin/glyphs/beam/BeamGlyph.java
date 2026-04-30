@@ -111,12 +111,12 @@ public static final String ID = "Beam";
         } else {
             endPoint = new Vector3d(origin).add(new Vector3d(direction).scale(beamLength));
             hitType = BeamStyle.HitType.MISS;
-            BeamStyle.render(beamOrigin, endPoint, hitType, hexContext.getColors(), hexContext.getAccessor());
+            BeamStyle.render(beamOrigin, endPoint, hitType, hexContext, hexContext.getAccessor());
             BlockVar resultVar = new BlockVar(endPoint.toVector3i());
             glyph.writeOutput(resultVar, hexContext);
         }
 
-        BeamStyle.render(beamOrigin, endPoint, hitType, hexContext.getColors(), hexContext.getAccessor());
+        BeamStyle.render(beamOrigin, endPoint, hitType, hexContext, hexContext.getAccessor());
 
         HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }

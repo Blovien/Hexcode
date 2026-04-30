@@ -1,5 +1,15 @@
 {
   "Parent": "Glyph_Template",
+  "Style": {
+    "PrimaryParticle": {
+      "SystemId": "Ensnare_Hit"
+    },
+    "PrimarySound": "SFX_Block_Break",
+    "SecondaryParticle": {
+      "SystemId": "Ensnare_Crumble"
+    },
+    "SecondarySound": "SFX_Block_Break"
+  },
   "Title": "Erode",
   "Description": "Weakens targets for a duration, increasing damage taken from all sources",
   "ModelPath": "Erode",

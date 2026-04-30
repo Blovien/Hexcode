@@ -78,11 +78,11 @@ public class HexProjectileHitInteraction extends SimpleInteraction {
                     resultVar = new EntityVar(uuid.getUuid(), targetRef);
                 }
                 if (hitPos != null) {
-                    ProjectileStyle.renderEntityHit(hitPos, hitPos, hexContext.getColors(), buffer);
+                    ProjectileStyle.renderEntityHit(hitPos, hitPos, hexContext, buffer);
                 }
             } else if (hitPos != null) {
                 resultVar = new BlockVar(hitPos.toVector3i());
-                ProjectileStyle.renderBlockHit(hitPos, hexContext.getColors(), buffer);
+                ProjectileStyle.renderBlockHit(hitPos, hexContext, buffer);
             }
 
             if (triggering != null && resultVar != null) {

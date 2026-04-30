@@ -129,7 +129,7 @@ public static final String ID = "Erode";
 
         TransformComponent tc = accessor.getComponent(ref, TransformComponent.getComponentType());
         if (tc != null) {
-            ErodeStyle.renderEntityHit(tc.getPosition(), hexContext.getColors(), accessor);
+            ErodeStyle.renderEntityHit(tc.getPosition(), hexContext, accessor);
         }
 
         LOGGER.atInfo().log("erode: applied %.0f%% vulnerability for %.1fs to entity",
@@ -168,7 +168,7 @@ public static final String ID = "Erode";
         }
 
         Vector3d blockCenter = new Vector3d(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5);
-        ErodeStyle.renderBlockHit(blockCenter, hexContext.getColors(), accessor);
+        ErodeStyle.renderBlockHit(blockCenter, hexContext, accessor);
 
         LOGGER.atInfo().log("erode: damaged block at %s (hp=%.2f, fragile=%s)",
                 pos, result.getHealth(), result.getHealth() <= FRAGILE_HP_THRESHOLD);

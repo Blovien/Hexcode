@@ -20,6 +20,11 @@
     }
   ],
   "Slots": {
+    "style": {
+      "Style": "Input",
+      "Label": "Style",
+      "Description": "Linked glyph whose style is applied as an override (overridable fields only)"
+    },
     "r": {
       "Style": "Input",
       "Label": "R",

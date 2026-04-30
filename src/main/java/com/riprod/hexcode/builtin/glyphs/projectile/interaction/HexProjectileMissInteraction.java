@@ -71,7 +71,7 @@ public class HexProjectileMissInteraction extends SimpleInteraction {
                 if (triggering != null) {
                     triggering.writeOutput(new BlockVar(hitPos.toVector3i()), hexContext);
                 }
-                ProjectileStyle.renderBlockHit(hitPos, hexContext.getColors(), buffer);
+                ProjectileStyle.renderBlockHit(hitPos, hexContext, buffer);
             }
 
             HexExecuter.continueExecution(state.getNextLinks(), hexContext);

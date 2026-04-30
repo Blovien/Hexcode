@@ -1,5 +1,18 @@
 {
   "Parent": "Glyph_Template",
+  "Style": {
+    "PrimaryParticle": {
+      "SystemId": "Hexcode_Ice_Effect"
+    },
+    "PrimarySound": "SFX_Staff_Fire_Shoot",
+    "SecondaryParticle": {
+      "SystemId": "Hexcode_Ice_Effect"
+    },
+    "SecondarySound": "SFX_Fireball_Miss",
+    "TertiaryParticle": {
+      "SystemId": "Projectile_Miss"
+    }
+  },
   "Title": "Shatter",
   "Description": "Launches ice shard projectiles in a cone from a position. Each shard triggers the next glyph where it lands.",
   "ModelPath": "Shatter",

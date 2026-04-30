@@ -22,6 +22,7 @@ import com.hypixel.hytale.codec.schema.metadata.ui.UIButton;
 import com.hypixel.hytale.codec.schema.metadata.ui.UICreateButtons;
 import com.hypixel.hytale.codec.validation.ValidatorCache;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
+import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
 import com.riprod.hexcode.core.state.drawing.component.DrawnShapeComponent;
 
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -43,6 +44,7 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
     protected VolatilityAsset volatility = new VolatilityAsset();
     protected ArrayList<DrawnShapeComponent> shapes = new ArrayList<>();
     protected LinkedHashMap<String, SlotAsset> slots = new LinkedHashMap<>();
+    protected String styleId;
 
     private transient Object2IntOpenHashMap<String> slotIndexCache;
 
@@ -108,6 +110,15 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
 
     public boolean hasSlot(String key) {
         return this.slots.containsKey(key);
+    }
+
+    public String getStyleId() {
+        return this.styleId;
+    }
+
+    public HexStyleAsset getStyle() {
+        if (this.styleId == null) return null;
+        return HexStyleAsset.getAssetMap().getAsset(this.styleId);
     }
 
     public int getSlotCount() {
@@ -223,6 +234,13 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
                             a.slots = new LinkedHashMap<>(p.slots);
                             a.slotIndexCache = null;
                         })
+                .add()
+                .appendInherited(new KeyedCodec<>("Style", HexStyleAsset.CHILD_ASSET_CODEC),
+                        (a, v) -> a.styleId = v,
+                        a -> a.styleId,
+                        (a, p) -> a.styleId = p.styleId)
+                .addValidatorLate(() -> HexStyleAsset.VALIDATOR_CACHE.getValidator().late())
+                .documentation("The visual style of the glyph - particles, sounds, default colors, model")
                 .add()
                 .build();
     }

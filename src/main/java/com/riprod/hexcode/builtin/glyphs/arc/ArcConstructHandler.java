@@ -26,7 +26,6 @@ import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
-import com.riprod.hexcode.core.state.execution.component.HexColors;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 
@@ -158,10 +157,9 @@ public class ArcConstructHandler implements ConstructHandler<ArcState> {
         TransformComponent nextTc = buffer.getComponent(nextTarget, TransformComponent.getComponentType());
         Vector3d nextPos = nextTc != null ? nextTc.getPosition() : fromPos;
 
-        HexColors colors = hexContext.getColors();
         World world = buffer.getExternalData().getWorld();
-        ArcStyle.renderArc(buffer, world, fromPos, nextPos, colors);
-        ArcStyle.renderHit(buffer, nextPos, colors);
+        ArcStyle.renderArc(buffer, world, fromPos, nextPos, hexContext);
+        ArcStyle.renderHit(buffer, nextPos, hexContext);
 
         List<String> remaining = new ArrayList<>(
                 state.getBranches().subList(state.getBranchIndex(), state.getBranches().size()));

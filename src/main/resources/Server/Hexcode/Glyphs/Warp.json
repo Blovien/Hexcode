@@ -1,5 +1,15 @@
 {
   "Parent": "Glyph_Template",
+  "Style": {
+    "PrimaryParticle": {
+      "SystemId": "Warp_Departure"
+    },
+    "PrimarySound": "SFX_Portal_Neutral_Teleport_Local",
+    "SecondaryParticle": {
+      "SystemId": "Warp_Arrival"
+    },
+    "SecondarySound": "SFX_Divine_Respawn"
+  },
   "Title": "Warp",
   "Description": "Teleports targets to a destination position",
   "ModelPath": "Warp",

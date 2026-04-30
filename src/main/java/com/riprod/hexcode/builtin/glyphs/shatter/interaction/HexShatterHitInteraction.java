@@ -82,7 +82,7 @@ public class HexShatterHitInteraction extends SimpleInteraction {
             }
 
             if (hitPos != null) {
-                ShatterStyle.renderShardHit(hitPos, hexContext.getColors(), buffer);
+                ShatterStyle.renderShardHit(hitPos, hexContext, buffer);
             }
 
             if (triggering != null && resultVar != null) {

@@ -11,6 +11,7 @@ import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.validation.ValidatorCache;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelParticle;
+import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
 import com.riprod.hexcode.core.state.execution.component.HexColors;
 
 public class HexBookAsset implements JsonAssetWithMap<String, DefaultAssetMap<String, HexBookAsset>> {
@@ -24,7 +25,7 @@ public class HexBookAsset implements JsonAssetWithMap<String, DefaultAssetMap<St
     protected int maxGlyphs = 10;
     protected ModelParticle[] castingAuraParticles;
     protected ModelParticle[] craftingAuraParticles;
-    protected HexColors colors;
+    protected String styleId;
 
     public static AssetStore<String, HexBookAsset, DefaultAssetMap<String, HexBookAsset>> getAssetStore() {
         if (ASSET_STORE == null) {
@@ -62,8 +63,23 @@ public class HexBookAsset implements JsonAssetWithMap<String, DefaultAssetMap<St
         return this.craftingAuraParticles;
     }
 
+    public String getStyleId() {
+        return this.styleId;
+    }
+
+    public HexStyleAsset getStyle() {
+        if (this.styleId == null) return null;
+        return HexStyleAsset.getAssetMap().getAsset(this.styleId);
+    }
+
     public HexColors getColors() {
-        return this.colors;
+        HexStyleAsset style = getStyle();
+        if (style == null) return null;
+        HexColors c = new HexColors();
+        if (style.getPrimaryColor() != null) c.setPrimaryColor(style.getPrimaryColor().clone());
+        if (style.getSecondaryColor() != null) c.setSecondaryColor(style.getSecondaryColor().clone());
+        c.setPrimaryAlpha(style.getAlphaOrDefault());
+        return c;
     }
 
     static {
@@ -88,10 +104,11 @@ public class HexBookAsset implements JsonAssetWithMap<String, DefaultAssetMap<St
                         a -> a.craftingAuraParticles,
                         (a, p) -> a.craftingAuraParticles = p.craftingAuraParticles)
                 .add()
-                .appendInherited(new KeyedCodec<>("Colors", HexColors.CODEC),
-                        (a, v) -> a.colors = v,
-                        a -> a.colors,
-                        (a, p) -> { if (p.colors != null) a.colors = p.colors.clone(); })
+                .appendInherited(new KeyedCodec<>("Style", HexStyleAsset.CHILD_ASSET_CODEC),
+                        (a, v) -> a.styleId = v,
+                        a -> a.styleId,
+                        (a, p) -> a.styleId = p.styleId)
+                .addValidatorLate(() -> HexStyleAsset.VALIDATOR_CACHE.getValidator().late())
                 .add()
                 .build();
         VALIDATOR_CACHE = new ValidatorCache<>(new AssetKeyValidator<>(HexBookAsset::getAssetStore));

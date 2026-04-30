@@ -39,8 +39,6 @@ public class DelayConstructHandler implements ConstructHandler<DelayState> {
             }
             status.getHexContext().UpdateAccessor(buffer);
             HexExecuter.continueExecution(state.getNextGlyphIds(), status.getHexContext());
-            LOGGER.atInfo().log("delay: ended, firing %d next glyphs",
-                    state.getNextGlyphIds().size());
         }
 
         onCleanup(status, ctx);

@@ -5,12 +5,15 @@ import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
+import com.riprod.hexcode.core.common.glyphs.component.Slot;
+import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.common.glyphs.variables.ColorVar;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.common.glyphs.variables.RotationVar;
+import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 
@@ -72,14 +75,46 @@ public class StyleGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        double[] rgba = resolveRgba(glyph, hexContext);
-        hexContext.getColors().setOverride(
-                rgba[0] / 255.0,
-                rgba[1] / 255.0,
-                rgba[2] / 255.0,
-                rgba[3] / 255.0);
+        if (hexContext.getStyle() == null) hexContext.setStyle(HexStyleAsset.empty());
+
+        // step 1 — apply linked glyph's overridable style fields
+        HexStyleAsset linkedStyle = resolveLinkedGlyphStyle(glyph, hexContext);
+        if (linkedStyle != null) hexContext.getStyle().applyOverride(linkedStyle);
+
+        // step 2 — explicit RGBA inputs win over the linked style's color
+        if (hasAnyColorInput(glyph)) {
+            double[] rgba = resolveRgba(glyph, hexContext);
+            hexContext.setColors(toHexColorsOverride(rgba));
+        }
 
         HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
+    }
+
+    private static @javax.annotation.Nullable HexStyleAsset resolveLinkedGlyphStyle(Glyph glyph, HexContext hexContext) {
+        Slot styleSlot = glyph.getSlots().get(StyleGlyphSlots.STYLE);
+        if (styleSlot == null) return null;
+        String linkedId = styleSlot.getFirstLink();
+        if (linkedId == null) return null;
+        Glyph linked = hexContext.getGlyph(linkedId);
+        if (linked == null) return null;
+        GlyphAsset linkedAsset = GlyphAsset.getAssetMap().getAsset(linked.getGlyphId());
+        return linkedAsset != null ? linkedAsset.getStyle() : null;
+    }
+
+    private static boolean hasAnyColorInput(Glyph glyph) {
+        return glyph.getSlots().get(StyleGlyphSlots.R) != null
+                && glyph.getSlots().get(StyleGlyphSlots.R).getFirstLink() != null
+            || glyph.getSlots().get(StyleGlyphSlots.G) != null
+                && glyph.getSlots().get(StyleGlyphSlots.G).getFirstLink() != null
+            || glyph.getSlots().get(StyleGlyphSlots.B) != null
+                && glyph.getSlots().get(StyleGlyphSlots.B).getFirstLink() != null;
+    }
+
+    private static com.riprod.hexcode.core.state.execution.component.HexColors toHexColorsOverride(double[] rgba) {
+        com.riprod.hexcode.core.state.execution.component.HexColors c =
+                new com.riprod.hexcode.core.state.execution.component.HexColors();
+        c.setOverride(rgba[0] / 255.0, rgba[1] / 255.0, rgba[2] / 255.0, rgba[3] / 255.0);
+        return c;
     }
 
     private static double clamp(double v, double lo, double hi) {

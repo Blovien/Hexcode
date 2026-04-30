@@ -74,10 +74,10 @@ public static final String ID = "Combust";
 
         if (magnitude >= LAVA_THRESHOLD) {
             placeLava(world, center);
-            CombustStyle.renderLava(accessor, center, hexContext.getColors());
+            CombustStyle.renderLava(accessor, center, hexContext);
         }
 
-        CombustStyle.renderExplosion(accessor, center, radius, hexContext.getColors());
+        CombustStyle.renderExplosion(accessor, center, radius, hexContext);
 
         HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }

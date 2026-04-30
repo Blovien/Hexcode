@@ -70,7 +70,7 @@ public class ResonateGlyph implements GlyphHandler {
         List<HexStatus<?>> targets = new ArrayList<>(construct.getEffects().values());
         if (targets.isEmpty()) {
             Vector3d pos = resolvePosition(ref, accessor);
-            if (pos != null) ResonateStyle.renderNoSignal(pos, hexContext.getColors(), accessor);
+            if (pos != null) ResonateStyle.renderNoSignal(pos, hexContext, accessor);
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
                     "Target has no active effects");
             return;
@@ -96,7 +96,7 @@ public class ResonateGlyph implements GlyphHandler {
         }
 
         Vector3d pos = resolvePosition(ref, accessor);
-        if (pos != null) ResonateStyle.renderResonate(pos, hexContext.getColors(), accessor);
+        if (pos != null) ResonateStyle.renderResonate(pos, hexContext, accessor);
     }
 
     private void resonateEntity(Glyph glyph, HexContext hexContext,
@@ -105,7 +105,7 @@ public class ResonateGlyph implements GlyphHandler {
         EntityStatMap targetStats = accessor.getComponent(ref, EntityStatMap.getComponentType());
         if (targetStats == null) {
             Vector3d pos = resolvePosition(ref, accessor);
-            if (pos != null) ResonateStyle.renderNoSignal(pos, hexContext.getColors(), accessor);
+            if (pos != null) ResonateStyle.renderNoSignal(pos, hexContext, accessor);
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
                     "Resonate: target has no mana pool");
             return;
@@ -138,7 +138,7 @@ public class ResonateGlyph implements GlyphHandler {
         targetStats.addStatValue(manaIndex, transferAmount);
 
         Vector3d pos = resolvePosition(ref, accessor);
-        if (pos != null) ResonateStyle.renderResonate(pos, hexContext.getColors(), accessor);
+        if (pos != null) ResonateStyle.renderResonate(pos, hexContext, accessor);
     }
 
     private void transferManaToRoot(Glyph glyph, HexContext hexContext,

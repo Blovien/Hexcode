@@ -16,6 +16,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
+import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
 import com.riprod.hexcode.core.common.imbuement.ImbuementData;
 import com.riprod.hexcode.core.state.execution.events.CastingEventData;
 
@@ -26,7 +27,7 @@ public class HexContext {
     private Hex hex;
     private Map<String, HexVar> variables;
     private VolatilityTracker volatilityTracker;
-    private HexColors colors;
+    private HexStyleAsset style;
     private UUID executionId = UUID.randomUUID();
 
     public HexContext(CommandBuffer<EntityStore> accessor, ComponentAccessor<ChunkStore> chunkAccessor, CastingEventData castingData) {
@@ -36,7 +37,7 @@ public class HexContext {
         this.hex = castingData.getHex();
         this.variables = new HashMap<>();
         this.volatilityTracker = castingData.getVolatilityTracker();
-        this.colors = castingData.getColors();
+        this.style = castingData.getStyle();
         this.executionId = UUID.randomUUID();
     }
 
@@ -103,12 +104,30 @@ public class HexContext {
         volatilityTracker.setExecutionId(this.executionId);
     }
 
+    public HexStyleAsset getStyle() {
+        return style;
+    }
+
+    public void setStyle(HexStyleAsset style) {
+        this.style = style;
+    }
+
+    // compat abstraction over style.{primaryColor, secondaryColor, alpha}
     public HexColors getColors() {
-        return colors;
+        if (style == null) return null;
+        HexColors c = new HexColors();
+        if (style.getPrimaryColor() != null) c.setPrimaryColor(style.getPrimaryColor().clone());
+        if (style.getSecondaryColor() != null) c.setSecondaryColor(style.getSecondaryColor().clone());
+        c.setPrimaryAlpha(style.getAlphaOrDefault());
+        return c;
     }
 
     public void setColors(HexColors colors) {
-        this.colors = colors;
+        if (colors == null) return;
+        if (style == null) style = HexStyleAsset.empty();
+        style.setPrimaryColor(colors.getPrimaryColor() != null ? colors.getPrimaryColor().clone() : null);
+        style.setSecondaryColor(colors.getSecondaryColor() != null ? colors.getSecondaryColor().clone() : null);
+        style.setAlpha(colors.getPrimaryAlpha());
     }
 
     public float getMagicPowerMultiplier() {
@@ -132,8 +151,8 @@ public class HexContext {
         branch.executionId = this.executionId;
         // copied variables
         branch.variables = new HashMap<>(this.variables);
-        if (this.colors != null)
-            branch.colors = this.colors.clone();
+        if (this.style != null)
+            branch.style = this.style.clone();
         return branch;
     }
 
@@ -182,9 +201,9 @@ public class HexContext {
                     (c, v) -> c.volatilityTracker = v,
                     c -> c.volatilityTracker)
             .add()
-            .append(new KeyedCodec<>("HexColors", HexColors.CODEC),
-                    (c, v) -> c.colors = v,
-                    c -> c.colors)
+            .append(new KeyedCodec<>("Style", HexStyleAsset.CODEC),
+                    (c, v) -> c.style = v,
+                    c -> c.style)
             .add()
             .build();
 
@@ -198,8 +217,8 @@ public class HexContext {
         branch.volatilityTracker = this.volatilityTracker.copy();
         // copied variables
         branch.variables = new HashMap<>(this.variables);
-        if (this.colors != null)
-            branch.colors = this.colors.clone();
+        if (this.style != null)
+            branch.style = this.style.clone();
         return branch;
     }
 }

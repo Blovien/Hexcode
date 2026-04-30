@@ -71,7 +71,7 @@ public class FreezeGlyph implements GlyphHandler {
             if (tc != null) {
                 Vector3d pos = tc.getPosition();
                 placeIceBlock(world, pos, frozenBlocks);
-                FreezeStyle.renderFreeze(pos, hexContext.getColors(), accessor);
+                FreezeStyle.renderFreeze(pos, hexContext, accessor);
             }
 
             FreezeState state = new FreezeState(frozenBlocks, (float) duration, glyph.getNextLinks());

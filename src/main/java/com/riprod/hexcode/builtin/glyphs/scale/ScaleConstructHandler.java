@@ -14,7 +14,6 @@ import com.riprod.hexcode.builtin.glyphs.scale.style.ScaleStyle;
 import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
 import com.riprod.hexcode.core.common.construct.component.HexStatus;
 import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
-import com.riprod.hexcode.core.state.execution.component.HexColors;
 
 public class ScaleConstructHandler implements ConstructHandler<ScaleState> {
 
@@ -55,11 +54,10 @@ public class ScaleConstructHandler implements ConstructHandler<ScaleState> {
                     box.setBoundingBox(new Box(box.getBoundingBox()).scale(inverse));
                 }
 
-                HexColors colors = status.getHexContext().getColors();
                 TransformComponent tc = buffer.getComponent(
                         targetRef, TransformComponent.getComponentType());
                 if (tc != null) {
-                    ScaleStyle.renderRestore(tc.getPosition(), colors, buffer);
+                    ScaleStyle.renderRestore(tc.getPosition(), status.getHexContext(), buffer);
                 }
             }
 

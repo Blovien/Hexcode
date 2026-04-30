@@ -1,5 +1,11 @@
 {
   "Parent": "Glyph_Template",
+  "Style": {
+    "PrimaryParticle": {
+      "SystemId": "Levitate_Activate"
+    },
+    "PrimarySound": "SFX_Weapon_Charge_Swing"
+  },
   "Title": "Levitate",
   "Description": "Reverses or nullifies gravity on targets for a duration",
   "ModelPath": "Levitate",

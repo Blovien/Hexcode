@@ -137,7 +137,7 @@ public class PhaseGlyph implements GlyphHandler {
         world.setBlock(pos.x, pos.y, pos.z, "Empty");
 
         Vector3d blockCenter = new Vector3d(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5);
-        PhaseStyle.renderPhaseOut(blockCenter, hexContext.getColors(), accessor);
+        PhaseStyle.renderPhaseOut(blockCenter, hexContext, accessor);
 
         glyph.writeOutput(new BlockVar(pos), hexContext);
 

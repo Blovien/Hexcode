@@ -1,5 +1,19 @@
 {
   "Parent": "Glyph_Template",
+  "Style": {
+    "PrimaryParticle": {
+      "SystemId": "Phase_Out"
+    },
+    "PrimarySound": "SFX_Phase_Out",
+    "SecondaryParticle": {
+      "SystemId": "Phase_In"
+    },
+    "SecondarySound": "SFX_Phase_In",
+    "TertiaryParticle": {
+      "SystemId": "Phase_Crush"
+    },
+    "TertiarySound": "SFX_Phase_Crush"
+  },
   "Title": "Phase",
   "Description": "Temporarily removes blocks from reality, restoring them after a delay",
   "ModelPath": "Phase",

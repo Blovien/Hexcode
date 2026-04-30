@@ -66,7 +66,7 @@ public static final String ID = "Swap";
         Vector3d posA = HexVarUtil.position(varsA, hexContext.getAccessor());
         Vector3d posB = HexVarUtil.position(varsB, hexContext.getAccessor());
         if (posA != null && posB != null) {
-            SwapStyle.render(posA, posB, hexContext.getColors(), hexContext.getAccessor());
+            SwapStyle.render(posA, posB, hexContext, hexContext.getAccessor());
         }
         BlockUtils.swapPair(varsA, varsB, world, hexContext);
 

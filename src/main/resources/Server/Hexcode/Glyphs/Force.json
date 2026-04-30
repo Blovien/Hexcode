@@ -1,5 +1,12 @@
 {
   "Parent": "Glyph_Template",
+  "Style": {
+    "Parent": "Force_Fire",
+    "PrimaryParticle": {
+      "SystemId": "Force_Impact"
+    },
+    "PrimarySound": "SFX_Weapon_Charge_Swing"
+  },
   "Title": "Force",
   "Description": "Applies directional force to all targets in a variable",
   "ModelPath": "Force",

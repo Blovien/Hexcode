@@ -66,8 +66,7 @@ public class ForceGlyph implements GlyphHandler {
                 VelocityUtil.applyVelocity(ref, force, ChangeVelocityType.Add,
                         new VelocityConfig(), hexContext.getAccessor());
 
-                ForceGlyphStyle.render(targetPos, force, hexContext.getColors(),
-                        hexContext.getAccessor());
+                ForceGlyphStyle.render(targetPos, force, hexContext, hexContext.getAccessor());
             }
         } catch (Exception e) {
             LOGGER.atWarning().log("force glyph: could not apply force to entity: %s", e.getMessage());

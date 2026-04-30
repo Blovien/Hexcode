@@ -62,7 +62,7 @@ public static final String ID = "Ignite";
                         TransformComponent tc = accessor.getComponent(ref,
                                 TransformComponent.getComponentType());
                         if (tc != null) {
-                            IgniteStyle.render(tc.getPosition(), hexContext.getColors(), accessor);
+                            IgniteStyle.render(tc.getPosition(), hexContext, accessor);
                         }
                     }
                 } catch (Exception e) {
