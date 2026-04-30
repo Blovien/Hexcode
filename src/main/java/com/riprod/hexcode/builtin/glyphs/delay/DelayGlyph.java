@@ -14,11 +14,13 @@ import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.builtin.glyphs.delay.style.DelayStyle;
 import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
+import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
@@ -28,7 +30,9 @@ public class DelayGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     @Override
-    public String getId() { return ID; }
+    public String getId() {
+        return ID;
+    }
 
     public static final String ID = "Delay";
     private static final String MODEL_ID = "Delay";
@@ -41,6 +45,15 @@ public class DelayGlyph implements GlyphHandler {
         if (seconds <= 0f) {
             HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
+        }
+
+        if (seconds < 0.5f) { // early gate
+
+            // check if the delay is shorter than the TPS of the world
+            World world = hexContext.getAccessor().getExternalData().getWorld();
+            if (1.0f / world.getTps() > seconds) {
+                HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
+            }
         }
 
         List<String> nextLinks = glyph.getNextLinks();
@@ -62,11 +75,17 @@ public class DelayGlyph implements GlyphHandler {
                 spawnPos = new Vector3d();
             }
         }
+        EntityVar entityVar = HexVarUtil.resolveEntityVar(var, hexContext);
 
         DelayStyle.render(hexContext);
 
-        DelayState state = new DelayState(seconds, new ArrayList<>(nextLinks), hexContext.getColors());
-
+        DelayState state = new DelayState(seconds, new ArrayList<>(nextLinks), hexContext.getColors(), entityVar == null);
+        
+        if (entityVar != null) {
+            // apply delay to the default entity if it exists instead
+            HexConstructSpawner.applyWithState(accessor, entityVar.getRef(accessor), hexContext, glyph, ID, state);
+            return;
+        }
         Holder<EntityStore> holder = HexConstructSpawner.createWithState(
                 accessor, hexContext, glyph, DelayGlyph.ID, spawnPos, state);
 

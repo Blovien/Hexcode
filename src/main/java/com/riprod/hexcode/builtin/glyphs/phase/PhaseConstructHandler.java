@@ -31,6 +31,15 @@ public class PhaseConstructHandler implements ConstructHandler<NoState> {
 
     @Override
     public boolean onTick(float dt, HexStatus<NoState> status, ConstructTickContext ctx) {
+        PhaseComponent phase = ctx.getChunk().getComponent(
+                ctx.getIndex(), PhaseComponent.getComponentType());
+        if (phase == null)
+            return true;
+
+        if (phase.decrementDuration(dt)) {
+            return true;
+        }
+
         return !drainSustain(dt, status);
     }
 
@@ -57,7 +66,7 @@ public class PhaseConstructHandler implements ConstructHandler<NoState> {
             }
 
             LOGGER.atInfo().log("phase: restored %d blocks", phase.getPhasedBlocks().size());
-            HexExecuter.continueExecution(phase.getNext(), status.getHexContext());
+            HexExecuter.continueExecution(status.getTriggeringGlyph().getNextLinks(), status.getHexContext());
         }
 
         ctx.getBuffer().tryRemoveEntity(ctx.getEntityRef(), RemoveReason.REMOVE);

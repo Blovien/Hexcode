@@ -15,7 +15,7 @@ import com.riprod.hexcode.core.common.hexcaster.system.HexcasterCleanupSystem;
 import com.riprod.hexcode.core.state.drawing.DrawingSlotLockEvent;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
-import com.riprod.hexcode.core.common.glyphs.registry.StyleAsset;
+import com.riprod.hexcode.core.common.glyphs.registry.SlotStyleAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
@@ -26,6 +26,7 @@ import com.riprod.hexcode.core.common.hexbook.component.HexBookAsset;
 import com.riprod.hexcode.core.common.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
+import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
 import com.riprod.hexcode.core.common.hexes.saved.SavedHexAsset;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffAsset;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffComponent;
@@ -117,10 +118,17 @@ public class Hexcode extends JavaPlugin {
     // Custom asset registries
     AssetRegistry.register(
         HytaleAssetStore
-            .builder(StyleAsset.class, new DefaultAssetMap<String, StyleAsset>())
-            .setPath("Hexcode/Styles")
-            .setCodec(StyleAsset.CODEC)
-            .setKeyFunction(StyleAsset::getId)
+            .builder(SlotStyleAsset.class, new DefaultAssetMap<String, SlotStyleAsset>())
+            .setPath("Hexcode/SlotStyles")
+            .setCodec(SlotStyleAsset.CODEC)
+            .setKeyFunction(SlotStyleAsset::getId)
+            .build());
+    AssetRegistry.register(
+        HytaleAssetStore
+            .builder(HexStyleAsset.class, new DefaultAssetMap<String, HexStyleAsset>())
+            .setPath("Hexcode/HexStyles")
+            .setCodec(HexStyleAsset.CODEC)
+            .setKeyFunction(HexStyleAsset::getId)
             .build());
     AssetRegistry.register(
         HytaleAssetStore
@@ -128,7 +136,7 @@ public class Hexcode extends JavaPlugin {
             .setPath("Hexcode/Glyphs")
             .setCodec(GlyphAsset.CODEC)
             .setKeyFunction(GlyphAsset::getId)
-            .loadsAfter(StyleAsset.class)
+            .loadsAfter(SlotStyleAsset.class)
             .build());
     AssetRegistry.register(
         HytaleAssetStore

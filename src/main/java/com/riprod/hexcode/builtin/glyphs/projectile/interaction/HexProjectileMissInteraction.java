@@ -61,8 +61,6 @@ public class HexProjectileMissInteraction extends SimpleInteraction {
             HexContext hexContext = state.getHexContext();
             hexContext.UpdateAccessor(buffer);
 
-            LOGGER.atInfo().log("[projectile] miss/block-hit ref=%s", projectileRef);
-
             Vector4d hitLocation = ctx.getMetaStore().getMetaObject(Interaction.HIT_LOCATION);
             Vector3d hitPos = hitLocation != null
                     ? new Vector3d(hitLocation.x, hitLocation.y, hitLocation.z)

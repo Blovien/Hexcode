@@ -63,9 +63,7 @@ public class HexProjectileHitInteraction extends SimpleInteraction {
 
             HexContext hexContext = state.getHexContext();
             hexContext.UpdateAccessor(buffer);
-
-            LOGGER.atInfo().log("[projectile] hit ref=%s", projectileRef);
-
+            
             Ref<EntityStore> targetRef = ctx.getMetaStore().getMetaObject(Interaction.TARGET_ENTITY);
             Vector4d hitLocation = ctx.getMetaStore().getMetaObject(Interaction.HIT_LOCATION);
             Vector3d hitPos = hitLocation != null

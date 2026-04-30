@@ -20,7 +20,6 @@ import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
-import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.modules.interaction.Interactions;
 import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
 import com.hypixel.hytale.server.core.modules.projectile.ProjectileModule;
@@ -29,6 +28,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.builtin.glyphs.projectile.component.ProjectileState;
 import com.riprod.hexcode.builtin.glyphs.projectile.style.ProjectileStyle;
+import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
@@ -50,7 +50,7 @@ public class ProjectileGlyph implements GlyphHandler {
 
     private static final String PROJECTILE_MODEL = "Glyph_Projectile_Flight";
     private static final float PROJECTILE_SCALE = 0.5f;
-    private static final Duration PROJECTILE_TTL = Duration.ofSeconds(10);
+    private static final Duration PROJECTILE_TTL = Duration.ofMinutes(10);
 
     private static final String HIT_ROOT_INTERACTION = "Hex_Projectile_Hit";
     private static final String MISS_ROOT_INTERACTION = "Hex_Projectile_Miss";
@@ -112,23 +112,21 @@ public class ProjectileGlyph implements GlyphHandler {
             return;
         }
 
-        Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
+        Holder<EntityStore> holder = HexConstructSpawner.create(hexContext.getAccessor(), hexContext, glyph, ProjectileGlyph.ID, spawnPos);
 
         Vector3f rotation = new Vector3f();
         rotation.setYaw((float) Math.atan2(-direction.x, direction.z));
         rotation.setPitch((float) Math.asin(Math.max(-1.0, Math.min(1.0, -direction.y))));
 
-        holder.addComponent(TransformComponent.getComponentType(),
+        holder.putComponent(TransformComponent.getComponentType(),
                 new TransformComponent(new Vector3d(spawnPos), rotation));
         holder.addComponent(HeadRotation.getComponentType(), new HeadRotation(rotation));
 
         Model model = Model.createScaledModel(modelAsset, PROJECTILE_SCALE);
+
         holder.addComponent(ModelComponent.getComponentType(), new ModelComponent(model));
         holder.addComponent(PersistentModel.getComponentType(), new PersistentModel(model.toReference()));
         holder.addComponent(BoundingBox.getComponentType(), new BoundingBox(model.getBoundingBox()));
-
-        holder.addComponent(NetworkId.getComponentType(),
-                new NetworkId(hexContext.getAccessor().getExternalData().takeNextNetworkId()));
 
         holder.ensureComponent(ProjectileModule.get().getProjectileComponentType());
         holder.addComponent(Velocity.getComponentType(), new Velocity());

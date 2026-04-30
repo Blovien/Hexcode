@@ -47,11 +47,6 @@ public interface GlyphHandler {
         if (cost <= 0)
             return true;
         boolean consumed = tracker.consumeVolatility(cost);
-        if (!consumed) {
-            HytaleServer.get().getEventBus().dispatchFor(GlyphFizzleEvent.class)
-                    .dispatch(new GlyphFizzleEvent(
-                            glyph, GlyphFizzleEvent.Reason.VOLATILITY_DEPLETED, hexContext));
-        }
         return consumed;
     }
 

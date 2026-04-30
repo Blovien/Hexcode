@@ -53,6 +53,11 @@
       "Style": "Next",
       "Label": "Next",
       "Description": "The next glyph in the execution chain"
+    },
+    "immediate": {
+      "Style": "Next",
+      "Label": "Immediate",
+      "Description": "Fires immediately after the projectile is created"
     }
   },
   "Volatility": {

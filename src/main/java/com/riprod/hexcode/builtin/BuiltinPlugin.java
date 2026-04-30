@@ -84,6 +84,7 @@ import com.riprod.hexcode.builtin.glyphs.phase.PhaseGlyph;
 import com.riprod.hexcode.builtin.glyphs.position.PositionValue;
 import com.riprod.hexcode.builtin.glyphs.projectile.ProjectileGlyph;
 import com.riprod.hexcode.builtin.glyphs.projectile.component.ProjectileState;
+import com.riprod.hexcode.builtin.glyphs.projectile.system.ProjectileConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.resonate.ResonateGlyph;
 import com.riprod.hexcode.builtin.glyphs.rotation.RotationValue;
 import com.riprod.hexcode.builtin.glyphs.scale.ScaleConstructHandler;
@@ -297,5 +298,6 @@ public class BuiltinPlugin extends JavaPlugin {
         ConstructRegistry.register(DelayGlyph.ID, new DelayConstructHandler());
         ConstructRegistry.register(EnsnareGlyph.ID, new EnsnareConstructHandler());
         ConstructRegistry.register(FreezeGlyph.ID, new FreezeConstructHandler());
+        ConstructRegistry.register(ProjectileGlyph.ID, new ProjectileConstructHandler());
     }
 }

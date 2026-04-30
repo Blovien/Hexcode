@@ -40,9 +40,7 @@ public class LevitateGlyph implements GlyphHandler {
 
     private static final String LEVITATE_EFFECT_ID = "Hexcode_Levitate";
     private static final double DEFAULT_INTENSITY = 0.0;
-    private static final double DEFAULT_DURATION = 100.0;
-    private static final double MAX_INTENSITY = 10.0;
-    private static final double MAX_DURATION = 600.0;
+    private static final double DEFAULT_DURATION = 10.0;
     private static final double WEIGHTLESS_DRAG = 50.0;
 
     @Override
@@ -54,18 +52,16 @@ public class LevitateGlyph implements GlyphHandler {
             return;
         }
 
-        double intensity = Math.max(0, Math.min(MAX_INTENSITY,
+        double intensity = Math.max(0,
                 HexVarUtil.numberOrDefault(
-                        glyph.readSlot(LevitateGlyphSlots.INTENSITY, hexContext), DEFAULT_INTENSITY)));
-        double duration = Math.max(1, Math.min(MAX_DURATION,
+                        glyph.readSlot(LevitateGlyphSlots.INTENSITY, hexContext), DEFAULT_INTENSITY));
+        double duration = Math.max(1,
                 HexVarUtil.numberOrDefault(
-                        glyph.readSlot(LevitateGlyphSlots.DURATION, hexContext), DEFAULT_DURATION)));
+                        glyph.readSlot(LevitateGlyphSlots.DURATION, hexContext), DEFAULT_DURATION));
         float durationSeconds = (float) duration;
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
         applyToEntity(entityVar, (float) intensity, durationSeconds, glyph, hexContext, accessor);
-
-        HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 
     private void applyToEntity(EntityVar entityVar, float intensity, float durationSeconds,
@@ -77,10 +73,11 @@ public class LevitateGlyph implements GlyphHandler {
             return;
         }
 
-        PhysicsValues currentPhysics = EntityUtils.getPhysicsValues(ref, accessor);
+        PhysicsValues currentPhysics = accessor.getComponent(ref, PhysicsValues.getComponentType());
 
         LevitateState existing = ConstructStateUtil.findState(
                 accessor, ref, LevitateGlyph.ID, LevitateState.class);
+
         PhysicsValues originalCopy = existing != null && existing.getOriginalPhysicsValues() != null
                 ? new PhysicsValues(existing.getOriginalPhysicsValues())
                 : new PhysicsValues(currentPhysics);

@@ -14,9 +14,9 @@ import com.hypixel.hytale.codec.validation.ValidatorCache;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.DebugShape;
 
-public class StyleAsset implements JsonAssetWithMap<String, DefaultAssetMap<String, StyleAsset>> {
-    public static final AssetBuilderCodec<String, StyleAsset> CODEC;
-    private static AssetStore<String, StyleAsset, DefaultAssetMap<String, StyleAsset>> ASSET_STORE;
+public class SlotStyleAsset implements JsonAssetWithMap<String, DefaultAssetMap<String, SlotStyleAsset>> {
+    public static final AssetBuilderCodec<String, SlotStyleAsset> CODEC;
+    private static AssetStore<String, SlotStyleAsset, DefaultAssetMap<String, SlotStyleAsset>> ASSET_STORE;
     public static final ValidatorCache<String> VALIDATOR_CACHE;
 
     protected AssetExtraInfo.Data data;
@@ -25,18 +25,18 @@ public class StyleAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
     protected DebugShape shape = DebugShape.Cube;
     protected String nodeHandlerId = "slot.standard";
 
-    public static AssetStore<String, StyleAsset, DefaultAssetMap<String, StyleAsset>> getAssetStore() {
+    public static AssetStore<String, SlotStyleAsset, DefaultAssetMap<String, SlotStyleAsset>> getAssetStore() {
         if (ASSET_STORE == null) {
-            ASSET_STORE = AssetRegistry.getAssetStore(StyleAsset.class);
+            ASSET_STORE = AssetRegistry.getAssetStore(SlotStyleAsset.class);
         }
         return ASSET_STORE;
     }
 
-    public static DefaultAssetMap<String, StyleAsset> getAssetMap() {
-        return (DefaultAssetMap<String, StyleAsset>) getAssetStore().getAssetMap();
+    public static DefaultAssetMap<String, SlotStyleAsset> getAssetMap() {
+        return (DefaultAssetMap<String, SlotStyleAsset>) getAssetStore().getAssetMap();
     }
 
-    private StyleAsset() {
+    private SlotStyleAsset() {
     }
 
     @Override
@@ -58,7 +58,7 @@ public class StyleAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
 
     static {
         CODEC = AssetBuilderCodec
-                .builder(StyleAsset.class, StyleAsset::new, Codec.STRING, (asset, s) -> {
+                .builder(SlotStyleAsset.class, SlotStyleAsset::new, Codec.STRING, (asset, s) -> {
                     asset.id = s;
                 }, (asset) -> {
                     return asset.id;
@@ -86,6 +86,6 @@ public class StyleAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
                         a -> a.nodeHandlerId)
                 .add()
                 .build();
-        VALIDATOR_CACHE = new ValidatorCache<>(new AssetKeyValidator<>(StyleAsset::getAssetStore));
+        VALIDATOR_CACHE = new ValidatorCache<>(new AssetKeyValidator<>(SlotStyleAsset::getAssetStore));
     }
 }

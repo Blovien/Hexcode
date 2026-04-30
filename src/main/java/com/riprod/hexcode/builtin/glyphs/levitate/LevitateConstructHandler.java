@@ -10,6 +10,8 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
 import com.riprod.hexcode.core.common.construct.component.HexStatus;
 import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
+import com.riprod.hexcode.core.common.glyphs.component.Glyph;
+import com.riprod.hexcode.core.state.execution.HexExecuter;
 
 public class LevitateConstructHandler implements ConstructHandler<LevitateState> {
 
@@ -19,8 +21,10 @@ public class LevitateConstructHandler implements ConstructHandler<LevitateState>
     @Override
     public boolean onTick(float dt, HexStatus<LevitateState> status, ConstructTickContext ctx) {
         LevitateState state = status.getState();
-        if (state == null) return true;
-        if (state.isExpired()) return true;
+        if (state == null)
+            return true;
+        if (state.isExpired())
+            return true;
         state.tick(dt);
         return !drainSustain(dt, status);
     }
@@ -30,7 +34,8 @@ public class LevitateConstructHandler implements ConstructHandler<LevitateState>
         LevitateState state = status.getState();
         CommandBuffer<EntityStore> buffer = ctx.getBuffer();
         Ref<EntityStore> target = ctx.getEntityRef();
-        if (target == null || !target.isValid()) return;
+        if (target == null || !target.isValid())
+            return;
 
         if (state != null && state.getOriginalPhysicsValues() != null) {
             buffer.putComponent(target, PhysicsValues.getComponentType(),
@@ -45,6 +50,8 @@ public class LevitateConstructHandler implements ConstructHandler<LevitateState>
                 controller.removeEffect(target, effectIndex, buffer);
             }
         }
+
+        HexExecuter.continueFromSlot(status.getTriggeringGlyph(), Glyph.NEXT_SLOT, status.getHexContext());
 
         LOGGER.atInfo().log("levitate: cleaned up, physics restored");
     }

@@ -48,7 +48,7 @@ public static final String ID = "Glaciate";
     private static final String ICE_MODEL = "Glaciate_Ice";
     private static final float ICE_SCALE = 2.0f;
     private static final double DEFAULT_HEIGHT = 10.0;
-    private static final double DEFAULT_DURATION = 5.0;
+    private static final double DEFAULT_DURATION = 15.0;
     private static final float DEFAULT_DAMAGE_RADIUS = 2.0f;
     private static final float DEFAULT_DAMAGE_MULTIPLIER = 1.0f;
     private static final String HARD_COLLISION_CONFIG = "Hexcode_Glaciate_HardCollision";
@@ -118,8 +118,6 @@ public static final String ID = "Glaciate";
             ModelAsset modelAsset, HitboxCollisionConfig collisionConfig) {
         Model model = Model.createScaledModel(modelAsset, ICE_SCALE);
 
-        List<String> allNext = glyph.getNextLinks();
-
         Holder<EntityStore> holder = HexConstructSpawner.create(
                 hexContext.getAccessor(), hexContext, glyph, GlaciateGlyph.ID, new Vector3d(spawnPos));
 
@@ -143,7 +141,7 @@ public static final String ID = "Glaciate";
         }
 
         holder.addComponent(GlaciateComponent.getComponentType(),
-                new GlaciateComponent(DEFAULT_DAMAGE_RADIUS, DEFAULT_DAMAGE_MULTIPLIER, null));
+                new GlaciateComponent(DEFAULT_DAMAGE_RADIUS, duration, DEFAULT_DAMAGE_MULTIPLIER));
 
         GlaciatePhysicsConfig.INSTANCE.apply(holder, hexContext.getCasterRef(),
                 Vector3d.ZERO, hexContext.getAccessor(), false);

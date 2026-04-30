@@ -36,8 +36,6 @@ public class PhaseGlyph implements GlyphHandler {
 
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
-    private float minDuration = 10.0f;
-    private float maxDuration = 200.0f;
     private float minIntensity = 1.0f;
     private float maxIntensity = 15.0f;
 
@@ -88,14 +86,12 @@ public class PhaseGlyph implements GlyphHandler {
             return;
         }
 
-        double duration = clamp(HexVarUtil.numberOrDefault(
+        double duration = HexVarUtil.numberOrDefault(
                 glyph.readSlot(PhaseGlyphSlots.DURATION, hexContext),
-                asset.getSlot(PhaseGlyphSlots.DURATION).getDefaultValue()),
-                minDuration, maxDuration);
-        double intensity = clamp(HexVarUtil.numberOrDefault(
+                asset.getSlot(PhaseGlyphSlots.DURATION).getDefaultValue());
+        double intensity = HexVarUtil.numberOrDefault(
                 glyph.readSlot(PhaseGlyphSlots.INTENSITY, hexContext),
-                asset.getSlot(PhaseGlyphSlots.INTENSITY).getDefaultValue()),
-                minIntensity, maxIntensity);
+                asset.getSlot(PhaseGlyphSlots.INTENSITY).getDefaultValue());
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
         World world = accessor.getExternalData().getWorld();
@@ -145,13 +141,11 @@ public class PhaseGlyph implements GlyphHandler {
 
         glyph.writeOutput(new BlockVar(pos), hexContext);
 
-        List<String> nextLinks = glyph.getNextLinks();
-
         Holder<EntityStore> holder = HexConstructSpawner.create(
                 accessor, hexContext, glyph, PhaseGlyph.ID, blockCenter);
 
         holder.addComponent(PhaseComponent.getComponentType(),
-                new PhaseComponent(phasedBlocks, nextLinks));
+                new PhaseComponent(phasedBlocks, (float) duration));
 
         Ref<EntityStore> phaseRef = accessor.addEntity(holder, AddReason.SPAWN);
 

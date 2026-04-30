@@ -5,7 +5,7 @@ plugins {
 
 
 group = "com.riprod"
-version = "0.6.3"
+version = "0.6.4"
 val javaVersion = 25
 
 repositories {

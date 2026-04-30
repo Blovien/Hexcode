@@ -1,5 +1,6 @@
 package com.riprod.hexcode.builtin.glyphs.conjure.system;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -43,8 +44,10 @@ public class ConjureConstructHandler implements ConstructHandler<NoState> {
         hexContext.UpdateAccessor(ctx.getBuffer());
         UUID entityId = ctx.getBuffer().getComponent(ctx.getEntityRef(), UUIDComponent.getComponentType())
                 .getUuid();
-        hexContext.setVariable(ConjureGlyphSlots.IMMEDIATE, new EntityVar(entityId, ctx.getEntityRef()));
-        HexExecuter.continueExecution(java.util.Arrays.asList(links), hexContext);
+        
+        // set the default slot to the conjured entity, so that it can be used in the next glyphs
+        hexContext.setVariable(Glyph.DEFAULT_SLOT, new EntityVar(entityId, ctx.getEntityRef()));
+        HexExecuter.continueExecution(Arrays.asList(links), hexContext);
     }
 
     @Override
@@ -150,14 +153,14 @@ public class ConjureConstructHandler implements ConstructHandler<NoState> {
 
         Glyph triggering = status.getTriggeringGlyph();
         if (triggering != null) {
-            HexContext __hexCtx = status.getHexContext();
+            HexContext hexCtx = status.getHexContext();
             if (entityTransform != null) {
                 ConjureStyle.renderTrigger(entityTransform.getPosition(),
-                        __hexCtx.getColors(), ctx.getBuffer());
+                        hexCtx.getColors(), ctx.getBuffer());
             }
             triggering.writeDefaultOutput(
-                    new EntityVar(entityUuid.getUuid(), entityRef), __hexCtx);
-            HexExecuter.continueExecution(triggering.getNextLinks(), __hexCtx);
+                    new EntityVar(entityUuid.getUuid(), entityRef), hexCtx);
+            HexExecuter.continueExecution(triggering.getNextLinks(), hexCtx);
         }
     }
 }

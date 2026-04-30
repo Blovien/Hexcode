@@ -148,7 +148,7 @@ public static final String ID = "Conjure";
         (max.z - min.z) / 2);
     Vector3d size = new Vector3d(max.x - min.x, max.y - min.y, max.z - min.z);
 
-    float durationSeconds = HexVarUtil.numberOrDefault(durationVar, 5.0).floatValue();
+    float durationSeconds = HexVarUtil.numberOrDefault(durationVar, 30.0).floatValue();
     float interval = HexVarUtil.numberOrDefault(intervalVar, -1.0).floatValue();
 
     ConjureZoneComponent zoneComp = new ConjureZoneComponent(halfExtents, interval, durationSeconds);
@@ -165,7 +165,7 @@ public static final String ID = "Conjure";
     holder.ensureComponent(ProjectileModule.get().getProjectileComponentType());
     holder.ensureComponent(EffectControllerComponent.getComponentType());
     DebugComponent debugComp = new DebugComponent(DebugShape.Cube, debugColor, size, 0.1f);
-    debugComp.setOpacity(0.3f);
+    debugComp.setOpacity(hexContext.getColors().getPrimaryAlpha() * 0.5f);
     debugComp.setIntervalMultiplier(0.01f);
     debugComp.setFlags(DebugUtils.FLAG_NO_WIREFRAME);
     holder.addComponent(DebugComponent.getComponentType(), debugComp);
