@@ -54,6 +54,11 @@
       "DefaultValue": 15,
       "Unique": true
     },
+    "immediate": {
+      "Style": "Next",
+      "Label": "Immediate",
+      "Description": "Fires immediately after being cast"
+    },
     "Next": {
       "Style": "Next",
       "Label": "Next",
