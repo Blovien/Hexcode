@@ -66,9 +66,8 @@ public static final String ID = "Area";
         Vector3d center = HexVarUtil.position(centerVar, accessor);
 
         if (center == null) {
-            LOGGER.atWarning().log("Area: center required");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Area: center required");
+                    "Center Variable is not a valid position");
             return;
         }
 

@@ -38,7 +38,6 @@ public class DelayGlyph implements GlyphHandler {
         float seconds = HexVarUtil.numberOrDefault(
                 glyph.readSlot(DelayGlyphSlots.DURATION, hexContext), 1.0).floatValue();
 
-        // instant-fire semantic: zero-or-negative duration skips the carrier
         if (seconds <= 0f) {
             HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
@@ -46,7 +45,6 @@ public class DelayGlyph implements GlyphHandler {
 
         List<String> nextLinks = glyph.getNextLinks();
         if (nextLinks.isEmpty()) {
-            // no chain to delay — silent no-op, saves an entity allocation
             return;
         }
 

@@ -46,9 +46,8 @@ public static final String ID = "Bolt";
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar target = glyph.readSlot(BoltGlyphSlots.TARGET, hexContext);
         if (target == null) {
-            LOGGER.atWarning().log("Bolt: target required");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Bolt: target required");
+                    "Target required");
             return;
         }
 
@@ -64,9 +63,8 @@ public static final String ID = "Bolt";
         } else if (blockVar != null) {
             handleBlockTarget(glyph, hexContext, blockVar, accessor, world, color);
         } else {
-            LOGGER.atWarning().log("Bolt: target must be Entity or Block");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Bolt: target must be Entity or Block");
+                    "Target must be an Entity or Block");
             return;
         }
 

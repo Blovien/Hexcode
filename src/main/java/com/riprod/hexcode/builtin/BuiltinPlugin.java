@@ -230,7 +230,6 @@ public class BuiltinPlugin extends JavaPlugin {
     private void RegisterComponents() {
         ComponentRegistryProxy<EntityStore> entityStoreRegistry = this.getEntityStoreRegistry();
 
-        // Hex projectile state — non-serialized metadata for native projectiles
         ComponentType<EntityStore, ProjectileState> hexProjectileStateType = entityStoreRegistry
                 .registerComponent(ProjectileState.class, ProjectileState::new);
         ProjectileState.setComponentType(hexProjectileStateType);
@@ -240,8 +239,6 @@ public class BuiltinPlugin extends JavaPlugin {
                 .registerComponent(ConjureZoneComponent.class, ConjureZoneComponent::new);
         ConjureZoneComponent.setComponentType(conjureZoneType);
 
-        // Arc Component
-        // Drain Component
         ComponentType<EntityStore, PhaseComponent> phaseComponentType = entityStoreRegistry
                 .registerComponent(PhaseComponent.class, PhaseComponent::new);
         PhaseComponent.setComponentType(phaseComponentType);

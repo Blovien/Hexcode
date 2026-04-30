@@ -49,9 +49,8 @@ public static final String ID = "Halt";
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
         Ref<EntityStore> ref = entityVar.getRef(accessor);
         if (ref == null || !ref.isValid()) {
-            LOGGER.atWarning().log("Halt: target ref unresolved");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Halt: target ref unresolved");
+                    "Target ref unresolved");
             return;
         }
 

@@ -165,8 +165,6 @@ public class ContainerNodeHandler extends BaseContainerHandler {
         }
 
         if (!session.isOwner(playerRef)) {
-            logger.atWarning().log("container enter: not owner — ownerRef=%s, playerRef=%s, same=%s",
-                    session.getOwnerRef(), playerRef, session.getOwnerRef() == playerRef);
             return InteractionState.Failed;
         }
 

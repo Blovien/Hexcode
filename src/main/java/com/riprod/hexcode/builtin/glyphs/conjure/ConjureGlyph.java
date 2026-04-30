@@ -94,27 +94,23 @@ public static final String ID = "Conjure";
     HexVar anchorVar = glyph.readSlot(ConjureGlyphSlots.ANCHOR, hexContext);
 
     if (anchorVar == null) {
-      LOGGER.atWarning().log("Conjure: anchor required");
       HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-          "Conjure: anchor required");
+          "Anchor is required");
       return;
     }
     if (anchorVar instanceof NumberVar anchorNum) {
       HexVar resolvedVar = hexContext.getVariable(anchorNum.getValue().toString());
       if (resolvedVar == null) {
-        LOGGER.atWarning().log("Conjure: anchor number %s does not resolve to a variable",
-            anchorNum.getValue());
         HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-            "Conjure: anchor ref unresolved");
+            "Anchor variable is invalid");
         return;
       }
       anchorVar = resolvedVar;
     }
     Vector3d anchorPos = HexVarUtil.position(anchorVar, hexContext.getAccessor());
     if (anchorPos == null) {
-      LOGGER.atWarning().log("Conjure: anchor ref unresolved");
       HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-          "Conjure: anchor ref unresolved");
+          "Anchor variable is not a valid position");
       return;
     }
 
@@ -122,9 +118,8 @@ public static final String ID = "Conjure";
     Vector3d coordsB = HexVarUtil.position(coordsBVar, hexContext.getAccessor());
 
     if (coordsA == null || coordsB == null) {
-      LOGGER.atWarning().log("Conjure: coords ref unresolved");
       HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-          "Conjure: coords ref unresolved");
+          "Corner coordinates must be valid positions");
       return;
     }
 

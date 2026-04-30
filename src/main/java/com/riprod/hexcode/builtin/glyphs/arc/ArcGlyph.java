@@ -43,9 +43,8 @@ public class ArcGlyph implements GlyphHandler {
         HexVar targets = glyph.readSlot(ArcGlyphSlots.TARGET, hexContext);
         EntityVar entityVar = HexVarUtil.resolveEntityVar(targets, hexContext);
         if (entityVar == null) {
-            LOGGER.atWarning().log("Arc: target must be Entity");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Arc: target must be Entity");
+                    "Target must be an Entity");
             return;
         }
 
@@ -53,17 +52,13 @@ public class ArcGlyph implements GlyphHandler {
 
         Ref<EntityStore> originRef = entityVar.getRef(accessor);
         if (originRef == null || !originRef.isValid()) {
-            LOGGER.atWarning().log("Arc: target ref unresolved");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Arc: target ref unresolved");
+                    "Target is invalid");
             return;
         }
 
         List<String> branches = glyph.getNextLinks();
         if (branches.isEmpty()) {
-            LOGGER.atWarning().log("Arc: no child branches");
-            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Arc: no child branches");
             return;
         }
 
@@ -86,9 +81,8 @@ public class ArcGlyph implements GlyphHandler {
         TransformComponent originTc = accessor.getComponent(
                 originRef, TransformComponent.getComponentType());
         if (originTc == null) {
-            LOGGER.atWarning().log("Arc: cast origin has no transform");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Arc: cast origin has no transform");
+                    "Target does not have a position");
             return;
         }
         Vector3d originPos = originTc.getPosition();
@@ -96,10 +90,9 @@ public class ArcGlyph implements GlyphHandler {
         Ref<EntityStore> firstJump = ArcUtils.getNextArcTarget(
                 originPos, (float) maxJump, visited, accessor);
         if (firstJump == null) {
-            LOGGER.atWarning().log("Arc: no nearby entity within %.1f to jump to", maxJump);
             ArcStyle.renderFizzle(accessor, originPos, colors);
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Arc: no nearby entity within range");
+                    "No entities in range to arc to");
             return;
         }
 
@@ -120,8 +113,5 @@ public class ArcGlyph implements GlyphHandler {
 
         HexConstructSpawner.applyWithState(
                 accessor, firstJump, hexContext, glyph, ArcGlyph.ID, state);
-
-        LOGGER.atInfo().log("arc: applied to first-jump target (%d branches), uuid=%s",
-                branches.size(), firstJumpUuid != null ? firstJumpUuid.getUuid() : "null");
     }
 }

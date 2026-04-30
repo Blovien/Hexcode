@@ -83,8 +83,6 @@ public class ArcConstructHandler implements ConstructHandler<ArcState> {
 
         HexContext hexContext = status.getHexContext();
         if (!tryConsumePerHopVolatility(state, hexContext)) {
-            LOGGER.atInfo().log("arc: chain ended — volatility depleted at hop %d/%d",
-                    state.getBranchIndex(), state.getBranches().size());
             return true;
         }
 
@@ -105,7 +103,6 @@ public class ArcConstructHandler implements ConstructHandler<ArcState> {
         state.setHasFired(true);
         state.resetTimer();
 
-        // no more branches means no more hops — let volatility or expiry finish it
         return !state.hasMoreBranches();
     }
 
@@ -166,7 +163,6 @@ public class ArcConstructHandler implements ConstructHandler<ArcState> {
         ArcStyle.renderArc(buffer, world, fromPos, nextPos, colors);
         ArcStyle.renderHit(buffer, nextPos, colors);
 
-        // hand remaining branches to the next target
         List<String> remaining = new ArrayList<>(
                 state.getBranches().subList(state.getBranchIndex(), state.getBranches().size()));
 
@@ -177,7 +173,6 @@ public class ArcConstructHandler implements ConstructHandler<ArcState> {
                 buffer, nextTarget, hexContext, status.getTriggeringGlyph(),
                 ArcGlyph.ID, nextState);
 
-        // this status ends — onCleanup will strip shock from the previous target
         return true;
     }
 }

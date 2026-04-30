@@ -64,16 +64,12 @@ public class PedestalSystem {
 
         Integer totalSlots = session.getBookSlots();
         if (totalSlots == null || totalSlots <= 0) {
-            logger.atWarning().log("pedestal: SpawnHexPreviews aborted — bookSlots=%s, storedBook=%s, bookComponent=%s",
-                    totalSlots, session.getStoredBook(), session.getStoredBookComponent());
             return;
         }
 
         List<Hex> hexes = session.getHexes();
         Ref<EntityStore> anchorRef = session.getAnchorRef();
         if (anchorRef == null || !anchorRef.isValid()) {
-            logger.atWarning().log("pedestal: SpawnHexPreviews aborted — anchorRef=%s, valid=%s",
-                    anchorRef, anchorRef != null ? anchorRef.isValid() : "null");
             return;
         }
 
@@ -91,9 +87,6 @@ public class PedestalSystem {
             }
             Ref<EntityStore> hexRef = ContainerNodeHandler.INSTANCE.spawnContainer(buffer, hex, anchorRef,
                     anchorPos, offset, playerRef);
-            if (hexRef == null) {
-                logger.atWarning().log("pedestal: spawnFilledSlot returned null for slot %d", i);
-            }
             spawnedRefs.add(hexRef);
         }
 
@@ -161,25 +154,21 @@ public class PedestalSystem {
 
         int slotIndex = session.getActiveSlotIndex();
         if (slotIndex < 0) {
-            logger.atWarning().log("pedestal: saveHexToBook — no active slot index");
             return;
         }
 
         List<Ref<EntityStore>> previewRefs = session.getHexPreviewRefs();
         if (previewRefs == null || previewRefs.isEmpty()) {
-            logger.atWarning().log("pedestal: saveHexToBook — no hex preview refs");
             return;
         }
 
         Ref<EntityStore> activeHexRef = previewRefs.get(0);
         if (activeHexRef == null || !activeHexRef.isValid()) {
-            logger.atWarning().log("pedestal: saveHexToBook — active hex ref invalid");
             return;
         }
 
         HexComponent hexComp = buffer.getComponent(activeHexRef, HexComponent.getComponentType());
         if (hexComp == null) {
-            logger.atWarning().log("pedestal: saveHexToBook — no HexComponent on active hex");
             return;
         }
 
@@ -188,18 +177,15 @@ public class PedestalSystem {
 
         HexBookComponent bookComp = session.getStoredBookComponent();
         if (bookComp == null) {
-            logger.atWarning().log("pedestal: saveHexToBook — no book component");
             return;
         }
 
         if (hex.getGlyphs().isEmpty()) {
             if (slotIndex < bookComp.getHexes().size()) {
                 bookComp.getHexes().remove(slotIndex);
-                logger.atInfo().log("pedestal: removed empty hex from book — slot=%d", slotIndex);
             }
         } else {
             bookComp.setHex(slotIndex, hex);
-            logger.atInfo().log("pedestal: saved hex to book — slot=%d, hex=%s", slotIndex, hex);
         }
 
         session.setStoredBookComponent(bookComp);
@@ -334,8 +320,6 @@ public class PedestalSystem {
                 : null;
 
         if (session == null) {
-            logger.atWarning().log("pedestal: enterSelecting aborted — session is null for player %s",
-                    player.getReference());
             return;
         }
 

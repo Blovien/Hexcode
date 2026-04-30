@@ -19,8 +19,6 @@ public class BurningGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        LOGGER.atWarning().log("burning: not yet implemented");
-        HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.NOT_IMPLEMENTED,
-                "Burning not yet implemented");
+        HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.NOT_IMPLEMENTED);
     }
 }

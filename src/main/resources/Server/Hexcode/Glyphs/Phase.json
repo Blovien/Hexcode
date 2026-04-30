@@ -3,7 +3,6 @@
   "Title": "Phase",
   "Description": "Temporarily removes blocks from reality, restoring them after a delay",
   "ModelPath": "Phase",
-  "BasePower": 1.0,
   "ManaConsumption": 20,
   "ShapeStructure": [
     {
@@ -52,5 +51,7 @@
       "Base": 1.0,
       "K": 5.0
     }
-  }
+  },
+  "IsEnabled": false,
+  "IsReversable": false
 }

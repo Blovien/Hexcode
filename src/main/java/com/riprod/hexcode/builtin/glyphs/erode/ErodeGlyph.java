@@ -70,7 +70,6 @@ public static final String ID = "Erode";
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targets = glyph.readSlot(ErodeGlyphSlots.TARGET, hexContext);
         if (targets == null) {
-            LOGGER.atWarning().log("Erode: target required");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
                     "Erode: target required");
             return;
@@ -89,11 +88,9 @@ public static final String ID = "Erode";
         EntityVar entityVar = HexVarUtil.resolveEntityVar(targets, hexContext);
         if (entityVar != null) {
             applyToEntities(entityVar, vulnerabilityMultiplier, durationSeconds, glyph, hexContext, accessor);
-            // entity branch fires Next on construct expiry, not now
         } else {
             BlockVar blockVar = HexVarUtil.resolveBlockVar(targets, hexContext);
             if (blockVar != null) applyToBlocks(blockVar, amount, durationSeconds, hexContext, accessor);
-            // block branch is one-shot; fire Next immediately
             HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
         }
     }

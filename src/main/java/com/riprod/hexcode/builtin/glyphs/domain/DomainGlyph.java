@@ -71,25 +71,22 @@ public static final String ID = "Domain";
     public void execute(Glyph glyph, HexContext hexContext) {
         Ref<EntityStore> casterRef = hexContext.getCasterRef();
         if (casterRef == null || !casterRef.isValid()) {
-            LOGGER.atWarning().log("Domain: caster not found");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Domain: caster not found");
+                    "Caster not found");
             return;
         }
 
         HexVar targetVar = glyph.readSlot(DomainGlyphSlots.TARGET, hexContext);
         if (targetVar == null) {
-            LOGGER.atWarning().log("Domain: target required");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Domain: target required");
+                    "Target required");
             return;
         }
 
         Vector3d anchorPos = HexVarUtil.position(targetVar, hexContext.getAccessor());
         if (anchorPos == null) {
-            LOGGER.atWarning().log("Domain: target ref unresolved");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Domain: target ref unresolved");
+                    "Target position invalid");
             return;
         }
 
@@ -106,9 +103,7 @@ public static final String ID = "Domain";
 
         float upfrontCost = BASE_MANA_COST * (1 + (power - 1) * 0.5f);
         if (!hexContext.getRoot().tryConsumeMana(upfrontCost, hexContext.getAccessor())) {
-            LOGGER.atWarning().log("Domain: insufficient mana for upfront cost %.1f", upfrontCost);
-            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Domain: insufficient mana for upfront cost");
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.INSUFFICIENT_MANA);
             return;
         }
 
@@ -125,7 +120,7 @@ public static final String ID = "Domain";
                 hexContext.getAccessor(), hexContext, glyph, DomainGlyph.ID, new Vector3d(anchorPos));
 
         DomainZoneComponent zoneComp = new DomainZoneComponent(
-                (float) radius, baseDrainPerSecond, BASE_TRIGGER_COST, power, casterUuid, casterRef);
+                (float) radius, durationSeconds, baseDrainPerSecond, BASE_TRIGGER_COST, power, casterUuid, casterRef);
 
         Vector3f debugColor = DomainStyle.resolveColor(hexContext.getColors());
         Vector3d debugScale = new Vector3d(radius * 2, radius * 2, radius * 2);

@@ -43,7 +43,6 @@ public class LevitateGlyph implements GlyphHandler {
     private static final double DEFAULT_DURATION = 100.0;
     private static final double MAX_INTENSITY = 10.0;
     private static final double MAX_DURATION = 600.0;
-    // high drag for weightless mode — near-zero terminal velocity
     private static final double WEIGHTLESS_DRAG = 50.0;
 
     @Override

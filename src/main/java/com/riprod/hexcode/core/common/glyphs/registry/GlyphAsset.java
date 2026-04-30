@@ -234,25 +234,37 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
                         (a, p) -> a.config = p.config)
                 .documentation("Per-glyph tuning knobs, polymorphic on GlyphId")
                 .add()
-                .validator((asset, results) -> {
-                    if (asset.id == null || asset.config == null)
+                .afterDecode((asset, extraInfo) -> {
+                    if (asset.id == null) return;
+                    Class<? extends GlyphConfig> expected = GlyphConfig.CODEC.getClassFor(asset.id);
+                    if (expected == null) {
+                        if (asset.config != null && !(asset.config instanceof GlyphConfig.Default)) {
+                            extraInfo.getValidationResults().fail(
+                                    "Glyph '" + asset.id + "': Config has type "
+                                            + asset.config.getClass().getSimpleName()
+                                            + " but no custom GlyphConfig is registered for this id "
+                                            + "- either rename the file to match the registered handler, "
+                                            + "or remove the Config block");
+                            return;
+                        }
+                        // ensure a fresh Default tagged with this id (avoids mutating an inherited reference)
+                        if (!(asset.config instanceof GlyphConfig.Default)
+                                || !asset.id.equals(asset.config.glyphId)) {
+                            GlyphConfig.Default fresh = new GlyphConfig.Default();
+                            fresh.glyphId = asset.id;
+                            asset.config = fresh;
+                        }
                         return;
-                    if (!asset.id.equals(asset.config.getGlyphId())) {
-                        results.fail("GlyphAsset.Config.GlyphId ("
-                                + asset.config.getGlyphId()
-                                + ") must equal the parent asset Id ("
-                                + asset.id + ")");
                     }
-                    GlyphHandler handler = GlyphRegistry.get(asset.id);
-                    if (handler == null)
+                    if (asset.config == null || !expected.equals(asset.config.getClass())) {
+                        extraInfo.getValidationResults().fail(
+                                "Glyph '" + asset.id + "': Config has type "
+                                        + (asset.config == null ? "null" : asset.config.getClass().getSimpleName())
+                                        + " but handler expects " + expected.getSimpleName()
+                                        + " - check that the asset filename matches the registered glyph id");
                         return;
-                    Class<? extends GlyphConfig> expected = handler.getConfigBinding().type();
-                    if (!expected.isInstance(asset.config)) {
-                        results.fail("GlyphAsset '" + asset.id
-                                + "' requires a Config block of type "
-                                + expected.getSimpleName() + " but got "
-                                + asset.config.getClass().getSimpleName());
                     }
+                    asset.config.glyphId = asset.id;
                 })
                 .build();
     }

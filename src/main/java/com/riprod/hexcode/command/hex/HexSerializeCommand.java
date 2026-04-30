@@ -90,7 +90,7 @@ public class HexSerializeCommand extends AbstractPlayerCommand {
 
             DecodeResult result = HexUtils.deserializeWithResult(data);
             if (result.getHex() == null) {
-                send(playerRef, "invalid hex data — check that you copied the full string");
+                send(playerRef, "invalid hex data - check that you copied the full string");
                 for (DecodeIssue issue : result.getIssues()) {
                     send(playerRef, "  " + issue);
                 }

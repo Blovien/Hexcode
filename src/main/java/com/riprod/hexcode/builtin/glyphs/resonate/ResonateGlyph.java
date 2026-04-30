@@ -91,7 +91,6 @@ public class ResonateGlyph implements GlyphHandler {
             transferManaToRoot(glyph, hexContext, target.getHexContext().getRoot(), accessor);
         }
 
-        // drain caster fully — ends Resonate's chain
         if (tracker != null && donation > 0f) {
             tracker.consumeVolatility(donation);
         }

@@ -46,5 +46,8 @@
       "Base": 1.0,
       "K": 10.0
     }
+  },
+  "Config": {
+    "GlyphId": "Phase"
   }
 }

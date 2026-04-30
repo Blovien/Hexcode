@@ -25,7 +25,9 @@ public class GlyphRegistry {
     public static void register(@Nonnull GlyphHandler glyph) {
         glyphs.put(glyph.getId(), glyph);
         GlyphHandler.ConfigBinding<? extends GlyphConfig> binding = glyph.getConfigBinding();
-        GlyphConfig.CODEC.register(glyph.getId(), binding.type(), binding.codec());
+        if (binding.type() != GlyphConfig.Default.class) {
+            GlyphConfig.CODEC.register(glyph.getId(), binding.type(), binding.codec());
+        }
     }
 
     @Nullable

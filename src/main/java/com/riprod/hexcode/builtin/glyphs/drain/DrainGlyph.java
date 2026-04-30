@@ -11,6 +11,7 @@ import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatValue;
 import com.hypixel.hytale.server.core.modules.entitystats.asset.DefaultEntityStatTypes;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
@@ -36,7 +37,6 @@ public static final String ID = "Drain";
     private static final float DEFAULT_DURATION = 1.0f;
 
     private static float conversionRate(int sourceStat) {
-        // destination is always Mana — drain is always <other> -> mana, never the reverse
         if (sourceStat == DefaultEntityStatTypes.getHealth()) return HP_TO_MANA_RATE;
         if (sourceStat == DefaultEntityStatTypes.getStamina()) return STAMINA_TO_MANA_RATE;
         return 1.0f;
@@ -47,19 +47,17 @@ public static final String ID = "Drain";
         HexVar targetVar = glyph.readSlot(DrainGlyphSlots.TARGET, hexContext);
         EntityVar entityVar = HexVarUtil.resolveEntityVar(targetVar, hexContext);
         if (entityVar == null) {
-            LOGGER.atWarning().log("drain: target required");
             HexExecuter.fail(glyph, hexContext,
-                    com.riprod.hexcode.api.event.GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "drain: target required");
+                    GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Target required");
             return;
         }
 
         Ref<EntityStore> targetRef = entityVar.getRef(hexContext.getAccessor());
         if (targetRef == null || !targetRef.isValid()) {
-            LOGGER.atWarning().log("drain: target ref unresolved");
             HexExecuter.fail(glyph, hexContext,
-                    com.riprod.hexcode.api.event.GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "drain: target ref unresolved");
+                    GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Target entity not found");
             return;
         }
 
@@ -80,8 +78,7 @@ public static final String ID = "Drain";
             drainPercent = 15.0f;
         }
 
-        // HP-source gate: only allow HP drain if the source IS the caster.
-        // Prevents "drain enemy HP → my mana" from becoming the dominant PvP strategy.
+        // HP-source gate: only allow HP drain if the source IS the caster
         if (sourceStatIndex == DefaultEntityStatTypes.getHealth()) {
             UUIDComponent srcUuid = hexContext.getAccessor().getComponent(
                     targetRef, UUIDComponent.getComponentType());
@@ -94,7 +91,7 @@ public static final String ID = "Drain";
             }
         }
 
-        // destination entity (default = caster). Destination stat is always Mana.
+        // destination entity (default = caster). Destination stat is always Mana
         HexVar destVar = glyph.readSlot(DrainGlyphSlots.DESTINATION, hexContext);
         Ref<EntityStore> destRef = hexContext.getCasterRef();
         EntityVar destEntityVar = HexVarUtil.resolveEntityVar(destVar, hexContext);
@@ -106,28 +103,25 @@ public static final String ID = "Drain";
         float rate = conversionRate(sourceStatIndex);
 
         if (drainPercent <= 0) {
-            LOGGER.atWarning().log("Drain: drainPercent must be > 0");
             HexExecuter.fail(glyph, hexContext,
-                    com.riprod.hexcode.api.event.GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Drain: drainPercent domain error");
+                    GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Drain Percent must be greater than 0");
             return;
         }
 
         EntityStatMap statMap = hexContext.getAccessor().getComponent(targetRef, EntityStatMap.getComponentType());
         if (statMap == null) {
-            LOGGER.atWarning().log("Drain: target has no EntityStatMap");
             HexExecuter.fail(glyph, hexContext,
-                    com.riprod.hexcode.api.event.GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Drain: target has no EntityStatMap");
+                    GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Target has no stats");
             return;
         }
 
         EntityStatValue sourceStat = statMap.get(sourceStatIndex);
         if (sourceStat == null) {
-            LOGGER.atWarning().log("Drain: missing source stat %d", sourceStatIndex);
             HexExecuter.fail(glyph, hexContext,
-                    com.riprod.hexcode.api.event.GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Drain: missing source stat");
+                    GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Source stat not found on target");
             return;
         }
 
@@ -145,10 +139,9 @@ public static final String ID = "Drain";
         }
 
         if (totalDrainAmount <= 0) {
-            LOGGER.atWarning().log("Drain: totalDrainAmount domain error");
             HexExecuter.fail(glyph, hexContext,
-                    com.riprod.hexcode.api.event.GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Drain: totalDrainAmount domain error");
+                    GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Calculated drain amount is zero or negative");
             return;
         }
 

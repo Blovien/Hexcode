@@ -90,7 +90,6 @@ public class InterfereGlyph implements GlyphHandler {
                     ConstructSplicer.VariablePolicy.PREFER_CASTER,
                     donation);
 
-            // end via canonical procedure — fires the just-installed chain
             ConstructHandler raw = handler;
             HexStatus rawStatus = target;
             try {
@@ -103,7 +102,6 @@ public class InterfereGlyph implements GlyphHandler {
             construct.removeEffect(target.getConstructId());
         }
 
-        // drain caster fully — ends Interfere's chain
         if (tracker != null && donation > 0f) {
             tracker.consumeVolatility(donation);
         }

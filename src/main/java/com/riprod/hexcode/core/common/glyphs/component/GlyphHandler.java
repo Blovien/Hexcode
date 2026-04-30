@@ -55,10 +55,6 @@ public interface GlyphHandler {
         return consumed;
     }
 
-    default boolean consumeResources(Glyph glyph, HexContext hexContext) {
-        return consumeVolatility(glyph, hexContext);
-    }
-
 
     @Nullable
     default <T extends GlyphConfig> T getConfig(@Nonnull Class<T> type) {
@@ -69,9 +65,6 @@ public interface GlyphHandler {
         return type.isInstance(config) ? type.cast(config) : null;
     }
 
-    // computes the area-tax multiplier for a glyph based on its actual magnitude
-    // vs. the asset-declared default. ratio <= 1.0 returns 1.0 (no discount for
-    // smaller-than-default casts).
     default float computeAreaScale(double magnitude, GlyphAsset asset) {
         if (asset == null)
             return 1.0f;

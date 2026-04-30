@@ -36,8 +36,6 @@ public class MountOrphanReaperSystem extends EntityTickingSystem<EntityStore> {
             Ref<EntityStore> selfRef = chunk.getReferenceTo(index);
             buffer.tryRemoveComponent(selfRef, MountedComponent.getComponentType());
             CleanupUtils.safeRemoveEntity(buffer, selfRef);
-
-            LOGGER.atWarning().log("[hexcode] reaped orphan mount child %s — upstream cleanup missed it", selfRef);
         } catch (Exception e) {
             LOGGER.atSevere().log("[hexcode] MountOrphanReaperSystem failed: %s", e.getMessage());
         }

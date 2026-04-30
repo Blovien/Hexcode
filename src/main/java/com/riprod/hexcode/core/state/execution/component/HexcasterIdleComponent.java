@@ -102,14 +102,6 @@ public class HexcasterIdleComponent implements Component<EntityStore> {
         return activeTrackers;
     }
 
-    /**
-     * Cancels every active spell by zeroing its volatility and firing
-     * {@link SpellCancelledEvent}. Individual constructs / multi-tick glyphs
-     * observe the fizzled tracker on their own tick and self-remove. Trackers
-     * are not removed from the list here — they drain lazily on the next
-     * {@link #pruneCompletedTrackers()} call, which runs from
-     * {@link #getActiveCount()}.
-     */
     public void cancelAll(Ref<EntityStore> casterRef) {
         if (activeTrackers == null || activeTrackers.isEmpty())
             return;

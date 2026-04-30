@@ -52,7 +52,6 @@ public static final String ID = "Ensnare";
 
     private static final double RADIUS_THRESHOLD = 8.0;
     private static final double DAMAGE_THRESHOLD = 25.0;
-    private static final double DURATION_THRESHOLD = 20.0;
 
     private static final float DAMAGE_COOLDOWN_SECONDS = 1.0f;
     private static final int MAX_SPIKES = 64;
@@ -93,9 +92,8 @@ public static final String ID = "Ensnare";
         Vector3d center = HexVarUtil.position(
                 glyph.readSlot(EnsnareGlyphSlots.TARGET, hexContext), accessor);
         if (center == null) {
-            LOGGER.atWarning().log("Ensnare: target ref unresolved");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Ensnare: target ref unresolved");
+                    "Target position required");
             return;
         }
 
@@ -105,9 +103,8 @@ public static final String ID = "Ensnare";
 
         ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(SPIKE_MODEL);
         if (modelAsset == null) {
-            LOGGER.atWarning().log("Ensnare: missing asset %s", SPIKE_MODEL);
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Ensnare: missing asset " + SPIKE_MODEL);
+                    "Missing asset " + SPIKE_MODEL);
             return;
         }
 
@@ -147,9 +144,8 @@ public static final String ID = "Ensnare";
         }
 
         if (spikes.isEmpty()) {
-            LOGGER.atWarning().log("Ensnare: no valid spike positions found");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Ensnare: no valid spike positions");
+                    "No valid spike positions");
             return;
         }
 
@@ -157,9 +153,6 @@ public static final String ID = "Ensnare";
                 (float) damage, center, radius, accessor);
 
         EnsnareStyle.renderSeismicBurst(center, hexContext.getColors(), accessor);
-
-        LOGGER.atInfo().log("ensnare: spawned %d spikes, radius=%.1f, duration=%.1fs",
-                spikes.size(), radius, duration);
     }
 
     private int findGround(World world, int x, int centerY, int z) {

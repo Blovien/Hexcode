@@ -58,14 +58,14 @@ public static final String ID = "Glaciate";
         HexVar targetVar = glyph.readSlot(GlaciateGlyphSlots.TARGET, hexContext);
         if (targetVar == null) {
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "no target provided");
+                    "No target provided");
             return;
         }
 
         Vector3d targetPos = HexVarUtil.position(targetVar, hexContext.getAccessor());
         if (targetPos == null) {
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "could not resolve target position");
+                    "Could not resolve target position");
             return;
         }
 
@@ -77,7 +77,7 @@ public static final String ID = "Glaciate";
         ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(ICE_MODEL);
         if (modelAsset == null) {
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "model asset not found: " + ICE_MODEL);
+                    "Model asset not found: " + ICE_MODEL);
             return;
         }
 
@@ -119,10 +119,6 @@ public static final String ID = "Glaciate";
         Model model = Model.createScaledModel(modelAsset, ICE_SCALE);
 
         List<String> allNext = glyph.getNextLinks();
-        List<String> firstBranchIds = !allNext.isEmpty() ? List.of(allNext.get(0)) : null;
-        List<String> entryNext = allNext.size() > 1
-                ? List.copyOf(allNext.subList(1, allNext.size()))
-                : List.of();
 
         Holder<EntityStore> holder = HexConstructSpawner.create(
                 hexContext.getAccessor(), hexContext, glyph, GlaciateGlyph.ID, new Vector3d(spawnPos));
