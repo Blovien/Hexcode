@@ -28,21 +28,6 @@ import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.utils.HexUtils;
 import com.riprod.hexcode.core.state.execution.component.HexcasterIdleComponent;
 
-/**
- * /hexcode test-roundtrip
- *
- * Encodes the active hex on the player's staff, immediately decodes it,
- * and reports whether the decoded graph is structurally equivalent to the
- * original. Also prints the serialized string length + any DecodeIssues so
- * plugin-glyph warnings and drift errors surface in chat.
- *
- * Structural equivalence mirrors the Python prototype's
- * hex_equals_ignoring_rotation: glyphs are matched by canonical order
- * (firstGlyph at index 0, remaining glyphs sorted by id), and slot links
- * are compared by the target's position in that canonical order rather
- * than by raw id string — HexUtils.compress() mints fresh random prefixes
- * on every serialize so id strings will never byte-match.
- */
 public class HexTestRoundtripCommand extends AbstractPlayerCommand {
 
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();

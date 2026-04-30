@@ -32,17 +32,15 @@ public class ForceGlyph implements GlyphHandler {
         HexVar targets = glyph.readSlot(ForceGlyphSlots.TARGET, hexContext);
         EntityVar entityVar = HexVarUtil.resolveEntityVar(targets, hexContext);
         if (entityVar == null) {
-            LOGGER.atWarning().log("Force: target must be Entity");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Force: target must be Entity");
+                    "Target must be an Entity");
             return;
         }
 
         Ref<EntityStore> ref = entityVar.getRef(hexContext.getAccessor());
         if (ref == null || !ref.isValid()) {
-            LOGGER.atWarning().log("Force: target ref unresolved");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Force: target ref unresolved");
+                    "Target is invalid");
             return;
         }
 

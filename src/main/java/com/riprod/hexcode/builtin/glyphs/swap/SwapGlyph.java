@@ -56,9 +56,8 @@ public static final String ID = "Swap";
         HexVar varsB = glyph.readSlot(SwapGlyphSlots.B, hexContext);
 
         if (varsA == null || varsB == null) {
-            LOGGER.atWarning().log("Swap: A and B required");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Swap: A and B required");
+                    "Both positions are required");
             return;
         }
 

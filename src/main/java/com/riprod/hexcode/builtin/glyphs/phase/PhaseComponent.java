@@ -14,12 +14,14 @@ public class PhaseComponent implements Component<EntityStore> {
     private static ComponentType<EntityStore, PhaseComponent> componentType;
 
     private List<PhasedBlock> phasedBlocks;
+    private float duration;
 
     public PhaseComponent() {
     }
 
-    public PhaseComponent(List<PhasedBlock> phasedBlocks) {
+    public PhaseComponent(List<PhasedBlock> phasedBlocks, float duration) {
         this.phasedBlocks = phasedBlocks;
+        this.duration = duration;
     }
 
     public static void setComponentType(ComponentType<EntityStore, PhaseComponent> type) {
@@ -34,11 +36,17 @@ public class PhaseComponent implements Component<EntityStore> {
         return phasedBlocks;
     }
 
+    public boolean decrementDuration(float delta) {
+        duration -= delta;
+        return duration <= 0;
+    }
+
     @Nonnull
     @Override
     public PhaseComponent clone() {
         PhaseComponent copy = new PhaseComponent();
         copy.phasedBlocks = this.phasedBlocks != null ? new ArrayList<>(this.phasedBlocks) : null;
+        copy.duration = this.duration;
         return copy;
     }
 }

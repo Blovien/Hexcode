@@ -69,9 +69,8 @@ public class FortifyGlyph implements GlyphHandler {
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targets = glyph.readSlot(FortifyGlyphSlots.TARGET, hexContext);
         if (targets == null) {
-            LOGGER.atWarning().log("Fortify: target required");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Fortify: target required");
+                    "Target required");
             return;
         }
 

@@ -42,7 +42,7 @@ public class ResonateGlyph implements GlyphHandler {
         EntityVar entityVar = HexVarUtil.resolveEntityVar(targetVar, hexContext);
         if (entityVar == null) {
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Resonate: target must be Entity");
+                    "Target must be a creature");
             return;
         }
 
@@ -51,7 +51,7 @@ public class ResonateGlyph implements GlyphHandler {
         Ref<EntityStore> ref = entityVar.getRef(accessor);
         if (ref == null || !ref.isValid()) {
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Resonate: target ref unresolved");
+                    "Target is no longer available");
             return;
         }
 
@@ -72,7 +72,7 @@ public class ResonateGlyph implements GlyphHandler {
             Vector3d pos = resolvePosition(ref, accessor);
             if (pos != null) ResonateStyle.renderNoSignal(pos, hexContext.getColors(), accessor);
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Resonate: target has no active statuses");
+                    "Target has no active effects");
             return;
         }
 
@@ -91,15 +91,12 @@ public class ResonateGlyph implements GlyphHandler {
             transferManaToRoot(glyph, hexContext, target.getHexContext().getRoot(), accessor);
         }
 
-        // drain caster fully — ends Resonate's chain
         if (tracker != null && donation > 0f) {
             tracker.consumeVolatility(donation);
         }
 
         Vector3d pos = resolvePosition(ref, accessor);
         if (pos != null) ResonateStyle.renderResonate(pos, hexContext.getColors(), accessor);
-
-        LOGGER.atInfo().log("resonate: spliced %d active effects on target", targets.size());
     }
 
     private void resonateEntity(Glyph glyph, HexContext hexContext,
@@ -118,7 +115,7 @@ public class ResonateGlyph implements GlyphHandler {
         double percentage = HexVarUtil.numberOrDefault(manaVar, 0.0);
         if (percentage <= 0) {
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Resonate: mana percentage required");
+                    "Mana amount is required");
             return;
         }
         percentage = Math.min(percentage, 100.0);
@@ -134,7 +131,6 @@ public class ResonateGlyph implements GlyphHandler {
 
         transferAmount = Math.min(transferAmount, room);
         if (transferAmount <= 0) {
-            LOGGER.atInfo().log("resonate: target mana is full");
             return;
         }
 
@@ -143,7 +139,6 @@ public class ResonateGlyph implements GlyphHandler {
 
         Vector3d pos = resolvePosition(ref, accessor);
         if (pos != null) ResonateStyle.renderResonate(pos, hexContext.getColors(), accessor);
-        LOGGER.atInfo().log("resonate: transferred %.1f mana to entity", transferAmount);
     }
 
     private void transferManaToRoot(Glyph glyph, HexContext hexContext,

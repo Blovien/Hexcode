@@ -61,6 +61,10 @@ public class DomainConstructHandler implements ConstructHandler<NoState> {
         if (zone == null || transform == null)
             return true;
 
+        if (zone.decrementSeconds(dt)) {
+            return true;
+        }
+
         HexRoot root = status.getHexContext().getRoot();
         if (root == null || !root.isAlive())
             return true;

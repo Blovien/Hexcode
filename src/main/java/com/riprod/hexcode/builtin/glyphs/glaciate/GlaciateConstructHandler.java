@@ -1,5 +1,6 @@
 package com.riprod.hexcode.builtin.glyphs.glaciate;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,6 +24,7 @@ import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
 import com.riprod.hexcode.core.common.construct.component.HexStatus;
 import com.riprod.hexcode.core.common.construct.state.NoState;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
+import com.riprod.hexcode.core.common.glyphs.component.Slot;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
@@ -32,12 +34,38 @@ public class GlaciateConstructHandler implements ConstructHandler<NoState> {
     private static int damageCauseIndex = -1;
 
     @Override
+    public void onFirstTick(HexStatus<NoState> status, ConstructTickContext ctx) {
+        Glyph triggering = status.getTriggeringGlyph();
+        if (triggering == null)
+            return;
+        Slot immediate = triggering.getSlot(GlaciateGlyphSlots.IMMEDIATE);
+        if (immediate == null)
+            return;
+        String[] links = immediate.getLinks();
+        if (links == null || links.length == 0)
+            return;
+        HexContext hexContext = status.getHexContext();
+        hexContext.UpdateAccessor(ctx.getBuffer());
+        UUID entityId = ctx.getBuffer().getComponent(ctx.getEntityRef(), UUIDComponent.getComponentType())
+                .getUuid();
+
+        // next glyphs
+        hexContext.setVariable(Glyph.DEFAULT_SLOT, new EntityVar(entityId, ctx.getEntityRef()));
+        HexExecuter.continueExecution(Arrays.asList(links), hexContext);
+    }
+
+    @Override
     public boolean onTick(float dt, HexStatus<NoState> status, ConstructTickContext ctx) {
         GlaciateComponent glaciate = ctx.getChunk().getComponent(
                 ctx.getIndex(), GlaciateComponent.getComponentType());
         TransformComponent transform = ctx.getChunk().getComponent(
                 ctx.getIndex(), TransformComponent.getComponentType());
-        if (glaciate == null || transform == null) return false;
+        if (glaciate == null || transform == null)
+            return true;
+
+        if (!glaciate.incrementDuration(dt)) {
+            return true;
+        }
 
         Velocity vel = ctx.getChunk().getComponent(ctx.getIndex(), Velocity.getComponentType());
         Vector3d iceVelocity = vel != null ? new Vector3d(vel.getVelocity()) : Vector3d.ZERO;
@@ -50,15 +78,21 @@ public class GlaciateConstructHandler implements ConstructHandler<NoState> {
         Ref<EntityStore> casterRef = status.getHexContext().getCasterRef();
 
         for (Ref<EntityStore> ref : found) {
-            if (ref == null || !ref.isValid()) continue;
-            if (ref.equals(ctx.getEntityRef())) continue;
-            if (ref.equals(casterRef)) continue;
-            if (ctx.getBuffer().getComponent(ref, GlaciateComponent.getComponentType()) != null) continue;
+            if (ref == null || !ref.isValid())
+                continue;
+            if (ref.equals(ctx.getEntityRef()))
+                continue;
+            if (ref.equals(casterRef))
+                continue;
+            if (ctx.getBuffer().getComponent(ref, GlaciateComponent.getComponentType()) != null)
+                continue;
 
             UUIDComponent uuid = ctx.getBuffer().getComponent(ref, UUIDComponent.getComponentType());
-            if (uuid == null) continue;
+            if (uuid == null)
+                continue;
 
-            if (glaciate.getHitEntities().contains(uuid.getUuid())) continue;
+            if (glaciate.getHitEntities().contains(uuid.getUuid()))
+                continue;
             glaciate.getHitEntities().add(uuid.getUuid());
 
             if (speed > 0.1) {
@@ -75,10 +109,10 @@ public class GlaciateConstructHandler implements ConstructHandler<NoState> {
             final UUIDComponent entityUuid = uuid;
             Glyph triggering = status.getTriggeringGlyph();
             if (triggering != null) {
-                HexContext __hexCtx = status.getHexContext();
+                HexContext hexCtx = status.getHexContext();
                 triggering.writeDefaultOutput(
-                        new EntityVar(entityUuid.getUuid(), entityRef), __hexCtx);
-                HexExecuter.continueExecution(triggering.getNextLinks(), __hexCtx);
+                        new EntityVar(entityUuid.getUuid(), entityRef), hexCtx);
+                HexExecuter.continueExecution(triggering.getNextLinks(), hexCtx);
             }
         }
 
@@ -100,10 +134,12 @@ public class GlaciateConstructHandler implements ConstructHandler<NoState> {
         if (damageCauseIndex < 0) {
             damageCauseIndex = DamageCause.getAssetMap().getIndex("Environment");
         }
-        if (damageCauseIndex == Integer.MIN_VALUE) return;
+        if (damageCauseIndex == Integer.MIN_VALUE)
+            return;
 
         DamageCause cause = DamageCause.getAssetMap().getAsset(damageCauseIndex);
-        if (cause == null) return;
+        if (cause == null)
+            return;
 
         Damage damage = new Damage(
                 new Damage.EnvironmentSource("hex_glaciate"), cause, amount);

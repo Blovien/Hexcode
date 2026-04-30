@@ -35,25 +35,22 @@ public static final String ID = "Beam";
         if (rotVar == null) rotVar = posVar;
 
         if (posVar == null) {
-            LOGGER.atWarning().log("Beam: source required");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Beam: source required");
+                    "Unable to find source position");
             return;
         }
 
         Vector3d origin = HexDirectionUtil.resolveEyePosition(posVar, hexContext.getAccessor());
         if (origin == null) {
-            LOGGER.atWarning().log("Beam: source ref unresolved");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Beam: source ref unresolved");
+                    "Source entity is invalid");
             return;
         }
 
         Vector3d direction = HexDirectionUtil.resolveDirection(rotVar, origin, hexContext.getAccessor());
         if (direction == null) {
-            LOGGER.atWarning().log("Beam: rotation ref unresolved");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Beam: rotation ref unresolved");
+                    "Rotation variable is not valid");
             return;
         }
 
@@ -115,10 +112,8 @@ public static final String ID = "Beam";
             endPoint = new Vector3d(origin).add(new Vector3d(direction).scale(beamLength));
             hitType = BeamStyle.HitType.MISS;
             BeamStyle.render(beamOrigin, endPoint, hitType, hexContext.getColors(), hexContext.getAccessor());
-            LOGGER.atWarning().log("Beam: no hit within range");
-            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Beam: no hit within range");
-            return;
+            BlockVar resultVar = new BlockVar(endPoint.toVector3i());
+            glyph.writeOutput(resultVar, hexContext);
         }
 
         BeamStyle.render(beamOrigin, endPoint, hitType, hexContext.getColors(), hexContext.getAccessor());

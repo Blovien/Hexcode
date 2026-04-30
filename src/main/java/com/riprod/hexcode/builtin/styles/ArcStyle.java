@@ -12,7 +12,7 @@ public class ArcStyle implements CastingStyle {
     public static final String ID = "arc";
     private static final float DEFAULT_DISTANCE = 3.0f;
     private static final float ARC_PITCH = 0.0f;
-    private static final float ARC_SPAN = (float) (2 * Math.PI / 3); // 120 degrees
+    private static final float ARC_SPAN = (float) (2 * Math.PI / 3);
 
     @Nonnull
     @Override

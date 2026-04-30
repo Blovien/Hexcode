@@ -24,7 +24,7 @@ public final class StyleResolution {
             return fallback();
         }
 
-        StyleAsset style = StyleAsset.getAssetMap().getAsset(styleId);
+        SlotStyleAsset style = SlotStyleAsset.getAssetMap().getAsset(styleId);
         if (style == null) {
             LOGGER.atSevere().log("glyph '%s' slot '%s': style '%s' not found; using fallback",
                     glyphId, slotKey, styleId);

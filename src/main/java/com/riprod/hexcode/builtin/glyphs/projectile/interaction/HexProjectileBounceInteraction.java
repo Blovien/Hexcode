@@ -58,8 +58,6 @@ public class HexProjectileBounceInteraction extends SimpleInteraction {
             ProjectileState state = buffer.getComponent(projectileRef, ProjectileState.getComponentType());
             HexContext hexContext = state != null ? state.getHexContext() : null;
 
-            LOGGER.atInfo().log("[projectile] bounce ref=%s", projectileRef);
-
             Vector4d hitLocation = ctx.getMetaStore().getMetaObject(Interaction.HIT_LOCATION);
             if (hitLocation == null || hexContext == null || state == null) {
                 ctx.getState().state = InteractionState.Finished;

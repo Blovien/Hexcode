@@ -31,9 +31,8 @@ public static final String ID = "Ignite";
         HexVar targets = glyph.readSlot(IgniteGlyphSlots.TARGET, hexContext);
 
         if (targets == null) {
-            LOGGER.atWarning().log("Ignite: target required");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Ignite: target required");
+                    "Target required");
             return;
         }
 
@@ -42,9 +41,8 @@ public static final String ID = "Ignite";
 
         EntityEffect burnEffect = EntityEffect.getAssetMap().getAsset("Burn");
         if (burnEffect == null) {
-            LOGGER.atWarning().log("Ignite: missing asset Burn");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Ignite: missing asset Burn");
+                    "Missing asset Burn");
             return;
         }
 

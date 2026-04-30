@@ -17,19 +17,18 @@ public class GlaciateComponent implements Component<EntityStore> {
 
     private float damageRadius;
     private float damageMultiplier;
+    private float durationSeconds;
     private Set<UUID> hitEntities;
-    private List<String> firstBranchIds;
     private boolean firedFirstBranch;
 
     public GlaciateComponent() {
     }
 
-    public GlaciateComponent(float damageRadius, float damageMultiplier,
-            List<String> firstBranchIds) {
+    public GlaciateComponent(float damageRadius, float damageMultiplier, float durationSeconds) {
         this.damageRadius = damageRadius;
         this.damageMultiplier = damageMultiplier;
         this.hitEntities = new HashSet<>();
-        this.firstBranchIds = firstBranchIds;
+        this.durationSeconds = durationSeconds;
         this.firedFirstBranch = false;
     }
 
@@ -54,10 +53,6 @@ public class GlaciateComponent implements Component<EntityStore> {
         return hitEntities;
     }
 
-    public List<String> getFirstBranchIds() {
-        return firstBranchIds;
-    }
-
     public boolean firedFirstBranch() {
         return firedFirstBranch;
     }
@@ -66,14 +61,20 @@ public class GlaciateComponent implements Component<EntityStore> {
         this.firedFirstBranch = true;
     }
 
+
+    public boolean incrementDuration(float increment) {
+        this.durationSeconds += increment;
+        return this.durationSeconds > 0;
+    }
+
     @Nonnull
     @Override
     public GlaciateComponent clone() {
         GlaciateComponent copy = new GlaciateComponent();
         copy.damageRadius = this.damageRadius;
         copy.damageMultiplier = this.damageMultiplier;
+        copy.durationSeconds = this.durationSeconds;
         copy.hitEntities = this.hitEntities != null ? new HashSet<>(this.hitEntities) : new HashSet<>();
-        copy.firstBranchIds = this.firstBranchIds;
         copy.firedFirstBranch = this.firedFirstBranch;
         return copy;
     }

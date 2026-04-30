@@ -56,7 +56,6 @@ public class HoverableUtils {
 
         Ref<EntityStore> best = null;
 
-        // iterate through the passed entities
         for (int i = 0; i < targetRefs.size(); i++) {
             Ref<EntityStore> targetRef = targetRefs.get(i);
             if (targetRef == null || !targetRef.isValid())
@@ -76,13 +75,13 @@ public class HoverableUtils {
             if (minMax.x < 0)
                 continue;
 
-            if (minMax.x < firstTMin) { // first entity hit block
+            if (minMax.x < firstTMin) { 
                 firstTMin = minMax.x;
                 firstTMax = minMax.y;
             }
 
             if (minMax.x > firstTMax) {
-                continue; // skip entities that begin past the first box
+                continue;
             }
 
             double boxVolume = boundingVolume(accessor, targetRef);

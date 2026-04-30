@@ -139,7 +139,7 @@ public class HexExecuter {
             return;
         }
         try {
-            if (!nextHandler.consumeResources(nextNode, hexContext)) {
+            if (!nextHandler.consumeVolatility(nextNode, hexContext)) {
                 fail(nextNode, hexContext);
                 return;
             }

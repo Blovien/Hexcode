@@ -48,8 +48,6 @@ public final class ArmorManaPatcher {
         }
 
         Map<String, Item> items = event.getAssetMap().getAssetMap();
-        LOGGER.atInfo().log("ArmorManaPatcher: running — %d tiers, %d total items",
-                tiers.size(), items.size());
         int patched = 0;
 
         for (Map.Entry<String, Integer> entry : tiers.entrySet()) {

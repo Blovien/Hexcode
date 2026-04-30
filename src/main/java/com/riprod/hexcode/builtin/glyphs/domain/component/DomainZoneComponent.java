@@ -27,6 +27,7 @@ public class DomainZoneComponent implements Component<EntityStore> {
     private float radius;
     private Set<UUID> lastOccupants;
     private Set<UUID> newOccupants;
+    private float durationSeconds;
     private float baseDrainPerSecond;
     private float baseTriggerCost;
     private float triggerDrainCost;
@@ -41,9 +42,10 @@ public class DomainZoneComponent implements Component<EntityStore> {
     public DomainZoneComponent() {
     }
 
-    public DomainZoneComponent(float radius, float baseDrainPerSecond, float baseTriggerCost,
+    public DomainZoneComponent(float radius, float durationSeconds, float baseDrainPerSecond, float baseTriggerCost,
             float power, UUID casterUuid, Ref<EntityStore> casterRef) {
         this.radius = radius;
+        this.durationSeconds = durationSeconds;
         this.lastOccupants = new HashSet<>();
         this.newOccupants = new HashSet<>();
         this.baseDrainPerSecond = baseDrainPerSecond;
@@ -140,6 +142,15 @@ public class DomainZoneComponent implements Component<EntityStore> {
         this.ambientTimer = ambientTimer;
     }
 
+    public float getDurationSeconds() {
+        return durationSeconds;
+    }
+
+    public boolean decrementSeconds(float dt) {
+        this.durationSeconds -= dt;
+        return this.durationSeconds <= 0;
+    }
+
     @Nonnull
     @Override
     public DomainZoneComponent clone() {
@@ -156,6 +167,7 @@ public class DomainZoneComponent implements Component<EntityStore> {
         copy.casterUuid = this.casterUuid;
         copy.casterRef = this.casterRef;
         copy.zoneRef = this.zoneRef;
+        copy.durationSeconds = this.durationSeconds;
         copy.ambientTimer = this.ambientTimer;
         return copy;
     }
