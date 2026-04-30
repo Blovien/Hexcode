@@ -1,0 +1,10 @@
+{
+  "Spawners": [
+    { "SpawnerId": "Conjure_Spawn_Flash" },
+    { "SpawnerId": "Levitate_Sparks", "StartDelay": 0.02 }
+  ],
+  "LifeSpan": 1.2,
+  "CullDistance": 100,
+  "BoundingRadius": 4.0,
+  "IsImportant": true
+}

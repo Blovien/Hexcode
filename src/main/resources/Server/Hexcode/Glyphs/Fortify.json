@@ -2,11 +2,11 @@
   "Parent": "Glyph_Template",
   "Style": {
     "PrimaryParticle": {
-      "SystemId": "Gust_Smoke"
+      "SystemId": "Halt_Crystallize"
     },
     "PrimarySound": "SFX_Block_Break",
     "SecondaryParticle": {
-      "SystemId": "Gust_Smoke"
+      "SystemId": "Conjure_Despawn"
     },
     "SecondarySound": "SFX_Block_Break"
   },

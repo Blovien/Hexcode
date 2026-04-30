@@ -2,15 +2,15 @@
   "Parent": "Glyph_Template",
   "Style": {
     "PrimaryParticle": {
-      "SystemId": "Gust_Smoke"
+      "SystemId": "Phase_Out"
     },
     "PrimarySound": "SFX_Block_Break",
     "SecondaryParticle": {
-      "SystemId": "Gust_Smoke"
+      "SystemId": "Phase_In"
     },
     "SecondarySound": "SFX_Block_Break",
     "TertiaryParticle": {
-      "SystemId": "Gust_Smoke"
+      "SystemId": "Conjure_Trigger"
     },
     "TertiarySound": "SFX_Block_Break"
   },
