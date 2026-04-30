@@ -12,6 +12,7 @@ import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.protocol.WaitForDataFrom;
 import com.hypixel.hytale.server.core.entity.InteractionContext;
+import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHandler;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.SimpleInteraction;
@@ -19,6 +20,11 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.config.dat
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.builtin.glyphs.projectile.component.ProjectileState;
 import com.riprod.hexcode.builtin.glyphs.projectile.style.ProjectileStyle;
+import com.riprod.hexcode.core.common.glyphs.component.Glyph;
+import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
+import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
+import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 
 public class HexProjectileBounceInteraction extends SimpleInteraction {
@@ -55,10 +61,26 @@ public class HexProjectileBounceInteraction extends SimpleInteraction {
             LOGGER.atInfo().log("[projectile] bounce ref=%s", projectileRef);
 
             Vector4d hitLocation = ctx.getMetaStore().getMetaObject(Interaction.HIT_LOCATION);
-            if (hitLocation != null && hexContext != null) {
-                Vector3d hitPos = new Vector3d(hitLocation.x, hitLocation.y, hitLocation.z);
+            if (hitLocation == null || hexContext == null || state == null) {
+                ctx.getState().state = InteractionState.Finished;
+                return;
+            }
+            Vector3d hitPos = new Vector3d(hitLocation.x, hitLocation.y, hitLocation.z);
+            HexVar resultVar = new BlockVar(hitPos.toVector3i());
+            ProjectileStyle.renderBlockHit(hitPos, hexContext.getColors(), buffer);
+
+            hexContext.UpdateAccessor(buffer);
+
+            Glyph triggering = state.getTriggeringGlyph();
+            if (hitPos != null) {
                 ProjectileStyle.renderBlockHit(hitPos, hexContext.getColors(), buffer);
             }
+
+            if (triggering != null && resultVar != null) {
+                triggering.writeOutput(resultVar, hexContext);
+            }
+
+            HexExecuter.continueExecution(state.getNextLinks(), hexContext);
 
             ctx.getState().state = InteractionState.Finished;
         } catch (Exception e) {

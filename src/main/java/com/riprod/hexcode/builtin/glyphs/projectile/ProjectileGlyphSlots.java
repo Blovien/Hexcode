@@ -9,4 +9,6 @@ public final class ProjectileGlyphSlots {
     public static final String SPEED = "speed";
     public static final String GRAVITY = "gravity";
     public static final String BOUNCES = "bounces";
+    public static final String IMMEDIATE = "immediate";
+    public static final String BOUNCE = "bounce";
 }
