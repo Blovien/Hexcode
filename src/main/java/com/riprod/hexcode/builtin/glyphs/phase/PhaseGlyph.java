@@ -36,6 +36,11 @@ public class PhaseGlyph implements GlyphHandler {
 
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
+    private float minDuration = 10.0f;
+    private float maxDuration = 200.0f;
+    private float minIntensity = 1.0f;
+    private float maxIntensity = 15.0f;
+
     @Override
     public String getId() {
         return ID;
@@ -44,19 +49,13 @@ public class PhaseGlyph implements GlyphHandler {
     public static final String ID = "Phase";
 
     @Override
-    public ConfigBinding<PhaseConfig> getConfigBinding() {
-        return ConfigBinding.of(PhaseConfig.class, PhaseConfig.CODEC);
-    }
-
-    @Override
     public boolean consumeVolatility(Glyph glyph, HexContext hexContext) {
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
         if (tracker == null)
             return true;
 
-        PhaseConfig config = getConfig(PhaseConfig.class);
         GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(getId());
-        if (config == null || asset == null) {
+        if (asset == null) {
             LOGGER.atWarning().log("Phase: missing config or asset, cannot compute volatility cost");
             return true;
         }
@@ -64,7 +63,7 @@ public class PhaseGlyph implements GlyphHandler {
         double intensity = clamp(HexVarUtil.numberOrDefault(
                 glyph.readSlot(PhaseGlyphSlots.INTENSITY, hexContext),
                 asset.getSlot(PhaseGlyphSlots.INTENSITY).getDefaultValue()),
-                config.getMinIntensity(), config.getMaxIntensity());
+                minIntensity, maxIntensity);
         float intensityScale = (float) Math.max(1.0,
                 intensity / asset.getSlot(PhaseGlyphSlots.INTENSITY).getDefaultValue());
 
@@ -83,19 +82,20 @@ public class PhaseGlyph implements GlyphHandler {
             return;
         }
 
-        PhaseConfig config = getConfig(PhaseConfig.class);
         GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(getId());
-        if (config == null || asset == null) {
-            LOGGER.atWarning().log("Phase: missing config or asset, cannot compute volatility cost");
+        if (asset == null) {
+            LOGGER.atWarning().log("Phase: missing asset, cannot compute volatility cost");
             return;
         }
 
         double duration = clamp(HexVarUtil.numberOrDefault(
-                glyph.readSlot(PhaseGlyphSlots.DURATION, hexContext), asset.getSlot(PhaseGlyphSlots.DURATION).getDefaultValue()),
-                config.getMinDuration(), config.getMaxDuration());
+                glyph.readSlot(PhaseGlyphSlots.DURATION, hexContext),
+                asset.getSlot(PhaseGlyphSlots.DURATION).getDefaultValue()),
+                minDuration, maxDuration);
         double intensity = clamp(HexVarUtil.numberOrDefault(
-                glyph.readSlot(PhaseGlyphSlots.INTENSITY, hexContext), asset.getSlot(PhaseGlyphSlots.INTENSITY).getDefaultValue()),
-                config.getMinIntensity(), config.getMaxIntensity());
+                glyph.readSlot(PhaseGlyphSlots.INTENSITY, hexContext),
+                asset.getSlot(PhaseGlyphSlots.INTENSITY).getDefaultValue()),
+                minIntensity, maxIntensity);
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
         World world = accessor.getExternalData().getWorld();
@@ -187,59 +187,5 @@ public class PhaseGlyph implements GlyphHandler {
 
     private static double clamp(double value, double min, double max) {
         return Math.max(min, Math.min(max, value));
-    }
-
-    // config lives right next to the handler
-    public static class PhaseConfig extends GlyphConfig {
-        public static final BuilderCodec<PhaseConfig> CODEC = BuilderCodec
-                .builder(PhaseConfig.class, PhaseConfig::new, GlyphConfig.BASE_CODEC)
-                .append(new KeyedCodec<>("MinDuration", Codec.FLOAT),
-                        (s, v) -> s.minDuration = v, s -> s.minDuration)
-                .addValidator(Validators.greaterThan(0.0f))
-                .add()
-                .append(new KeyedCodec<>("MaxDuration", Codec.FLOAT),
-                        (s, v) -> s.maxDuration = v, s -> s.maxDuration)
-                .addValidator(Validators.greaterThan(0.0f))
-                .add()
-                .append(new KeyedCodec<>("MinIntensity", Codec.FLOAT),
-                        (s, v) -> s.minIntensity = v, s -> s.minIntensity)
-                .addValidator(Validators.greaterThan(0.0f))
-                .add()
-                .append(new KeyedCodec<>("MaxIntensity", Codec.FLOAT),
-                        (s, v) -> s.maxIntensity = v, s -> s.maxIntensity)
-                .addValidator(Validators.greaterThan(0.0f))
-                .add()
-                .validator((cfg, results) -> {
-                    if (cfg.minDuration > cfg.maxDuration)
-                        results.fail("PhaseConfig: MinDuration ("
-                                + cfg.minDuration + ") > MaxDuration ("
-                                + cfg.maxDuration + ")");
-                    if (cfg.minIntensity > cfg.maxIntensity)
-                        results.fail("PhaseConfig: MinIntensity ("
-                                + cfg.minIntensity + ") > MaxIntensity ("
-                                + cfg.maxIntensity + ")");
-                })
-                .build();
-
-        private float minDuration = 10.0f;
-        private float maxDuration = 200.0f;
-        private float minIntensity = 1.0f;
-        private float maxIntensity = 15.0f;
-
-        public float getMinDuration() {
-            return minDuration;
-        }
-
-        public float getMaxDuration() {
-            return maxDuration;
-        }
-
-        public float getMinIntensity() {
-            return minIntensity;
-        }
-
-        public float getMaxIntensity() {
-            return maxIntensity;
-        }
     }
 }

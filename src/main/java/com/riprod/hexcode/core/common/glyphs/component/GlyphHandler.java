@@ -61,8 +61,10 @@ public interface GlyphHandler {
         GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(getId());
         if (asset == null)
             return null;
-        GlyphConfig config = asset.getConfig();
-        return type.isInstance(config) ? type.cast(config) : null;
+        // TODO: finish config system
+        // GlyphConfig config = asset.getConfig();
+        // return type.isInstance(config) ? type.cast(config) : null;
+        return null;
     }
 
     default float computeAreaScale(double magnitude, GlyphAsset asset) {
@@ -78,7 +80,7 @@ public interface GlyphHandler {
     }
 
     default ConfigBinding<? extends GlyphConfig> getConfigBinding() {
-        return ConfigBinding.of(GlyphConfig.Default.class, GlyphConfig.Default.CODEC);
+        return null;
     }
 
     record ConfigBinding<T extends GlyphConfig>(Class<T> type, BuilderCodec<T> codec) {

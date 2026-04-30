@@ -3,7 +3,6 @@
   "Title": "Arc",
   "Description": "Chain lightning that fires each child on the next chain target",
   "ModelPath": "Arc",
-  "BasePower": 1.0,
   "ManaConsumption": 25,
   "ShapeStructure": [
     {

@@ -61,23 +61,20 @@ public static final String ID = "Warp";
         HexVar destInput = glyph.readSlot(WarpGlyphSlots.DESTINATION, hexContext);
 
         if (destInput == null) {
-            LOGGER.atWarning().log("Warp: destination required");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Warp: destination required");
+                    "Destination is required");
             return;
         }
 
         Vector3d destination = HexVarUtil.position(destInput, hexContext.getAccessor());
 
         if (destination == null) {
-            LOGGER.atWarning().log("Warp: destination ref unresolved");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Warp: destination ref unresolved");
+                    "Destination is no longer valid");
             return;
         }
 
         if (targets == null) {
-            LOGGER.atWarning().log("warp glyph: no targets to warp");
             HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }

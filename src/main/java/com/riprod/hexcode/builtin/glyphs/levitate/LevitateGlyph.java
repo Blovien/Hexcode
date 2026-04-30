@@ -50,9 +50,6 @@ public class LevitateGlyph implements GlyphHandler {
         HexVar targets = glyph.readSlot(LevitateGlyphSlots.TARGET, hexContext);
         EntityVar entityVar = HexVarUtil.resolveEntityVar(targets, hexContext);
         if (entityVar == null) {
-            if (HexVarUtil.resolveBlockVar(targets, hexContext) != null) {
-                LOGGER.atInfo().log("levitate: block targets not yet implemented");
-            }
             HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
@@ -75,9 +72,8 @@ public class LevitateGlyph implements GlyphHandler {
             Glyph glyph, HexContext hexContext, CommandBuffer<EntityStore> accessor) {
         Ref<EntityStore> ref = entityVar.getRef(accessor);
         if (ref == null || !ref.isValid()) {
-            LOGGER.atWarning().log("Levitate: target ref unresolved");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Levitate: target ref unresolved");
+                    "Target is no longer available");
             return;
         }
 
@@ -127,8 +123,5 @@ public class LevitateGlyph implements GlyphHandler {
         if (tc != null) {
             LevitateStyle.renderActivation(tc.getPosition(), hexContext.getColors(), accessor);
         }
-
-        LOGGER.atInfo().log("levitate: applied intensity=%.1f for %.1fs to entity",
-                intensity, durationSeconds);
     }
 }

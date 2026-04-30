@@ -19,8 +19,7 @@ public class TerraformGlyph implements GlyphHandler {
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
-        LOGGER.atWarning().log("terraform: not yet implemented");
         HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.NOT_IMPLEMENTED,
-                "Terraform not yet implemented");
+                "This ability is still being developed");
     }
 }

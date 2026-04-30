@@ -18,9 +18,10 @@ import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.codecs.array.ArrayCodec;
 import com.hypixel.hytale.codec.codecs.map.MapCodec;
+import com.hypixel.hytale.codec.schema.metadata.ui.UIButton;
+import com.hypixel.hytale.codec.schema.metadata.ui.UICreateButtons;
 import com.hypixel.hytale.codec.validation.ValidatorCache;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
-import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.state.drawing.component.DrawnShapeComponent;
 
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -57,18 +58,12 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
         return (DefaultAssetMap<String, GlyphAsset>) getAssetStore().getAssetMap();
     }
 
-    protected GlyphConfig config = new GlyphConfig.Default();
-
     private GlyphAsset() {
     }
 
     @Override
     public String getId() {
         return this.id;
-    }
-
-    public GlyphConfig getConfig() {
-        return this.config;
     }
 
     public boolean isEnabled() {
@@ -229,43 +224,6 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
                             a.slotIndexCache = null;
                         })
                 .add()
-                .appendInherited(new KeyedCodec<>("Config", GlyphConfig.CODEC),
-                        (a, v) -> a.config = v, a -> a.config,
-                        (a, p) -> a.config = p.config)
-                .documentation("Per-glyph tuning knobs, polymorphic on GlyphId")
-                .add()
-                .afterDecode((asset, extraInfo) -> {
-                    if (asset.id == null) return;
-                    Class<? extends GlyphConfig> expected = GlyphConfig.CODEC.getClassFor(asset.id);
-                    if (expected == null) {
-                        if (asset.config != null && !(asset.config instanceof GlyphConfig.Default)) {
-                            extraInfo.getValidationResults().fail(
-                                    "Glyph '" + asset.id + "': Config has type "
-                                            + asset.config.getClass().getSimpleName()
-                                            + " but no custom GlyphConfig is registered for this id "
-                                            + "- either rename the file to match the registered handler, "
-                                            + "or remove the Config block");
-                            return;
-                        }
-                        // ensure a fresh Default tagged with this id (avoids mutating an inherited reference)
-                        if (!(asset.config instanceof GlyphConfig.Default)
-                                || !asset.id.equals(asset.config.glyphId)) {
-                            GlyphConfig.Default fresh = new GlyphConfig.Default();
-                            fresh.glyphId = asset.id;
-                            asset.config = fresh;
-                        }
-                        return;
-                    }
-                    if (asset.config == null || !expected.equals(asset.config.getClass())) {
-                        extraInfo.getValidationResults().fail(
-                                "Glyph '" + asset.id + "': Config has type "
-                                        + (asset.config == null ? "null" : asset.config.getClass().getSimpleName())
-                                        + " but handler expects " + expected.getSimpleName()
-                                        + " - check that the asset filename matches the registered glyph id");
-                        return;
-                    }
-                    asset.config.glyphId = asset.id;
-                })
                 .build();
     }
 }

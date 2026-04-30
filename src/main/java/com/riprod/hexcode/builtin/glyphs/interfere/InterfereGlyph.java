@@ -65,7 +65,6 @@ public class InterfereGlyph implements GlyphHandler {
             if (stripped > 0 && pos != null) {
                 InterfereStyle.renderStrip(pos, hexContext.getColors(), accessor);
             }
-            LOGGER.atInfo().log("interfere: stripped %d effects", stripped);
         }
     }
 
@@ -95,8 +94,7 @@ public class InterfereGlyph implements GlyphHandler {
             try {
                 raw.onEnd(rawStatus, ctx);
             } catch (Exception e) {
-                LOGGER.atWarning().log("interfere: onEnd failed for '%s': %s",
-                        target.getHandlerId(), e.getMessage());
+                // Error handled silently
             }
 
             construct.removeEffect(target.getConstructId());
@@ -105,8 +103,6 @@ public class InterfereGlyph implements GlyphHandler {
         if (tracker != null && donation > 0f) {
             tracker.consumeVolatility(donation);
         }
-
-        LOGGER.atInfo().log("interfere: hijacked %d active effects on target", targets.size());
     }
 
     private int stripEffects(Ref<EntityStore> ref, CommandBuffer<EntityStore> accessor) {

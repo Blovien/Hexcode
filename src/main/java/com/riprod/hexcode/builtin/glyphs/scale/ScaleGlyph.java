@@ -55,18 +55,16 @@ public class ScaleGlyph implements GlyphHandler {
         HexVar targets = glyph.readSlot(ScaleGlyphSlots.TARGET, hexContext);
         EntityVar entityVar = HexVarUtil.resolveEntityVar(targets, hexContext);
         if (entityVar == null) {
-            LOGGER.atWarning().log("Scale: target must be Entity");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Scale: target must be Entity");
+                    "Target must be a creature");
             return;
         }
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
         Ref<EntityStore> targetRef = entityVar.getRef(accessor);
         if (targetRef == null || !targetRef.isValid()) {
-            LOGGER.atWarning().log("Scale: target ref unresolved");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Scale: target ref unresolved");
+                    "Target is no longer available");
             return;
         }
 
@@ -118,9 +116,8 @@ public class ScaleGlyph implements GlyphHandler {
 
             HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
         } catch (Exception e) {
-            LOGGER.atWarning().log("Scale: apply failed: %s", e.getMessage());
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    e.getMessage(), e);
+                    "Cannot apply scale", e);
         }
     }
 

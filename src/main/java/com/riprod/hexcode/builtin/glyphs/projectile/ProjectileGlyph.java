@@ -50,7 +50,7 @@ public class ProjectileGlyph implements GlyphHandler {
 
     private static final String PROJECTILE_MODEL = "Glyph_Projectile_Flight";
     private static final float PROJECTILE_SCALE = 0.5f;
-    private static final Duration PROJECTILE_TTL = Duration.ofMinutes(10);
+    private static final Duration PROJECTILE_TTL = Duration.ofSeconds(10);
 
     private static final String HIT_ROOT_INTERACTION = "Hex_Projectile_Hit";
     private static final String MISS_ROOT_INTERACTION = "Hex_Projectile_Miss";
@@ -66,7 +66,7 @@ public class ProjectileGlyph implements GlyphHandler {
 
         if (sourceVar == null) {
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "no source provided");
+                    "Cannot determine source position");
             return;
         }
 
@@ -76,21 +76,21 @@ public class ProjectileGlyph implements GlyphHandler {
         }
         if (spawnPos == null) {
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "could not resolve spawn position");
+                    "Cannot determine where to spawn");
             return;
         }
 
         Vector3d direction = HexDirectionUtil.resolveDirection(directionVar, spawnPos, hexContext.getAccessor());
         if (direction == null) {
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "could not resolve direction");
+                    "Cannot determine direction");
             return;
         }
 
         double dirLen = direction.length();
         if (!Double.isFinite(dirLen) || dirLen < 1e-9) {
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "direction is degenerate (zero or NaN)");
+                    "Direction is invalid");
             return;
         }
         direction = new Vector3d(direction.x / dirLen, direction.y / dirLen, direction.z / dirLen);
@@ -104,8 +104,6 @@ public class ProjectileGlyph implements GlyphHandler {
 
         int bounces = HexVarUtil.numberOrDefault(bouncesVar, 0.0).intValue();
         if (bounces < 0) bounces = 0;
-
-        LOGGER.atInfo().log("[projectile] spawn speed=%s gravity=%s bounces=%s", speed, gravity, bounces);
 
         ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(PROJECTILE_MODEL);
         if (modelAsset == null) {
@@ -143,10 +141,6 @@ public class ProjectileGlyph implements GlyphHandler {
 
         Ref<EntityStore> parent = sourceVar instanceof EntityVar var ? var.getRef(hexContext.getAccessor()) : hexContext.getCasterRef();
 
-        LOGGER.atInfo().log("[projectile] physicsConfig bounciness=%s bounceCount=%s bounceLimit=%s allowRolling=%s sticksVertically=%s",
-                physicsConfig.getBounciness(), physicsConfig.getBounceCount(),
-                physicsConfig.getBounceLimit(), physicsConfig.isAllowRolling(),
-                physicsConfig.isSticksVertically());
         physicsConfig.apply(holder, parent,
                 launchVelocity, hexContext.getAccessor(), false);
 

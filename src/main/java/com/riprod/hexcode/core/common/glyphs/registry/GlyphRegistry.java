@@ -24,10 +24,11 @@ public class GlyphRegistry {
 
     public static void register(@Nonnull GlyphHandler glyph) {
         glyphs.put(glyph.getId(), glyph);
-        GlyphHandler.ConfigBinding<? extends GlyphConfig> binding = glyph.getConfigBinding();
-        if (binding.type() != GlyphConfig.Default.class) {
-            GlyphConfig.CODEC.register(glyph.getId(), binding.type(), binding.codec());
-        }
+        // TODO Later: Finish the implementation of the config system
+        // GlyphHandler.ConfigBinding<? extends GlyphConfig> binding = glyph.getConfigBinding();
+        // if (binding.type() != GlyphConfig.Default.class) {
+        //     GlyphConfig.CODEC.register(glyph.getId(), binding.type(), binding.codec());
+        // }
     }
 
     @Nullable
