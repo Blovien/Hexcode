@@ -14,16 +14,18 @@ public class DelayState implements ConstructState {
     private List<String> nextGlyphIds;
     @Nullable
     private HexColors colors;
+    private boolean isCustom = false;
 
     public DelayState() {
         this.nextGlyphIds = new ArrayList<>();
     }
 
     public DelayState(float remainingSeconds, List<String> nextGlyphIds,
-            @Nullable HexColors colors) {
+            @Nullable HexColors colors, boolean isCustom) {
         this.remainingSeconds = remainingSeconds;
         this.nextGlyphIds = nextGlyphIds;
         this.colors = colors;
+        this.isCustom = isCustom;
     }
 
     public float getRemainingSeconds() {
@@ -51,8 +53,12 @@ public class DelayState implements ConstructState {
         return colors;
     }
 
+    public boolean isCustom() {
+        return isCustom;
+    }
+
     @Override
     public DelayState copy() {
-        return new DelayState(remainingSeconds, new ArrayList<>(nextGlyphIds), colors);
+        return new DelayState(remainingSeconds, new ArrayList<>(nextGlyphIds), colors, isCustom);
     }
 }

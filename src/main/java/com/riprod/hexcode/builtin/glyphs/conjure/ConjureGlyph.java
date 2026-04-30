@@ -94,27 +94,23 @@ public static final String ID = "Conjure";
     HexVar anchorVar = glyph.readSlot(ConjureGlyphSlots.ANCHOR, hexContext);
 
     if (anchorVar == null) {
-      LOGGER.atWarning().log("Conjure: anchor required");
       HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-          "Conjure: anchor required");
+          "Anchor is required");
       return;
     }
     if (anchorVar instanceof NumberVar anchorNum) {
       HexVar resolvedVar = hexContext.getVariable(anchorNum.getValue().toString());
       if (resolvedVar == null) {
-        LOGGER.atWarning().log("Conjure: anchor number %s does not resolve to a variable",
-            anchorNum.getValue());
         HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-            "Conjure: anchor ref unresolved");
+            "Anchor variable is invalid");
         return;
       }
       anchorVar = resolvedVar;
     }
     Vector3d anchorPos = HexVarUtil.position(anchorVar, hexContext.getAccessor());
     if (anchorPos == null) {
-      LOGGER.atWarning().log("Conjure: anchor ref unresolved");
       HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-          "Conjure: anchor ref unresolved");
+          "Anchor variable is not a valid position");
       return;
     }
 
@@ -122,9 +118,8 @@ public static final String ID = "Conjure";
     Vector3d coordsB = HexVarUtil.position(coordsBVar, hexContext.getAccessor());
 
     if (coordsA == null || coordsB == null) {
-      LOGGER.atWarning().log("Conjure: coords ref unresolved");
       HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-          "Conjure: coords ref unresolved");
+          "Corner coordinates must be valid positions");
       return;
     }
 
@@ -153,7 +148,7 @@ public static final String ID = "Conjure";
         (max.z - min.z) / 2);
     Vector3d size = new Vector3d(max.x - min.x, max.y - min.y, max.z - min.z);
 
-    float durationSeconds = HexVarUtil.numberOrDefault(durationVar, 5.0).floatValue();
+    float durationSeconds = HexVarUtil.numberOrDefault(durationVar, 30.0).floatValue();
     float interval = HexVarUtil.numberOrDefault(intervalVar, -1.0).floatValue();
 
     ConjureZoneComponent zoneComp = new ConjureZoneComponent(halfExtents, interval, durationSeconds);
@@ -170,7 +165,7 @@ public static final String ID = "Conjure";
     holder.ensureComponent(ProjectileModule.get().getProjectileComponentType());
     holder.ensureComponent(EffectControllerComponent.getComponentType());
     DebugComponent debugComp = new DebugComponent(DebugShape.Cube, debugColor, size, 0.1f);
-    debugComp.setOpacity(0.3f);
+    debugComp.setOpacity(hexContext.getColors().getPrimaryAlpha() * 0.5f);
     debugComp.setIntervalMultiplier(0.01f);
     debugComp.setFlags(DebugUtils.FLAG_NO_WIREFRAME);
     holder.addComponent(DebugComponent.getComponentType(), debugComp);

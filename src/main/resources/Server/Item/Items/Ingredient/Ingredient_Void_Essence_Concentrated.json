@@ -5,7 +5,7 @@
   },
   "Parent": "Ingredient_Life_Essence",
   "Icon": "Icons/ItemsGenerated/Ingredient_Void_Essence_Concentrated.png",
-  "Quality": "Rare",
+  "Quality": "Epic",
   "Model": "Resources/Ingredients/Essence_Concentrated.blockymodel",
   "IconProperties": {
     "Scale": 0.6,
@@ -29,22 +29,22 @@
   "Recipe": {
     "Input": [
       {
-        "ItemId": "Ingredient_Life_Essence",
+        "ItemId": "Ingredient_Void_Essence",
         "Quantity": 100
       }
     ],
     "Output": [
       {
-        "ItemId": "Ingredient_Life_Essence_Concentrated",
+        "ItemId": "Ingredient_Void_Essence_Concentrated",
         "Quantity": 1
       }
     ],
     "BenchRequirement": [
       {
         "Type": "Crafting",
-        "Id": "Farmingbench",
+        "Id": "Arcanebench",
         "Categories": [
-          "Essence"
+          "Arcane_Hexcode"
         ]
       }
     ],

@@ -11,6 +11,7 @@ import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.validation.ValidatorCache;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelParticle;
+import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
 import com.riprod.hexcode.core.state.execution.component.HexColors;
 
 public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<String, HexStaffAsset>> {
@@ -22,7 +23,7 @@ public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
   protected ModelParticle[] castingAuraParticles;
   protected ModelParticle[] craftingAuraParticles;
   protected float castDecayRate = 0.05f;
-  protected HexColors colors;
+  protected String styleId;
 
   public static AssetStore<String, HexStaffAsset, DefaultAssetMap<String, HexStaffAsset>> getAssetStore() {
     if (ASSET_STORE == null) {
@@ -60,8 +61,18 @@ public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
     return this.castDecayRate;
   }
 
+  public String getStyleId() {
+    return this.styleId;
+  }
+
+  public HexStyleAsset getStyle() {
+    if (this.styleId == null) return null;
+    return HexStyleAsset.getAssetMap().getAsset(this.styleId);
+  }
+
   public HexColors getColors() {
-    return this.colors;
+    HexStyleAsset style = getStyle();
+    return style != null ? style.getColor() : null;
   }
 
   public static final AssetBuilderCodec<String, HexStaffAsset> CODEC = AssetBuilderCodec.builder(
@@ -87,15 +98,16 @@ public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
           a -> a.craftingAuraParticles,
           (a, p) -> a.craftingAuraParticles = p.craftingAuraParticles)
       .add()
-      .<Float>appendInherited(new KeyedCodec<>("CastDecayRate", Codec.FLOAT),
+      .appendInherited(new KeyedCodec<>("CastDecayRate", Codec.FLOAT),
           (a, v) -> a.castDecayRate = v,
           a -> a.castDecayRate,
           (a, p) -> a.castDecayRate = p.castDecayRate)
       .add()
-      .appendInherited(new KeyedCodec<>("Colors", HexColors.CODEC),
-          (a, v) -> a.colors = v,
-          a -> a.colors,
-          (a, p) -> { if (p.colors != null) a.colors = p.colors.clone(); })
+      .appendInherited(new KeyedCodec<>("Style", HexStyleAsset.CHILD_ASSET_CODEC),
+          (a, v) -> a.styleId = v,
+          a -> a.styleId,
+          (a, p) -> a.styleId = p.styleId)
+      .addValidatorLate(() -> HexStyleAsset.VALIDATOR_CACHE.getValidator().late())
       .add()
       .build();
 

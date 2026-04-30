@@ -77,7 +77,7 @@ public class DivideGlyph implements GlyphHandler {
         HexVar b = glyph.readSlot(DivideGlyphSlots.B, hexContext);
         if (hasZeroDivisor(b)) {
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "divide: divide by zero");
+                    "Attempted to divide by zero");
             return;
         }
 

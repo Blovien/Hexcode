@@ -58,7 +58,7 @@ public class HexSaveCommand extends AbstractPlayerCommand {
 
         Hex activeHex = execComp.getActiveHex();
         if (activeHex == null) {
-            playerRef.sendMessage(Message.raw("no active hex on your staff — nothing to save"));
+            playerRef.sendMessage(Message.raw("no active hex on your staff - nothing to save"));
             return;
         }
 

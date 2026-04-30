@@ -1,7 +1,7 @@
 package com.riprod.hexcode.core.common.construct.system;
 
-import java.util.Iterator;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.Nonnull;
@@ -42,23 +42,31 @@ public class HexConstructSystem extends EntityTickingSystem<EntityStore> {
                 return;
             }
 
-            Iterator<Map.Entry<UUID, HexStatus<?>>> it = construct.getEffects().entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry<UUID, HexStatus<?>> entry = it.next();
-                UUID effectId = entry.getKey();
-                HexStatus<?> status = entry.getValue();
+            // snapshot ids; onEnd/onAbort may chain glyphs that addEffect to this same map
+            List<UUID> ids = new ArrayList<>(construct.getEffects().keySet());
+            List<Runnable> deferred = new ArrayList<>();
+
+            for (UUID effectId : ids) {
+                HexStatus<?> status = construct.getEffects().get(effectId);
+                if (status == null) continue;
                 ConstructHandler<?> handler = ConstructRegistry.get(status.getHandlerId());
                 ConstructTickContext ctx = new ConstructTickContext(chunk, index, buffer, entityRef);
 
                 if (handler == null) {
                     LOGGER.atSevere().log("no construct handler for: %s", status.getHandlerId());
                     cleanupWithoutHandler(status, ctx);
-                    it.remove();
+                    construct.removeEffect(effectId);
                     continue;
                 }
 
-                boolean removed = tickEffect(effectId, handler, status, ctx, dt, it);
-                if (removed) continue;
+                boolean ended = tickEffect(effectId, handler, status, ctx, dt);
+                if (ended) {
+                    construct.removeEffect(effectId);
+                    final ConstructHandler<?> h = handler;
+                    final HexStatus<?> s = status;
+                    deferred.add(() -> end(h, s, ctx));
+                    continue;
+                }
 
                 boolean killRequested = status.isKillRequested();
                 boolean budgetDepleted = status.getHexContext() != null
@@ -67,10 +75,14 @@ public class HexConstructSystem extends EntityTickingSystem<EntityStore> {
                     LOGGER.atInfo().log("construct '%s' terminated (%s)",
                             status.getHandlerId(),
                             killRequested ? "kill requested" : "volatility depleted");
-                    abort(handler, status, ctx);
-                    it.remove();
+                    construct.removeEffect(effectId);
+                    final ConstructHandler<?> h = handler;
+                    final HexStatus<?> s = status;
+                    deferred.add(() -> abort(h, s, ctx));
                 }
             }
+
+            for (Runnable r : deferred) r.run();
 
             if (construct.getEffects().isEmpty()) {
                 buffer.tryRemoveComponent(entityRef, HexEffectsComponent.getComponentType());
@@ -82,7 +94,7 @@ public class HexConstructSystem extends EntityTickingSystem<EntityStore> {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private boolean tickEffect(UUID effectId, ConstructHandler<?> handler, HexStatus<?> status,
-            ConstructTickContext ctx, float dt, Iterator<Map.Entry<UUID, HexStatus<?>>> it) {
+            ConstructTickContext ctx, float dt) {
         try {
             ConstructHandler raw = handler;
             HexStatus rawStatus = status;
@@ -94,18 +106,13 @@ public class HexConstructSystem extends EntityTickingSystem<EntityStore> {
                 }
                 raw.onFirstTick(rawStatus, ctx);
                 status.markImmediateFired();
-            } else {
-                boolean kill = raw.onTick(dt, rawStatus, ctx);
-                if (kill) {
-                    end(handler, status, ctx);
-                    it.remove();
-                    return true;
-                }
+                return false;
             }
+            return raw.onTick(dt, rawStatus, ctx);
         } catch (Exception e) {
             LOGGER.atSevere().withCause(e).log("error ticking construct effect %s: %s", effectId, e);
+            return false;
         }
-        return false;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

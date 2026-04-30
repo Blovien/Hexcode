@@ -24,8 +24,6 @@ import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
-import com.riprod.hexcode.utils.HexDirectionUtil;
 import com.riprod.hexcode.utils.HexVarUtil;
 import com.hypixel.hytale.server.core.util.TargetUtil;
 
@@ -55,9 +53,8 @@ public static final String ID = "Combust";
 
         Vector3d center = resolveCenter(centerVar, hexContext);
         if (center == null) {
-            LOGGER.atWarning().log("Combust: center ref unresolved");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Combust: center ref unresolved");
+                    "Center position is required");
             return;
         }
 
@@ -65,9 +62,6 @@ public static final String ID = "Combust";
         World world = accessor.getExternalData().getWorld();
 
         EntityEffect burnEffect = EntityEffect.getAssetMap().getAsset(BURN_EFFECT_ID);
-        if (burnEffect == null) {
-            LOGGER.atWarning().log("combust: %s effect asset not found", BURN_EFFECT_ID);
-        }
 
         center.add(0, CENTER_Y_OFFSET, 0);
 

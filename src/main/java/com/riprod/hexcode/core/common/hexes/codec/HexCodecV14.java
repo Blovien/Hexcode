@@ -81,7 +81,7 @@ public class HexCodecV14 {
             if (q > accMax) accMax = q;
         }
         int accBits = CodecUtil.nbits(accMax - accMin);
-        if (accBits > 7) accBits = 7; // guard — fits in 4-bit header field
+        if (accBits > 7) accBits = 7;
 
         // speed default-flag
         int[] speedVals = new int[ne];

@@ -84,6 +84,7 @@ import com.riprod.hexcode.builtin.glyphs.phase.PhaseGlyph;
 import com.riprod.hexcode.builtin.glyphs.position.PositionValue;
 import com.riprod.hexcode.builtin.glyphs.projectile.ProjectileGlyph;
 import com.riprod.hexcode.builtin.glyphs.projectile.component.ProjectileState;
+import com.riprod.hexcode.builtin.glyphs.projectile.system.ProjectileConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.resonate.ResonateGlyph;
 import com.riprod.hexcode.builtin.glyphs.rotation.RotationValue;
 import com.riprod.hexcode.builtin.glyphs.scale.ScaleConstructHandler;
@@ -230,7 +231,6 @@ public class BuiltinPlugin extends JavaPlugin {
     private void RegisterComponents() {
         ComponentRegistryProxy<EntityStore> entityStoreRegistry = this.getEntityStoreRegistry();
 
-        // Hex projectile state — non-serialized metadata for native projectiles
         ComponentType<EntityStore, ProjectileState> hexProjectileStateType = entityStoreRegistry
                 .registerComponent(ProjectileState.class, ProjectileState::new);
         ProjectileState.setComponentType(hexProjectileStateType);
@@ -240,8 +240,6 @@ public class BuiltinPlugin extends JavaPlugin {
                 .registerComponent(ConjureZoneComponent.class, ConjureZoneComponent::new);
         ConjureZoneComponent.setComponentType(conjureZoneType);
 
-        // Arc Component
-        // Drain Component
         ComponentType<EntityStore, PhaseComponent> phaseComponentType = entityStoreRegistry
                 .registerComponent(PhaseComponent.class, PhaseComponent::new);
         PhaseComponent.setComponentType(phaseComponentType);
@@ -300,5 +298,6 @@ public class BuiltinPlugin extends JavaPlugin {
         ConstructRegistry.register(DelayGlyph.ID, new DelayConstructHandler());
         ConstructRegistry.register(EnsnareGlyph.ID, new EnsnareConstructHandler());
         ConstructRegistry.register(FreezeGlyph.ID, new FreezeConstructHandler());
+        ConstructRegistry.register(ProjectileGlyph.ID, new ProjectileConstructHandler());
     }
 }

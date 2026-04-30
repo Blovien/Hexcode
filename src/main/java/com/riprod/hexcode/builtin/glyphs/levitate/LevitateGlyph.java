@@ -40,10 +40,7 @@ public class LevitateGlyph implements GlyphHandler {
 
     private static final String LEVITATE_EFFECT_ID = "Hexcode_Levitate";
     private static final double DEFAULT_INTENSITY = 0.0;
-    private static final double DEFAULT_DURATION = 100.0;
-    private static final double MAX_INTENSITY = 10.0;
-    private static final double MAX_DURATION = 600.0;
-    // high drag for weightless mode — near-zero terminal velocity
+    private static final double DEFAULT_DURATION = 10.0;
     private static final double WEIGHTLESS_DRAG = 50.0;
 
     @Override
@@ -51,41 +48,36 @@ public class LevitateGlyph implements GlyphHandler {
         HexVar targets = glyph.readSlot(LevitateGlyphSlots.TARGET, hexContext);
         EntityVar entityVar = HexVarUtil.resolveEntityVar(targets, hexContext);
         if (entityVar == null) {
-            if (HexVarUtil.resolveBlockVar(targets, hexContext) != null) {
-                LOGGER.atInfo().log("levitate: block targets not yet implemented");
-            }
             HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
-        double intensity = Math.max(0, Math.min(MAX_INTENSITY,
+        double intensity = Math.max(0,
                 HexVarUtil.numberOrDefault(
-                        glyph.readSlot(LevitateGlyphSlots.INTENSITY, hexContext), DEFAULT_INTENSITY)));
-        double duration = Math.max(1, Math.min(MAX_DURATION,
+                        glyph.readSlot(LevitateGlyphSlots.INTENSITY, hexContext), DEFAULT_INTENSITY));
+        double duration = Math.max(1,
                 HexVarUtil.numberOrDefault(
-                        glyph.readSlot(LevitateGlyphSlots.DURATION, hexContext), DEFAULT_DURATION)));
+                        glyph.readSlot(LevitateGlyphSlots.DURATION, hexContext), DEFAULT_DURATION));
         float durationSeconds = (float) duration;
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
         applyToEntity(entityVar, (float) intensity, durationSeconds, glyph, hexContext, accessor);
-
-        HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 
     private void applyToEntity(EntityVar entityVar, float intensity, float durationSeconds,
             Glyph glyph, HexContext hexContext, CommandBuffer<EntityStore> accessor) {
         Ref<EntityStore> ref = entityVar.getRef(accessor);
         if (ref == null || !ref.isValid()) {
-            LOGGER.atWarning().log("Levitate: target ref unresolved");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Levitate: target ref unresolved");
+                    "Target is no longer available");
             return;
         }
 
-        PhysicsValues currentPhysics = EntityUtils.getPhysicsValues(ref, accessor);
+        PhysicsValues currentPhysics = accessor.getComponent(ref, PhysicsValues.getComponentType());
 
         LevitateState existing = ConstructStateUtil.findState(
                 accessor, ref, LevitateGlyph.ID, LevitateState.class);
+
         PhysicsValues originalCopy = existing != null && existing.getOriginalPhysicsValues() != null
                 ? new PhysicsValues(existing.getOriginalPhysicsValues())
                 : new PhysicsValues(currentPhysics);
@@ -128,8 +120,5 @@ public class LevitateGlyph implements GlyphHandler {
         if (tc != null) {
             LevitateStyle.renderActivation(tc.getPosition(), hexContext.getColors(), accessor);
         }
-
-        LOGGER.atInfo().log("levitate: applied intensity=%.1f for %.1fs to entity",
-                intensity, durationSeconds);
     }
 }

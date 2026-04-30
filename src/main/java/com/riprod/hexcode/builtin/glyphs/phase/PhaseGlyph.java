@@ -3,6 +3,10 @@ package com.riprod.hexcode.builtin.glyphs.phase;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.hypixel.hytale.codec.Codec;
+import com.hypixel.hytale.codec.KeyedCodec;
+import com.hypixel.hytale.codec.builder.BuilderCodec;
+import com.hypixel.hytale.codec.validation.Validators;
 import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Holder;
@@ -18,39 +22,48 @@ import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
+import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
+import com.riprod.hexcode.core.common.glyphs.registry.GlyphConfig;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
-import com.riprod.hexcode.utils.HexDirectionUtil;
 import com.riprod.hexcode.utils.HexVarUtil;
 
 public class PhaseGlyph implements GlyphHandler {
 
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+
+    private float minIntensity = 1.0f;
+    private float maxIntensity = 15.0f;
+
     @Override
-public String getId() { return ID; };
+    public String getId() {
+        return ID;
+    };
 
-public static final String ID = "Phase";
-
-    private static final double DEFAULT_DURATION = 60.0;
-    private static final double DEFAULT_INTENSITY = 5.0;
-    private static final double MIN_DURATION = 10.0;
-    private static final double MAX_DURATION = 200.0;
-    private static final double MIN_INTENSITY = 1.0;
-    private static final double MAX_INTENSITY = 15.0;
+    public static final String ID = "Phase";
 
     @Override
     public boolean consumeVolatility(Glyph glyph, HexContext hexContext) {
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
-        if (tracker == null) return true;
+        if (tracker == null)
+            return true;
+
+        GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(getId());
+        if (asset == null) {
+            LOGGER.atWarning().log("Phase: missing config or asset, cannot compute volatility cost");
+            return true;
+        }
 
         double intensity = clamp(HexVarUtil.numberOrDefault(
-                glyph.readSlot(PhaseGlyphSlots.INTENSITY, hexContext), DEFAULT_INTENSITY),
-                MIN_INTENSITY, MAX_INTENSITY);
-        float intensityScale = (float) Math.max(1.0, intensity / DEFAULT_INTENSITY);
+                glyph.readSlot(PhaseGlyphSlots.INTENSITY, hexContext),
+                asset.getSlot(PhaseGlyphSlots.INTENSITY).getDefaultValue()),
+                minIntensity, maxIntensity);
+        float intensityScale = (float) Math.max(1.0,
+                intensity / asset.getSlot(PhaseGlyphSlots.INTENSITY).getDefaultValue());
 
         int repeatCount = tracker.getGlyphUsage(glyph.getId());
         float cost = VolatilityTracker.computeGlyphCost(glyph, repeatCount) * intensityScale;
@@ -67,12 +80,18 @@ public static final String ID = "Phase";
             return;
         }
 
-        double duration = clamp(HexVarUtil.numberOrDefault(
-                glyph.readSlot(PhaseGlyphSlots.DURATION, hexContext), DEFAULT_DURATION),
-                MIN_DURATION, MAX_DURATION);
-        double intensity = clamp(HexVarUtil.numberOrDefault(
-                glyph.readSlot(PhaseGlyphSlots.INTENSITY, hexContext), DEFAULT_INTENSITY),
-                MIN_INTENSITY, MAX_INTENSITY);
+        GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(getId());
+        if (asset == null) {
+            LOGGER.atWarning().log("Phase: missing asset, cannot compute volatility cost");
+            return;
+        }
+
+        double duration = HexVarUtil.numberOrDefault(
+                glyph.readSlot(PhaseGlyphSlots.DURATION, hexContext),
+                asset.getSlot(PhaseGlyphSlots.DURATION).getDefaultValue());
+        double intensity = HexVarUtil.numberOrDefault(
+                glyph.readSlot(PhaseGlyphSlots.INTENSITY, hexContext),
+                asset.getSlot(PhaseGlyphSlots.INTENSITY).getDefaultValue());
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
         World world = accessor.getExternalData().getWorld();
@@ -122,13 +141,11 @@ public static final String ID = "Phase";
 
         glyph.writeOutput(new BlockVar(pos), hexContext);
 
-        List<String> nextLinks = glyph.getNextLinks();
-
         Holder<EntityStore> holder = HexConstructSpawner.create(
                 accessor, hexContext, glyph, PhaseGlyph.ID, blockCenter);
 
         holder.addComponent(PhaseComponent.getComponentType(),
-                new PhaseComponent(phasedBlocks));
+                new PhaseComponent(phasedBlocks, (float) duration));
 
         Ref<EntityStore> phaseRef = accessor.addEntity(holder, AddReason.SPAWN);
 
@@ -139,7 +156,8 @@ public static final String ID = "Phase";
 
     private Vector3i resolveBlockPosition(HexVar targets, HexContext hexContext) {
         BlockVar blockVar = HexVarUtil.resolveBlockVar(targets, hexContext);
-        if (blockVar != null) return blockVar.getValue();
+        if (blockVar != null)
+            return blockVar.getValue();
         PositionVar posVar = HexVarUtil.resolvePositionVar(targets, hexContext);
         if (posVar != null) {
             Vector3d pos = posVar.getValue();
@@ -153,9 +171,11 @@ public static final String ID = "Phase";
 
     private int getBlockQuality(BlockType blockType) {
         BlockGathering gathering = blockType.getGathering();
-        if (gathering == null) return 0;
+        if (gathering == null)
+            return 0;
         var breaking = gathering.getBreaking();
-        if (breaking == null) return 0;
+        if (breaking == null)
+            return 0;
         return breaking.getQuality();
     }
 

@@ -74,7 +74,7 @@ public class SlotAsset {
             .add()
             .append(new KeyedCodec<>("Style", Codec.STRING),
                     (s, v) -> s.styleId = v, s -> s.styleId)
-            .addValidatorLate(() -> StyleAsset.VALIDATOR_CACHE.getValidator().late())
+            .addValidatorLate(() -> SlotStyleAsset.VALIDATOR_CACHE.getValidator().late())
             .add()
             .build();
 }

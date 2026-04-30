@@ -25,20 +25,14 @@ public interface ConstructHandler<S extends ConstructState> {
     default void onCleanup(HexStatus<S> status, ConstructTickContext ctx) {
     }
 
-    // natural-end path: fires the pending chain, runs end visuals, despawns carriers.
-    // construct system routes here on natural expiry; Resonate/Interfere call directly.
     default void onEnd(HexStatus<S> status, ConstructTickContext ctx) {
         onCleanup(status, ctx);
     }
 
-    // early-termination path: cleanup without firing the chain.
-    // construct system routes here on killRequested or budget exhaustion.
     default void onAbort(HexStatus<S> status, ConstructTickContext ctx) {
         onCleanup(status, ctx);
     }
 
-    // pending chain accessors for splice operations (Resonate / Interfere only).
-    // handlers that don't manage a chain leave defaults (empty list / no-op).
     default List<String> getPendingNextGlyphIds(HexStatus<S> status) {
         return List.of();
     }
@@ -46,10 +40,6 @@ public interface ConstructHandler<S extends ConstructState> {
     default void setPendingNextGlyphIds(HexStatus<S> status, List<String> ids) {
     }
 
-    // pulls drainPerSecond from the triggering glyph's asset and bills the tracker.
-    // single source of truth for sustain drain — replaces hardcoded dt*0.15f in handlers.
-    // returns false when the tracker is depleted (dispelled or naturally drained); the
-    // caller should propagate by returning true from onTick to trigger onCleanup.
     default boolean drainSustain(float dt, HexStatus<S> status) {
         VolatilityTracker tracker = status.getHexContext().getVolatilityTracker();
         if (tracker == null) return true;

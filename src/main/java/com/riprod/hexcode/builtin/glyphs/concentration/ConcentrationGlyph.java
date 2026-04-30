@@ -28,7 +28,9 @@ public class ConcentrationGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     @Override
-    public String getId() { return ID; }
+    public String getId() {
+        return ID;
+    }
 
     public static final String ID = "Concentration";
     private static final String MODEL_ID = "Concentration";
@@ -40,9 +42,8 @@ public class ConcentrationGlyph implements GlyphHandler {
     public void execute(Glyph glyph, HexContext hexContext) {
         Ref<EntityStore> casterRef = hexContext.getCasterRef();
         if (casterRef == null || !casterRef.isValid()) {
-            LOGGER.atWarning().log("Concentration: caster not found");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Concentration: caster not found");
+                    "Caster not found");
             return;
         }
 
@@ -51,22 +52,19 @@ public class ConcentrationGlyph implements GlyphHandler {
         HexcasterIdleComponent execComp = accessor.getComponent(
                 casterRef, HexcasterIdleComponent.getComponentType());
         if (execComp == null || !execComp.isHoldingPrimary()) {
-            LOGGER.atWarning().log("Concentration: caster not holding primary");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Concentration: caster not holding primary");
+                    "Caster not holding primary");
             return;
         }
 
         TransformComponent casterTransform = accessor.getComponent(
                 casterRef, TransformComponent.getComponentType());
-        if (casterTransform == null) {
-            LOGGER.atWarning().log("Concentration: caster has no transform");
-            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Concentration: caster has no transform");
-            return;
+        Ref<EntityStore> visualRef = null;
+        
+        // only spawn visual if caster has a transform - otherwise just don't spawn one instead of failing the glyph
+        if (casterTransform != null) {
+            visualRef = spawnVisual(accessor, casterTransform, casterRef);
         }
-
-        Ref<EntityStore> visualRef = spawnVisual(accessor, casterTransform, casterRef);
 
         ConcentrationState state = new ConcentrationState(visualRef);
         HexConstructSpawner.applyWithState(

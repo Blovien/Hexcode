@@ -21,7 +21,7 @@ public class AuraSpawner {
 
         TransformComponent transform = accessor.getComponent(entityRef, TransformComponent.getComponentType());
         Vector3d position = transform.getPosition();
-        position = position.add(0, 1.0, 0); // raise the position to be around the head
+        position = position.add(0, 1.0, 0);
 
         SpatialResource<Ref<EntityStore>, EntityStore> playerSpatialResource = accessor
                 .getResource(EntityModule.get().getPlayerSpatialResourceType());
@@ -36,7 +36,7 @@ public class AuraSpawner {
     public static void SpawnMistParticles(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> entityRef) {
         TransformComponent transform = accessor.getComponent(entityRef, TransformComponent.getComponentType());
         Vector3d position = transform.getPosition();
-        position = position.add(0, 1.0, 0); // raise the position to be around the head
+        position = position.add(0, 1.0, 0);
 
         SpatialResource<Ref<EntityStore>, EntityStore> playerSpatialResource = accessor
                 .getResource(EntityModule.get().getPlayerSpatialResourceType());

@@ -35,9 +35,8 @@ public static final String ID = "Gust";
         double mag = HexVarUtil.numberOrDefault(glyph.readSlot(GustGlyphSlots.MAGNITUDE, hexContext), 10.0);
 
         if (centerVar == null) {
-            LOGGER.atWarning().log("Gust: center required");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Gust: center required");
+                    "Center required");
             return;
         }
 
@@ -47,9 +46,8 @@ public static final String ID = "Gust";
                     hexContext.getVariable(Glyph.DEFAULT_SLOT), hexContext.getAccessor());
         }
         if (center == null) {
-            LOGGER.atWarning().log("Gust: center ref unresolved");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Gust: center ref unresolved");
+                    "Center ref unresolved");
             return;
         }
 

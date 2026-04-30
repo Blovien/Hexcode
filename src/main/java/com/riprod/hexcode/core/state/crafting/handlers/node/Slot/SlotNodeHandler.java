@@ -142,9 +142,6 @@ public class SlotNodeHandler extends BaseSlotHandler {
         glyphComp.getSlotEntityRefs().clear();
     }
 
-    // legacy bulk-despawn entry point used by pedestal close + crafting close.
-    // under per-glyph SlotsVisible there's no global "close all slots" — slot entities
-    // ride along with their parent glyph entity removal via MountedComponent.
     public void despawn(CommandBuffer<EntityStore> accessor,
             com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent session) {
         // intentionally a no-op

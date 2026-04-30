@@ -48,27 +48,21 @@ public final class ConstructSplicer {
         Hex targetHex = targetCtx.gethex();
         Hex casterHex = caster.gethex();
 
-        // wire every Output glyph in the caster's hex back to originalNext (fork).
-        // done before moving glyphs so we don't have to re-scan post-clone.
         int outputsRewired = rewireOutputs(casterHex, originalNext);
 
-        // move all of caster's glyphs into target hex (deep-clone to avoid aliasing)
         int glyphsCopied = 0;
         for (Glyph g : casterHex.getGlyphs()) {
             targetHex.put(g.getId(), g.clone());
             glyphsCopied++;
         }
 
-        // merge variables per policy. no special-case for Self.
         mergeVariables(targetCtx, caster.getVariables(), varPolicy);
 
-        // donate volatility — caller drains caster fully after the splice loop
         VolatilityTracker targetTracker = targetCtx.getVolatilityTracker();
         if (targetTracker != null && donationAmount > 0f) {
             targetTracker.addBudget(donationAmount);
         }
 
-        // compute and install new pending chain
         List<String> newChain = computeNewChain(chainMode, originalNext, casterChildren);
         if (newChain != null) {
             raw.setPendingNextGlyphIds(rawStatus, newChain);

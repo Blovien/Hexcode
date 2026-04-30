@@ -10,6 +10,7 @@ import com.hypixel.hytale.math.shape.Box;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.MountController;
+import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
@@ -30,6 +31,7 @@ import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
+import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 import com.riprod.hexcode.utils.HexDirectionUtil;
 import com.riprod.hexcode.utils.HexVarUtil;
 
@@ -37,36 +39,56 @@ public class ScaleGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     @Override
-    public String getId() { return ID; }
+    public String getId() {
+        return ID;
+    }
 
     public static final String ID = "Scale";
     private static final String MODEL_ID = "Scale";
 
     private static final double DEFAULT_MAGNITUDE = 2.0;
-    private static final double MIN_MAGNITUDE = 0.25;
-    private static final double MAX_MAGNITUDE = 4.0;
+    private static final double MIN_MAGNITUDE = 0.01;
+    private static final double MAX_MAGNITUDE = 32.0;
     private static final double DEFAULT_DURATION = 5.0;
     private static final double MIN_DURATION = 0.1;
 
     private static final Vector3f MOUNT_OFFSET = new Vector3f(0f, 2.5f, 0f);
 
     @Override
+    public boolean consumeVolatility(Glyph glyph, HexContext hexContext) {
+        VolatilityTracker tracker = hexContext.getVolatilityTracker();
+        if (tracker == null)
+            return true;
+        int repeatCount = tracker.getGlyphUsage(glyph.getId());
+        float cost = VolatilityTracker.computeGlyphCost(glyph, repeatCount);
+        if (cost <= 0)
+            return true;
+
+        double magnitude = clamp(HexVarUtil.numberOrDefault(
+                glyph.readSlot(ScaleGlyphSlots.MAGNITUDE, hexContext), DEFAULT_MAGNITUDE),
+                MIN_MAGNITUDE, MAX_MAGNITUDE);
+
+        cost *= magnitude;
+
+        boolean consumed = tracker.consumeVolatility(cost);
+        return consumed;
+    }
+
+    @Override
     public void execute(Glyph glyph, HexContext hexContext) {
         HexVar targets = glyph.readSlot(ScaleGlyphSlots.TARGET, hexContext);
         EntityVar entityVar = HexVarUtil.resolveEntityVar(targets, hexContext);
         if (entityVar == null) {
-            LOGGER.atWarning().log("Scale: target must be Entity");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Scale: target must be Entity");
+                    "Target must be a creature");
             return;
         }
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
         Ref<EntityStore> targetRef = entityVar.getRef(accessor);
         if (targetRef == null || !targetRef.isValid()) {
-            LOGGER.atWarning().log("Scale: target ref unresolved");
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Scale: target ref unresolved");
+                    "Target is no longer available");
             return;
         }
 
@@ -118,9 +140,8 @@ public class ScaleGlyph implements GlyphHandler {
 
             HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
         } catch (Exception e) {
-            LOGGER.atWarning().log("Scale: apply failed: %s", e.getMessage());
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    e.getMessage(), e);
+                    "Cannot apply scale", e);
         }
     }
 

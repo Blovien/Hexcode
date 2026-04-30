@@ -43,15 +43,17 @@ public class DelayConstructHandler implements ConstructHandler<DelayState> {
                     state.getNextGlyphIds().size());
         }
 
-        buffer.tryRemoveEntity(ctx.getEntityRef(), RemoveReason.REMOVE);
+        onCleanup(status, ctx);
     }
-
+    
     @Override
-    public void onAbort(HexStatus<DelayState> status, ConstructTickContext ctx) {
-        // counterspell / budget exhaustion: chain MUST be suppressed.
-        // budget is the duration-pricing mechanism and must have teeth.
-        LOGGER.atInfo().log("delay: terminated early; chain suppressed");
-        ctx.getBuffer().tryRemoveEntity(ctx.getEntityRef(), RemoveReason.REMOVE);
+    public void onCleanup(HexStatus<DelayState> status, ConstructTickContext ctx) {
+
+        CommandBuffer<EntityStore> buffer = ctx.getBuffer();
+
+        if (status.getState().isCustom()) {
+            buffer.tryRemoveEntity(ctx.getEntityRef(), RemoveReason.REMOVE); // remove if custom 
+        }
     }
 
     @Override

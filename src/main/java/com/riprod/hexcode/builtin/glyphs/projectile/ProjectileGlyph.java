@@ -20,7 +20,6 @@ import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
-import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.modules.interaction.Interactions;
 import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
 import com.hypixel.hytale.server.core.modules.projectile.ProjectileModule;
@@ -29,6 +28,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.builtin.glyphs.projectile.component.ProjectileState;
 import com.riprod.hexcode.builtin.glyphs.projectile.style.ProjectileStyle;
+import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
@@ -66,7 +66,7 @@ public class ProjectileGlyph implements GlyphHandler {
 
         if (sourceVar == null) {
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "no source provided");
+                    "Cannot determine source position");
             return;
         }
 
@@ -76,21 +76,21 @@ public class ProjectileGlyph implements GlyphHandler {
         }
         if (spawnPos == null) {
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "could not resolve spawn position");
+                    "Cannot determine where to spawn");
             return;
         }
 
         Vector3d direction = HexDirectionUtil.resolveDirection(directionVar, spawnPos, hexContext.getAccessor());
         if (direction == null) {
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "could not resolve direction");
+                    "Cannot determine direction");
             return;
         }
 
         double dirLen = direction.length();
         if (!Double.isFinite(dirLen) || dirLen < 1e-9) {
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "direction is degenerate (zero or NaN)");
+                    "Direction is invalid");
             return;
         }
         direction = new Vector3d(direction.x / dirLen, direction.y / dirLen, direction.z / dirLen);
@@ -105,8 +105,6 @@ public class ProjectileGlyph implements GlyphHandler {
         int bounces = HexVarUtil.numberOrDefault(bouncesVar, 0.0).intValue();
         if (bounces < 0) bounces = 0;
 
-        LOGGER.atInfo().log("[projectile] spawn speed=%s gravity=%s bounces=%s", speed, gravity, bounces);
-
         ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(PROJECTILE_MODEL);
         if (modelAsset == null) {
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
@@ -114,23 +112,21 @@ public class ProjectileGlyph implements GlyphHandler {
             return;
         }
 
-        Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
+        Holder<EntityStore> holder = HexConstructSpawner.create(hexContext.getAccessor(), hexContext, glyph, ProjectileGlyph.ID, spawnPos);
 
         Vector3f rotation = new Vector3f();
         rotation.setYaw((float) Math.atan2(-direction.x, direction.z));
         rotation.setPitch((float) Math.asin(Math.max(-1.0, Math.min(1.0, -direction.y))));
 
-        holder.addComponent(TransformComponent.getComponentType(),
+        holder.putComponent(TransformComponent.getComponentType(),
                 new TransformComponent(new Vector3d(spawnPos), rotation));
         holder.addComponent(HeadRotation.getComponentType(), new HeadRotation(rotation));
 
         Model model = Model.createScaledModel(modelAsset, PROJECTILE_SCALE);
+
         holder.addComponent(ModelComponent.getComponentType(), new ModelComponent(model));
         holder.addComponent(PersistentModel.getComponentType(), new PersistentModel(model.toReference()));
         holder.addComponent(BoundingBox.getComponentType(), new BoundingBox(model.getBoundingBox()));
-
-        holder.addComponent(NetworkId.getComponentType(),
-                new NetworkId(hexContext.getAccessor().getExternalData().takeNextNetworkId()));
 
         holder.ensureComponent(ProjectileModule.get().getProjectileComponentType());
         holder.addComponent(Velocity.getComponentType(), new Velocity());
@@ -143,10 +139,6 @@ public class ProjectileGlyph implements GlyphHandler {
 
         Ref<EntityStore> parent = sourceVar instanceof EntityVar var ? var.getRef(hexContext.getAccessor()) : hexContext.getCasterRef();
 
-        LOGGER.atInfo().log("[projectile] physicsConfig bounciness=%s bounceCount=%s bounceLimit=%s allowRolling=%s sticksVertically=%s",
-                physicsConfig.getBounciness(), physicsConfig.getBounceCount(),
-                physicsConfig.getBounceLimit(), physicsConfig.isAllowRolling(),
-                physicsConfig.isSticksVertically());
         physicsConfig.apply(holder, parent,
                 launchVelocity, hexContext.getAccessor(), false);
 
