@@ -1,5 +1,7 @@
 package com.riprod.hexcode.builtin.glyphs.projectile.interaction;
 
+import java.util.Arrays;
+
 import javax.annotation.Nonnull;
 
 import com.hypixel.hytale.codec.builder.BuilderCodec;
@@ -12,17 +14,17 @@ import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.protocol.WaitForDataFrom;
 import com.hypixel.hytale.server.core.entity.InteractionContext;
-import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHandler;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.SimpleInteraction;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.data.Collector;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.builtin.glyphs.projectile.ProjectileGlyphSlots;
 import com.riprod.hexcode.builtin.glyphs.projectile.component.ProjectileState;
 import com.riprod.hexcode.builtin.glyphs.projectile.style.ProjectileStyle;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
+import com.riprod.hexcode.core.common.glyphs.component.Slot;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
-import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
@@ -65,20 +67,31 @@ public class HexProjectileBounceInteraction extends SimpleInteraction {
             }
             Vector3d hitPos = new Vector3d(hitLocation.x, hitLocation.y, hitLocation.z);
             HexVar resultVar = new BlockVar(hitPos.toVector3i());
-            ProjectileStyle.renderBlockHit(hitPos, hexContext.getColors(), buffer);
+            ProjectileStyle.renderBlockHit(hitPos, hexContext, buffer);
+            Glyph triggering = state.getTriggeringGlyph();
+
+            if (triggering == null) {
+                ctx.getState().state = InteractionState.Finished;
+                return;
+            }
+            Slot immediate = triggering.getSlot(ProjectileGlyphSlots.BOUNCE);
+            if (immediate == null)
+                return;
+            String[] links = immediate.getLinks();
+            if (links == null || links.length == 0) {
+                ctx.getState().state = InteractionState.Finished;
+                return;
+            }
 
             hexContext.UpdateAccessor(buffer);
 
-            Glyph triggering = state.getTriggeringGlyph();
             if (hitPos != null) {
-                ProjectileStyle.renderBlockHit(hitPos, hexContext.getColors(), buffer);
+                ProjectileStyle.renderBlockHit(hitPos, hexContext, buffer);
             }
 
-            if (triggering != null && resultVar != null) {
-                triggering.writeOutput(resultVar, hexContext);
-            }
+            triggering.writeOutput(resultVar, hexContext);
 
-            HexExecuter.continueExecution(state.getNextLinks(), hexContext);
+            HexExecuter.continueExecution(Arrays.asList(links), hexContext);
 
             ctx.getState().state = InteractionState.Finished;
         } catch (Exception e) {

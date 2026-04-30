@@ -1,5 +1,19 @@
 {
   "Parent": "Glyph_Template",
+  "Style": {
+    "PrimaryParticle": {
+      "SystemId": "Glaciate_Spawn"
+    },
+    "PrimarySound": "SFX_Ice_Build",
+    "SecondaryParticle": {
+      "SystemId": "Glaciate_Impact"
+    },
+    "SecondarySound": "SFX_Arrow_Frost_Hit",
+    "TertiaryParticle": {
+      "SystemId": "Glaciate_Melt"
+    },
+    "TertiarySound": "SFX_Ice_Break"
+  },
   "Title": "Glaciate",
   "Description": "Conjures a solid ice block at a target with gravity and speed-based impact damage",
   "ModelPath": "Glaciate",

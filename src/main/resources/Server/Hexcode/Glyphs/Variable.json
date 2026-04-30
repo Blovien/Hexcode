@@ -12,8 +12,13 @@
   "Slots": {
     "target": {
       "Style": "Input",
-      "Label": "Target",
-      "Description": "Variable containing the targets to affect"
+      "Label": "Input",
+      "Description": "Which variable to select"
+    },
+    "output": {
+      "Style": "Input",
+      "Label": "Output",
+      "Description": "Where to save the variable"
     },
     "Next": {
       "Style": "Next",

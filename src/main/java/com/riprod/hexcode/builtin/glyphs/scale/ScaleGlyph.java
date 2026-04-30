@@ -136,7 +136,7 @@ public class ScaleGlyph implements GlyphHandler {
             HexConstructSpawner.applyWithState(
                     accessor, targetRef, hexContext, glyph, ScaleGlyph.ID, state);
 
-            ScaleStyle.renderApply(spawnPos, hexContext.getColors(), accessor);
+            ScaleStyle.renderApply(spawnPos, hexContext, accessor);
 
             HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
         } catch (Exception e) {

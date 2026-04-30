@@ -1,5 +1,19 @@
 {
   "Parent": "Glyph_Template",
+  "Style": {
+    "PrimaryParticle": {
+      "SystemId": "Conjure_Spawn"
+    },
+    "PrimarySound": "SFX_Ice_Build",
+    "SecondaryParticle": {
+      "SystemId": "Conjure_Trigger"
+    },
+    "SecondarySound": "SFX_Arrow_Frost_Hit",
+    "TertiaryParticle": {
+      "SystemId": "Conjure_Despawn"
+    },
+    "TertiarySound": "SFX_Fireball_Miss"
+  },
   "Title": "Conjure",
   "Description": "Spawns a temporary area zone at a position",
   "ModelPath": "Conjure",

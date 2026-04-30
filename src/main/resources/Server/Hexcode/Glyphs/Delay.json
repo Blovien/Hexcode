@@ -1,5 +1,15 @@
 {
   "Parent": "Glyph_Template",
+  "Style": {
+    "Parent": "Delay_Earth",
+    "PrimaryParticle": {
+      "SystemId": "Delay_Shimmer"
+    },
+    "PrimarySound": "SFX_Hex_Tick",
+    "SecondaryParticle": {
+      "SystemId": "Delay_Shimmer"
+    }
+  },
   "Title": "Delay",
   "Description": "Delays execution of child glyphs by a duration in seconds",
   "ModelPath": "Delay",

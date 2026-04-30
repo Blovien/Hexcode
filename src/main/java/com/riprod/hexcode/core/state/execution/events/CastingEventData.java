@@ -8,6 +8,7 @@ import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
+import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
 import com.riprod.hexcode.core.common.hexes.saved.SavedHexAsset;
 import com.riprod.hexcode.core.common.imbuement.ImbuementData;
 import com.riprod.hexcode.core.state.execution.component.HexColors;
@@ -29,7 +30,7 @@ public class CastingEventData {
     private float manaMultiplier = 1.0f;
     private int cooldownTicks = 20;
     @Nullable
-    private HexColors colors;
+    private HexStyleAsset style;
 
     private Ref<EntityStore> targetRef;
 
@@ -37,12 +38,25 @@ public class CastingEventData {
     }
 
     public CastingEventData(Hex hex, Ref<EntityStore> targetRef, float manaCost, HexRoot hexRoot, @Nullable HexColors colors, VolatilityTracker volatilityTracker) {
+        this(hex, targetRef, manaCost, hexRoot, styleFromColors(colors), volatilityTracker);
+    }
+
+    public CastingEventData(Hex hex, Ref<EntityStore> targetRef, float manaCost, HexRoot hexRoot, @Nullable HexStyleAsset style, VolatilityTracker volatilityTracker) {
         this.hex = hex;
         this.targetRef = targetRef;
         this.manaCost = manaCost;
         this.hexRoot = hexRoot;
-        this.colors = colors;
+        this.style = style;
         this.volatilityTracker = volatilityTracker;
+    }
+
+    private static @Nullable HexStyleAsset styleFromColors(@Nullable HexColors colors) {
+        if (colors == null) return null;
+        HexStyleAsset s = HexStyleAsset.empty();
+        if (colors.getPrimaryColor() != null) s.setPrimaryColor(colors.getPrimaryColor().clone());
+        if (colors.getSecondaryColor() != null) s.setSecondaryColor(colors.getSecondaryColor().clone());
+        s.setAlpha(colors.getPrimaryAlpha());
+        return s;
     }
 
     public Ref<EntityStore> getTargetRef() {
@@ -151,12 +165,26 @@ public class CastingEventData {
     }
 
     @Nullable
+    public HexStyleAsset getStyle() {
+        return style;
+    }
+
+    public void setStyle(@Nullable HexStyleAsset style) {
+        this.style = style;
+    }
+
+    @Nullable
     public HexColors getColors() {
-        return colors;
+        if (style == null) return null;
+        HexColors c = new HexColors();
+        if (style.getPrimaryColor() != null) c.setPrimaryColor(style.getPrimaryColor().clone());
+        if (style.getSecondaryColor() != null) c.setSecondaryColor(style.getSecondaryColor().clone());
+        c.setPrimaryAlpha(style.getAlphaOrDefault());
+        return c;
     }
 
     public void setColors(@Nullable HexColors colors) {
-        this.colors = colors;
+        this.style = styleFromColors(colors);
     }
 
     public VolatilityTracker getVolatilityTracker() {
@@ -198,9 +226,9 @@ public class CastingEventData {
                     (c, v) -> c.cooldownTicks = v,
                     c -> c.cooldownTicks)
             .add()
-            .append(new KeyedCodec<>("Colors", HexColors.CODEC),
-                    (c, v) -> c.colors = v,
-                    c -> c.colors)
+            .append(new KeyedCodec<>("Style", HexStyleAsset.CODEC),
+                    (c, v) -> c.style = v,
+                    c -> c.style)
             .add()
             .build();
 }

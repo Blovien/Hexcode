@@ -72,7 +72,12 @@ public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
 
   public HexColors getColors() {
     HexStyleAsset style = getStyle();
-    return style != null ? style.getColor() : null;
+    if (style == null) return null;
+    HexColors c = new HexColors();
+    if (style.getPrimaryColor() != null) c.setPrimaryColor(style.getPrimaryColor().clone());
+    if (style.getSecondaryColor() != null) c.setSecondaryColor(style.getSecondaryColor().clone());
+    c.setPrimaryAlpha(style.getAlphaOrDefault());
+    return c;
   }
 
   public static final AssetBuilderCodec<String, HexStaffAsset> CODEC = AssetBuilderCodec.builder(

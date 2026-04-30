@@ -13,12 +13,13 @@ import com.riprod.hexcode.api.event.HexCastEvent;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexcaster.utils.CasterInventory;
 import com.riprod.hexcode.core.common.hexcaster.utils.PlayerUtils;
+import com.riprod.hexcode.core.common.hexbook.component.HexBookAsset;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
+import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
 import com.riprod.hexcode.core.common.hexes.utils.HexUtils;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffAsset;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffComponent;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
-import com.riprod.hexcode.core.state.execution.component.HexColors;
 import com.riprod.hexcode.core.state.execution.component.HexcasterIdleComponent;
 import com.riprod.hexcode.core.state.execution.component.PlayerHexRoot;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
@@ -155,20 +156,23 @@ public class IdleSystem extends HexcodeManager {
         float baseMana = SpellMana.computeTotalMana(hexClone);
         float resolvedPower = hexRoot.resolveSpellPower(accessor);
 
-        HexColors colors;
         HexStaffAsset staffAsset = CasterInventory.getHexStaffAsset(
                 PlayerUtils.getHandItem(accessor, ref, HexSlot.MainHand));
-        if (staffAsset != null && staffAsset.getColors() != null) {
-            colors = staffAsset.getColors().clone();
-        } else {
-            colors = null;
+        HexBookAsset bookAsset = CasterInventory.getHexBookAsset(
+                PlayerUtils.getHandItem(accessor, ref, HexSlot.OffHand));
+
+        HexStyleAsset style = HexStyleAsset.empty();
+        if (staffAsset != null && staffAsset.getStyle() != null) style.compose(staffAsset.getStyle());
+        if (bookAsset != null && bookAsset.getStyle() != null
+                && bookAsset.getStyle().getSecondaryColor() != null) {
+            style.setSecondaryColor(bookAsset.getStyle().getSecondaryColor().clone());
         }
 
         idleComp.setHoldingPrimary(true);
         comp.setTickLength(HOLD_STALE_KEY, 0f);
 
         VolatilityTracker tracker = new VolatilityTracker(startingBudget, 1.0f, resolvedPower);
-        CastingEventData castData = new CastingEventData(hexClone, ref, baseMana, hexRoot, colors, tracker);
+        CastingEventData castData = new CastingEventData(hexClone, ref, baseMana, hexRoot, style, tracker);
         idleComp.registerActiveTracker(tracker);
 
         accessor.invoke(new HexCastEvent(ref, castData));

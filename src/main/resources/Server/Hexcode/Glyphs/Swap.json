@@ -1,5 +1,11 @@
 {
   "Parent": "Glyph_Template",
+  "Style": {
+    "PrimaryParticle": {
+      "SystemId": "Swap_Rift"
+    },
+    "PrimarySound": "SFX_Portal_Neutral"
+  },
   "Title": "Swap",
   "Description": "Exchanges positions between two variable arrays element-by-element",
   "ModelPath": "Swap",

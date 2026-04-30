@@ -1,5 +1,19 @@
 {
   "Parent": "Glyph_Template",
+  "Style": {
+    "PrimaryParticle": {
+      "SystemId": "Gust_Smoke"
+    },
+    "PrimarySound": "SFX_Block_Break",
+    "SecondaryParticle": {
+      "SystemId": "Gust_Smoke"
+    },
+    "SecondarySound": "SFX_Block_Break",
+    "TertiaryParticle": {
+      "SystemId": "Gust_Smoke"
+    },
+    "TertiarySound": "SFX_Block_Break"
+  },
   "Title": "Interfere",
   "Description": "Hijacks all active hex constructs on the target, replacing their continuation with this chain. Strips hex effects from targets without active constructs.",
   "ModelPath": "Interfere",

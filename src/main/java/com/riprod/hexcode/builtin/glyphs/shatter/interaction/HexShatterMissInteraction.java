@@ -71,7 +71,7 @@ public class HexShatterMissInteraction extends SimpleInteraction {
                 if (triggering != null) {
                     triggering.writeOutput(new BlockVar(hitPos.toVector3i()), hexContext);
                 }
-                ShatterStyle.renderShardHit(hitPos, hexContext.getColors(), buffer);
+                ShatterStyle.renderShardHit(hitPos, hexContext, buffer);
             }
 
             HexExecuter.continueExecution(state.getNextLinks(), hexContext);

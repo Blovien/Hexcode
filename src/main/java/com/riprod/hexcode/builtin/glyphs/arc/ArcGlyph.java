@@ -23,7 +23,6 @@ import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
-import com.riprod.hexcode.core.state.execution.component.HexColors;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.utils.HexDirectionUtil;
 import com.riprod.hexcode.utils.HexVarUtil;
@@ -67,8 +66,6 @@ public class ArcGlyph implements GlyphHandler {
         double delay = HexVarUtil.numberOrDefault(
                 glyph.readSlot(ArcGlyphSlots.DELAY, hexContext), 0.75);
 
-        HexColors colors = hexContext.getColors();
-
         Set<UUID> visited = new HashSet<>();
         UUIDComponent casterUuid = accessor.getComponent(
                 hexContext.getCasterRef(), UUIDComponent.getComponentType());
@@ -90,7 +87,7 @@ public class ArcGlyph implements GlyphHandler {
         Ref<EntityStore> firstJump = ArcUtils.getNextArcTarget(
                 originPos, (float) maxJump, visited, accessor);
         if (firstJump == null) {
-            ArcStyle.renderFizzle(accessor, originPos, colors);
+            ArcStyle.renderFizzle(accessor, originPos, hexContext);
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
                     "No entities in range to arc to");
             return;
@@ -105,8 +102,8 @@ public class ArcGlyph implements GlyphHandler {
         Vector3d firstJumpPos = firstJumpTc != null ? firstJumpTc.getPosition() : originPos;
 
         World world = accessor.getExternalData().getWorld();
-        ArcStyle.renderArc(accessor, world, originPos, firstJumpPos, colors);
-        ArcStyle.renderHit(accessor, firstJumpPos, colors);
+        ArcStyle.renderArc(accessor, world, originPos, firstJumpPos, hexContext);
+        ArcStyle.renderHit(accessor, firstJumpPos, hexContext);
 
         ArcState state = new ArcState(glyph, new ArrayList<>(branches), visited,
                 (float) maxJump, (float) delay);

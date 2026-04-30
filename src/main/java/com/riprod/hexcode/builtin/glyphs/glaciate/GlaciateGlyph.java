@@ -154,6 +154,6 @@ public static final String ID = "Glaciate";
 
         hexContext.getRoot().addDependency(hexContext, iceRef);
 
-        GlaciateStyle.renderSpawn(spawnPos, hexContext.getColors(), hexContext.getAccessor());
+        GlaciateStyle.renderSpawn(spawnPos, hexContext, hexContext.getAccessor());
     }
 }

@@ -29,8 +29,18 @@
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "Equal",
+      "Description": "If the values are equal"
+    },
+    "Greater": {
+      "Style": "Next",
+      "Label": "Greater",
+      "Description": "If A is greater than B"
+    },
+    "Less": {
+      "Style": "Next",
+      "Label": "Less",
+      "Description": "If A is less than B"
     }
   },
   "Volatility": {

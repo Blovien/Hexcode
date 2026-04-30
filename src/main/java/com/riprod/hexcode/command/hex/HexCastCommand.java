@@ -48,7 +48,8 @@ public class HexCastCommand extends AbstractPlayerCommand {
 
         var playerHexRoot = new PlayerHexRoot(playerEntityRef);
 
-        var castingData = new CastingEventData(hex, playerEntityRef, 0, playerHexRoot, null, volatilityTracker);
+        var castingData = new CastingEventData(hex, playerEntityRef, 0, playerHexRoot,
+                (com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset) null, volatilityTracker);
 
         store.invoke(new HexCastEvent(playerEntityRef, castingData));
 

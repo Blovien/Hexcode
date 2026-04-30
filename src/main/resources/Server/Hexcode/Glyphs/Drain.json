@@ -1,5 +1,15 @@
 {
   "Parent": "Glyph_Template",
+  "Style": {
+    "Parent": "Drain_Ice",
+    "PrimaryParticle": {
+      "SystemId": "Hexcode_Drain_Channel"
+    },
+    "SecondaryParticle": {
+      "SystemId": "Hexcode_Drain_Complete"
+    },
+    "SecondarySound": "SFX_Drain_Complete"
+  },
   "Title": "Drain",
   "Description": "Channels HP or Stamina into Mana over time. As a value, reads resource fill percentage.",
   "ModelPath": "Drain",

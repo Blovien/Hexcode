@@ -73,7 +73,9 @@ import com.hypixel.hytale.assetstore.AssetRegistry;
 import com.hypixel.hytale.assetstore.event.LoadedAssetsEvent;
 import com.hypixel.hytale.assetstore.map.DefaultAssetMap;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
+import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.hypixel.hytale.server.core.asset.type.particle.config.ParticleSystem;
+import com.hypixel.hytale.server.core.asset.type.soundevent.config.SoundEvent;
 import com.hypixel.hytale.component.ComponentRegistryProxy;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Holder;
@@ -129,6 +131,9 @@ public class Hexcode extends JavaPlugin {
             .setPath("Hexcode/HexStyles")
             .setCodec(HexStyleAsset.CODEC)
             .setKeyFunction(HexStyleAsset::getId)
+            .loadsAfter(ParticleSystem.class)
+            .loadsAfter(SoundEvent.class)
+            .loadsAfter(ModelAsset.class)
             .build());
     AssetRegistry.register(
         HytaleAssetStore
@@ -137,6 +142,10 @@ public class Hexcode extends JavaPlugin {
             .setCodec(GlyphAsset.CODEC)
             .setKeyFunction(GlyphAsset::getId)
             .loadsAfter(SlotStyleAsset.class)
+            .loadsAfter(HexStyleAsset.class)
+            .loadsAfter(ParticleSystem.class)
+            .loadsAfter(SoundEvent.class)
+            .loadsAfter(ModelAsset.class)
             .build());
     AssetRegistry.register(
         HytaleAssetStore
@@ -163,6 +172,7 @@ public class Hexcode extends JavaPlugin {
             .setKeyFunction(HexBookAsset::getId)
             .loadsAfter(ParticleSystem.class)
             .loadsAfter(Item.class)
+            .loadsAfter(HexStyleAsset.class)
             .build());
     AssetRegistry.register(
         HytaleAssetStore
@@ -173,6 +183,7 @@ public class Hexcode extends JavaPlugin {
             .setKeyFunction(HexStaffAsset::getId)
             .loadsAfter(ParticleSystem.class)
             .loadsAfter(Item.class)
+            .loadsAfter(HexStyleAsset.class)
             .build());
     AssetRegistry.register(
         HytaleAssetStore

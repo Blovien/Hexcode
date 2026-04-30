@@ -59,7 +59,7 @@ public class ProjectileConstructHandler implements ConstructHandler<NoState> {
                 ctx.getEntityRef(), TransformComponent.getComponentType());
         if (transform != null) {
             ProjectileStyle.renderMiss(transform.getPosition(),
-                    status.getHexContext().getColors(), ctx.getBuffer());
+                    status.getHexContext(), ctx.getBuffer());
         }
         ctx.getBuffer().tryRemoveEntity(ctx.getEntityRef(), RemoveReason.REMOVE);
     }

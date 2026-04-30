@@ -1,5 +1,18 @@
 {
   "Parent": "Glyph_Template",
+  "Style": {
+    "PrimaryParticle": {
+      "SystemId": "Projectile_Launch"
+    },
+    "PrimarySound": "SFX_Staff_Fire_Shoot",
+    "SecondaryParticle": {
+      "SystemId": "Projectile_Hit"
+    },
+    "SecondarySound": "SFX_Staff_Flame_Fireball_Impact",
+    "StyleParticle": {
+      "SystemId": "Projectile_Miss"
+    }
+  },
   "Title": "Projectile",
   "Description": "Launches a projectile that triggers child glyphs on collision",
   "ModelPath": "Projectile",
@@ -58,6 +71,11 @@
       "Style": "Next",
       "Label": "Immediate",
       "Description": "Fires immediately after the projectile is created"
+    },
+    "bounce": {
+      "Style": "Next",
+      "Label": "OnBounce",
+      "Description": "Fires once for every bounce"
     }
   },
   "Volatility": {

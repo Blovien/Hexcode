@@ -1,5 +1,18 @@
 {
   "Parent": "Glyph_Template",
+  "Style": {
+    "PrimaryParticle": {
+      "SystemId": "Ensnare_Burst"
+    },
+    "PrimarySound": "SFX_Ensnare_Cast",
+    "SecondaryParticle": {
+      "SystemId": "Ensnare_Hit"
+    },
+    "TertiaryParticle": {
+      "SystemId": "Ensnare_Crumble"
+    },
+    "TertiarySound": "SFX_Ensnare_End"
+  },
   "Title": "Ensnare",
   "Description": "Creates spike formations that trap and damage entities in the area",
   "ModelPath": "Ensnare",

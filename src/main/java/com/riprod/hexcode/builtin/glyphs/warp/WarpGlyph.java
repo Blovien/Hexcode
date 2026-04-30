@@ -84,7 +84,7 @@ public static final String ID = "Warp";
         Vector3d departurePos = HexVarUtil.position(targets, hexContext.getAccessor());
         BlockUtils.moveToDestination(targets, destination, world, hexContext);
         if (departurePos != null) {
-            WarpStyle.render(departurePos, destination, hexContext.getColors(), hexContext.getAccessor());
+            WarpStyle.render(departurePos, destination, hexContext, hexContext.getAccessor());
         }
 
         HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);

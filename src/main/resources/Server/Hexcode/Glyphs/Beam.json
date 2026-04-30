@@ -1,5 +1,11 @@
 {
   "Parent": "Glyph_Template",
+  "Style": {
+    "SecondaryParticle": {
+      "SystemId": "Beam_Impact"
+    },
+    "SecondarySound": "SFX_Arrow_Frost_Hit"
+  },
   "Title": "Beam",
   "Description": "Raycasts from an entity in a direction, storing the first hit",
   "ModelPath": "Beam",

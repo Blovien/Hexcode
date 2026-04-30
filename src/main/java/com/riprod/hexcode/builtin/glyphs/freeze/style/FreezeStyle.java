@@ -1,34 +1,33 @@
 package com.riprod.hexcode.builtin.glyphs.freeze.style;
 
-import com.hypixel.hytale.component.CommandBuffer;
+import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.state.execution.component.HexColors;
+import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
+import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.utils.VfxUtil;
 
 public class FreezeStyle {
 
-    private static final Vector3f DEFAULT_COLOR = new Vector3f(0.6f, 0.85f, 1.0f);
+    private static final String GLYPH_ID = "Freeze";
 
     private FreezeStyle() {
     }
 
-    public static void renderFreeze(Vector3d pos, HexColors colors,
-            CommandBuffer<EntityStore> accessor) {
-        VfxUtil.particle("Freeze_Snow", pos, accessor);
-        VfxUtil.particle("Freeze_Impact", pos, accessor);
-        VfxUtil.sound("SFX_Ice_Build", pos, accessor);
+    private static GlyphAsset asset() {
+        return GlyphAsset.getAssetMap().getAsset(GLYPH_ID);
     }
 
-    public static void renderMelt(Vector3d pos, HexColors colors,
-            CommandBuffer<EntityStore> accessor) {
-        VfxUtil.particle("Freeze_Snow", pos, accessor);
-        VfxUtil.sound("SFX_Ice_Break", pos, accessor);
+    public static void renderFreeze(Vector3d pos, HexContext ctx,
+            ComponentAccessor<EntityStore> accessor) {
+        HexStyleAsset overrides = ctx != null ? ctx.getStyle() : null;
+        VfxUtil.spawnPrimary(overrides, asset(), pos, accessor);
     }
 
-    private static Vector3f resolveColor(HexColors colors) {
-        if (colors == null || colors.getPrimaryColor() == null) return DEFAULT_COLOR;
-        return HexColors.toVector3f(colors.getPrimaryColor());
+    public static void renderMelt(Vector3d pos, HexContext ctx,
+            ComponentAccessor<EntityStore> accessor) {
+        HexStyleAsset overrides = ctx != null ? ctx.getStyle() : null;
+        VfxUtil.spawnSecondary(overrides, asset(), pos, accessor);
     }
 }

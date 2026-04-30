@@ -1,5 +1,19 @@
 {
   "Parent": "Glyph_Template",
+  "Style": {
+    "PrimaryParticle": {
+      "SystemId": "Gust_Small"
+    },
+    "PrimarySound": "SFX_Staff_Flame_Fireball_Impact",
+    "SecondaryParticle": {
+      "SystemId": "Gust_Medium"
+    },
+    "SecondarySound": "SFX_Staff_Flame_Fireball_Impact",
+    "TertiaryParticle": {
+      "SystemId": "Gust_Big"
+    },
+    "TertiarySound": "SFX_Fireball_Death"
+  },
   "Title": "Gust",
   "Description": "Radial force pushing targets away from a center point",
   "ModelPath": "Gust",

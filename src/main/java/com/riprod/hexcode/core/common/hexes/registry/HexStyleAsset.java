@@ -10,11 +10,12 @@ import com.hypixel.hytale.assetstore.map.DefaultAssetMap;
 import com.hypixel.hytale.assetstore.map.JsonAssetWithMap;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
-import com.hypixel.hytale.codec.codecs.EnumCodec;
 import com.hypixel.hytale.codec.validation.ValidatorCache;
-import com.hypixel.hytale.math.vector.Vector3f;
-import com.hypixel.hytale.protocol.DebugShape;
-import com.riprod.hexcode.core.state.execution.component.HexColors;
+import com.hypixel.hytale.protocol.Color;
+import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
+import com.hypixel.hytale.server.core.asset.type.model.config.ModelParticle;
+import com.hypixel.hytale.server.core.asset.type.soundevent.config.SoundEvent;
+import com.hypixel.hytale.server.core.codec.ProtocolCodecs;
 
 public class HexStyleAsset implements JsonAssetWithMap<String, DefaultAssetMap<String, HexStyleAsset>> {
     public static final AssetBuilderCodec<String, HexStyleAsset> CODEC;
@@ -24,7 +25,21 @@ public class HexStyleAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
 
     protected AssetExtraInfo.Data data;
     protected String id;
-    protected HexColors colors;
+
+    // overridable
+    protected Color primaryColor;
+    protected Color secondaryColor;
+    protected Float alpha;
+    protected ModelParticle styleParticle;
+
+    // locked (essence of the consumer)
+    protected ModelParticle primaryParticle;
+    protected ModelParticle secondaryParticle;
+    protected ModelParticle tertiaryParticle;
+    protected String primarySound;
+    protected String secondarySound;
+    protected String tertiarySound;
+    protected String primaryModel;
 
     public static AssetStore<String, HexStyleAsset, DefaultAssetMap<String, HexStyleAsset>> getAssetStore() {
         if (ASSET_STORE == null) {
@@ -37,7 +52,11 @@ public class HexStyleAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
         return (DefaultAssetMap<String, HexStyleAsset>) getAssetStore().getAssetMap();
     }
 
-    private HexStyleAsset() {
+    public HexStyleAsset() {
+    }
+
+    public static HexStyleAsset empty() {
+        return new HexStyleAsset();
     }
 
     @Override
@@ -45,28 +64,182 @@ public class HexStyleAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
         return this.id;
     }
 
-    public HexColors getColor() {
-        return this.colors;
+    public Color getPrimaryColor() {
+        return this.primaryColor;
+    }
+
+    public Color getSecondaryColor() {
+        return this.secondaryColor;
+    }
+
+    public Float getAlpha() {
+        return this.alpha;
+    }
+
+    public float getAlphaOrDefault() {
+        return this.alpha != null ? this.alpha : 1.0f;
+    }
+
+    public ModelParticle getStyleParticle() {
+        return this.styleParticle;
+    }
+
+    public ModelParticle getPrimaryParticle() {
+        return this.primaryParticle;
+    }
+
+    public ModelParticle getSecondaryParticle() {
+        return this.secondaryParticle;
+    }
+
+    public ModelParticle getTertiaryParticle() {
+        return this.tertiaryParticle;
+    }
+
+    public String getPrimarySound() {
+        return this.primarySound;
+    }
+
+    public String getSecondarySound() {
+        return this.secondarySound;
+    }
+
+    public String getTertiarySound() {
+        return this.tertiarySound;
+    }
+
+    public String getPrimaryModel() {
+        return this.primaryModel;
+    }
+
+    public void setPrimaryColor(Color color) {
+        this.primaryColor = color;
+    }
+
+    public void setSecondaryColor(Color color) {
+        this.secondaryColor = color;
+    }
+
+    public void setAlpha(Float alpha) {
+        this.alpha = alpha;
+    }
+
+    public void setStyleParticle(ModelParticle particle) {
+        this.styleParticle = particle;
+    }
+
+    public HexStyleAsset clone() {
+        HexStyleAsset copy = new HexStyleAsset();
+        copy.primaryColor = this.primaryColor != null ? this.primaryColor.clone() : null;
+        copy.secondaryColor = this.secondaryColor != null ? this.secondaryColor.clone() : null;
+        copy.alpha = this.alpha;
+        copy.styleParticle = this.styleParticle;
+        copy.primaryParticle = this.primaryParticle;
+        copy.secondaryParticle = this.secondaryParticle;
+        copy.tertiaryParticle = this.tertiaryParticle;
+        copy.primarySound = this.primarySound;
+        copy.secondarySound = this.secondarySound;
+        copy.tertiarySound = this.tertiarySound;
+        copy.primaryModel = this.primaryModel;
+        return copy;
+    }
+
+    // layers all non-null fields from other onto this (used at cast-start staff+book composition)
+    public HexStyleAsset compose(HexStyleAsset other) {
+        if (other == null) return this;
+        if (other.primaryColor != null) this.primaryColor = other.primaryColor.clone();
+        if (other.secondaryColor != null) this.secondaryColor = other.secondaryColor.clone();
+        if (other.alpha != null) this.alpha = other.alpha;
+        if (other.styleParticle != null) this.styleParticle = other.styleParticle;
+        if (other.primaryParticle != null) this.primaryParticle = other.primaryParticle;
+        if (other.secondaryParticle != null) this.secondaryParticle = other.secondaryParticle;
+        if (other.tertiaryParticle != null) this.tertiaryParticle = other.tertiaryParticle;
+        if (other.primarySound != null) this.primarySound = other.primarySound;
+        if (other.secondarySound != null) this.secondarySound = other.secondarySound;
+        if (other.tertiarySound != null) this.tertiarySound = other.tertiarySound;
+        if (other.primaryModel != null) this.primaryModel = other.primaryModel;
+        return this;
+    }
+
+    // layers only overridable fields from other onto this (used by StyleGlyph runtime override)
+    public HexStyleAsset applyOverride(HexStyleAsset other) {
+        if (other == null) return this;
+        if (other.primaryColor != null) this.primaryColor = other.primaryColor.clone();
+        if (other.secondaryColor != null) this.secondaryColor = other.secondaryColor.clone();
+        if (other.alpha != null) this.alpha = other.alpha;
+        if (other.styleParticle != null) this.styleParticle = other.styleParticle;
+        return this;
     }
 
     static {
         CODEC = AssetBuilderCodec
-                .builder(HexStyleAsset.class, HexStyleAsset::new, Codec.STRING, (asset, s) -> {
-                    asset.id = s;
-                }, (asset) -> {
-                    return asset.id;
-                }, (asset, data) -> {
-                    asset.data = data;
-                }, (asset) -> {
-                    return asset.data;
-                })
-                .appendInherited(new KeyedCodec<>("Colors", HexColors.CODEC),
-                        (a, v) -> a.colors = v,
-                        a -> a.colors,
+                .builder(HexStyleAsset.class, HexStyleAsset::new, Codec.STRING,
+                        (asset, s) -> asset.id = s,
+                        (asset) -> asset.id,
+                        (asset, data) -> asset.data = data,
+                        (asset) -> asset.data)
+                .appendInherited(new KeyedCodec<>("PrimaryColor", ProtocolCodecs.COLOR),
+                        (a, v) -> a.primaryColor = v,
+                        a -> a.primaryColor,
                         (a, p) -> {
-                            if (p.colors != null)
-                                a.colors = p.colors.clone();
+                            if (p.primaryColor != null) a.primaryColor = p.primaryColor.clone();
                         })
+                .add()
+                .appendInherited(new KeyedCodec<>("SecondaryColor", ProtocolCodecs.COLOR),
+                        (a, v) -> a.secondaryColor = v,
+                        a -> a.secondaryColor,
+                        (a, p) -> {
+                            if (p.secondaryColor != null) a.secondaryColor = p.secondaryColor.clone();
+                        })
+                .add()
+                .<Float>appendInherited(new KeyedCodec<>("Alpha", Codec.FLOAT),
+                        (a, v) -> a.alpha = v,
+                        a -> a.alpha,
+                        (a, p) -> a.alpha = p.alpha)
+                .add()
+                .appendInherited(new KeyedCodec<>("StyleParticle", ModelParticle.CODEC),
+                        (a, v) -> a.styleParticle = v,
+                        a -> a.styleParticle,
+                        (a, p) -> a.styleParticle = p.styleParticle)
+                .add()
+                .appendInherited(new KeyedCodec<>("PrimaryParticle", ModelParticle.CODEC),
+                        (a, v) -> a.primaryParticle = v,
+                        a -> a.primaryParticle,
+                        (a, p) -> a.primaryParticle = p.primaryParticle)
+                .add()
+                .appendInherited(new KeyedCodec<>("SecondaryParticle", ModelParticle.CODEC),
+                        (a, v) -> a.secondaryParticle = v,
+                        a -> a.secondaryParticle,
+                        (a, p) -> a.secondaryParticle = p.secondaryParticle)
+                .add()
+                .appendInherited(new KeyedCodec<>("TertiaryParticle", ModelParticle.CODEC),
+                        (a, v) -> a.tertiaryParticle = v,
+                        a -> a.tertiaryParticle,
+                        (a, p) -> a.tertiaryParticle = p.tertiaryParticle)
+                .add()
+                .appendInherited(new KeyedCodec<>("PrimarySound", Codec.STRING),
+                        (a, v) -> a.primarySound = v,
+                        a -> a.primarySound,
+                        (a, p) -> a.primarySound = p.primarySound)
+                .addValidatorLate(() -> SoundEvent.VALIDATOR_CACHE.getValidator().late())
+                .add()
+                .appendInherited(new KeyedCodec<>("SecondarySound", Codec.STRING),
+                        (a, v) -> a.secondarySound = v,
+                        a -> a.secondarySound,
+                        (a, p) -> a.secondarySound = p.secondarySound)
+                .addValidatorLate(() -> SoundEvent.VALIDATOR_CACHE.getValidator().late())
+                .add()
+                .appendInherited(new KeyedCodec<>("TertiarySound", Codec.STRING),
+                        (a, v) -> a.tertiarySound = v,
+                        a -> a.tertiarySound,
+                        (a, p) -> a.tertiarySound = p.tertiarySound)
+                .addValidatorLate(() -> SoundEvent.VALIDATOR_CACHE.getValidator().late())
+                .add()
+                .appendInherited(new KeyedCodec<>("PrimaryModel", Codec.STRING),
+                        (a, v) -> a.primaryModel = v,
+                        a -> a.primaryModel,
+                        (a, p) -> a.primaryModel = p.primaryModel)
+                .addValidatorLate(() -> ModelAsset.VALIDATOR_CACHE.getValidator().late())
                 .add()
                 .build();
         CHILD_ASSET_CODEC = new ContainedAssetCodec<>(HexStyleAsset.class, CODEC);

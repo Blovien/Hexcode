@@ -83,7 +83,7 @@ public class FreezeConstructHandler implements ConstructHandler<FreezeState> {
             Vector3i pos = block.getPosition();
             Vector3d blockCenter = new Vector3d(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5);
             world.setBlock(pos.x, pos.y, pos.z, block.getBlockTypeId());
-            FreezeStyle.renderMelt(blockCenter, status.getHexContext().getColors(), buffer);
+            FreezeStyle.renderMelt(blockCenter, status.getHexContext(), buffer);
         }
 
         LOGGER.atInfo().log("freeze: cleanup restored %d blocks", state.getFrozenBlocks().size());

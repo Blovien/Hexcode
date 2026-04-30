@@ -52,7 +52,7 @@ public class EnsnareConstructHandler implements ConstructHandler<NoState> {
         EnsnareComponent ensnare = ctx.getChunk().getComponent(
                 ctx.getIndex(), EnsnareComponent.getComponentType());
         if (ensnare != null) {
-            removeSpikes(ensnare, ctx.getBuffer());
+            removeSpikes(ensnare, status, ctx.getBuffer());
             LOGGER.atInfo().log("ensnare: expired after %.1fs, removed %d spikes",
                     ensnare.getDurationSeconds(), ensnare.getSpikes().size());
         }
@@ -89,7 +89,7 @@ public class EnsnareConstructHandler implements ConstructHandler<NoState> {
 
             applyDamage(buffer, targetRef, ensnare.getSpikeDamage());
             ensnare.recordDamage(targetId);
-            EnsnareStyle.renderSpikeDamage(nearestSpike.getPosition(), buffer);
+            EnsnareStyle.renderSpikeDamage(nearestSpike.getPosition(), status.getHexContext(), buffer);
 
             fireOnHit(status, targetRef, targetId);
         }
@@ -140,11 +140,11 @@ public class EnsnareConstructHandler implements ConstructHandler<NoState> {
         DamageSystems.executeDamage(targetRef, buffer, damage);
     }
 
-    private void removeSpikes(EnsnareComponent ensnare, CommandBuffer<EntityStore> buffer) {
+    private void removeSpikes(EnsnareComponent ensnare, HexStatus<NoState> status, CommandBuffer<EntityStore> buffer) {
         for (SpikeEntry spike : ensnare.getSpikes()) {
             Ref<EntityStore> spikeRef = spike.getEntityRef();
             if (spikeRef != null && spikeRef.isValid()) {
-                EnsnareStyle.renderSpikeDespawn(spike.getPosition(), buffer);
+                EnsnareStyle.renderSpikeDespawn(spike.getPosition(), status.getHexContext(), buffer);
                 Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
                 buffer.removeEntity(spikeRef, holder, RemoveReason.REMOVE);
             }

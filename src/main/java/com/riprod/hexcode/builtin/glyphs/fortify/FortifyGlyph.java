@@ -127,7 +127,7 @@ public class FortifyGlyph implements GlyphHandler {
 
         TransformComponent tc = accessor.getComponent(ref, TransformComponent.getComponentType());
         if (tc != null) {
-            FortifyStyle.renderEntityHit(tc.getPosition(), hexContext.getColors(), accessor);
+            FortifyStyle.renderEntityHit(tc.getPosition(), hexContext, accessor);
         }
 
         LOGGER.atInfo().log("fortify: applied %.2f flat reduction for %.1fs to entity",
@@ -162,7 +162,7 @@ public class FortifyGlyph implements GlyphHandler {
         bhc.damageBlock(now, world, pos, -healAmount);
 
         Vector3d blockCenter = new Vector3d(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5);
-        FortifyStyle.renderBlockHit(blockCenter, hexContext.getColors(), accessor);
+        FortifyStyle.renderBlockHit(blockCenter, hexContext, accessor);
 
         LOGGER.atInfo().log("fortify: healed block at %s by %.2f", pos, healAmount);
     }

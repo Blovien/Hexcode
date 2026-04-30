@@ -110,7 +110,7 @@ public static final String ID = "Growth";
 
         TransformComponent tc = accessor.getComponent(ref, TransformComponent.getComponentType());
         if (tc != null) {
-            GrowthStyle.renderEntityHit(tc.getPosition(), hexContext.getColors(), accessor);
+            GrowthStyle.renderEntityHit(tc.getPosition(), hexContext, accessor);
         }
 
         LOGGER.atInfo().log("growth: applied regen buff for %.1fs to entity", durationSeconds);
@@ -199,7 +199,7 @@ public static final String ID = "Growth";
         worldChunk.setTicking(pos.x, pos.y, pos.z, true);
 
         Vector3d blockCenter = new Vector3d(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5);
-        GrowthStyle.renderBlockHit(blockCenter, hexContext.getColors(), accessor);
+        GrowthStyle.renderBlockHit(blockCenter, hexContext, accessor);
 
         LOGGER.atInfo().log("growth: advanced crop at %s from stage %d to %d", pos, currentStage, newStage);
         return true;
@@ -238,7 +238,7 @@ public static final String ID = "Growth";
             world.setBlock(tx, ty + 1, tz, vegetation);
 
             Vector3d effectPos = new Vector3d(tx + 0.5, ty + 1.5, tz + 0.5);
-            GrowthStyle.renderBlockHit(effectPos, hexContext.getColors(), accessor);
+            GrowthStyle.renderBlockHit(effectPos, hexContext, accessor);
         }
 
         LOGGER.atInfo().log("growth: applied bonemeal around %s", pos);

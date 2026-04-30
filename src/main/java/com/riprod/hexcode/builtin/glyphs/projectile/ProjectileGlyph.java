@@ -98,12 +98,14 @@ public class ProjectileGlyph implements GlyphHandler {
         spawnPos.add(new Vector3d(direction).scale(1.5));
 
         double speed = HexVarUtil.numberOrDefault(speedVar, 30.0);
-        if (speed <= 0) speed = 30.0;
+        if (speed <= 0)
+            speed = 30.0;
 
         double gravity = HexVarUtil.numberOrDefault(gravityVar, 0.0);
 
         int bounces = HexVarUtil.numberOrDefault(bouncesVar, 0.0).intValue();
-        if (bounces < 0) bounces = 0;
+        if (bounces < 0)
+            bounces = 0;
 
         ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(PROJECTILE_MODEL);
         if (modelAsset == null) {
@@ -112,7 +114,8 @@ public class ProjectileGlyph implements GlyphHandler {
             return;
         }
 
-        Holder<EntityStore> holder = HexConstructSpawner.create(hexContext.getAccessor(), hexContext, glyph, ProjectileGlyph.ID, spawnPos);
+        Holder<EntityStore> holder = HexConstructSpawner.create(hexContext.getAccessor(), hexContext, glyph,
+                ProjectileGlyph.ID, spawnPos);
 
         Vector3f rotation = new Vector3f();
         rotation.setYaw((float) Math.atan2(-direction.x, direction.z));
@@ -137,7 +140,8 @@ public class ProjectileGlyph implements GlyphHandler {
         Vector3d launchVelocity = new Vector3d(direction).scale(speed);
         ProjectilePhysicsConfig physicsConfig = new ProjectilePhysicsConfig(gravity, bounces);
 
-        Ref<EntityStore> parent = sourceVar instanceof EntityVar var ? var.getRef(hexContext.getAccessor()) : hexContext.getCasterRef();
+        Ref<EntityStore> parent = sourceVar instanceof EntityVar var ? var.getRef(hexContext.getAccessor())
+                : hexContext.getCasterRef();
 
         physicsConfig.apply(holder, parent,
                 launchVelocity, hexContext.getAccessor(), false);
@@ -154,9 +158,11 @@ public class ProjectileGlyph implements GlyphHandler {
         UUIDComponent uuidComp = holder.getComponent(UUIDComponent.getComponentType());
         if (uuidComp != null) {
             hexContext.getRoot().addDependency(hexContext, projectileRef);
+            EntityVar projectileVar = new EntityVar(uuidComp.getUuid(), projectileRef);
+            glyph.writeOutput(projectileVar, hexContext);
         }
 
-        ProjectileStyle.renderLaunch(spawnPos, direction, hexContext.getColors(), hexContext.getAccessor());
+        ProjectileStyle.renderLaunch(spawnPos, direction, hexContext, hexContext.getAccessor());
     }
 
     private static Map<InteractionType, String> buildInteractionsMap() {

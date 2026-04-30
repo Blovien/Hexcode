@@ -153,7 +153,7 @@ public static final String ID = "Conjure";
 
     ConjureZoneComponent zoneComp = new ConjureZoneComponent(halfExtents, interval, durationSeconds);
 
-    Vector3f debugColor = ConjureStyle.resolveColor(hexContext.getColors());
+    Vector3f debugColor = ConjureStyle.resolveColor(hexContext);
 
     HitboxCollisionConfig collisionConfig = HitboxCollisionConfig.getAssetMap()
         .getAsset(HARD_COLLISION_ID);
@@ -195,7 +195,7 @@ public static final String ID = "Conjure";
     Ref<EntityStore> zoneRef = hexContext.getAccessor().addEntity(holder, AddReason.SPAWN);
     zoneComp.setZoneRef(zoneRef);
 
-    ConjureStyle.renderSpawn(center, hexContext.getColors(), hexContext.getAccessor());
+    ConjureStyle.renderSpawn(center, hexContext, hexContext.getAccessor());
 
     UUIDComponent zoneUuidComp = holder.getComponent(UUIDComponent.getComponentType());
     UUID zoneUuid = zoneUuidComp != null ? zoneUuidComp.getUuid() : UUID.randomUUID();

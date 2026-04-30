@@ -141,7 +141,7 @@ public class ConjureConstructHandler implements ConstructHandler<NoState> {
                 ctx.getEntityRef(), TransformComponent.getComponentType());
         if (transform != null) {
             ConjureStyle.renderDespawn(transform.getPosition(),
-                    status.getHexContext().getColors(), ctx.getBuffer());
+                    status.getHexContext(), ctx.getBuffer());
         }
         ctx.getBuffer().tryRemoveEntity(ctx.getEntityRef(), RemoveReason.REMOVE);
     }
@@ -156,7 +156,7 @@ public class ConjureConstructHandler implements ConstructHandler<NoState> {
             HexContext hexCtx = status.getHexContext();
             if (entityTransform != null) {
                 ConjureStyle.renderTrigger(entityTransform.getPosition(),
-                        hexCtx.getColors(), ctx.getBuffer());
+                        hexCtx, ctx.getBuffer());
             }
             triggering.writeDefaultOutput(
                     new EntityVar(entityUuid.getUuid(), entityRef), hexCtx);

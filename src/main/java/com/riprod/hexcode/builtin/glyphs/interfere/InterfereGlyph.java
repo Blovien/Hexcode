@@ -59,13 +59,13 @@ public class InterfereGlyph implements GlyphHandler {
         HexEffectsComponent construct = accessor.getComponent(ref, HexEffectsComponent.getComponentType());
         int stripped = stripEffects(ref, accessor);
         if (stripped > 0 && pos != null) {
-            InterfereStyle.renderStrip(pos, hexContext.getColors(), accessor);
+            InterfereStyle.renderStrip(pos, hexContext, accessor);
         }
 
         if (construct != null) {
             hijackConstruct(construct, ref, glyph, hexContext, accessor);
             if (pos != null)
-                InterfereStyle.renderHijack(pos, hexContext.getColors(), accessor);
+                InterfereStyle.renderHijack(pos, hexContext, accessor);
         }
     }
 

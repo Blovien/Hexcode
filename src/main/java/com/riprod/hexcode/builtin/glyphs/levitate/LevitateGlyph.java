@@ -118,7 +118,7 @@ public class LevitateGlyph implements GlyphHandler {
 
         TransformComponent tc = accessor.getComponent(ref, TransformComponent.getComponentType());
         if (tc != null) {
-            LevitateStyle.renderActivation(tc.getPosition(), hexContext.getColors(), accessor);
+            LevitateStyle.renderActivation(tc.getPosition(), hexContext, accessor);
         }
     }
 }
