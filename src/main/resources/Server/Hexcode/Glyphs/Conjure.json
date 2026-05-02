@@ -52,7 +52,7 @@
       "Style": "Input",
       "Label": "Duration",
       "Description": "Duration of the conjured zone in seconds",
-      "DefaultValue": 5,
+      "DefaultValue": 30,
       "Unique": true
     },
     "interval": {

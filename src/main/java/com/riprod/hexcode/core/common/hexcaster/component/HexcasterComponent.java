@@ -52,6 +52,7 @@ public class HexcasterComponent implements Component<EntityStore> {
 
     // training mode
     private String trainingShapeId = null;
+    private String trainingPackOverride = null;
 
     // Crafting Mode
     private Map<String, Float> lastTickMap = new HashMap<>();
@@ -84,6 +85,20 @@ public class HexcasterComponent implements Component<EntityStore> {
         return id;
     }
 
+    public String getTrainingPackOverride() {
+        return trainingPackOverride;
+    }
+
+    public void setTrainingPackOverride(String packName) {
+        this.trainingPackOverride = packName;
+    }
+
+    public String consumeTrainingPackOverride() {
+        String p = this.trainingPackOverride;
+        this.trainingPackOverride = null;
+        return p;
+    }
+
     public float getTickLength(String keyId) {
         return this.lastTickMap.getOrDefault(keyId, 0f);
     }
@@ -104,6 +119,7 @@ public class HexcasterComponent implements Component<EntityStore> {
         copy.trailRef = this.trailRef;
         copy.lastParticleSpawnMillis = this.lastParticleSpawnMillis;
         copy.trainingShapeId = this.trainingShapeId;
+        copy.trainingPackOverride = this.trainingPackOverride;
         copy.lastTickMap = new HashMap<>(this.lastTickMap);
         return copy;
     }
