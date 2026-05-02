@@ -44,8 +44,9 @@ public class ConjureConstructHandler implements ConstructHandler<NoState> {
         hexContext.UpdateAccessor(ctx.getBuffer());
         UUID entityId = ctx.getBuffer().getComponent(ctx.getEntityRef(), UUIDComponent.getComponentType())
                 .getUuid();
-        
-        // set the default slot to the conjured entity, so that it can be used in the next glyphs
+
+        // set the default slot to the conjured entity, so that it can be used in the
+        // next glyphs
         hexContext.setVariable(Glyph.DEFAULT_SLOT, new EntityVar(entityId, ctx.getEntityRef()));
         HexExecuter.continueExecution(Arrays.asList(links), hexContext);
     }
@@ -73,6 +74,13 @@ public class ConjureConstructHandler implements ConstructHandler<NoState> {
         }
 
         Glyph triggering = status.getTriggeringGlyph();
+
+        if (zone.getDuration() > 0) {
+            zone.addToTotallapsed(dt);
+            if (zone.getTotallapsed() >= zone.getDuration()) {
+                return true;
+            }
+        }
 
         if (triggering.getNextLinks() == null || triggering.getNextLinks().size() == 0) {
             return false;
@@ -122,13 +130,6 @@ public class ConjureConstructHandler implements ConstructHandler<NoState> {
                         continue;
                     fireOnEntity(status, ctx, zone, ref, uuid);
                 }
-            }
-        }
-
-        if (zone.getDuration() > 0) {
-            zone.addToTotallapsed(dt);
-            if (zone.getTotallapsed() >= zone.getDuration()) {
-                return true;
             }
         }
 
