@@ -20,7 +20,7 @@ public class CosGlyph implements GlyphHandler {
         if (a == null) return null;
         Double s = a.toScalar();
         if (s == null) return null;
-        return new NumberVar(Math.cos(Math.toRadians(s)));
+        return new NumberVar(Math.cos(s));
     }
 
     @Override

@@ -168,12 +168,6 @@ public class GlyphStyler {
         }
     }
 
-    /**
-     * Updates the rendered positions of the child based on the new scale
-     * 
-     * @param accessor
-     * @param hexComponent
-     */
     public static void UpdateHexTree(CommandBuffer<EntityStore> accessor, HexComponent hexComponent,
             GlyphComponent parentGlyph) {
 
@@ -190,12 +184,6 @@ public class GlyphStyler {
         UpdateGlyphTree(accessor, hexComponent, parentGlyph, new HashSet<>());
     }
 
-    /**
-     * Updates the rendered positions of the child based on the new scale
-     * 
-     * @param accessor
-     * @param hexComponent
-     */
     private static void UpdateGlyphTree(CommandBuffer<EntityStore> accessor, HexComponent hexComponent,
             GlyphComponent parentGlyph, Set<String> styledGlyphs) {
 

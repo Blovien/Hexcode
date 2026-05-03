@@ -52,8 +52,8 @@ public final class PositionVar extends HexVar {
         if (position == null) return new RotationVar(new Vector3f(0f, 0f, 0f));
         double len = position.length();
         if (len == 0) return new RotationVar(new Vector3f(0f, 0f, 0f));
-        double yaw = Math.toDegrees(Math.atan2(-position.x, position.z));
-        double pitch = Math.toDegrees(Math.asin(-position.y / len));
+        double yaw = Math.atan2(-position.x, position.z);
+        double pitch = Math.asin(-position.y / len);
         return new RotationVar(new Vector3f((float) pitch, (float) yaw, 0f));
     }
 

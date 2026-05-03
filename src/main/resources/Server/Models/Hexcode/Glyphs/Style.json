@@ -7,7 +7,7 @@
     },
     {
       "Model": "NPC/Glyphs/Models/Glyph_2.blockymodel",
-      "Texture": "NPC/Glyphs/Textures/Circle.png"
+      "Texture": "NPC/Glyphs/Textures/Square.png"
     },
     {
       "Model": "NPC/Glyphs/Models/Glyph_4.blockymodel",

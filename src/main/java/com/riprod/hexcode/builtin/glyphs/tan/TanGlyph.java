@@ -20,7 +20,7 @@ public class TanGlyph implements GlyphHandler {
         if (a == null) return null;
         Double s = a.toScalar();
         if (s == null) return null;
-        return new NumberVar(Math.tan(Math.toRadians(s)));
+        return new NumberVar(Math.tan(s));
     }
 
     @Override

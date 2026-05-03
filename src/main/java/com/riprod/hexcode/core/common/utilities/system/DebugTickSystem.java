@@ -18,8 +18,8 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.hypixel.hytale.logger.HytaleLogger;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
+import com.hypixel.hytale.logger.HytaleLogger;
 
 public class DebugTickSystem extends EntityTickingSystem<EntityStore> {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();

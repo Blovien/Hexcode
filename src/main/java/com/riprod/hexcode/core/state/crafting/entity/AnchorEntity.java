@@ -3,7 +3,6 @@ package com.riprod.hexcode.core.state.crafting.entity;
 import java.util.List;
 import java.util.Map;
 import com.hypixel.hytale.builtin.mounts.MountedComponent;
-import com.riprod.hexcode.core.state.crafting.handlers.node.Slot.SlotNodeHandler;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
@@ -11,6 +10,7 @@ import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.math.shape.Box;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
+import com.riprod.hexcode.core.state.crafting.handlers.node.Slot.SlotNodeHandler;
 import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
 
 public class AnchorEntity {

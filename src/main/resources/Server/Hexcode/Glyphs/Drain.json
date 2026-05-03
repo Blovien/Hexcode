@@ -14,7 +14,7 @@
   "Description": "Channels HP or Stamina into Mana over time. As a value, reads resource fill percentage.",
   "ModelPath": "Drain",
   "BasePower": 1.0,
-  "ManaConsumption": 12,
+  "ManaConsumption": 0,
   "ShapeStructure": [
     {
       "ShapeId": "Anticircle",
