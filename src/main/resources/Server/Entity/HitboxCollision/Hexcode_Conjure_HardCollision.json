@@ -1,3 +1,4 @@
 {
-  "CollisionType": "Soft"
+	"CollisionType": "Hard",
+	"SoftCollisionOffsetRatio": 0
 }

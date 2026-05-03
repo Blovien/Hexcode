@@ -10,9 +10,7 @@ import com.riprod.hexcode.core.common.block.component.UnbreakableBlockComponent;
 import com.riprod.hexcode.core.common.block.event.BlockBreakEvent;
 import com.riprod.hexcode.core.common.construct.system.HexConstructSystem;
 import com.riprod.hexcode.core.common.construct.system.MountOrphanReaperSystem;
-import com.riprod.hexcode.core.common.hexcaster.StaffUnequipEvent;
-import com.riprod.hexcode.core.common.hexcaster.system.HexcasterCleanupSystem;
-import com.riprod.hexcode.core.state.drawing.DrawingSlotLockEvent;
+import com.riprod.hexcode.core.common.effect.GlyphEffectSystem;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.registry.SlotStyleAsset;
@@ -24,7 +22,10 @@ import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.common.glyphs.variables.RotationVar;
 import com.riprod.hexcode.core.common.hexbook.component.HexBookAsset;
 import com.riprod.hexcode.core.common.hexbook.component.HexBookComponent;
+import com.riprod.hexcode.core.common.hexcaster.StaffUnequipEvent;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
+import com.riprod.hexcode.core.common.hexcaster.system.HexcasterCleanupSystem;
+import com.riprod.hexcode.core.common.hexes.codec.HexCacheResource;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
 import com.riprod.hexcode.core.common.hexes.saved.SavedHexAsset;
@@ -32,23 +33,23 @@ import com.riprod.hexcode.core.common.hexstaff.component.HexStaffAsset;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.system.HoverableSpatialSystem;
+import com.riprod.hexcode.core.common.imbuement.WeaponImbuementSystem;
 import com.riprod.hexcode.core.common.obelisk.component.ObeliskBlockComponent;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.common.pedestal.events.PedestalBlockEvent;
 import com.riprod.hexcode.core.common.pedestal.events.PedestalPlaceEvent;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
-import com.riprod.hexcode.core.common.effect.GlyphEffectSystem;
-import com.riprod.hexcode.core.common.imbuement.WeaponImbuementSystem;
 import com.riprod.hexcode.core.common.utilities.system.DebugTickSystem;
 import com.riprod.hexcode.core.state.casting.CastingSystem;
 import com.riprod.hexcode.core.state.casting.component.HexcasterCastingComponent;
 import com.riprod.hexcode.core.state.crafting.CraftingSystem;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
+import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
+import com.riprod.hexcode.core.state.crafting.component.SlotComponent;
 import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
 import com.riprod.hexcode.core.state.crafting.session.SessionLifecycleHandler;
 import com.riprod.hexcode.core.state.crafting.session.SessionTickSystem;
-import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
-import com.riprod.hexcode.core.state.crafting.component.SlotComponent;
+import com.riprod.hexcode.core.state.drawing.DrawingSlotLockEvent;
 import com.riprod.hexcode.core.state.drawing.DrawingSystem;
 import com.riprod.hexcode.core.state.drawing.component.HexcasterDrawingComponent;
 import com.riprod.hexcode.core.state.drawing.registry.ShapeAsset;
@@ -383,6 +384,10 @@ public class Hexcode extends JavaPlugin {
     ResourceType<EntityStore, SpatialResource<Ref<EntityStore>, EntityStore>> hoverableSpatialResourceType = entityStoreRegistry
         .registerSpatialResource(() -> new KDTree<>(Ref::isValid));
     entityStoreRegistry.registerSystem(new HoverableSpatialSystem(hoverableSpatialResourceType));
+
+    ResourceType<EntityStore, HexCacheResource> resourceType = entityStoreRegistry.registerResource(
+        HexCacheResource.class, HexCacheResource::new);
+    HexCacheResource.setResourceType(resourceType);
 
     // Startups
     this.builtinPlugin.startup();

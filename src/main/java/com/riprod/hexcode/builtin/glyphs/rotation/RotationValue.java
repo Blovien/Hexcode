@@ -116,13 +116,13 @@ public class RotationValue implements GlyphHandler {
         }
         if (speed <= 0.0001) speed = 1.0;
 
-        double yawRad = Math.toRadians(rotation.y);
-        double pitchRad = Math.toRadians(rotation.x);
-        double cosPitch = Math.cos(pitchRad);
+        double yaw = rotation.y;
+        double pitch = rotation.x;
+        double cosPitch = Math.cos(pitch);
         Vector3d newVel = new Vector3d(
-                -Math.sin(yawRad) * cosPitch * speed,
-                -Math.sin(pitchRad) * speed,
-                Math.cos(yawRad) * cosPitch * speed);
+                -Math.sin(yaw) * cosPitch * speed,
+                -Math.sin(pitch) * speed,
+                Math.cos(yaw) * cosPitch * speed);
 
         try {
             VelocityUtil.applyVelocity(ref, newVel, ChangeVelocityType.Set,

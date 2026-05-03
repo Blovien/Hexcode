@@ -393,4 +393,87 @@ public class CodecUtil {
             return null;
         }
     }
+
+    // --- v15 helpers ---
+
+    static final int V15_HASH_BITS = 16;
+
+    static int assetHashV15(String s) {
+        int h = 0x811c9dc5;
+        for (byte b : s.getBytes(StandardCharsets.UTF_8)) {
+            h ^= (b & 0xFF);
+            h *= 0x01000193;
+        }
+        return h & ((1 << V15_HASH_BITS) - 1);
+    }
+
+    static int registryFingerprint(List<String> dictionary) {
+        int h = 0x811c9dc5;
+        boolean first = true;
+        for (String s : dictionary) {
+            if (!first) {
+                h ^= ('\n' & 0xFF);
+                h *= 0x01000193;
+            }
+            for (byte b : s.getBytes(StandardCharsets.UTF_8)) {
+                h ^= (b & 0xFF);
+                h *= 0x01000193;
+            }
+            first = false;
+        }
+        return h;
+    }
+
+    static Map<Integer, List<String>> buildHashLookupV15(List<String> dictionary) {
+        Map<Integer, List<String>> lookup = new HashMap<>();
+        for (String s : dictionary) {
+            lookup.computeIfAbsent(assetHashV15(s), k -> new ArrayList<>()).add(s);
+        }
+        return lookup;
+    }
+
+    // bare-name pstr: no Glyph_/Number_ prefix optimization. names go on the
+    // wire verbatim. names must be ≤256 bytes.
+    static void writeBareString(BitWriter bw, String s) {
+        byte[] bytes = s.getBytes(StandardCharsets.UTF_8);
+        if (bytes.length > 255) {
+            throw new IllegalArgumentException("pstr exceeds 256-byte cap: " + s);
+        }
+        bw.writeVarInt(bytes.length);
+        for (byte b : bytes) bw.write(b & 0xFF, 8);
+    }
+
+    static String readBareString(BitReader br) {
+        int len = br.readVarInt();
+        if (len > 255) throw new IllegalStateException("pstr length " + len + " exceeds cap");
+        byte[] bytes = new byte[len];
+        for (int i = 0; i < len; i++) bytes[i] = (byte) br.read(8);
+        return new String(bytes, StandardCharsets.UTF_8);
+    }
+
+    // unsigned LEB128 byte-level varint, used by v15 for tlv section lengths.
+    static void writeByteVarInt(ByteArrayOutputStream out, int v) {
+        while ((v & ~0x7F) != 0) {
+            out.write((v & 0x7F) | 0x80);
+            v >>>= 7;
+        }
+        out.write(v & 0x7F);
+    }
+
+    static int[] readByteVarInt(byte[] buf, int off) {
+        int v = 0, shift = 0;
+        while (true) {
+            int b = buf[off++] & 0xFF;
+            v |= (b & 0x7F) << shift;
+            if ((b & 0x80) == 0) return new int[] { v, off };
+            shift += 7;
+            if (shift > 35) throw new IllegalStateException("varint too long");
+        }
+    }
+
+    static long crc32(byte[] data) {
+        java.util.zip.CRC32 c = new java.util.zip.CRC32();
+        c.update(data);
+        return c.getValue();
+    }
 }

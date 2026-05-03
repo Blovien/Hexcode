@@ -15,12 +15,14 @@
     "a": {
       "Style": "Input",
       "Label": "A",
-      "Description": "First operand"
+      "Description": "First operand",
+      "DefaultValue": 0
     },
     "b": {
       "Style": "Input",
       "Label": "B",
-      "Description": "Second operand"
+      "Description": "Second operand",
+      "DefaultValue": 0
     },
     "Next": {
       "Style": "Next",

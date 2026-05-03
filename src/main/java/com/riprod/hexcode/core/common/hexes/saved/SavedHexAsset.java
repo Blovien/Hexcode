@@ -10,6 +10,7 @@ import com.hypixel.hytale.assetstore.map.JsonAssetWithMap;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.validation.ValidatorCache;
+import com.riprod.hexcode.core.common.hexes.codec.HexFieldCodec;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 
 public class SavedHexAsset implements JsonAssetWithMap<String, DefaultAssetMap<String, SavedHexAsset>> {
@@ -74,7 +75,7 @@ public class SavedHexAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
                         (asset) -> asset.id,
                         (asset, d) -> asset.data = d,
                         (asset) -> asset.data)
-                .appendInherited(new KeyedCodec<>("Hex", Hex.CODEC),
+                .appendInherited(new KeyedCodec<>("Hex", HexFieldCodec.PLAYER),
                         (a, v) -> a.hex = v,
                         a -> a.hex,
                         (a, p) -> { if (p.hex != null) a.hex = p.hex.clone(); })

@@ -51,7 +51,7 @@ public class ShatterGlyph implements GlyphHandler {
     private static final String SHARD_MODEL = "Shatter";
     private static final float SHARD_SCALE = 0.35f;
     private static final int DEFAULT_COUNT = 5;
-    private static final double DEFAULT_SPREAD = 30.0;
+    private static final double DEFAULT_SPREAD = Math.PI / 6;
     private static final double DEFAULT_SPEED = 20.0;
     private static final double DEFAULT_GRAVITY = 10.0;
     private static final int MAX_COUNT = 16;
@@ -110,13 +110,12 @@ public class ShatterGlyph implements GlyphHandler {
         if (count < 1) count = 1;
         if (count > MAX_COUNT) count = MAX_COUNT;
 
-        double spreadDeg = HexVarUtil.numberOrDefault(spreadVar, DEFAULT_SPREAD);
+        double spread = HexVarUtil.numberOrDefault(spreadVar, DEFAULT_SPREAD);
         double speed = HexVarUtil.numberOrDefault(speedVar, DEFAULT_SPEED);
         if (speed <= 0) speed = DEFAULT_SPEED;
         double gravity = HexVarUtil.numberOrDefault(gravityVar, DEFAULT_GRAVITY);
 
-        double spreadRad = Math.toRadians(spreadDeg);
-        List<Vector3d> shardDirections = computeConeDirections(centralDir, count, spreadRad);
+        List<Vector3d> shardDirections = computeConeDirections(centralDir, count, spread);
 
         ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(SHARD_MODEL);
         if (modelAsset == null) {
@@ -178,7 +177,7 @@ public class ShatterGlyph implements GlyphHandler {
         hexContext.getRoot().addDependency(branched, shardRef);
     }
 
-    private List<Vector3d> computeConeDirections(Vector3d center, int count, double spreadRad) {
+    private List<Vector3d> computeConeDirections(Vector3d center, int count, double spread) {
         Vector3d forward = new Vector3d(center).normalize();
 
         Vector3d arbitrary = (Math.abs(forward.y) < 0.9)
@@ -197,8 +196,8 @@ public class ShatterGlyph implements GlyphHandler {
         directions.add(new Vector3d(forward));
 
         int ringCount = count - 1;
-        double cosSpread = Math.cos(spreadRad);
-        double sinSpread = Math.sin(spreadRad);
+        double cosSpread = Math.cos(spread);
+        double sinSpread = Math.sin(spread);
 
         for (int i = 0; i < ringCount; i++) {
             double azimuth = (2.0 * Math.PI * i) / ringCount;

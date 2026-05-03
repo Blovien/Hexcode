@@ -17,7 +17,9 @@ import com.riprod.hexcode.core.state.drawing.system.shapes.ShapeDetector;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 
 public final class StrokeCapture {
-    private static final float MIN_DEGREE_DELTA_SQ = 0.5f * 0.5f;
+    private static final float MIN_RAD_DELTA = (float) Math.toRadians(0.5);
+    private static final float MIN_RAD_DELTA_SQ = MIN_RAD_DELTA * MIN_RAD_DELTA;
+    private static final float TWO_PI = (float) (2 * Math.PI);
     private static final ShapeDetector DEFAULT_DETECTOR = new DollarOneFixedDetector();
 
     private StrokeCapture() {
@@ -27,19 +29,19 @@ public final class StrokeCapture {
         if (points == null || head == null) {
             return false;
         }
-        float yaw = (float) Math.toDegrees(head.getRotation().getYaw());
-        float pitch = (float) Math.toDegrees(head.getRotation().getPitch());
+        float yaw = head.getRotation().getYaw();
+        float pitch = head.getRotation().getPitch();
 
         if (!points.isEmpty()) {
             float lastYaw = points.getFloat(points.size() - 2);
             float lastPitch = points.getFloat(points.size() - 1);
             float dy = yaw - lastYaw;
-            if (dy > 180f) dy -= 360f;
-            else if (dy < -180f) dy += 360f;
+            if (dy > (float) Math.PI) dy -= TWO_PI;
+            else if (dy < -(float) Math.PI) dy += TWO_PI;
             yaw = lastYaw + dy;
 
             float dp = pitch - lastPitch;
-            if (dy * dy + dp * dp < MIN_DEGREE_DELTA_SQ) {
+            if (dy * dy + dp * dp < MIN_RAD_DELTA_SQ) {
                 return false;
             }
         }

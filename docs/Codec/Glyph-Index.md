@@ -351,7 +351,7 @@ Calculates the tan of A
 
 ---
 
-### \[△◯\] PI
+### \[△V\] PI
 
 Returns PI
 

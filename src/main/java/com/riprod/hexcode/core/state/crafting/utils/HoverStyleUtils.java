@@ -9,8 +9,8 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
-import com.hypixel.hytale.server.core.entity.nameplate.Nameplate;
 import com.riprod.hexcode.core.state.crafting.handlers.node.NodeRouter;
+import com.hypixel.hytale.server.core.entity.nameplate.Nameplate;
 
 public class HoverStyleUtils {
 

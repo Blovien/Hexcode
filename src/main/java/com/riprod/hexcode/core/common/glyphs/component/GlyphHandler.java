@@ -25,12 +25,6 @@ public interface GlyphHandler {
         return hexContext.getVariable(glyph.getId());
     }
 
-    /**
-     * Per-glyph mana cost for upfront consumption. Called before any glyph
-     * executes, so no slot variables are resolved yet. Default uses the
-     * asset's ManaConsumption scaled by the glyph's efficiency. Handlers
-     * with dynamic mana needs override.
-     */
     default float collectMana(Glyph glyph, GlyphAsset asset) {
         if (asset == null)
             return 0f;
