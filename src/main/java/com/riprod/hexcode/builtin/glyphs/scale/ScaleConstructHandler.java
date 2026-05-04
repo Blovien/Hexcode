@@ -4,8 +4,6 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
-import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.player.PlayerSkinComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -35,27 +33,31 @@ public class ScaleConstructHandler implements ConstructHandler<ScaleState> {
 
             CommandBuffer<EntityStore> buffer = ctx.getBuffer();
             Ref<EntityStore> targetRef = ctx.getEntityRef();
-            float magnitude = state.getAppliedMagnitude();
-            if (targetRef != null && targetRef.isValid() && magnitude != 0f) {
-                ModelComponent modelComp = buffer.getComponent(
-                        targetRef, ModelComponent.getComponentType());
-                if (modelComp != null && modelComp.getModel() != null) {
-                    String assetId = state.getModelAssetId() != null
-                            ? state.getModelAssetId()
-                            : modelComp.getModel().getModelAssetId();
-                    ModelAsset asset = assetId != null
-                            ? ModelAsset.getAssetMap().getAsset(assetId)
-                            : null;
-                    if (asset != null) {
-                        float revertedScale = modelComp.getModel().getScale() / magnitude;
-                        ScaleGlyph.applyScaledModel(buffer, targetRef, asset, revertedScale);
-                    }
-                }
 
-                PlayerSkinComponent skinComp = buffer.getComponent(
-                        targetRef, PlayerSkinComponent.getComponentType());
-                if (skinComp != null) {
-                    skinComp.setNetworkOutdated();
+            if (targetRef != null && targetRef.isValid()) {
+                ScaleStackComponent stack = buffer.getComponent(
+                        targetRef, ScaleStackComponent.getComponentType());
+                if (stack != null) {
+                    stack.remove(state.getConstructId());
+                    String baseAssetId = stack.getBaseAssetId() != null
+                            ? stack.getBaseAssetId()
+                            : state.getModelAssetId();
+
+                    if (stack.isEmpty()) {
+                        ScaleGlyph.applyAbsoluteScale(buffer, targetRef, baseAssetId, 1.0f);
+                        buffer.removeComponent(targetRef, ScaleStackComponent.getComponentType());
+                    } else {
+                        // re-put so the mutation broadcasts / persists
+                        buffer.putComponent(targetRef, ScaleStackComponent.getComponentType(), stack);
+                        float absolute = stack.productOfContributions();
+                        ScaleGlyph.applyAbsoluteScale(buffer, targetRef, baseAssetId, absolute);
+                    }
+
+                    PlayerSkinComponent skinComp = buffer.getComponent(
+                            targetRef, PlayerSkinComponent.getComponentType());
+                    if (skinComp != null) {
+                        skinComp.setNetworkOutdated();
+                    }
                 }
 
                 TransformComponent tc = buffer.getComponent(

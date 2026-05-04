@@ -8,6 +8,7 @@ import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.protocol.ChangeVelocityType;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
+import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.teleport.Teleport;
 import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
@@ -94,9 +95,16 @@ public class RotationValue implements GlyphHandler {
             if (tc == null) return;
 
             Vector3d position = tc.getPosition();
-            Vector3f headRotation = rotation.clone();
-            Vector3f bodyRotation = new Vector3f(0.0f, headRotation.getYaw(), 0.0f);
-            Teleport teleport = Teleport.createExact(position, bodyRotation, headRotation);
+            Player player = hexContext.getAccessor().getComponent(ref, Player.getComponentType());
+            Teleport teleport;
+            if (player != null) {
+                Vector3f headRotation = rotation.clone();
+                Vector3f bodyRotation = new Vector3f(0.0f, headRotation.getYaw(), 0.0f);
+                teleport = Teleport.createExact(position, bodyRotation, headRotation);
+            } else {
+                // MoveSystem ignores headRotation for non-players; pack full rotation as body
+                teleport = Teleport.createExact(position, rotation.clone());
+            }
             hexContext.getAccessor().addComponent(ref, Teleport.getComponentType(), teleport);
         } catch (Exception e) {
             LOGGER.atWarning().log("rotation glyph: could not rotate entity: %s", e.getMessage());

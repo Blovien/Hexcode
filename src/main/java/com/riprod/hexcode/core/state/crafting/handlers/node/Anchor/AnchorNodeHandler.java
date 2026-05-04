@@ -45,7 +45,6 @@ public class AnchorNodeHandler extends BaseAnchorHandler {
 
     public static final AnchorNodeHandler INSTANCE = new AnchorNodeHandler();
 
-
     public InteractionState enter(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
             Ref<EntityStore> playerRef) {
 
@@ -141,6 +140,9 @@ public class AnchorNodeHandler extends BaseAnchorHandler {
         // connections, otherwise fail due to unexpected state
         if (hexRef == null || !hexRef.isValid()) {
             if (outgoingRefs.isEmpty()) {
+                if (type != InteractionType.Ability3)
+                    return InteractionState.Finished;
+
                 return InteractionState.Finished;
             } else {
                 return InteractionState.Failed; // there should always be an outgoing ref if there is a valid hex ref

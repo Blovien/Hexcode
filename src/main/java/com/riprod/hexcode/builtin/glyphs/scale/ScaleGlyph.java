@@ -82,10 +82,9 @@ public class ScaleGlyph implements GlyphHandler {
             CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
             Ref<EntityStore> targetRef = entityVar.getRef(accessor);
             if (targetRef == null || !targetRef.isValid()) return 1.0f;
-            ModelComponent modelComp = accessor.getComponent(
-                    targetRef, ModelComponent.getComponentType());
-            if (modelComp == null || modelComp.getModel() == null) return 1.0f;
-            return modelComp.getModel().getScale();
+            ScaleStackComponent stack = accessor.getComponent(
+                    targetRef, ScaleStackComponent.getComponentType());
+            return stack != null ? stack.productOfContributions() : 1.0f;
         } catch (Exception e) {
             return 1.0f;
         }
@@ -124,19 +123,48 @@ public class ScaleGlyph implements GlyphHandler {
                         "Target has no model");
                 return;
             }
-            Model currentModel = modelComp.getModel();
-            String assetId = currentModel.getModelAssetId();
-            ModelAsset asset = assetId != null ? ModelAsset.getAssetMap().getAsset(assetId) : null;
+
+            ScaleStackComponent stack = accessor.getComponent(
+                    targetRef, ScaleStackComponent.getComponentType());
+            if (stack == null) {
+                String baseId = modelComp.getModel().getModelAssetId();
+                if (baseId == null) {
+                    HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                            "Cannot resolve target model asset");
+                    return;
+                }
+                if (Math.abs(modelComp.getModel().getScale() - 1.0f) > 1e-3f) {
+                    LOGGER.atWarning().log(
+                            "[hexcode] Scale capturing baseAssetId=%s with non-unit current scale=%s — "
+                                    + "stale state from prior cast or external remodel?",
+                            baseId, modelComp.getModel().getScale());
+                }
+                stack = new ScaleStackComponent(baseId);
+                accessor.putComponent(targetRef, ScaleStackComponent.getComponentType(), stack);
+            }
+
+            String baseAssetId = stack.getBaseAssetId();
+            ModelAsset asset = baseAssetId != null
+                    ? ModelAsset.getAssetMap().getAsset(baseAssetId)
+                    : null;
             if (asset == null) {
                 HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                        "Cannot resolve target model asset");
+                        "Cannot resolve base model asset");
                 return;
             }
 
-            float currentScale = currentModel.getScale();
-            float newScale = (float) clamp(currentScale * magnitude, MIN_MAGNITUDE, MAX_MAGNITUDE);
+            ScaleState state = new ScaleState();
+            state.setAppliedMagnitude((float) magnitude);
+            state.setRemainingSeconds(durationSeconds);
+            state.setModelAssetId(baseAssetId);
 
-            applyScaledModel(accessor, targetRef, asset, newScale);
+            stack.put(state.getConstructId(), (float) magnitude);
+            accessor.putComponent(targetRef, ScaleStackComponent.getComponentType(), stack);
+
+            float absoluteScale = (float) clamp(stack.productOfContributions(),
+                    MIN_MAGNITUDE, MAX_MAGNITUDE);
+
+            applyAbsoluteScale(accessor, targetRef, baseAssetId, absoluteScale);
 
             PlayerSkinComponent targetSkin = accessor.getComponent(
                     targetRef, PlayerSkinComponent.getComponentType());
@@ -156,8 +184,8 @@ public class ScaleGlyph implements GlyphHandler {
             Ref<EntityStore> visualRef = magnitude >= 1.0
                     ? spawnVisual(accessor, spawnPos, targetRef, hexContext)
                     : null;
+            state.setVisualRef(visualRef);
 
-            ScaleState state = new ScaleState((float) magnitude, visualRef, durationSeconds, assetId);
             HexConstructSpawner.applyWithState(
                     accessor, targetRef, hexContext, glyph, ScaleGlyph.ID, state);
 
@@ -170,26 +198,22 @@ public class ScaleGlyph implements GlyphHandler {
         }
     }
 
-    public static void applyScaledModel(CommandBuffer<EntityStore> accessor,
-            Ref<EntityStore> targetRef, ModelAsset asset, float scale) {
-        // snap near-rest scales exactly to 1.0 to avoid float drift on full revert
-        float effectiveScale = Math.abs(scale - 1.0f) < 1e-4f ? 1.0f : scale;
-        Model scaled = Model.createScaledModel(asset, effectiveScale);
-        accessor.putComponent(targetRef, ModelComponent.getComponentType(),
+    public static void applyAbsoluteScale(CommandBuffer<EntityStore> buffer,
+            Ref<EntityStore> targetRef, String baseAssetId, float scale) {
+        float effective = Math.abs(scale - 1.0f) < 1e-4f ? 1.0f : scale;
+        ModelAsset asset = baseAssetId != null
+                ? ModelAsset.getAssetMap().getAsset(baseAssetId)
+                : null;
+        if (asset == null) return;
+        // player body skin only renders via entityScale (model.scale alone leaves it at 1x);
+        // server bbox/eye/physics only react to model.scale. Both must be written together.
+        // known engine quirk: client-side hitbox prediction multiplies the two, so the
+        // displayed/predicted hitbox visualizes at S^2 while server collision stays at S.
+        Model scaled = Model.createScaledModel(asset, effective);
+        buffer.putComponent(targetRef, ModelComponent.getComponentType(),
                 new ModelComponent(scaled));
-
-        // for players the visible mesh is driven by EntityScaleComponent;
-        // keep it in lockstep with the model bake so eye-height, bbox, and visual size agree
-        EntityScaleComponent existing = accessor.getComponent(
-                targetRef, EntityScaleComponent.getComponentType());
-        if (existing != null) {
-            if (existing.getScale() != effectiveScale) {
-                existing.setScale(effectiveScale);
-            }
-        } else {
-            accessor.putComponent(targetRef, EntityScaleComponent.getComponentType(),
-                    new EntityScaleComponent(effectiveScale));
-        }
+        buffer.putComponent(targetRef, EntityScaleComponent.getComponentType(),
+                new EntityScaleComponent(effective));
     }
 
     private Ref<EntityStore> spawnVisual(CommandBuffer<EntityStore> accessor,
