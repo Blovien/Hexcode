@@ -38,7 +38,7 @@ import com.riprod.hexcode.core.state.drawing.component.HexcasterDrawingComponent
 import com.riprod.hexcode.core.state.drawing.system.GlyphCreationManager;
 import com.riprod.hexcode.core.state.drawing.system.InterfaceManager;
 import com.riprod.hexcode.core.state.drawing.system.ShapeTemplateStore;
-import com.riprod.hexcode.core.state.drawing.system.shapes.DollarOneFixedDetector;
+import com.riprod.hexcode.core.state.drawing.system.shapes.ProtractorDetector;
 import com.riprod.hexcode.core.state.drawing.system.shapes.ShapeDetector;
 import com.riprod.hexcode.core.state.drawing.utils.ShapeComparator;
 import com.riprod.hexcode.core.state.drawing.utils.StrokeCapture;
@@ -55,7 +55,7 @@ public class DrawingSystem extends HexcodeManager {
   private static final float GLYPH_DISPLAY_DISTANCE = 1.0f;
   private static final float PEDESTAL_GLYPH_PITCH = (float) (-Math.PI / 2);
 
-  private static ShapeDetector shapeDetector = new DollarOneFixedDetector();
+  private static ShapeDetector shapeDetector = new ProtractorDetector();
 
   public static ShapeDetector getShapeDetector() {
     return shapeDetector;

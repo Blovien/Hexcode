@@ -16,7 +16,7 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.asset.AssetModule;
 import com.riprod.hexcode.core.state.drawing.registry.ShapeAsset;
 import com.riprod.hexcode.core.state.drawing.registry.TemplateAsset;
-import com.riprod.hexcode.core.state.drawing.system.shapes.DollarOneFixedDetector;
+import com.riprod.hexcode.core.state.drawing.system.shapes.ProtractorDetector;
 
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 
@@ -70,7 +70,7 @@ public class ShapeTemplateStore {
                 raw[i][1] = rawAngles.getFloat(i * 2 + 1);
             }
 
-            float[][] processed = DollarOneFixedDetector.preprocess(raw);
+            float[][] processed = ProtractorDetector.preprocess(raw);
 
             float[] flat = new float[processed.length * 2];
             for (int i = 0; i < processed.length; i++) {

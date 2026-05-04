@@ -12,16 +12,13 @@ import com.riprod.hexcode.core.state.drawing.registry.TemplateAsset;
 
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 
-public class DollarOneFixedDetector implements ShapeDetector {
+public class ProtractorDetector implements ShapeDetector {
 
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     private static final int N = 64;
     private static final float SQUARE_SIZE = 250f;
     private static final float HALF_DIAGONAL = 0.5f * (float) Math.sqrt(2 * SQUARE_SIZE * SQUARE_SIZE);
-    private static final float ANGLE_RANGE = (float) Math.toRadians(15);
-    private static final float ANGLE_PRECISION = (float) Math.toRadians(2);
-    private static final float PHI = 0.5f * (-1f + (float) Math.sqrt(5));
 
     private static final Map<String, float[][]> templateCache = new ConcurrentHashMap<>();
     private static boolean initialized = false;
@@ -48,10 +45,10 @@ public class DollarOneFixedDetector implements ShapeDetector {
                 continue;
             }
 
-            float dist = distanceAtBestAngle(processed, template, -ANGLE_RANGE, ANGLE_RANGE, ANGLE_PRECISION);
+            float dist = distanceAtOptimalAngle(processed, template);
             float score = 1f - dist / HALF_DIAGONAL;
 
-            float distRev = distanceAtBestAngle(processedReversed, template, -ANGLE_RANGE, ANGLE_RANGE, ANGLE_PRECISION);
+            float distRev = distanceAtOptimalAngle(processedReversed, template);
             score = Math.max(score, 1f - distRev / HALF_DIAGONAL);
 
             score = Math.max(0f, score);
@@ -244,35 +241,17 @@ public class DollarOneFixedDetector implements ShapeDetector {
         return len;
     }
 
-    private float distanceAtBestAngle(float[][] points, float[][] template,
-            float a, float b, float threshold) {
-        float x1 = PHI * a + (1 - PHI) * b;
-        float f1 = distanceAtAngle(points, template, x1);
-        float x2 = (1 - PHI) * a + PHI * b;
-        float f2 = distanceAtAngle(points, template, x2);
-
-        while (Math.abs(b - a) > threshold) {
-            if (f1 < f2) {
-                b = x2;
-                x2 = x1;
-                f2 = f1;
-                x1 = PHI * a + (1 - PHI) * b;
-                f1 = distanceAtAngle(points, template, x1);
-            } else {
-                a = x1;
-                x1 = x2;
-                f1 = f2;
-                x2 = (1 - PHI) * a + PHI * b;
-                f2 = distanceAtAngle(points, template, x2);
-            }
+    private float distanceAtOptimalAngle(float[][] points, float[][] template) {
+        float a = 0f, b = 0f;
+        for (int i = 0; i < points.length; i++) {
+            float px = points[i][0], py = points[i][1];
+            float tx = template[i][0], ty = template[i][1];
+            a += px * tx + py * ty;
+            b += px * ty - py * tx;
         }
-
-        return Math.min(f1, f2);
-    }
-
-    private float distanceAtAngle(float[][] points, float[][] template, float angle) {
-        float[][] rotated = rotateBy(points, angle);
-        return pathDistance(rotated, template);
+        if (a == 0f && b == 0f) return HALF_DIAGONAL;
+        float theta = (float) Math.atan2(b, a);
+        return pathDistance(rotateBy(points, theta), template);
     }
 
     private float pathDistance(float[][] a, float[][] b) {
@@ -354,7 +333,7 @@ public class DollarOneFixedDetector implements ShapeDetector {
         for (int i = 0; i < names.size(); i++) indices.add(new int[] { i });
         indices.sort((a, b) -> Float.compare(scores.get(b[0]), scores.get(a[0])));
 
-        StringBuilder sb = new StringBuilder("[$1-Fixed]");
+        StringBuilder sb = new StringBuilder("[$1-Protractor]");
         for (int j = 0; j < Math.min(3, indices.size()); j++) {
             int idx = indices.get(j)[0];
             sb.append(String.format(" #%d: %s (%.4f)", j + 1, names.get(idx), scores.get(idx)));
@@ -365,7 +344,7 @@ public class DollarOneFixedDetector implements ShapeDetector {
 
     @Override
     public String getName() {
-        return "$1-Fixed";
+        return "$1-Protractor";
     }
 
     @Override
@@ -401,7 +380,7 @@ public class DollarOneFixedDetector implements ShapeDetector {
             // counts[1]++;
         });
 
-        LOGGER.atInfo().log("DollarOneFixedDetector initialized with " + templateCache.size()
+        LOGGER.atInfo().log("ProtractorDetector initialized with " + templateCache.size()
                 + " templates (" + counts[0] + " from TemplateAsset, " + counts[1] + " from PNG).");
     }
 

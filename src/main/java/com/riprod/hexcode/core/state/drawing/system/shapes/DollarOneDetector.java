@@ -33,7 +33,7 @@ public class DollarOneDetector implements ShapeDetector {
 
         float[][] input = extractPoints(points);
         float[][] processed = preprocess(input);
-        float[][] processedReversed = preprocess(DollarOneFixedDetector.reverse(input));
+        float[][] processedReversed = preprocess(ProtractorDetector.reverse(input));
 
         List<String> names = new ArrayList<>();
         List<Float> scores = new ArrayList<>();
@@ -80,7 +80,7 @@ public class DollarOneDetector implements ShapeDetector {
 
     private float[][] preprocess(float[][] points) {
         float[][] resampled = resample(points, N);
-        float[][] canonical = DollarOneFixedDetector.canonicalizeStart(resampled);
+        float[][] canonical = ProtractorDetector.canonicalizeStart(resampled);
         float angle = indicativeAngle(canonical);
         float[][] rotated = rotateBy(canonical, -angle);
         float[][] scaled = scaleTo(rotated);

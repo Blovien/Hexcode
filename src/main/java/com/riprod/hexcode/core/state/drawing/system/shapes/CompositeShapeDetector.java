@@ -23,7 +23,7 @@ public class CompositeShapeDetector implements ShapeDetector {
         this.detectors.add(new RasterShapeDetector());
         this.detectors.add(new DirectProjectionDetector());
         this.detectors.add(new DollarOneDetector());
-        this.detectors.add(new DollarOneFixedDetector());
+        this.detectors.add(new ProtractorDetector());
         this.executor = Executors.newFixedThreadPool(detectors.size());
     }
 
