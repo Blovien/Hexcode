@@ -6,15 +6,12 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.math.shape.Box;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.MountController;
-import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
-import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
 import com.hypixel.hytale.server.core.modules.entity.component.EntityScaleComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel;
@@ -32,7 +29,6 @@ import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
-import com.riprod.hexcode.utils.HexDirectionUtil;
 import com.riprod.hexcode.utils.HexVarUtil;
 
 public class ScaleGlyph implements GlyphHandler {
@@ -51,6 +47,8 @@ public class ScaleGlyph implements GlyphHandler {
     private static final double DEFAULT_DURATION = 5.0;
     private static final double MIN_DURATION = 0.1;
 
+    private static final double K_GROWTH = 0.5;
+
     private static final Vector3f MOUNT_OFFSET = new Vector3f(0f, 2.5f, 0f);
 
     @Override
@@ -59,18 +57,38 @@ public class ScaleGlyph implements GlyphHandler {
         if (tracker == null)
             return true;
         int repeatCount = tracker.getGlyphUsage(glyph.getId());
-        float cost = VolatilityTracker.computeGlyphCost(glyph, repeatCount);
-        if (cost <= 0)
+        float baseCost = VolatilityTracker.computeGlyphCost(glyph, repeatCount);
+        if (baseCost <= 0)
             return true;
 
         double magnitude = clamp(HexVarUtil.numberOrDefault(
                 glyph.readSlot(ScaleGlyphSlots.MAGNITUDE, hexContext), DEFAULT_MAGNITUDE),
                 MIN_MAGNITUDE, MAX_MAGNITUDE);
 
-        cost *= magnitude;
+        float currentScale = readCurrentScale(glyph, hexContext);
+        double resultScale = clamp(currentScale * magnitude, MIN_MAGNITUDE, MAX_MAGNITUDE);
 
-        boolean consumed = tracker.consumeVolatility(cost);
-        return consumed;
+        double factor = Math.expm1(K_GROWTH * (resultScale - 1.0));
+        float cost = (float) Math.max(baseCost, baseCost * factor);
+
+        return tracker.consumeVolatility(cost);
+    }
+
+    private float readCurrentScale(Glyph glyph, HexContext hexContext) {
+        try {
+            HexVar targets = glyph.readSlot(ScaleGlyphSlots.TARGET, hexContext);
+            EntityVar entityVar = HexVarUtil.resolveEntityVar(targets, hexContext);
+            if (entityVar == null) return 1.0f;
+            CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
+            Ref<EntityStore> targetRef = entityVar.getRef(accessor);
+            if (targetRef == null || !targetRef.isValid()) return 1.0f;
+            ModelComponent modelComp = accessor.getComponent(
+                    targetRef, ModelComponent.getComponentType());
+            if (modelComp == null || modelComp.getModel() == null) return 1.0f;
+            return modelComp.getModel().getScale();
+        } catch (Exception e) {
+            return 1.0f;
+        }
     }
 
     @Override
@@ -99,25 +117,31 @@ public class ScaleGlyph implements GlyphHandler {
                 glyph.readSlot(ScaleGlyphSlots.DURATION, hexContext), DEFAULT_DURATION));
 
         try {
-            EntityScaleComponent scaleComp = accessor.getComponent(
-                    targetRef, EntityScaleComponent.getComponentType());
-            BoundingBox box = accessor.getComponent(targetRef, BoundingBox.getComponentType());
-
-            float currentScale = scaleComp != null ? scaleComp.getScale() : 1.0f;
-            float newScale = currentScale * (float) magnitude;
-            if (scaleComp != null) {
-                scaleComp.setScale(newScale);
-            } else {
-                accessor.addComponent(targetRef, EntityScaleComponent.getComponentType(),
-                        new EntityScaleComponent(newScale));
+            ModelComponent modelComp = accessor.getComponent(
+                    targetRef, ModelComponent.getComponentType());
+            if (modelComp == null || modelComp.getModel() == null) {
+                HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                        "Target has no model");
+                return;
             }
+            Model currentModel = modelComp.getModel();
+            String assetId = currentModel.getModelAssetId();
+            ModelAsset asset = assetId != null ? ModelAsset.getAssetMap().getAsset(assetId) : null;
+            if (asset == null) {
+                HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                        "Cannot resolve target model asset");
+                return;
+            }
+
+            float currentScale = currentModel.getScale();
+            float newScale = (float) clamp(currentScale * magnitude, MIN_MAGNITUDE, MAX_MAGNITUDE);
+
+            applyScaledModel(accessor, targetRef, asset, newScale);
+
             PlayerSkinComponent targetSkin = accessor.getComponent(
                     targetRef, PlayerSkinComponent.getComponentType());
             if (targetSkin != null) {
                 targetSkin.setNetworkOutdated();
-            }
-            if (box != null) {
-                box.setBoundingBox(new Box(box.getBoundingBox()).scale((float) magnitude));
             }
 
             Vector3d spawnPos;
@@ -133,7 +157,7 @@ public class ScaleGlyph implements GlyphHandler {
                     ? spawnVisual(accessor, spawnPos, targetRef, hexContext)
                     : null;
 
-            ScaleState state = new ScaleState((float) magnitude, visualRef, durationSeconds);
+            ScaleState state = new ScaleState((float) magnitude, visualRef, durationSeconds, assetId);
             HexConstructSpawner.applyWithState(
                     accessor, targetRef, hexContext, glyph, ScaleGlyph.ID, state);
 
@@ -143,6 +167,28 @@ public class ScaleGlyph implements GlyphHandler {
         } catch (Exception e) {
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
                     "Cannot apply scale", e);
+        }
+    }
+
+    public static void applyScaledModel(CommandBuffer<EntityStore> accessor,
+            Ref<EntityStore> targetRef, ModelAsset asset, float scale) {
+        // snap near-rest scales exactly to 1.0 to avoid float drift on full revert
+        float effectiveScale = Math.abs(scale - 1.0f) < 1e-4f ? 1.0f : scale;
+        Model scaled = Model.createScaledModel(asset, effectiveScale);
+        accessor.putComponent(targetRef, ModelComponent.getComponentType(),
+                new ModelComponent(scaled));
+
+        // for players the visible mesh is driven by EntityScaleComponent;
+        // keep it in lockstep with the model bake so eye-height, bbox, and visual size agree
+        EntityScaleComponent existing = accessor.getComponent(
+                targetRef, EntityScaleComponent.getComponentType());
+        if (existing != null) {
+            if (existing.getScale() != effectiveScale) {
+                existing.setScale(effectiveScale);
+            }
+        } else {
+            accessor.putComponent(targetRef, EntityScaleComponent.getComponentType(),
+                    new EntityScaleComponent(effectiveScale));
         }
     }
 

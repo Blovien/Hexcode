@@ -12,15 +12,18 @@ public class ScaleState implements ConstructState {
     @Nullable
     private Ref<EntityStore> visualRef;
     private float remainingSeconds;
+    @Nullable
+    private String modelAssetId;
 
     public ScaleState() {
     }
 
     public ScaleState(float appliedMagnitude, @Nullable Ref<EntityStore> visualRef,
-            float remainingSeconds) {
+            float remainingSeconds, @Nullable String modelAssetId) {
         this.appliedMagnitude = appliedMagnitude;
         this.visualRef = visualRef;
         this.remainingSeconds = remainingSeconds;
+        this.modelAssetId = modelAssetId;
     }
 
     public float getAppliedMagnitude() {
@@ -30,6 +33,11 @@ public class ScaleState implements ConstructState {
     @Nullable
     public Ref<EntityStore> getVisualRef() {
         return visualRef;
+    }
+
+    @Nullable
+    public String getModelAssetId() {
+        return modelAssetId;
     }
 
     public void tick(float dt) {
@@ -42,6 +50,6 @@ public class ScaleState implements ConstructState {
 
     @Override
     public ScaleState copy() {
-        return new ScaleState(appliedMagnitude, visualRef, remainingSeconds);
+        return new ScaleState(appliedMagnitude, visualRef, remainingSeconds, modelAssetId);
     }
 }
