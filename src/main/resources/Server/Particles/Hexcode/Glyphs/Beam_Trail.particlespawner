@@ -1,0 +1,88 @@
+{
+  "RenderMode": "BlendAdd",
+  "ParticleRotationInfluence": "Billboard",
+  "LinearFiltering": true,
+  "LightInfluence": 0,
+  "MaxConcurrentParticles": 3,
+  "ParticleLifeSpan": {
+    "Min": 0.6,
+    "Max": 0.9
+  },
+  "SpawnBurst": true,
+  "TotalParticles": {
+    "Min": 5,
+    "Max": 8
+  },
+  "Particle": {
+    "Texture": "Particles/Textures/Circles/Water_Trail.png",
+    "FrameSize": {
+      "Width": 128,
+      "Height": 128
+    },
+    "ScaleRatioConstraint": "OneToOne",
+    "Animation": {
+      "0": {
+        "Opacity": 0.7,
+        "Scale": {
+          "X": {
+            "Min": 0.15,
+            "Max": 0.15
+          },
+          "Y": {
+            "Min": 0.15,
+            "Max": 0.15
+          }
+        },
+        "Rotation": {
+          "Y": {
+            "Min": 780,
+            "Max": 780
+          },
+          "Z": {
+            "Min": 780,
+            "Max": 780
+          },
+          "X": {
+            "Max": 780,
+            "Min": 780
+          }
+        }
+      },
+      "50": {
+        "Opacity": 0.192
+      },
+      "100": {
+        "Opacity": 0,
+        "Scale": {
+          "X": {
+            "Min": 0.01,
+            "Max": 0.01
+          },
+          "Y": {
+            "Min": 0.01,
+            "Max": 0.01
+          }
+        },
+        "Rotation": {
+          "X": {
+            "Min": 0,
+            "Max": 0
+          },
+          "Y": {
+            "Min": 0,
+            "Max": 0
+          },
+          "Z": {
+            "Min": 0,
+            "Max": 0
+          }
+        }
+      }
+    }
+  },
+  "InitialVelocity": {
+    "Speed": {
+      "Min": 30
+    }
+  }
+}

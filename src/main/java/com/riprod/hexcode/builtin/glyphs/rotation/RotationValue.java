@@ -8,8 +8,8 @@ import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.protocol.ChangeVelocityType;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
-import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.modules.entity.teleport.Teleport;
 import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
 import com.hypixel.hytale.server.core.modules.splitvelocity.VelocityConfig;
 import com.hypixel.hytale.server.core.universe.world.World;
@@ -91,14 +91,13 @@ public class RotationValue implements GlyphHandler {
         try {
             TransformComponent tc = hexContext.getAccessor().getComponent(ref,
                     TransformComponent.getComponentType());
-            if (tc != null) {
-                tc.teleportRotation(rotation);
-            }
-            HeadRotation hr = hexContext.getAccessor().getComponent(ref,
-                    HeadRotation.getComponentType());
-            if (hr != null) {
-                hr.teleportRotation(rotation);
-            }
+            if (tc == null) return;
+
+            Vector3d position = tc.getPosition();
+            Vector3f headRotation = rotation.clone();
+            Vector3f bodyRotation = new Vector3f(0.0f, headRotation.getYaw(), 0.0f);
+            Teleport teleport = Teleport.createExact(position, bodyRotation, headRotation);
+            hexContext.getAccessor().addComponent(ref, Teleport.getComponentType(), teleport);
         } catch (Exception e) {
             LOGGER.atWarning().log("rotation glyph: could not rotate entity: %s", e.getMessage());
         }

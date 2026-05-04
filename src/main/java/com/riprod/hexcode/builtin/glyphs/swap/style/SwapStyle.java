@@ -27,7 +27,7 @@ public class SwapStyle {
             ComponentAccessor<EntityStore> accessor) {
         HexStyleAsset overrides = ctx != null ? ctx.getStyle() : null;
         VfxUtil.spawnPrimary(overrides, asset(), posA, accessor);
-        VfxUtil.spawnPrimary(overrides, asset(), posB, accessor);
+        VfxUtil.spawnSecondary(overrides, asset(), posB, accessor);
     }
 
     public static Vector3f resolveColor(HexContext ctx) {

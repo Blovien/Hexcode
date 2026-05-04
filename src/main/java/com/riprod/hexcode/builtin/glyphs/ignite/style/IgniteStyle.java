@@ -23,5 +23,6 @@ public class IgniteStyle {
             ComponentAccessor<EntityStore> accessor) {
         HexStyleAsset overrides = ctx != null ? ctx.getStyle() : null;
         VfxUtil.spawnPrimary(overrides, asset(), pos, accessor);
+        VfxUtil.spawnSecondary(overrides, asset(), pos, accessor);
     }
 }

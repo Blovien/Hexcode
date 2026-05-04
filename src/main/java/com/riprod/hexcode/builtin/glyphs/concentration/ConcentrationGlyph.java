@@ -17,6 +17,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.GlyphFizzleEvent;
+import com.riprod.hexcode.builtin.glyphs.concentration.style.ConcentrationStyle;
 import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
@@ -33,7 +34,6 @@ public class ConcentrationGlyph implements GlyphHandler {
     }
 
     public static final String ID = "Concentration";
-    private static final String MODEL_ID = "Concentration";
     private static final float VOLATILITY_INCREASE = 0.5f;
 
     private static final Vector3f MOUNT_OFFSET = new Vector3f(0f, 1.4f, 1.2f);
@@ -60,26 +60,29 @@ public class ConcentrationGlyph implements GlyphHandler {
         TransformComponent casterTransform = accessor.getComponent(
                 casterRef, TransformComponent.getComponentType());
         Ref<EntityStore> visualRef = null;
-        
+
         // only spawn visual if caster has a transform - otherwise just don't spawn one instead of failing the glyph
         if (casterTransform != null) {
-            visualRef = spawnVisual(accessor, casterTransform, casterRef);
+            visualRef = spawnVisual(accessor, casterTransform, casterRef, hexContext);
+            ConcentrationStyle.renderSpawn(casterTransform.getPosition(), hexContext, accessor);
+        }
+
+        var tracker = hexContext.getVolatilityTracker();
+        float bonus = tracker != null ? tracker.getStartingBudget() * VOLATILITY_INCREASE : 0f;
+        if (tracker != null && bonus > 0f) {
+            tracker.addBudget(bonus);
         }
 
         ConcentrationState state = new ConcentrationState(visualRef);
+        state.setVolatilityBonus(bonus);
         HexConstructSpawner.applyWithState(
                 accessor, casterRef, hexContext, glyph, ConcentrationGlyph.ID, state);
-
-        var tracker = hexContext.getVolatilityTracker();
-
-        float budget = tracker.getRemainingBudget();
-        tracker.addBudget(budget * VOLATILITY_INCREASE);
 
         HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 
     private Ref<EntityStore> spawnVisual(CommandBuffer<EntityStore> accessor,
-            TransformComponent casterTransform, Ref<EntityStore> casterRef) {
+            TransformComponent casterTransform, Ref<EntityStore> casterRef, HexContext hexContext) {
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
         holder.addComponent(TransformComponent.getComponentType(),
                 new TransformComponent(casterTransform.getPosition(), new Vector3f()));
@@ -90,14 +93,15 @@ public class ConcentrationGlyph implements GlyphHandler {
         holder.addComponent(MountedComponent.getComponentType(),
                 new MountedComponent(casterRef, MOUNT_OFFSET, MountController.Minecart));
 
-        ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(MODEL_ID);
+        String modelId = ConcentrationStyle.resolveModelId(hexContext);
+        ModelAsset modelAsset = modelId != null ? ModelAsset.getAssetMap().getAsset(modelId) : null;
         if (modelAsset != null) {
             Model model = Model.createUnitScaleModel(modelAsset);
             holder.addComponent(ModelComponent.getComponentType(), new ModelComponent(model));
             holder.addComponent(PersistentModel.getComponentType(),
                     new PersistentModel(model.toReference()));
         } else {
-            LOGGER.atWarning().log("concentration: model asset '%s' not found", MODEL_ID);
+            LOGGER.atWarning().log("concentration: primary model '%s' not found", modelId);
         }
 
         return accessor.addEntity(holder, AddReason.SPAWN);

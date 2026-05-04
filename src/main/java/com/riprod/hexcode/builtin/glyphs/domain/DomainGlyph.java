@@ -145,7 +145,7 @@ public static final String ID = "Domain";
             glyph.writeSelfOutput(zoneEntityVar, hexContext);
         }
 
-        DomainStyle.renderSpawn(anchorPos, (float) radius, hexContext.getColors(), hexContext.getAccessor());
+        DomainStyle.renderSpawn(anchorPos, (float) radius, hexContext, hexContext.getAccessor());
 
         hexContext.getRoot().addDependency(hexContext, zoneRef);
     }

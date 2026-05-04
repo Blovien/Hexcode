@@ -7,8 +7,8 @@
   "TrailSpawnerPositionMultiplier": 1,
   "TrailSpawnerRotationMultiplier": 1,
   "ParticleLifeSpan": {
-    "Min": 10,
-    "Max": 15
+    "Min": 0,
+    "Max": 0.2
   },
   "Attractors": [
     {

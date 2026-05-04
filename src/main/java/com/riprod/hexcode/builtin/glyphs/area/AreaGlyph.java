@@ -81,6 +81,7 @@ public static final String ID = "Area";
             }
 
             for (Vector3i pos : blocks) {
+                AreaStyle.renderHit(new Vector3d(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5), hexContext, accessor);
                 HexContext copy = hexContext.branch();
                 glyph.writeOutput(new BlockVar(pos), copy);
                 HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, copy);
@@ -95,6 +96,15 @@ public static final String ID = "Area";
             }
 
             for (PersistentRef ref : entities) {
+                Ref<EntityStore> entRef = ref.getEntity(accessor);
+                if (entRef != null && entRef.isValid()) {
+                    com.hypixel.hytale.server.core.modules.entity.component.TransformComponent t =
+                            accessor.getComponent(entRef,
+                                    com.hypixel.hytale.server.core.modules.entity.component.TransformComponent.getComponentType());
+                    if (t != null) {
+                        AreaStyle.renderHit(t.getPosition(), hexContext, accessor);
+                    }
+                }
                 HexContext copy = hexContext.branch();
                 glyph.writeOutput(new EntityVar(ref), copy);
                 HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, copy);

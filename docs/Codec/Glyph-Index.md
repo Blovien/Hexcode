@@ -275,7 +275,7 @@ Branches execution based on comparison. If A is less than B, the first child exe
 
 ### \[|―\] Add
 
-Adds two values together. Works on numbers, positions, rotations. Concatenates entity and block lists. First number type is authoritative. If the first number is a Vector (rotation or position), the result will also be a Vector
+Adds two values together. Works on numbers, positions, rotations. First number type is authoritative. If the first number is a Vector (rotation or position), the result will also be a Vector
 
 ---
 

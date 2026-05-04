@@ -19,7 +19,7 @@ public class AreaStyle {
 
     private static final String GLYPH_ID = "Area";
     private static final Vector3f DEFAULT_COLOR = new Vector3f(0.3f, 0.6f, 0.9f);
-    private static final float SPHERE_DURATION = 1.0f;
+    private static final float SPHERE_DURATION = 0.5f;
 
     private AreaStyle() {
     }
@@ -44,6 +44,12 @@ public class AreaStyle {
         DebugUtils.add(world, DebugShape.Sphere, matrix, color, SPHERE_DURATION, flags);
 
         VfxUtil.spawnPrimary(overrides, asset(), center, accessor);
+    }
+
+    public static void renderHit(Vector3d pos, HexContext ctx,
+            ComponentAccessor<EntityStore> accessor) {
+        HexStyleAsset overrides = ctx != null ? ctx.getStyle() : null;
+        VfxUtil.spawnSecondary(overrides, asset(), pos, accessor);
     }
 
     private static Vector3f resolveColor(HexStyleAsset overrides) {

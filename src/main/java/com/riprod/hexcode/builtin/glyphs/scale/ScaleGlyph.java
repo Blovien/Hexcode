@@ -44,7 +44,6 @@ public class ScaleGlyph implements GlyphHandler {
     }
 
     public static final String ID = "Scale";
-    private static final String MODEL_ID = "Scale";
 
     private static final double DEFAULT_MAGNITUDE = 2.0;
     private static final double MIN_MAGNITUDE = 0.01;
@@ -130,7 +129,9 @@ public class ScaleGlyph implements GlyphHandler {
                 spawnPos = new Vector3d();
             }
 
-            Ref<EntityStore> visualRef = spawnVisual(accessor, spawnPos, targetRef);
+            Ref<EntityStore> visualRef = magnitude >= 1.0
+                    ? spawnVisual(accessor, spawnPos, targetRef, hexContext)
+                    : null;
 
             ScaleState state = new ScaleState((float) magnitude, visualRef, durationSeconds);
             HexConstructSpawner.applyWithState(
@@ -146,7 +147,7 @@ public class ScaleGlyph implements GlyphHandler {
     }
 
     private Ref<EntityStore> spawnVisual(CommandBuffer<EntityStore> accessor,
-            Vector3d spawnPos, Ref<EntityStore> targetRef) {
+            Vector3d spawnPos, Ref<EntityStore> targetRef, HexContext hexContext) {
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
         holder.addComponent(TransformComponent.getComponentType(),
                 new TransformComponent(spawnPos, new Vector3f()));
@@ -157,7 +158,8 @@ public class ScaleGlyph implements GlyphHandler {
         holder.addComponent(MountedComponent.getComponentType(),
                 new MountedComponent(targetRef, MOUNT_OFFSET, MountController.Minecart));
 
-        ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(MODEL_ID);
+        String modelId = ScaleStyle.resolveModelId(hexContext);
+        ModelAsset modelAsset = modelId != null ? ModelAsset.getAssetMap().getAsset(modelId) : null;
         if (modelAsset != null) {
             Model model = Model.createUnitScaleModel(modelAsset);
             holder.addComponent(ModelComponent.getComponentType(), new ModelComponent(model));

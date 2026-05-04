@@ -5,18 +5,18 @@ import com.hypixel.hytale.math.vector.Vector3f;
 
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.builtin.glyphs.domain.DomainGlyph;
+import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
+import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
 import com.riprod.hexcode.core.state.execution.component.HexColors;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.utils.VfxUtil;
 
 public class DomainStyle {
 
     private static final Vector3f DEFAULT_COLOR = new Vector3f(0.5f, 0.2f, 0.8f);
-    private static final String SPAWN_PARTICLE = "Conjure_Spawn";
-    private static final String SPAWN_SOUND = "SFX_Ice_Build";
     private static final String DESPAWN_PARTICLE = "Conjure_Despawn";
     private static final String DESPAWN_SOUND = "SFX_Fireball_Miss";
-    private static final String TRIGGER_PARTICLE = "Conjure_Trigger";
-    private static final String TRIGGER_SOUND = "SFX_Arrow_Frost_Hit";
     private static final String CONTESTED_PARTICLE = "Halt_Crystallize";
     private static final String CONTESTED_SOUND = "SFX_Ice_Break";
     private static final String AMBIENT_PARTICLE = "Area_Pulse";
@@ -24,14 +24,19 @@ public class DomainStyle {
     private DomainStyle() {
     }
 
+    private static GlyphAsset asset() {
+        return GlyphAsset.getAssetMap().getAsset(DomainGlyph.ID);
+    }
+
     public static Vector3f resolveColor(HexColors colors) {
         if (colors == null || colors.getPrimaryColor() == null) return DEFAULT_COLOR;
         return HexColors.toVector3f(colors.getPrimaryColor());
     }
 
-    public static void renderSpawn(Vector3d pos, float radius, HexColors colors,
+    public static void renderSpawn(Vector3d pos, float radius, HexContext ctx,
             CommandBuffer<EntityStore> accessor) {
-        VfxUtil.effect(SPAWN_PARTICLE, SPAWN_SOUND, pos, accessor);
+        HexStyleAsset overrides = ctx != null ? ctx.getStyle() : null;
+        VfxUtil.spawnPrimary(overrides, asset(), pos, accessor);
     }
 
     public static void renderDespawn(Vector3d pos, float radius, HexColors colors,
@@ -39,9 +44,10 @@ public class DomainStyle {
         VfxUtil.effect(DESPAWN_PARTICLE, DESPAWN_SOUND, pos, accessor);
     }
 
-    public static void renderTrigger(Vector3d entityPos, HexColors colors,
+    public static void renderTrigger(Vector3d entityPos, HexContext ctx,
             CommandBuffer<EntityStore> accessor) {
-        VfxUtil.effect(TRIGGER_PARTICLE, TRIGGER_SOUND, entityPos, accessor);
+        HexStyleAsset overrides = ctx != null ? ctx.getStyle() : null;
+        VfxUtil.spawnSecondary(overrides, asset(), entityPos, accessor);
     }
 
     public static void renderContested(Vector3d pos, HexColors colors,

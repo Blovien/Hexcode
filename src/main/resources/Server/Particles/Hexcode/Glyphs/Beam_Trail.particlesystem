@@ -1,0 +1,15 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "Beam_Trail",
+      "PositionOffset": {
+        "Y": 0
+      },
+      "StartDelay": 0.02
+    }
+  ],
+  "LifeSpan": 0.8,
+  "CullDistance": 100,
+  "BoundingRadius": 5.0,
+  "IsImportant": true
+}

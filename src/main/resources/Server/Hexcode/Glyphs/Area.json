@@ -4,7 +4,9 @@
     "PrimaryParticle": {
       "SystemId": "Area_Pulse"
     },
-    "PrimarySound": "SFX_Magic_Area"
+    "PrimarySound": "SFX_Skeleton_Mage_Spellbook_Impact",
+    "PrimaryColor": "#ffffff",
+    "SecondaryColor": "#ffffff"
   },
   "Title": "Area",
   "Description": "Collects all like-typed targets within a radius around a center point and executes the branch once per target",
