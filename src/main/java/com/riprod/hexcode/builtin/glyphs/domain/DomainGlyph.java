@@ -60,7 +60,7 @@ public static final String ID = "Domain";
                 HexVarUtil.numberOrDefault(
                         glyph.readSlot(DomainGlyphSlots.MAGNITUDE, hexContext), DEFAULT_RADIUS)));
         GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
-        float areaScale = computeAreaScale(radius, asset);
+        float areaScale = computeAreaScale(GlyphHandler.sphereVolume(radius), asset);
 
         int repeatCount = tracker.getGlyphUsage(glyph.getId());
         float cost = VolatilityTracker.computeGlyphCost(glyph, repeatCount) * areaScale;

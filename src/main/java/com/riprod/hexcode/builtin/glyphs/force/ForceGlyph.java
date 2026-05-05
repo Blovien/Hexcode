@@ -10,10 +10,12 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
+import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
+import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 import com.riprod.hexcode.utils.VelocityUtil;
 import com.riprod.hexcode.utils.HexDirectionUtil;
 import com.riprod.hexcode.utils.HexVarUtil;
@@ -26,6 +28,30 @@ public class ForceGlyph implements GlyphHandler {
     public String getId() {
         return ID;
     };
+
+    @Override
+    public boolean consumeVolatility(Glyph glyph, HexContext hexContext) {
+        VolatilityTracker tracker = hexContext.getVolatilityTracker();
+        if (tracker == null) return true;
+
+        HexVar dirInput = glyph.readSlot(ForceGlyphSlots.DIRECTION, hexContext);
+        HexVar magInput = glyph.readSlot(ForceGlyphSlots.MAGNITUDE, hexContext);
+        double magnitude = HexVarUtil.numberOrDefault(magInput, 20.0);
+
+        Vector3d direction = (dirInput != null)
+                ? HexDirectionUtil.resolveDirection(dirInput, null, hexContext.getAccessor())
+                : null;
+        if (direction == null) direction = new Vector3d(0, 1, 0);
+
+        double appliedMagnitude = new Vector3d(direction).scale(magnitude).length();
+
+        GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
+        float areaScale = computeAreaScale(appliedMagnitude, asset);
+
+        int repeatCount = tracker.getGlyphUsage(glyph.getId());
+        float cost = VolatilityTracker.computeGlyphCost(glyph, repeatCount) * areaScale;
+        return tracker.consumeVolatility(cost);
+    }
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {

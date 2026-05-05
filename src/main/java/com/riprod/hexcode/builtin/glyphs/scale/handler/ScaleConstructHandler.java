@@ -1,4 +1,4 @@
-package com.riprod.hexcode.builtin.glyphs.scale;
+package com.riprod.hexcode.builtin.glyphs.scale.handler;
 
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
@@ -7,6 +7,9 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.player.PlayerSkinComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.builtin.glyphs.scale.ScaleGlyph;
+import com.riprod.hexcode.builtin.glyphs.scale.components.ScaleStackComponent;
+import com.riprod.hexcode.builtin.glyphs.scale.components.ScaleState;
 import com.riprod.hexcode.builtin.glyphs.scale.style.ScaleStyle;
 import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
 import com.riprod.hexcode.core.common.construct.component.HexStatus;

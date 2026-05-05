@@ -51,8 +51,8 @@
       "K": 5.0
     },
     "AreaTax": {
-      "DefaultMagnitude": 5.0,
-      "Exponent": 2.0
+      "DefaultMagnitude": 1500.0,
+      "Exponent": 0.6667
     }
   }
 }

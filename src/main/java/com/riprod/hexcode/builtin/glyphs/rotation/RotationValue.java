@@ -8,7 +8,9 @@ import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.protocol.ChangeVelocityType;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
-import com.hypixel.hytale.server.core.entity.entities.Player;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.Rotation;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.RotationTuple;
+import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.teleport.Teleport;
 import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
@@ -94,17 +96,17 @@ public class RotationValue implements GlyphHandler {
                     TransformComponent.getComponentType());
             if (tc == null) return;
 
-            Vector3d position = tc.getPosition();
-            Player player = hexContext.getAccessor().getComponent(ref, Player.getComponentType());
-            Teleport teleport;
-            if (player != null) {
-                Vector3f headRotation = rotation.clone();
-                Vector3f bodyRotation = new Vector3f(0.0f, headRotation.getYaw(), 0.0f);
-                teleport = Teleport.createExact(position, bodyRotation, headRotation);
-            } else {
-                // MoveSystem ignores headRotation for non-players; pack full rotation as body
-                teleport = Teleport.createExact(position, rotation.clone());
+            HeadRotation hr = hexContext.getAccessor().getComponent(ref,
+                    HeadRotation.getComponentType());
+            if (hr == null) {
+                tc.setRotation(rotation);
+                return;
             }
+
+            Vector3d position = tc.getPosition();
+            Vector3f headRotation = rotation.clone();
+            Vector3f bodyRotation = new Vector3f(0.0f, headRotation.getYaw(), 0.0f);
+            Teleport teleport = Teleport.createExact(position, bodyRotation, headRotation);
             hexContext.getAccessor().addComponent(ref, Teleport.getComponentType(), teleport);
         } catch (Exception e) {
             LOGGER.atWarning().log("rotation glyph: could not rotate entity: %s", e.getMessage());
@@ -146,18 +148,21 @@ public class RotationValue implements GlyphHandler {
             if (blockId == BlockType.EMPTY_ID) return;
             BlockType blockType = BlockType.getAssetMap().getAsset(blockId);
             if (blockType == null) return;
-            int rotY = quarterTurn(rotation.y);
-            int rotP = quarterTurn(rotation.x);
-            int rotR = quarterTurn(rotation.z);
+            Rotation yaw = quarter(rotation.y);
+            Rotation pitch = quarter(rotation.x);
+            Rotation roll = quarter(rotation.z);
+            int rotationIndex = RotationTuple.index(yaw, pitch, roll);
+            // preserve block-entity state, skip particles, skip filler churn
+            int settings = 0x02 | 0x04 | 0x10;
             world.getChunk(ChunkUtil.indexChunkFromBlock(pos.x, pos.z))
-                    .setBlock(pos.x, pos.y, pos.z, blockId, blockType, rotY, rotP, rotR);
+                    .setBlock(pos.x, pos.y, pos.z, blockId, blockType, rotationIndex, 0, settings);
         } catch (Exception e) {
             LOGGER.atWarning().log("rotation glyph: could not rotate block: %s", e.getMessage());
         }
     }
 
-    private static int quarterTurn(float degrees) {
-        int steps = Math.round(degrees / 90f);
-        return ((steps % 4) + 4) % 4;
+    private static Rotation quarter(float radians) {
+        int steps = ((Math.round(radians / (float) (Math.PI / 2)) % 4) + 4) % 4;
+        return Rotation.VALUES[steps];
     }
 }

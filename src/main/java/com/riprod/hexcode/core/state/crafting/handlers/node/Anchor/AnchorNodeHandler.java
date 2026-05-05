@@ -128,36 +128,50 @@ public class AnchorNodeHandler extends BaseAnchorHandler {
     public InteractionState ability(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
             InteractionType type, Ref<EntityStore> playerRef) {
 
+        if (type != InteractionType.Ability3)
+            return InteractionState.Finished;
+
         NodeComponent nodeComp = accessor.getComponent(nodeRef, NodeComponent.getComponentType());
-        if (nodeComp == null) {
+        if (nodeComp == null)
             return InteractionState.Failed;
+
+        Ref<EntityStore> hexRef = nodeComp.getParentEntity();
+        if (hexRef == null || !hexRef.isValid())
+            return InteractionState.Finished;
+
+        HexComponent hexComp = accessor.getComponent(hexRef, HexComponent.getComponentType());
+        if (hexComp == null)
+            return InteractionState.Failed;
+
+        boolean hasConnection = hexComp.getHex().getFirstGlyphId() != null
+                || !nodeComp.getOutgoingRefs().isEmpty();
+
+        // press 1: soft clear - sever anchor link, keep glyph entities and inter-glyph
+        // links intact
+        if (hasConnection) {
+            hexComp.getHex().setFirstGlyphId(null);
+            nodeComp.getOutgoingRefs().clear();
+            return InteractionState.Finished;
         }
 
-        List<Ref<EntityStore>> outgoingRefs = nodeComp.getOutgoingRefs();
-        Ref<EntityStore> hexRef = nodeComp.getParentEntity();
-
-        // no hex ref - no connections. Just return finished if there are no outgoing
-        // connections, otherwise fail due to unexpected state
-        if (hexRef == null || !hexRef.isValid()) {
-            if (outgoingRefs.isEmpty()) {
-                if (type != InteractionType.Ability3)
-                    return InteractionState.Finished;
-
-                return InteractionState.Finished;
-            } else {
-                return InteractionState.Failed; // there should always be an outgoing ref if there is a valid hex ref
+        // press 2: hard clear - despawn every glyph entity and its slot entities
+        List<Ref<EntityStore>> children = hexComp.getChildGlyphRefsList();
+        for (Ref<EntityStore> childRef : children) {
+            if (childRef != null && childRef.isValid()) {
+                GlyphNodeHandler.INSTANCE.despawn(accessor, childRef, playerRef);
             }
         }
 
-        HexComponent hexComp = accessor.getComponent(hexRef, HexComponent.getComponentType());
-        if (hexComp == null) {
-            return InteractionState.Failed; // always a hex component on the hex ref
-        }
+        hexComp.getChildGlyphRefs().clear();
         hexComp.getHex().setFirstGlyphId(null);
 
-        // remove all outgoing refs from the node, effectively disconnecting the hex
-        // from all glyphs and making it an empty root node
-        nodeComp.getOutgoingRefs().clear();
+        HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
+                HexcasterCraftingComponent.getComponentType());
+        if (craftingComp != null) {
+            craftingComp.setDraggingRef(null);
+            craftingComp.setExpandedGlyphRef(null);
+            craftingComp.setDragTickCount(0);
+        }
 
         return InteractionState.Finished;
     }

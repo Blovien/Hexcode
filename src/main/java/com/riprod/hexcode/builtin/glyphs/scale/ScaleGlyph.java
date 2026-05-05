@@ -20,6 +20,8 @@ import com.hypixel.hytale.server.core.modules.entity.player.PlayerSkinComponent;
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.GlyphFizzleEvent;
+import com.riprod.hexcode.builtin.glyphs.scale.components.ScaleStackComponent;
+import com.riprod.hexcode.builtin.glyphs.scale.components.ScaleState;
 import com.riprod.hexcode.builtin.glyphs.scale.style.ScaleStyle;
 import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
@@ -205,10 +207,7 @@ public class ScaleGlyph implements GlyphHandler {
                 ? ModelAsset.getAssetMap().getAsset(baseAssetId)
                 : null;
         if (asset == null) return;
-        // player body skin only renders via entityScale (model.scale alone leaves it at 1x);
-        // server bbox/eye/physics only react to model.scale. Both must be written together.
-        // known engine quirk: client-side hitbox prediction multiplies the two, so the
-        // displayed/predicted hitbox visualizes at S^2 while server collision stays at S.
+        
         Model scaled = Model.createScaledModel(asset, effective);
         buffer.putComponent(targetRef, ModelComponent.getComponentType(),
                 new ModelComponent(scaled));

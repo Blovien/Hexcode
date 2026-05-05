@@ -1,6 +1,7 @@
 package com.riprod.hexcode;
 
 import com.riprod.hexcode.builtin.BuiltinPlugin;
+import com.riprod.hexcode.builtin.glyphs.scale.components.ScaleStackComponent;
 import com.riprod.hexcode.command.HexcodeCommand;
 import com.riprod.hexcode.core.common.armor.ArmorManaConfig;
 import com.riprod.hexcode.core.common.armor.ArmorManaPatcher;
@@ -38,7 +39,6 @@ import com.riprod.hexcode.core.common.obelisk.component.ObeliskBlockComponent;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.common.pedestal.events.PedestalBlockEvent;
 import com.riprod.hexcode.core.common.pedestal.events.PedestalPlaceEvent;
-import com.riprod.hexcode.builtin.glyphs.scale.ScaleStackComponent;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.common.utilities.system.DebugTickSystem;
 import com.riprod.hexcode.core.state.casting.CastingSystem;

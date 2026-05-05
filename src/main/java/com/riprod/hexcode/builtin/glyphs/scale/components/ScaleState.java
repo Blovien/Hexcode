@@ -1,4 +1,4 @@
-package com.riprod.hexcode.builtin.glyphs.scale;
+package com.riprod.hexcode.builtin.glyphs.scale.components;
 
 import java.util.UUID;
 
