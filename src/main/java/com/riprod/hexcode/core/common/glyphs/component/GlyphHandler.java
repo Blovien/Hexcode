@@ -56,16 +56,20 @@ public interface GlyphHandler {
         return null;
     }
 
-    default float computeAreaScale(double magnitude, GlyphAsset asset) {
+    default float computeAreaScale(double volume, GlyphAsset asset) {
         if (asset == null)
             return 1.0f;
         VolatilityAsset.AreaTax tax = asset.getVolatility().getAreaTax();
         if (tax == null || tax.getDefaultMagnitude() <= 0.0f)
             return 1.0f;
-        double ratio = magnitude / tax.getDefaultMagnitude();
+        double ratio = volume / tax.getDefaultMagnitude();
         if (ratio <= 1.0)
             return 1.0f;
         return (float) Math.pow(ratio, tax.getExponent());
+    }
+
+    static double sphereVolume(double radius) {
+        return (4.0 / 3.0) * Math.PI * radius * radius * radius;
     }
 
     default ConfigBinding<? extends GlyphConfig> getConfigBinding() {

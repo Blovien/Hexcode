@@ -4,16 +4,22 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.builtin.glyphs.concentration.style.ConcentrationStyle;
 import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
 import com.riprod.hexcode.core.common.construct.component.HexStatus;
 import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
+import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.HexcasterIdleComponent;
+import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 
 public class ConcentrationConstructHandler implements ConstructHandler<ConcentrationState> {
 
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+    private static final float SECONDARY_INTERVAL = 1.0f;
 
     @Override
     public boolean onTick(float dt, HexStatus<ConcentrationState> status, ConstructTickContext ctx) {
@@ -23,23 +29,74 @@ public class ConcentrationConstructHandler implements ConstructHandler<Concentra
         CommandBuffer<EntityStore> buffer = ctx.getBuffer();
         HexcasterIdleComponent execComp = buffer.getComponent(
                 casterRef, HexcasterIdleComponent.getComponentType());
-        if (execComp == null || !execComp.isHoldingPrimary()) {
+        if (execComp == null) return true;
+
+        if (!execComp.isHoldingPrimary()) {
+            fireReleaseAndKillHeld(status, buffer, casterRef);
             return true;
         }
+
+        emitSecondary(dt, status, buffer, casterRef);
+
         return !drainSustain(dt, status);
+    }
+
+    private void fireReleaseAndKillHeld(HexStatus<ConcentrationState> status,
+            CommandBuffer<EntityStore> buffer, Ref<EntityStore> casterRef) {
+        Glyph trigger = status.getTriggeringGlyph();
+        HexContext heldCtx = status.getHexContext();
+        if (trigger == null || heldCtx == null) return;
+
+        // q-cancel zeroes the held tracker; in that case skip the release branch entirely
+        VolatilityTracker heldTracker = heldCtx.getVolatilityTracker();
+        if (heldTracker != null && heldTracker.getRemainingBudget() <= 0f) return;
+
+        // strip the held-time bonus so the release branch inherits the unboosted budget
+        ConcentrationState state = status.getState();
+        float bonus = state != null ? state.getVolatilityBonus() : 0f;
+        if (heldTracker != null && bonus > 0f) {
+            float adjusted = Math.max(0f, heldTracker.getRemainingBudget() - bonus);
+            heldTracker.setBudget(adjusted);
+        }
+
+        // deep copy gives the release branch its own VolatilityTracker so zeroing the
+        // held one (to kill any sustaining children of NEXT) won't take it down too
+        HexContext releaseCtx = heldCtx.copy();
+
+        // register the release tracker so subsequent q presses can still cancel it
+        HexcasterIdleComponent idle = buffer.getComponent(
+                casterRef, HexcasterIdleComponent.getComponentType());
+        if (idle != null) {
+            idle.registerActiveTracker(releaseCtx.getVolatilityTracker());
+        }
+
+        if (heldTracker != null) heldTracker.setBudget(0f);
+
+        try {
+            HexExecuter.continueFromSlot(trigger, ConcentrationGlyphSlots.RELEASE, releaseCtx);
+        } catch (Exception e) {
+            LOGGER.atWarning().log("concentration: release fire failed: %s", e.getMessage());
+        }
+    }
+
+    private void emitSecondary(float dt, HexStatus<ConcentrationState> status,
+            CommandBuffer<EntityStore> buffer, Ref<EntityStore> casterRef) {
+        ConcentrationState state = status.getState();
+        if (state == null) return;
+
+        float accum = state.getTickAccum() + dt;
+        while (accum >= SECONDARY_INTERVAL) {
+            accum -= SECONDARY_INTERVAL;
+            TransformComponent transform = buffer.getComponent(
+                    casterRef, TransformComponent.getComponentType());
+            if (transform == null) break;
+            ConcentrationStyle.renderTick(transform.getPosition(), status.getHexContext(), buffer);
+        }
+        state.setTickAccum(accum);
     }
 
     @Override
     public void onCleanup(HexStatus<ConcentrationState> status, ConstructTickContext ctx) {
-        try {
-            if (status.getTriggeringGlyph() != null) {
-                HexExecuter.continueExecution(
-                        status.getTriggeringGlyph().getNextLinks(), status.getHexContext());
-            }
-        } catch (Exception e) {
-            LOGGER.atWarning().log("concentration: cleanup fire failed: %s", e.getMessage());
-        }
-
         ConcentrationState state = status.getState();
         if (state != null) {
             Ref<EntityStore> visualRef = state.getVisualRef();

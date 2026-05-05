@@ -117,7 +117,8 @@ public class GlyphStyler {
 
     public static void updateScale(CommandBuffer<EntityStore> accessor, Ref<EntityStore> selfRef, float newScale) {
         try {
-            if (selfRef == null || !selfRef.isValid()) return;
+            if (selfRef == null || !selfRef.isValid())
+                return;
 
             EntityScaleComponent existing = accessor.getComponent(selfRef, EntityScaleComponent.getComponentType());
             if (existing != null) {
@@ -172,8 +173,8 @@ public class GlyphStyler {
             GlyphComponent parentGlyph) {
 
         int numGlyphs = (int) hexComponent.getGlyphs().stream()
-                    .filter(glyph -> glyph != null)
-                    .count();
+                .filter(glyph -> glyph != null)
+                .count();
 
         float scaleMultiplier = 1 + (numGlyphs * SCALE_PER_GLYPH); // increase scale by 5% per glyph
 
@@ -200,7 +201,7 @@ public class GlyphStyler {
             if (children.size() == 1) {
                 scaleAmount = parentGlyph.getScale() * SCALE_SINGLE_GLYPH; // if only 1 child, make it slightly smaller
                                                                            // to avoid
-                // clipping
+                                                                           // clipping
             }
 
             for (int i = 0; i < children.size(); i++) {

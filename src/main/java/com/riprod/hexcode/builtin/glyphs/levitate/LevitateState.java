@@ -10,6 +10,7 @@ public class LevitateState implements ConstructState {
 
     private float intensity;
     private float remainingDuration;
+    private float tickAccum;
     @Nullable
     private HexColors colors;
     @Nullable
@@ -24,6 +25,14 @@ public class LevitateState implements ConstructState {
         this.remainingDuration = remainingDuration;
         this.colors = colors;
         this.originalPhysicsValues = originalPhysicsValues;
+    }
+
+    public float getTickAccum() {
+        return tickAccum;
+    }
+
+    public void setTickAccum(float tickAccum) {
+        this.tickAccum = tickAccum;
     }
 
     public float getIntensity() {
@@ -68,6 +77,8 @@ public class LevitateState implements ConstructState {
     public LevitateState copy() {
         PhysicsValues clonedPhysics = originalPhysicsValues != null
                 ? new PhysicsValues(originalPhysicsValues) : null;
-        return new LevitateState(intensity, remainingDuration, colors, clonedPhysics);
+        LevitateState c = new LevitateState(intensity, remainingDuration, colors, clonedPhysics);
+        c.tickAccum = this.tickAccum;
+        return c;
     }
 }

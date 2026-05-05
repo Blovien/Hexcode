@@ -38,7 +38,7 @@ public class SlotNodeHandler extends BaseSlotHandler {
     public static final SlotNodeHandler INSTANCE = new SlotNodeHandler();
 
     private static final double SLOT_SCALE = 0.2;
-    private static final float SLOT_RESPAWN_INTERVAL = 2.0f;
+    private static final float SLOT_RESPAWN_INTERVAL = 0.5f;
     private static final float SLOT_RADIUS = 0.6f;
 
     public void spawnSlotsForGlyph(CommandBuffer<EntityStore> accessor, Ref<EntityStore> glyphRef,

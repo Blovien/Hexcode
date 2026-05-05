@@ -20,6 +20,11 @@
       "Style": "Next",
       "Label": "Next",
       "Description": "Children sustained while concentrating"
+    },
+    "release": {
+      "Style": "Next",
+      "Label": "Release",
+      "Description": "Executes when you release concentration"
     }
   },
   "Volatility": {
@@ -29,5 +34,8 @@
       "Base": 1.0,
       "K": 10.0
     }
+  },
+  "Style": {
+    "PrimaryModel": "Concentration_Focus"
   }
 }

@@ -1,21 +1,21 @@
-package com.riprod.hexcode.builtin.glyphs.scale.style;
+package com.riprod.hexcode.builtin.glyphs.concentration.style;
 
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.builtin.glyphs.scale.ScaleGlyph;
+import com.riprod.hexcode.builtin.glyphs.concentration.ConcentrationGlyph;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.utils.VfxUtil;
 
-public class ScaleStyle {
+public class ConcentrationStyle {
 
-    private ScaleStyle() {
+    private ConcentrationStyle() {
     }
 
     private static GlyphAsset asset() {
-        return GlyphAsset.getAssetMap().getAsset(ScaleGlyph.ID);
+        return GlyphAsset.getAssetMap().getAsset(ConcentrationGlyph.ID);
     }
 
     public static String resolveModelId(HexContext ctx) {
@@ -26,15 +26,15 @@ public class ScaleStyle {
         return glyphStyle != null ? glyphStyle.getPrimaryModel() : null;
     }
 
-    public static void renderApply(Vector3d pos, HexContext ctx,
+    public static void renderSpawn(Vector3d center, HexContext ctx,
             ComponentAccessor<EntityStore> accessor) {
         HexStyleAsset overrides = ctx != null ? ctx.getStyle() : null;
-        VfxUtil.spawnPrimary(overrides, asset(), pos, accessor);
+        VfxUtil.spawnPrimary(overrides, asset(), center, accessor);
     }
 
-    public static void renderRestore(Vector3d pos, HexContext ctx,
+    public static void renderTick(Vector3d center, HexContext ctx,
             ComponentAccessor<EntityStore> accessor) {
         HexStyleAsset overrides = ctx != null ? ctx.getStyle() : null;
-        VfxUtil.spawnSecondary(overrides, asset(), pos, accessor);
+        VfxUtil.spawnSecondary(overrides, asset(), center, accessor);
     }
 }

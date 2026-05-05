@@ -49,6 +49,10 @@
     "RepeatEscalation": {
       "Base": 1.0,
       "K": 5.0
+    },
+    "AreaTax": {
+      "DefaultMagnitude": 30.0,
+      "Exponent": 1.0
     }
   }
 }

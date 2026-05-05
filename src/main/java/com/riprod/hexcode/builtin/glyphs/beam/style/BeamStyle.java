@@ -31,12 +31,13 @@ public class BeamStyle {
         return GlyphAsset.getAssetMap().getAsset(GLYPH_ID);
     }
 
-    public static void render(Vector3d origin, Vector3d endPoint, HitType hitType,
+    public static void render(Vector3d origin, Vector3d endPoint, Vector3f rotation, HitType hitType,
             HexContext ctx, ComponentAccessor<EntityStore> accessor) {
         HexStyleAsset overrides = ctx != null ? ctx.getStyle() : null;
         Vector3f beamColor = resolveColor(overrides);
 
         World world = accessor.getExternalData().getWorld();
+        VfxUtil.spawnPrimaryDirected(overrides, asset(), origin, rotation, accessor);
         VfxUtil.line(accessor, world, origin, endPoint, beamColor, LINE_THICKNESS, LINE_DURATION, DebugUtils.FLAG_FADE);
 
         if (hitType != HitType.MISS) {

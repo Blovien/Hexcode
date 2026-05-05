@@ -1,6 +1,7 @@
 package com.riprod.hexcode;
 
 import com.riprod.hexcode.builtin.BuiltinPlugin;
+import com.riprod.hexcode.builtin.glyphs.scale.components.ScaleStackComponent;
 import com.riprod.hexcode.command.HexcodeCommand;
 import com.riprod.hexcode.core.common.armor.ArmorManaConfig;
 import com.riprod.hexcode.core.common.armor.ArmorManaPatcher;
@@ -285,6 +286,11 @@ public class Hexcode extends JavaPlugin {
     ComponentType<EntityStore, DebugComponent> debugComponentType = entityStoreRegistry
         .registerComponent(DebugComponent.class, DebugComponent::new);
     DebugComponent.setComponentType(debugComponentType);
+
+    ComponentType<EntityStore, ScaleStackComponent> scaleStackComponentType = entityStoreRegistry
+        .registerComponent(ScaleStackComponent.class, "ScaleStack",
+            ScaleStackComponent.CODEC);
+    ScaleStackComponent.setComponentType(scaleStackComponentType);
 
     // Block Component Registries
     ComponentRegistryProxy<ChunkStore> chunkStoreRegistry = this.getChunkStoreRegistry();

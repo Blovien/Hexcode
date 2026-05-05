@@ -112,7 +112,7 @@ public class DomainConstructHandler implements ConstructHandler<NoState> {
                         ref, TransformComponent.getComponentType());
                 if (entityTransform != null) {
                     DomainStyle.renderTrigger(entityTransform.getPosition(),
-                            status.getHexContext().getColors(), ctx.getBuffer());
+                            status.getHexContext(), ctx.getBuffer());
                 }
 
                 final Ref<EntityStore> entityRef = ref;

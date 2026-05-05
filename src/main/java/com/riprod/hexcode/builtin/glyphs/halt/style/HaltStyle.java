@@ -27,6 +27,7 @@ public class HaltStyle {
             ComponentAccessor<EntityStore> accessor) {
         HexStyleAsset overrides = ctx != null ? ctx.getStyle() : null;
         VfxUtil.spawnPrimary(overrides, asset(), targetPos, accessor);
+        VfxUtil.spawnSecondary(overrides, asset(), targetPos, accessor);
     }
 
     public static Vector3f resolveColor(HexContext ctx) {

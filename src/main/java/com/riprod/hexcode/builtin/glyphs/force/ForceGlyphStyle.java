@@ -23,5 +23,6 @@ public class ForceGlyphStyle {
             ComponentAccessor<EntityStore> accessor) {
         HexStyleAsset overrides = ctx != null ? ctx.getStyle() : null;
         VfxUtil.spawnPrimary(overrides, asset(), targetPos, accessor);
+        VfxUtil.spawnSecondary(overrides, asset(), targetPos, accessor);
     }
 }
