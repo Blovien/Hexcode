@@ -11,7 +11,7 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.state.drawing.component.DrawnShapeComponent;
 import com.riprod.hexcode.core.state.drawing.system.InterfaceManager;
-import com.riprod.hexcode.core.state.drawing.system.shapes.DollarOneFixedDetector;
+import com.riprod.hexcode.core.state.drawing.system.shapes.ProtractorDetector;
 import com.riprod.hexcode.core.state.drawing.system.shapes.ShapeDetector;
 
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
@@ -20,7 +20,7 @@ public final class StrokeCapture {
     private static final float MIN_RAD_DELTA = (float) Math.toRadians(0.5);
     private static final float MIN_RAD_DELTA_SQ = MIN_RAD_DELTA * MIN_RAD_DELTA;
     private static final float TWO_PI = (float) (2 * Math.PI);
-    private static final ShapeDetector DEFAULT_DETECTOR = new DollarOneFixedDetector();
+    private static final ShapeDetector DEFAULT_DETECTOR = new ProtractorDetector();
 
     private StrokeCapture() {
     }
