@@ -132,8 +132,7 @@ public class DomainConstructHandler implements ConstructHandler<NoState> {
         zone.setAmbientTimer(zone.getAmbientTimer() - dt);
         if (zone.getAmbientTimer() <= 0) {
             zone.setAmbientTimer(AMBIENT_INTERVAL);
-            DomainStyle.renderAmbient(center, zone.getRadius(),
-                    status.getHexContext().getColors(), ctx.getBuffer());
+            DomainStyle.renderAmbient(center, status.getHexContext(), ctx.getBuffer());
         }
 
         return !drainSustain(dt, status);

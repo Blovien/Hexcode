@@ -69,5 +69,10 @@
       "DefaultMagnitude": 5.0,
       "Exponent": 2.0
     }
+  },
+  "Style": {
+    "PrimaryParticle": {
+      "SystemId": "Conjure_Spawn"
+    }
   }
 }

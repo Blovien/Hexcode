@@ -29,5 +29,17 @@
       "Base": 1.0,
       "K": 10.0
     }
+  },
+  "Style": {
+    "PrimaryModel": "Concentration_Focus",
+    "PrimaryParticle": {
+      "SystemId": "Halt_Crystallize"
+    },
+    "SecondaryParticle": {
+      "SystemId": "Hexcode_Drain_Channel"
+    },
+    "PrimarySound": "SFX_Portal_Neutral_Open",
+    "TertiarySound": "SFX_Concentrate_Fail",
+    "SecondarySound": "SFX_Concentrate_Duration"
   }
 }

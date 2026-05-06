@@ -4,25 +4,108 @@
   "LinearFiltering": true,
   "LightInfluence": 0,
   "MaxConcurrentParticles": 16,
-  "ParticleLifeSpan": { "Min": 0.6, "Max": 1.0 },
-  "SpawnRate": { "Min": 16, "Max": 16 },
+  "ParticleLifeSpan": {
+    "Min": 0.6,
+    "Max": 1.0
+  },
+  "SpawnRate": {
+    "Min": 16,
+    "Max": 16
+  },
   "SpawnBurst": true,
-  "TotalParticles": { "Min": 12, "Max": 16 },
-  "EmitOffset": { "X": { "Min": 0, "Max": 0.3 }, "Y": { "Min": 0, "Max": 0.3 }, "Z": { "Min": 0, "Max": 0.3 } },
-  "InitialVelocity": { "Yaw": { "Min": 0, "Max": 360 }, "Pitch": { "Min": 20, "Max": 70 }, "Speed": { "Min": 2, "Max": 5 } },
-  "Attractors": [{
-    "LinearAcceleration": { "Y": -3 },
-    "DampingMultiplier": { "X": 0.9, "Y": 0.95, "Z": 0.9 }
-  }],
+  "TotalParticles": {
+    "Min": 12,
+    "Max": 16
+  },
+  "EmitOffset": {
+    "X": {
+      "Min": 0,
+      "Max": 0.3
+    },
+    "Y": {
+      "Min": 0,
+      "Max": 0.3
+    },
+    "Z": {
+      "Min": 0,
+      "Max": 0.3
+    }
+  },
+  "InitialVelocity": {
+    "Yaw": {
+      "Min": 0,
+      "Max": 360
+    },
+    "Pitch": {
+      "Min": 20,
+      "Max": 70
+    },
+    "Speed": {
+      "Min": 2,
+      "Max": 5
+    }
+  },
+  "Attractors": [
+    {
+      "LinearAcceleration": {
+        "Y": -3
+      },
+      "DampingMultiplier": {
+        "X": 0.9,
+        "Y": 0.95,
+        "Z": 0.9
+      }
+    }
+  ],
   "Particle": {
     "Texture": "Particles/Textures/Ice/Icepart.png",
-    "FrameSize": { "Width": 32, "Height": 32 },
+    "FrameSize": {
+      "Width": 32,
+      "Height": 32
+    },
     "ScaleRatioConstraint": "OneToOne",
     "Animation": {
-      "0": { "Opacity": 1.0, "Color": "#ccbbff", "Scale": { "X": { "Min": 0.1, "Max": 0.15 }, "Y": { "Min": 0.1, "Max": 0.15 } } },
-      "30": { "Color": "#9966ff", "Scale": { "X": { "Min": 0.15, "Max": 0.2 }, "Y": { "Min": 0.15, "Max": 0.2 } } },
-      "70": { "Opacity": 0.6, "Color": "#7744cc" },
-      "100": { "Opacity": 0, "Color": "#4422aa", "Scale": { "X": { "Min": 0.08, "Max": 0.08 }, "Y": { "Min": 0.08, "Max": 0.08 } } }
+      "0": {
+        "Opacity": 1.0,
+        "Scale": {
+          "X": {
+            "Min": 0.1,
+            "Max": 0.15
+          },
+          "Y": {
+            "Min": 0.1,
+            "Max": 0.15
+          }
+        }
+      },
+      "30": {
+        "Scale": {
+          "X": {
+            "Min": 0.15,
+            "Max": 0.2
+          },
+          "Y": {
+            "Min": 0.15,
+            "Max": 0.2
+          }
+        }
+      },
+      "70": {
+        "Opacity": 0.6
+      },
+      "100": {
+        "Opacity": 0,
+        "Scale": {
+          "X": {
+            "Min": 0.08,
+            "Max": 0.08
+          },
+          "Y": {
+            "Min": 0.08,
+            "Max": 0.08
+          }
+        }
+      }
     }
   }
 }

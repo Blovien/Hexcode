@@ -11,7 +11,8 @@
     "SecondarySound": "SFX_Staff_Flame_Fireball_Impact",
     "StyleParticle": {
       "SystemId": "Projectile_Miss"
-    }
+    },
+    "PrimaryModel": "Glyph_Projectile_Flight"
   },
   "Title": "Projectile",
   "Description": "Launches a projectile that triggers child glyphs on collision",

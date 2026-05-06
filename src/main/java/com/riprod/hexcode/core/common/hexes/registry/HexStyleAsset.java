@@ -12,6 +12,7 @@ import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.validation.ValidatorCache;
 import com.hypixel.hytale.protocol.Color;
+import com.hypixel.hytale.protocol.ColorLight;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelParticle;
 import com.hypixel.hytale.server.core.asset.type.soundevent.config.SoundEvent;
@@ -66,6 +67,12 @@ public class HexStyleAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
 
     public Color getPrimaryColor() {
         return this.primaryColor;
+    }
+
+    public ColorLight getPrimaryLight() {
+        if (this.primaryColor == null) return null;
+        return new ColorLight( (byte) 8, this.primaryColor.red, this.primaryColor.green,
+            this.primaryColor.blue);
     }
 
     public Color getSecondaryColor() {

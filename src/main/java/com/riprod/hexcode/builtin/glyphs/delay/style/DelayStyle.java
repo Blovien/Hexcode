@@ -4,6 +4,7 @@ import javax.annotation.Nullable;
 
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.protocol.ColorLight;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
@@ -31,6 +32,10 @@ public class DelayStyle {
 
         HexStyleAsset overrides = hexContext.getStyle();
         VfxUtil.spawnPrimary(overrides, asset(), casterPos, hexContext.getAccessor());
+    }
+
+    public static ColorLight resolveLight(HexContext ctx) {
+        return ctx.getStyle().getPrimaryLight();
     }
 
     public static void renderExpiry(Vector3d pos, @Nullable HexColors colors,

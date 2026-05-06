@@ -1,0 +1,57 @@
+{
+  "RenderMode": "BlendAdd",
+  "ParticleRotationInfluence": "BillboardVelocity",
+  "LinearFiltering": true,
+  "LightInfluence": 0,
+  "MaxConcurrentParticles": 3,
+  "ParticleLifeSpan": {
+    "Min": 0.6,
+    "Max": 0.9
+  },
+  "SpawnBurst": true,
+  "TotalParticles": {
+    "Min": 5,
+    "Max": 8
+  },
+  "InitialVelocity": {
+    "Speed": {
+      "Min": 40
+    }
+  },
+  "Shape": "Cube",
+  "Particle": {
+    "Texture": "Particles/Textures/Rnd/Portal_Hedera2.png",
+    "FrameSize": {
+      "Width": 1024,
+      "Height": 1024
+    },
+    "Animation": {
+      "1": {
+        "Scale": {
+          "X": {
+            "Min": 1,
+            "Max": 1
+          },
+          "Y": {
+            "Min": 1,
+            "Max": 1
+          }
+        }
+      }
+    },
+    "SoftParticles": "Disable",
+    "InitialAnimationFrame": {
+      "Scale": {
+        "X": {
+          "Min": 0.05,
+          "Max": 0.05
+        },
+        "Y": {
+          "Min": 0.05,
+          "Max": 0.05
+        }
+      }
+    }
+  },
+  "IsLowRes": true
+}

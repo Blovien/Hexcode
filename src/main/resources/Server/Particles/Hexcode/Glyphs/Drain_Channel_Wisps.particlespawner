@@ -4,24 +4,84 @@
   "LinearFiltering": true,
   "LightInfluence": 0,
   "MaxConcurrentParticles": 18,
-  "ParticleLifeSpan": { "Min": 0.5, "Max": 0.8 },
-  "SpawnRate": { "Min": 10, "Max": 10 },
+  "ParticleLifeSpan": {
+    "Min": 0.5,
+    "Max": 0.8
+  },
+  "SpawnRate": {
+    "Min": 10,
+    "Max": 10
+  },
   "SpawnBurst": true,
-  "TotalParticles": { "Min": 12, "Max": 18 },
-  "EmitOffset": { "X": { "Min": 0, "Max": 0.8 }, "Z": { "Min": 0, "Max": 0.8 } },
-  "InitialVelocity": { "Yaw": { "Min": 0, "Max": 360 }, "Speed": { "Min": 0.8, "Max": 1.5 } },
-  "Attractors": [{
-    "RadialAxis": { "Y": 1 },
-    "RadialAcceleration": -4.0
-  }],
+  "TotalParticles": {
+    "Min": 12,
+    "Max": 18
+  },
+  "EmitOffset": {
+    "X": {
+      "Min": 0,
+      "Max": 0.8
+    },
+    "Z": {
+      "Min": 0,
+      "Max": 0.8
+    }
+  },
+  "InitialVelocity": {
+    "Yaw": {
+      "Min": 0,
+      "Max": 360
+    },
+    "Speed": {
+      "Min": 0.8,
+      "Max": 1.5
+    }
+  },
+  "Attractors": [
+    {
+      "RadialAxis": {
+        "Y": 1
+      },
+      "RadialAcceleration": -4.0
+    }
+  ],
   "Particle": {
     "Texture": "Particles/Textures/Basic/Glow.png",
-    "FrameSize": { "Width": 32, "Height": 32 },
+    "FrameSize": {
+      "Width": 32,
+      "Height": 32
+    },
     "ScaleRatioConstraint": "OneToOne",
     "Animation": {
-      "0": { "Opacity": 0.8, "Color": "#ffffff", "Scale": { "X": { "Min": 0.15, "Max": 0.3 }, "Y": { "Min": 0.15, "Max": 0.3 } } },
-      "50": { "Opacity": 0.5, "Color": "#ddddff" },
-      "100": { "Opacity": 0, "Color": "#ccccff", "Scale": { "X": { "Min": 0.03, "Max": 0.03 }, "Y": { "Min": 0.03, "Max": 0.03 } } }
+      "0": {
+        "Opacity": 0.8,
+        "Scale": {
+          "X": {
+            "Min": 0.15,
+            "Max": 0.3
+          },
+          "Y": {
+            "Min": 0.15,
+            "Max": 0.3
+          }
+        }
+      },
+      "50": {
+        "Opacity": 0.5
+      },
+      "100": {
+        "Opacity": 0,
+        "Scale": {
+          "X": {
+            "Min": 0.03,
+            "Max": 0.03
+          },
+          "Y": {
+            "Min": 0.03,
+            "Max": 0.03
+          }
+        }
+      }
     }
   }
 }

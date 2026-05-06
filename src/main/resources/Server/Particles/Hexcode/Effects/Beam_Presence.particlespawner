@@ -1,0 +1,90 @@
+{
+  "RenderMode": "Distortion",
+  "ParticleRotationInfluence": "BillboardVelocity",
+  "LinearFiltering": true,
+  "LightInfluence": 0,
+  "MaxConcurrentParticles": 10,
+  "ParticleLifeSpan": {
+    "Min": 20,
+    "Max": 20
+  },
+  "SpawnBurst": false,
+  "TotalParticles": {
+    "Min": 100,
+    "Max": 100
+  },
+  "Particle": {
+    "Texture": "Particles/Textures/Rnd/Beam2.png",
+    "FrameSize": {
+      "Width": 128,
+      "Height": 128
+    },
+    "ScaleRatioConstraint": "OneToOne",
+    "Animation": {
+      "0": {
+        "Opacity": 0.7,
+        "Rotation": {
+          "Y": {
+            "Min": 0,
+            "Max": 0
+          },
+          "Z": {
+            "Min": 0,
+            "Max": 0
+          },
+          "X": {
+            "Max": 0,
+            "Min": 0
+          }
+        }
+      },
+      "100": {
+        "Scale": {
+          "X": {
+            "Min": 0,
+            "Max": 0
+          },
+          "Y": {
+            "Min": 0,
+            "Max": 0
+          }
+        },
+        "Opacity": 0.7
+      }
+    },
+    "InitialAnimationFrame": {
+      "Rotation": {
+        "Z": {
+          "Max": 90
+        },
+        "Y": {
+          "Max": 90
+        },
+        "X": {
+          "Max": 90
+        }
+      }
+    },
+    "SoftParticles": "Enable"
+  },
+  "InitialVelocity": {
+    "Speed": {
+      "Min": 80,
+      "Max": 80
+    }
+  },
+  "Shape": "Cube",
+  "ParticleRotateWithSpawner": false,
+  "ParticleCollision": {
+    "BlockType": "Solid"
+  },
+  "SpawnRate": {
+    "Min": 100,
+    "Max": 100
+  },
+  "WaveDelay": {
+    "Min": 2,
+    "Max": 2
+  },
+  "UseEmitDirection": false
+}
