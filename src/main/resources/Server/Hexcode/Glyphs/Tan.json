@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
   "Title": "Tan",
-  "Description": "Tangent of A (degrees)",
+  "Description": "Tangent of A (radians)",
   "ModelPath": "Tan",
   "BasePower": 0,
   "ManaConsumption": 0,
@@ -19,7 +19,7 @@
     "a": {
       "Style": "Input",
       "Label": "A",
-      "Description": "Angle in degrees",
+      "Description": "Angle in radians",
       "DefaultValue": 0
     },
     "Next": {

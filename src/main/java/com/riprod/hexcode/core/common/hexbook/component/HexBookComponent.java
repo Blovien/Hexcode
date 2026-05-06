@@ -10,6 +10,7 @@ import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.protocol.Color;
 import com.hypixel.hytale.server.core.codec.ProtocolCodecs;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.common.hexes.codec.HexFieldCodec;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 
 import javax.annotation.Nonnull;
@@ -24,7 +25,7 @@ public class HexBookComponent implements Component<EntityStore> {
 
     public static final BuilderCodec<HexBookComponent> CODEC = BuilderCodec
             .builder(HexBookComponent.class, HexBookComponent::new)
-            .append(new KeyedCodec<>("Hexes", new ArrayCodec<>(Hex.CODEC, Hex[]::new)),
+            .append(new KeyedCodec<>("Hexes", new ArrayCodec<>(HexFieldCodec.PLAYER, Hex[]::new)),
                     (c, v) -> {
                         if (v != null) {
                             c.hexes = new ArrayList<>(Arrays.asList(v));
@@ -32,7 +33,12 @@ public class HexBookComponent implements Component<EntityStore> {
                             c.hexes = new ArrayList<>();
                         }
                     },
-                    c -> c.hexes.toArray(Hex[]::new))
+                    // empty / null hexes (unfilled or scrubbed pages) are dropped
+                    // on save — the codec only persists pages with content. Page
+                    // ordering compacts as a side-effect.
+                    c -> c.hexes.stream()
+                            .filter(h -> h != null && !h.getGlyphs().isEmpty())
+                            .toArray(Hex[]::new))
             .add()
             .append(new KeyedCodec<>("MaxCapacity", Codec.INTEGER),
                     (c, v) -> c.maxCapacity = v,

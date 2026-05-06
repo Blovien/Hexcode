@@ -20,29 +20,29 @@ import com.hypixel.hytale.server.core.modules.time.TimeResource;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.GlyphDrawnEvent;
 import com.riprod.hexcode.api.event.GlyphFizzleEvent;
-import com.riprod.hexcode.core.common.obelisk.system.ObeliskDispatcher;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
-import com.riprod.hexcode.core.common.pedestal.utils.PedestalBlockUtil;
+import com.riprod.hexcode.core.common.obelisk.system.ObeliskDispatcher;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.common.pedestal.utils.PedestalBlockUtil;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
-import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
-import com.riprod.hexcode.core.state.crafting.session.SessionUtils;
 import com.riprod.hexcode.core.state.crafting.entity.PedestalEntity;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Glyph.GlyphNodeHandler;
-import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
+import com.riprod.hexcode.core.state.crafting.session.SessionUtils;
 import com.riprod.hexcode.core.state.drawing.component.DrawnShapeComponent;
 import com.riprod.hexcode.core.state.drawing.component.HexcasterDrawingComponent;
-import com.riprod.hexcode.core.state.drawing.registry.ShapeTemplateStore;
 import com.riprod.hexcode.core.state.drawing.system.GlyphCreationManager;
 import com.riprod.hexcode.core.state.drawing.system.InterfaceManager;
+import com.riprod.hexcode.core.state.drawing.system.ShapeTemplateStore;
 import com.riprod.hexcode.core.state.drawing.system.shapes.DollarOneFixedDetector;
 import com.riprod.hexcode.core.state.drawing.system.shapes.ShapeDetector;
 import com.riprod.hexcode.core.state.drawing.utils.ShapeComparator;
 import com.riprod.hexcode.core.state.drawing.utils.StrokeCapture;
+import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
 import com.riprod.hexcode.utils.VfxUtil;
@@ -220,9 +220,15 @@ public class DrawingSystem extends HexcodeManager {
 
     String trainingId = comp.consumeTrainingShapeId();
     if (trainingId != null) {
-      ShapeTemplateStore.saveTemplate(trainingId, points);
-      shapeDetector.clearCache();
-      LOGGER.atInfo().log("recorded training template for '%s' (%d points)", trainingId, points.size() / 2);
+      String overridePack = comp.consumeTrainingPackOverride();
+      ShapeTemplateStore.Result result = ShapeTemplateStore.saveTemplate(trainingId, points, overridePack);
+      if (result.success) {
+        shapeDetector.clearCache();
+        LOGGER.atInfo().log("recorded training template for '%s' (%d points) into pack '%s'",
+            trainingId, points.size() / 2, result.packName);
+      } else {
+        LOGGER.atWarning().log("training template for '%s' failed: %s", trainingId, result.error);
+      }
       InterfaceManager.removeTrails(accessor, ref);
       drawingComp.clearStrokes();
       return InteractionState.Finished;

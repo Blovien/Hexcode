@@ -456,11 +456,6 @@ public class HexCodecV14 {
         }
     }
 
-    /**
-     * Reads the encoded links for a slot. At this stage we don't know the
-     * placeholder ids of the target glyphs yet, so we store each target as a
-     * numeric-string index (e.g. "3") and rewrite them in a second pass.
-     */
     private static String[] readLinkPlaceholders(BitReader br, int refBits) {
         if (br.read(1) == 0) return new String[0];
         boolean multi = br.read(1) == 1;

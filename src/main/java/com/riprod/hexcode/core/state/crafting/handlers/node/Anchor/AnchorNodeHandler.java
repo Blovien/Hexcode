@@ -18,6 +18,8 @@ import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.hypixel.hytale.math.vector.Transform;
+import com.hypixel.hytale.server.core.util.TargetUtil;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
@@ -27,14 +29,12 @@ import com.riprod.hexcode.core.common.hover.component.HoverableType;
 import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
-import com.hypixel.hytale.math.vector.Transform;
-import com.hypixel.hytale.server.core.util.TargetUtil;
-import com.riprod.hexcode.core.state.crafting.utils.LinkRenderer;
 import com.riprod.hexcode.core.state.crafting.component.NodeComponent;
 import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 import com.riprod.hexcode.core.state.crafting.constants.NodeTypeId;
-import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Glyph.GlyphNodeHandler;
+import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
+import com.riprod.hexcode.core.state.crafting.utils.LinkRenderer;
 
 /**
  * ParentRef = Root hex ref
@@ -44,7 +44,6 @@ public class AnchorNodeHandler extends BaseAnchorHandler {
     private static final double ROOT_NODE_SCALE = 0.2;
 
     public static final AnchorNodeHandler INSTANCE = new AnchorNodeHandler();
-
 
     public InteractionState enter(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
             Ref<EntityStore> playerRef) {
@@ -129,33 +128,50 @@ public class AnchorNodeHandler extends BaseAnchorHandler {
     public InteractionState ability(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef,
             InteractionType type, Ref<EntityStore> playerRef) {
 
+        if (type != InteractionType.Ability3)
+            return InteractionState.Finished;
+
         NodeComponent nodeComp = accessor.getComponent(nodeRef, NodeComponent.getComponentType());
-        if (nodeComp == null) {
+        if (nodeComp == null)
             return InteractionState.Failed;
+
+        Ref<EntityStore> hexRef = nodeComp.getParentEntity();
+        if (hexRef == null || !hexRef.isValid())
+            return InteractionState.Finished;
+
+        HexComponent hexComp = accessor.getComponent(hexRef, HexComponent.getComponentType());
+        if (hexComp == null)
+            return InteractionState.Failed;
+
+        boolean hasConnection = hexComp.getHex().getFirstGlyphId() != null
+                || !nodeComp.getOutgoingRefs().isEmpty();
+
+        // press 1: soft clear - sever anchor link, keep glyph entities and inter-glyph
+        // links intact
+        if (hasConnection) {
+            hexComp.getHex().setFirstGlyphId(null);
+            nodeComp.getOutgoingRefs().clear();
+            return InteractionState.Finished;
         }
 
-        List<Ref<EntityStore>> outgoingRefs = nodeComp.getOutgoingRefs();
-        Ref<EntityStore> hexRef = nodeComp.getParentEntity();
-
-        // no hex ref - no connections. Just return finished if there are no outgoing
-        // connections, otherwise fail due to unexpected state
-        if (hexRef == null || !hexRef.isValid()) {
-            if (outgoingRefs.isEmpty()) {
-                return InteractionState.Finished;
-            } else {
-                return InteractionState.Failed; // there should always be an outgoing ref if there is a valid hex ref
+        // press 2: hard clear - despawn every glyph entity and its slot entities
+        List<Ref<EntityStore>> children = hexComp.getChildGlyphRefsList();
+        for (Ref<EntityStore> childRef : children) {
+            if (childRef != null && childRef.isValid()) {
+                GlyphNodeHandler.INSTANCE.despawn(accessor, childRef, playerRef);
             }
         }
 
-        HexComponent hexComp = accessor.getComponent(hexRef, HexComponent.getComponentType());
-        if (hexComp == null) {
-            return InteractionState.Failed; // always a hex component on the hex ref
-        }
+        hexComp.getChildGlyphRefs().clear();
         hexComp.getHex().setFirstGlyphId(null);
 
-        // remove all outgoing refs from the node, effectively disconnecting the hex
-        // from all glyphs and making it an empty root node
-        nodeComp.getOutgoingRefs().clear();
+        HexcasterCraftingComponent craftingComp = accessor.getComponent(playerRef,
+                HexcasterCraftingComponent.getComponentType());
+        if (craftingComp != null) {
+            craftingComp.setDraggingRef(null);
+            craftingComp.setExpandedGlyphRef(null);
+            craftingComp.setDragTickCount(0);
+        }
 
         return InteractionState.Finished;
     }

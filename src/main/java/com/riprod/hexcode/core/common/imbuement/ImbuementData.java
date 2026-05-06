@@ -5,6 +5,8 @@ import javax.annotation.Nullable;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
+import com.riprod.hexcode.core.common.hexes.codec.HexCacheResource;
+import com.riprod.hexcode.core.common.hexes.codec.HexCodec;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.saved.SavedHexAsset;
 import com.riprod.hexcode.core.state.execution.component.HexColors;
@@ -69,6 +71,25 @@ public class ImbuementData {
 
     public void setHex(@Nullable Hex hex) {
         this.hex = hex;
+    }
+
+    public void setHexFromValue(@Nullable Hex hex) {
+        if (hex == null) {
+            this.hexCompressedId = null;
+            this.hex = null;
+        } else {
+            this.hexCompressedId = HexCodec.serializeImbue(hex);
+            this.hex = null;
+        }
+    }
+
+    @Nullable
+    public Hex resolveHex(HexCacheResource cache) {
+        if (hexCompressedId != null) {
+            Hex resolved = cache.getOrDecode(hexCompressedId);
+            if (resolved != null) return resolved;
+        }
+        return hex;
     }
 
     @Nullable

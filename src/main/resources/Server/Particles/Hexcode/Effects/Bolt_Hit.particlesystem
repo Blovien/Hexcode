@@ -1,0 +1,13 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "Bolt_Hit",
+      "StartDelay": 0
+    },
+    {
+      "SpawnerId": "Bolt_Burst"
+    }
+  ],
+  "LifeSpan": 3.0,
+  "CullDistance": 50
+}

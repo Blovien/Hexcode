@@ -5,7 +5,6 @@ import java.util.List;
 
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
@@ -29,8 +28,6 @@ import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 import com.riprod.hexcode.utils.HexVarUtil;
 
 public class ResonateGlyph implements GlyphHandler {
-    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
-
     public static final String ID = "Resonate";
 
     @Override
@@ -87,12 +84,10 @@ public class ResonateGlyph implements GlyphHandler {
                     ConstructSplicer.ChainMode.APPEND_TAIL,
                     ConstructSplicer.VariablePolicy.PREFER_TARGET,
                     donation);
-
-            transferManaToRoot(glyph, hexContext, target.getHexContext().getRoot(), accessor);
         }
 
         if (tracker != null && donation > 0f) {
-            tracker.consumeVolatility(donation);
+            tracker.setBudget(0f);
         }
 
         Vector3d pos = resolvePosition(ref, accessor);
@@ -139,25 +134,6 @@ public class ResonateGlyph implements GlyphHandler {
 
         Vector3d pos = resolvePosition(ref, accessor);
         if (pos != null) ResonateStyle.renderResonate(pos, hexContext, accessor);
-    }
-
-    private void transferManaToRoot(Glyph glyph, HexContext hexContext,
-            HexRoot targetRoot, CommandBuffer<EntityStore> accessor) {
-
-        HexVar manaVar = glyph.readSlot(ResonateGlyphSlots.MANA, hexContext);
-        double percentage = HexVarUtil.numberOrDefault(manaVar, 0.0);
-        if (percentage <= 0) return;
-        percentage = Math.min(percentage, 100.0);
-
-        HexRoot casterRoot = hexContext.getRoot();
-        float casterMana = casterRoot.getCurrentMana(accessor);
-        float transferAmount = (float) (casterMana * (percentage / 100.0));
-        if (transferAmount <= 0) return;
-
-        if (!casterRoot.tryConsumeMana(transferAmount, accessor)) return;
-        targetRoot.addMana(transferAmount, accessor);
-
-        LOGGER.atInfo().log("resonate: transferred %.1f mana to construct owner", transferAmount);
     }
 
     private Vector3d resolvePosition(Ref<EntityStore> ref, CommandBuffer<EntityStore> accessor) {

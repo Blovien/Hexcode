@@ -20,6 +20,11 @@
       "Style": "Next",
       "Label": "Next",
       "Description": "Children sustained while concentrating"
+    },
+    "release": {
+      "Style": "Next",
+      "Label": "Release",
+      "Description": "Executes when you release concentration"
     }
   },
   "Volatility": {

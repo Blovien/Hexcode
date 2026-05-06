@@ -132,7 +132,7 @@ public static final String ID = "Ensnare";
 
                 Vector3d spikePos = new Vector3d(worldX + 0.5, groundY + 1.0, worldZ + 0.5);
 
-                float yaw = ((hash % 4) * 90.0f) * (float) (Math.PI / 180.0);
+                float yaw = (hash % 4) * (float) (Math.PI / 2.0);
                 Vector3f rotation = new Vector3f(0, yaw, 0);
 
                 Ref<EntityStore> spikeRef = spawnSpikeEntity(

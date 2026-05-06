@@ -3,6 +3,7 @@ package com.riprod.hexcode.builtin.glyphs.scale.style;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.builtin.glyphs.scale.ScaleGlyph;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
@@ -10,13 +11,19 @@ import com.riprod.hexcode.utils.VfxUtil;
 
 public class ScaleStyle {
 
-    private static final String GLYPH_ID = "Scale";
-
     private ScaleStyle() {
     }
 
     private static GlyphAsset asset() {
-        return GlyphAsset.getAssetMap().getAsset(GLYPH_ID);
+        return GlyphAsset.getAssetMap().getAsset(ScaleGlyph.ID);
+    }
+
+    public static String resolveModelId(HexContext ctx) {
+        HexStyleAsset overrides = ctx != null ? ctx.getStyle() : null;
+        String id = overrides != null ? overrides.getPrimaryModel() : null;
+        if (id != null) return id;
+        HexStyleAsset glyphStyle = asset() != null ? asset().getStyle() : null;
+        return glyphStyle != null ? glyphStyle.getPrimaryModel() : null;
     }
 
     public static void renderApply(Vector3d pos, HexContext ctx,

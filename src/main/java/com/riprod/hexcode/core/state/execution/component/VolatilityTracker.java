@@ -3,7 +3,6 @@ package com.riprod.hexcode.core.state.execution.component;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
@@ -56,10 +55,7 @@ public class VolatilityTracker {
         float finalCost = cost * volatilityMultiplier;
         if (finalCost <= 0)
             return true;
-        float drain = finalCost <= 1f
-                ? finalCost
-                : 1f + ThreadLocalRandom.current().nextFloat() * (finalCost - 1f);
-        remainingBudget -= drain;
+        remainingBudget -= finalCost;
         if (remainingBudget <= 0) {
             remainingBudget = 0;
             return false;

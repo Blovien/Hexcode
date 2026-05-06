@@ -55,8 +55,8 @@
     "spread": {
       "Style": "Input",
       "Label": "Spread",
-      "Description": "Cone spread angle in degrees",
-      "DefaultValue": 30,
+      "Description": "Cone spread angle in radians",
+      "DefaultValue": 0.5236,
       "Unique": true
     },
     "speed": {

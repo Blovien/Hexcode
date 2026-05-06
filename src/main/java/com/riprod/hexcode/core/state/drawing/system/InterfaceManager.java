@@ -270,7 +270,7 @@ public class InterfaceManager {
       float yaw = angles.getFloat(cursor * 2);
       float pitch = angles.getFloat(cursor * 2 + 1);
       outPositions.add(
-          GlyphMath.sphericalToCartesian(eyePos, (float) Math.toRadians(yaw), (float) Math.toRadians(pitch), radius));
+          GlyphMath.sphericalToCartesian(eyePos, yaw, pitch, radius));
     }
 
     return outPositions;

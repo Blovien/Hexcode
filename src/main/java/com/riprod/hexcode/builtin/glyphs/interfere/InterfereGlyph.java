@@ -101,7 +101,7 @@ public class InterfereGlyph implements GlyphHandler {
         }
 
         if (tracker != null && donation > 0f) {
-            tracker.consumeVolatility(donation);
+            tracker.setBudget(0f);
         }
     }
 

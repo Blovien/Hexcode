@@ -52,7 +52,7 @@
       "Style": "Input",
       "Label": "Duration",
       "Description": "Duration of the conjured zone in seconds",
-      "DefaultValue": 5,
+      "DefaultValue": 30,
       "Unique": true
     },
     "interval": {
@@ -81,7 +81,7 @@
       "K": 5.0
     },
     "AreaTax": {
-      "DefaultMagnitude": 27.0,
+      "DefaultMagnitude": 125.0,
       "Exponent": 1.0
     }
   }

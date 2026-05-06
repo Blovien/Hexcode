@@ -11,6 +11,10 @@ public class ConcentrationState implements ConstructState {
     @Nullable
     private Ref<EntityStore> visualRef;
 
+    private float tickAccum;
+
+    private float volatilityBonus;
+
     public ConcentrationState() {
     }
 
@@ -23,8 +27,27 @@ public class ConcentrationState implements ConstructState {
         return visualRef;
     }
 
+    public float getTickAccum() {
+        return tickAccum;
+    }
+
+    public void setTickAccum(float tickAccum) {
+        this.tickAccum = tickAccum;
+    }
+
+    public float getVolatilityBonus() {
+        return volatilityBonus;
+    }
+
+    public void setVolatilityBonus(float volatilityBonus) {
+        this.volatilityBonus = volatilityBonus;
+    }
+
     @Override
     public ConcentrationState copy() {
-        return new ConcentrationState(visualRef);
+        ConcentrationState c = new ConcentrationState(visualRef);
+        c.tickAccum = this.tickAccum;
+        c.volatilityBonus = this.volatilityBonus;
+        return c;
     }
 }

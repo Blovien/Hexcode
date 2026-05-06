@@ -4,7 +4,9 @@
     "PrimaryParticle": {
       "SystemId": "Area_Pulse"
     },
-    "PrimarySound": "SFX_Magic_Area"
+    "PrimarySound": "SFX_Skeleton_Mage_Spellbook_Impact",
+    "PrimaryColor": "#ffffff",
+    "SecondaryColor": "#ffffff"
   },
   "Title": "Area",
   "Description": "Sweeps a sphere around a center point and fans out separately to its Blocks and Entities branches, executing each once per matching target",
@@ -54,8 +56,8 @@
       "K": 5.0
     },
     "AreaTax": {
-      "DefaultMagnitude": 5.0,
-      "Exponent": 2.0
+      "DefaultMagnitude": 1500.0,
+      "Exponent": 0.6667
     }
   }
 }

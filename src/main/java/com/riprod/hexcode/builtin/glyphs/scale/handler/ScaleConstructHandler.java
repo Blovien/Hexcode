@@ -1,15 +1,15 @@
-package com.riprod.hexcode.builtin.glyphs.scale;
+package com.riprod.hexcode.builtin.glyphs.scale.handler;
 
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.math.shape.Box;
-import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
-import com.hypixel.hytale.server.core.modules.entity.component.EntityScaleComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.player.PlayerSkinComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.builtin.glyphs.scale.ScaleGlyph;
+import com.riprod.hexcode.builtin.glyphs.scale.components.ScaleStackComponent;
+import com.riprod.hexcode.builtin.glyphs.scale.components.ScaleState;
 import com.riprod.hexcode.builtin.glyphs.scale.style.ScaleStyle;
 import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
 import com.riprod.hexcode.core.common.construct.component.HexStatus;
@@ -36,22 +36,31 @@ public class ScaleConstructHandler implements ConstructHandler<ScaleState> {
 
             CommandBuffer<EntityStore> buffer = ctx.getBuffer();
             Ref<EntityStore> targetRef = ctx.getEntityRef();
-            float magnitude = state.getAppliedMagnitude();
-            if (targetRef != null && targetRef.isValid() && magnitude != 0f) {
-                float inverse = 1.0f / magnitude;
-                EntityScaleComponent scaleComp = buffer.getComponent(
-                        targetRef, EntityScaleComponent.getComponentType());
-                if (scaleComp != null) {
-                    scaleComp.setScale(scaleComp.getScale() * inverse);
-                }
-                PlayerSkinComponent skinComp = buffer.getComponent(
-                        targetRef, PlayerSkinComponent.getComponentType());
-                if (skinComp != null) {
-                    skinComp.setNetworkOutdated();
-                }
-                BoundingBox box = buffer.getComponent(targetRef, BoundingBox.getComponentType());
-                if (box != null) {
-                    box.setBoundingBox(new Box(box.getBoundingBox()).scale(inverse));
+
+            if (targetRef != null && targetRef.isValid()) {
+                ScaleStackComponent stack = buffer.getComponent(
+                        targetRef, ScaleStackComponent.getComponentType());
+                if (stack != null) {
+                    stack.remove(state.getConstructId());
+                    String baseAssetId = stack.getBaseAssetId() != null
+                            ? stack.getBaseAssetId()
+                            : state.getModelAssetId();
+
+                    if (stack.isEmpty()) {
+                        ScaleGlyph.applyAbsoluteScale(buffer, targetRef, baseAssetId, 1.0f);
+                        buffer.removeComponent(targetRef, ScaleStackComponent.getComponentType());
+                    } else {
+                        // re-put so the mutation broadcasts / persists
+                        buffer.putComponent(targetRef, ScaleStackComponent.getComponentType(), stack);
+                        float absolute = stack.productOfContributions();
+                        ScaleGlyph.applyAbsoluteScale(buffer, targetRef, baseAssetId, absolute);
+                    }
+
+                    PlayerSkinComponent skinComp = buffer.getComponent(
+                            targetRef, PlayerSkinComponent.getComponentType());
+                    if (skinComp != null) {
+                        skinComp.setNetworkOutdated();
+                    }
                 }
 
                 TransformComponent tc = buffer.getComponent(

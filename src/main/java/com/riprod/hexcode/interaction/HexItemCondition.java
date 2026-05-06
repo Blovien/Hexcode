@@ -17,8 +17,8 @@ import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHandler;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.SimpleInteraction;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.common.hexcaster.utils.PlayerUtils;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.riprod.hexcode.core.common.hexcaster.utils.PlayerUtils;
 import com.riprod.hexcode.utils.HexSlot;
 import com.riprod.hexcode.utils.HexStaffUtil;
 

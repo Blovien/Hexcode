@@ -6,15 +6,12 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.math.shape.Box;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.MountController;
-import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
-import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
 import com.hypixel.hytale.server.core.modules.entity.component.EntityScaleComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel;
@@ -23,6 +20,8 @@ import com.hypixel.hytale.server.core.modules.entity.player.PlayerSkinComponent;
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.GlyphFizzleEvent;
+import com.riprod.hexcode.builtin.glyphs.scale.components.ScaleStackComponent;
+import com.riprod.hexcode.builtin.glyphs.scale.components.ScaleState;
 import com.riprod.hexcode.builtin.glyphs.scale.style.ScaleStyle;
 import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
@@ -32,7 +31,6 @@ import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
-import com.riprod.hexcode.utils.HexDirectionUtil;
 import com.riprod.hexcode.utils.HexVarUtil;
 
 public class ScaleGlyph implements GlyphHandler {
@@ -44,13 +42,14 @@ public class ScaleGlyph implements GlyphHandler {
     }
 
     public static final String ID = "Scale";
-    private static final String MODEL_ID = "Scale";
 
     private static final double DEFAULT_MAGNITUDE = 2.0;
     private static final double MIN_MAGNITUDE = 0.01;
     private static final double MAX_MAGNITUDE = 32.0;
     private static final double DEFAULT_DURATION = 5.0;
     private static final double MIN_DURATION = 0.1;
+
+    private static final double K_GROWTH = 0.5;
 
     private static final Vector3f MOUNT_OFFSET = new Vector3f(0f, 2.5f, 0f);
 
@@ -60,18 +59,37 @@ public class ScaleGlyph implements GlyphHandler {
         if (tracker == null)
             return true;
         int repeatCount = tracker.getGlyphUsage(glyph.getId());
-        float cost = VolatilityTracker.computeGlyphCost(glyph, repeatCount);
-        if (cost <= 0)
+        float baseCost = VolatilityTracker.computeGlyphCost(glyph, repeatCount);
+        if (baseCost <= 0)
             return true;
 
         double magnitude = clamp(HexVarUtil.numberOrDefault(
                 glyph.readSlot(ScaleGlyphSlots.MAGNITUDE, hexContext), DEFAULT_MAGNITUDE),
                 MIN_MAGNITUDE, MAX_MAGNITUDE);
 
-        cost *= magnitude;
+        float currentScale = readCurrentScale(glyph, hexContext);
+        double resultScale = clamp(currentScale * magnitude, MIN_MAGNITUDE, MAX_MAGNITUDE);
 
-        boolean consumed = tracker.consumeVolatility(cost);
-        return consumed;
+        double factor = Math.expm1(K_GROWTH * (resultScale - 1.0));
+        float cost = (float) Math.max(baseCost, baseCost * factor);
+
+        return tracker.consumeVolatility(cost);
+    }
+
+    private float readCurrentScale(Glyph glyph, HexContext hexContext) {
+        try {
+            HexVar targets = glyph.readSlot(ScaleGlyphSlots.TARGET, hexContext);
+            EntityVar entityVar = HexVarUtil.resolveEntityVar(targets, hexContext);
+            if (entityVar == null) return 1.0f;
+            CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
+            Ref<EntityStore> targetRef = entityVar.getRef(accessor);
+            if (targetRef == null || !targetRef.isValid()) return 1.0f;
+            ScaleStackComponent stack = accessor.getComponent(
+                    targetRef, ScaleStackComponent.getComponentType());
+            return stack != null ? stack.productOfContributions() : 1.0f;
+        } catch (Exception e) {
+            return 1.0f;
+        }
     }
 
     @Override
@@ -100,25 +118,60 @@ public class ScaleGlyph implements GlyphHandler {
                 glyph.readSlot(ScaleGlyphSlots.DURATION, hexContext), DEFAULT_DURATION));
 
         try {
-            EntityScaleComponent scaleComp = accessor.getComponent(
-                    targetRef, EntityScaleComponent.getComponentType());
-            BoundingBox box = accessor.getComponent(targetRef, BoundingBox.getComponentType());
-
-            float currentScale = scaleComp != null ? scaleComp.getScale() : 1.0f;
-            float newScale = currentScale * (float) magnitude;
-            if (scaleComp != null) {
-                scaleComp.setScale(newScale);
-            } else {
-                accessor.addComponent(targetRef, EntityScaleComponent.getComponentType(),
-                        new EntityScaleComponent(newScale));
+            ModelComponent modelComp = accessor.getComponent(
+                    targetRef, ModelComponent.getComponentType());
+            if (modelComp == null || modelComp.getModel() == null) {
+                HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                        "Target has no model");
+                return;
             }
+
+            ScaleStackComponent stack = accessor.getComponent(
+                    targetRef, ScaleStackComponent.getComponentType());
+            if (stack == null) {
+                String baseId = modelComp.getModel().getModelAssetId();
+                if (baseId == null) {
+                    HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                            "Cannot resolve target model asset");
+                    return;
+                }
+                if (Math.abs(modelComp.getModel().getScale() - 1.0f) > 1e-3f) {
+                    LOGGER.atWarning().log(
+                            "[hexcode] Scale capturing baseAssetId=%s with non-unit current scale=%s — "
+                                    + "stale state from prior cast or external remodel?",
+                            baseId, modelComp.getModel().getScale());
+                }
+                stack = new ScaleStackComponent(baseId);
+                accessor.putComponent(targetRef, ScaleStackComponent.getComponentType(), stack);
+            }
+
+            String baseAssetId = stack.getBaseAssetId();
+            ModelAsset asset = baseAssetId != null
+                    ? ModelAsset.getAssetMap().getAsset(baseAssetId)
+                    : null;
+            if (asset == null) {
+                HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                        "Cannot resolve base model asset");
+                return;
+            }
+
+            ScaleState state = new ScaleState();
+            state.setAppliedMagnitude((float) magnitude);
+            state.setRemainingSeconds(durationSeconds);
+            state.setModelAssetId(baseAssetId);
+
+            stack.put(state.getConstructId(), (float) magnitude);
+            accessor.putComponent(targetRef, ScaleStackComponent.getComponentType(), stack);
+
+            float absoluteScale = (float) clamp(stack.productOfContributions(),
+                    MIN_MAGNITUDE, MAX_MAGNITUDE);
+
+            applyAbsoluteScale(accessor, targetRef, baseAssetId, absoluteScale);
+
             PlayerSkinComponent targetSkin = accessor.getComponent(
                     targetRef, PlayerSkinComponent.getComponentType());
             if (targetSkin != null) {
                 targetSkin.setNetworkOutdated();
-            }
-            if (box != null) {
-                box.setBoundingBox(new Box(box.getBoundingBox()).scale((float) magnitude));
             }
 
             Vector3d spawnPos;
@@ -130,9 +183,11 @@ public class ScaleGlyph implements GlyphHandler {
                 spawnPos = new Vector3d();
             }
 
-            Ref<EntityStore> visualRef = spawnVisual(accessor, spawnPos, targetRef);
+            Ref<EntityStore> visualRef = magnitude >= 1.0
+                    ? spawnVisual(accessor, spawnPos, targetRef, hexContext)
+                    : null;
+            state.setVisualRef(visualRef);
 
-            ScaleState state = new ScaleState((float) magnitude, visualRef, durationSeconds);
             HexConstructSpawner.applyWithState(
                     accessor, targetRef, hexContext, glyph, ScaleGlyph.ID, state);
 
@@ -145,8 +200,23 @@ public class ScaleGlyph implements GlyphHandler {
         }
     }
 
+    public static void applyAbsoluteScale(CommandBuffer<EntityStore> buffer,
+            Ref<EntityStore> targetRef, String baseAssetId, float scale) {
+        float effective = Math.abs(scale - 1.0f) < 1e-4f ? 1.0f : scale;
+        ModelAsset asset = baseAssetId != null
+                ? ModelAsset.getAssetMap().getAsset(baseAssetId)
+                : null;
+        if (asset == null) return;
+        
+        Model scaled = Model.createScaledModel(asset, effective);
+        buffer.putComponent(targetRef, ModelComponent.getComponentType(),
+                new ModelComponent(scaled));
+        buffer.putComponent(targetRef, EntityScaleComponent.getComponentType(),
+                new EntityScaleComponent(effective));
+    }
+
     private Ref<EntityStore> spawnVisual(CommandBuffer<EntityStore> accessor,
-            Vector3d spawnPos, Ref<EntityStore> targetRef) {
+            Vector3d spawnPos, Ref<EntityStore> targetRef, HexContext hexContext) {
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
         holder.addComponent(TransformComponent.getComponentType(),
                 new TransformComponent(spawnPos, new Vector3f()));
@@ -157,7 +227,8 @@ public class ScaleGlyph implements GlyphHandler {
         holder.addComponent(MountedComponent.getComponentType(),
                 new MountedComponent(targetRef, MOUNT_OFFSET, MountController.Minecart));
 
-        ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(MODEL_ID);
+        String modelId = ScaleStyle.resolveModelId(hexContext);
+        ModelAsset modelAsset = modelId != null ? ModelAsset.getAssetMap().getAsset(modelId) : null;
         if (modelAsset != null) {
             Model model = Model.createUnitScaleModel(modelAsset);
             holder.addComponent(ModelComponent.getComponentType(), new ModelComponent(model));

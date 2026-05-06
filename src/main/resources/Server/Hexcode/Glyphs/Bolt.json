@@ -6,7 +6,7 @@
     },
     "PrimarySound": "SFX_Staff_Fire_Shoot",
     "SecondaryParticle": {
-      "SystemId": "Shock_Spawner_Temporary"
+      "SystemId": "Bolt_Hit"
     },
     "SecondarySound": "SFX_Staff_Fire_Shoot"
   },

@@ -20,7 +20,7 @@ public class SinGlyph implements GlyphHandler {
         if (a == null) return null;
         Double s = a.toScalar();
         if (s == null) return null;
-        return new NumberVar(Math.sin(Math.toRadians(s)));
+        return new NumberVar(Math.sin(s));
     }
 
     @Override

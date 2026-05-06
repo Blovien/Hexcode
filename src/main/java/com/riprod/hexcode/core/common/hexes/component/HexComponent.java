@@ -17,6 +17,7 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
+import com.riprod.hexcode.core.common.hexes.codec.HexFieldCodec;
 
 public class HexComponent implements Component<EntityStore> {
 
@@ -29,7 +30,7 @@ public class HexComponent implements Component<EntityStore> {
 
     public static final BuilderCodec<HexComponent> CODEC = BuilderCodec
             .builder(HexComponent.class, HexComponent::new)
-            .append(new KeyedCodec<>("Hex", Hex.CODEC),
+            .append(new KeyedCodec<>("Hex", HexFieldCodec.PLAYER),
                     (c, v) -> c.hex = v,
                     c -> c.hex)
             .add()

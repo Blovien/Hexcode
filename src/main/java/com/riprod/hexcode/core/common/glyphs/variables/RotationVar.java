@@ -43,20 +43,20 @@ public final class RotationVar extends HexVar {
 
     public Vector3d forward() {
         if (rotation == null) return new Vector3d(0, 0, 1);
-        double yawRad = Math.toRadians(rotation.getYaw());
-        double pitchRad = Math.toRadians(rotation.getPitch());
-        double cosPitch = Math.cos(pitchRad);
+        double yaw = rotation.getYaw();
+        double pitch = rotation.getPitch();
+        double cosPitch = Math.cos(pitch);
         return new Vector3d(
-                -Math.sin(yawRad) * cosPitch,
-                -Math.sin(pitchRad),
-                Math.cos(yawRad) * cosPitch);
+                -Math.sin(yaw) * cosPitch,
+                Math.sin(pitch),
+                -Math.cos(yaw) * cosPitch);
     }
 
     @Override
     public String describe() {
         if (rotation == null)
             return "RotationVar: [null]";
-        return String.format("RotationVar: pitch=%.1f, yaw=%.1f, roll=%.1f",
+        return String.format("RotationVar: pitch=%.3f rad, yaw=%.3f rad, roll=%.3f rad",
                 rotation.x, rotation.y, rotation.z);
     }
 

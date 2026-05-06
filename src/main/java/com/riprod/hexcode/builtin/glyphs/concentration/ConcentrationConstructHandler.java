@@ -4,16 +4,22 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.builtin.glyphs.concentration.style.ConcentrationStyle;
 import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
 import com.riprod.hexcode.core.common.construct.component.HexStatus;
 import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
+import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.HexcasterIdleComponent;
+import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 
 public class ConcentrationConstructHandler implements ConstructHandler<ConcentrationState> {
 
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+    private static final float SECONDARY_INTERVAL = 1.0f;
 
     @Override
     public boolean onTick(float dt, HexStatus<ConcentrationState> status, ConstructTickContext ctx) {
@@ -31,6 +37,9 @@ public class ConcentrationConstructHandler implements ConstructHandler<Concentra
             fireReleaseAndKillHeld(status, buffer, casterRef);
             return true;
         }
+
+        emitSecondary(dt, status, buffer, casterRef);
+
         return !drainSustain(dt, status);
     }
 

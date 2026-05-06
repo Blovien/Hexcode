@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
   "Title": "Sin",
-  "Description": "Sine of A (degrees)",
+  "Description": "Sine of A (radians)",
   "ModelPath": "Sin",
   "BasePower": 0,
   "ManaConsumption": 0,
@@ -19,7 +19,7 @@
     "a": {
       "Style": "Input",
       "Label": "A",
-      "Description": "Angle in degrees",
+      "Description": "Angle in radians",
       "DefaultValue": 0
     },
     "Next": {
