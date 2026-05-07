@@ -10,9 +10,11 @@ import com.hypixel.hytale.assetstore.map.JsonAssetWithMap;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.codecs.EnumCodec;
+import com.hypixel.hytale.codec.schema.metadata.ui.UIEditor;
 import com.hypixel.hytale.codec.validation.ValidatorCache;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.DebugShape;
+import com.riprod.hexcode.core.state.crafting.handlers.node.NodeHandlerKeyValidator;
 
 public class SlotStyleAsset implements JsonAssetWithMap<String, DefaultAssetMap<String, SlotStyleAsset>> {
     public static final AssetBuilderCodec<String, SlotStyleAsset> CODEC;
@@ -84,6 +86,8 @@ public class SlotStyleAsset implements JsonAssetWithMap<String, DefaultAssetMap<
                             if (v != null) a.nodeHandlerId = v;
                         },
                         a -> a.nodeHandlerId)
+                    .metadata(new UIEditor(new UIEditor.Dropdown("HexcodeNodeHandlers")))
+                    .addValidatorLate(() -> NodeHandlerKeyValidator.INSTANCE.late())
                 .add()
                 .build();
         VALIDATOR_CACHE = new ValidatorCache<>(new AssetKeyValidator<>(SlotStyleAsset::getAssetStore));

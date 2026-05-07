@@ -7,10 +7,11 @@ import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
 import com.riprod.hexcode.core.common.hexes.saved.SavedHexAsset;
-import com.riprod.hexcode.core.common.imbuement.ImbuementData;
+import com.riprod.hexcode.core.common.imbuement.component.ImbuementData;
 import com.riprod.hexcode.core.state.execution.component.HexColors;
 import com.riprod.hexcode.core.state.execution.component.HexRoot;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
@@ -31,6 +32,8 @@ public class CastingEventData {
     private int cooldownTicks = 20;
     @Nullable
     private HexStyleAsset style;
+    @Nullable
+    private HexVar defaultVariable;
 
     private Ref<EntityStore> targetRef;
 
@@ -187,6 +190,15 @@ public class CastingEventData {
         this.style = styleFromColors(colors);
     }
 
+    @Nullable
+    public HexVar getDefaultVariable() {
+        return defaultVariable;
+    }
+
+    public void setDefaultVariable(@Nullable HexVar defaultVariable) {
+        this.defaultVariable = defaultVariable;
+    }
+
     public VolatilityTracker getVolatilityTracker() {
         return volatilityTracker;
     }
@@ -229,6 +241,10 @@ public class CastingEventData {
             .append(new KeyedCodec<>("Style", HexStyleAsset.CODEC),
                     (c, v) -> c.style = v,
                     c -> c.style)
+            .add()
+            .append(new KeyedCodec<>("DefaultVariable", HexVar.CODEC),
+                    (c, v) -> c.defaultVariable = v,
+                    c -> c.defaultVariable)
             .add()
             .build();
 }

@@ -17,7 +17,7 @@ import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
-import com.riprod.hexcode.core.common.imbuement.ImbuementData;
+import com.riprod.hexcode.core.common.imbuement.component.ImbuementData;
 import com.riprod.hexcode.core.state.execution.events.CastingEventData;
 
 public class HexContext {

@@ -23,24 +23,48 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.builtin.glyphs.bolt.style.BoltStyle;
+import com.riprod.hexcode.builtin.glyphs.force.ForceGlyphSlots;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
+import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.common.imbuement.block.ImbuedBlockActivator;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
+import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 import com.riprod.hexcode.utils.HexDirectionUtil;
 import com.riprod.hexcode.utils.HexVarUtil;
 
 public class BoltGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
-    @Override
-public String getId() { return ID; };
 
-public static final String ID = "Bolt";
+    @Override
+    public String getId() {
+        return ID;
+    };
+
+    public static final String ID = "Bolt";
 
     private static int damageCauseIndex = -1;
+
+    @Override
+    public boolean consumeVolatility(Glyph glyph, HexContext hexContext) {
+        VolatilityTracker tracker = hexContext.getVolatilityTracker();
+        if (tracker == null)
+            return true;
+
+        HexVar magInput = glyph.readSlot(BoltGlyphSlots.POWER, hexContext);
+        double magnitude = HexVarUtil.numberOrDefault(magInput, 15.0);
+
+        GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
+        float areaScale = computeAreaScale(magnitude, asset);
+
+        int repeatCount = tracker.getGlyphUsage(glyph.getId());
+        float cost = VolatilityTracker.computeGlyphCost(glyph, repeatCount) * areaScale;
+        return tracker.consumeVolatility(cost);
+    }
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
@@ -114,11 +138,15 @@ public static final String ID = "Bolt";
 
         BoltStyle.renderImpact(accessor, targetPos, hexContext);
 
-        triggerBlockInteraction(accessor, hexContext.getCasterRef(), world, blockPos);
+        ImbuedBlockActivator.ActivationOutcome outcome = ImbuedBlockActivator.tryConsume(accessor, world, blockPos);
+        if (!outcome.isReady()) {
+            triggerBlockInteraction(accessor, hexContext.getCasterRef(), world, blockPos);
+        }
 
         glyph.writeOutput(new BlockVar(blockPos), hexContext);
 
-        LOGGER.atInfo().log("bolt: hit block at %d %d %d", blockPos.x, blockPos.y, blockPos.z);
+        LOGGER.atInfo().log("bolt: hit block at %d %d %d (activation=%s)",
+                blockPos.x, blockPos.y, blockPos.z, outcome.getStatus());
     }
 
     private void triggerBlockInteraction(CommandBuffer<EntityStore> accessor,

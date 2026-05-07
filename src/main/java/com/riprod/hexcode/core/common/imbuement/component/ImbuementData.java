@@ -1,4 +1,4 @@
-package com.riprod.hexcode.core.common.imbuement;
+package com.riprod.hexcode.core.common.imbuement.component;
 
 import javax.annotation.Nullable;
 

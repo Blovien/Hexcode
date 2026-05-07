@@ -17,22 +17,15 @@ public class CraftingDataUtil {
     public static void dropContents(CommandBuffer<EntityStore> buffer, PedestalBlockComponent pedestal,
             HexcodeSessionComponent session, Vector3i pos) {
 
-        ItemStack bookStack = session.getStoredBook();
-        if (bookStack != null && !bookStack.isEmpty() && pos != null) {
-            PedestalItemUtil.dropBookAtPosition(buffer, bookStack, pos);
+        ItemStack itemStack = session.getStoredItem();
+        if (itemStack != null && !itemStack.isEmpty() && pos != null) {
+            PedestalItemUtil.dropBookAtPosition(buffer, itemStack, pos);
         }
 
-        Ref<EntityStore> bookRef = session.getBookDisplayRef();
-        if (bookRef != null && bookRef.isValid()) {
-            buffer.removeEntity(bookRef, RemoveReason.REMOVE);
-            session.setBookDisplayRef(null);
+        Ref<EntityStore> displayRef = session.getImbuedItemDisplayRef();
+        if (displayRef != null && displayRef.isValid()) {
+            buffer.removeEntity(displayRef, RemoveReason.REMOVE);
+            session.setImbuedItemDisplayRef(null);
         }
-
-        Ref<EntityStore> essenceRef = session.getEssenceDisplayRef();
-        if (essenceRef != null && essenceRef.isValid()) {
-            buffer.removeEntity(essenceRef, RemoveReason.REMOVE);
-            session.setEssenceDisplayRef(null);
-        }
-
     }
 }

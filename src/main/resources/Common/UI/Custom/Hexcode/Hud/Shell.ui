@@ -1,29 +1,28 @@
-Group {
+Group #HexcodeHud {
   LayoutMode: Bottom;
 
-  Group #GlyphInfoPanel {
+  Group #HexcodeInfo {
     LayoutMode: Left;
     Anchor: (Bottom: 80, Left: 20, Height: 56);
+    Visible: false;
 
-    Group #AccentBar {
+    Group #HexcodeInfoAccent {
       Background: #7b5cff;
       Anchor: (Width: 3, Height: 56);
     }
 
-    Group #Content {
+    Group #HexcodeInfoContent {
       Background: #0a0a14(0.85);
       Anchor: (Left: 3, Height: 56);
       Padding: (Left: 12, Right: 16, Vertical: 6);
       LayoutMode: Top;
 
-      Label #GlyphName {
+      Label #HexcodeInfoTitle {
         Style: (FontSize: 18, TextColor: #c4b5ff);
-        Text: "";
       }
 
-      Label #Description {
+      Label #HexcodeInfoDescription {
         Style: (FontSize: 14, TextColor: #a0a0a0);
-        Text: "";
       }
     }
   }

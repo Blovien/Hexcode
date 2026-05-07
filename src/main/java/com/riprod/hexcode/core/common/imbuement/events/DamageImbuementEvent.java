@@ -1,4 +1,4 @@
-package com.riprod.hexcode.core.common.imbuement;
+package com.riprod.hexcode.core.common.imbuement.events;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -17,8 +17,11 @@ import com.hypixel.hytale.server.core.modules.entity.damage.DamageEventSystem;
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageModule;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
+import com.riprod.hexcode.core.common.imbuement.component.ImbuementData;
+import com.riprod.hexcode.core.common.imbuement.system.ImbuementExecutor;
+import com.riprod.hexcode.core.common.imbuement.utils.ImbuementUtils;
 
-public class WeaponImbuementSystem extends DamageEventSystem {
+public class DamageImbuementEvent extends DamageEventSystem {
 
     @Override
     public Query<EntityStore> getQuery() {
@@ -46,7 +49,8 @@ public class WeaponImbuementSystem extends DamageEventSystem {
         ItemStack weapon = InventoryComponent.getItemInHand(buffer, attackerRef);
         if (weapon == null || weapon.isEmpty()) return;
 
-        ImbuementData data = ImbuementUtils.read(weapon);
+        ImbuementData data = ImbuementUtils.read(weapon, "OnAttack");
+        if (data == null) data = ImbuementUtils.read(weapon);
         if (data == null) return;
 
         Hex hex = ImbuementUtils.resolveHex(data);

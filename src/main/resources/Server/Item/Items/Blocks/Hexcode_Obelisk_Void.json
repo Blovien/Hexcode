@@ -91,15 +91,6 @@
         }
       }
     },
-    "HexObelisk": {
-      "Type": "Modifier",
-      "Modifiers": [
-        {
-          "Type": "",
-          "Value": -1
-        }
-      ]
-    },
     "Support": {
       "Down": [
         {

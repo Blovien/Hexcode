@@ -1,0 +1,11 @@
+{
+  "CategoryId": "Blocks.Rocks",
+  "HandlerId": "imbuement.standard",
+  "Slots": {
+    "Default": {
+      "Label": "Default Slot",
+      "Description": "The default slot of the block",
+      "Style": "Next"
+    }
+  }
+}

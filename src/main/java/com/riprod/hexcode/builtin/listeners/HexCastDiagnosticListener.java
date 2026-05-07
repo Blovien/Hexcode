@@ -27,9 +27,7 @@ public class HexCastDiagnosticListener extends WorldEventSystem<EntityStore, Hex
         Hex hex = event.getHex();
         String firstGlyph = hex != null ? hex.getFirstGlyphId() : "<null>";
         LOGGER.atInfo().log(
-                "[cast] wielder=%s target=%s firstGlyph=%s mana=%s cancelled=%s",
-                event.getWielderRef(),
-                event.getTargetRef(),
+                "[cast] firstGlyph=%s mana=%s cancelled=%s",
                 firstGlyph,
                 data != null ? data.getManaCost() : "<null>",
                 event.isCancelled());

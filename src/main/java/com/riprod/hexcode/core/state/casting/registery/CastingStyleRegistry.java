@@ -9,7 +9,9 @@ import com.riprod.hexcode.builtin.styles.SphereStyle;
 import com.riprod.hexcode.core.state.casting.component.CastingStyle;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class CastingStyleRegistry {
 
@@ -25,6 +27,11 @@ public class CastingStyleRegistry {
     @Nullable
     public static CastingStyle get(@Nonnull String styleId) {
         return styles.get(styleId);
+    }
+
+    @Nonnull
+    public static Set<String> keys() {
+        return new HashSet<>(styles.keySet());
     }
 
     @Nonnull

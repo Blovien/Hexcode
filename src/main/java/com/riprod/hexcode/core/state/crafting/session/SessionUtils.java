@@ -1,6 +1,9 @@
 package com.riprod.hexcode.core.state.crafting.session;
 
+import java.util.Map;
 import java.util.Set;
+
+import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -15,6 +18,8 @@ import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
+import com.riprod.hexcode.core.common.glyphs.registry.SlotAsset;
+import com.riprod.hexcode.core.common.imbuement.asset.ImbuementProfileAsset;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.common.pedestal.events.PedestalSystem;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
@@ -134,24 +139,16 @@ public class SessionUtils {
             session.setAnchorNodeRef(null);
         }
 
-        ItemStack bookStack = session.getStoredBook();
-        if (bookStack != null && !bookStack.isEmpty()) {
-            PedestalItemUtil.returnBookToPlayer(buffer, ownerRef, bookStack, session.getBookSourceSlot());
-            session.setStoredBook(ItemStack.EMPTY);
+        ItemStack itemStack = session.getStoredItem();
+        if (itemStack != null && !itemStack.isEmpty()) {
+            PedestalItemUtil.returnBookToPlayer(buffer, ownerRef, itemStack, session.getSourceSlot());
+            session.setStoredItem(ItemStack.EMPTY);
         }
 
-        PedestalItemUtil.returnEssenceToPlayer(buffer, ownerRef, session.getEssence());
-
-        Ref<EntityStore> bookRef = session.getBookDisplayRef();
-        if (bookRef != null && bookRef.isValid()) {
-            buffer.removeEntity(bookRef, RemoveReason.REMOVE);
-            session.setBookDisplayRef(null);
-        }
-
-        Ref<EntityStore> essenceRef = session.getEssenceDisplayRef();
-        if (essenceRef != null && essenceRef.isValid()) {
-            buffer.removeEntity(essenceRef, RemoveReason.REMOVE);
-            session.setEssenceDisplayRef(null);
+        Ref<EntityStore> displayRef = session.getImbuedItemDisplayRef();
+        if (displayRef != null && displayRef.isValid()) {
+            buffer.removeEntity(displayRef, RemoveReason.REMOVE);
+            session.setImbuedItemDisplayRef(null);
         }
 
         Vector3i pedestalLoc = session.getPedestalLocation();
@@ -164,9 +161,8 @@ public class SessionUtils {
             pedestal.setBookAssetId(null);
         }
 
-        session.setEssence(null);
         session.setOwnerRef(null);
-        session.setActiveSlotIndex(-1);
+        session.setActiveSlotKey(null);
         session.setAnchorEntityRef(null);
 
         buffer.tryRemoveComponent(ownerRef, HexcodeSessionComponent.getComponentType());
@@ -197,6 +193,21 @@ public class SessionUtils {
                 HexcasterCraftingComponent.getComponentType());
         if (craftingComp == null || !craftingComp.hasActiveSession()) return null;
         return accessor.getComponent(craftingComp.getSessionRef(), HexcodeSessionComponent.getComponentType());
+    }
+
+    @Nullable
+    public static Ref<EntityStore> findPreviewForSlot(HexcodeSessionComponent session, String slotKey) {
+        if (session == null || slotKey == null) return null;
+        ImbuementProfileAsset profile = session.getProfile();
+        if (profile == null) return null;
+        List<Ref<EntityStore>> previews = session.getHexPreviewRefs();
+        int i = 0;
+        for (Map.Entry<String, SlotAsset> entry : profile.getSlots().entrySet()) {
+            if (i >= previews.size()) break;
+            if (slotKey.equals(entry.getKey())) return previews.get(i);
+            i++;
+        }
+        return null;
     }
 
     @Nullable

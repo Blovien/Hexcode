@@ -5,21 +5,24 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.protocol.BlockPosition;
+import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.api.event.CraftingEvent;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexcaster.utils.PlayerUtils;
+import com.riprod.hexcode.core.common.imbuement.asset.ImbuementProfileAsset;
+import com.riprod.hexcode.core.common.imbuement.utils.ImbuementUtils;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.common.pedestal.events.PedestalSystem;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
 import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
 import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
 import com.riprod.hexcode.core.state.crafting.session.SessionUtils;
-import com.riprod.hexcode.core.state.crafting.utils.PedestalItemUtil;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.utils.HexSlot;
 import com.riprod.hexcode.utils.VfxUtil;
@@ -69,6 +72,11 @@ public class PedestalInteractionEvent {
             if (pr != null) {
                 pr.sendMessage(Message.raw("You are already in another crafting session."));
             }
+            HytaleServer.get().getEventBus().dispatchFor(CraftingEvent.class)
+                    .dispatch(CraftingEvent.builder(CraftingEvent.Reason.DENIED_PEDESTAL_BUSY, playerRef)
+                            .pedestal(pedestalComponent)
+                            .message("You are already in another crafting session.")
+                            .build());
             return;
         }
 
@@ -82,6 +90,11 @@ public class PedestalInteractionEvent {
                     if (pr != null) {
                         pr.sendMessage(Message.raw("This pedestal is already in use!"));
                     }
+                    HytaleServer.get().getEventBus().dispatchFor(CraftingEvent.class)
+                            .dispatch(CraftingEvent.builder(CraftingEvent.Reason.DENIED_PEDESTAL_BUSY, playerRef)
+                                    .pedestal(pedestalComponent)
+                                    .message("This pedestal is already in use!")
+                                    .build());
                     return;
                 }
 
@@ -120,49 +133,67 @@ public class PedestalInteractionEvent {
             }
         }
 
-        if (session == null) {
-            session = SessionUtils.createSession(accessor, pedestalComponent, blockPos,
-                    playerRef, !pedestalComponent.isPerPlayer());
-            existingSessionRef = pedestalComponent.getSessionRef();
-        }
-
         Pair<ItemStack, ItemStack> held = PlayerUtils.getItemFromHands(accessor, playerRef);
         ItemStack mainHand = held.getFirst();
         ItemStack utilityHand = held.getSecond();
 
-        if (PedestalItemUtil.anyEssence(mainHand, utilityHand) && session.getEssence() == null) {
-            PedestalState currentState = session.getState();
-            if (currentState == PedestalState.IDLE || currentState == PedestalState.READY
-                    || currentState == PedestalState.SELECTING) {
-                Pair<ItemStack, HexSlot> essence = PedestalItemUtil.getEssence(mainHand, utilityHand);
-                PedestalSystem.handleEssencePlacement(accessor, player, essence.getFirst(), essence.getSecond(),
-                        pedestalComponent, session, blockPos);
-                if (currentState == PedestalState.IDLE) {
-                    PedestalSystem.handleReady(accessor, session, pedestalComponent, world);
+        // no existing session: only create one if the player is holding a profile-bearing item
+        if (session == null) {
+            ItemStack chosen = null;
+            HexSlot chosenSlot = null;
+            ImbuementProfileAsset profile = null;
+            if (mainHand != null && !mainHand.isEmpty()) {
+                profile = ImbuementUtils.resolveProfile(mainHand);
+                if (profile != null) {
+                    chosen = mainHand;
+                    chosenSlot = HexSlot.MainHand;
                 }
+            }
+            if (profile == null && utilityHand != null && !utilityHand.isEmpty()) {
+                profile = ImbuementUtils.resolveProfile(utilityHand);
+                if (profile != null) {
+                    chosen = utilityHand;
+                    chosenSlot = HexSlot.OffHand;
+                }
+            }
+
+            if (profile == null) {
                 return;
             }
-        }
 
-        if (PedestalItemUtil.anyHexBook(mainHand, utilityHand) && session.getStoredBook().isEmpty()) {
-            Pair<ItemStack, HexSlot> book = PedestalItemUtil.getHexBook(mainHand, utilityHand);
-            PedestalSystem.handleBookPlacement(accessor, player, book.getFirst(), book.getSecond(),
+            session = SessionUtils.createSession(accessor, pedestalComponent, blockPos,
+                    playerRef, !pedestalComponent.isPerPlayer());
+            existingSessionRef = pedestalComponent.getSessionRef();
+
+            PedestalSystem.handleItemPlacement(accessor, player, chosen, chosenSlot,
                     pedestalComponent, session, blockPos);
             VfxUtil.particle("Area_Pulse", blockPos.toVector3d(), accessor);
             PedestalSystem.handleReady(accessor, session, pedestalComponent, world);
             return;
         }
 
-        boolean hasBook = session.getStoredBook() != null && !session.getStoredBook().isEmpty();
+        ItemStack storedItem = session.getStoredItem();
+        boolean hasStoredItem = storedItem != null && !storedItem.isEmpty();
 
-        if (!hasBook) {
+        if (!hasStoredItem) {
+            // session exists but holds nothing — clean it up
             SessionUtils.endSession(accessor, existingSessionRef, world);
             return;
         }
 
         PedestalState state = session.getState();
-        logger.atInfo().log("pedestal: hasBook, state=%s", state);
+        ImbuementProfileAsset currentProfile = session.getProfile();
+        boolean skipSelecting = currentProfile != null && currentProfile.isSkipSelecting();
+
+        logger.atInfo().log("pedestal: hasItem, state=%s skipSelecting=%s", state, skipSelecting);
         if (state == PedestalState.CRAFTING) {
+            if (skipSelecting) {
+                VfxUtil.sound("SFX_Deployable_Totem_Heal_Despawn",
+                        pedestalComponent.getLocation().toVector3d(), accessor);
+                PedestalSystem.exitCrafting(accessor, playerRef, pedestalComponent, session);
+                SessionUtils.endSession(accessor, existingSessionRef, world);
+                return;
+            }
             PedestalSystem.exitCrafting(accessor, playerRef, pedestalComponent, session);
             PedestalSystem.enterSelecting(pedestalComponent, player, world, accessor);
         } else if (state == PedestalState.SELECTING) {
@@ -170,7 +201,6 @@ public class PedestalInteractionEvent {
             SessionUtils.endSession(accessor, existingSessionRef, world);
         } else {
             VfxUtil.sound("SFX_Arcane_Workbench_Open_Local", pedestalComponent.getLocation().toVector3d(), accessor);
-            logger.atInfo().log("pedestal: entering selecting + obelisk flow");
             PedestalSystem.enterSelecting(pedestalComponent, player, world, accessor);
         }
     }

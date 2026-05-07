@@ -106,32 +106,6 @@ public class ResonateGlyph implements GlyphHandler {
             return;
         }
 
-        HexVar manaVar = glyph.readSlot(ResonateGlyphSlots.MANA, hexContext);
-        double percentage = HexVarUtil.numberOrDefault(manaVar, 0.0);
-        if (percentage <= 0) {
-            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
-                    "Mana amount is required");
-            return;
-        }
-        percentage = Math.min(percentage, 100.0);
-
-        HexRoot casterRoot = hexContext.getRoot();
-        float casterMana = casterRoot.getCurrentMana(accessor);
-        float transferAmount = (float) (casterMana * (percentage / 100.0));
-
-        int manaIndex = DefaultEntityStatTypes.getMana();
-        float targetCurrent = targetStats.get(manaIndex).get();
-        float targetMax = targetStats.get(manaIndex).getMax();
-        float room = targetMax - targetCurrent;
-
-        transferAmount = Math.min(transferAmount, room);
-        if (transferAmount <= 0) {
-            return;
-        }
-
-        if (!casterRoot.tryConsumeMana(transferAmount, accessor)) return;
-        targetStats.addStatValue(manaIndex, transferAmount);
-
         Vector3d pos = resolvePosition(ref, accessor);
         if (pos != null) ResonateStyle.renderResonate(pos, hexContext, accessor);
     }

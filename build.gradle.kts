@@ -18,6 +18,8 @@ repositories {
 dependencies {
     compileOnly(libs.jetbrains.annotations)
     compileOnly(libs.jspecify)
+
+    compileOnly(fileTree("lib/") { include("*.jar") })
 }
 
 hytale {
@@ -172,5 +174,8 @@ afterEvaluate {
     if (targetTask != null) {
         targetTask.dependsOn("linkAssets")
         targetTask.finalizedBy("syncBackAssets")
+        if (targetTask is JavaExec) {
+            targetTask.classpath += fileTree("lib/") { include("*.jar") }
+        }
     }
 }

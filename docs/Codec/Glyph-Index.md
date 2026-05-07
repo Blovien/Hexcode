@@ -315,7 +315,7 @@ Constructs a rotation from pitch, yaw, roll components. Wire number glyphs into 
 
 ---
 
-### \[\<◯\>\] Style
+### \[\<□\>\] Style
 
 Sets the color of the execution at this point. Returns a 4 param vector (R, G, B, A) if value extracted
 

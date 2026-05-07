@@ -83,7 +83,7 @@ public class CastingSystem extends HexcodeManager {
             return;
         }
 
-        List<Hex> hexes = book != null ? book.getHexes() : List.of();
+        List<Hex> hexes = CasterInventory.getHexesForCasting(buffer, ref);
         String style = staff.getStyleId();
 
         ItemStack mainHand = InventoryComponent.getItemInHand(buffer, ref);

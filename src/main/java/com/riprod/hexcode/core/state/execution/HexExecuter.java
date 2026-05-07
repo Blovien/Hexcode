@@ -14,6 +14,7 @@ import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.component.Slot;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphRegistry;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
+import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
@@ -51,16 +52,18 @@ public class HexExecuter {
             return;
         }
 
-        Ref<EntityStore> targetRef = castingData.getTargetRef();
-
-        // setup the first variable as the target entity
-        UUIDComponent uuidComponent = hexContext.getAccessor().getComponent(
-                targetRef, UUIDComponent.getComponentType());
-        if (uuidComponent != null) {
-            EntityVar targetVar = new EntityVar(
-                    EntityVar.createRef(uuidComponent.getUuid(), targetRef));
-
-            hexContext.setVariable(Glyph.DEFAULT_SLOT, targetVar);
+        HexVar defaultVar = castingData.getDefaultVariable();
+        if (defaultVar != null) {
+            hexContext.setVariable(Glyph.DEFAULT_SLOT, defaultVar);
+        } else {
+            Ref<EntityStore> targetRef = castingData.getTargetRef();
+            UUIDComponent uuidComponent = hexContext.getAccessor().getComponent(
+                    targetRef, UUIDComponent.getComponentType());
+            if (uuidComponent != null) {
+                EntityVar targetVar = new EntityVar(
+                        EntityVar.createRef(uuidComponent.getUuid(), targetRef));
+                hexContext.setVariable(Glyph.DEFAULT_SLOT, targetVar);
+            }
         }
 
         continueExecution(List.of(startingGlyph), hexContext);

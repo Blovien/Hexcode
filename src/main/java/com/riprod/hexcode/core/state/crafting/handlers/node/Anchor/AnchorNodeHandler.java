@@ -13,8 +13,10 @@ import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.DebugShape;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
+import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
+import com.hypixel.hytale.server.core.modules.entity.component.DisplayNameComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -187,6 +189,9 @@ public class AnchorNodeHandler extends BaseAnchorHandler {
         NodeComponent node = new NodeComponent(parentRef, NodeTypeId.ANCHOR);
 
         holder.addComponent(NodeComponent.getComponentType(), node);
+
+        holder.addComponent(DisplayNameComponent.getComponentType(),
+                new DisplayNameComponent(Message.raw("Entrypoint Node")));
 
         Box nodeBox = new Box(-ROOT_NODE_SCALE, -ROOT_NODE_SCALE, -ROOT_NODE_SCALE,
                 ROOT_NODE_SCALE, ROOT_NODE_SCALE, ROOT_NODE_SCALE);

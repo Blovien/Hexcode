@@ -31,11 +31,6 @@
       "Label": "Target",
       "Description": "Hex construct entities to resonate with"
     },
-    "mana": {
-      "Style": "Input",
-      "Label": "Mana",
-      "Description": "Percentage of caster mana to transfer to target (0-100)"
-    },
     "Next": {
       "Style": "Next",
       "Label": "Next",

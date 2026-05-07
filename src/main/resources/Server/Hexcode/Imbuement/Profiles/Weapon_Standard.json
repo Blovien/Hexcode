@@ -1,0 +1,26 @@
+{
+  "CategoryId": "Items.Weapons",
+  "HandlerId": "imbuement.standard",
+  "Slots": {
+    "Hit": {
+      "Label": "On Hit",
+      "Description": "The default slot of the block",
+      "Style": "Next"
+    },
+    "Block": {
+      "Label": "On Block",
+      "Description": "Execute when blocking",
+      "Style": "Next"
+    },
+    "Secondary": {
+      "Label": "Secondary",
+      "Description": "Execute when hitting Secondary",
+      "Style": "Next"
+    },
+    "Primary": {
+      "Label": "Primary",
+      "Description": "Execute when hitting Primary",
+      "Style": "Next"
+    }
+  }
+}

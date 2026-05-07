@@ -16,16 +16,18 @@ import com.hypixel.hytale.protocol.DebugShape;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.HytaleServer;
+import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
+import com.hypixel.hytale.server.core.modules.entity.component.DisplayNameComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.api.event.EnterCraftingModeEvent;
+import com.riprod.hexcode.api.event.CraftingEvent;
 import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
@@ -35,7 +37,9 @@ import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.hexes.utils.CreateHex;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableType;
+import com.riprod.hexcode.core.common.glyphs.registry.SlotAsset;
 import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
+import com.riprod.hexcode.core.common.imbuement.component.ImbuementSlotRefComponent;
 import com.riprod.hexcode.core.common.obelisk.system.ObeliskDispatcher;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.common.pedestal.events.PedestalSystem;
@@ -69,7 +73,8 @@ public class ContainerNodeHandler extends BaseContainerHandler {
     private static final Box PREVIEW_BOUNDING_BOX = new Box(-0.25, -0.25, -0.25, 0.25, 0.25, 0.25);
 
     public Ref<EntityStore> spawnContainer(CommandBuffer<EntityStore> accessor, Hex hex,
-            Ref<EntityStore> anchorRef, Vector3d anchorPos, Vector3f offset, Ref<EntityStore> playerRef) {
+            Ref<EntityStore> anchorRef, Vector3d anchorPos, Vector3f offset, Ref<EntityStore> playerRef,
+            SlotAsset slotAsset) {
 
         Vector3d globalPos = new Vector3d(anchorPos.x + offset.x, anchorPos.y + offset.y, anchorPos.z + offset.z);
 
@@ -109,7 +114,15 @@ public class ContainerNodeHandler extends BaseContainerHandler {
                 new PersistentModel(model.toReference()));
 
         holder.addComponent(BoundingBox.getComponentType(), new BoundingBox(PREVIEW_BOUNDING_BOX));
-        holder.addComponent(HoverableComponent.getComponentType(), new HoverableComponent(HoverableType.NODE));
+        HoverableComponent hoverable = new HoverableComponent(HoverableType.NODE);
+        if (slotAsset != null && slotAsset.getDescription() != null) {
+            hoverable.setHintText("description", slotAsset.getDescription());
+        }
+        holder.addComponent(HoverableComponent.getComponentType(), hoverable);
+        if (slotAsset != null && slotAsset.getLabel() != null) {
+            holder.addComponent(DisplayNameComponent.getComponentType(),
+                    new DisplayNameComponent(Message.raw(slotAsset.getLabel())));
+        }
         holder.addComponent(NodeComponent.getComponentType(), new NodeComponent(anchorRef, NodeTypeId.CONTAINER));
         holder.addComponent(DebugComponent.getComponentType(),
                 new DebugComponent(DebugShape.Sphere, isEmpty ? CraftingColors.EMPTY_SLOT : CraftingColors.FILLED_SLOT,
@@ -177,15 +190,19 @@ public class ContainerNodeHandler extends BaseContainerHandler {
         if (craftingComp == null)
             return InteractionState.Failed;
 
+        ImbuementSlotRefComponent slotRef = accessor.getComponent(node,
+                ImbuementSlotRefComponent.getComponentType());
+        String slotKey = slotRef != null ? slotRef.getSlotKey() : null;
+        if (slotKey == null) {
+            logger.atWarning().log("container enter: clicked preview has no slot key");
+            return InteractionState.Failed;
+        }
+        session.setActiveSlotKey(slotKey);
+
         HexComponent hexComp = accessor.getComponent(node, HexComponent.getComponentType());
-        boolean isFilled = hexComp != null && hexComp.getHex() != null;
+        Hex storedHex = session.getHexAt(slotKey);
 
-        Hex originalHex = null;
-
-        if (isFilled) {
-            int slotIndex = session.getHexPreviewRefs().indexOf(node);
-            session.setActiveSlotIndex(slotIndex);
-
+        if (hexComp != null) {
             Map<String, Ref<EntityStore>> oldChildren = hexComp.getChildGlyphRefs();
             if (oldChildren != null) {
                 for (Ref<EntityStore> childRef : oldChildren.values()) {
@@ -196,31 +213,21 @@ public class ContainerNodeHandler extends BaseContainerHandler {
                 }
                 oldChildren.clear();
             }
-
-            List<Hex> bookHexes = session.getHexes();
-            if (slotIndex >= 0 && slotIndex < bookHexes.size()) {
-                Hex hex = bookHexes.get(slotIndex).clone();
-                HexComponent freshComp = new HexComponent(hex);
-                freshComp.setSelfRef(node);
-                freshComp.setRootRef(hexComp.getRootRef());
-                accessor.putComponent(node, HexComponent.getComponentType(), freshComp);
-                originalHex = hex;
-            }
-
-        } else {
-            session.setActiveSlotIndex(session.getHexes().size());
-
-            originalHex = new Hex();
-            HexComponent newHexComp = new HexComponent(originalHex);
-
-            newHexComp.setSelfRef(node);
-            accessor.putComponent(node, HexComponent.getComponentType(), newHexComp);
-
         }
 
+        Hex originalHex = storedHex != null ? storedHex.clone() : new Hex();
+        HexComponent freshComp = new HexComponent(originalHex);
+        freshComp.setSelfRef(node);
+        if (hexComp != null) freshComp.setRootRef(hexComp.getRootRef());
+        accessor.putComponent(node, HexComponent.getComponentType(), freshComp);
+
         PedestalSystem.enterCrafting(accessor, playerRef, pedestal, node);
-        HytaleServer.get().getEventBus().dispatchFor(EnterCraftingModeEvent.class)
-                .dispatch(new EnterCraftingModeEvent(playerRef, originalHex, pedestal));
+        HytaleServer.get().getEventBus().dispatchFor(CraftingEvent.class)
+                .dispatch(CraftingEvent.builder(CraftingEvent.Reason.ENTERED_CRAFTING, playerRef)
+                        .pedestal(pedestal)
+                        .hex(originalHex)
+                        .slotKey(slotKey)
+                        .build());
         ObeliskDispatcher.dispatchEnterCrafting(accessor, pedestal, playerRef);
         craftingComp.setHoveredRef(null);
         accessor.removeComponent(node, DebugComponent.getComponentType());

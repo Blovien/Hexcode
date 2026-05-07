@@ -1,4 +1,4 @@
-package com.riprod.hexcode.core.common.imbuement;
+package com.riprod.hexcode.core.common.imbuement.system;
 
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
@@ -6,6 +6,8 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.HexCastEvent;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
+import com.riprod.hexcode.core.common.imbuement.component.ImbuementData;
+import com.riprod.hexcode.core.common.imbuement.utils.ImbuementUtils;
 import com.riprod.hexcode.core.state.execution.component.PlayerHexRoot;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 import com.riprod.hexcode.core.state.execution.events.CastingEventData;

@@ -9,9 +9,11 @@ import com.hypixel.hytale.assetstore.map.DefaultAssetMap;
 import com.hypixel.hytale.assetstore.map.JsonAssetWithMap;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
+import com.hypixel.hytale.codec.schema.metadata.ui.UIEditor;
 import com.hypixel.hytale.codec.validation.ValidatorCache;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelParticle;
 import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
+import com.riprod.hexcode.core.state.casting.registery.CastingStyleValidator;
 import com.riprod.hexcode.core.state.execution.component.HexColors;
 
 public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<String, HexStaffAsset>> {
@@ -92,6 +94,8 @@ public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
           (a, v) -> a.castStyleId = v,
           a -> a.castStyleId,
           (a, p) -> a.castStyleId = p.castStyleId)
+          .metadata(new UIEditor(new UIEditor.Dropdown("HexcodeCastingStyles")))
+          .addValidatorLate(() -> CastingStyleValidator.INSTANCE.late())
       .add()
       .appendInherited(new KeyedCodec<>("CastingAuraParticles", ModelParticle.ARRAY_CODEC),
           (a, v) -> a.castingAuraParticles = v,
