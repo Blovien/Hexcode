@@ -141,8 +141,9 @@ public class PhaseGlyph implements GlyphHandler {
 
         glyph.writeOutput(new BlockVar(pos), hexContext);
 
-        Holder<EntityStore> holder = HexConstructSpawner.create(
-                accessor, hexContext, glyph, PhaseGlyph.ID, blockCenter);
+        Holder<EntityStore> holder = HexConstructSpawner.createWithState(
+                accessor, hexContext, glyph, PhaseGlyph.ID, blockCenter,
+                new PhaseState(glyph.getNextLinks()));
 
         holder.addComponent(PhaseComponent.getComponentType(),
                 new PhaseComponent(phasedBlocks, (float) duration));

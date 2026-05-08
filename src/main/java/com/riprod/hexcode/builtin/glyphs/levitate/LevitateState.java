@@ -1,5 +1,8 @@
 package com.riprod.hexcode.builtin.glyphs.levitate;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.annotation.Nullable;
 
 import com.hypixel.hytale.server.core.modules.physics.component.PhysicsValues;
@@ -15,16 +18,19 @@ public class LevitateState implements ConstructState {
     private HexColors colors;
     @Nullable
     private PhysicsValues originalPhysicsValues;
+    private List<String> nextGlyphIds;
 
     public LevitateState() {
+        this.nextGlyphIds = new ArrayList<>();
     }
 
     public LevitateState(float intensity, float remainingDuration, @Nullable HexColors colors,
-            @Nullable PhysicsValues originalPhysicsValues) {
+            @Nullable PhysicsValues originalPhysicsValues, List<String> nextGlyphIds) {
         this.intensity = intensity;
         this.remainingDuration = remainingDuration;
         this.colors = colors;
         this.originalPhysicsValues = originalPhysicsValues;
+        this.nextGlyphIds = nextGlyphIds != null ? nextGlyphIds : new ArrayList<>();
     }
 
     public float getTickAccum() {
@@ -73,11 +79,20 @@ public class LevitateState implements ConstructState {
         return remainingDuration <= 0f;
     }
 
+    public List<String> getNextGlyphIds() {
+        return nextGlyphIds;
+    }
+
+    public void setNextGlyphIds(List<String> ids) {
+        this.nextGlyphIds = ids != null ? ids : new ArrayList<>();
+    }
+
     @Override
     public LevitateState copy() {
         PhysicsValues clonedPhysics = originalPhysicsValues != null
                 ? new PhysicsValues(originalPhysicsValues) : null;
-        LevitateState c = new LevitateState(intensity, remainingDuration, colors, clonedPhysics);
+        LevitateState c = new LevitateState(intensity, remainingDuration, colors, clonedPhysics,
+                new ArrayList<>(nextGlyphIds));
         c.tickAccum = this.tickAccum;
         return c;
     }

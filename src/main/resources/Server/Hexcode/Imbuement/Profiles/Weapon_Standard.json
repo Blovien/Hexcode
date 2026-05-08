@@ -2,7 +2,7 @@
   "CategoryId": "Items.Weapons",
   "HandlerId": "imbuement.standard",
   "Slots": {
-    "Hit": {
+    "OnAttack": {
       "Label": "On Hit",
       "Description": "The default slot of the block",
       "Style": "Next"

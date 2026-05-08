@@ -14,6 +14,15 @@ import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.builtin.glyphs.isHolding.IsHoldingValue;
+import com.riprod.hexcode.builtin.triggers.InteractionTriggerSource;
+import com.riprod.hexcode.builtin.triggers.cast.CastTriggerSource;
+import com.riprod.hexcode.builtin.triggers.death.DeathTriggerSource;
+import com.riprod.hexcode.builtin.triggers.primary.PrimaryImbuementBinder;
+import com.riprod.hexcode.builtin.triggers.secondary.SecondaryImbuementBinder;
+import com.riprod.hexcode.builtin.triggers.use.UseImbuementBinder;
+import com.riprod.hexcode.core.common.triggers.component.TriggerListenerComponent;
+import com.riprod.hexcode.core.common.triggers.registry.TriggerListenerRegistry;
+import com.riprod.hexcode.core.common.triggers.handler.TriggerConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.add.AddGlyph;
 import com.riprod.hexcode.builtin.glyphs.cos.CosGlyph;
 import com.riprod.hexcode.builtin.glyphs.pi.PiValue;
@@ -29,7 +38,6 @@ import com.riprod.hexcode.builtin.glyphs.beam.BeamGlyph;
 import com.riprod.hexcode.builtin.glyphs.bolt.BoltGlyph;
 import com.riprod.hexcode.builtin.glyphs.burning.BurningGlyph;
 import com.riprod.hexcode.builtin.glyphs.chaos.ChaosGlyph;
-import com.riprod.hexcode.builtin.glyphs.combust.CombustGlyph;
 import com.riprod.hexcode.builtin.glyphs.concentration.ConcentrationConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.concentration.ConcentrationGlyph;
 import com.riprod.hexcode.builtin.glyphs.conjure.ConjureGlyph;
@@ -65,11 +73,13 @@ import com.riprod.hexcode.builtin.glyphs.glaciate.GlaciateConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.glaciate.GlaciateGlyph;
 import com.riprod.hexcode.builtin.glyphs.glaciate.component.GlaciateComponent;
 import com.riprod.hexcode.builtin.glyphs.greater.GreaterGlyph;
+import com.riprod.hexcode.builtin.glyphs.growth.GrowthConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.growth.GrowthGlyph;
 import com.riprod.hexcode.builtin.glyphs.gust.GustGlyph;
 import com.riprod.hexcode.builtin.glyphs.halt.HaltGlyph;
 import com.riprod.hexcode.builtin.glyphs.halt.HaltConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.halt.HaltState;
+import com.riprod.hexcode.builtin.glyphs.ignite.IgniteConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.ignite.IgniteGlyph;
 import com.riprod.hexcode.builtin.glyphs.interfere.InterfereGlyph;
 import com.riprod.hexcode.builtin.glyphs.less.LessGlyph;
@@ -78,6 +88,11 @@ import com.riprod.hexcode.builtin.glyphs.levitate.LevitateGlyph;
 import com.riprod.hexcode.builtin.glyphs.levitate.LevitateState;
 import com.riprod.hexcode.builtin.glyphs.multiply.MultiplyGlyph;
 import com.riprod.hexcode.builtin.glyphs.number.NumberValue;
+import com.riprod.hexcode.builtin.glyphs.onCast.OnCastGlyph;
+import com.riprod.hexcode.builtin.glyphs.onDeath.OnDeathGlyph;
+import com.riprod.hexcode.builtin.glyphs.onPrimary.OnPrimaryGlyph;
+import com.riprod.hexcode.builtin.glyphs.onSecondary.OnSecondaryGlyph;
+import com.riprod.hexcode.builtin.glyphs.onUse.OnUseGlyph;
 import com.riprod.hexcode.builtin.glyphs.output.OutputGlyph;
 import com.riprod.hexcode.builtin.glyphs.phase.PhaseComponent;
 import com.riprod.hexcode.builtin.glyphs.phase.PhaseConstructHandler;
@@ -109,8 +124,6 @@ import com.riprod.hexcode.builtin.styles.RingStyle;
 import com.riprod.hexcode.builtin.styles.SphereStyle;
 import com.riprod.hexcode.core.common.construct.component.HexEffectsComponent;
 import com.riprod.hexcode.core.common.construct.registry.ConstructRegistry;
-import com.riprod.hexcode.core.common.construct.state.ConstructStripper;
-import com.riprod.hexcode.core.common.effect.HexEffectRegistry;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphRegistry;
 import com.riprod.hexcode.core.common.obelisk.registry.ObeliskHandlerRegistry;
 import com.riprod.hexcode.core.state.casting.registery.CastingStyleRegistry;
@@ -134,7 +147,6 @@ public class BuiltinPlugin extends JavaPlugin {
         RegisterComponents();
         RegisterSystems();
         RegisterConstructs();
-        RegisterEffects();
         RegisterInteractions();            
 
         initialized = true;
@@ -167,7 +179,6 @@ public class BuiltinPlugin extends JavaPlugin {
 
         // Tier 3
         GlyphRegistry.register(new IgniteGlyph());
-        GlyphRegistry.register(new CombustGlyph());
         GlyphRegistry.register(new BoltGlyph());
         GlyphRegistry.register(new ArcGlyph());
         GlyphRegistry.register(new FreezeGlyph());
@@ -215,6 +226,13 @@ public class BuiltinPlugin extends JavaPlugin {
         // caster state queries
         GlyphRegistry.register(new IsHoldingValue());
         GlyphRegistry.register(new ConcentrationGlyph());
+
+        // trigger glyphs
+        GlyphRegistry.register(new OnPrimaryGlyph());
+        GlyphRegistry.register(new OnSecondaryGlyph());
+        GlyphRegistry.register(new OnUseGlyph());
+        GlyphRegistry.register(new OnDeathGlyph());
+        GlyphRegistry.register(new OnCastGlyph());
     }
 
     private void RegisterObelisks() {
@@ -269,6 +287,10 @@ public class BuiltinPlugin extends JavaPlugin {
         ComponentType<EntityStore, HexEffectsComponent> hexConstructType = entityStoreRegistry
                 .registerComponent(HexEffectsComponent.class, HexEffectsComponent::new);
         HexEffectsComponent.setComponentType(hexConstructType);
+
+        ComponentType<EntityStore, TriggerListenerComponent> triggerListenerType = entityStoreRegistry
+                .registerComponent(TriggerListenerComponent.class, TriggerListenerComponent::new);
+        TriggerListenerComponent.setComponentType(triggerListenerType);
     }
 
     private void RegisterSystems() {
@@ -276,15 +298,18 @@ public class BuiltinPlugin extends JavaPlugin {
 
         entityStoreRegistry.registerSystem(new ErodeDamageSystem());
         entityStoreRegistry.registerSystem(new FortifyDamageSystem());
-    }
 
-    private void RegisterEffects() {
-        HexEffectRegistry.register("drain",    new ConstructStripper<>(DrainGlyph.ID,    DrainState.class));
-        HexEffectRegistry.register("erode",    new ConstructStripper<>(ErodeGlyph.ID,    ErodeState.class));
-        HexEffectRegistry.register("fortify",  new ConstructStripper<>(FortifyGlyph.ID,  FortifyState.class));
-        HexEffectRegistry.register("halt",     new ConstructStripper<>(HaltGlyph.ID,     HaltState.class));
-        HexEffectRegistry.register("levitate", new ConstructStripper<>(LevitateGlyph.ID, LevitateState.class));
-        HexEffectRegistry.register("scale",    new ConstructStripper<>(ScaleGlyph.ID,    ScaleState.class));
+        // trigger sources
+        entityStoreRegistry.registerSystem(new DeathTriggerSource());
+        entityStoreRegistry.registerSystem(new CastTriggerSource());
+        // interaction source uses a packet adapter (not an EntityEventSystem),
+        // so it self-registers via PacketAdapters.registerInbound
+        InteractionTriggerSource.register();
+
+        // trigger bootstraps installed on every per-store registry instance
+        TriggerListenerRegistry.registerBootstrap(PrimaryImbuementBinder::register);
+        TriggerListenerRegistry.registerBootstrap(SecondaryImbuementBinder::register);
+        TriggerListenerRegistry.registerBootstrap(UseImbuementBinder::register);
     }
 
     private void RegisterConstructs() {
@@ -305,5 +330,10 @@ public class BuiltinPlugin extends JavaPlugin {
         ConstructRegistry.register(EnsnareGlyph.ID, new EnsnareConstructHandler());
         ConstructRegistry.register(FreezeGlyph.ID, new FreezeConstructHandler());
         ConstructRegistry.register(ProjectileGlyph.ID, new ProjectileConstructHandler());
+        ConstructRegistry.register(IgniteGlyph.ID, new IgniteConstructHandler());
+        ConstructRegistry.register(GrowthGlyph.ID, new GrowthConstructHandler());
+
+        // shared trigger sustain construct (sips volatility while waiting for an event)
+        ConstructRegistry.register(TriggerConstructHandler.HANDLER_ID, new TriggerConstructHandler());
     }
 }

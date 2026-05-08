@@ -15,8 +15,6 @@ import com.riprod.hexcode.core.common.construct.component.HexEffectsComponent;
 import com.riprod.hexcode.core.common.construct.component.HexStatus;
 import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
 import com.riprod.hexcode.core.common.construct.registry.ConstructRegistry;
-import com.riprod.hexcode.core.common.effect.HexEffectHandler;
-import com.riprod.hexcode.core.common.effect.HexEffectRegistry;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
@@ -57,30 +55,27 @@ public class InterfereGlyph implements GlyphHandler {
         Vector3d pos = resolvePosition(ref, accessor);
 
         HexEffectsComponent construct = accessor.getComponent(ref, HexEffectsComponent.getComponentType());
-        int stripped = stripEffects(ref, accessor);
-        if (stripped > 0 && pos != null) {
-            InterfereStyle.renderStrip(pos, hexContext, accessor);
-        }
-
         if (construct != null) {
-            hijackConstruct(construct, ref, glyph, hexContext, accessor);
-            if (pos != null)
+            int hijacked = hijackConstruct(construct, ref, glyph, hexContext, accessor);
+            if (hijacked > 0 && pos != null) {
                 InterfereStyle.renderHijack(pos, hexContext, accessor);
+            }
         }
     }
 
-    private void hijackConstruct(HexEffectsComponent construct, Ref<EntityStore> ref,
+    private int hijackConstruct(HexEffectsComponent construct, Ref<EntityStore> ref,
             Glyph glyph, HexContext hexContext, CommandBuffer<EntityStore> accessor) {
 
         List<HexStatus<?>> targets = new ArrayList<>(construct.getEffects().values());
         if (targets.isEmpty())
-            return;
+            return 0;
 
         VolatilityTracker tracker = hexContext.getVolatilityTracker();
         float donation = tracker != null ? tracker.getRemainingBudget() : 0f;
 
         ConstructTickContext ctx = new ConstructTickContext(accessor, ref);
 
+        int hijacked = 0;
         for (HexStatus<?> target : targets) {
             ConstructHandler<?> handler = ConstructRegistry.get(target.getHandlerId());
             if (handler == null)
@@ -98,22 +93,13 @@ public class InterfereGlyph implements GlyphHandler {
             }
 
             construct.removeEffect(target.getConstructId());
+            hijacked++;
         }
 
         if (tracker != null && donation > 0f) {
             tracker.setBudget(0f);
         }
-    }
-
-    private int stripEffects(Ref<EntityStore> ref, CommandBuffer<EntityStore> accessor) {
-        int count = 0;
-        for (HexEffectHandler handler : HexEffectRegistry.getAll().values()) {
-            if (handler.isPresent(accessor, ref)) {
-                handler.strip(accessor, ref);
-                count++;
-            }
-        }
-        return count;
+        return hijacked;
     }
 
     private Vector3d resolvePosition(Ref<EntityStore> ref, CommandBuffer<EntityStore> accessor) {

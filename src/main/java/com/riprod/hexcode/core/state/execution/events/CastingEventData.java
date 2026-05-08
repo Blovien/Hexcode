@@ -37,6 +37,15 @@ public class CastingEventData {
 
     private Ref<EntityStore> targetRef;
 
+    // identity of the slot this cast is bound to. null = staff cast (counts toward
+    // maxCharges, contributes to decay). non-null = slot-bound cast (one per slot
+    // key per player; a new cast on the same key fizzles the previous one).
+    @Nullable
+    private String castSlotKey;
+    // per-cast contribution to cumulativeDecay; staff fills from staff.getCastDecayRate(),
+    // slot-bound binders leave at 0 (decay only applies on the staff path).
+    private float castDecayRate = 0f;
+
     public CastingEventData() {
     }
 
@@ -199,6 +208,23 @@ public class CastingEventData {
         this.defaultVariable = defaultVariable;
     }
 
+    @Nullable
+    public String getCastSlotKey() {
+        return castSlotKey;
+    }
+
+    public void setCastSlotKey(@Nullable String castSlotKey) {
+        this.castSlotKey = castSlotKey;
+    }
+
+    public float getCastDecayRate() {
+        return castDecayRate;
+    }
+
+    public void setCastDecayRate(float castDecayRate) {
+        this.castDecayRate = castDecayRate;
+    }
+
     public VolatilityTracker getVolatilityTracker() {
         return volatilityTracker;
     }
@@ -245,6 +271,14 @@ public class CastingEventData {
             .append(new KeyedCodec<>("DefaultVariable", HexVar.CODEC),
                     (c, v) -> c.defaultVariable = v,
                     c -> c.defaultVariable)
+            .add()
+            .append(new KeyedCodec<>("CastSlotKey", Codec.STRING),
+                    (c, v) -> c.castSlotKey = v,
+                    c -> c.castSlotKey)
+            .add()
+            .append(new KeyedCodec<>("CastDecayRate", Codec.FLOAT),
+                    (c, v) -> c.castDecayRate = v,
+                    c -> c.castDecayRate)
             .add()
             .build();
 }

@@ -26,17 +26,13 @@ public final class ImbuementMapCodec implements Codec<Map<String, ImbuementData>
     private static final MapCodec<ImbuementData, HashMap<String, ImbuementData>> DELEGATE =
             new MapCodec<>(ImbuementData.CODEC, HashMap::new, false);
 
-    // top-level field names of ImbuementData.CODEC; presence of any of these
-    // indicates the BSON document is a legacy single-ImbuementData shape rather
-    // than a Map<slotKey, ImbuementData>
-    private static final Set<String> LEGACY_FIELDS = Set.of(
-            "CompressedId", "Hex", "AssetId",
-            "ManaOverride", "ManaMultiplier",
-            "VolatilityOverride", "VolatilityMultiplier",
-            "PowerOverride", "PowerMultiplier",
-            "Colors");
-
     private ImbuementMapCodec() {
+    }
+
+    // live source of truth: presence of any current ImbuementData top-level field
+    // indicates the BSON doc is a legacy single-ImbuementData shape, not a slot map
+    private static Set<String> codecFieldNames() {
+        return ImbuementData.CODEC.getEntries().keySet();
     }
 
     @Override
@@ -72,8 +68,20 @@ public final class ImbuementMapCodec implements Codec<Map<String, ImbuementData>
 
     private static boolean looksLikeLegacy(BsonDocument doc) {
         if (doc.isEmpty()) return false;
+        Set<String> fields = codecFieldNames();
+        // slot-shape guard: if any value is a sub-document carrying an ImbuementData
+        // field, treat the outer doc as a slot map even if a slot key happens to
+        // collide with a field name
+        for (BsonValue value : doc.values()) {
+            if (value != null && value.isDocument()) {
+                BsonDocument nested = value.asDocument();
+                for (String field : fields) {
+                    if (nested.containsKey(field)) return false;
+                }
+            }
+        }
         for (Map.Entry<String, BsonValue> entry : doc.entrySet()) {
-            if (LEGACY_FIELDS.contains(entry.getKey())) return true;
+            if (fields.contains(entry.getKey())) return true;
         }
         return false;
     }

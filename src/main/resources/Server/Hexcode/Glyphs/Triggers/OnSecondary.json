@@ -1,0 +1,17 @@
+{
+  "Parent": "Glyph_Template",
+  "Style": { "Parent": "Delay_Earth", "PrimaryModel": "OnSecondary" },
+  "Title": "On Secondary",
+  "Description": "Pauses execution. Resumes when the caster performs a secondary interaction (e.g. block, charge).",
+  "ModelPath": "OnSecondary",
+  "BasePower": 1.0,
+  "ManaConsumption": 0,
+  "ShapeStructure": [
+    { "ShapeId": "Antiline", "Size": 1.0 },
+    { "ShapeId": "Greater", "Size": 1.0 }
+  ],
+  "Slots": {
+    "Next": { "Style": "Next", "Label": "Next", "Description": "Glyphs to run when the trigger fires" }
+  },
+  "Volatility": { "InstantCost": 0.5, "DrainPerSecond": 0.05, "RepeatEscalation": { "Base": 1.0, "K": 5.0 } }
+}

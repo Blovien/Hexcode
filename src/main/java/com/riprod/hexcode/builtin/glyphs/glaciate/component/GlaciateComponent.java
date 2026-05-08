@@ -62,8 +62,8 @@ public class GlaciateComponent implements Component<EntityStore> {
     }
 
 
-    public boolean incrementDuration(float increment) {
-        this.durationSeconds += increment;
+    public boolean tickDuration(float dt) {
+        this.durationSeconds -= dt;
         return this.durationSeconds > 0;
     }
 

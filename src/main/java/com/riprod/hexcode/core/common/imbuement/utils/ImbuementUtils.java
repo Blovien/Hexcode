@@ -10,15 +10,17 @@ import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.saved.SavedHexAsset;
 import com.riprod.hexcode.core.common.hexes.utils.HexUtils;
+import com.riprod.hexcode.core.common.imbuement.ImbuementMetadata;
 import com.riprod.hexcode.core.common.imbuement.asset.ImbuementProfileAsset;
-import com.riprod.hexcode.core.common.imbuement.codec.ImbuementMapCodec;
 import com.riprod.hexcode.core.common.imbuement.component.ImbuementData;
 import com.riprod.hexcode.core.common.imbuement.registry.ImbuementProfileRegistry;
 
 public class ImbuementUtils {
 
-    public static final String METADATA_KEY = "Imbuement";
-    public static final String DEFAULT_SLOT = ImbuementMapCodec.LEGACY_DEFAULT_KEY;
+    /** @deprecated use {@link ImbuementMetadata#KEY} */
+    @Deprecated public static final String METADATA_KEY = ImbuementMetadata.KEY;
+    /** @deprecated use {@link ImbuementMetadata#DEFAULT_SLOT} */
+    @Deprecated public static final String DEFAULT_SLOT = ImbuementMetadata.DEFAULT_SLOT;
 
     private ImbuementUtils() {
     }
@@ -27,7 +29,7 @@ public class ImbuementUtils {
 
     public static Map<String, ImbuementData> readAll(@Nullable ItemStack item) {
         if (item == null || item.isEmpty()) return Collections.emptyMap();
-        Map<String, ImbuementData> map = item.getFromMetadataOrNull(METADATA_KEY, ImbuementMapCodec.INSTANCE);
+        Map<String, ImbuementData> map = item.getFromMetadataOrNull(ImbuementMetadata.KEY, ImbuementMetadata.CODEC);
         return map != null ? map : Collections.emptyMap();
     }
 
@@ -42,9 +44,9 @@ public class ImbuementUtils {
         if (data == null) map.remove(slotKey);
         else map.put(slotKey, data);
         if (map.isEmpty()) {
-            return item.withMetadata(METADATA_KEY, ImbuementMapCodec.INSTANCE, null);
+            return item.withMetadata(ImbuementMetadata.KEY, ImbuementMetadata.CODEC, null);
         }
-        return item.withMetadata(METADATA_KEY, ImbuementMapCodec.INSTANCE, map);
+        return item.withMetadata(ImbuementMetadata.KEY, ImbuementMetadata.CODEC, map);
     }
 
     public static ItemStack clear(ItemStack item, String slotKey) {
@@ -53,30 +55,29 @@ public class ImbuementUtils {
 
     public static ItemStack writeAll(ItemStack item, @Nullable Map<String, ImbuementData> slots) {
         if (slots == null || slots.isEmpty()) {
-            return item.withMetadata(METADATA_KEY, ImbuementMapCodec.INSTANCE, null);
+            return item.withMetadata(ImbuementMetadata.KEY, ImbuementMetadata.CODEC, null);
         }
-        return item.withMetadata(METADATA_KEY, ImbuementMapCodec.INSTANCE, new HashMap<>(slots));
+        return item.withMetadata(ImbuementMetadata.KEY, ImbuementMetadata.CODEC, new HashMap<>(slots));
     }
 
     @Nullable
     public static ImbuementProfileAsset resolveProfile(@Nullable ItemStack item) {
-        if (item == null || item.isEmpty() || item.getItem() == null) return null;
-        return ImbuementProfileRegistry.first(item.getItem().getCategories());
+        return ImbuementProfileRegistry.first(item);
     }
 
     // legacy slotless API — delegates to DEFAULT_SLOT for backwards compat
 
     @Nullable
     public static ImbuementData read(@Nullable ItemStack item) {
-        return read(item, DEFAULT_SLOT);
+        return read(item, ImbuementMetadata.DEFAULT_SLOT);
     }
 
     public static ItemStack write(ItemStack item, ImbuementData data) {
-        return write(item, DEFAULT_SLOT, data);
+        return write(item, ImbuementMetadata.DEFAULT_SLOT, data);
     }
 
     public static ItemStack clear(ItemStack item) {
-        return item.withMetadata(METADATA_KEY, ImbuementMapCodec.INSTANCE, null);
+        return item.withMetadata(ImbuementMetadata.KEY, ImbuementMetadata.CODEC, null);
     }
 
     // hex resolution / construction helpers

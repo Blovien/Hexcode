@@ -149,9 +149,7 @@ public class RotationValue implements GlyphHandler {
             BlockType blockType = BlockType.getAssetMap().getAsset(blockId);
             if (blockType == null) return;
             Rotation yaw = quarter(rotation.y);
-            Rotation pitch = quarter(rotation.x);
-            Rotation roll = quarter(rotation.z);
-            int rotationIndex = RotationTuple.index(yaw, pitch, roll);
+            int rotationIndex = RotationTuple.index(yaw, Rotation.None, Rotation.None);
             // preserve block-entity state, skip particles, skip filler churn
             int settings = 0x02 | 0x04 | 0x10;
             world.getChunk(ChunkUtil.indexChunkFromBlock(pos.x, pos.z))

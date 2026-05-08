@@ -1,5 +1,6 @@
 package com.riprod.hexcode.core.common.imbuement.registry;
 
+import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.riprod.hexcode.core.common.imbuement.asset.ImbuementProfileAsset;
 
 import javax.annotation.Nullable;
@@ -26,5 +27,11 @@ public final class ImbuementProfileRegistry {
             if (profile != null) return profile;
         }
         return null;
+    }
+
+    @Nullable
+    public static ImbuementProfileAsset first(@Nullable ItemStack item) {
+        if (item == null || item.isEmpty() || item.getItem() == null) return null;
+        return first(item.getItem().getCategories());
     }
 }

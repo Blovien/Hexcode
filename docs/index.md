@@ -52,7 +52,7 @@ Walk around the ring. Pick the Hex you want to bring to life. That Hex becomes y
 
 Your staff is your focus. It is the wand, the catalyst, the lens through which raw intent becomes a shaped spell.
 
-Different staffs carry different budgets: how much **Mana** they can spend in a cast, how much **Volatility** they can safely contain before the spell starts to unravel, and how efficiently they turn thought into force. A Crude staff is a starter tool. An Onyxium staff is a masterwork. Every tier in between is a new ceiling to push against.
+Different staffs carry different budgets: how much **Mana** they can spend in a cast, how much **Stability** they can safely contain before the spell starts to unravel, and how efficiently they turn thought into force. A Crude staff is a starter tool. An Onyxium staff is a masterwork. Every tier in between is a new ceiling to push against.
 
 ### The Hexbook
 
@@ -60,7 +60,7 @@ The book is your library. Every Hex you've ever drawn lives inside it, editable,
 
 ### Glyph Tiers
 
-Not every glyph is available from the start. Glyphs are organized into three tiers plus a Utility tier, and each one comes with its own **volatility cost**:
+Not every glyph is available from the start. Glyphs are organized into three tiers plus a Utility tier, and each one comes with its own **stability cost**:
 
 \> **Utility** - Cheap foundational glyphs. Numbers, variables, self-reference.
 
@@ -70,7 +70,7 @@ Not every glyph is available from the start. Glyphs are organized into three tie
 
 \> **Tier 3** - The what
 
-Higher-tier glyphs do more, but they cost more volatility. Stuff a low-tier staff with Tier 3 glyphs and the spell will misfire, fizzle, or backfire. Balancing your volatility budget against your ambitions is the heart of the craft.
+Higher-tier glyphs do more, but they cost more stability. Stuff a low-tier staff with Tier 3 glyphs and the spell will misfire, fizzle, or backfire. Balancing your stability budget against your ambitions is the heart of the craft.
 
 # ![image](https://media.forgecdn.net/attachments/description/1448311/description_d8617dfc-82ba-44b4-ba5a-7d1726edd070.png) **_A Language, Not a Menu_**
 

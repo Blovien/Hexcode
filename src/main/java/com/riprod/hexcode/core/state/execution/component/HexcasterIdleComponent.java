@@ -77,22 +77,54 @@ public class HexcasterIdleComponent implements Component<EntityStore> {
     }
 
     /**
-     * Active spell count. Prunes completed trackers first so callers see the
-     * live count, not stale entries left by natural completion.
+     * Active staff-pool spell count. Slot-bound casts (slotKey != null) are
+     * excluded so they don't contend with staff casts for the maxCharges cap.
+     * Prunes completed trackers first so callers see the live count.
      */
     public int getActiveCount() {
         pruneCompletedTrackers();
-        return activeTrackers == null ? 0 : activeTrackers.size();
+        if (activeTrackers == null) return 0;
+        int n = 0;
+        for (VolatilityTracker t : activeTrackers) {
+            if (t != null && t.getSlotKey() == null) n++;
+        }
+        return n;
     }
 
+    /**
+     * Evicts the oldest staff-pool tracker (slotKey == null). Slot-bound
+     * trackers are skipped so imbued casts are never evicted by the staff cap.
+     */
     public void evictOldest() {
         if (activeTrackers == null || activeTrackers.isEmpty())
             return;
-        VolatilityTracker oldest = activeTrackers.remove(0);
-        oldest.setBudget(0f);
-        UUID execId = oldest.getExecutionId();
-        if (execId != null) {
-            dependencies.remove(execId);
+        for (int i = 0; i < activeTrackers.size(); i++) {
+            VolatilityTracker t = activeTrackers.get(i);
+            if (t != null && t.getSlotKey() == null) {
+                activeTrackers.remove(i);
+                t.setBudget(0f);
+                UUID execId = t.getExecutionId();
+                if (execId != null) dependencies.remove(execId);
+                return;
+            }
+        }
+    }
+
+    /**
+     * Sets the budget to 0 on any active tracker tagged with the given slot key.
+     * Used by CastGate to enforce one-cast-per-slot semantics for slot-bound
+     * casts (a new Primary fizzles the previous Primary, etc.). Pruning happens
+     * lazily on the next getActiveCount call.
+     */
+    public void fizzleSlot(@Nonnull String slotKey) {
+        if (activeTrackers == null || activeTrackers.isEmpty()) return;
+        for (VolatilityTracker t : activeTrackers) {
+            if (t == null) continue;
+            if (slotKey.equals(t.getSlotKey()) && t.getRemainingBudget() > 0f) {
+                t.setBudget(0f);
+                UUID execId = t.getExecutionId();
+                if (execId != null) dependencies.remove(execId);
+            }
         }
     }
 

@@ -13,8 +13,8 @@ import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.common.imbuement.component.ImbuementSlotRefComponent;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
+import com.riprod.hexcode.core.state.crafting.component.SlotComponent;
 import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
 import com.riprod.hexcode.core.state.crafting.handlers.node.Container.ContainerNodeHandler;
 
@@ -77,8 +77,8 @@ public class SessionTickSystem extends EntityTickingSystem<EntityStore> {
         if (previews == null) return null;
         for (Ref<EntityStore> ref : previews) {
             if (ref == null || !ref.isValid()) continue;
-            ImbuementSlotRefComponent slotRef = buffer.getComponent(ref,
-                    ImbuementSlotRefComponent.getComponentType());
+            SlotComponent slotRef = buffer.getComponent(ref,
+                    SlotComponent.getComponentType());
             if (slotRef != null && slotKey.equals(slotRef.getSlotKey())) {
                 return ref;
             }

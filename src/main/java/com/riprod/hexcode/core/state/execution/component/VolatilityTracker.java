@@ -17,6 +17,12 @@ public class VolatilityTracker {
     private float magicPowerMultiplier;
     private UUID executionId;
     private Map<String, Integer> glyphUsageMap = new HashMap<>();
+    // identity of the slot this cast is bound to. null = staff cast (counts toward
+    // the player's maxCharges cap). non-null = slot-bound cast (one per slot key
+    // per player; a new cast on the same key fizzles the previous). cancelAll
+    // dispels regardless of this field.
+    @javax.annotation.Nullable
+    private String slotKey;
 
     public VolatilityTracker(float startingBudget, float volatilityMultiplier) {
         this(startingBudget, volatilityMultiplier, 1.0f);
@@ -117,6 +123,15 @@ public class VolatilityTracker {
         this.executionId = executionId;
     }
 
+    @javax.annotation.Nullable
+    public String getSlotKey() {
+        return slotKey;
+    }
+
+    public void setSlotKey(@javax.annotation.Nullable String slotKey) {
+        this.slotKey = slotKey;
+    }
+
     public static final BuilderCodec<VolatilityTracker> CODEC = BuilderCodec
             .builder(VolatilityTracker.class, VolatilityTracker::new)
             .append(new KeyedCodec<>("StartingBudget", Codec.FLOAT),
@@ -139,6 +154,10 @@ public class VolatilityTracker {
                     (c, v) -> c.executionId = v,
                     (c) -> c.executionId)
             .add()
+            .append(new KeyedCodec<>("SlotKey", Codec.STRING),
+                    (c, v) -> c.slotKey = v,
+                    (c) -> c.slotKey)
+            .add()
             .build();
 
     VolatilityTracker copy() {
@@ -148,6 +167,7 @@ public class VolatilityTracker {
         copy.volatilityMultiplier = this.volatilityMultiplier;
         copy.magicPowerMultiplier = this.magicPowerMultiplier;
         copy.executionId = this.executionId;
+        copy.slotKey = this.slotKey;
         return copy;
     }
 }

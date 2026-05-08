@@ -63,7 +63,7 @@ public class GlaciateConstructHandler implements ConstructHandler<NoState> {
         if (glaciate == null || transform == null)
             return true;
 
-        if (!glaciate.incrementDuration(dt)) {
+        if (!glaciate.tickDuration(dt)) {
             return true;
         }
 
@@ -120,7 +120,22 @@ public class GlaciateConstructHandler implements ConstructHandler<NoState> {
     }
 
     @Override
-    public void onCleanup(HexStatus<NoState> status, ConstructTickContext ctx) {
+    public void onEnd(HexStatus<NoState> status, ConstructTickContext ctx) {
+        cleanup(status, ctx);
+        Glyph triggering = status.getTriggeringGlyph();
+        if (triggering == null) return;
+        HexContext hexContext = status.getHexContext();
+        hexContext.UpdateAccessor(ctx.getBuffer());
+        // chain-after-melt fires once for the Next slot in addition to the per-hit fires from onTick
+        HexExecuter.continueExecution(triggering.getNextLinks(), hexContext);
+    }
+
+    @Override
+    public void onAbort(HexStatus<NoState> status, ConstructTickContext ctx) {
+        cleanup(status, ctx);
+    }
+
+    private void cleanup(HexStatus<NoState> status, ConstructTickContext ctx) {
         TransformComponent transform = ctx.getBuffer().getComponent(
                 ctx.getEntityRef(), TransformComponent.getComponentType());
         if (transform != null) {

@@ -6,7 +6,7 @@ import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.modules.block.components.ItemContainerBlock;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.riprod.hexcode.core.common.imbuement.component.ImbuementData;
+import com.riprod.hexcode.core.common.imbuement.asset.EssenceAsset;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -26,7 +26,7 @@ public final class EssenceRefill {
     }
 
     @Nullable
-    public static ImbuementData tryRefill(@Nonnull World world, @Nonnull Vector3i blockPos) {
+    public static EssenceAsset tryConsume(@Nonnull World world, @Nonnull Vector3i blockPos) {
         for (Vector3i offset : FACE_OFFSETS) {
             int x = blockPos.x + offset.x;
             int y = blockPos.y + offset.y;
@@ -44,17 +44,11 @@ public final class EssenceRefill {
                 ItemStack stack = inv.getItemStack(slot);
                 if (stack == null || stack.isEmpty()) continue;
 
-                String itemId = stack.getItemId();
-                java.util.Optional<EssenceMetadata.Parsed> parsed = EssenceMetadata.parse(itemId);
-                if (parsed.isEmpty()) continue;
+                EssenceAsset essence = EssenceAsset.getAssetMap().getAsset(stack.getItemId());
+                if (essence == null) continue;
 
-                EssenceMetadata.Parsed essence = parsed.get();
                 inv.removeItemStackFromSlot(slot, 1);
-
-                ImbuementData overlay = new ImbuementData();
-                overlay.setColors(EssenceMetadata.colorsFor(itemId));
-                overlay.setVolatilityMultiplier(essence.isConcentrated() ? 2.0f : 1.0f);
-                return overlay;
+                return essence;
             }
         }
         return null;

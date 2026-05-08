@@ -33,13 +33,14 @@ import com.riprod.hexcode.core.common.hexes.saved.SavedHexAsset;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffAsset;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
-import com.riprod.hexcode.core.common.imbuement.component.ImbuementSlotRefComponent;
 import com.riprod.hexcode.core.common.hover.system.HoverableSpatialSystem;
 import com.riprod.hexcode.core.common.hud.controller.HudController;
+import com.riprod.hexcode.core.common.imbuement.asset.EssenceAsset;
 import com.riprod.hexcode.core.common.imbuement.asset.ImbuementProfileAsset;
 import com.riprod.hexcode.core.common.imbuement.registry.ImbuementHandlerRegistry;
-import com.riprod.hexcode.core.common.imbuement.events.DamageImbuementEvent;
 import com.riprod.hexcode.core.common.obelisk.component.ObeliskBlockComponent;
+import com.riprod.hexcode.core.common.triggers.registry.FireTriggerSystem;
+import com.riprod.hexcode.core.common.triggers.registry.TriggerListenerRegistry;
 import com.riprod.hexcode.core.common.obelisk.registry.ObeliskHandlerRegistry;
 import com.riprod.hexcode.core.common.imbuement.component.ImbuedBlockComponent;
 import com.riprod.hexcode.core.common.imbuement.block.ImbuedBlockTickSystem;
@@ -254,6 +255,16 @@ public class Hexcode extends JavaPlugin {
                         .setKeyFunction(ImbuementProfileAsset::getId)
                         .loadsAfter(SlotStyleAsset.class)
                         .build());
+        AssetRegistry.register(
+                HytaleAssetStore
+                        .builder(EssenceAsset.class,
+                                new DefaultAssetMap<String, EssenceAsset>())
+                        .setPath("Hexcode/Imbuement/Essences")
+                        .setCodec(EssenceAsset.CODEC)
+                        .setKeyFunction(EssenceAsset::getId)
+                        .loadsAfter(HexStyleAsset.class)
+                        .loadsAfter(Item.class)
+                        .build());
 
     }
 
@@ -328,10 +339,6 @@ public class Hexcode extends JavaPlugin {
                 .registerComponent(HoverableComponent.class, HoverableComponent::new);
         HoverableComponent.setComponentType(hoverableComponentType);
 
-        ComponentType<EntityStore, ImbuementSlotRefComponent> imbuementSlotRefComponentType = entityStoreRegistry
-                .registerComponent(ImbuementSlotRefComponent.class, ImbuementSlotRefComponent::new);
-        ImbuementSlotRefComponent.setComponentType(imbuementSlotRefComponentType);
-
         ComponentType<EntityStore, DebugComponent> debugComponentType = entityStoreRegistry
                 .registerComponent(DebugComponent.class, DebugComponent::new);
         DebugComponent.setComponentType(debugComponentType);
@@ -349,8 +356,8 @@ public class Hexcode extends JavaPlugin {
         entityStoreRegistry.registerSystem(new StaffUnequipEvent());
         entityStoreRegistry.registerSystem(new DebugTickSystem());
         entityStoreRegistry.registerSystem(new GlyphEffectSystem());
-        entityStoreRegistry.registerSystem(new DamageImbuementEvent());
         entityStoreRegistry.registerSystem(new HexCastEventSystem());
+        entityStoreRegistry.registerSystem(new FireTriggerSystem());
         entityStoreRegistry.registerSystem(new HexCastDiagnosticListener());
         entityStoreRegistry.registerSystem(new HexcasterCleanupSystem());
         entityStoreRegistry.registerSystem(new SessionTickSystem());
@@ -365,6 +372,10 @@ public class Hexcode extends JavaPlugin {
         ResourceType<EntityStore, HexCacheResource> resourceType = entityStoreRegistry.registerResource(
                 HexCacheResource.class, HexCacheResource::new);
         HexCacheResource.setResourceType(resourceType);
+
+        ResourceType<EntityStore, TriggerListenerRegistry> triggerRegistryType = entityStoreRegistry.registerResource(
+                TriggerListenerRegistry.class, TriggerListenerRegistry::new);
+        TriggerListenerRegistry.setResourceType(triggerRegistryType);
 
     }
 

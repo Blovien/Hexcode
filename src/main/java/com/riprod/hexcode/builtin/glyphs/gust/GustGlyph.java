@@ -11,9 +11,11 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
+import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
+import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 import com.riprod.hexcode.utils.HexDirectionUtil;
 import com.riprod.hexcode.utils.HexVarUtil;
 
@@ -25,8 +27,25 @@ public String getId() { return ID; };
 public static final String ID = "Gust";
 
     private static final double MIN_KNOCKBACK_OFFSET = 0.1;
-    private static final float BASE_DAMAGE = 2.0f;
-    private static final float DAMAGE_SCALE = 0.2f;
+
+    @Override
+    public boolean consumeVolatility(Glyph glyph, HexContext hexContext) {
+        VolatilityTracker tracker = hexContext.getVolatilityTracker();
+        if (tracker == null) return true;
+
+        double radius = Math.max(0, HexVarUtil.numberOrDefault(
+                glyph.readSlot(GustGlyphSlots.RADIUS, hexContext), 5.0));
+        double mag = Math.max(0, HexVarUtil.numberOrDefault(
+                glyph.readSlot(GustGlyphSlots.MAGNITUDE, hexContext), 15.0));
+        double effective = mag * radius * radius;
+
+        GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
+        float areaScale = computeAreaScale(effective, asset);
+
+        int repeatCount = tracker.getGlyphUsage(glyph.getId());
+        float cost = VolatilityTracker.computeGlyphCost(glyph, repeatCount) * areaScale;
+        return tracker.consumeVolatility(cost);
+    }
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
@@ -52,7 +71,6 @@ public static final String ID = "Gust";
         }
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
-        float damage = BASE_DAMAGE + (float) mag * DAMAGE_SCALE;
 
         Vector3d explosionCenter = new Vector3d(center).add(0, MIN_KNOCKBACK_OFFSET, 0);
 
@@ -61,7 +79,7 @@ public static final String ID = "Gust";
                 damageEntities = true;
                 damageBlocks = false;
                 entityDamageRadius = (float) radius;
-                entityDamage = damage;
+                entityDamage = 0.0f;
                 entityDamageFalloff = 1.0f;
                 knockback = new PointKnockback() {
                     {

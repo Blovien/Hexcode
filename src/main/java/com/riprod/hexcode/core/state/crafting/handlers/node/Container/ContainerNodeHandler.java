@@ -39,7 +39,7 @@ import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableType;
 import com.riprod.hexcode.core.common.glyphs.registry.SlotAsset;
 import com.riprod.hexcode.core.common.hover.utils.HoverableUtils;
-import com.riprod.hexcode.core.common.imbuement.component.ImbuementSlotRefComponent;
+import com.riprod.hexcode.core.state.crafting.component.SlotComponent;
 import com.riprod.hexcode.core.common.obelisk.system.ObeliskDispatcher;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.common.pedestal.events.PedestalSystem;
@@ -190,8 +190,8 @@ public class ContainerNodeHandler extends BaseContainerHandler {
         if (craftingComp == null)
             return InteractionState.Failed;
 
-        ImbuementSlotRefComponent slotRef = accessor.getComponent(node,
-                ImbuementSlotRefComponent.getComponentType());
+        SlotComponent slotRef = accessor.getComponent(node,
+                SlotComponent.getComponentType());
         String slotKey = slotRef != null ? slotRef.getSlotKey() : null;
         if (slotKey == null) {
             logger.atWarning().log("container enter: clicked preview has no slot key");

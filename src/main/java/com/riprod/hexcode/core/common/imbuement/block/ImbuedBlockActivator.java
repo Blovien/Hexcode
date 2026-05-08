@@ -10,6 +10,9 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.HexCastEvent;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
+import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
+import com.riprod.hexcode.core.common.imbuement.ImbuementMetadata;
+import com.riprod.hexcode.core.common.imbuement.asset.EssenceAsset;
 import com.riprod.hexcode.core.common.imbuement.component.ImbuedBlockComponent;
 import com.riprod.hexcode.core.common.imbuement.component.ImbuementData;
 import com.riprod.hexcode.core.common.imbuement.utils.ImbuementUtils;
@@ -35,6 +38,11 @@ public final class ImbuedBlockActivator {
     private ImbuedBlockActivator() {
     }
 
+    /**
+     * call only on explicit external trigger (player interaction, glyph effect,
+     * redstone edge). not safe for every-tick polling — neighbor scan during the
+     * essence-refill branch is O(6 chunk reads + container iteration).
+     */
     @Nonnull
     public static ActivationOutcome tryConsume(@Nonnull CommandBuffer<EntityStore> buffer,
             @Nonnull World world, @Nonnull Vector3i blockPos) {
@@ -44,35 +52,46 @@ public final class ImbuedBlockActivator {
                 blockPos.x, blockPos.y, blockPos.z);
         if (comp == null) return ActivationOutcome.noHex();
 
-        ImbuementData base = comp.read(ImbuementUtils.DEFAULT_SLOT);
+        ImbuementData base = comp.read(ImbuementMetadata.DEFAULT_SLOT);
         if (base == null) return ActivationOutcome.noHex();
 
         BlockImbuementCapacity.Capacity capacity = capacityAt(world, blockPos);
         if (capacity == null) return ActivationOutcome.noHex();
 
-        ImbuementData mergedData;
+        HexStyleAsset style;
+        float volatilityMultiplier;
         ActivationStatus status;
 
         if (comp.getSlotsReady() > 0) {
             comp.setSlotsReady(comp.getSlotsReady() - 1);
-            mergedData = base.copy();
+            markDirty(world, blockPos);
+            style = styleFromImbuement(base);
+            volatilityMultiplier = base.getVolatilityMultiplier();
             status = ActivationStatus.READY_FROM_SLOT;
         } else {
-            ImbuementData overlay = EssenceRefill.tryRefill(world, blockPos);
-            if (overlay == null) return ActivationOutcome.noSlotNoEssence();
-            mergedData = mergeForCast(base, overlay);
+            EssenceAsset essence = EssenceRefill.tryConsume(world, blockPos);
+            if (essence == null) return ActivationOutcome.noSlotNoEssence();
+            style = essence.getStyle();
+            volatilityMultiplier = essence.getVolatilityMultiplier();
             status = ActivationStatus.READY_FROM_ESSENCE;
         }
 
-        boolean fired = fireBlockHex(buffer, blockPos, mergedData, capacity);
+        boolean fired = fireBlockHex(buffer, blockPos, base, style, volatilityMultiplier, capacity);
         if (!fired) {
-            return new ActivationOutcome(ActivationStatus.EXECUTION_FAILED, mergedData);
+            return new ActivationOutcome(ActivationStatus.EXECUTION_FAILED, base);
         }
-        return new ActivationOutcome(status, mergedData);
+        return new ActivationOutcome(status, base);
+    }
+
+    private static void markDirty(@Nonnull World world, @Nonnull Vector3i pos) {
+        BlockModule.BlockStateInfo info = BlockModule.getComponent(
+                BlockModule.BlockStateInfo.getComponentType(), world, pos.x, pos.y, pos.z);
+        if (info != null) info.markNeedsSaving();
     }
 
     private static boolean fireBlockHex(@Nonnull CommandBuffer<EntityStore> buffer,
             @Nonnull Vector3i blockPos, @Nonnull ImbuementData data,
+            @Nullable HexStyleAsset style, float volatilityMultiplier,
             @Nonnull BlockImbuementCapacity.Capacity capacity) {
         try {
             Hex hex = ImbuementUtils.resolveHex(data);
@@ -83,10 +102,8 @@ public final class ImbuedBlockActivator {
 
             BlockHexRoot hexRoot = new BlockHexRoot(blockPos, capacity);
             float volatilityMax = hexRoot.resolveVolatility(buffer);
-            float volatilityMultiplier = data.getVolatilityMultiplier();
-
             VolatilityTracker tracker = new VolatilityTracker(volatilityMax, volatilityMultiplier, 1.0f);
-            CastingEventData castData = new CastingEventData(hex, null, 0f, hexRoot, data.getColors(), tracker);
+            CastingEventData castData = new CastingEventData(hex, null, 0f, hexRoot, style, tracker);
             castData.setDefaultVariable(new BlockVar(blockPos));
 
             buffer.invoke(new HexCastEvent(null, castData));
@@ -106,27 +123,22 @@ public final class ImbuedBlockActivator {
         return BlockImbuementCapacity.tryFor(type);
     }
 
-    @Nonnull
-    static ImbuementData mergeForCast(
-            @Nonnull ImbuementData base, @Nullable ImbuementData overlay) {
-        ImbuementData out = base.copy();
-        if (overlay == null) return out;
-        if (overlay.getColors() != null) out.setColors(overlay.getColors());
-        if (overlay.getManaOverride() >= 0f) out.setManaOverride(overlay.getManaOverride());
-        if (overlay.getManaMultiplier() != 1.0f) {
-            out.setManaMultiplier(out.getManaMultiplier() * overlay.getManaMultiplier());
+    // for the slot-ready path the base imbuement only carries colors, not a
+    // HexStyleAsset reference — wrap them as a synthetic style to flow through
+    // the same setStyle channel essences use. matches the colors-ctor on
+    // CastingEventData (styleFromColors) and avoids a second style channel.
+    @Nullable
+    private static HexStyleAsset styleFromImbuement(@Nonnull ImbuementData data) {
+        if (data.getColors() == null) return null;
+        HexStyleAsset s = HexStyleAsset.empty();
+        if (data.getColors().getPrimaryColor() != null) {
+            s.setPrimaryColor(data.getColors().getPrimaryColor().clone());
         }
-        if (overlay.getVolatilityOverride() >= 0f) {
-            out.setVolatilityOverride(overlay.getVolatilityOverride());
+        if (data.getColors().getSecondaryColor() != null) {
+            s.setSecondaryColor(data.getColors().getSecondaryColor().clone());
         }
-        if (overlay.getVolatilityMultiplier() != 1.0f) {
-            out.setVolatilityMultiplier(out.getVolatilityMultiplier() * overlay.getVolatilityMultiplier());
-        }
-        if (overlay.getPowerOverride() >= 0f) out.setPowerOverride(overlay.getPowerOverride());
-        if (overlay.getPowerMultiplier() != 1.0f) {
-            out.setPowerMultiplier(out.getPowerMultiplier() * overlay.getPowerMultiplier());
-        }
-        return out;
+        s.setAlpha(data.getColors().getPrimaryAlpha());
+        return s;
     }
 
     public static final class ActivationOutcome {

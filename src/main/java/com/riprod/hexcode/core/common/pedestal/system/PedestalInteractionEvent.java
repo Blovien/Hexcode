@@ -16,7 +16,7 @@ import com.riprod.hexcode.api.event.CraftingEvent;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexcaster.utils.PlayerUtils;
 import com.riprod.hexcode.core.common.imbuement.asset.ImbuementProfileAsset;
-import com.riprod.hexcode.core.common.imbuement.utils.ImbuementUtils;
+import com.riprod.hexcode.core.common.imbuement.registry.ImbuementProfileRegistry;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.common.pedestal.events.PedestalSystem;
 import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingComponent;
@@ -143,14 +143,14 @@ public class PedestalInteractionEvent {
             HexSlot chosenSlot = null;
             ImbuementProfileAsset profile = null;
             if (mainHand != null && !mainHand.isEmpty()) {
-                profile = ImbuementUtils.resolveProfile(mainHand);
+                profile = ImbuementProfileRegistry.first(mainHand);
                 if (profile != null) {
                     chosen = mainHand;
                     chosenSlot = HexSlot.MainHand;
                 }
             }
             if (profile == null && utilityHand != null && !utilityHand.isEmpty()) {
-                profile = ImbuementUtils.resolveProfile(utilityHand);
+                profile = ImbuementProfileRegistry.first(utilityHand);
                 if (profile != null) {
                     chosen = utilityHand;
                     chosenSlot = HexSlot.OffHand;

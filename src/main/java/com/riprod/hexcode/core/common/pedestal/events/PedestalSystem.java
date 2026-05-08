@@ -30,8 +30,9 @@ import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.hexes.utils.HexUtils;
 import com.riprod.hexcode.core.common.glyphs.registry.SlotAsset;
 import com.riprod.hexcode.core.common.imbuement.asset.ImbuementProfileAsset;
-import com.riprod.hexcode.core.common.imbuement.component.ImbuementSlotRefComponent;
+import com.riprod.hexcode.core.common.imbuement.registry.ImbuementProfileRegistry;
 import com.riprod.hexcode.core.common.imbuement.utils.ImbuementUtils;
+import com.riprod.hexcode.core.state.crafting.component.SlotComponent;
 import com.riprod.hexcode.core.common.obelisk.component.ObeliskBlockComponent;
 import com.riprod.hexcode.core.common.obelisk.system.ObeliskDispatcher;
 import com.riprod.hexcode.core.common.obelisk.system.ObeliskSystem;
@@ -88,8 +89,8 @@ public class PedestalSystem {
             Ref<EntityStore> hexRef = ContainerNodeHandler.INSTANCE.spawnContainer(buffer, hex, anchorRef,
                     anchorPos, offset, playerRef, slotAsset);
             if (hexRef != null) {
-                buffer.addComponent(hexRef, ImbuementSlotRefComponent.getComponentType(),
-                        new ImbuementSlotRefComponent(slotKey));
+                buffer.addComponent(hexRef, SlotComponent.getComponentType(),
+                        new SlotComponent(slotKey));
             }
             spawnedRefs.add(hexRef);
         }
@@ -261,7 +262,7 @@ public class PedestalSystem {
             Player player, ItemStack stack, HexSlot slot, PedestalBlockComponent pedestalComponent,
             HexcodeSessionComponent session, Vector3i blockPos) {
 
-        ImbuementProfileAsset profile = ImbuementUtils.resolveProfile(stack);
+        ImbuementProfileAsset profile = ImbuementProfileRegistry.first(stack);
         if (profile == null) return;
 
         Vector3d anchorPos = PedestalEntity.getAnchorPosition(blockPos);

@@ -1,5 +1,7 @@
 package com.riprod.hexcode.builtin.glyphs.levitate;
 
+import java.util.List;
+
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
@@ -12,7 +14,6 @@ import com.riprod.hexcode.builtin.glyphs.levitate.style.LevitateStyle;
 import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
 import com.riprod.hexcode.core.common.construct.component.HexStatus;
 import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
-import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 
 public class LevitateConstructHandler implements ConstructHandler<LevitateState> {
@@ -54,7 +55,34 @@ public class LevitateConstructHandler implements ConstructHandler<LevitateState>
     }
 
     @Override
-    public void onCleanup(HexStatus<LevitateState> status, ConstructTickContext ctx) {
+    public void onEnd(HexStatus<LevitateState> status, ConstructTickContext ctx) {
+        cleanup(status, ctx);
+        LevitateState state = status.getState();
+        if (state == null) return;
+        status.getHexContext().UpdateAccessor(ctx.getBuffer());
+        HexExecuter.continueExecution(state.getNextGlyphIds(), status.getHexContext());
+        LOGGER.atInfo().log("levitate: ended, firing %d next glyphs", state.getNextGlyphIds().size());
+    }
+
+    @Override
+    public void onAbort(HexStatus<LevitateState> status, ConstructTickContext ctx) {
+        cleanup(status, ctx);
+        LOGGER.atInfo().log("levitate: terminated early; chain suppressed");
+    }
+
+    @Override
+    public List<String> getPendingNextGlyphIds(HexStatus<LevitateState> status) {
+        LevitateState state = status.getState();
+        return state != null ? state.getNextGlyphIds() : List.of();
+    }
+
+    @Override
+    public void setPendingNextGlyphIds(HexStatus<LevitateState> status, List<String> ids) {
+        LevitateState state = status.getState();
+        if (state != null) state.setNextGlyphIds(ids);
+    }
+
+    private void cleanup(HexStatus<LevitateState> status, ConstructTickContext ctx) {
         LevitateState state = status.getState();
         CommandBuffer<EntityStore> buffer = ctx.getBuffer();
         Ref<EntityStore> target = ctx.getEntityRef();
@@ -74,9 +102,5 @@ public class LevitateConstructHandler implements ConstructHandler<LevitateState>
                 controller.removeEffect(target, effectIndex, buffer);
             }
         }
-
-        HexExecuter.continueFromSlot(status.getTriggeringGlyph(), Glyph.NEXT_SLOT, status.getHexContext());
-
-        LOGGER.atInfo().log("levitate: cleaned up, physics restored");
     }
 }

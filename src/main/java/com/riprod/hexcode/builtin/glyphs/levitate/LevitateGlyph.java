@@ -86,9 +86,10 @@ public class LevitateGlyph implements GlyphHandler {
             existing.setIntensity(intensity);
             existing.setRemainingDuration(durationSeconds);
             existing.setColors(hexContext.getColors());
+            existing.setNextGlyphIds(glyph.getNextLinks());
         } else {
             LevitateState state = new LevitateState(intensity, durationSeconds,
-                    hexContext.getColors(), originalCopy);
+                    hexContext.getColors(), originalCopy, glyph.getNextLinks());
             HexConstructSpawner.applyWithState(
                     accessor, ref, hexContext, glyph, LevitateGlyph.ID, state);
         }

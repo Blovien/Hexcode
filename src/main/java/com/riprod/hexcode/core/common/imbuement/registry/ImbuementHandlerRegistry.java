@@ -4,16 +4,16 @@ import com.riprod.hexcode.core.common.imbuement.handler.ImbuementHandler;
 import com.riprod.hexcode.core.common.imbuement.handler.StandardImbuementHandler;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class ImbuementHandlerRegistry {
 
-    private static final Map<String, ImbuementHandler> HANDLERS = new HashMap<>();
+    private static final Map<String, ImbuementHandler> HANDLERS = new ConcurrentHashMap<>();
 
     static {
-        register(StandardImbuementHandler.ID, StandardImbuementHandler.INSTANCE);
+        HANDLERS.put(StandardImbuementHandler.ID, StandardImbuementHandler.INSTANCE);
     }
 
     private ImbuementHandlerRegistry() {
