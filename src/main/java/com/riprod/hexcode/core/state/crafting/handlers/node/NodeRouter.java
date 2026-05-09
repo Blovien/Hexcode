@@ -1,8 +1,10 @@
 package com.riprod.hexcode.core.state.crafting.handlers.node;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
@@ -35,6 +37,10 @@ public class NodeRouter {
 
     public static NodeInterface get(NodeTypeId id) {
         return HANDLERS.get(id.value());
+    }
+
+    public static Set<String> keys() {
+        return new HashSet<>(HANDLERS.keySet());
     }
 
     public static InteractionState enter(CommandBuffer<EntityStore> accessor,

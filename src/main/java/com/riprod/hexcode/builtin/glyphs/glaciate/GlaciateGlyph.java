@@ -36,7 +36,6 @@ import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.api.event.GlyphFizzleEvent;
-import com.riprod.hexcode.utils.HexDirectionUtil;
 import com.riprod.hexcode.utils.HexVarUtil;
 
 public class GlaciateGlyph implements GlyphHandler {
@@ -49,7 +48,7 @@ public static final String ID = "Glaciate";
     private static final float ICE_SCALE = 2.0f;
     private static final double DEFAULT_HEIGHT = 10.0;
     private static final double DEFAULT_DURATION = 15.0;
-    private static final float DEFAULT_DAMAGE_RADIUS = 2.0f;
+    private static final float DEFAULT_DAMAGE_RADIUS = 1.2f;
     private static final float DEFAULT_DAMAGE_MULTIPLIER = 1.0f;
     private static final String HARD_COLLISION_CONFIG = "Hexcode_Glaciate_HardCollision";
 
@@ -118,8 +117,9 @@ public static final String ID = "Glaciate";
             ModelAsset modelAsset, HitboxCollisionConfig collisionConfig) {
         Model model = Model.createScaledModel(modelAsset, ICE_SCALE);
 
-        Holder<EntityStore> holder = HexConstructSpawner.create(
-                hexContext.getAccessor(), hexContext, glyph, GlaciateGlyph.ID, new Vector3d(spawnPos));
+        Holder<EntityStore> holder = HexConstructSpawner.createWithState(
+                hexContext.getAccessor(), hexContext, glyph, GlaciateGlyph.ID, new Vector3d(spawnPos),
+                new GlaciateState(glyph.getNextLinks()));
 
         Vector3f rotation = new Vector3f();
         holder.getComponent(TransformComponent.getComponentType())
@@ -141,7 +141,7 @@ public static final String ID = "Glaciate";
         }
 
         holder.addComponent(GlaciateComponent.getComponentType(),
-                new GlaciateComponent(DEFAULT_DAMAGE_RADIUS, duration, DEFAULT_DAMAGE_MULTIPLIER));
+                new GlaciateComponent(DEFAULT_DAMAGE_RADIUS, DEFAULT_DAMAGE_MULTIPLIER, duration));
 
         GlaciatePhysicsConfig.INSTANCE.apply(holder, hexContext.getCasterRef(),
                 Vector3d.ZERO, hexContext.getAccessor(), false);

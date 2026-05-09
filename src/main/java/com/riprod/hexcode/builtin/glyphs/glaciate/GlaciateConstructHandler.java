@@ -22,22 +22,23 @@ import com.riprod.hexcode.builtin.glyphs.glaciate.style.GlaciateStyle;
 import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
 import com.riprod.hexcode.core.common.construct.component.HexStatus;
 import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
-import com.riprod.hexcode.core.common.construct.state.NoState;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.Slot;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 
-public class GlaciateConstructHandler implements ConstructHandler<NoState> {
+public class GlaciateConstructHandler implements ConstructHandler<GlaciateState> {
 
     private static int damageCauseIndex = -1;
 
     @Override
-    public void onFirstTick(HexStatus<NoState> status, ConstructTickContext ctx) {
+    public void onFirstTick(HexStatus<GlaciateState> status, ConstructTickContext ctx) {
         Glyph triggering = status.getTriggeringGlyph();
         if (triggering == null)
             return;
+        // Immediate slot is intentionally read off the triggering glyph and is NOT
+        // routed through state.nextGlyphIds — Splicer never rewires Immediate.
         Slot immediate = triggering.getSlot(GlaciateGlyphSlots.IMMEDIATE);
         if (immediate == null)
             return;
@@ -49,13 +50,12 @@ public class GlaciateConstructHandler implements ConstructHandler<NoState> {
         UUID entityId = ctx.getBuffer().getComponent(ctx.getEntityRef(), UUIDComponent.getComponentType())
                 .getUuid();
 
-        // next glyphs
         hexContext.setVariable(Glyph.DEFAULT_SLOT, new EntityVar(entityId, ctx.getEntityRef()));
         HexExecuter.continueExecution(Arrays.asList(links), hexContext);
     }
 
     @Override
-    public boolean onTick(float dt, HexStatus<NoState> status, ConstructTickContext ctx) {
+    public boolean onTick(float dt, HexStatus<GlaciateState> status, ConstructTickContext ctx) {
         GlaciateComponent glaciate = ctx.getChunk().getComponent(
                 ctx.getIndex(), GlaciateComponent.getComponentType());
         TransformComponent transform = ctx.getChunk().getComponent(
@@ -63,7 +63,7 @@ public class GlaciateConstructHandler implements ConstructHandler<NoState> {
         if (glaciate == null || transform == null)
             return true;
 
-        if (!glaciate.incrementDuration(dt)) {
+        if (!glaciate.tickDuration(dt)) {
             return true;
         }
 
@@ -76,6 +76,8 @@ public class GlaciateConstructHandler implements ConstructHandler<NoState> {
                 center, glaciate.getDamageRadius(), ctx.getBuffer());
 
         Ref<EntityStore> casterRef = status.getHexContext().getCasterRef();
+        GlaciateState state = status.getState();
+        List<String> nextLinks = state != null ? state.getNextGlyphIds() : List.of();
 
         for (Ref<EntityStore> ref : found) {
             if (ref == null || !ref.isValid())
@@ -105,14 +107,12 @@ public class GlaciateConstructHandler implements ConstructHandler<NoState> {
             GlaciateStyle.renderImpact(center,
                     status.getHexContext(), ctx.getBuffer());
 
-            final Ref<EntityStore> entityRef = ref;
-            final UUIDComponent entityUuid = uuid;
             Glyph triggering = status.getTriggeringGlyph();
-            if (triggering != null) {
+            if (triggering != null && !nextLinks.isEmpty()) {
                 HexContext hexCtx = status.getHexContext();
                 triggering.writeDefaultOutput(
-                        new EntityVar(entityUuid.getUuid(), entityRef), hexCtx);
-                HexExecuter.continueExecution(triggering.getNextLinks(), hexCtx);
+                        new EntityVar(uuid.getUuid(), ref), hexCtx);
+                HexExecuter.continueExecution(nextLinks, hexCtx);
             }
         }
 
@@ -120,7 +120,34 @@ public class GlaciateConstructHandler implements ConstructHandler<NoState> {
     }
 
     @Override
-    public void onCleanup(HexStatus<NoState> status, ConstructTickContext ctx) {
+    public void onEnd(HexStatus<GlaciateState> status, ConstructTickContext ctx) {
+        cleanup(status, ctx);
+        GlaciateState state = status.getState();
+        if (state == null) return;
+        HexContext hexContext = status.getHexContext();
+        hexContext.UpdateAccessor(ctx.getBuffer());
+        // chain-after-melt fires once for the Next slot in addition to the per-hit fires from onTick
+        HexExecuter.continueExecution(state.getNextGlyphIds(), hexContext);
+    }
+
+    @Override
+    public void onAbort(HexStatus<GlaciateState> status, ConstructTickContext ctx) {
+        cleanup(status, ctx);
+    }
+
+    @Override
+    public List<String> getPendingNextGlyphIds(HexStatus<GlaciateState> status) {
+        GlaciateState state = status.getState();
+        return state != null ? state.getNextGlyphIds() : List.of();
+    }
+
+    @Override
+    public void setPendingNextGlyphIds(HexStatus<GlaciateState> status, List<String> ids) {
+        GlaciateState state = status.getState();
+        if (state != null) state.setNextGlyphIds(ids);
+    }
+
+    private void cleanup(HexStatus<GlaciateState> status, ConstructTickContext ctx) {
         TransformComponent transform = ctx.getBuffer().getComponent(
                 ctx.getEntityRef(), TransformComponent.getComponentType());
         if (transform != null) {

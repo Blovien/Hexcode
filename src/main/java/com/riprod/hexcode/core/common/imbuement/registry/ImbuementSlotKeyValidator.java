@@ -1,0 +1,41 @@
+package com.riprod.hexcode.core.common.imbuement.registry;
+
+import java.util.Map;
+
+import javax.annotation.Nonnull;
+
+import com.hypixel.hytale.codec.schema.SchemaContext;
+import com.hypixel.hytale.codec.schema.config.Schema;
+import com.hypixel.hytale.codec.validation.ValidationResults;
+import com.hypixel.hytale.codec.validation.Validator;
+import com.riprod.hexcode.core.common.glyphs.registry.SlotAsset;
+import com.riprod.hexcode.core.common.triggers.registry.TriggerRegistry;
+
+// validator wired late onto ImbuementProfileAsset.slots — fails the build when
+// a profile declares a slot key that no registered Trigger answers to. only
+// runs for SlotMode.Trigger profiles; FreeForm profiles (books, blocks)
+// short-circuit before this validator is consulted.
+public final class ImbuementSlotKeyValidator implements Validator<Map<String, SlotAsset>> {
+
+    public static final ImbuementSlotKeyValidator INSTANCE = new ImbuementSlotKeyValidator();
+
+    private ImbuementSlotKeyValidator() {
+    }
+
+    @Override
+    public void accept(Map<String, SlotAsset> slots, @Nonnull ValidationResults results) {
+        if (slots == null || slots.isEmpty()) return;
+        for (String key : slots.keySet()) {
+            if (key == null || key.isEmpty()) continue;
+            if (!TriggerRegistry.isProfileSlotEligible(key)) {
+                results.fail("Unknown trigger slot key '" + key + "'. Registered: "
+                        + String.join(", ", TriggerRegistry.keys()));
+            }
+        }
+    }
+
+    @Override
+    public void updateSchema(SchemaContext context, @Nonnull Schema target) {
+        target.setDescription("Slot keys must match a registered Trigger id (TriggerRegistry).");
+    }
+}

@@ -26,11 +26,9 @@ public class DrawnShapeComponent {
 
     private String shapeId;
 
-    // scoring
     private float volatility;
     private float efficiency;
 
-    // shape calc
     private float size;
     private float relativeSize;
     private List<Vector3d> points;

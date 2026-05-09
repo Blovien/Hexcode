@@ -51,17 +51,11 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
                     state -> state.maxRadius)
             .documentation("The radius in which players are detected")
             .add()
-            .appendInherited(new KeyedCodec<>("EssenceOffsetVector", Vector3f.CODEC),
-                    (a, v) -> a.essenceOffset = v,
-                    a -> a.essenceOffset,
-                    (a, p) -> a.essenceOffset = p.essenceOffset)
-            .documentation("Essence offset vector")
-            .add()
-            .appendInherited(new KeyedCodec<>("BookOffsetVector", Vector3f.CODEC),
-                    (a, v) -> a.bookOffset = v,
-                    a -> a.bookOffset,
-                    (a, p) -> a.bookOffset = p.bookOffset)
-            .documentation("Book offset from the center")
+            .appendInherited(new KeyedCodec<>("DisplayOffsetVector", Vector3f.CODEC),
+                    (a, v) -> a.displayOffset = v,
+                    a -> a.displayOffset,
+                    (a, p) -> a.displayOffset = p.displayOffset)
+            .documentation("Imbued item display offset from the center")
             .add()
             .append(new KeyedCodec<>("AnimationSets", new MapCodec<>(ModelAsset.AnimationSet.CODEC, HashMap::new)),
                     (model, m) -> model.animationSetMap = m,
@@ -91,8 +85,7 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
     private int obeliskRange = 30;
     private String referenceHolder = "Pedestal_Holder";
     private Map<String, AnimationSet> animationSetMap = Collections.emptyMap();
-    protected Vector3f essenceOffset = new Vector3f(0f, -0.5f, 0f);
-    protected Vector3f bookOffset = new Vector3f(0f, 0.3f, 0f);
+    protected Vector3f displayOffset = new Vector3f(0f, 0.3f, 0f);
     // transient runtime
     private Map<String, Float> lastTickMap = new HashMap<>();
     private List<Vector3i> obeliskLocations = new ArrayList<>();
@@ -176,12 +169,8 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
         return this.obeliskLocations.remove(obeliskLoc);
     }
 
-    public Vector3f getBookOffset() {
-        return this.bookOffset;
-    }
-
-    public Vector3f getEssenceOffset() {
-        return this.essenceOffset;
+    public Vector3f getDisplayOffset() {
+        return this.displayOffset;
     }
 
     public Map<String, AnimationSet> getAnimationSetMap() {
@@ -213,8 +202,7 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
         copy.perPlayer = this.perPlayer;
         copy.obeliskRange = this.obeliskRange;
         copy.referenceHolder = this.referenceHolder;
-        copy.bookOffset = this.bookOffset;
-        copy.essenceOffset = this.essenceOffset;
+        copy.displayOffset = this.displayOffset;
         copy.animationSetMap = this.animationSetMap;
         copy.lastTickMap = new HashMap<>(this.lastTickMap);
         copy.obeliskLocations = new ArrayList<>(this.obeliskLocations);

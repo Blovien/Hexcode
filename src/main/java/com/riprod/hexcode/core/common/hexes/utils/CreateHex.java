@@ -23,13 +23,11 @@ public class CreateHex {
 
         holder.addComponent(HexComponent.getComponentType(), hex);
 
-        // Position
         TransformComponent hexTransform = new TransformComponent(parentPos,
                 new Vector3f(hex.getPitch(), hex.getYaw(), 0));
 
         holder.addComponent(TransformComponent.getComponentType(), hexTransform);
 
-        // persistance
         holder.ensureComponent(EntityStore.REGISTRY.getNonSerializedComponentType());
         holder.addComponent(UUIDComponent.getComponentType(), new UUIDComponent(UUID.randomUUID()));
         int networkId = accessor.getExternalData().takeNextNetworkId();
@@ -46,12 +44,6 @@ public class CreateHex {
         return holder;
     }
 
-    /**
-     * @throws
-     * @param accessor
-     * @param holder
-     * @return
-     */
     public static Ref<EntityStore> createHexEntity(ComponentAccessor<EntityStore> accessor,
             HexComponent hexComp, Vector3d parentPos) {
 

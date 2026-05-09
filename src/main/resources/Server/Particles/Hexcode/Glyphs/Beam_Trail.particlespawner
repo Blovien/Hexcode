@@ -1,6 +1,6 @@
 {
   "RenderMode": "BlendAdd",
-  "ParticleRotationInfluence": "Billboard",
+  "ParticleRotationInfluence": "BillboardVelocity",
   "LinearFiltering": true,
   "LightInfluence": 0,
   "MaxConcurrentParticles": 3,
@@ -13,76 +13,45 @@
     "Min": 5,
     "Max": 8
   },
+  "InitialVelocity": {
+    "Speed": {
+      "Min": 40
+    }
+  },
+  "Shape": "Cube",
   "Particle": {
-    "Texture": "Particles/Textures/Circles/Water_Trail.png",
+    "Texture": "Particles/Textures/Rnd/Portal_Hedera2.png",
     "FrameSize": {
-      "Width": 128,
-      "Height": 128
+      "Width": 1024,
+      "Height": 1024
     },
-    "ScaleRatioConstraint": "OneToOne",
     "Animation": {
-      "0": {
-        "Opacity": 0.7,
+      "1": {
         "Scale": {
           "X": {
-            "Min": 0.15,
-            "Max": 0.15
+            "Min": 1,
+            "Max": 1
           },
           "Y": {
-            "Min": 0.15,
-            "Max": 0.15
-          }
-        },
-        "Rotation": {
-          "Y": {
-            "Min": 780,
-            "Max": 780
-          },
-          "Z": {
-            "Min": 780,
-            "Max": 780
-          },
-          "X": {
-            "Max": 780,
-            "Min": 780
+            "Min": 1,
+            "Max": 1
           }
         }
-      },
-      "50": {
-        "Opacity": 0.192
-      },
-      "100": {
-        "Opacity": 0,
-        "Scale": {
-          "X": {
-            "Min": 0.01,
-            "Max": 0.01
-          },
-          "Y": {
-            "Min": 0.01,
-            "Max": 0.01
-          }
+      }
+    },
+    "SoftParticles": "Disable",
+    "InitialAnimationFrame": {
+      "Scale": {
+        "X": {
+          "Min": 0.05,
+          "Max": 0.05
         },
-        "Rotation": {
-          "X": {
-            "Min": 0,
-            "Max": 0
-          },
-          "Y": {
-            "Min": 0,
-            "Max": 0
-          },
-          "Z": {
-            "Min": 0,
-            "Max": 0
-          }
+        "Y": {
+          "Min": 0.05,
+          "Max": 0.05
         }
       }
     }
   },
-  "InitialVelocity": {
-    "Speed": {
-      "Min": 30
-    }
-  }
+  "IsLowRes": true
 }

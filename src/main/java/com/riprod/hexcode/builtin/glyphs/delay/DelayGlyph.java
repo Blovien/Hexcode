@@ -2,6 +2,7 @@ package com.riprod.hexcode.builtin.glyphs.delay;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.CommandBuffer;
@@ -9,6 +10,7 @@ import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
@@ -22,6 +24,8 @@ import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.api.event.GlyphFizzleEvent;
+import com.riprod.hexcode.core.common.glyphs.variables.RotationVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.api.event.GlyphFizzleEvent;
@@ -64,8 +68,8 @@ public class DelayGlyph implements GlyphHandler {
 
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
 
-        HexVar var = hexContext.getVariable(Glyph.DEFAULT_SLOT);
-        Vector3d spawnPos = HexVarUtil.position(var, accessor);
+        HexVar defaultVar = hexContext.getVariable(Glyph.DEFAULT_SLOT);
+        Vector3d spawnPos = HexVarUtil.position(defaultVar, accessor);
         if (spawnPos == null) {
             Ref<EntityStore> casterRef = hexContext.getCasterRef();
             if (casterRef != null && casterRef.isValid()) {
@@ -76,13 +80,14 @@ public class DelayGlyph implements GlyphHandler {
                 spawnPos = new Vector3d();
             }
         }
-        EntityVar entityVar = HexVarUtil.resolveEntityVar(var, hexContext);
+        EntityVar entityVar = HexVarUtil.resolveEntityVar(defaultVar, hexContext);
 
         DelayStyle.render(hexContext);
 
-        DelayState state = new DelayState(seconds, new ArrayList<>(nextLinks), hexContext.getColors(), entityVar == null);
-        
-        if (entityVar != null) {
+        DelayState state = new DelayState(seconds, new ArrayList<>(nextLinks), hexContext.getColors(),
+                seconds >= 1f || entityVar == null);
+
+        if (seconds < 1f && entityVar != null) {
             Ref<EntityStore> targetRef = entityVar.getRef(accessor);
             if (targetRef == null || !targetRef.isValid()) {
                 HexExecuter.fail(glyph, hexContext,
@@ -98,10 +103,28 @@ public class DelayGlyph implements GlyphHandler {
 
         ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(MODEL_ID);
         if (modelAsset != null) {
-            Model model = Model.createUnitScaleModel(modelAsset);
+            Model model = new Model(modelAsset.getId(), 1.0f, (Map<String, String>) null,
+                    modelAsset.getAttachments(null),
+                    modelAsset.getBoundingBox(), modelAsset.getModel(), modelAsset.getTexture(),
+                    modelAsset.getGradientSet(), modelAsset.getGradientId(), modelAsset.getEyeHeight(),
+                    modelAsset.getCrouchOffset(), modelAsset.getSittingOffset(),
+                    modelAsset.getSleepingOffset(),
+                    modelAsset.getAnimationSetMap(), modelAsset.getCamera(),
+                    modelAsset.getLight(), modelAsset.getParticles(), modelAsset.getTrails(),
+                    modelAsset.getPhysicsValues(),
+                    modelAsset.getDetailBoxes(), modelAsset.getPhobia(),
+                    modelAsset.getPhobiaModelAssetId()
+            );
+
             holder.addComponent(ModelComponent.getComponentType(), new ModelComponent(model));
             holder.addComponent(PersistentModel.getComponentType(),
                     new PersistentModel(model.toReference()));
+
+            Vector3f rotVar = HexVarUtil.rotation(defaultVar, accessor);
+            if (rotVar != null) {
+                holder.putComponent(TransformComponent.getComponentType(),
+                        new TransformComponent(spawnPos, rotVar));
+            }
         } else {
             LOGGER.atWarning().log("delay: model asset '%s' not found", MODEL_ID);
         }

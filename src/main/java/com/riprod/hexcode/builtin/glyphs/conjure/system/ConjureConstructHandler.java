@@ -1,7 +1,6 @@
 package com.riprod.hexcode.builtin.glyphs.conjure.system;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -29,6 +28,8 @@ import com.riprod.hexcode.core.state.execution.component.HexContext;
 
 public class ConjureConstructHandler implements ConstructHandler<NoState> {
 
+    private static final float SPATIAL_INTERVAL_SECONDS = 0.2f;
+
     @Override
     public void onFirstTick(HexStatus<NoState> status, ConstructTickContext ctx) {
         Glyph triggering = status.getTriggeringGlyph();
@@ -45,8 +46,6 @@ public class ConjureConstructHandler implements ConstructHandler<NoState> {
         UUID entityId = ctx.getBuffer().getComponent(ctx.getEntityRef(), UUIDComponent.getComponentType())
                 .getUuid();
 
-        // set the default slot to the conjured entity, so that it can be used in the
-        // next glyphs
         hexContext.setVariable(Glyph.DEFAULT_SLOT, new EntityVar(entityId, ctx.getEntityRef()));
         HexExecuter.continueExecution(Arrays.asList(links), hexContext);
     }
@@ -66,10 +65,10 @@ public class ConjureConstructHandler implements ConstructHandler<NoState> {
             Vector3d velocity = vel.getVelocity();
             if (velocity.length() > 0) {
                 Vector3d pos = transform.getPosition();
-                transform.setPosition(new Vector3d(
+                pos.assign(
                         pos.x + velocity.x * dt,
                         pos.y + velocity.y * dt,
-                        pos.z + velocity.z * dt));
+                        pos.z + velocity.z * dt);
             }
         }
 
@@ -86,49 +85,55 @@ public class ConjureConstructHandler implements ConstructHandler<NoState> {
             return false;
         }
 
-        Vector3d pos = transform.getPosition();
-        Vector3d half = zone.getHalfExtents();
-        Vector3d min = new Vector3d(pos.x - half.x, pos.y - half.y, pos.z - half.z);
-        Vector3d max = new Vector3d(pos.x + half.x, pos.y + half.y, pos.z + half.z);
+        zone.setSpatialQueryTimer(zone.getSpatialQueryTimer() - dt);
+        if (zone.getSpatialQueryTimer() <= 0f) {
+            zone.setSpatialQueryTimer(SPATIAL_INTERVAL_SECONDS);
 
-        List<Ref<EntityStore>> found = new java.util.ArrayList<>(
-                TargetUtil.getAllEntitiesInBox(min, max, ctx.getBuffer()));
+            Vector3d pos = transform.getPosition();
+            Vector3d half = zone.getHalfExtents();
+            Vector3d min = new Vector3d(pos.x - half.x, pos.y - half.y, pos.z - half.z);
+            Vector3d max = new Vector3d(pos.x + half.x, pos.y + half.y, pos.z + half.z);
 
-        Set<UUID> previousOccupants = zone.getNewOccupants();
-        zone.setLastOccupants(previousOccupants);
-        zone.setNewOccupants(new HashSet<>());
+            List<Ref<EntityStore>> found = TargetUtil.getAllEntitiesInBox(min, max, ctx.getBuffer());
 
-        for (Ref<EntityStore> ref : found) {
-            if (ref == null || !ref.isValid())
-                continue;
-            if (ctx.getBuffer().getComponent(ref, ConjureZoneComponent.getComponentType()) != null)
-                continue;
+            Set<UUID> previousOccupants = zone.getNewOccupants();
+            Set<UUID> currentOccupants = zone.getLastOccupants();
+            currentOccupants.clear();
+            zone.setLastOccupants(previousOccupants);
+            zone.setNewOccupants(currentOccupants);
 
-            UUIDComponent uuid = ctx.getBuffer().getComponent(ref, UUIDComponent.getComponentType());
-            if (uuid == null)
-                continue;
+            for (Ref<EntityStore> ref : found) {
+                if (ref == null || !ref.isValid())
+                    continue;
+                if (ctx.getBuffer().getComponent(ref, ConjureZoneComponent.getComponentType()) != null)
+                    continue;
 
-            UUID entityId = uuid.getUuid();
-            zone.getNewOccupants().add(entityId);
+                UUIDComponent uuid = ctx.getBuffer().getComponent(ref, UUIDComponent.getComponentType());
+                if (uuid == null)
+                    continue;
 
-            if (!previousOccupants.contains(entityId)) {
-                fireOnEntity(status, ctx, zone, ref, uuid);
-            }
-        }
+                UUID entityId = uuid.getUuid();
+                currentOccupants.add(entityId);
 
-        if (zone.getInterval() > 0) {
-            zone.setIntervalTimer(zone.getIntervalTimer() - dt);
-            if (zone.getIntervalTimer() <= 0) {
-                zone.setIntervalTimer(zone.getInterval());
-                for (Ref<EntityStore> ref : found) {
-                    if (ref == null || !ref.isValid())
-                        continue;
-                    UUIDComponent uuid = ctx.getBuffer().getComponent(ref, UUIDComponent.getComponentType());
-                    if (uuid == null)
-                        continue;
-                    if (!zone.getNewOccupants().contains(uuid.getUuid()))
-                        continue;
+                if (!previousOccupants.contains(entityId)) {
                     fireOnEntity(status, ctx, zone, ref, uuid);
+                }
+            }
+
+            if (zone.getInterval() > 0) {
+                zone.setIntervalTimer(zone.getIntervalTimer() - dt);
+                if (zone.getIntervalTimer() <= 0) {
+                    zone.setIntervalTimer(zone.getInterval());
+                    for (Ref<EntityStore> ref : found) {
+                        if (ref == null || !ref.isValid())
+                            continue;
+                        UUIDComponent uuid = ctx.getBuffer().getComponent(ref, UUIDComponent.getComponentType());
+                        if (uuid == null)
+                            continue;
+                        if (!currentOccupants.contains(uuid.getUuid()))
+                            continue;
+                        fireOnEntity(status, ctx, zone, ref, uuid);
+                    }
                 }
             }
         }

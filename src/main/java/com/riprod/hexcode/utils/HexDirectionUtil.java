@@ -73,10 +73,14 @@ public class HexDirectionUtil {
             }
             return new Vector3d(posVar.getValue()).normalize();
         }
-        if (sourcePosition != null && var instanceof BlockVar blockVar && blockVar.getValue() != null) {
+        if (var instanceof BlockVar blockVar) {
             Vector3i bv = blockVar.getValue();
-            Vector3d blockCenter = new Vector3d(bv.x + 0.5, bv.y + 0.5, bv.z + 0.5);
-            return Vector3d.directionTo(sourcePosition, blockCenter);
+            if (bv != null && sourcePosition != null) {
+                Vector3d blockCenter = new Vector3d(bv.x + 0.5, bv.y + 0.5, bv.z + 0.5);
+                Vector3d dir = Vector3d.directionTo(sourcePosition, blockCenter);
+                if (dir != null && dir.length() > 1e-9) return dir;
+            }
+            return blockVar.toRotation(accessor).forward();
         }
         return null;
     }

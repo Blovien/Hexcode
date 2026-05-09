@@ -38,6 +38,7 @@ public class DomainZoneComponent implements Component<EntityStore> {
     private Ref<EntityStore> casterRef;
     private Ref<EntityStore> zoneRef;
     private float ambientTimer;
+    private float spatialQueryTimer;
 
     public DomainZoneComponent() {
     }
@@ -57,6 +58,7 @@ public class DomainZoneComponent implements Component<EntityStore> {
         this.casterUuid = casterUuid;
         this.casterRef = casterRef;
         this.ambientTimer = 0;
+        this.spatialQueryTimer = 0;
     }
 
     public float getRadius() {
@@ -142,6 +144,14 @@ public class DomainZoneComponent implements Component<EntityStore> {
         this.ambientTimer = ambientTimer;
     }
 
+    public float getSpatialQueryTimer() {
+        return spatialQueryTimer;
+    }
+
+    public void setSpatialQueryTimer(float spatialQueryTimer) {
+        this.spatialQueryTimer = spatialQueryTimer;
+    }
+
     public float getDurationSeconds() {
         return durationSeconds;
     }
@@ -169,6 +179,7 @@ public class DomainZoneComponent implements Component<EntityStore> {
         copy.zoneRef = this.zoneRef;
         copy.durationSeconds = this.durationSeconds;
         copy.ambientTimer = this.ambientTimer;
+        copy.spatialQueryTimer = this.spatialQueryTimer;
         return copy;
     }
 }

@@ -1,0 +1,14 @@
+{
+  "Layers": [
+    {
+      "Looping": false,
+      "Files": [
+        "Sounds/NPC/Void/Eye_Void/Eye_Void_Attack_Blast_01.ogg"
+      ],
+      "Volume": 6.04
+    }
+  ],
+  "Parent": "SFX_Attn_VeryQuiet",
+  "Pitch": 6.816,
+  "MaxInstance": 5
+}

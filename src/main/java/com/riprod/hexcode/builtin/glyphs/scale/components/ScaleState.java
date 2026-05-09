@@ -1,5 +1,7 @@
 package com.riprod.hexcode.builtin.glyphs.scale.components;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -17,18 +19,21 @@ public class ScaleState implements ConstructState {
     private float remainingSeconds;
     @Nullable
     private String modelAssetId;
+    private List<String> nextGlyphIds;
 
     public ScaleState() {
         this.constructId = UUID.randomUUID();
+        this.nextGlyphIds = new ArrayList<>();
     }
 
     public ScaleState(UUID constructId, float appliedMagnitude, @Nullable Ref<EntityStore> visualRef,
-            float remainingSeconds, @Nullable String modelAssetId) {
+            float remainingSeconds, @Nullable String modelAssetId, List<String> nextGlyphIds) {
         this.constructId = constructId;
         this.appliedMagnitude = appliedMagnitude;
         this.visualRef = visualRef;
         this.remainingSeconds = remainingSeconds;
         this.modelAssetId = modelAssetId;
+        this.nextGlyphIds = nextGlyphIds != null ? nextGlyphIds : new ArrayList<>();
     }
 
     public UUID getConstructId() {
@@ -73,8 +78,17 @@ public class ScaleState implements ConstructState {
         return remainingSeconds <= 0f;
     }
 
+    public List<String> getNextGlyphIds() {
+        return nextGlyphIds;
+    }
+
+    public void setNextGlyphIds(List<String> ids) {
+        this.nextGlyphIds = ids != null ? ids : new ArrayList<>();
+    }
+
     @Override
     public ScaleState copy() {
-        return new ScaleState(constructId, appliedMagnitude, visualRef, remainingSeconds, modelAssetId);
+        return new ScaleState(constructId, appliedMagnitude, visualRef, remainingSeconds, modelAssetId,
+                new ArrayList<>(nextGlyphIds));
     }
 }

@@ -1,0 +1,14 @@
+{
+  "Layers": [
+    {
+      "Looping": false,
+      "Files": [
+        "Sounds/Items/Portal/Textures/Portal_Zap_03.ogg",
+        "Sounds/Items/Portal/Textures/Portal_Zap_01.ogg",
+        "Sounds/Items/Portal/Textures/Portal_Zap_02.ogg"
+      ]
+    }
+  ],
+  "Parent": "SFX_Attn_VeryQuiet",
+  "Volume": 3.4
+}

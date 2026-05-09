@@ -66,33 +66,57 @@ public class HexcasterIdleComponent implements Component<EntityStore> {
         activeTrackers.add(tracker);
     }
 
-    /**
-     * Drops trackers whose budget has reached 0. Natural end state for any
-     * spell (it either consumed all volatility or was cancelled to 0).
-     */
+    // drops trackers whose budget has reached 0. natural end state for any
+    // spell (it either consumed all volatility or was cancelled to 0).
     public void pruneCompletedTrackers() {
         if (activeTrackers == null || activeTrackers.isEmpty())
             return;
         activeTrackers.removeIf(t -> t == null || t.getRemainingBudget() <= 0f);
     }
 
-    /**
-     * Active spell count. Prunes completed trackers first so callers see the
-     * live count, not stale entries left by natural completion.
-     */
+    // active staff-pool spell count. slot-bound casts (slotKey != null) are
+    // excluded so they don't contend with staff casts for the maxCharges cap.
+    // prunes completed trackers first so callers see the live count.
     public int getActiveCount() {
         pruneCompletedTrackers();
-        return activeTrackers == null ? 0 : activeTrackers.size();
+        if (activeTrackers == null) return 0;
+        int n = 0;
+        for (VolatilityTracker t : activeTrackers) {
+            if (t != null && t.getSlotKey() == null) n++;
+        }
+        return n;
     }
 
+    // evicts the oldest staff-pool tracker (slotKey == null). slot-bound
+    // trackers are skipped so imbued casts are never evicted by the staff cap.
     public void evictOldest() {
         if (activeTrackers == null || activeTrackers.isEmpty())
             return;
-        VolatilityTracker oldest = activeTrackers.remove(0);
-        oldest.setBudget(0f);
-        UUID execId = oldest.getExecutionId();
-        if (execId != null) {
-            dependencies.remove(execId);
+        for (int i = 0; i < activeTrackers.size(); i++) {
+            VolatilityTracker t = activeTrackers.get(i);
+            if (t != null && t.getSlotKey() == null) {
+                activeTrackers.remove(i);
+                t.setBudget(0f);
+                UUID execId = t.getExecutionId();
+                if (execId != null) dependencies.remove(execId);
+                return;
+            }
+        }
+    }
+
+    // sets the budget to 0 on any active tracker tagged with the given slot key.
+    // used by CastGate to enforce one-cast-per-slot semantics for slot-bound
+    // casts (a new Primary fizzles the previous Primary, etc.). pruning happens
+    // lazily on the next getActiveCount call.
+    public void fizzleSlot(@Nonnull String slotKey) {
+        if (activeTrackers == null || activeTrackers.isEmpty()) return;
+        for (VolatilityTracker t : activeTrackers) {
+            if (t == null) continue;
+            if (slotKey.equals(t.getSlotKey()) && t.getRemainingBudget() > 0f) {
+                t.setBudget(0f);
+                UUID execId = t.getExecutionId();
+                if (execId != null) dependencies.remove(execId);
+            }
         }
     }
 

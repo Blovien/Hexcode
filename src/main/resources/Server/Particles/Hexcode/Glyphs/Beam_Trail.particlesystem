@@ -5,10 +5,20 @@
       "PositionOffset": {
         "Y": 0
       },
-      "StartDelay": 0.02
+      "InitialVelocity": {
+        "Speed": {
+          "Min": 0,
+          "Max": 0
+        }
+      }
+    },
+    {
+      "SpawnerId": "Beam_Presence",
+      "TotalSpawners": 1,
+      "MaxConcurrent": 5
     }
   ],
-  "LifeSpan": 0.8,
+  "LifeSpan": 0.4,
   "CullDistance": 100,
   "BoundingRadius": 5.0,
   "IsImportant": true

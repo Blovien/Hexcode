@@ -6,6 +6,9 @@ import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.math.vector.Vector3i;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.RotationTuple;
+import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public final class BlockVar extends HexVar {
@@ -40,7 +43,18 @@ public final class BlockVar extends HexVar {
 
     @Override
     public RotationVar toRotation(ComponentAccessor<EntityStore> accessor) {
-        return new RotationVar(new Vector3f(0f, 0f, 0f));
+        if (position == null) return new RotationVar(new Vector3f(0f, 0f, 0f));
+        try {
+            World world = accessor.getExternalData().getWorld();
+            int blockId = world.getBlock(position.x, position.y, position.z);
+            if (blockId == BlockType.EMPTY_ID) return new RotationVar(new Vector3f(0f, 0f, 0f));
+            int idx = world.getBlockRotationIndex(position.x, position.y, position.z);
+            RotationTuple tuple = RotationTuple.get(idx);
+            float yaw = (float) tuple.yaw().getRadians();
+            return new RotationVar(new Vector3f(0f, yaw, 0f));
+        } catch (Exception e) {
+            return new RotationVar(new Vector3f(0f, 0f, 0f));
+        }
     }
 
     @Override

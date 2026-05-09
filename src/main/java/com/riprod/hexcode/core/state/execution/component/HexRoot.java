@@ -12,7 +12,6 @@ public interface HexRoot {
     float getCurrentMana(ComponentAccessor<EntityStore> accessor);
     boolean addMana(float amount, ComponentAccessor<EntityStore> accessor);
 
-    // runtime sht
     HexRoot copy();
 
 }

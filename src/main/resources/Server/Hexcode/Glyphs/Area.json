@@ -9,7 +9,7 @@
     "SecondaryColor": "#ffffff"
   },
   "Title": "Area",
-  "Description": "Collects all like-typed targets within a radius around a center point and executes the branch once per target",
+  "Description": "Sweeps a sphere around a center point and fans out separately to its Blocks and Entities branches, executing each once per matching target",
   "ModelPath": "Area",
   "BasePower": 1.0,
   "ManaConsumption": 5,
@@ -34,13 +34,18 @@
       "Style": "Input",
       "Label": "Radius",
       "Description": "Radius of the gathering area",
-      "DefaultValue": 5,
+      "DefaultValue": 2,
       "Unique": true
+    },
+    "Blocks": {
+      "Style": "Next",
+      "Label": "Blocks",
+      "Description": "Executes once per non-empty block in the area"
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "Entities",
+      "Description": "Executes once per entity in the area (excluding the caster)"
     }
   },
   "Volatility": {

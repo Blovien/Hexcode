@@ -62,7 +62,7 @@ public final class HexCacheResource implements Resource<EntityStore> {
     @Nullable
     @Override
     public Resource<EntityStore> clone() {
-        // Resources are per-store. Clone returns a fresh empty cache for
+        // resources are per-store. clone returns a fresh empty cache for
         // the new store; copying entries across stores would have no value.
         return new HexCacheResource();
     }

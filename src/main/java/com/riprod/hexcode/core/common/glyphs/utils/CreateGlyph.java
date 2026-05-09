@@ -64,15 +64,12 @@ public class CreateGlyph {
 
     holder.addComponent(GlyphComponent.getComponentType(), glyph);
 
-    // Required components
     TransformComponent glyphTransform = new TransformComponent(parentPos,
         parentRot);
 
     holder.addComponent(TransformComponent.getComponentType(),
         glyphTransform);
 
-    // asset logic
-    
     GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
     if (asset == null) {
       LOGGER.atWarning().log("Unknown glyph ID: " + glyph.getGlyphId());
@@ -89,7 +86,6 @@ public class CreateGlyph {
 
     holder.addComponent(ModelComponent.getComponentType(), new ModelComponent(model));
 
-    // required
     holder.ensureComponent(EntityStore.REGISTRY.getNonSerializedComponentType());
     holder.addComponent(UUIDComponent.getComponentType(),
         new UUIDComponent(UUID.randomUUID()));
@@ -110,15 +106,6 @@ public class CreateGlyph {
     return holder;
   }
 
-  /**
-   * Creates a glyph entity and all of it's children recursively - adding each
-   * child ref to the parent map
-   * 
-   * @throws
-   * @param accessor
-   * @param holder
-   * @return
-   */
   public static Ref<EntityStore> createGlyph(CommandBuffer<EntityStore> accessor, GlyphComponent glyph,
       Vector3d parentPos, Vector3f parentRot, Ref<EntityStore> playerRef) {
 

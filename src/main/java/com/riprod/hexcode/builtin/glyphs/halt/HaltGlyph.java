@@ -83,7 +83,7 @@ public static final String ID = "Halt";
 
             if (duration > 0) {
                 HexConstructSpawner.applyWithState(accessor, ref, hexContext, glyph, HaltGlyph.ID,
-                        new HaltState((float) duration, originalForState));
+                        new HaltState((float) duration, originalForState, glyph.getNextLinks()));
             }
 
             if (duration > 0) {
@@ -108,6 +108,9 @@ public static final String ID = "Halt";
             LOGGER.atWarning().log("halt: could not halt entity: %s", e.getMessage());
         }
 
-        HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
+        // duration > 0 defers Next via construct onEnd; instant halt fires Next now
+        if (duration <= 0) {
+            HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
+        }
     }
 }

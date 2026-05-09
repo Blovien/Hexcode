@@ -6,9 +6,8 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.state.execution.events.CastingEventData;
 
-/**
- * Emitted while a hex is being cast, prior to any mana being consumed or effects being applied. This is cancellable, and any changes to the event's data will be applied to the cast if not cancelled.
- */
+// emitted while a hex is being cast, prior to any mana being consumed or effects being applied.
+// cancellable; any changes to the event's data will be applied to the cast if not cancelled.
 public class HexCastEvent extends CancellableEcsEvent {
 
     private final CastingEventData castingData;

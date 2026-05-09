@@ -15,15 +15,21 @@ import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.protocol.MountController;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.CustomModelTexture;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
+import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.modules.entity.item.ItemComponent;
+import com.hypixel.hytale.server.core.modules.entity.item.PreventPickup;
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.common.imbuement.asset.ImbuementProfileAsset;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
 import com.hypixel.hytale.logger.HytaleLogger;
@@ -73,35 +79,9 @@ public class PedestalEntity {
         return accessor.addEntity(holder, AddReason.SPAWN);
     }
 
-    public static Ref<EntityStore> spawnEssenceDisplay(CommandBuffer<EntityStore> accessor,
-            PedestalBlockComponent pedestal, HexcodeSessionComponent session,
-            Vector3d anchorPos, Item item,
-            String anchorId, Ref<EntityStore> playerRef) {
-
-        Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
-
-        holder.addComponent(TransformComponent.getComponentType(),
-                new TransformComponent(anchorPos, new Vector3f(0, 0, 0)));
-
-        holder.addComponent(UUIDComponent.getComponentType(),
-                new UUIDComponent(UUID.randomUUID()));
-        holder.ensureComponent(EntityStore.REGISTRY.getNonSerializedComponentType());
-
-        int networkId = accessor.getExternalData().takeNextNetworkId();
-        holder.addComponent(NetworkId.getComponentType(), new NetworkId(networkId));
-
-        addDisplayModel(pedestal, holder, item, anchorId, 0.5f);
-
-        holder.addComponent(MountedComponent.getComponentType(),
-                new MountedComponent(session.getAnchorRef(), pedestal.getEssenceOffset(),
-                        MountController.Minecart));
-
-        return accessor.addEntity(holder, AddReason.SPAWN);
-    }
-
     public static Ref<EntityStore> spawnBookDisplay(CommandBuffer<EntityStore> accessor,
             PedestalBlockComponent pedestal,
-            HexcodeSessionComponent session, Vector3d anchorPos, Item item, Ref<EntityStore> playerRef) {
+            HexcodeSessionComponent session, Vector3d anchorPos, ItemStack stack, Ref<EntityStore> playerRef) {
 
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
 
@@ -115,28 +95,77 @@ public class PedestalEntity {
         int networkId = accessor.getExternalData().takeNextNetworkId();
         holder.addComponent(NetworkId.getComponentType(), new NetworkId(networkId));
 
-        addDisplayModel(pedestal, holder, item, pedestal.getReferenceHolder(), 1.0f);
+        addDisplayRendering(pedestal, session.getProfile(), holder, stack, pedestal.getReferenceHolder(), 1.0f);
 
         holder.addComponent(MountedComponent.getComponentType(),
-                new MountedComponent(session.getAnchorRef(), pedestal.getBookOffset(),
+                new MountedComponent(session.getAnchorRef(), pedestal.getDisplayOffset(),
                         MountController.Minecart));
 
         return accessor.addEntity(holder, AddReason.SPAWN);
     }
 
-    private static void addDisplayModel(PedestalBlockComponent pedestal, Holder<EntityStore> holder, Item item,
-            String anchorId, float scale) {
+    private static void addDisplayRendering(PedestalBlockComponent pedestal,
+            @Nullable ImbuementProfileAsset profile,
+            Holder<EntityStore> holder, ItemStack stack, String anchorId, float scale) {
 
-        ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(pedestal.getReferenceHolder());
-        if (modelAsset == null) {
-            logger.atWarning().log("pedestal addDisplayModel: no ModelAsset for id=%s", anchorId);
+        Item item = stack.getItem();
+
+        // priority 1: profile.displayModelOverride
+        if (profile != null) {
+            String override = profile.getDisplayModelOverride();
+            if (override != null && !override.isEmpty()) {
+                attachCustomModel(pedestal, holder, override, item.getTexture(), anchorId, scale);
+                return;
+            }
+        }
+
+        // priority 2: item.getModel() (Tools / non-block items: HexBook, etc.)
+        String itemModel = item.getModel();
+        if (itemModel != null && !itemModel.isEmpty()) {
+            attachCustomModel(pedestal, holder, itemModel, item.getTexture(), anchorId, scale);
             return;
         }
 
-        Model model;
-        model = new Model(
+        // priority 3: block-type item — render via ItemComponent so the client uses
+        // its built-in dropped-item renderer (correct block geometry + textures).
+        // PreventPickup keeps it from being scooped up by the player pickup system.
+        if (item.hasBlockType()) {
+            holder.addComponent(ItemComponent.getComponentType(), new ItemComponent(stack));
+            holder.addComponent(PreventPickup.getComponentType(), PreventPickup.INSTANCE);
+            return;
+        }
+
+        // last resort: try BlockType lookup directly (covers items where hasBlockType
+        // is false but a BlockType still exists under the item id)
+        BlockType blockType = BlockType.getAssetMap().getAsset(item.getBlockId());
+        if (blockType != null) {
+            String blockModel = blockType.getCustomModel();
+            String blockTexture = null;
+            CustomModelTexture[] textures = blockType.getCustomModelTexture();
+            if (textures != null && textures.length > 0) {
+                blockTexture = textures[0].getTexture();
+            }
+            if (blockModel != null && !blockModel.isEmpty()) {
+                attachCustomModel(pedestal, holder, blockModel, blockTexture, anchorId, scale);
+                return;
+            }
+        }
+
+        logger.atWarning().log("pedestal: no renderable model for item id=%s", item.getId());
+    }
+
+    private static void attachCustomModel(PedestalBlockComponent pedestal, Holder<EntityStore> holder,
+            String modelId, @Nullable String textureId, String anchorId, float scale) {
+
+        ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(pedestal.getReferenceHolder());
+        if (modelAsset == null) {
+            logger.atWarning().log("pedestal attachCustomModel: no ModelAsset for id=%s", anchorId);
+            return;
+        }
+
+        Model model = new Model(
                 modelAsset.getId(), scale, (Map<String, String>) null, modelAsset.getAttachments(null),
-                modelAsset.getBoundingBox(), item.getModel(), item.getTexture(),
+                modelAsset.getBoundingBox(), modelId, textureId,
                 modelAsset.getGradientSet(), modelAsset.getGradientId(), modelAsset.getEyeHeight(),
                 modelAsset.getCrouchOffset(), modelAsset.getSittingOffset(),
                 modelAsset.getSleepingOffset(),

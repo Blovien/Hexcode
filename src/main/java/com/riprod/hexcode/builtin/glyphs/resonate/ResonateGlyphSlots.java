@@ -5,5 +5,4 @@ public final class ResonateGlyphSlots {
     }
 
     public static final String TARGET = "target";
-    public static final String MANA = "mana";
 }

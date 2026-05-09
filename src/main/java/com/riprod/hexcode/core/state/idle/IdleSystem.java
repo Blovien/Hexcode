@@ -130,29 +130,13 @@ public class IdleSystem extends HexcodeManager {
 
         PlayerHexRoot hexRoot = new PlayerHexRoot(ref);
 
-        int maxCharges = (int) hexRoot.resolveMaxMagicCharges(accessor);
-        if (maxCharges <= 0) {
-            PlayerRef pr = accessor.getComponent(ref, PlayerRef.getComponentType());
-            if (pr != null) {
-                pr.sendMessage(Message.raw("no spell slots available"));
-            }
-            return InteractionState.Finished;
-        }
-        int activeCount = idleComp.getActiveCount();
-        while (activeCount >= maxCharges) {
-            idleComp.evictOldest();
-            activeCount--;
-        }
+        // staff-specific cast parameters: per-staff decay rate flows into the gate
+        // via CastingEventData; charge cap, decay subtraction, advanceCast, and
+        // tracker registration all happen in CastGate (HexCastEventSystem path).
+        HexStaffComponent staff = CasterInventory.getHexStaffComponent(accessor, ref);
+        float castDecayRate = staff != null ? staff.getCastDecayRate() : 0f;
 
         float volatilityMax = hexRoot.resolveVolatility(accessor);
-        float startingBudget = Math.max(0, volatilityMax - idleComp.getCumulativeDecay());
-
-        HexStaffComponent staff = CasterInventory.getHexStaffComponent(accessor, ref);
-        if (staff != null) {
-            idleComp.advanceCast(staff.getCastDecayRate(), volatilityMax);
-            CasterInventory.saveHexStaffComponent(accessor, ref, staff);
-        }
-
         float baseMana = SpellMana.computeTotalMana(hexClone);
         float resolvedPower = hexRoot.resolveSpellPower(accessor);
 
@@ -171,9 +155,9 @@ public class IdleSystem extends HexcodeManager {
         idleComp.setHoldingPrimary(true);
         comp.setTickLength(HOLD_STALE_KEY, 0f);
 
-        VolatilityTracker tracker = new VolatilityTracker(startingBudget, 1.0f, resolvedPower);
+        VolatilityTracker tracker = new VolatilityTracker(volatilityMax, 1.0f, resolvedPower);
         CastingEventData castData = new CastingEventData(hexClone, ref, baseMana, hexRoot, style, tracker);
-        idleComp.registerActiveTracker(tracker);
+        castData.setCastDecayRate(castDecayRate);
 
         accessor.invoke(new HexCastEvent(ref, castData));
         return InteractionState.NotFinished;

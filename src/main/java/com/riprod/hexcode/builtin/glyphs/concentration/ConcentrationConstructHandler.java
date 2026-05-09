@@ -24,12 +24,14 @@ public class ConcentrationConstructHandler implements ConstructHandler<Concentra
     @Override
     public boolean onTick(float dt, HexStatus<ConcentrationState> status, ConstructTickContext ctx) {
         Ref<EntityStore> casterRef = ctx.getEntityRef();
-        if (casterRef == null || !casterRef.isValid()) return true;
+        if (casterRef == null || !casterRef.isValid())
+            return true;
 
         CommandBuffer<EntityStore> buffer = ctx.getBuffer();
         HexcasterIdleComponent execComp = buffer.getComponent(
                 casterRef, HexcasterIdleComponent.getComponentType());
-        if (execComp == null) return true;
+        if (execComp == null)
+            return true;
 
         if (!execComp.isHoldingPrimary()) {
             fireReleaseAndKillHeld(status, buffer, casterRef);
@@ -45,11 +47,14 @@ public class ConcentrationConstructHandler implements ConstructHandler<Concentra
             CommandBuffer<EntityStore> buffer, Ref<EntityStore> casterRef) {
         Glyph trigger = status.getTriggeringGlyph();
         HexContext heldCtx = status.getHexContext();
-        if (trigger == null || heldCtx == null) return;
+        if (trigger == null || heldCtx == null)
+            return;
 
-        // q-cancel zeroes the held tracker; in that case skip the release branch entirely
+        // q-cancel zeroes the held tracker; in that case skip the release branch
+        // entirely
         VolatilityTracker heldTracker = heldCtx.getVolatilityTracker();
-        if (heldTracker != null && heldTracker.getRemainingBudget() <= 0f) return;
+        if (heldTracker != null && heldTracker.getRemainingBudget() <= 0f)
+            return;
 
         // strip the held-time bonus so the release branch inherits the unboosted budget
         ConcentrationState state = status.getState();
@@ -70,26 +75,32 @@ public class ConcentrationConstructHandler implements ConstructHandler<Concentra
             idle.registerActiveTracker(releaseCtx.getVolatilityTracker());
         }
 
-        if (heldTracker != null) heldTracker.setBudget(0f);
+        if (heldTracker != null)
+            heldTracker.setBudget(0f);
 
         try {
             HexExecuter.continueFromSlot(trigger, ConcentrationGlyphSlots.RELEASE, releaseCtx);
         } catch (Exception e) {
-            LOGGER.atWarning().log("concentration: release fire failed: %s", e.getMessage());
+            LOGGER.atWarning().log("concentration: cleanup fire failed: %s", e.getMessage());
         }
+        ConcentrationStyle.renderEnd(
+                buffer.getComponent(casterRef, TransformComponent.getComponentType()).getPosition(),
+                releaseCtx, buffer);
     }
 
     private void emitSecondary(float dt, HexStatus<ConcentrationState> status,
             CommandBuffer<EntityStore> buffer, Ref<EntityStore> casterRef) {
         ConcentrationState state = status.getState();
-        if (state == null) return;
+        if (state == null)
+            return;
 
         float accum = state.getTickAccum() + dt;
         while (accum >= SECONDARY_INTERVAL) {
             accum -= SECONDARY_INTERVAL;
             TransformComponent transform = buffer.getComponent(
                     casterRef, TransformComponent.getComponentType());
-            if (transform == null) break;
+            if (transform == null)
+                break;
             ConcentrationStyle.renderTick(transform.getPosition(), status.getHexContext(), buffer);
         }
         state.setTickAccum(accum);

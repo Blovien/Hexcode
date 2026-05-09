@@ -8,7 +8,8 @@
     "PrimarySound": "SFX_Hex_Tick",
     "SecondaryParticle": {
       "SystemId": "Delay_Shimmer"
-    }
+    },
+    "PrimaryModel": "Delay"
   },
   "Title": "Delay",
   "Description": "Delays execution of child glyphs by a duration in seconds",

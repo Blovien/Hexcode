@@ -25,8 +25,5 @@ public class GlyphPositioner {
         }
 
         rootTransform.getRotation().assign(0, 0, 0);
-
-        // rootTransform.getPosition().assign(ownerPos.x, ownerPos.y + eyeHeight,
-        // ownerPos.z);
     }
 }

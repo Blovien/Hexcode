@@ -47,8 +47,6 @@ public class ProjectileConstructHandler implements ConstructHandler<NoState> {
         UUID entityId = ctx.getBuffer().getComponent(ctx.getEntityRef(), UUIDComponent.getComponentType())
                 .getUuid();
 
-        // set the default slot to the projectile entity, so that it can be used in the
-        // next glyphs
         hexContext.setVariable(Glyph.DEFAULT_SLOT, new EntityVar(entityId, ctx.getEntityRef()));
         HexExecuter.continueExecution(Arrays.asList(links), hexContext);
     }

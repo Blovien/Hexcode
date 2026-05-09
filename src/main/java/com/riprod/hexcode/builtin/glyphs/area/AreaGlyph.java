@@ -18,6 +18,7 @@ import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.builtin.glyphs.area.style.AreaStyle;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
+import com.riprod.hexcode.core.common.glyphs.component.Slot;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
@@ -71,31 +72,22 @@ public static final String ID = "Area";
             return;
         }
 
-        if (centerVar instanceof BlockVar) {
-            List<Vector3i> blocks = gatherBlocks(center, radius, accessor);
-            AreaStyle.render(center, radius, hexContext, accessor);
+        AreaStyle.render(center, radius, hexContext, accessor);
 
-            if (blocks.isEmpty()) {
-                HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
-                return;
-            }
+        boolean blocksLinked = hasLinks(glyph, AreaGlyphSlots.BLOCKS);
+        boolean entitiesLinked = hasLinks(glyph, AreaGlyphSlots.ENTITIES);
 
-            for (Vector3i pos : blocks) {
+        if (blocksLinked) {
+            for (Vector3i pos : gatherBlocks(center, radius, accessor)) {
                 AreaStyle.renderHit(new Vector3d(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5), hexContext, accessor);
                 HexContext copy = hexContext.branch();
                 glyph.writeOutput(new BlockVar(pos), copy);
-                HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, copy);
+                HexExecuter.continueFromSlot(glyph, AreaGlyphSlots.BLOCKS, copy);
             }
-        } else {
-            List<PersistentRef> entities = gatherEntities(center, radius, hexContext);
-            AreaStyle.render(center, radius, hexContext, accessor);
+        }
 
-            if (entities.isEmpty()) {
-                HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
-                return;
-            }
-
-            for (PersistentRef ref : entities) {
+        if (entitiesLinked) {
+            for (PersistentRef ref : gatherEntities(center, radius, hexContext)) {
                 Ref<EntityStore> entRef = ref.getEntity(accessor);
                 if (entRef != null && entRef.isValid()) {
                     com.hypixel.hytale.server.core.modules.entity.component.TransformComponent t =
@@ -107,9 +99,14 @@ public static final String ID = "Area";
                 }
                 HexContext copy = hexContext.branch();
                 glyph.writeOutput(new EntityVar(ref), copy);
-                HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, copy);
+                HexExecuter.continueFromSlot(glyph, AreaGlyphSlots.ENTITIES, copy);
             }
         }
+    }
+
+    private static boolean hasLinks(Glyph glyph, String slotKey) {
+        Slot s = glyph.getSlot(slotKey);
+        return s != null && s.getLinks().length > 0;
     }
 
     private List<PersistentRef> gatherEntities(Vector3d center, double radius, HexContext hexContext) {

@@ -144,13 +144,8 @@
               ]
             }
           },
-          "BookOffsetVector": {
+          "DisplayOffsetVector": {
             "Y": 0.1,
-            "X": 0,
-            "Z": 0
-          },
-          "EssenceOffsetVector": {
-            "Y": -0.1,
             "X": 0,
             "Z": 0
           }

@@ -1,0 +1,10 @@
+{
+  "CategoryId": "Items.Armors",
+  "Slots": {
+    "Attacked": {
+      "Label": "Attacked",
+      "Description": "Execute when taking damage from another entity",
+      "Style": "Next"
+    }
+  }
+}

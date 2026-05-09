@@ -3,10 +3,12 @@ package com.riprod.hexcode.core.common.obelisk.component;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
+import com.hypixel.hytale.codec.schema.metadata.ui.UIEditor;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
-
+import com.riprod.hexcode.core.common.obelisk.registry.ObeliskHandlerKeyValidator;
+import com.riprod.hexcode.core.common.obelisk.registry.ObeliskHandlerRegistry;
 import com.hypixel.hytale.math.vector.Vector3i;
 
 import javax.annotation.Nonnull;
@@ -26,6 +28,8 @@ public class ObeliskBlockComponent implements Component<ChunkStore> {
                 (state, v) -> state.handlerId = v,
                 state -> state.handlerId
             )
+                .metadata(new UIEditor(new UIEditor.Dropdown("HexcodeObeliskHandlers")))
+                .addValidatorLate(() -> ObeliskHandlerKeyValidator.INSTANCE.late())
             .add()
             .build();
 

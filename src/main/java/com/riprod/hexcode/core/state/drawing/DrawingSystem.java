@@ -18,6 +18,7 @@ import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.time.TimeResource;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.api.event.CraftingEvent;
 import com.riprod.hexcode.api.event.GlyphDrawnEvent;
 import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
@@ -69,7 +70,6 @@ public class DrawingSystem extends HexcodeManager {
   public void firstTick(Ref<EntityStore> ref, HexcasterComponent hexcaster,
       Store<EntityStore> store, CommandBuffer<EntityStore> buffer,
       HexState previousState) {
-    // first tick stuffs
     HexcasterDrawingComponent drawingComponent = new HexcasterDrawingComponent();
     buffer.putComponent(ref, HexcasterDrawingComponent.getComponentType(), drawingComponent);
   }
@@ -120,6 +120,11 @@ public class DrawingSystem extends HexcodeManager {
 
           if (distSq > maxRadius * maxRadius) {
             LOGGER.atInfo().log("drawn hex outside pedestal radius");
+            HytaleServer.get().getEventBus().dispatchFor(CraftingEvent.class)
+                .dispatch(CraftingEvent.builder(CraftingEvent.Reason.DENIED_OUT_OF_RANGE, ref)
+                    .pedestal(pedestal)
+                    .message("Glyph drawn outside the pedestal's range.")
+                    .build());
           } else {
             spawnDrawnGlyph(buffer, glyph, session, transform, ref);
           }
@@ -284,6 +289,11 @@ public class DrawingSystem extends HexcodeManager {
     Ref<EntityStore> anchorRef = session.getAnchorNodeRef();
     if (anchorRef == null || !anchorRef.isValid()) {
       LOGGER.atWarning().log("cannot spawn drawn glyph: no active anchor entity ref on pedestal");
+      HytaleServer.get().getEventBus().dispatchFor(CraftingEvent.class)
+          .dispatch(CraftingEvent.builder(CraftingEvent.Reason.ERROR_INVALID_HEX, playerRef)
+              .pedestalLocation(session.getPedestalLocation())
+              .message("Pedestal has no active slot to attach this glyph to.")
+              .build());
       return;
     }
     NodeComponent nodeComp = accessor.getComponent(anchorRef, NodeComponent.getComponentType());

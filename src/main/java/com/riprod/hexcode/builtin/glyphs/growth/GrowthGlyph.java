@@ -26,6 +26,8 @@ import com.hypixel.hytale.server.core.universe.world.chunk.section.BlockSection;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.builtin.glyphs.growth.style.GrowthStyle;
+import com.riprod.hexcode.core.common.construct.state.ConstructStateUtil;
+import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
@@ -78,22 +80,28 @@ public static final String ID = "Growth";
         EntityVar entityVar = HexVarUtil.resolveEntityVar(targets, hexContext);
         if (entityVar != null) {
             applyToEntity(entityVar, amount, glyph, hexContext, accessor);
-        } else {
-            BlockVar blockVar = HexVarUtil.resolveBlockVar(targets, hexContext);
-            if (blockVar != null) applyToBlock(blockVar, amount, hexContext, accessor);
+            // entity branch defers Next until construct expiry
+            return;
         }
 
+        BlockVar blockVar = HexVarUtil.resolveBlockVar(targets, hexContext);
+        if (blockVar != null) applyToBlock(blockVar, amount, hexContext, accessor);
+        // block branch is instantaneous farming; fire Next now
         HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 
     private void applyToEntity(EntityVar entityVar, double amount,
             Glyph glyph, HexContext hexContext, CommandBuffer<EntityStore> accessor) {
         Ref<EntityStore> ref = entityVar.getRef(accessor);
-        if (ref == null || !ref.isValid()) return;
+        if (ref == null || !ref.isValid()) {
+            HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
+            return;
+        }
 
         EntityEffect growthEffect = EntityEffect.getAssetMap().getAsset(GROWTH_EFFECT_ID);
         if (growthEffect == null) {
             LOGGER.atWarning().log("growth: %s effect asset not found", GROWTH_EFFECT_ID);
+            HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
             return;
         }
 
@@ -111,6 +119,17 @@ public static final String ID = "Growth";
         TransformComponent tc = accessor.getComponent(ref, TransformComponent.getComponentType());
         if (tc != null) {
             GrowthStyle.renderEntityHit(tc.getPosition(), hexContext, accessor);
+        }
+
+        GrowthState existing = ConstructStateUtil.findState(
+                accessor, ref, GrowthGlyph.ID, GrowthState.class);
+        if (existing != null) {
+            existing.setRemainingDuration(durationSeconds);
+            existing.setNextGlyphIds(glyph.getNextLinks());
+        } else {
+            GrowthState state = new GrowthState(durationSeconds, glyph.getNextLinks());
+            HexConstructSpawner.applyWithState(
+                    accessor, ref, hexContext, glyph, GrowthGlyph.ID, state);
         }
 
         LOGGER.atInfo().log("growth: applied regen buff for %.1fs to entity", durationSeconds);

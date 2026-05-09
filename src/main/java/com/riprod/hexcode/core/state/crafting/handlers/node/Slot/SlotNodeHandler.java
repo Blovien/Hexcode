@@ -27,6 +27,8 @@ import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.registry.SlotAsset;
 import com.riprod.hexcode.core.common.glyphs.registry.StyleResolution;
 import com.riprod.hexcode.core.common.glyphs.registry.StyleResolution.ResolvedStyle;
+import com.hypixel.hytale.server.core.Message;
+import com.hypixel.hytale.server.core.modules.entity.component.DisplayNameComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableType;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
@@ -118,9 +120,10 @@ public class SlotNodeHandler extends BaseSlotHandler {
         holder.addComponent(NetworkId.getComponentType(), new NetworkId(networkId));
 
         HoverableComponent hoverable = new HoverableComponent(HoverableType.NODE);
-        hoverable.setHintText("title", asset.getLabel());
         hoverable.setHintText("description", asset.getDescription());
         holder.addComponent(HoverableComponent.getComponentType(), hoverable);
+        holder.addComponent(DisplayNameComponent.getComponentType(),
+                new DisplayNameComponent(Message.raw(asset.getLabel())));
 
         holder.addComponent(NodeComponent.getComponentType(),
                 new NodeComponent(parentRef, rs.handlerId()));

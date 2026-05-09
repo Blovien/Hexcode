@@ -8,6 +8,7 @@ import com.hypixel.hytale.component.system.WorldEventSystem;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.HexCastEvent;
+import com.riprod.hexcode.core.state.execution.CastGate;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 
 public class HexCastEventSystem extends WorldEventSystem<EntityStore, HexCastEvent> {
@@ -23,8 +24,7 @@ public class HexCastEventSystem extends WorldEventSystem<EntityStore, HexCastEve
                        @Nonnull CommandBuffer<EntityStore> buffer,
                        @Nonnull HexCastEvent event) {
         if (event.isCancelled()) return;
-
-        
+        if (!CastGate.admit(buffer, event.getCastingData())) return;
         HexExecuter.cast(buffer, event.getCastingData());
     }
 }

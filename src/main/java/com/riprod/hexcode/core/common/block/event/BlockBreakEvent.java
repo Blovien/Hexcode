@@ -15,7 +15,10 @@ import com.hypixel.hytale.server.core.event.events.ecs.BreakBlockEvent;
 import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.hypixel.hytale.server.core.HytaleServer;
+import com.riprod.hexcode.api.event.CraftingEvent;
 import com.riprod.hexcode.core.common.block.component.UnbreakableBlockComponent;
+import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
 import com.riprod.hexcode.core.common.obelisk.component.ObeliskBlockComponent;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.state.crafting.session.SessionUtils;
@@ -65,6 +68,16 @@ public class BlockBreakEvent extends EntityEventSystem<EntityStore, BreakBlockEv
     private static void cleanupPedestal(CommandBuffer<EntityStore> buffer, PedestalBlockComponent pedestal, World world) {
         Ref<EntityStore> sessionRef = SessionUtils.getSessionRef(pedestal);
         if (sessionRef != null) {
+            HexcodeSessionComponent session = buffer.getComponent(sessionRef,
+                    HexcodeSessionComponent.getComponentType());
+            if (session != null && session.getOwnerRef() != null) {
+                HytaleServer.get().getEventBus().dispatchFor(CraftingEvent.class)
+                        .dispatch(CraftingEvent.builder(CraftingEvent.Reason.EXITED_PEDESTAL_BROKEN,
+                                session.getOwnerRef())
+                                .pedestal(pedestal)
+                                .message("The pedestal was destroyed.")
+                                .build());
+            }
             SessionUtils.endSession(buffer, sessionRef, world);
         }
 

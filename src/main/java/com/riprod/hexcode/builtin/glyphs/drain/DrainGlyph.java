@@ -91,7 +91,7 @@ public static final String ID = "Drain";
             }
         }
 
-        // destination entity (default = caster). Destination stat is always Mana
+        // destination entity (default = caster). destination stat is always mana
         HexVar destVar = glyph.readSlot(DrainGlyphSlots.DESTINATION, hexContext);
         Ref<EntityStore> destRef = hexContext.getCasterRef();
         EntityVar destEntityVar = HexVarUtil.resolveEntityVar(destVar, hexContext);

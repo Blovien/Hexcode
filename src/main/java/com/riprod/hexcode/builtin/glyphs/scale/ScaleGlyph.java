@@ -159,6 +159,7 @@ public class ScaleGlyph implements GlyphHandler {
             state.setAppliedMagnitude((float) magnitude);
             state.setRemainingSeconds(durationSeconds);
             state.setModelAssetId(baseAssetId);
+            state.setNextGlyphIds(glyph.getNextLinks());
 
             stack.put(state.getConstructId(), (float) magnitude);
             accessor.putComponent(targetRef, ScaleStackComponent.getComponentType(), stack);
@@ -192,8 +193,7 @@ public class ScaleGlyph implements GlyphHandler {
                     accessor, targetRef, hexContext, glyph, ScaleGlyph.ID, state);
 
             ScaleStyle.renderApply(spawnPos, hexContext, accessor);
-
-            HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
+            // next defers to construct.onEnd
         } catch (Exception e) {
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
                     "Cannot apply scale", e);

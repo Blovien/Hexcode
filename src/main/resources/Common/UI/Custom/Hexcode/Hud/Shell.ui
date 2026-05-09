@@ -1,0 +1,29 @@
+Group #HexcodeHud {
+  LayoutMode: Bottom;
+
+  Group #HexcodeInfo {
+    LayoutMode: Left;
+    Anchor: (Bottom: 80, Left: 20, Height: 56);
+    Visible: false;
+
+    Group #HexcodeInfoAccent {
+      Background: #7b5cff;
+      Anchor: (Width: 3, Height: 56);
+    }
+
+    Group #HexcodeInfoContent {
+      Background: #0a0a14(0.85);
+      Anchor: (Left: 3, Height: 56);
+      Padding: (Left: 12, Right: 16, Vertical: 6);
+      LayoutMode: Top;
+
+      Label #HexcodeInfoTitle {
+        Style: (FontSize: 18, TextColor: #c4b5ff);
+      }
+
+      Label #HexcodeInfoDescription {
+        Style: (FontSize: 14, TextColor: #a0a0a0);
+      }
+    }
+  }
+}

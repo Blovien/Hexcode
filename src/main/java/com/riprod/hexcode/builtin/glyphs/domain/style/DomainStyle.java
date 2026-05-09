@@ -19,7 +19,6 @@ public class DomainStyle {
     private static final String DESPAWN_SOUND = "SFX_Fireball_Miss";
     private static final String CONTESTED_PARTICLE = "Halt_Crystallize";
     private static final String CONTESTED_SOUND = "SFX_Ice_Break";
-    private static final String AMBIENT_PARTICLE = "Area_Pulse";
 
     private DomainStyle() {
     }
@@ -29,7 +28,8 @@ public class DomainStyle {
     }
 
     public static Vector3f resolveColor(HexColors colors) {
-        if (colors == null || colors.getPrimaryColor() == null) return DEFAULT_COLOR;
+        if (colors == null || colors.getPrimaryColor() == null)
+            return DEFAULT_COLOR;
         return HexColors.toVector3f(colors.getPrimaryColor());
     }
 
@@ -55,8 +55,10 @@ public class DomainStyle {
         VfxUtil.effect(CONTESTED_PARTICLE, CONTESTED_SOUND, pos, accessor);
     }
 
-    public static void renderAmbient(Vector3d center, float radius, HexColors colors,
+    public static void renderAmbient(Vector3d center, HexContext ctx,
             CommandBuffer<EntityStore> accessor) {
-        VfxUtil.particle(AMBIENT_PARTICLE, center, accessor);
+
+        HexStyleAsset overrides = ctx != null ? ctx.getStyle() : null;
+        VfxUtil.spawnTertiary(overrides, asset(), center, accessor);
     }
 }

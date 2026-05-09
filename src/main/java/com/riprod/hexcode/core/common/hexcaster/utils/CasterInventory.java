@@ -11,9 +11,18 @@ import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexbook.component.HexBookAsset;
 import com.riprod.hexcode.core.common.hexbook.component.HexBookComponent;
+import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffAsset;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffComponent;
+import com.riprod.hexcode.core.common.imbuement.component.ImbuementData;
+import com.riprod.hexcode.core.common.imbuement.utils.ImbuementUtils;
 import com.riprod.hexcode.utils.HexSlot;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import io.sentry.util.Pair;
 
@@ -45,21 +54,18 @@ public class CasterInventory {
             return null;
         }
 
-        // Check if component already exists
         HexBookComponent existingComponent = inventoryItem.getFromMetadataOrNull(METADATA_KEY_HEX_BOOK,
                 HexBookComponent.CODEC);
         if (existingComponent != null) {
             return new Pair<>(inventoryPair.getSecond(), existingComponent);
         }
 
-        // Check if this item is a registered HexBook asset
         HexBookAsset bookAsset = getHexBookAsset(inventoryItem);
         if (bookAsset == null) {
             LOGGER.atInfo().log("No HexBook asset found for item in main hand");
             return null;
         }
 
-        // Create and initialize new component
         HexBookComponent newComponent = new HexBookComponent(bookAsset);
         ItemStack newStack = inventoryItem.withMetadata(METADATA_KEY_HEX_BOOK, HexBookComponent.CODEC, newComponent);
 
@@ -136,6 +142,64 @@ public class CasterInventory {
         if (item == null)
             return null;
         return HexStaffAsset.getAssetMap().getAsset(item.getId());
+    }
+
+    public static List<Hex> getHexesForCasting(ComponentAccessor<EntityStore> store,
+            Ref<EntityStore> playerRef) {
+        Pair<ItemStack, HexSlot> pair = PlayerUtils.getItemFromInventory(store, playerRef, HexSlot.OffHand, true);
+        if (pair == null) return List.of();
+        ItemStack stack = pair.getFirst();
+        if (stack == null || stack.isEmpty()) return List.of();
+
+        Map<String, ImbuementData> existing = ImbuementUtils.readAll(stack);
+        if (existing.isEmpty()) {
+            HexBookComponent book = stack.getFromMetadataOrNull(METADATA_KEY_HEX_BOOK, HexBookComponent.CODEC);
+            if (book != null && !book.getHexes().isEmpty()) {
+                Map<String, ImbuementData> migrated = new HashMap<>();
+                List<Hex> legacyHexes = book.getHexes();
+                for (int i = 0; i < legacyHexes.size(); i++) {
+                    Hex h = legacyHexes.get(i);
+                    if (h != null && !h.getGlyphs().isEmpty()) {
+                        migrated.put(String.valueOf(i + 1), ImbuementUtils.fromHex(h));
+                    }
+                }
+                if (!migrated.isEmpty()) {
+                    ItemStack upgraded = ImbuementUtils.writeAll(stack, migrated);
+                    PlayerUtils.setHandItem(store, playerRef, pair.getSecond(), upgraded);
+                    existing = migrated;
+                }
+            }
+        }
+        if (existing.isEmpty()) return List.of();
+
+        List<Map.Entry<String, ImbuementData>> entries = new ArrayList<>(existing.entrySet());
+        entries.sort(Comparator.comparing(Map.Entry::getKey, slotKeyComparator()));
+        List<Hex> hexes = new ArrayList<>(entries.size());
+        for (Map.Entry<String, ImbuementData> e : entries) {
+            Hex h = ImbuementUtils.resolveHex(e.getValue());
+            if (h != null) hexes.add(h);
+        }
+        return hexes;
+    }
+
+    private static Comparator<String> slotKeyComparator() {
+        return (a, b) -> {
+            Integer ia = tryParseInt(a);
+            Integer ib = tryParseInt(b);
+            if (ia != null && ib != null) return Integer.compare(ia, ib);
+            if (ia != null) return -1;
+            if (ib != null) return 1;
+            return a.compareTo(b);
+        };
+    }
+
+    @Nullable
+    private static Integer tryParseInt(String s) {
+        try {
+            return Integer.parseInt(s);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     @Nullable

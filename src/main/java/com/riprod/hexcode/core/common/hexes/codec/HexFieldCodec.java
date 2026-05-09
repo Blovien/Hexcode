@@ -66,8 +66,8 @@ public final class HexFieldCodec implements Codec<Hex> {
     @Nonnull
     @Override
     public Schema toSchema(@Nonnull SchemaContext context) {
-        // Schema describes the canonical (write-form) representation only.
-        // Legacy document-form reads remain functional but aren't advertised.
+        // schema describes the canonical (write-form) representation only.
+        // legacy document-form reads remain functional but aren't advertised.
         return Codec.STRING.toSchema(context);
     }
 

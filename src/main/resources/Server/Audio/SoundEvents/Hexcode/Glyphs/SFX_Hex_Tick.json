@@ -1,0 +1,13 @@
+{
+  "Layers": [
+    {
+      "Looping": true,
+      "Files": [
+        "Sounds/Magic/Furniture/Kweebec_Lantern_Loop_01.ogg"
+      ]
+    }
+  ],
+  "Volume": -12.0,
+  "Parent": "SFX_Attn_VeryQuiet",
+  "Pitch": -8.544
+}

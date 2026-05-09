@@ -1,5 +1,7 @@
 package com.riprod.hexcode.builtin.glyphs.halt;
 
+import java.util.List;
+
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
@@ -11,6 +13,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
 import com.riprod.hexcode.core.common.construct.component.HexStatus;
 import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
+import com.riprod.hexcode.core.state.execution.HexExecuter;
 
 public class HaltConstructHandler implements ConstructHandler<HaltState> {
 
@@ -27,7 +30,34 @@ public class HaltConstructHandler implements ConstructHandler<HaltState> {
     }
 
     @Override
-    public void onCleanup(HexStatus<HaltState> status, ConstructTickContext ctx) {
+    public void onEnd(HexStatus<HaltState> status, ConstructTickContext ctx) {
+        cleanup(status, ctx);
+        HaltState state = status.getState();
+        if (state == null) return;
+        status.getHexContext().UpdateAccessor(ctx.getBuffer());
+        HexExecuter.continueExecution(state.getNextGlyphIds(), status.getHexContext());
+        LOGGER.atInfo().log("halt: ended, firing %d next glyphs", state.getNextGlyphIds().size());
+    }
+
+    @Override
+    public void onAbort(HexStatus<HaltState> status, ConstructTickContext ctx) {
+        cleanup(status, ctx);
+        LOGGER.atInfo().log("halt: terminated early; chain suppressed");
+    }
+
+    @Override
+    public List<String> getPendingNextGlyphIds(HexStatus<HaltState> status) {
+        HaltState state = status.getState();
+        return state != null ? state.getNextGlyphIds() : List.of();
+    }
+
+    @Override
+    public void setPendingNextGlyphIds(HexStatus<HaltState> status, List<String> ids) {
+        HaltState state = status.getState();
+        if (state != null) state.setNextGlyphIds(ids);
+    }
+
+    private void cleanup(HexStatus<HaltState> status, ConstructTickContext ctx) {
         HaltState state = status.getState();
         CommandBuffer<EntityStore> buffer = ctx.getBuffer();
         Ref<EntityStore> target = ctx.getEntityRef();
@@ -52,7 +82,5 @@ public class HaltConstructHandler implements ConstructHandler<HaltState> {
                 controller.removeEffect(target, effectIndex, buffer);
             }
         }
-
-        LOGGER.atInfo().log("halt: cleaned up, physics restored");
     }
 }

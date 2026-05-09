@@ -37,4 +37,10 @@ public class ConcentrationStyle {
         HexStyleAsset overrides = ctx != null ? ctx.getStyle() : null;
         VfxUtil.spawnSecondary(overrides, asset(), center, accessor);
     }
+
+    public static void renderEnd(Vector3d center, HexContext ctx,
+            ComponentAccessor<EntityStore> accessor) {
+        HexStyleAsset overrides = ctx != null ? ctx.getStyle() : null;
+        VfxUtil.spawnTertiary(overrides, asset(), center, accessor);
+    }
 }

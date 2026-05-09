@@ -24,7 +24,6 @@ public class HexcasterCastingComponent implements Component<EntityStore> {
 
     private static ComponentType<EntityStore, HexcasterCastingComponent> componentType;
 
-    // Casting Mode
     private Ref<EntityStore> castingRootRef = null;
     private Ref<EntityStore> headAnchorRef = null;
     @Nonnull

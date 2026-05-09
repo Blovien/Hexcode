@@ -19,6 +19,9 @@ import com.riprod.hexcode.core.common.glyphs.component.Slot;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.utils.CreateGlyph;
 import com.riprod.hexcode.core.common.hexes.component.HexComponent;
+import com.hypixel.hytale.server.core.Message;
+import com.hypixel.hytale.server.core.modules.entity.component.DisplayNameComponent;
+import com.riprod.hexcode.core.common.glyphs.utils.GlyphStyleUtil;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableType;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
@@ -181,7 +184,6 @@ public class GlyphNodeHandler extends BaseGlyphHandler {
             return InteractionState.Finished;
         }
 
-        // step 2: delete the glyph entirely
         return deleteGlyph(accessor, nodeRef, playerRef, glyphComp);
     }
 
@@ -225,10 +227,12 @@ public class GlyphNodeHandler extends BaseGlyphHandler {
         Holder<EntityStore> glyphHolder = CreateGlyph.createGlyphHolder(accessor, glyphComp, position, glyphRot);
 
         HoverableComponent hoverComp = new HoverableComponent(HoverableType.NODE);
+        Message displayName = null;
         try {
             GlyphAsset glyphAsset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
             if (glyphAsset != null) {
-                hoverComp.setHintText("title", glyphAsset.getTitle());
+                displayName = Message.raw(glyphAsset.getTitle())
+                        .color(GlyphStyleUtil.getQualityColor(glyph.getVolatility(), glyph.getEfficiency()));
                 hoverComp.setHintText("description", glyphAsset.getDescription());
                 hoverComp.setHintText("extra", "V " + Math.round(glyph.getVolatility() * 100.0) / 100.0
                         + " | E " + Math.round(glyph.getEfficiency() * 100.0) / 100.0);
@@ -238,6 +242,9 @@ public class GlyphNodeHandler extends BaseGlyphHandler {
         }
 
         glyphHolder.addComponent(HoverableComponent.getComponentType(), hoverComp);
+        if (displayName != null) {
+            glyphHolder.addComponent(DisplayNameComponent.getComponentType(), new DisplayNameComponent(displayName));
+        }
         glyphHolder.addComponent(NodeComponent.getComponentType(),
                 new NodeComponent(hexEntityRef, NodeTypeId.GLYPH));
 

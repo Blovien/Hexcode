@@ -1,0 +1,39 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Absolute",
+  "Description": "Absolute value of A. Numbers/Positions/Colors/Rotations become a positive number (magnitude). Entities and blocks pass through unchanged.",
+  "ModelPath": "Absolute",
+  "BasePower": 0,
+  "ManaConsumption": 0,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Line",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Line",
+      "Size": 1.0
+    }
+  ],
+  "Slots": {
+    "a": {
+      "Style": "Input",
+      "Label": "A",
+      "Description": "Value to take the absolute value of",
+      "DefaultValue": 0
+    },
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain"
+    }
+  },
+  "Volatility": {
+    "InstantCost": 0.1,
+    "DrainPerSecond": 0.0,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 10.0
+    }
+  }
+}

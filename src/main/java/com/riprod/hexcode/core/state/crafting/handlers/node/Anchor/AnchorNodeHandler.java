@@ -13,8 +13,10 @@ import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.DebugShape;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
+import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
+import com.hypixel.hytale.server.core.modules.entity.component.DisplayNameComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -36,9 +38,6 @@ import com.riprod.hexcode.core.state.crafting.handlers.node.Glyph.GlyphNodeHandl
 import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
 import com.riprod.hexcode.core.state.crafting.utils.LinkRenderer;
 
-/**
- * ParentRef = Root hex ref
- */
 public class AnchorNodeHandler extends BaseAnchorHandler {
 
     private static final double ROOT_NODE_SCALE = 0.2;
@@ -106,8 +105,6 @@ public class AnchorNodeHandler extends BaseAnchorHandler {
             return InteractionState.Failed;
         }
 
-        // clear existing connections from the root to glyphs if there is a valid hex
-        // root ref, effectively making the root an empty node
         if (nodeComp.getOutgoingRefs() != null) {
             nodeComp.getOutgoingRefs().clear();
         }
@@ -188,6 +185,9 @@ public class AnchorNodeHandler extends BaseAnchorHandler {
 
         holder.addComponent(NodeComponent.getComponentType(), node);
 
+        holder.addComponent(DisplayNameComponent.getComponentType(),
+                new DisplayNameComponent(Message.raw("Entrypoint Node")));
+
         Box nodeBox = new Box(-ROOT_NODE_SCALE, -ROOT_NODE_SCALE, -ROOT_NODE_SCALE,
                 ROOT_NODE_SCALE, ROOT_NODE_SCALE, ROOT_NODE_SCALE);
         holder.addComponent(BoundingBox.getComponentType(), new BoundingBox(nodeBox));
@@ -205,7 +205,6 @@ public class AnchorNodeHandler extends BaseAnchorHandler {
         holder.addComponent(HoverableComponent.getComponentType(),
                 new HoverableComponent(HoverableType.NODE));
 
-        // spawn the children of the hex
         HexComponent hexComp = accessor.getComponent(parentRef, HexComponent.getComponentType());
         Ref<EntityStore> nodeGlyph = accessor.addEntity(holder, AddReason.SPAWN);
 
@@ -215,7 +214,6 @@ public class AnchorNodeHandler extends BaseAnchorHandler {
 
         List<Glyph> children = hexComp.getHex().getGlyphs();
 
-        // spawn the original glyphs from the original hex
         for (Glyph glyph : children) {
 
             Vector3f offset = glyph.getPosition();
@@ -249,7 +247,6 @@ public class AnchorNodeHandler extends BaseAnchorHandler {
 
     @Override
     public void despawn(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
-        // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'despawn'");
     }
 }

@@ -3,6 +3,7 @@ package com.riprod.hexcode.core.state.crafting.session;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -22,9 +23,11 @@ import com.hypixel.hytale.protocol.Color;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexbook.component.HexBookAsset;
-import com.riprod.hexcode.core.common.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.common.hexcaster.utils.CasterInventory;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
+import com.riprod.hexcode.core.common.imbuement.asset.ImbuementProfileAsset;
+import com.riprod.hexcode.core.common.imbuement.component.ImbuementData;
+import com.riprod.hexcode.core.common.imbuement.utils.ImbuementUtils;
 import com.riprod.hexcode.core.state.crafting.constants.CraftingColors;
 import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
 import com.riprod.hexcode.core.state.execution.component.HexColors;
@@ -34,21 +37,21 @@ public class HexcodeSessionComponent implements Component<EntityStore> {
 
     public static final BuilderCodec<HexcodeSessionComponent> CODEC = BuilderCodec
             .builder(HexcodeSessionComponent.class, HexcodeSessionComponent::new)
-            .append(new KeyedCodec<>("StoredBook", ItemStack.CODEC),
-                    (c, v) -> c.storedBook = v,
-                    c -> c.storedBook)
+            .append(new KeyedCodec<>("StoredItem", ItemStack.CODEC),
+                    (c, v) -> c.storedItem = v,
+                    c -> c.storedItem)
             .add()
-            .append(new KeyedCodec<>("BookSourceSlot", new EnumCodec<>(HexSlot.class)),
-                    (c, v) -> c.bookSourceSlot = v,
-                    c -> c.bookSourceSlot)
+            .append(new KeyedCodec<>("SourceSlot", new EnumCodec<>(HexSlot.class)),
+                    (c, v) -> c.sourceSlot = v,
+                    c -> c.sourceSlot)
             .add()
             .append(new KeyedCodec<>("PedestalLocation", Vector3i.CODEC),
                     (c, v) -> c.pedestalLocation = v,
                     c -> c.pedestalLocation)
             .add()
-            .append(new KeyedCodec<>("EssenceItemId", Codec.STRING),
-                    (c, v) -> c.essenceItemId = v,
-                    c -> c.essenceItemId)
+            .append(new KeyedCodec<>("ProfileId", Codec.STRING),
+                    (c, v) -> c.profileId = v,
+                    c -> c.profileId)
             .add()
             .build();
 
@@ -68,25 +71,24 @@ public class HexcodeSessionComponent implements Component<EntityStore> {
     private Ref<EntityStore> ownerRef;
     private Set<Ref<EntityStore>> participantRefs = new HashSet<>();
 
-    private ItemStack storedBook = ItemStack.EMPTY;
-    private String essenceItemId = null;
-    private HexSlot bookSourceSlot = HexSlot.MainHand;
+    private ItemStack storedItem = ItemStack.EMPTY;
+    private HexSlot sourceSlot = HexSlot.MainHand;
+    private String profileId = null;
 
     private Vector3f cachedGlyphColor = null;
     private Color cachedGlyphProtocolColor = null;
 
     private PedestalState blockState = PedestalState.IDLE;
     private Ref<EntityStore> anchorRef = null;
-    private Ref<EntityStore> bookDisplayRef;
-    private Ref<EntityStore> essenceDisplayRef;
+    private Ref<EntityStore> imbuedItemDisplayRef;
     private List<Ref<EntityStore>> hexPreviewRefs = new ArrayList<>();
     private List<Ref<EntityStore>> slotNodeRefs = new ArrayList<>();
     private Ref<EntityStore> anchorNodeRef;
 
-    private int activeSlotIndex = -1;
+    private String activeSlotKey = null;
     private int autosaveTickCounter = 0;
     private Hex pendingImportHex = null;
-    private int pendingReenterSlot = -1;
+    private String pendingReenterSlotKey = null;
 
     public HexcodeSessionComponent() {
     }
@@ -151,15 +153,15 @@ public class HexcodeSessionComponent implements Component<EntityStore> {
         return playerRef != null && participantRefs.contains(playerRef);
     }
 
-    public ItemStack getStoredBook() {
-        return storedBook;
+    public ItemStack getStoredItem() {
+        return storedItem;
     }
 
-    public void setStoredBook(ItemStack storedBook) {
-        this.storedBook = storedBook;
+    public void setStoredItem(ItemStack storedItem) {
+        this.storedItem = storedItem;
         this.cachedGlyphColor = null;
         this.cachedGlyphProtocolColor = null;
-        HexBookAsset bookAsset = CasterInventory.getHexBookAsset(storedBook);
+        HexBookAsset bookAsset = CasterInventory.getHexBookAsset(storedItem);
         if (bookAsset != null && bookAsset.getColors() != null
                 && bookAsset.getColors().getPrimaryColor() != null) {
             this.cachedGlyphProtocolColor = bookAsset.getColors().getPrimaryColor();
@@ -167,44 +169,42 @@ public class HexcodeSessionComponent implements Component<EntityStore> {
         }
     }
 
-    public HexBookComponent getStoredBookComponent() {
-        if (storedBook == null || storedBook.isEmpty()) return null;
-        return storedBook.getFromMetadataOrNull(CasterInventory.METADATA_KEY_HEX_BOOK, HexBookComponent.CODEC);
+    public String getProfileId() {
+        return profileId;
     }
 
-    public void setStoredBookComponent(HexBookComponent bookComponent) {
-        if (storedBook == null || storedBook.isEmpty()) return;
-        this.storedBook = storedBook.withMetadata(CasterInventory.METADATA_KEY_HEX_BOOK, HexBookComponent.CODEC,
-                bookComponent);
+    public void setProfileId(String profileId) {
+        this.profileId = profileId;
     }
 
-    public Integer getBookSlots() {
-        if (storedBook == null || storedBook.isEmpty()) return null;
-        HexBookComponent bookComponent = getStoredBookComponent();
-        if (bookComponent == null) return null;
-        return bookComponent.getMaxCapacity();
+    @Nullable
+    public ImbuementProfileAsset getProfile() {
+        if (profileId == null) return null;
+        return ImbuementProfileAsset.getAssetMap().getAsset(profileId);
     }
 
-    public List<Hex> getHexes() {
-        HexBookComponent bookComponent = getStoredBookComponent();
-        if (bookComponent == null) return List.of();
-        return bookComponent.getHexes();
+    public Map<String, ImbuementData> getImbuements() {
+        return ImbuementUtils.readAll(storedItem);
     }
 
-    public String getEssence() {
-        return essenceItemId;
+    @Nullable
+    public Hex getHexAt(String slotKey) {
+        if (slotKey == null) return null;
+        ImbuementData data = ImbuementUtils.read(storedItem, slotKey);
+        return data != null ? ImbuementUtils.resolveHex(data) : null;
     }
 
-    public void setEssence(String essenceItemId) {
-        this.essenceItemId = essenceItemId;
+    public int getSlotCount() {
+        ImbuementProfileAsset profile = getProfile();
+        return profile != null ? profile.getSlots().size() : 0;
     }
 
-    public HexSlot getBookSourceSlot() {
-        return bookSourceSlot;
+    public HexSlot getSourceSlot() {
+        return sourceSlot;
     }
 
-    public void setBookSourceSlot(HexSlot bookSourceSlot) {
-        this.bookSourceSlot = bookSourceSlot;
+    public void setSourceSlot(HexSlot sourceSlot) {
+        this.sourceSlot = sourceSlot;
     }
 
     public Vector3f getGlyphColor() {
@@ -231,20 +231,12 @@ public class HexcodeSessionComponent implements Component<EntityStore> {
         this.anchorRef = anchorEntityRef;
     }
 
-    public Ref<EntityStore> getBookDisplayRef() {
-        return bookDisplayRef;
+    public Ref<EntityStore> getImbuedItemDisplayRef() {
+        return imbuedItemDisplayRef;
     }
 
-    public void setBookDisplayRef(Ref<EntityStore> bookDisplayRef) {
-        this.bookDisplayRef = bookDisplayRef;
-    }
-
-    public Ref<EntityStore> getEssenceDisplayRef() {
-        return essenceDisplayRef;
-    }
-
-    public void setEssenceDisplayRef(Ref<EntityStore> essenceDisplayRef) {
-        this.essenceDisplayRef = essenceDisplayRef;
+    public void setImbuedItemDisplayRef(Ref<EntityStore> imbuedItemDisplayRef) {
+        this.imbuedItemDisplayRef = imbuedItemDisplayRef;
     }
 
     public List<Ref<EntityStore>> getHexPreviewRefs() {
@@ -275,12 +267,13 @@ public class HexcodeSessionComponent implements Component<EntityStore> {
         this.anchorNodeRef = anchorNodeRef;
     }
 
-    public int getActiveSlotIndex() {
-        return activeSlotIndex;
+    @Nullable
+    public String getActiveSlotKey() {
+        return activeSlotKey;
     }
 
-    public void setActiveSlotIndex(int activeSlotIndex) {
-        this.activeSlotIndex = activeSlotIndex;
+    public void setActiveSlotKey(@Nullable String activeSlotKey) {
+        this.activeSlotKey = activeSlotKey;
     }
 
     public int getAutosaveTickCounter() {
@@ -299,18 +292,18 @@ public class HexcodeSessionComponent implements Component<EntityStore> {
         this.pendingImportHex = hex;
     }
 
-    public int getPendingReenterSlot() {
-        return pendingReenterSlot;
+    @Nullable
+    public String getPendingReenterSlotKey() {
+        return pendingReenterSlotKey;
     }
 
-    public void setPendingReenterSlot(int slot) {
-        this.pendingReenterSlot = slot;
+    public void setPendingReenterSlotKey(@Nullable String slotKey) {
+        this.pendingReenterSlotKey = slotKey;
     }
 
     public List<Ref<EntityStore>> getAllRefs() {
         List<Ref<EntityStore>> all = new ArrayList<>();
-        if (bookDisplayRef != null && bookDisplayRef.isValid()) all.add(bookDisplayRef);
-        if (essenceDisplayRef != null && essenceDisplayRef.isValid()) all.add(essenceDisplayRef);
+        if (imbuedItemDisplayRef != null && imbuedItemDisplayRef.isValid()) all.add(imbuedItemDisplayRef);
         if (hexPreviewRefs != null) all.addAll(hexPreviewRefs);
         if (anchorNodeRef != null && anchorNodeRef.isValid()) all.add(anchorNodeRef);
         if (slotNodeRefs != null) all.addAll(slotNodeRefs);
@@ -326,22 +319,21 @@ public class HexcodeSessionComponent implements Component<EntityStore> {
         copy.isOpen = this.isOpen;
         copy.ownerRef = this.ownerRef;
         copy.participantRefs = new HashSet<>(this.participantRefs);
-        copy.storedBook = this.storedBook;
-        copy.essenceItemId = this.essenceItemId;
-        copy.bookSourceSlot = this.bookSourceSlot;
+        copy.storedItem = this.storedItem;
+        copy.sourceSlot = this.sourceSlot;
+        copy.profileId = this.profileId;
         copy.cachedGlyphColor = this.cachedGlyphColor != null ? this.cachedGlyphColor.clone() : null;
         copy.cachedGlyphProtocolColor = this.cachedGlyphProtocolColor;
         copy.blockState = this.blockState;
         copy.anchorRef = this.anchorRef;
-        copy.bookDisplayRef = this.bookDisplayRef;
-        copy.essenceDisplayRef = this.essenceDisplayRef;
+        copy.imbuedItemDisplayRef = this.imbuedItemDisplayRef;
         copy.hexPreviewRefs = this.hexPreviewRefs != null ? new ArrayList<>(this.hexPreviewRefs) : new ArrayList<>();
         copy.slotNodeRefs = this.slotNodeRefs != null ? new ArrayList<>(this.slotNodeRefs) : new ArrayList<>();
         copy.anchorNodeRef = this.anchorNodeRef;
-        copy.activeSlotIndex = this.activeSlotIndex;
+        copy.activeSlotKey = this.activeSlotKey;
         copy.autosaveTickCounter = this.autosaveTickCounter;
         copy.pendingImportHex = this.pendingImportHex;
-        copy.pendingReenterSlot = this.pendingReenterSlot;
+        copy.pendingReenterSlotKey = this.pendingReenterSlotKey;
         return copy;
     }
 }

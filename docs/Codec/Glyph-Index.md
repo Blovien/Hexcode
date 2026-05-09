@@ -126,6 +126,13 @@ Appends a parallel glyph chain to an ally's active hex construct. You pay for yo
 
 ---
 
+### \[□▽\] Output
+
+Specifies an output location. Notably useful in Interfere to determine the "continuation" point of the existing glyph. 
+**Future Version:** Will enable specifying as an "anchor point" for flycasting, making it easier to nest a flycasted glyhp deep inside another glyph. Also enables COLORING that output, making it easier to quickly identify the glyph itself.
+
+---
+
 ### \[△◯\] Concentrate
 
 Sustains downstream glyphs while the caster holds the primary interaction. Releasing early cancels the hex. Increases volatility by 50% for longer hexes.
@@ -315,7 +322,7 @@ Constructs a rotation from pitch, yaw, roll components. Wire number glyphs into 
 
 ---
 
-### \[\<◯\>\] Style
+### \[\<□\>\] Style
 
 Sets the color of the execution at this point. Returns a 4 param vector (R, G, B, A) if value extracted
 
@@ -353,13 +360,16 @@ Calculates the tan of A
 
 ### \[△V\] PI
 
-Returns PI
+Returns the value of PI
 
 ---
 
 ### \[V\] Variable
 
 Reads an input slot and saves it to it’s own reference, allowing for creation of a “snapshot” in time. Also enables outputting to another variable to overwrite it.
+Sets the read value as the "default variable" too.
+
+If it has not been run inside the glyph execution (i.e. linked to a Slot of another glyph) it will take the "Value Of" whatever the input is. 
 
 ---
 

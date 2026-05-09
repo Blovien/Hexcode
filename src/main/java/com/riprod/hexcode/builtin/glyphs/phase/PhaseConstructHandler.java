@@ -20,17 +20,16 @@ import com.hypixel.hytale.server.core.util.TargetUtil;
 import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
 import com.riprod.hexcode.core.common.construct.component.HexStatus;
 import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
-import com.riprod.hexcode.core.common.construct.state.NoState;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 
-public class PhaseConstructHandler implements ConstructHandler<NoState> {
+public class PhaseConstructHandler implements ConstructHandler<PhaseState> {
 
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     private static final float BASE_CRUSH_DAMAGE = 4.0f;
     private static int damageCauseIndex = -1;
 
     @Override
-    public boolean onTick(float dt, HexStatus<NoState> status, ConstructTickContext ctx) {
+    public boolean onTick(float dt, HexStatus<PhaseState> status, ConstructTickContext ctx) {
         PhaseComponent phase = ctx.getChunk().getComponent(
                 ctx.getIndex(), PhaseComponent.getComponentType());
         if (phase == null)
@@ -44,7 +43,34 @@ public class PhaseConstructHandler implements ConstructHandler<NoState> {
     }
 
     @Override
-    public void onCleanup(HexStatus<NoState> status, ConstructTickContext ctx) {
+    public void onEnd(HexStatus<PhaseState> status, ConstructTickContext ctx) {
+        cleanup(status, ctx);
+        PhaseState state = status.getState();
+        if (state == null) return;
+        status.getHexContext().UpdateAccessor(ctx.getBuffer());
+        HexExecuter.continueExecution(state.getNextGlyphIds(), status.getHexContext());
+        LOGGER.atInfo().log("phase: ended, firing %d next glyphs", state.getNextGlyphIds().size());
+    }
+
+    @Override
+    public void onAbort(HexStatus<PhaseState> status, ConstructTickContext ctx) {
+        cleanup(status, ctx);
+        LOGGER.atInfo().log("phase: terminated early; chain suppressed");
+    }
+
+    @Override
+    public List<String> getPendingNextGlyphIds(HexStatus<PhaseState> status) {
+        PhaseState state = status.getState();
+        return state != null ? state.getNextGlyphIds() : List.of();
+    }
+
+    @Override
+    public void setPendingNextGlyphIds(HexStatus<PhaseState> status, List<String> ids) {
+        PhaseState state = status.getState();
+        if (state != null) state.setNextGlyphIds(ids);
+    }
+
+    private void cleanup(HexStatus<PhaseState> status, ConstructTickContext ctx) {
         PhaseComponent phase = ctx.getBuffer().getComponent(
                 ctx.getEntityRef(), PhaseComponent.getComponentType());
         if (phase != null) {
@@ -65,15 +91,13 @@ public class PhaseConstructHandler implements ConstructHandler<NoState> {
             }
 
             LOGGER.atInfo().log("phase: restored %d blocks", phase.getPhasedBlocks().size());
-            HexExecuter.continueExecution(status.getTriggeringGlyph().getNextLinks(), status.getHexContext());
         }
 
         ctx.getBuffer().tryRemoveEntity(ctx.getEntityRef(), RemoveReason.REMOVE);
-
     }
 
     private void applyCrushDamage(Vector3i pos, Vector3d blockCenter,
-            HexStatus<NoState> status, CommandBuffer<EntityStore> buffer) {
+            HexStatus<PhaseState> status, CommandBuffer<EntityStore> buffer) {
         Vector3d min = new Vector3d(pos.x, pos.y, pos.z);
         Vector3d max = new Vector3d(pos.x + 1.0, pos.y + 1.0, pos.z + 1.0);
         List<Ref<EntityStore>> entities = TargetUtil.getAllEntitiesInBox(min, max, buffer);

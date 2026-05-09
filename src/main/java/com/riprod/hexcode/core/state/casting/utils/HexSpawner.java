@@ -33,22 +33,18 @@ public class HexSpawner {
 
         List<Ref<EntityStore>> spawnedHexes = new ArrayList<>();
 
-        // Owner Info
         TransformComponent ownerTransform = accessor.getComponent(ownerRef, TransformComponent.getComponentType());
         Vector3d ownerPos = ownerTransform.getPosition();
         HeadRotation headRotation = accessor.getComponent(ownerRef, HeadRotation.getComponentType());
         Vector3f ownerRotation = headRotation.getRotation();
 
-        // Hex Positions
         CastingStyle style = CastingStyleRegistry.getOrDefault(styleId);
         List<Vector3f> rotations = style.getInitialPositions(hexes.size(), ownerRotation.getYaw(),
                 ownerRotation.getPitch());
 
-        // Spawn Hexes
         for (int i = 0; i < hexes.size(); i++) {
             Hex hex = hexes.get(i);
 
-            // skip malformed hex (no entry point, or pointer to a missing glyph)
             String firstGlyphId = hex.getFirstGlyphId();
             Glyph firstGlyph = firstGlyphId != null ? hex.get(firstGlyphId) : null;
             if (firstGlyph == null) {
@@ -64,30 +60,26 @@ public class HexSpawner {
             hexComponent.setRootRef(castingRootRef);
             hexComponent.setParentRef(castingRootRef);
 
-            // spawning the hex
             hexComponent.setOffset(new Vector3f((float) position.x, (float) position.y, (float) position.z));
             hexComponent.setRotation(rot);
             Ref<EntityStore> hexRef = CreateHex.createHexEntity(accessor, hexComponent, ownerPos);
             hexComponent.setSelfRef(hexRef);
             spawnedHexes.add(hexRef);
 
-            // getting the scale of the first glyph
             int numGlyphs = (int) hex.getGlyphs().stream()
                     .filter(glyph -> glyph != null)
                     .count();
-            float scaleMultiplier = 1 + (numGlyphs * GlyphStyler.SCALE_PER_GLYPH); // increase scale by 5% per glyph
+            float scaleMultiplier = 1 + (numGlyphs * GlyphStyler.SCALE_PER_GLYPH);
 
             GlyphComponent firstGlyphComponent = new GlyphComponent(firstGlyph);
 
-            // setting up the first glyph
             firstGlyphComponent.setHexRef(hexRef);
             firstGlyphComponent.setParentRef(hexRef);
-            firstGlyphComponent.setOffset(Vector3f.ZERO); // set to exactly where the hex is
+            firstGlyphComponent.setOffset(Vector3f.ZERO);
             firstGlyphComponent.setRotation(rot);
             firstGlyphComponent.setScale(scaleMultiplier);
             hexComponent.setScale(scaleMultiplier);
 
-            // spawns all of the children recursively and adds to the hexComponent reference
             GlyphSpawner.spawnGlyphs(accessor, hexComponent, firstGlyphComponent, ownerPos, rot);
         }
         return spawnedHexes;
@@ -137,49 +129,41 @@ public class HexSpawner {
         return hexRef;
     }
 
-    /** Just logically merges the hex into the hex tree */
     public static void MergeGlyphs(CommandBuffer<EntityStore> accessor, GlyphComponent droppedOnGlyph,
             HexComponent draggedHex, float eyeHeight) {
 
         HexComponent droppedOnHex = accessor.getComponent(droppedOnGlyph.getHexRef(), HexComponent.getComponentType());
         Hex hex1 = droppedOnHex.getHex();
 
-        // automatically configures the references of the insertLoc -> draggedHex
         hex1.absorb(draggedHex.getHex(), droppedOnGlyph.getId());
 
-        // add all of the children from the dragged hex to the dropped on hex
         Map<String, Ref<EntityStore>> droppedGlyphs = draggedHex.getChildGlyphRefs();
         droppedOnHex.addChildGlyphRefs(droppedGlyphs);
         String firstGlyphId = draggedHex.getHex().getFirstGlyphId();
 
-        // get the first glyph ref
         Ref<EntityStore> firstGlyphRef = droppedGlyphs.get(firstGlyphId);
         GlyphComponent firstChildGlyph = accessor.getComponent(firstGlyphRef, GlyphComponent.getComponentType());
 
-        firstChildGlyph.setParentRef(droppedOnGlyph.getSelfRef()); // update the parent ref of the first child glyph to the new parent glyph
-        accessor.tryRemoveComponent(firstGlyphRef, MountedComponent.getComponentType()); // unmount the first glyph from the dragged hex
+        firstChildGlyph.setParentRef(droppedOnGlyph.getSelfRef());
+        accessor.tryRemoveComponent(firstGlyphRef, MountedComponent.getComponentType());
 
         for (Ref<EntityStore> childRef : droppedGlyphs.values()) {
             if (childRef == null || !childRef.isValid()) {
                 continue;
             }
             GlyphComponent childGlyph = accessor.getComponent(childRef, GlyphComponent.getComponentType());
-            childGlyph.setHexRef(droppedOnGlyph.getHexRef()); // update the hex ref of all of the children to the new hex
+            childGlyph.setHexRef(droppedOnGlyph.getHexRef());
         }
 
-        // mount the dragged glyph to the dropped on glyph
         MountedComponent mounted = new MountedComponent(droppedOnGlyph.getSelfRef(), Vector3f.ZERO,
                 MountController.Minecart);
         accessor.putComponent(firstGlyphRef, MountedComponent.getComponentType(), mounted);
 
-        // remove the old hex entity, the children will not be removed
         accessor.tryRemoveEntity(draggedHex.getSelfRef(), RemoveReason.REMOVE);
 
-        // get first hex of the main tree for updating
         Ref<EntityStore> rootGlyph = droppedOnHex.getChildGlyphRef(hex1.getFirstGlyphId());
         GlyphComponent rootGlyphComponent = accessor.getComponent(rootGlyph, GlyphComponent.getComponentType());
 
-        // update all children inside of the glyph recursively to new position / scale
         GlyphStyler.UpdateHexTree(accessor, droppedOnHex, rootGlyphComponent);
     }
 }

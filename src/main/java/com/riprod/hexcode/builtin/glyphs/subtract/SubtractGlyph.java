@@ -24,8 +24,8 @@ public class SubtractGlyph implements GlyphHandler {
     public static final String ID = "Subtract";
 
     private HexVar compute(Glyph glyph, HexContext hexContext) {
-        HexVar a = glyph.readSlot(SubtractGlyphSlots.A, hexContext);
-        HexVar b = glyph.readSlot(SubtractGlyphSlots.B, hexContext);
+        HexVar a = glyph.readSlot(SubtractGlyphSlots.A, hexContext, null);
+        HexVar b = glyph.readSlot(SubtractGlyphSlots.B, hexContext, null);
         if (a == null && b == null) return null;
         if (b == null) return a;
         if (a == null) return negate(b);

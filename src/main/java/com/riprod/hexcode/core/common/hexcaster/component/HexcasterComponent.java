@@ -46,15 +46,12 @@ public class HexcasterComponent implements Component<EntityStore> {
         this.currentState = newState;
     }
 
-    // Drawing Mode
     private Ref<EntityStore> trailRef = null;
     private long lastParticleSpawnMillis = 0;
 
-    // training mode
     private String trainingShapeId = null;
     private String trainingPackOverride = null;
 
-    // Crafting Mode
     private Map<String, Float> lastTickMap = new HashMap<>();
 
     public HexcasterComponent() {
@@ -68,17 +65,14 @@ public class HexcasterComponent implements Component<EntityStore> {
         return componentType;
     }
 
-    /** @deprecated */
     public String getTrainingShapeId() {
         return trainingShapeId;
     }
 
-    /** @deprecated */
     public void setTrainingShapeId(String shapeId) {
         this.trainingShapeId = shapeId;
     }
 
-    /** @deprecated */
     public String consumeTrainingShapeId() {
         String id = this.trainingShapeId;
         this.trainingShapeId = null;

@@ -31,7 +31,6 @@ public class HexcasterDrawingComponent implements Component<EntityStore> {
         return componentType;
     }
 
-    // Drawing Mode
     private FloatArrayList drawnStrokes = new FloatArrayList();
     private List<DrawnShapeComponent> drawnGlyphs = new ArrayList<>();
     private Ref<EntityStore> trailRef = null;

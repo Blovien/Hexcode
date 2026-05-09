@@ -27,8 +27,7 @@ public class VariableValue implements GlyphHandler {
         if (self != null) {
             return self;
         }
-        
-        // Otherwise return the variable of the output
+
         HexVar input = glyph.readSlot(VariableValueSlots.INPUT, hexContext);
 
         if (input == null) {
