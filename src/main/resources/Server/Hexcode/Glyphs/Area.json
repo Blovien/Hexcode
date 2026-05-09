@@ -34,7 +34,7 @@
       "Style": "Input",
       "Label": "Radius",
       "Description": "Radius of the gathering area",
-      "DefaultValue": 5,
+      "DefaultValue": 2,
       "Unique": true
     },
     "Blocks": {
@@ -42,7 +42,7 @@
       "Label": "Blocks",
       "Description": "Executes once per non-empty block in the area"
     },
-    "Entities": {
+    "Next": {
       "Style": "Next",
       "Label": "Entities",
       "Description": "Executes once per entity in the area (excluding the caster)"
