@@ -38,9 +38,6 @@ import com.riprod.hexcode.core.state.crafting.handlers.node.Glyph.GlyphNodeHandl
 import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
 import com.riprod.hexcode.core.state.crafting.utils.LinkRenderer;
 
-/**
- * ParentRef = Root hex ref
- */
 public class AnchorNodeHandler extends BaseAnchorHandler {
 
     private static final double ROOT_NODE_SCALE = 0.2;
@@ -108,8 +105,6 @@ public class AnchorNodeHandler extends BaseAnchorHandler {
             return InteractionState.Failed;
         }
 
-        // clear existing connections from the root to glyphs if there is a valid hex
-        // root ref, effectively making the root an empty node
         if (nodeComp.getOutgoingRefs() != null) {
             nodeComp.getOutgoingRefs().clear();
         }
@@ -210,7 +205,6 @@ public class AnchorNodeHandler extends BaseAnchorHandler {
         holder.addComponent(HoverableComponent.getComponentType(),
                 new HoverableComponent(HoverableType.NODE));
 
-        // spawn the children of the hex
         HexComponent hexComp = accessor.getComponent(parentRef, HexComponent.getComponentType());
         Ref<EntityStore> nodeGlyph = accessor.addEntity(holder, AddReason.SPAWN);
 
@@ -220,7 +214,6 @@ public class AnchorNodeHandler extends BaseAnchorHandler {
 
         List<Glyph> children = hexComp.getHex().getGlyphs();
 
-        // spawn the original glyphs from the original hex
         for (Glyph glyph : children) {
 
             Vector3f offset = glyph.getPosition();
@@ -254,7 +247,6 @@ public class AnchorNodeHandler extends BaseAnchorHandler {
 
     @Override
     public void despawn(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
-        // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'despawn'");
     }
 }

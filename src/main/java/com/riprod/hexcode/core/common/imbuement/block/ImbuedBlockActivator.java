@@ -38,11 +38,9 @@ public final class ImbuedBlockActivator {
     private ImbuedBlockActivator() {
     }
 
-    /**
-     * call only on explicit external trigger (player interaction, glyph effect,
-     * redstone edge). not safe for every-tick polling — neighbor scan during the
-     * essence-refill branch is O(6 chunk reads + container iteration).
-     */
+    // call only on explicit external trigger (player interaction, glyph effect,
+    // redstone edge). not safe for every-tick polling — neighbor scan during the
+    // essence-refill branch is O(6 chunk reads + container iteration).
     @Nonnull
     public static ActivationOutcome tryConsume(@Nonnull CommandBuffer<EntityStore> buffer,
             @Nonnull World world, @Nonnull Vector3i blockPos) {

@@ -2,7 +2,7 @@ package com.riprod.hexcode.builtin.utils;
 
 // Resonate and Interfere are the only consumers permitted to assume that
 // a construct's pending chain corresponds to "Next slot" semantics.
-// All other glyphs must remain agnostic to handler-specific chain semantics.
+// all other glyphs must remain agnostic to handler-specific chain semantics.
 
 import java.util.ArrayList;
 import java.util.List;

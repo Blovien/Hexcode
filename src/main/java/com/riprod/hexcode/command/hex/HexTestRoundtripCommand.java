@@ -58,7 +58,7 @@ public class HexTestRoundtripCommand extends AbstractPlayerCommand {
             return;
         }
 
-        // Mirror what HexCodec.serialize does internally so the original we
+        // mirror what HexCodec.serialize does internally so the original we
         // compare against has the same glyph ids the codec sees.
         Hex expected = active.clone();
         HexUtils.validate(expected);

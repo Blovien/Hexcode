@@ -37,7 +37,6 @@ public class GlyphStyler {
         GlyphComponent hoveredGlyph = castingComp.getHoveredGlyph();
 
         if (hoveredGlyph != null) {
-            // do nothing while hovering a specific glyph
             return;
         }
 
@@ -162,8 +161,6 @@ public class GlyphStyler {
     public static void enterIdleAnim(ComponentAccessor<EntityStore> accessor, HexComponent glyph) {
         try {
 
-            // add Idle animation component
-
         } catch (Exception e) {
             LOGGER.atWarning().withCause(e).log("Error entering Idle animation state for glyph");
         }
@@ -176,10 +173,8 @@ public class GlyphStyler {
                 .filter(glyph -> glyph != null)
                 .count();
 
-        float scaleMultiplier = 1 + (numGlyphs * SCALE_PER_GLYPH); // increase scale by 5% per glyph
+        float scaleMultiplier = 1 + (numGlyphs * SCALE_PER_GLYPH);
 
-        // set the initial glyph's scale based on the number of children it has and the
-        // depth there is
         parentGlyph.setScale(scaleMultiplier);
         hexComponent.setScale(scaleMultiplier);
         UpdateGlyphTree(accessor, hexComponent, parentGlyph, new HashSet<>());
@@ -199,9 +194,7 @@ public class GlyphStyler {
 
             float scaleAmount = parentGlyph.getScale() * SCALE_MULTIPLIER;
             if (children.size() == 1) {
-                scaleAmount = parentGlyph.getScale() * SCALE_SINGLE_GLYPH; // if only 1 child, make it slightly smaller
-                                                                           // to avoid
-                                                                           // clipping
+                scaleAmount = parentGlyph.getScale() * SCALE_SINGLE_GLYPH;
             }
 
             for (int i = 0; i < children.size(); i++) {
@@ -210,7 +203,7 @@ public class GlyphStyler {
                 Vector3f childRotation = childRotations.get(i);
 
                 if (styledGlyphs.contains(child.getId())) {
-                    continue; // if we've already styled this glyph, skip it to avoid infinite loops
+                    continue;
                 }
                 styledGlyphs.add(child.getId());
 
@@ -221,7 +214,6 @@ public class GlyphStyler {
                 GlyphStyler.updateScale(accessor, childRef, child.getScale());
                 GlyphStyler.updateMountPosition(accessor, child, child.getOffset());
 
-                // Recursively update all children inside of the glyph
                 UpdateGlyphTree(accessor, hexComponent, child, styledGlyphs);
             }
         }

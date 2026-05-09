@@ -89,7 +89,6 @@ public class InterfereGlyph implements GlyphHandler {
             try {
                 invokeOnEnd(handler, target, ctx);
             } catch (Exception e) {
-                // Error handled silently
             }
 
             construct.removeEffect(target.getConstructId());

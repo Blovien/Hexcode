@@ -104,7 +104,6 @@ public class ShapeTemplateStore {
     private static AssetPack resolvePack(@Nonnull String shapeId, @Nullable String overrideName) {
         AssetModule mod = AssetModule.get();
 
-        // override
         if (overrideName != null && !overrideName.isEmpty()) {
             AssetPack override = mod.getAssetPack(overrideName);
             if (override == null) {
@@ -119,7 +118,6 @@ public class ShapeTemplateStore {
             return override;
         }
 
-        // origin pack loc
         String ownerName = ShapeAsset.getAssetMap().getAssetPack(shapeId);
         if (ownerName != null) {
             AssetPack owner = mod.getAssetPack(ownerName);

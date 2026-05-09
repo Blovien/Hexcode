@@ -18,14 +18,12 @@ public class GlyphCreationManager {
             maxSize = Math.max(maxSize, shape.getSize());
         }
 
-        // normalize each to get relativeSize
         for (DrawnShapeComponent shape : drawn) {
             shape.setRelativeSize(shape.getSize() / maxSize);
         }
     }
 
     public static float ScoreAsset(List<DrawnShapeComponent> drawn, List<DrawnShapeComponent> asset) {
-        // early return if the num shapes is wrong
         if (drawn.size() != asset.size())
             return 0f;
 
@@ -34,16 +32,14 @@ public class GlyphCreationManager {
             DrawnShapeComponent d = drawn.get(i);
             DrawnShapeComponent a = asset.get(i);
 
-            // shape type must match
             if (!d.getShapeId().equals(a.getShapeId()))
                 return 0f;
 
-            // score based on how close the relative sizes are
             float sizeDiff = Math.abs(d.getRelativeSize() - a.getRelativeSize());
-            score += 1.0f - sizeDiff; // 1.0 = perfect, 0.0 = completely off
+            score += 1.0f - sizeDiff;
         }
 
-        return score / drawn.size(); // average across all shapes
+        return score / drawn.size();
     }
 
     @Nullable

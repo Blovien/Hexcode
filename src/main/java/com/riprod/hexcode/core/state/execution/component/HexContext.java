@@ -41,12 +41,10 @@ public class HexContext {
         this.executionId = UUID.randomUUID();
     }
 
-    // For the codec
     public HexContext() {
         this.variables = new HashMap<>();
     }
 
-    /** Getters and Setters */
     public HexRoot getRoot() {
         return root;
     }
@@ -138,18 +136,14 @@ public class HexContext {
         return executionId;
     }
 
-    /** Utility Functions */
-
     public HexContext branch() {
         HexContext branch = new HexContext();
-        // persistent variables
         branch.root = this.root;
         branch.accessor = this.accessor;
         branch.chunkAccessor = this.chunkAccessor;
         branch.hex = this.hex;
         branch.volatilityTracker = this.volatilityTracker;
         branch.executionId = this.executionId;
-        // copied variables
         branch.variables = new HashMap<>(this.variables);
         if (this.style != null)
             branch.style = this.style.clone();
@@ -209,13 +203,11 @@ public class HexContext {
 
     public HexContext copy() {
         HexContext branch = new HexContext();
-        // persistent variables
         branch.root = this.root.copy();
         branch.accessor = this.accessor;
         branch.chunkAccessor = this.chunkAccessor;
         branch.hex = this.hex.clone();
         branch.volatilityTracker = this.volatilityTracker.copy();
-        // copied variables
         branch.variables = new HashMap<>(this.variables);
         if (this.style != null)
             branch.style = this.style.clone();

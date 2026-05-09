@@ -70,7 +70,6 @@ public class DrawingSystem extends HexcodeManager {
   public void firstTick(Ref<EntityStore> ref, HexcasterComponent hexcaster,
       Store<EntityStore> store, CommandBuffer<EntityStore> buffer,
       HexState previousState) {
-    // first tick stuffs
     HexcasterDrawingComponent drawingComponent = new HexcasterDrawingComponent();
     buffer.putComponent(ref, HexcasterDrawingComponent.getComponentType(), drawingComponent);
   }

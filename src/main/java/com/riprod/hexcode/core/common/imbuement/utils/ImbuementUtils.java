@@ -17,9 +17,7 @@ import com.riprod.hexcode.core.common.imbuement.registry.ImbuementProfileRegistr
 
 public class ImbuementUtils {
 
-    /** @deprecated use {@link ImbuementMetadata#KEY} */
     @Deprecated public static final String METADATA_KEY = ImbuementMetadata.KEY;
-    /** @deprecated use {@link ImbuementMetadata#DEFAULT_SLOT} */
     @Deprecated public static final String DEFAULT_SLOT = ImbuementMetadata.DEFAULT_SLOT;
 
     private ImbuementUtils() {

@@ -117,8 +117,9 @@ public static final String ID = "Glaciate";
             ModelAsset modelAsset, HitboxCollisionConfig collisionConfig) {
         Model model = Model.createScaledModel(modelAsset, ICE_SCALE);
 
-        Holder<EntityStore> holder = HexConstructSpawner.create(
-                hexContext.getAccessor(), hexContext, glyph, GlaciateGlyph.ID, new Vector3d(spawnPos));
+        Holder<EntityStore> holder = HexConstructSpawner.createWithState(
+                hexContext.getAccessor(), hexContext, glyph, GlaciateGlyph.ID, new Vector3d(spawnPos),
+                new GlaciateState(glyph.getNextLinks()));
 
         Vector3f rotation = new Vector3f();
         holder.getComponent(TransformComponent.getComponentType())

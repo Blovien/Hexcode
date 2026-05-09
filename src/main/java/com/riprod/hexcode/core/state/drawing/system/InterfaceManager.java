@@ -59,7 +59,6 @@ public class InterfaceManager {
     Vector3d position = GlyphMath.sphericalToCartesian(eyePos, head.getRotation().getYaw(),
         head.getRotation().getPitch(), 2.0f);
 
-    // spawning the trail anchor entity
     ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset("Trail_Anchor");
     Model model = Model.createUnitScaleModel(modelAsset);
 
@@ -193,14 +192,11 @@ public class InterfaceManager {
 
     hexcaster.setLastParticleSpawnMillis(curTime);
 
-    // get the last 4 strokePoints
     List<DrawnShapeComponent> allGlyphs = hexcaster.getDrawnGlyphs();
     int size = allGlyphs.size();
     List<DrawnShapeComponent> strokePoints = allGlyphs.subList(Math.max(0, size - 4), size);
 
-    // spawns all particles
     for (DrawnShapeComponent position : strokePoints) {
-      // spawnParticleAtShape(accessor, playerRef, position); skip particle spawning for now, just spawn lasers
       spawnLaserAtShape(accessor, playerRef, position);
     }
   }

@@ -8,8 +8,6 @@ import javax.annotation.Nullable;
 import com.hypixel.hytale.math.vector.Vector3f;
 
 public class RadialPositionUtil {
-    // Generates positions around a circle around a center point in relative XYZ
-    // coordinates as relative offset
     public static List<Vector3f> calculateOffsets(int count, float radius, float angleOffset, @Nullable Vector3f centerOffset) {
         List<Vector3f> positions = new ArrayList<>();
 
@@ -20,7 +18,7 @@ public class RadialPositionUtil {
         float angleStep = (float) (2 * Math.PI / count);
 
         for (int i = 0; i < count; i++) {
-            float yaw = angleStep * i + angleOffset; // Full 360° around the player
+            float yaw = angleStep * i + angleOffset;
             float x = (float) Math.cos(yaw) * radius;
             float z = (float) Math.sin(yaw) * radius;
             Vector3f offset = new Vector3f(x, 0, z);

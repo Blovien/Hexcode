@@ -43,7 +43,6 @@ public class GlyphMath {
     }
 
     public static boolean isPointInGlyphArea(Vector3f glyphPos, Vector3f lookPos, float scale) {
-        // todo: check if look direction hits glyph selection area
         // area scales with glyph scale (nested glyphs are smaller)
         float angularDistance = calculateAngularDistance(glyphPos, lookPos);
         float selectionRadius = getSelectionRadius(scale);
@@ -63,7 +62,6 @@ public class GlyphMath {
     }
 
     public static float getSelectionRadius(float scale) {
-        // todo: return selection radius in radians based on glyph scale
         // base radius ~15 degrees = ~0.26 radians, scaled by visual size
         float baseRadius = 0.12f;
         return baseRadius * scale;

@@ -130,7 +130,6 @@ public class ContainerNodeHandler extends BaseContainerHandler {
 
         Ref<EntityStore> hexRef = CreateHex.createEntity(accessor, holder);
         if (isEmpty || hex == null) {
-            // Early isEmpty break as it doesn't have to spawn the rest of the glyph stuff
             return hexRef;
         }
 
@@ -247,7 +246,6 @@ public class ContainerNodeHandler extends BaseContainerHandler {
 
     @Override
     public void despawn(CommandBuffer<EntityStore> accessor, Ref<EntityStore> nodeRef, Ref<EntityStore> playerRef) {
-        // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'despawn'");
     }
 }

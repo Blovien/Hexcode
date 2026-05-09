@@ -50,9 +50,7 @@ public interface GlyphHandler {
         GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(getId());
         if (asset == null)
             return null;
-        // TODO: finish config system
-        // GlyphConfig config = asset.getConfig();
-        // return type.isInstance(config) ? type.cast(config) : null;
+        // todo: finish config system
         return null;
     }
 

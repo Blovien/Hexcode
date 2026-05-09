@@ -20,10 +20,17 @@ public final class ImbuementProfileRegistry {
 
     @Nullable
     public static ImbuementProfileAsset byCategoryAndArmorSlot(String categoryId, @Nullable ItemArmorSlot armorSlot) {
+        return byCategoryAndArmorSlot(categoryId, armorSlot, null);
+    }
+
+    @Nullable
+    public static ImbuementProfileAsset byCategoryAndArmorSlot(String categoryId, @Nullable ItemArmorSlot armorSlot,
+            @Nullable String[] itemCategoriesForExclusion) {
         if (categoryId == null) return null;
         ImbuementProfileAsset fallback = null;
         for (ImbuementProfileAsset profile : ImbuementProfileAsset.getAssetMap().getAssetMap().values()) {
             if (!categoryId.equals(profile.getCategoryId())) continue;
+            if (isExcluded(profile, itemCategoriesForExclusion)) continue;
             ItemArmorSlot profileSlot = profile.getArmorSlot();
             if (profileSlot == null) {
                 if (fallback == null) fallback = profile;
@@ -32,6 +39,18 @@ public final class ImbuementProfileRegistry {
             if (armorSlot != null && profileSlot == armorSlot) return profile;
         }
         return fallback;
+    }
+
+    private static boolean isExcluded(ImbuementProfileAsset profile, @Nullable String[] itemCategories) {
+        String[] excluded = profile.getExcludedCategories();
+        if (excluded == null || excluded.length == 0) return false;
+        if (itemCategories == null) return false;
+        for (String c : itemCategories) {
+            for (String e : excluded) {
+                if (e.equals(c)) return true;
+            }
+        }
+        return false;
     }
 
     @Nullable
@@ -43,7 +62,7 @@ public final class ImbuementProfileRegistry {
     public static ImbuementProfileAsset first(@Nullable String[] categories, @Nullable ItemArmorSlot armorSlot) {
         if (categories == null) return null;
         for (String category : categories) {
-            ImbuementProfileAsset profile = byCategoryAndArmorSlot(category, armorSlot);
+            ImbuementProfileAsset profile = byCategoryAndArmorSlot(category, armorSlot, categories);
             if (profile != null) return profile;
         }
         return null;

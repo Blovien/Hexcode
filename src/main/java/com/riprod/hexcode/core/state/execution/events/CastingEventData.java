@@ -87,14 +87,10 @@ public class CastingEventData {
         return hexRoot;
     }
 
-    // utility
-
     public void hydrate(Ref<EntityStore> targetRef, HexRoot hexRoot) {
         this.targetRef = targetRef;
         this.hexRoot = hexRoot;
     }
-
-    // persistence
 
     @Nullable
     public String getHexCompressedId() {

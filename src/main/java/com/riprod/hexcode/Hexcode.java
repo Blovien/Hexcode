@@ -137,7 +137,6 @@ public class Hexcode extends JavaPlugin {
     protected void setup() {
         this.registerAssets();
 
-        // components
         this.registerEntityComponents();
         this.registerBlockComponents();
         this.registerHexContent();
@@ -269,7 +268,6 @@ public class Hexcode extends JavaPlugin {
 
     private void registerEntityComponents() {
 
-        // Entity Component Registries
         ComponentRegistryProxy<EntityStore> entityStoreRegistry = this.getEntityStoreRegistry();
 
         ComponentType<EntityStore, GlyphComponent> glyphComponentType = entityStoreRegistry.registerComponent(
@@ -347,7 +345,6 @@ public class Hexcode extends JavaPlugin {
                         ScaleStackComponent.CODEC);
         ScaleStackComponent.setComponentType(scaleStackComponentType);
 
-        // Ticking Systems
         entityStoreRegistry.registerSystem(new HexTick());
         entityStoreRegistry.registerSystem(new PedestalBlockEvent());
         entityStoreRegistry.registerSystem(new BlockBreakEvent());
@@ -363,7 +360,6 @@ public class Hexcode extends JavaPlugin {
         entityStoreRegistry.registerSystem(new ImbuedBlockPlacementHandler());
         entityStoreRegistry.registerSystem(new ImbuedBlockBreakHandler());
 
-        // spatial resources
         ResourceType<EntityStore, SpatialResource<Ref<EntityStore>, EntityStore>> hoverableSpatialResourceType = entityStoreRegistry
                 .registerSpatialResource(() -> new KDTree<>(Ref::isValid));
         entityStoreRegistry.registerSystem(new HoverableSpatialSystem(hoverableSpatialResourceType));
@@ -380,7 +376,6 @@ public class Hexcode extends JavaPlugin {
 
     private void registerBlockComponents() {
 
-        // Block Component Registries
         ComponentRegistryProxy<ChunkStore> chunkStoreRegistry = this.getChunkStoreRegistry();
 
         ComponentType<ChunkStore, PedestalBlockComponent> pedestalBlockComponentType = chunkStoreRegistry
@@ -412,18 +407,14 @@ public class Hexcode extends JavaPlugin {
 
     private void registerHexContent() {
 
-        // Glyph Var Variables
         HexVar.CODEC.register("Entity", EntityVar.class, EntityVar.CODEC);
         HexVar.CODEC.register("Block", BlockVar.class, BlockVar.CODEC);
         HexVar.CODEC.register("Rotation", RotationVar.class, RotationVar.CODEC);
         HexVar.CODEC.register("Position", PositionVar.class, PositionVar.CODEC);
         HexVar.CODEC.register("Number", NumberVar.class, NumberVar.CODEC);
 
-        // State Managers
         StateRouter.registerState(HexState.IDLE, new IdleSystem());
         StateRouter.registerState(HexState.CASTING, new CastingSystem());
-        // StateRouter.registerState(HexState.CASTING,
-        // HexcasterCastingComponent.getComponentType());
         StateRouter.registerState(HexState.DRAWING, new DrawingSystem());
         StateRouter.registerState(HexState.CRAFTING, new CraftingSystem());
 
@@ -431,7 +422,6 @@ public class Hexcode extends JavaPlugin {
 
     private void registerInteractions() {
 
-        // Interaction Registries
         Interaction.CODEC.register("HexStateBranch", HexStateBranch.class, HexStateBranch.CODEC);
         Interaction.CODEC.register("HexStateChange", HexStateChange.class, HexStateChange.CODEC);
         Interaction.CODEC.register("HexHold", HexHold.class, HexHold.CODEC);
@@ -465,7 +455,6 @@ public class Hexcode extends JavaPlugin {
 
     private void registerEvents() {
 
-        // Events
         this.getEventRegistry().registerGlobal(PlayerConnectEvent.class, Hexcode::onPlayerConnect);
         this.getEventRegistry().registerGlobal(PlayerDisconnectEvent.class, Hexcode::onPlayerDisconnect);
         this.getEventRegistry().registerGlobal(GlyphFizzleEvent.class, new FizzleMessageListener());
@@ -480,12 +469,10 @@ public class Hexcode extends JavaPlugin {
 
     private void registerCommands() {
 
-        // Commands
         this.getCommandRegistry().registerCommand(new HexcodeCommand());
     }
 
     private void registerExternal() {
-        // Startups
         this.builtinPlugin.startup();
     }
 

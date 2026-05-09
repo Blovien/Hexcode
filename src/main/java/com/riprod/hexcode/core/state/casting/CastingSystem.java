@@ -317,9 +317,7 @@ public class CastingSystem extends HexcodeManager {
             return InteractionState.Finished;
         }
 
-        // Update on prim tick
         Ref<EntityStore> headAnchor = castingComp.getHeadAnchorRef();
-        // head anchor: match head look direction
         if (headAnchor != null && headAnchor.isValid()) {
             HeadRotation headRot = accessor.getComponent(ref, HeadRotation.getComponentType());
             if (headRot != null) {
@@ -391,7 +389,6 @@ public class CastingSystem extends HexcodeManager {
             }
         }
 
-        // Drop the glyph
         castingComp.setDraggingHex(null);
         Ref<EntityStore> dropHeadAnchor = castingComp.getHeadAnchorRef();
         if (dropHeadAnchor != null && dropHeadAnchor.isValid()) {

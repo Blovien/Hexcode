@@ -383,22 +383,6 @@ public class DollarOneFixedDetector implements ShapeDetector {
                 counts[0]++;
                 return;
             }
-
-            // boolean[][] imageData = ShapeCacheManager.getImageData(key);
-            // if (imageData == null) return;
-
-            // float[][] rawPoints;
-            // if (Boolean.TRUE.equals(asset.getCenterFilled())) {
-            //     rawPoints = extractMajorAxis(imageData);
-            // } else {
-            //     rawPoints = extractOrderedBoundary(imageData);
-            // }
-
-            // if (rawPoints.length < 2) return;
-
-            // float[][] processed = preprocess(rawPoints);
-            // templateCache.put(key, processed);
-            // counts[1]++;
         });
 
         LOGGER.atInfo().log("DollarOneFixedDetector initialized with " + templateCache.size()

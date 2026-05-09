@@ -1,5 +1,6 @@
 {
   "CategoryId": "Items.Weapons",
+  "ExcludedCategories": ["Hexcode.Staves"],
   "Slots": {
     "Primary": {
       "Label": "Primary",

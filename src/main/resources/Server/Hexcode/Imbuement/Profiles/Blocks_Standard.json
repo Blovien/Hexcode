@@ -5,6 +5,9 @@
       "Label": "Default Slot",
       "Description": "The default slot of the block",
       "Style": "Next"
+    },
+    "OtherSlot": {
+      "Label": "Slot Label"
     }
   }
 }

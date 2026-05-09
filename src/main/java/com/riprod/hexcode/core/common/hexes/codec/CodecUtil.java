@@ -156,59 +156,12 @@ public class CodecUtil {
 
     static void scrubRemoved(List<Glyph> glyphs, Set<Integer> removedIndices,
             List<DecodeIssue> issues) {
-        // Set<String> removedIds = new HashSet<>();
-        // for (int idx : removedIndices) removedIds.add(String.valueOf(idx));
-
-        // for (Glyph g : glyphs) {
-        //     if (removedIds.contains(g.getId())) continue;
-
-        //     int beforeNext = g.getNext().size();
-        //     g.getNext().removeIf(removedIds::contains);
-        //     if (g.getNext().size() < beforeNext) {
-        //         issues.add(new DecodeIssue(
-        //                 "removed " + (beforeNext - g.getNext().size())
-        //                         + " next link(s) from '" + g.getGlyphId() + "' (glyph " + g.getId()
-        //                         + ") pointing to removed glyph(s)",
-        //                 DecodeIssue.Severity.WARNING));
-        //     }
-
-        //     List<String> inputsToRemove = new ArrayList<>();
-        //     for (Map.Entry<String, String> entry : g.getInputs().entrySet()) {
-        //         if (removedIds.contains(entry.getValue())) {
-        //             inputsToRemove.add(entry.getKey());
-        //         }
-        //     }
-        //     for (String key : inputsToRemove) {
-        //         g.getInputs().remove(key);
-        //         issues.add(new DecodeIssue(
-        //                 "removed input '" + key + "' from '" + g.getGlyphId() + "' (glyph " + g.getId()
-        //                         + ") pointing to removed glyph",
-        //                 DecodeIssue.Severity.WARNING));
-        //     }
-        // }
     }
 
     // --- v4 limit check ---
 
     @Nullable
     static String exceedsV4Limits(Hex hex) {
-        // for (Glyph g : hex.getGlyphs()) {
-        //     GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(g.getGlyphId());
-        //     if (asset != null && asset.getInputKeys().size() > V4_MAX_INPUT_KEYS) {
-        //         return "glyph '" + g.getGlyphId() + "' has " + asset.getInputKeys().size()
-        //                 + " asset-defined inputs (max " + V4_MAX_INPUT_KEYS + ")";
-        //     }
-        //     if (g.getVolatility() < 0 || g.getVolatility() > 1.0f) {
-        //         return "glyph '" + g.getGlyphId() + "' volatility " + g.getVolatility() + " out of range [0, 1]";
-        //     }
-        //     if (g.getEfficiency() < 0 || g.getEfficiency() > 1.0f) {
-        //         return "glyph '" + g.getGlyphId() + "' efficiency " + g.getEfficiency() + " out of range [0, 1]";
-        //     }
-        //     Vector3f pos = g.getPosition();
-        //     if (Math.abs(pos.x) > V4_MAX_POS || Math.abs(pos.y) > V4_MAX_POS || Math.abs(pos.z) > V4_MAX_POS) {
-        //         return "glyph '" + g.getGlyphId() + "' position exceeds ±" + V4_MAX_POS;
-        //     }
-        // }
         return null;
     }
 
@@ -233,33 +186,9 @@ public class CodecUtil {
 
     private static void topoVisit(String id, Map<String, Glyph> byId,
             Set<String> visited, List<Glyph> sorted) {
-        // if (visited.contains(id)) return;
-        // visited.add(id);
-        // Glyph g = byId.get(id);
-        // if (g == null) return;
-        // sorted.add(g);
-        // for (String nid : g.getNext()) {
-        //     if (byId.containsKey(nid)) topoVisit(nid, byId, visited, sorted);
-        // }
     }
 
-    // --- glyph field setter (reflection) ---
-
     static void setGlyphFields(Glyph g, String assetId) {
-        // GlyphType type = fallback;
-        // GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(assetId);
-        // if (asset != null) type = asset.getGlyphType();
-
-        // try {
-        //     java.lang.reflect.Field f = Glyph.class.getDeclaredField("glyphId");
-        //     f.setAccessible(true);
-        //     f.set(g, assetId);
-        //     java.lang.reflect.Field t = Glyph.class.getDeclaredField("type");
-        //     t.setAccessible(true);
-        //     t.set(g, type);
-        // } catch (Exception e) {
-        //     throw new RuntimeException(e);
-        // }
     }
 
     // --- prefixed string i/o ---
@@ -348,16 +277,10 @@ public class CodecUtil {
     // --- asset input keys ---
 
     static List<String> getAssetInputKeys(String glyphId) {
-        // GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyphId);
-        // if (asset == null) return List.of();
-        // return new ArrayList<>(asset.getInputKeys());
         return List.of();
     }
 
     static List<String> getAssetOutputKeys(String glyphId) {
-        // GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyphId);
-        // if (asset == null) return List.of();
-        // return new ArrayList<>(asset.getOutputKeys());
         return List.of();
     }
 

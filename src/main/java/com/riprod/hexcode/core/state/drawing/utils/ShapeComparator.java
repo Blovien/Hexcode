@@ -16,7 +16,6 @@ public class ShapeComparator {
     private static final float PRECISION_WEIGHT = 0.7f;
     private static final float RECALL_WEIGHT = 0.3f;
 
-    // for center check
     private static final int CENTER_MIN = 13;
     private static final int CENTER_MAX = 19;
 
@@ -184,17 +183,15 @@ public class ShapeComparator {
         for (DrawnShapeComponent shape : shapes) {
             cumulative += shape.getVolatility();
         }
-        // average for all shapes - discard total structure volatility
         return cumulative / shapes.size();
     }
 
     public static float calculateEfficiency(List<DrawnShapeComponent> shapes) {
 	float totalSpeed = 0.0f;
-	
+
 	for (DrawnShapeComponent shape : shapes) {
 		totalSpeed += shape.getEfficiency();
 	}
-	// Average speed across all shapes
 	return totalSpeed / shapes.size();
 }
 }

@@ -103,7 +103,8 @@ public class HexSelector {
     public static HexComponent findHoveredHex(CommandBuffer<EntityStore> accessor, Vector3f headRotation,
             List<Ref<EntityStore>> hexes) {
 
-        Vector3f playerRotation = new Vector3f(headRotation.getPitch(), headRotation.getYaw(), 0);
+        float playerPitch = headRotation.getPitch();
+        float playerYaw = headRotation.getYaw();
 
         for (int i = 0; i < hexes.size(); i++) {
             Ref<EntityStore> hexRef = hexes.get(i);
@@ -115,8 +116,7 @@ public class HexSelector {
                 continue;
             }
 
-            Vector3f hexRotation = new Vector3f(hex.getPitch(), hex.getYaw(), 0);
-            float angularDist = GlyphMath.calculateAngularDistance(playerRotation, hexRotation);
+            float angularDist = GlyphMath.calculateAngularDistance(playerPitch, playerYaw, hex.getPitch(), hex.getYaw());
             float selectionRadius = GlyphMath.getSelectionRadius(hex.getScale());
 
             if (angularDist <= selectionRadius) {
@@ -146,10 +146,8 @@ public class HexSelector {
 
         hexComponent.setYaw(playerRotation.getYaw());
         hexComponent.setPitch(playerRotation.getPitch());
-        glyphPos.setRotation(new Vector3f(hexComponent.getPitch(), hexComponent.getYaw(), 0));
+        glyphPos.getRotation().assign(hexComponent.getPitch(), hexComponent.getYaw(), 0);
 
-        // Update the rotation of the children to match the new rotation of the parent
-        // glyph
         List<Ref<EntityStore>> children = hexComponent.getChildGlyphRefsList();
         for (int i = 0; i < children.size(); i++) {
             Ref<EntityStore> childRef = children.get(i);
@@ -162,7 +160,7 @@ public class HexSelector {
             if (childTransform == null) {
                 continue;
             }
-            childTransform.setRotation(new Vector3f(hexComponent.getPitch(), hexComponent.getYaw(), 0));
+            childTransform.getRotation().assign(hexComponent.getPitch(), hexComponent.getYaw(), 0);
         }
     }
 

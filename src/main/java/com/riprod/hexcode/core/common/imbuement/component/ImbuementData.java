@@ -31,8 +31,6 @@ public class ImbuementData {
     public ImbuementData() {
     }
 
-    // copy / clone
-
     public ImbuementData copy() {
         ImbuementData copy = new ImbuementData();
         copy.hexCompressedId = this.hexCompressedId;
@@ -52,8 +50,6 @@ public class ImbuementData {
     public ImbuementData clone() {
         return copy();
     }
-
-    // persistence
 
     @Nullable
     public String getHexCompressedId() {

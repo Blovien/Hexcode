@@ -155,8 +155,6 @@ public class HexComponent implements Component<EntityStore> {
         this.childGlyphRefs.remove(glyphId);
     }
 
-    /** Positioning */
-
     public float getYaw() {
         return this.rotation.getYaw();
     }
@@ -200,8 +198,6 @@ public class HexComponent implements Component<EntityStore> {
     public void setOffset(float x, float y, float z) {
         this.offset = new Vector3f(x, y, z);
     }
-
-    /** Flags */
 
     public void setHoverState(boolean isHovered) {
         if (isHovered) {

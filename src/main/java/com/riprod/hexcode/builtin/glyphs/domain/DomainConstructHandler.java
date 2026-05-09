@@ -1,7 +1,5 @@
 package com.riprod.hexcode.builtin.glyphs.domain;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -37,6 +35,7 @@ public class DomainConstructHandler implements ConstructHandler<NoState> {
 
     private static final float AMBIENT_INTERVAL = 1.0f;
     private static final float DOMAIN_VOLATILITY_BOOST = 0.67f;
+    private static final float SPATIAL_INTERVAL_SECONDS = 0.2f;
     private static final Vector3f CONTESTED_COLOR = new Vector3f(0.5f, 0.5f, 0.5f);
 
     @Override
@@ -72,62 +71,68 @@ public class DomainConstructHandler implements ConstructHandler<NoState> {
         if (rootRef == null || !rootRef.isValid())
             return true;
 
-        updateContestation(zone, transform.getPosition(), ctx.getEntityRef(), ctx.getBuffer());
-
         Vector3d center = transform.getPosition();
-        List<Ref<EntityStore>> found = new ArrayList<>(
-                TargetUtil.getAllEntitiesInSphere(center, zone.getRadius(), ctx.getBuffer()));
 
-        Set<UUID> previousOccupants = zone.getNewOccupants();
-        zone.setLastOccupants(previousOccupants);
-        zone.setNewOccupants(new HashSet<>());
+        zone.setSpatialQueryTimer(zone.getSpatialQueryTimer() - dt);
+        if (zone.getSpatialQueryTimer() <= 0f) {
+            zone.setSpatialQueryTimer(SPATIAL_INTERVAL_SECONDS);
 
-        boolean casterInside = false;
+            updateContestation(zone, center, ctx.getEntityRef(), ctx.getBuffer());
 
-        for (Ref<EntityStore> ref : found) {
-            if (ref == null || !ref.isValid())
-                continue;
-            if (ctx.getBuffer().getComponent(ref, DomainZoneComponent.getComponentType()) != null)
-                continue;
+            List<Ref<EntityStore>> found = TargetUtil.getAllEntitiesInSphere(
+                    center, zone.getRadius(), ctx.getBuffer());
 
-            UUIDComponent uuid = ctx.getBuffer().getComponent(ref, UUIDComponent.getComponentType());
-            if (uuid == null)
-                continue;
+            Set<UUID> previousOccupants = zone.getNewOccupants();
+            Set<UUID> currentOccupants = zone.getLastOccupants();
+            currentOccupants.clear();
+            zone.setLastOccupants(previousOccupants);
+            zone.setNewOccupants(currentOccupants);
 
-            UUID entityId = uuid.getUuid();
-            zone.getNewOccupants().add(entityId);
+            boolean casterInside = false;
 
-            if (entityId.equals(zone.getCasterUuid())) {
-                casterInside = true;
-                continue;
-            }
+            for (Ref<EntityStore> ref : found) {
+                if (ref == null || !ref.isValid())
+                    continue;
+                if (ctx.getBuffer().getComponent(ref, DomainZoneComponent.getComponentType()) != null)
+                    continue;
 
-            if (!previousOccupants.contains(entityId)) {
-                if (!root.tryConsumeMana(zone.getTriggerDrainCost(), ctx.getBuffer()))
-                    return true;
+                UUIDComponent uuid = ctx.getBuffer().getComponent(ref, UUIDComponent.getComponentType());
+                if (uuid == null)
+                    continue;
 
-                zone.incrementTriggerCount();
+                UUID entityId = uuid.getUuid();
+                currentOccupants.add(entityId);
 
-                TransformComponent entityTransform = ctx.getBuffer().getComponent(
-                        ref, TransformComponent.getComponentType());
-                if (entityTransform != null) {
-                    DomainStyle.renderTrigger(entityTransform.getPosition(),
-                            status.getHexContext(), ctx.getBuffer());
+                if (entityId.equals(zone.getCasterUuid())) {
+                    casterInside = true;
+                    continue;
                 }
 
-                final Ref<EntityStore> entityRef = ref;
-                final UUIDComponent entityUuid = uuid;
-                Glyph triggering = status.getTriggeringGlyph();
-                if (triggering != null) {
-                    HexContext __hexCtx = status.getHexContext();
-                    triggering.writeDefaultOutput(
-                            new EntityVar(entityUuid.getUuid(), entityRef), __hexCtx);
-                    HexExecuter.continueExecution(triggering.getNextLinks(), __hexCtx);
+                if (!previousOccupants.contains(entityId)) {
+                    if (!root.tryConsumeMana(zone.getTriggerDrainCost(), ctx.getBuffer()))
+                        return true;
+
+                    zone.incrementTriggerCount();
+
+                    TransformComponent entityTransform = ctx.getBuffer().getComponent(
+                            ref, TransformComponent.getComponentType());
+                    if (entityTransform != null) {
+                        DomainStyle.renderTrigger(entityTransform.getPosition(),
+                                status.getHexContext(), ctx.getBuffer());
+                    }
+
+                    Glyph triggering = status.getTriggeringGlyph();
+                    if (triggering != null) {
+                        HexContext hexCtx = status.getHexContext();
+                        triggering.writeDefaultOutput(
+                                new EntityVar(uuid.getUuid(), ref), hexCtx);
+                        HexExecuter.continueExecution(triggering.getNextLinks(), hexCtx);
+                    }
                 }
             }
+
+            updateCasterAura(zone, casterInside, ctx.getEntityRef(), ctx.getBuffer(), status);
         }
-
-        updateCasterAura(zone, casterInside, ctx.getEntityRef(), ctx.getBuffer(), status);
 
         zone.setAmbientTimer(zone.getAmbientTimer() - dt);
         if (zone.getAmbientTimer() <= 0) {

@@ -31,6 +31,7 @@ public class ConjureZoneComponent implements Component<EntityStore> {
     private float totallapsed = 0f;
     private Set<UUID> lastOccupants;
     private Set<UUID> newOccupants;
+    private float spatialQueryTimer;
     private Ref<EntityStore> zoneRef;
 
     public ConjureZoneComponent() {
@@ -43,6 +44,7 @@ public class ConjureZoneComponent implements Component<EntityStore> {
         this.duration = duration;
         this.lastOccupants = new HashSet<>();
         this.newOccupants = new HashSet<>();
+        this.spatialQueryTimer = 0;
     }
 
     public Vector3d getHalfExtents() {
@@ -89,6 +91,14 @@ public class ConjureZoneComponent implements Component<EntityStore> {
         this.newOccupants = newOccupants;
     }
 
+    public float getSpatialQueryTimer() {
+        return spatialQueryTimer;
+    }
+
+    public void setSpatialQueryTimer(float spatialQueryTimer) {
+        this.spatialQueryTimer = spatialQueryTimer;
+    }
+
     public Ref<EntityStore> getZoneRef() {
         return zoneRef;
     }
@@ -106,6 +116,7 @@ public class ConjureZoneComponent implements Component<EntityStore> {
         copy.intervalTimer = this.intervalTimer;
         copy.lastOccupants = new HashSet<>();
         copy.newOccupants = new HashSet<>();
+        copy.spatialQueryTimer = this.spatialQueryTimer;
         copy.zoneRef = this.zoneRef;
         return copy;
     }

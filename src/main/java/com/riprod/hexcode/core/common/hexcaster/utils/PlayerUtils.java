@@ -17,12 +17,10 @@ import io.sentry.util.Pair;
 
 public class PlayerUtils {
     public static Vector3d getPlayerEyePosition(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> playerRef) {
-        // Get the player's transform component to determine their position and eye
-        // height
         TransformComponent playerTransform = accessor.getComponent(playerRef,
                 TransformComponent.getComponentType());
         if (playerTransform == null) {
-            return new Vector3d(0, 0, 0); // Fallback to origin if we can't get the transform
+            return new Vector3d(0, 0, 0);
         }
 
         ModelComponent modelComp = accessor.getComponent(playerRef, ModelComponent.getComponentType());

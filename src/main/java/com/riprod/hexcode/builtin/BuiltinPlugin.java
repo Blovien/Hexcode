@@ -37,6 +37,7 @@ import com.riprod.hexcode.core.common.triggers.registry.ManualTrigger;
 import com.riprod.hexcode.core.common.triggers.registry.TriggerListenerRegistry;
 import com.riprod.hexcode.core.common.triggers.registry.TriggerRegistry;
 import com.riprod.hexcode.core.common.triggers.handler.TriggerConstructHandler;
+import com.riprod.hexcode.builtin.glyphs.absolute.AbsoluteGlyph;
 import com.riprod.hexcode.builtin.glyphs.add.AddGlyph;
 import com.riprod.hexcode.builtin.glyphs.cos.CosGlyph;
 import com.riprod.hexcode.builtin.glyphs.pi.PiValue;
@@ -168,7 +169,7 @@ public class BuiltinPlugin extends JavaPlugin {
 
     private void RegisterGlyphs() {
 
-        // Tier 1
+        // tier 1
         GlyphRegistry.register(new SelfGlyph());
         GlyphRegistry.register(new ChaosGlyph());
         GlyphRegistry.register(new ForceGlyph());
@@ -176,7 +177,7 @@ public class BuiltinPlugin extends JavaPlugin {
         GlyphRegistry.register(new DrainGlyph());
         GlyphRegistry.register(new HaltGlyph());
 
-        // Tier 2
+        // tier 2
         GlyphRegistry.register(new BeamGlyph());
         GlyphRegistry.register(new AreaGlyph());
         GlyphRegistry.register(new ProjectileGlyph());
@@ -191,7 +192,7 @@ public class BuiltinPlugin extends JavaPlugin {
         GlyphRegistry.register(new ScaleGlyph());
         GlyphRegistry.register(new DomainGlyph());
 
-        // Tier 3
+        // tier 3
         GlyphRegistry.register(new IgniteGlyph());
         GlyphRegistry.register(new BoltGlyph());
         GlyphRegistry.register(new ArcGlyph());
@@ -216,6 +217,7 @@ public class BuiltinPlugin extends JavaPlugin {
         GlyphRegistry.register(new SinGlyph());
         GlyphRegistry.register(new CosGlyph());
         GlyphRegistry.register(new TanGlyph());
+        GlyphRegistry.register(new AbsoluteGlyph());
         GlyphRegistry.register(new PowerGlyph());
         GlyphRegistry.register(new RootGlyph());
         GlyphRegistry.register(new StyleGlyph());
@@ -234,7 +236,7 @@ public class BuiltinPlugin extends JavaPlugin {
         // debug / introspection
         GlyphRegistry.register(new DebugGlyph());
 
-        // output landmark (Wave 2)
+        // output landmark (wave 2)
         GlyphRegistry.register(new OutputGlyph());
 
         // caster state queries
@@ -273,7 +275,6 @@ public class BuiltinPlugin extends JavaPlugin {
                 .registerComponent(ProjectileState.class, ProjectileState::new);
         ProjectileState.setComponentType(hexProjectileStateType);
 
-        // Conjure Zone Component
         ComponentType<EntityStore, ConjureZoneComponent> conjureZoneType = entityStoreRegistry
                 .registerComponent(ConjureZoneComponent.class, ConjureZoneComponent::new);
         ConjureZoneComponent.setComponentType(conjureZoneType);

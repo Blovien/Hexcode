@@ -184,7 +184,6 @@ public class GlyphNodeHandler extends BaseGlyphHandler {
             return InteractionState.Finished;
         }
 
-        // step 2: delete the glyph entirely
         return deleteGlyph(accessor, nodeRef, playerRef, glyphComp);
     }
 

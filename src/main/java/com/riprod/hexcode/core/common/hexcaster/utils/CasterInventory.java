@@ -54,21 +54,18 @@ public class CasterInventory {
             return null;
         }
 
-        // Check if component already exists
         HexBookComponent existingComponent = inventoryItem.getFromMetadataOrNull(METADATA_KEY_HEX_BOOK,
                 HexBookComponent.CODEC);
         if (existingComponent != null) {
             return new Pair<>(inventoryPair.getSecond(), existingComponent);
         }
 
-        // Check if this item is a registered HexBook asset
         HexBookAsset bookAsset = getHexBookAsset(inventoryItem);
         if (bookAsset == null) {
             LOGGER.atInfo().log("No HexBook asset found for item in main hand");
             return null;
         }
 
-        // Create and initialize new component
         HexBookComponent newComponent = new HexBookComponent(bookAsset);
         ItemStack newStack = inventoryItem.withMetadata(METADATA_KEY_HEX_BOOK, HexBookComponent.CODEC, newComponent);
 

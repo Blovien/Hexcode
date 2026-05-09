@@ -10,10 +10,12 @@ import com.hypixel.hytale.assetstore.map.JsonAssetWithMap;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.codecs.EnumCodec;
+import com.hypixel.hytale.codec.codecs.array.ArrayCodec;
 import com.hypixel.hytale.codec.codecs.map.EnumMapCodec;
 import com.hypixel.hytale.codec.codecs.map.MapCodec;
 import com.hypixel.hytale.codec.schema.metadata.ui.UIEditor;
 import com.hypixel.hytale.codec.validation.ValidatorCache;
+import com.hypixel.hytale.codec.validation.validator.ArrayValidator;
 import com.hypixel.hytale.protocol.ItemArmorSlot;
 import com.hypixel.hytale.server.core.asset.type.item.config.ItemCategory;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
@@ -38,6 +40,7 @@ public class ImbuementProfileAsset
     protected String categoryId = "";
     @Nullable
     protected ItemArmorSlot armorSlot;
+    protected String[] excludedCategories = new String[0];
     protected Map<String, SlotAsset> slots = new LinkedHashMap<>();
     @Nullable
     protected String displayModelOverride;
@@ -69,6 +72,10 @@ public class ImbuementProfileAsset
     @Nullable
     public ItemArmorSlot getArmorSlot() {
         return armorSlot;
+    }
+
+    public String[] getExcludedCategories() {
+        return excludedCategories;
     }
 
     public Map<String, SlotAsset> getSlots() {
@@ -110,6 +117,14 @@ public class ImbuementProfileAsset
                         (a, v) -> a.armorSlot = v,
                         a -> a.armorSlot)
                 .documentation("Optional. When set, this profile only matches armor items occupying the given slot (Head/Chest/Hands/Legs).")
+                .add()
+                .append(new KeyedCodec<>("ExcludedCategories",
+                        new ArrayCodec<>(Codec.STRING, String[]::new)),
+                        (a, v) -> { if (v != null) a.excludedCategories = v; },
+                        a -> a.excludedCategories)
+                .metadata(new UIEditor(new UIEditor.Dropdown("ItemCategories")))
+                .addValidatorLate(() -> new ArrayValidator<>(ItemCategory.VALIDATOR_CACHE.getValidator().late()).late())
+                .documentation("Optional. If any of an item's Categories matches an entry in this list, the profile rejects the item.")
                 .add()
                 .append(new KeyedCodec<>("Slots",
                         new MapCodec<>(SlotAsset.CODEC, LinkedHashMap::new, false)),

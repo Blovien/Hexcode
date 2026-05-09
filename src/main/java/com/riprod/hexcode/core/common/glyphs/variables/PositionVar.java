@@ -39,7 +39,12 @@ public final class PositionVar extends HexVar {
 
     @Override
     public Double toScalar() {
-        return position == null ? 0 : position.length();
+        if (position == null) return 0.0;
+        double x = position.x, y = position.y, z = position.z;
+        boolean nx = x != 0.0, ny = y != 0.0, nz = z != 0.0;
+        int count = (nx ? 1 : 0) + (ny ? 1 : 0) + (nz ? 1 : 0);
+        if (count == 1) return nx ? x : ny ? y : z;
+        return position.length();
     }
 
     @Override
