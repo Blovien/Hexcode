@@ -79,41 +79,21 @@ public class HexVarUtil {
 
     @Nullable
     public static EntityVar resolveEntityVar(@Nullable HexVar var, @Nonnull HexContext ctx) {
-        if (var instanceof EntityVar ev) return ev;
-        if (var instanceof NumberVar nv && nv.getValue() != null) {
-            HexVar deref = ctx.getVariable(String.valueOf(nv.getValue().intValue()));
-            return deref instanceof EntityVar ? (EntityVar) deref : null;
-        }
-        return null;
+        return var instanceof EntityVar ev ? ev : null;
     }
 
     @Nullable
     public static BlockVar resolveBlockVar(@Nullable HexVar var, @Nonnull HexContext ctx) {
-        if (var instanceof BlockVar bv) return bv;
-        if (var instanceof NumberVar nv && nv.getValue() != null) {
-            HexVar deref = ctx.getVariable(String.valueOf(nv.getValue().intValue()));
-            return deref instanceof BlockVar ? (BlockVar) deref : null;
-        }
-        return null;
+        return var == null ? null : var.toBlockVar(ctx.getAccessor());
     }
 
     @Nullable
     public static PositionVar resolvePositionVar(@Nullable HexVar var, @Nonnull HexContext ctx) {
-        if (var instanceof PositionVar pv) return pv;
-        if (var instanceof NumberVar nv && nv.getValue() != null) {
-            HexVar deref = ctx.getVariable(String.valueOf(nv.getValue().intValue()));
-            return deref instanceof PositionVar ? (PositionVar) deref : null;
-        }
-        return null;
+        return var == null ? null : var.toPosition(ctx.getAccessor());
     }
 
     @Nullable
     public static RotationVar resolveRotationVar(@Nullable HexVar var, @Nonnull HexContext ctx) {
-        if (var instanceof RotationVar rv) return rv;
-        if (var instanceof NumberVar nv && nv.getValue() != null) {
-            HexVar deref = ctx.getVariable(String.valueOf(nv.getValue().intValue()));
-            return deref instanceof RotationVar ? (RotationVar) deref : null;
-        }
-        return null;
+        return var == null ? null : var.toRotation(ctx.getAccessor());
     }
 }

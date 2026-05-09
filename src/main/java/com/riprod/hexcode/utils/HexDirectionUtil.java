@@ -67,11 +67,14 @@ public class HexDirectionUtil {
         if (var instanceof PositionVar posVar && posVar.getValue() != null) {
             if (posVar.isAbsolute()) {
                 if (sourcePosition != null) {
-                    return Vector3d.directionTo(sourcePosition, posVar.getValue());
+                    Vector3d dir = Vector3d.directionTo(sourcePosition, posVar.getValue());
+                    if (dir != null && dir.length() > 1e-9) return dir;
                 }
                 return null;
             }
-            return new Vector3d(posVar.getValue()).normalize();
+            Vector3d offset = new Vector3d(posVar.getValue());
+            if (offset.length() < 1e-9) return null;
+            return offset.normalize();
         }
         if (var instanceof BlockVar blockVar) {
             Vector3i bv = blockVar.getValue();

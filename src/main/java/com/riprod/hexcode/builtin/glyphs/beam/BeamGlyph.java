@@ -13,8 +13,8 @@ import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.builtin.glyphs.beam.style.BeamStyle;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
-import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
+import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.glyphs.variables.NumberVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
@@ -104,14 +104,14 @@ public static final String ID = "Beam";
                 hitType = BeamStyle.HitType.ENTITY;
             }
         } else if (blockHitLocation != null) {
-            BlockVar resultVar = new BlockVar(blockHitLocation.toVector3i());
+            PositionVar resultVar = new PositionVar(blockHitLocation, true);
             glyph.writeOutput(resultVar, hexContext);
             endPoint = blockHitLocation;
             hitType = BeamStyle.HitType.BLOCK;
         } else {
             endPoint = new Vector3d(origin).add(new Vector3d(direction).scale(beamLength));
             hitType = BeamStyle.HitType.MISS;
-            BlockVar resultVar = new BlockVar(endPoint.toVector3i());
+            PositionVar resultVar = new PositionVar(endPoint, true);
             glyph.writeOutput(resultVar, hexContext);
         }
 

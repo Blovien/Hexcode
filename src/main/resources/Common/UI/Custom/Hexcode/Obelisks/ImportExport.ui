@@ -29,12 +29,12 @@ $C.@PageOverlay {
 
         $C.@TextButton #ExportButton {
           @Anchor = (Right: 8);
-          Text: "Export Active Hex";
+          Text: "Export Hex";
           FlexWeight: 1;
         }
 
         $C.@TextButton #ImportButton {
-          Text: "Import to Book";
+          Text: "Import Hex";
           FlexWeight: 1;
         }
       }
@@ -42,7 +42,7 @@ $C.@PageOverlay {
       Label #StatusLabel {
         Style: (FontSize: 14, TextColor: #a0a0a0);
         Text: "";
-        Anchor: (Top: 12, Height: 40);
+        Anchor: (Top: 12, Height: 96);
       }
     }
   }

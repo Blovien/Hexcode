@@ -1,6 +1,9 @@
 package com.riprod.hexcode.builtin.obelisks.importexport;
 
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 
@@ -9,16 +12,13 @@ import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime;
 import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
 import com.hypixel.hytale.server.core.entity.entities.player.pages.InteractiveCustomUIPage;
-import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.ui.builder.EventData;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
-import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexes.codec.DecodeIssue;
 import com.riprod.hexcode.core.common.hexes.codec.DecodeResult;
@@ -29,6 +29,8 @@ import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
 import com.riprod.hexcode.core.state.crafting.session.SessionUtils;
 
 public class ImportExportPage extends InteractiveCustomUIPage<ImportExportPage.PageEventData> {
+
+    private static final int MAX_ISSUE_LINE = 80;
 
     private String fieldValue = "";
 
@@ -41,7 +43,7 @@ public class ImportExportPage extends InteractiveCustomUIPage<ImportExportPage.P
             @Nonnull UIEventBuilder events, @Nonnull Store<EntityStore> store) {
 
         cmd.append("Hexcode/Obelisks/ImportExport.ui");
-        cmd.set("#StatusLabel.Text", "");
+        cmd.set("#StatusLabel.Text", initialStatus(ref, store));
         cmd.set("#DataField.Value", fieldValue);
 
         events.addEventBinding(
@@ -71,83 +73,112 @@ public class ImportExportPage extends InteractiveCustomUIPage<ImportExportPage.P
         }
     }
 
+    private String initialStatus(Ref<EntityStore> ref, Store<EntityStore> store) {
+        HexcodeSessionComponent session = SessionUtils.resolveSessionByPlayer(ref, store);
+        if (session == null) {
+            return "No active crafting session.";
+        }
+        String slotKey = session.getActiveSlotKey();
+        if (slotKey == null) {
+            return "Select a slot, then Export to copy its hex or paste data and Import to write it.";
+        }
+        return "Slot " + slotKey + " active.";
+    }
+
     private void handleExport(Ref<EntityStore> ref, Store<EntityStore> store) {
         HexcodeSessionComponent session = SessionUtils.resolveSessionByPlayer(ref, store);
         if (session == null) {
-            updateStatus("no active session found");
+            updateStatus("No active crafting session.");
             return;
         }
 
         Ref<EntityStore> ownerRef = session.getOwnerRef();
         if (ownerRef == null || !ownerRef.isValid() || !ownerRef.equals(ref)) {
-            updateStatus("you don't have permission to export from this pedestal");
+            updateStatus("You don't have permission to export from this pedestal.");
             return;
         }
 
-        List<Ref<EntityStore>> previewRefs = session.getHexPreviewRefs();
-        if (previewRefs == null || previewRefs.isEmpty())
+        String slotKey = session.getActiveSlotKey();
+        if (slotKey == null) {
+            updateStatus("Select a slot first.");
             return;
+        }
 
-        Ref<EntityStore> activeHexRef = previewRefs.get(0);
-        if (activeHexRef == null || !activeHexRef.isValid())
+        Hex hex = null;
+        Ref<EntityStore> activeHexRef = SessionUtils.findPreviewForSlot(session, slotKey);
+        if (activeHexRef != null && activeHexRef.isValid()) {
+            HexComponent hexComp = store.getComponent(activeHexRef, HexComponent.getComponentType());
+            if (hexComp != null) {
+                hex = hexComp.getHex();
+            }
+        }
+        if (hex == null || hex.getGlyphs().isEmpty()) {
+            hex = session.getHexAt(slotKey);
+        }
+        if (hex == null || hex.getGlyphs().isEmpty()) {
+            updateStatus("Slot " + slotKey + " is empty — nothing to export.");
             return;
+        }
 
-        HexComponent hexComp = store.getComponent(activeHexRef, HexComponent.getComponentType());
-        if (hexComp == null)
+        String encoded;
+        try {
+            encoded = HexUtils.serialize(hex);
+        } catch (Exception e) {
+            updateStatus("Failed to serialize hex: " + truncate(String.valueOf(e.getMessage()), MAX_ISSUE_LINE));
             return;
-
-        Hex hex = hexComp.getHex();
-        
-        String encoded = HexUtils.serialize(hex);
+        }
         if (encoded == null) {
-            updateStatus("failed to serialize hex");
+            updateStatus("Failed to serialize hex.");
             return;
         }
 
         UICommandBuilder cmd = new UICommandBuilder();
         cmd.set("#DataField.Value", encoded);
-        cmd.set("#StatusLabel.Text", "exported hex");
+        cmd.set("#StatusLabel.Text", "Exported hex from slot " + slotKey + ".");
         sendUpdate(cmd);
     }
 
     private void handleImport(Ref<EntityStore> ref, Store<EntityStore> store) {
         if (fieldValue.isEmpty()) {
-            updateStatus("paste hex data first");
+            updateStatus("Paste hex data first.");
             return;
         }
 
+        long t0 = System.nanoTime();
         DecodeResult result = HexUtils.deserializeWithResult(fieldValue);
-        if (result.getHex() == null) {
-            StringBuilder msg = new StringBuilder("invalid hex data");
-            for (DecodeIssue issue : result.getIssues()) {
-                msg.append("\n").append(issue);
-            }
-            updateStatus(msg.toString());
+        if (!result.isOk() || result.getHex() == null) {
+            updateStatus("Import failed:\n" + formatIssues(result.getIssues(), 4));
             return;
         }
-
         Hex hex = result.getHex();
         HexUtils.validate(hex);
+        long elapsedMs = (System.nanoTime() - t0) / 1_000_000L;
 
         HexcodeSessionComponent importSession = SessionUtils.resolveSessionByPlayer(ref, store);
         if (importSession == null) {
-            updateStatus("not in a crafting session");
+            updateStatus("Not in a crafting session.");
             return;
         }
 
         Ref<EntityStore> ownerRef2 = importSession.getOwnerRef();
         if (ownerRef2 == null || !ownerRef2.isValid() || !ownerRef2.equals(ref)) {
-            updateStatus("you don't own this pedestal");
+            updateStatus("You don't own this pedestal.");
+            return;
+        }
+
+        String slotKey = importSession.getActiveSlotKey();
+        if (slotKey == null) {
+            updateStatus("Select a slot first.");
             return;
         }
 
         importSession.setPendingImportHex(hex);
 
-        StringBuilder msg = new StringBuilder("importing hex...");
-        for (DecodeIssue issue : result.getIssues()) {
-            if (issue.getSeverity() != DecodeIssue.Severity.INFO) {
-                msg.append("\n").append(issue);
-            }
+        StringBuilder msg = new StringBuilder();
+        msg.append("Imported into ").append(slotKey).append(" in ").append(elapsedMs).append("ms.");
+        String warnings = formatIssues(filterNonInfo(result.getIssues()), 3);
+        if (!warnings.isEmpty()) {
+            msg.append('\n').append(warnings);
         }
         updateStatus(msg.toString());
     }
@@ -156,6 +187,44 @@ public class ImportExportPage extends InteractiveCustomUIPage<ImportExportPage.P
         UICommandBuilder cmd = new UICommandBuilder();
         cmd.set("#StatusLabel.Text", message);
         sendUpdate(cmd);
+    }
+
+    private static List<DecodeIssue> filterNonInfo(List<DecodeIssue> issues) {
+        List<DecodeIssue> out = new ArrayList<>();
+        if (issues == null) return out;
+        for (DecodeIssue issue : issues) {
+            if (issue.getSeverity() != DecodeIssue.Severity.INFO) {
+                out.add(issue);
+            }
+        }
+        return out;
+    }
+
+    private static String formatIssues(List<DecodeIssue> issues, int maxLines) {
+        if (issues == null || issues.isEmpty()) return "";
+        Set<String> seen = new LinkedHashSet<>();
+        for (DecodeIssue issue : issues) {
+            seen.add(truncate(issue.getMessage(), MAX_ISSUE_LINE));
+        }
+        StringBuilder out = new StringBuilder();
+        int rendered = 0;
+        for (String line : seen) {
+            if (rendered >= maxLines) break;
+            if (rendered > 0) out.append('\n');
+            out.append("• ").append(line);
+            rendered++;
+        }
+        int overflow = seen.size() - rendered;
+        if (overflow > 0) {
+            out.append("\n… (").append(overflow).append(" more)");
+        }
+        return out.toString();
+    }
+
+    private static String truncate(String s, int max) {
+        if (s == null) return "";
+        if (s.length() <= max) return s;
+        return s.substring(0, Math.max(0, max - 1)) + "…";
     }
 
     public static class PageEventData {

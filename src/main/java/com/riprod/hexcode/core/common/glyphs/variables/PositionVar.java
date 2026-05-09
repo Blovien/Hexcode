@@ -6,7 +6,10 @@ import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.math.vector.Vector3i;
+import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.common.glyphs.utils.BlockResolution;
 
 public final class PositionVar extends HexVar {
     private Vector3d position;
@@ -50,6 +53,14 @@ public final class PositionVar extends HexVar {
     @Override
     public PositionVar toPosition(ComponentAccessor<EntityStore> accessor) {
         return this;
+    }
+
+    @Override
+    public BlockVar toBlockVar(ComponentAccessor<EntityStore> accessor) {
+        if (position == null) return new BlockVar(null);
+        World world = accessor != null ? accessor.getExternalData().getWorld() : null;
+        Vector3i resolved = BlockResolution.resolveSolidBlock(world, position);
+        return new BlockVar(resolved);
     }
 
     @Override

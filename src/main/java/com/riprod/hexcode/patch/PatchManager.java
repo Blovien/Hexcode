@@ -37,7 +37,7 @@ import java.util.logging.Level;
 
 public final class PatchManager {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
-    private static final String DEFER_TO_PACK_NAME = "Riprod:patch";
+    private static final String DEFER_TO_PACK_NAME = "Riprod:patched";
     private static final String OVERRIDE_PACK_GROUP = "Riprod";
     private static final String OVERRIDE_PACK_NAME = "HexcodePatchOverrides";
     public static final String OVERRIDE_PACK_FULL_NAME = OVERRIDE_PACK_GROUP + ":" + OVERRIDE_PACK_NAME;
