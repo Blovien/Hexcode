@@ -1,6 +1,5 @@
 {
   "CategoryId": "Blocks.Rocks",
-  "HandlerId": "imbuement.standard",
   "Slots": {
     "Default": {
       "Label": "Default Slot",

@@ -14,6 +14,7 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.common.imbuement.component.ImbuedHotbarMarker;
 import com.riprod.hexcode.core.common.triggers.component.FireTriggerEvent;
 import com.riprod.hexcode.core.common.triggers.component.TriggerEvent;
 
@@ -50,6 +51,9 @@ public final class InteractionTriggerSource {
 
         world.execute(() -> {
             Store<EntityStore> store = playerEntityRef.getStore();
+            // fast-path: skip the entire imbuement chain for unimbued players.
+            // archetype-filter equivalent at the packet entry point.
+            if (store.getComponent(playerEntityRef, ImbuedHotbarMarker.getComponentType()) == null) return;
             UUIDComponent uuidComp = store.getComponent(playerEntityRef, UUIDComponent.getComponentType());
             if (uuidComp == null) return;
             InteractionPayload payload = new InteractionPayload(playerEntityRef, type, null, hotbarSlot);
@@ -63,6 +67,9 @@ public final class InteractionTriggerSource {
             case Primary -> TriggerKey.PRIMARY;
             case Secondary -> TriggerKey.SECONDARY;
             case Use -> TriggerKey.USE;
+            case Ability1 -> Ability1Trigger.ID;
+            case Ability2 -> Ability2Trigger.ID;
+            case Ability3 -> Ability3Trigger.ID;
             default -> null;
         };
     }

@@ -1,25 +1,9 @@
 {
   "CategoryId": "Items.Armors",
-  "HandlerId": "imbuement.standard",
   "Slots": {
-    "Crouch": {
-      "Label": "Crouch",
-      "Description": "Execute when crouching",
-      "Style": "Next"
-    },
-    "Jump": {
-      "Label": "Jump",
-      "Description": "Execute when jumping",
-      "Style": "Next"
-    },
     "Attacked": {
       "Label": "Attacked",
-      "Description": "Execute when attacked",
-      "Style": "Next"
-    },
-    "HitGround": {
-      "Label": "Hit Ground",
-      "Description": "Execute when hitting the ground",
+      "Description": "Execute when taking damage from another entity",
       "Style": "Next"
     }
   }

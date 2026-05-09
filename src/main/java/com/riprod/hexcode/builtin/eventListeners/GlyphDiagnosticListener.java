@@ -1,4 +1,4 @@
-package com.riprod.hexcode.builtin.listeners;
+package com.riprod.hexcode.builtin.eventListeners;
 
 import java.util.function.Consumer;
 

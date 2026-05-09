@@ -26,8 +26,8 @@ public class HexSelector {
     public static GlyphComponent findHoveredGlyph(CommandBuffer<EntityStore> accessor, Vector3f playerRotation,
             HexComponent hex) {
 
-        return findHoveredGlyph(accessor, playerRotation, hex, List.of(hex.getHex().getFirstGlyphId()),
-                new Vector3f(0, 0, 0), new ArrayList<>());
+        return findHoveredGlyph(accessor, playerRotation.getPitch(), playerRotation.getYaw(), hex,
+                List.of(hex.getHex().getFirstGlyphId()), 0f, 0f, new ArrayList<>());
     }
 
     public static GlyphComponent findOutputChild(CommandBuffer<EntityStore> accessor, HexComponent hex,
@@ -61,13 +61,12 @@ public class HexSelector {
         return null;
     }
 
-    public static GlyphComponent findHoveredGlyph(CommandBuffer<EntityStore> accessor, Vector3f playerRotation,
-            HexComponent hex, List<String> nextGlyphs, Vector3f parentRotation, List<String> visitedGlyphs) {
+    private static GlyphComponent findHoveredGlyph(CommandBuffer<EntityStore> accessor,
+            float playerPitch, float playerYaw, HexComponent hex, List<String> nextGlyphs,
+            float parentPitch, float parentYaw, List<String> visitedGlyphs) {
 
-        List<Ref<EntityStore>> childGlyphRefs = hex.getChildGlyphRefs(nextGlyphs);
-
-        for (int i = 0; i < childGlyphRefs.size(); i++) {
-            Ref<EntityStore> childRef = childGlyphRefs.get(i);
+        for (int i = 0; i < nextGlyphs.size(); i++) {
+            Ref<EntityStore> childRef = hex.getChildGlyphRef(nextGlyphs.get(i));
             if (childRef == null || !childRef.isValid()) {
                 continue;
             }
@@ -80,17 +79,16 @@ public class HexSelector {
             }
             visitedGlyphs.add(childGlyph.getId());
 
-            float absolutePitch = parentRotation.getPitch() + childGlyph.getPitch();
-            float absoluteYaw = parentRotation.getYaw() + childGlyph.getYaw();
-            Vector3f glyphRotation = new Vector3f(absolutePitch, absoluteYaw, 0);
+            float absolutePitch = parentPitch + childGlyph.getPitch();
+            float absoluteYaw = parentYaw + childGlyph.getYaw();
 
-            float angularDist = GlyphMath.calculateAngularDistance(playerRotation, glyphRotation);
+            float angularDist = GlyphMath.calculateAngularDistance(playerPitch, playerYaw, absolutePitch, absoluteYaw);
             float selectionRadius = GlyphMath.getSelectionRadius(childGlyph.getScale());
 
             if (angularDist <= selectionRadius) {
                 if (childGlyph.getNext() != null && !childGlyph.getNext().isEmpty()) {
-                    GlyphComponent hoveredChild = findHoveredGlyph(accessor, playerRotation, hex,
-                            childGlyph.getNext(), glyphRotation, visitedGlyphs);
+                    GlyphComponent hoveredChild = findHoveredGlyph(accessor, playerPitch, playerYaw, hex,
+                            childGlyph.getNext(), absolutePitch, absoluteYaw, visitedGlyphs);
                     if (hoveredChild != null) {
                         return hoveredChild;
                     }

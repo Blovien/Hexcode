@@ -9,14 +9,16 @@ import com.hypixel.hytale.assetstore.map.DefaultAssetMap;
 import com.hypixel.hytale.assetstore.map.JsonAssetWithMap;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
+import com.hypixel.hytale.codec.codecs.EnumCodec;
 import com.hypixel.hytale.codec.codecs.map.EnumMapCodec;
 import com.hypixel.hytale.codec.codecs.map.MapCodec;
 import com.hypixel.hytale.codec.schema.metadata.ui.UIEditor;
 import com.hypixel.hytale.codec.validation.ValidatorCache;
+import com.hypixel.hytale.protocol.ItemArmorSlot;
 import com.hypixel.hytale.server.core.asset.type.item.config.ItemCategory;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.riprod.hexcode.core.common.glyphs.registry.SlotAsset;
-import com.riprod.hexcode.core.common.imbuement.registry.ImbuementHandlerValidator;
+import com.riprod.hexcode.core.common.imbuement.registry.ImbuementSlotKeyValidator;
 import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
 
 import javax.annotation.Nullable;
@@ -34,7 +36,8 @@ public class ImbuementProfileAsset
     protected AssetExtraInfo.Data data;
     protected String id;
     protected String categoryId = "";
-    protected String handlerId = "imbuement.standard";
+    @Nullable
+    protected ItemArmorSlot armorSlot;
     protected Map<String, SlotAsset> slots = new LinkedHashMap<>();
     @Nullable
     protected String displayModelOverride;
@@ -63,8 +66,9 @@ public class ImbuementProfileAsset
         return categoryId;
     }
 
-    public String getHandlerId() {
-        return handlerId;
+    @Nullable
+    public ItemArmorSlot getArmorSlot() {
+        return armorSlot;
     }
 
     public Map<String, SlotAsset> getSlots() {
@@ -102,17 +106,17 @@ public class ImbuementProfileAsset
                 .metadata(new UIEditor(new UIEditor.Dropdown("ItemCategories")))
                 .addValidatorLate(() -> ItemCategory.VALIDATOR_CACHE.getValidator().late())
                 .add()
-                .append(new KeyedCodec<>("HandlerId", Codec.STRING),
-                        (a, v) -> { if (v != null) a.handlerId = v; },
-                        a -> a.handlerId)
-                .metadata(new UIEditor(new UIEditor.Dropdown("HexcodeImbuementHandlers")))
-                .addValidatorLate(() -> ImbuementHandlerValidator.INSTANCE.late())
+                .append(new KeyedCodec<>("ArmorSlot", new EnumCodec<>(ItemArmorSlot.class)),
+                        (a, v) -> a.armorSlot = v,
+                        a -> a.armorSlot)
+                .documentation("Optional. When set, this profile only matches armor items occupying the given slot (Head/Chest/Hands/Legs).")
                 .add()
                 .append(new KeyedCodec<>("Slots",
                         new MapCodec<>(SlotAsset.CODEC, LinkedHashMap::new, false)),
                         (a, v) -> { if (v != null) a.slots = new LinkedHashMap<>(v); },
                         a -> a.slots)
-                .documentation("Slot key → SlotAsset. Insertion order drives radial layout. SkipSelecting is implied when size==1.")
+                .documentation("Slot key → SlotAsset. Insertion order drives radial layout. SkipSelecting is implied when size==1. Keys must match a registered Trigger id (TriggerRegistry).")
+                .addValidatorLate(() -> ImbuementSlotKeyValidator.INSTANCE.late())
                 .add()
                 .append(new KeyedCodec<>("DisplayModelOverride", Codec.STRING),
                         (a, v) -> a.displayModelOverride = v,

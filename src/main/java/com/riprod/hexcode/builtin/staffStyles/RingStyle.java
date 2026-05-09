@@ -1,4 +1,4 @@
-package com.riprod.hexcode.builtin.styles;
+package com.riprod.hexcode.builtin.staffStyles;
 
 import javax.annotation.Nonnull;
 

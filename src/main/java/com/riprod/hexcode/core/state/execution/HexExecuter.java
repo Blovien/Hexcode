@@ -29,7 +29,6 @@ public class HexExecuter {
     private HexExecuter() {
     }
 
-    /** Entrypoint for all spells and executions */
     public static void cast(CommandBuffer<EntityStore> buffer, CastingEventData castingData) {
 
         ComponentAccessor<ChunkStore> chunkAccessor = buffer.getExternalData().getWorld().getChunkStore()
@@ -37,7 +36,6 @@ public class HexExecuter {
 
         HexContext hexContext = new HexContext(buffer, chunkAccessor, castingData);
 
-        // attempt to consume the mana
         if (!castingData.getHexRoot().tryConsumeMana(castingData.getManaCost(), buffer)) {
             HytaleServer.get().getEventBus().dispatchFor(GlyphFizzleEvent.class)
                     .dispatch(new GlyphFizzleEvent(null, GlyphFizzleEvent.Reason.INSUFFICIENT_MANA, hexContext));

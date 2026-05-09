@@ -1,6 +1,11 @@
 package com.riprod.hexcode;
 
 import com.riprod.hexcode.builtin.BuiltinPlugin;
+import com.riprod.hexcode.builtin.eventListeners.CraftingNotificationListener;
+import com.riprod.hexcode.builtin.eventListeners.FizzleMessageListener;
+import com.riprod.hexcode.builtin.eventListeners.GlyphDiagnosticListener;
+import com.riprod.hexcode.builtin.eventListeners.HexCastDiagnosticListener;
+import com.riprod.hexcode.builtin.eventListeners.HexStateDiagnosticListener;
 import com.riprod.hexcode.builtin.glyphs.scale.components.ScaleStackComponent;
 import com.riprod.hexcode.command.HexcodeCommand;
 import com.riprod.hexcode.core.common.armor.ArmorManaConfig;
@@ -37,7 +42,6 @@ import com.riprod.hexcode.core.common.hover.system.HoverableSpatialSystem;
 import com.riprod.hexcode.core.common.hud.controller.HudController;
 import com.riprod.hexcode.core.common.imbuement.asset.EssenceAsset;
 import com.riprod.hexcode.core.common.imbuement.asset.ImbuementProfileAsset;
-import com.riprod.hexcode.core.common.imbuement.registry.ImbuementHandlerRegistry;
 import com.riprod.hexcode.core.common.obelisk.component.ObeliskBlockComponent;
 import com.riprod.hexcode.core.common.triggers.registry.FireTriggerSystem;
 import com.riprod.hexcode.core.common.triggers.registry.TriggerListenerRegistry;
@@ -109,11 +113,6 @@ import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import com.riprod.hexcode.api.event.CraftingEvent;
 import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.api.event.HexStateChangeEvent;
-import com.riprod.hexcode.builtin.listeners.CraftingNotificationListener;
-import com.riprod.hexcode.builtin.listeners.FizzleMessageListener;
-import com.riprod.hexcode.builtin.listeners.GlyphDiagnosticListener;
-import com.riprod.hexcode.builtin.listeners.HexCastDiagnosticListener;
-import com.riprod.hexcode.builtin.listeners.HexStateDiagnosticListener;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
@@ -507,9 +506,6 @@ public class Hexcode extends JavaPlugin {
                         .setResults(CastingStyleRegistry.keys().toArray(String[]::new)));
         events.register(AssetEditorRequestDataSetEvent.class, "HexcodeNodeHandlers",
                 (Consumer<AssetEditorRequestDataSetEvent>) e -> e.setResults(NodeRouter.keys().toArray(String[]::new)));
-        events.register(AssetEditorRequestDataSetEvent.class, "HexcodeImbuementHandlers",
-                (Consumer<AssetEditorRequestDataSetEvent>) e -> e
-                        .setResults(ImbuementHandlerRegistry.keys().toArray(String[]::new)));
     }
 
     private static void onPlayerConnect(PlayerConnectEvent event) {

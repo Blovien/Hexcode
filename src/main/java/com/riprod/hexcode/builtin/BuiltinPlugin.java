@@ -14,14 +14,28 @@ import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.builtin.glyphs.isHolding.IsHoldingValue;
+import com.riprod.hexcode.builtin.triggers.Ability1Trigger;
+import com.riprod.hexcode.builtin.triggers.Ability2Trigger;
+import com.riprod.hexcode.builtin.triggers.Ability3Trigger;
+import com.riprod.hexcode.builtin.triggers.AttackedTrigger;
+import com.riprod.hexcode.builtin.triggers.BlockTrigger;
 import com.riprod.hexcode.builtin.triggers.InteractionTriggerSource;
+import com.riprod.hexcode.builtin.triggers.OnAttackTrigger;
+import com.riprod.hexcode.builtin.triggers.OnShootTrigger;
+import com.riprod.hexcode.builtin.triggers.PrimaryTrigger;
+import com.riprod.hexcode.builtin.triggers.SecondaryTrigger;
+import com.riprod.hexcode.builtin.triggers.UseTrigger;
 import com.riprod.hexcode.builtin.triggers.cast.CastTriggerSource;
 import com.riprod.hexcode.builtin.triggers.death.DeathTriggerSource;
-import com.riprod.hexcode.builtin.triggers.primary.PrimaryImbuementBinder;
-import com.riprod.hexcode.builtin.triggers.secondary.SecondaryImbuementBinder;
-import com.riprod.hexcode.builtin.triggers.use.UseImbuementBinder;
+import com.riprod.hexcode.builtin.triggers.sources.EntityHitEventSource;
+import com.riprod.hexcode.core.common.imbuement.component.ImbuedArmorMarker;
+import com.riprod.hexcode.core.common.imbuement.component.ImbuedHotbarMarker;
+import com.riprod.hexcode.core.common.imbuement.dispatch.ImbuementTriggerBootstrap;
+import com.riprod.hexcode.core.common.imbuement.system.ImbuementMarkerSystem;
 import com.riprod.hexcode.core.common.triggers.component.TriggerListenerComponent;
+import com.riprod.hexcode.core.common.triggers.registry.ManualTrigger;
 import com.riprod.hexcode.core.common.triggers.registry.TriggerListenerRegistry;
+import com.riprod.hexcode.core.common.triggers.registry.TriggerRegistry;
 import com.riprod.hexcode.core.common.triggers.handler.TriggerConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.add.AddGlyph;
 import com.riprod.hexcode.builtin.glyphs.cos.CosGlyph;
@@ -119,9 +133,9 @@ import com.riprod.hexcode.builtin.obelisks.efficiency.EfficiencyObelisk;
 import com.riprod.hexcode.builtin.obelisks.importexport.ImportExportObelisk;
 import com.riprod.hexcode.builtin.obelisks.importexport.interactions.ImportInteraction;
 import com.riprod.hexcode.builtin.obelisks.seeker.SeekerObelisk;
-import com.riprod.hexcode.builtin.styles.ArcStyle;
-import com.riprod.hexcode.builtin.styles.RingStyle;
-import com.riprod.hexcode.builtin.styles.SphereStyle;
+import com.riprod.hexcode.builtin.staffStyles.ArcStyle;
+import com.riprod.hexcode.builtin.staffStyles.RingStyle;
+import com.riprod.hexcode.builtin.staffStyles.SphereStyle;
 import com.riprod.hexcode.core.common.construct.component.HexEffectsComponent;
 import com.riprod.hexcode.core.common.construct.registry.ConstructRegistry;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphRegistry;
@@ -291,6 +305,15 @@ public class BuiltinPlugin extends JavaPlugin {
         ComponentType<EntityStore, TriggerListenerComponent> triggerListenerType = entityStoreRegistry
                 .registerComponent(TriggerListenerComponent.class, TriggerListenerComponent::new);
         TriggerListenerComponent.setComponentType(triggerListenerType);
+
+        // imbuement archetype-filter markers — transient, no codec.
+        ComponentType<EntityStore, ImbuedHotbarMarker> hotbarMarkerType = entityStoreRegistry
+                .registerComponent(ImbuedHotbarMarker.class, ImbuedHotbarMarker::new);
+        ImbuedHotbarMarker.setComponentType(hotbarMarkerType);
+
+        ComponentType<EntityStore, ImbuedArmorMarker> armorMarkerType = entityStoreRegistry
+                .registerComponent(ImbuedArmorMarker.class, ImbuedArmorMarker::new);
+        ImbuedArmorMarker.setComponentType(armorMarkerType);
     }
 
     private void RegisterSystems() {
@@ -306,10 +329,39 @@ public class BuiltinPlugin extends JavaPlugin {
         // so it self-registers via PacketAdapters.registerInbound
         InteractionTriggerSource.register();
 
-        // trigger bootstraps installed on every per-store registry instance
-        TriggerListenerRegistry.registerBootstrap(PrimaryImbuementBinder::register);
-        TriggerListenerRegistry.registerBootstrap(SecondaryImbuementBinder::register);
-        TriggerListenerRegistry.registerBootstrap(UseImbuementBinder::register);
+        // damage-side imbuement sources. archetype-filtered via marker
+        // components so the framework skips unimbued entities entirely.
+        entityStoreRegistry.registerSystem(new EntityHitEventSource.OnDamageDealtSystem());
+        entityStoreRegistry.registerSystem(new EntityHitEventSource.OnDamageReceivedSystem());
+
+        // marker maintenance — reactive, fires only on InventoryChangeEvent.
+        entityStoreRegistry.registerSystem(new ImbuementMarkerSystem());
+
+        // imbuement triggers — one Trigger per slot key, dispatched via the
+        // map<Source, CastRootDispatcher> in ImbuementTriggerBootstrap.
+        TriggerRegistry.register(new PrimaryTrigger());
+        TriggerRegistry.register(new SecondaryTrigger());
+        TriggerRegistry.register(new UseTrigger());
+        TriggerRegistry.register(new Ability1Trigger());
+        TriggerRegistry.register(new Ability2Trigger());
+        TriggerRegistry.register(new Ability3Trigger());
+        TriggerRegistry.register(new OnAttackTrigger());
+        TriggerRegistry.register(new OnShootTrigger());
+        TriggerRegistry.register(new BlockTrigger());
+        TriggerRegistry.register(new AttackedTrigger());
+
+        // manual triggers — registered so the slot-key validator passes for
+        // book pages and block default. no event source fires these; consumers
+        // (CasterInventory, ImbuedBlockActivator) read the imbuement metadata
+        // map directly.
+        for (int i = 1; i <= 10; i++) {
+            TriggerRegistry.register(new ManualTrigger(Integer.toString(i)));
+        }
+        TriggerRegistry.register(new ManualTrigger("Default"));
+
+        // single bootstrap subscribes every event-driven trigger to its
+        // dispatcher. replaces the per-trigger PrimaryImbuementBinder/etc.
+        TriggerListenerRegistry.registerBootstrap(ImbuementTriggerBootstrap::register);
     }
 
     private void RegisterConstructs() {

@@ -1,47 +1,41 @@
-package com.riprod.hexcode.builtin.triggers.secondary;
+package com.riprod.hexcode.core.common.imbuement.dispatch;
 
 import javax.annotation.Nonnull;
 
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.server.core.inventory.InventoryComponent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.HexCastEvent;
 import com.riprod.hexcode.builtin.triggers.InteractionPayload;
-import com.riprod.hexcode.builtin.triggers.TriggerKey;
+import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.imbuement.component.ImbuementData;
 import com.riprod.hexcode.core.common.imbuement.utils.ImbuementUtils;
 import com.riprod.hexcode.core.common.triggers.component.TriggerEvent;
-import com.riprod.hexcode.core.common.triggers.component.TriggerSubscription;
-import com.riprod.hexcode.core.common.triggers.handler.TriggerCallback;
-import com.riprod.hexcode.core.common.triggers.registry.TriggerListenerRegistry;
+import com.riprod.hexcode.core.common.triggers.registry.Trigger;
 import com.riprod.hexcode.core.state.execution.component.PlayerHexRoot;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 import com.riprod.hexcode.core.state.execution.events.CastingEventData;
 import com.riprod.hexcode.utils.SpellMana;
 
-public final class SecondaryImbuementBinder {
+public final class ItemHeldCastDispatcher implements CastRootDispatcher {
 
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
-    private SecondaryImbuementBinder() {
-    }
-
-    public static void register(@Nonnull TriggerListenerRegistry registry) {
-        registry.subscribe(TriggerSubscription.bootstrap(TriggerKey.SECONDARY, SecondaryImbuementBinder::onFire));
-    }
-
-    private static void onFire(CommandBuffer<EntityStore> buffer, TriggerSubscription sub, TriggerEvent event) {
-        if (!(event.payload() instanceof InteractionPayload ip)) return;
-        Ref<EntityStore> player = ip.player();
+    @Override
+    public void dispatch(@Nonnull Trigger trigger, @Nonnull TriggerEvent event,
+            @Nonnull CommandBuffer<EntityStore> buffer) {
+        Ref<EntityStore> player = event.subjectRef();
         if (player == null || !player.isValid()) return;
 
-        ItemStack heldItem = com.hypixel.hytale.server.core.inventory.InventoryComponent.getItemInHand(buffer, player);
+        ItemStack heldItem = resolveHeldItem(event, buffer, player);
         if (heldItem == null || heldItem.isEmpty()) return;
+        if (ImbuementUtils.readAll(heldItem).isEmpty()) return;
 
-        ImbuementData data = ImbuementUtils.read(heldItem, TriggerKey.SECONDARY);
+        ImbuementData data = ImbuementUtils.read(heldItem, trigger.getId());
         if (data == null) return;
         Hex hex = ImbuementUtils.resolveHex(data);
         if (hex == null) return;
@@ -52,13 +46,24 @@ public final class SecondaryImbuementBinder {
         float resolvedPower = hexRoot.resolveSpellPower(buffer);
         VolatilityTracker tracker = new VolatilityTracker(volatilityMax, 1.0f, resolvedPower);
 
-        CastingEventData castData = new CastingEventData(hex, player, baseMana, hexRoot, data.getColors(), tracker);
-        castData.setCastSlotKey(TriggerKey.SECONDARY);
+        HexVar defaultVar = trigger.resolveDefaultVariable(event);
+        CastingEventData castData = new CastingEventData(
+                hex, player, baseMana, hexRoot, data.getColors(), tracker);
+        if (defaultVar != null) castData.setDefaultVariable(defaultVar);
+        castData.setCastSlotKey(trigger.getId());
 
         try {
             buffer.invoke(new HexCastEvent(player, castData));
         } catch (Exception e) {
-            LOGGER.atSevere().log("Secondary imbuement dispatch failed: %s", e.getMessage());
+            LOGGER.atSevere().log("%s imbuement dispatch failed: %s", trigger.getId(), e.getMessage());
         }
+    }
+
+    private static ItemStack resolveHeldItem(TriggerEvent event,
+            CommandBuffer<EntityStore> buffer, Ref<EntityStore> player) {
+        if (event.payload() instanceof InteractionPayload ip && ip.itemInHand() != null) {
+            return ip.itemInHand();
+        }
+        return InventoryComponent.getItemInHand(buffer, player);
     }
 }

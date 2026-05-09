@@ -1,4 +1,4 @@
-package com.riprod.hexcode.builtin.listeners;
+package com.riprod.hexcode.builtin.eventListeners;
 
 import javax.annotation.Nonnull;
 

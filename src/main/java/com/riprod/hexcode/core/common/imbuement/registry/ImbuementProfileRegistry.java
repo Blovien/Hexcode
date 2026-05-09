@@ -1,5 +1,8 @@
 package com.riprod.hexcode.core.common.imbuement.registry;
 
+import com.hypixel.hytale.protocol.ItemArmorSlot;
+import com.hypixel.hytale.server.core.asset.type.item.config.Item;
+import com.hypixel.hytale.server.core.asset.type.item.config.ItemArmor;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.riprod.hexcode.core.common.imbuement.asset.ImbuementProfileAsset;
 
@@ -12,18 +15,35 @@ public final class ImbuementProfileRegistry {
 
     @Nullable
     public static ImbuementProfileAsset byCategory(String categoryId) {
+        return byCategoryAndArmorSlot(categoryId, null);
+    }
+
+    @Nullable
+    public static ImbuementProfileAsset byCategoryAndArmorSlot(String categoryId, @Nullable ItemArmorSlot armorSlot) {
         if (categoryId == null) return null;
+        ImbuementProfileAsset fallback = null;
         for (ImbuementProfileAsset profile : ImbuementProfileAsset.getAssetMap().getAssetMap().values()) {
-            if (categoryId.equals(profile.getCategoryId())) return profile;
+            if (!categoryId.equals(profile.getCategoryId())) continue;
+            ItemArmorSlot profileSlot = profile.getArmorSlot();
+            if (profileSlot == null) {
+                if (fallback == null) fallback = profile;
+                continue;
+            }
+            if (armorSlot != null && profileSlot == armorSlot) return profile;
         }
-        return null;
+        return fallback;
     }
 
     @Nullable
     public static ImbuementProfileAsset first(@Nullable String[] categories) {
+        return first(categories, null);
+    }
+
+    @Nullable
+    public static ImbuementProfileAsset first(@Nullable String[] categories, @Nullable ItemArmorSlot armorSlot) {
         if (categories == null) return null;
         for (String category : categories) {
-            ImbuementProfileAsset profile = byCategory(category);
+            ImbuementProfileAsset profile = byCategoryAndArmorSlot(category, armorSlot);
             if (profile != null) return profile;
         }
         return null;
@@ -32,6 +52,10 @@ public final class ImbuementProfileRegistry {
     @Nullable
     public static ImbuementProfileAsset first(@Nullable ItemStack item) {
         if (item == null || item.isEmpty() || item.getItem() == null) return null;
-        return first(item.getItem().getCategories());
+        Item def = item.getItem();
+        ItemArmorSlot armorSlot = null;
+        ItemArmor armor = def.getArmor();
+        if (armor != null) armorSlot = armor.getArmorSlot();
+        return first(def.getCategories(), armorSlot);
     }
 }

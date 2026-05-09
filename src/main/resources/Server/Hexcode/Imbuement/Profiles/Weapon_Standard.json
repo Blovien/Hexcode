@@ -1,15 +1,9 @@
 {
   "CategoryId": "Items.Weapons",
-  "HandlerId": "imbuement.standard",
   "Slots": {
-    "OnAttack": {
-      "Label": "On Hit",
-      "Description": "The default slot of the block",
-      "Style": "Next"
-    },
-    "Block": {
-      "Label": "On Block",
-      "Description": "Execute when blocking",
+    "Primary": {
+      "Label": "Primary",
+      "Description": "Execute when hitting Primary",
       "Style": "Next"
     },
     "Secondary": {
@@ -17,9 +11,39 @@
       "Description": "Execute when hitting Secondary",
       "Style": "Next"
     },
-    "Primary": {
-      "Label": "Primary",
-      "Description": "Execute when hitting Primary",
+    "Use": {
+      "Label": "Use",
+      "Description": "Execute when using the item",
+      "Style": "Next"
+    },
+    "Ability1": {
+      "Label": "Ability 1",
+      "Description": "Execute on the Ability 1 keybind (Q)",
+      "Style": "Next"
+    },
+    "Ability2": {
+      "Label": "Ability 2",
+      "Description": "Execute on the Ability 2 keybind (E)",
+      "Style": "Next"
+    },
+    "Ability3": {
+      "Label": "Ability 3",
+      "Description": "Execute on the Ability 3 keybind (R)",
+      "Style": "Next"
+    },
+    "OnAttack": {
+      "Label": "On Hit",
+      "Description": "Execute when a melee attack lands; defaults to the entity hit",
+      "Style": "Next"
+    },
+    "OnShoot": {
+      "Label": "On Shoot",
+      "Description": "Execute when a projectile fired by this weapon hits an entity",
+      "Style": "Next"
+    },
+    "Block": {
+      "Label": "On Block",
+      "Description": "Execute when blocking incoming damage with this weapon",
       "Style": "Next"
     }
   }

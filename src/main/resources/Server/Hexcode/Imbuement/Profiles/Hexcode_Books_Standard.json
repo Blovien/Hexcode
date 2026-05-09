@@ -1,6 +1,5 @@
 {
   "CategoryId": "Hexcode.Books",
-  "HandlerId": "imbuement.standard",
   "Slots": {
     "1":  { "Label": "Page 1",  "Description": "Hex stored in book page 1",  "Style": "Next" },
     "2":  { "Label": "Page 2",  "Description": "Hex stored in book page 2",  "Style": "Next" },
