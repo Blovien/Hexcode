@@ -1,0 +1,12 @@
+{
+  "Armor": {
+    "StatModifiers": {
+      "Mana": [
+        {
+          "Amount": 2,
+          "CalculationType": "Additive"
+        }
+      ]
+    }
+  }
+}
