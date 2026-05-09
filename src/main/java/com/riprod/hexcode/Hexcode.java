@@ -8,10 +8,6 @@ import com.riprod.hexcode.builtin.eventListeners.HexCastDiagnosticListener;
 import com.riprod.hexcode.builtin.eventListeners.HexStateDiagnosticListener;
 import com.riprod.hexcode.builtin.glyphs.scale.components.ScaleStackComponent;
 import com.riprod.hexcode.command.HexcodeCommand;
-import com.riprod.hexcode.core.common.armor.ArmorManaConfig;
-import com.riprod.hexcode.core.common.armor.ArmorManaPatcher;
-import com.riprod.hexcode.core.common.armor.ArmorVolatilityConfig;
-import com.riprod.hexcode.core.common.armor.ArmorVolatilityPatcher;
 import com.riprod.hexcode.core.common.block.component.UnbreakableBlockComponent;
 import com.riprod.hexcode.core.common.block.event.BlockBreakEvent;
 import com.riprod.hexcode.core.common.construct.system.HexConstructSystem;
@@ -91,6 +87,12 @@ import java.util.function.Consumer;
 import com.hypixel.hytale.assetstore.AssetRegistry;
 import com.hypixel.hytale.assetstore.event.LoadedAssetsEvent;
 import com.hypixel.hytale.assetstore.map.DefaultAssetMap;
+import com.hypixel.hytale.common.plugin.PluginIdentifier;
+import com.hypixel.hytale.event.EventPriority;
+import com.hypixel.hytale.server.core.asset.AssetPackRegisterEvent;
+import com.hypixel.hytale.server.core.asset.AssetPackUnregisterEvent;
+import com.hypixel.hytale.server.core.asset.LoadAssetEvent;
+import com.riprod.hexcode.patch.PatchManager;
 import com.hypixel.hytale.builtin.asseteditor.AssetEditorPlugin;
 import com.hypixel.hytale.builtin.asseteditor.event.AssetEditorRequestDataSetEvent;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
@@ -124,6 +126,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 public class Hexcode extends JavaPlugin {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     private BuiltinPlugin builtinPlugin;
+    private final PatchManager patchManager;
 
     public Hexcode(JavaPluginInit init) {
         super(init);
@@ -131,6 +134,13 @@ public class Hexcode extends JavaPlugin {
                 this.getManifest().getVersion().toString());
 
         builtinPlugin = new BuiltinPlugin(init);
+        patchManager = new PatchManager(new PluginIdentifier(this.getManifest()).toString());
+    }
+
+    @Override
+    public java.util.concurrent.CompletableFuture<Void> preLoad() {
+        patchManager.preLoad();
+        return super.preLoad();
     }
 
     @Override
@@ -225,24 +235,6 @@ public class Hexcode extends JavaPlugin {
                         .setPath("Hexcode/SavedHexes")
                         .setCodec(SavedHexAsset.CODEC)
                         .setKeyFunction(SavedHexAsset::getId)
-                        .build());
-        AssetRegistry.register(
-                HytaleAssetStore
-                        .builder(ArmorManaConfig.class,
-                                new DefaultAssetMap<String, ArmorManaConfig>())
-                        .setPath(ArmorManaConfig.ASSET_PATH)
-                        .setCodec(ArmorManaConfig.CODEC)
-                        .setKeyFunction(ArmorManaConfig::getId)
-                        .loadsBefore(Item.class)
-                        .build());
-        AssetRegistry.register(
-                HytaleAssetStore
-                        .builder(ArmorVolatilityConfig.class,
-                                new DefaultAssetMap<String, ArmorVolatilityConfig>())
-                        .setPath(ArmorVolatilityConfig.ASSET_PATH)
-                        .setCodec(ArmorVolatilityConfig.CODEC)
-                        .setKeyFunction(ArmorVolatilityConfig::getId)
-                        .loadsBefore(Item.class)
                         .build());
         AssetRegistry.register(
                 HytaleAssetStore
@@ -461,10 +453,20 @@ public class Hexcode extends JavaPlugin {
         this.getEventRegistry().registerGlobal(GlyphFizzleEvent.class, new GlyphDiagnosticListener());
         this.getEventRegistry().registerGlobal(HexStateChangeEvent.class, new HexStateDiagnosticListener());
         this.getEventRegistry().registerGlobal(CraftingEvent.class, new CraftingNotificationListener());
-        this.getEventRegistry().register(LoadedAssetsEvent.class, Item.class,
-                ArmorManaPatcher::onItemsLoaded);
-        this.getEventRegistry().register(LoadedAssetsEvent.class, Item.class,
-                ArmorVolatilityPatcher::onItemsLoaded);
+        this.getEventRegistry().register(EventPriority.LAST, LoadAssetEvent.class,
+                e -> patchManager.rebuildAndApply("boot:LoadAssetEvent"));
+        this.getEventRegistry().register(AssetPackRegisterEvent.class, e -> {
+            String name = e.getAssetPack().getName();
+            if (PatchManager.OVERRIDE_PACK_FULL_NAME.equals(name)) return;
+            if (PatchManager.HYTALOR_OVERRIDES_PACK.equals(name)) return;
+            patchManager.rebuildAndApply("packRegister:" + name);
+        });
+        this.getEventRegistry().register(AssetPackUnregisterEvent.class, e -> {
+            String name = e.getAssetPack().getName();
+            if (PatchManager.OVERRIDE_PACK_FULL_NAME.equals(name)) return;
+            if (PatchManager.HYTALOR_OVERRIDES_PACK.equals(name)) return;
+            patchManager.rebuildAndApply("packUnregister:" + name);
+        });
     }
 
     private void registerCommands() {
@@ -481,6 +483,11 @@ public class Hexcode extends JavaPlugin {
         EntityStore.REGISTRY.registerSystem(new MountOrphanReaperSystem());
         EntityStore.REGISTRY.registerSystem(new HexConstructSystem());
         RegisterAssetEditorDataSets();
+    }
+
+    @Override
+    protected void shutdown() {
+        patchManager.shutdown();
     }
 
     private void RegisterAssetEditorDataSets() {
