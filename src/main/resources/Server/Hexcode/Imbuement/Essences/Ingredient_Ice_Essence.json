@@ -1,10 +1,7 @@
 {
-  "Element": "ice",
-  "Defaults": {
-    "Style": {
-      "PrimaryColor": "#e6d9d9",
-      "SecondaryColor": "#464343",
-      "Alpha": 1
-    }
+  "Colors": {
+    "PrimaryColor": "#e6d9d9",
+    "SecondaryColor": "#464343",
+    "Alpha": 1.0
   }
 }

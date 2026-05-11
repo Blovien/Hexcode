@@ -256,14 +256,15 @@ public class HexContext {
         this.style = style;
     }
 
-    // compat abstraction over style.{primaryColor, secondaryColor, alpha}
-    @Nullable
+    // compat abstraction over style.{primaryColor, secondaryColor, alpha}.
+    // never null — synthesizes a default-alpha (1.0) HexColors when style is absent.
     public HexColors getColors() {
-        if (style == null) return null;
         HexColors c = new HexColors();
-        if (style.getPrimaryColor() != null) c.setPrimaryColor(style.getPrimaryColor().clone());
-        if (style.getSecondaryColor() != null) c.setSecondaryColor(style.getSecondaryColor().clone());
-        c.setPrimaryAlpha(style.getAlphaOrDefault());
+        if (style != null) {
+            if (style.getPrimaryColor() != null) c.setPrimaryColor(style.getPrimaryColor().clone());
+            if (style.getSecondaryColor() != null) c.setSecondaryColor(style.getSecondaryColor().clone());
+            c.setPrimaryAlpha(style.getAlphaOrDefault());
+        }
         return c;
     }
 

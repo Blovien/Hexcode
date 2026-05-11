@@ -14,6 +14,7 @@ import com.riprod.hexcode.core.common.glyphs.component.Slot;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphRegistry;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
+import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 
@@ -42,6 +43,7 @@ public class HexExecuter {
         ComponentAccessor<ChunkStore> chunkAccessor = buffer.getExternalData().getWorld().getChunkStore().getStore();
         context.UpdateAccessor(buffer);
         context.UpdateChunkAccessor(chunkAccessor);
+        if (context.getStyle() == null) context.setStyle(HexStyleAsset.empty());
         buffer.invoke(new HexCastEvent(context));
     }
 

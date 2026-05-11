@@ -1,6 +1,3 @@
 {
-  "Element": "lightning",
-  "Defaults": {
-    "Style": "Essence_Lightning"
-  }
+  "Colors": "Essence_Lightning"
 }

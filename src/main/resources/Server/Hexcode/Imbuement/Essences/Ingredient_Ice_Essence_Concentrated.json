@@ -1,7 +1,4 @@
 {
-  "Element": "ice",
-  "Defaults": {
-    "VolatilityTracker": { "VolatilityMultiplier": 2.0 },
-    "Style": "Essence_Ice"
-  }
+  "VolatilityMultiplier": 2.0,
+  "Colors": "Essence_Ice"
 }

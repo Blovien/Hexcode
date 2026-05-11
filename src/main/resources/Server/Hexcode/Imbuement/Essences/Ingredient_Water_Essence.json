@@ -1,6 +1,3 @@
 {
-  "Element": "water",
-  "Defaults": {
-    "Style": "Essence_Water"
-  }
+  "Colors": "Essence_Water"
 }

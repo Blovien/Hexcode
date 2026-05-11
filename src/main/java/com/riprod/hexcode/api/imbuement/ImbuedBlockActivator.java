@@ -3,14 +3,18 @@ package com.riprod.hexcode.api.imbuement;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
+import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.riprod.hexcode.api.event.HexCastEvent;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
+import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
 import com.riprod.hexcode.core.common.imbuement.ImbuementMetadata;
 import com.riprod.hexcode.core.common.imbuement.asset.EssenceAsset;
+import com.riprod.hexcode.core.common.imbuement.asset.ImbuementProfileAsset;
+import com.riprod.hexcode.core.common.imbuement.registry.ImbuementProfileRegistry;
 import com.riprod.hexcode.core.common.imbuement.block.BlockImbuementCapacity;
 import com.riprod.hexcode.core.common.imbuement.block.EssenceRefill;
 import com.riprod.hexcode.core.common.imbuement.component.ImbuedBlockComponent;
@@ -49,10 +53,10 @@ public final class ImbuedBlockActivator {
      * packet adapter, etc.). Callers on the EntityStore tick incur a 1-tick latency vs an
      * inline dispatch — acceptable for block hex effects.
      *
-     * <p>Cast configuration follows the essence-overlay model: the essence asset (if used to
-     * refill the slot) supplies defaults via {@code applyNonDefaultsFrom(essence.getDefaults())},
-     * then the imbuement's own per-block overrides win via
-     * {@code applyNonDefaultsFrom(base.getOverrides())}.
+     * <p>Cast configuration chains lowest-priority-first: the resolved {@link ImbuementProfileAsset}
+     * for this block's category supplies baseline {@code Defaults}; the consumed {@link EssenceAsset}
+     * (refill branch only) overlays its {@code VolatilityMultiplier} and {@code Colors}; the
+     * imbuement's own per-block {@code Overrides} have final say.
      *
      * <p>If the world is shutting down at the moment of dispatch, the queued task is rejected;
      * the slot is already consumed but the cast is logged and dropped (matches the
@@ -71,7 +75,9 @@ public final class ImbuedBlockActivator {
         ImbuementData base = comp.read(ImbuementMetadata.DEFAULT_SLOT);
         if (base == null) return ActivationOutcome.noHex();
 
-        BlockImbuementCapacity.Capacity capacity = capacityAt(world, blockPos);
+        int blockId = world.getBlock(blockPos.x, blockPos.y, blockPos.z);
+        BlockType blockType = blockId == 0 ? null : BlockType.getAssetMap().getAsset(blockId);
+        BlockImbuementCapacity.Capacity capacity = BlockImbuementCapacity.tryFor(blockType);
         if (capacity == null) return ActivationOutcome.noHex();
 
         EssenceAsset essence = null;
@@ -97,8 +103,12 @@ public final class ImbuedBlockActivator {
         BlockHexRoot hexRoot = new BlockHexRoot(blockPos, capacity);
         VolatilityTracker tracker = new VolatilityTracker(hexRoot.resolveVolatility(), 1.0f, 1.0f);
         HexContext context = new HexContext(hex, 0f, hexRoot, null, tracker);
-        if (essence != null) context.applyNonDefaultsFrom(essence.getDefaults());
+
+        ImbuementProfileAsset profile = resolveProfile(blockType);
+        if (profile != null) context.applyNonDefaultsFrom(profile.getDefaults());
+        if (essence != null) applyEssence(context, essence);
         context.applyNonDefaultsFrom(base.getOverrides());
+        if (context.getStyle() == null) context.setStyle(HexStyleAsset.empty());
         context.setDefaultVariable(new BlockVar(blockPos));
 
         try {
@@ -128,12 +138,30 @@ public final class ImbuedBlockActivator {
     }
 
     @Nullable
-    private static BlockImbuementCapacity.Capacity capacityAt(
-            @Nonnull World world, @Nonnull Vector3i pos) {
-        int blockId = world.getBlock(pos.x, pos.y, pos.z);
-        if (blockId == 0) return null;
-        BlockType type = BlockType.getAssetMap().getAsset(blockId);
-        return BlockImbuementCapacity.tryFor(type);
+    private static ImbuementProfileAsset resolveProfile(@Nullable BlockType blockType) {
+        if (blockType == null) return null;
+        Item item = blockType.getItem();
+        if (item == null) return null;
+        return ImbuementProfileRegistry.first(item.getCategories());
+    }
+
+    private static void applyEssence(@Nonnull HexContext ctx, @Nonnull EssenceAsset essence) {
+        float vm = essence.getVolatilityMultiplier();
+        VolatilityTracker tracker = ctx.getVolatilityTracker();
+        if (vm != 1.0f && tracker != null) {
+            tracker.setVolatilityMultiplier(tracker.getVolatilityMultiplier() * vm);
+        }
+        HexStyleAsset overlay = essence.getColors();
+        if (overlay != null) {
+            HexStyleAsset target = ctx.getStyle();
+            if (target == null) {
+                target = HexStyleAsset.empty();
+                ctx.setStyle(target);
+            }
+            if (overlay.getPrimaryColor() != null) target.setPrimaryColor(overlay.getPrimaryColor().clone());
+            if (overlay.getSecondaryColor() != null) target.setSecondaryColor(overlay.getSecondaryColor().clone());
+            target.setAlpha(overlay.getAlphaOrDefault());
+        }
     }
 
     public static final class ActivationOutcome {

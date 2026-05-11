@@ -1,6 +1,3 @@
 {
-  "Element": "fire",
-  "Defaults": {
-    "Style": "Essence_Fire"
-  }
+  "Colors": "Essence_Fire"
 }

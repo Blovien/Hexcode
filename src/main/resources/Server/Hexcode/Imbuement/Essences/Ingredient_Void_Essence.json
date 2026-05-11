@@ -1,6 +1,3 @@
 {
-  "Element": "void",
-  "Defaults": {
-    "Style": "Essence_Void"
-  }
+  "Colors": "Essence_Void"
 }

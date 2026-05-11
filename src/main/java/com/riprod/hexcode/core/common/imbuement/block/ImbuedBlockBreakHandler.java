@@ -15,9 +15,8 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.math.vector.Vector3i;
-import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockBreakingDropType;
-import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockGathering;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
+import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.event.events.ecs.BreakBlockEvent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.block.BlockModule;
@@ -39,7 +38,6 @@ public class ImbuedBlockBreakHandler extends EntityEventSystem<EntityStore, Brea
     public void handle(int index, @Nonnull ArchetypeChunk<EntityStore> chunk,
             @Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> buffer,
             @Nonnull BreakBlockEvent event) {
-
         try {
             Vector3i pos = event.getTargetBlock();
             World world = buffer.getExternalData().getWorld();
@@ -51,16 +49,18 @@ public class ImbuedBlockBreakHandler extends EntityEventSystem<EntityStore, Brea
 
             BlockType blockType = event.getBlockType();
             String dropItemId = resolveDropItemId(blockType);
-            if (dropItemId == null) return;
+            if (dropItemId == null) {
+                LOGGER.atWarning().log("imbued-break: no drop item id for blockType=%s; letting engine handle (drop will be bare)",
+                        blockType.getId());
+                return;
+            }
 
             event.setCancelled(true);
 
             ItemStack drop = ImbuementUtils.writeAll(new ItemStack(dropItemId), comp.getSlots());
             Vector3d dropPos = new Vector3d(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5);
 
-            world.execute(() -> {
-                world.breakBlock(pos.x, pos.y, pos.z, 0);
-            });
+            world.execute(() -> world.breakBlock(pos.x, pos.y, pos.z, 0));
 
             Holder<EntityStore> dropHolder = ItemComponent.generateItemDrop(
                     buffer, drop, dropPos, Vector3f.ZERO, 0f, 0f, 0f);
@@ -73,13 +73,16 @@ public class ImbuedBlockBreakHandler extends EntityEventSystem<EntityStore, Brea
 
     @Nullable
     private static String resolveDropItemId(@Nonnull BlockType blockType) {
-        BlockGathering gathering = blockType.getGathering();
-        if (gathering == null) return null;
-        BlockBreakingDropType breaking = gathering.getBreaking();
-        if (breaking == null) return null;
-        String itemId = breaking.getItemId();
-        if (itemId == null || itemId.isEmpty()) return null;
-        return itemId;
+        if (blockType.getGathering() != null && blockType.getGathering().getBreaking() != null) {
+            String id = blockType.getGathering().getBreaking().getItemId();
+            if (id != null && !id.isEmpty()) return id;
+        }
+        Item item = blockType.getItem();
+        if (item != null) {
+            String id = item.getId();
+            if (id != null && !id.isEmpty()) return id;
+        }
+        return null;
     }
 
     @Nullable

@@ -1,6 +1,3 @@
 {
-  "Element": "life",
-  "Defaults": {
-    "Style": "Essence_Life"
-  }
+  "Colors": "Essence_Life"
 }

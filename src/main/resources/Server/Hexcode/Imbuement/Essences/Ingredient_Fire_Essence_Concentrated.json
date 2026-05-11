@@ -1,8 +1,4 @@
 {
-  "Element": "fire",
-  "Defaults": {
-    "VolatilityTracker": {
-      "VolatilityMultiplier": 2.0
-    }
-  }
+  "VolatilityMultiplier": 2.0,
+  "Colors": "Essence_Fire"
 }

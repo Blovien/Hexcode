@@ -39,11 +39,8 @@ public class OutputGlyph implements GlyphHandler {
         if (newColor == null) return;
 
         HexColors colors = hexContext.getColors();
-        if (colors == null) {
-            colors = new HexColors();
-            hexContext.setColors(colors);
-        }
         colors.setPrimaryColor(newColor);
+        hexContext.setColors(colors);
     }
 
     private Color resolveAsColor(HexVar input) {
