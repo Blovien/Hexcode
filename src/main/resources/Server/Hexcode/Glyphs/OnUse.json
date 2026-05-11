@@ -1,0 +1,37 @@
+{
+  "Parent": "Glyph_Template",
+  "Style": {
+    "Parent": "Delay_Earth",
+    "PrimaryModel": "OnUse"
+  },
+  "Title": "On Use",
+  "Description": "Pauses execution. Resumes when the caster uses an item (e.g. consumes food, activates).",
+  "ModelPath": "OnUse",
+  "BasePower": 1.0,
+  "ManaConsumption": 0,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Line",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Triangle",
+      "Size": 1.0
+    }
+  ],
+  "Slots": {
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "Glyphs to run when the trigger fires"
+    }
+  },
+  "Volatility": {
+    "InstantCost": 0.5,
+    "DrainPerSecond": 0.05,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 5.0
+    }
+  }
+}
