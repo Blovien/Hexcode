@@ -6,6 +6,7 @@ import com.riprod.hexcode.builtin.eventListeners.FizzleMessageListener;
 import com.riprod.hexcode.builtin.eventListeners.GlyphDiagnosticListener;
 import com.riprod.hexcode.builtin.eventListeners.HexCastDiagnosticListener;
 import com.riprod.hexcode.builtin.eventListeners.HexStateDiagnosticListener;
+import com.riprod.hexcode.builtin.glyphs.levitate.LevitateStackComponent;
 import com.riprod.hexcode.builtin.glyphs.scale.components.ScaleStackComponent;
 import com.riprod.hexcode.command.HexcodeCommand;
 import com.riprod.hexcode.core.common.block.component.UnbreakableBlockComponent;
@@ -338,6 +339,11 @@ public class Hexcode extends JavaPlugin {
                 .registerComponent(ScaleStackComponent.class, "ScaleStack",
                         ScaleStackComponent.CODEC);
         ScaleStackComponent.setComponentType(scaleStackComponentType);
+
+        ComponentType<EntityStore, LevitateStackComponent> levitateStackComponentType = entityStoreRegistry
+                .registerComponent(LevitateStackComponent.class, "LevitateStack",
+                        LevitateStackComponent.CODEC);
+        LevitateStackComponent.setComponentType(levitateStackComponentType);
 
         entityStoreRegistry.registerSystem(new HexTick());
         entityStoreRegistry.registerSystem(new PedestalBlockEvent());

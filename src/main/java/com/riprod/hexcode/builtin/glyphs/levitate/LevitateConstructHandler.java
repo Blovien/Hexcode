@@ -8,7 +8,6 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
 import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
-import com.hypixel.hytale.server.core.modules.physics.component.PhysicsValues;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.builtin.glyphs.levitate.style.LevitateStyle;
 import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
@@ -83,24 +82,36 @@ public class LevitateConstructHandler implements ConstructHandler<LevitateState>
     }
 
     private void cleanup(HexStatus<LevitateState> status, ConstructTickContext ctx) {
-        LevitateState state = status.getState();
-        CommandBuffer<EntityStore> buffer = ctx.getBuffer();
-        Ref<EntityStore> target = ctx.getEntityRef();
-        if (target == null || !target.isValid())
-            return;
+        try {
+            LevitateState state = status.getState();
+            if (state == null) return;
 
-        if (state != null && state.getOriginalPhysicsValues() != null) {
-            buffer.putComponent(target, PhysicsValues.getComponentType(),
-                    new PhysicsValues(state.getOriginalPhysicsValues()));
-        }
+            CommandBuffer<EntityStore> buffer = ctx.getBuffer();
+            Ref<EntityStore> target = ctx.getEntityRef();
+            if (target == null || !target.isValid()) return;
 
-        EffectControllerComponent controller = buffer.getComponent(
-                target, EffectControllerComponent.getComponentType());
-        if (controller != null) {
-            int effectIndex = EntityEffect.getAssetMap().getIndex(LEVITATE_EFFECT_ID);
-            if (effectIndex != Integer.MIN_VALUE) {
-                controller.removeEffect(target, effectIndex, buffer);
+            LevitateStackComponent stack = buffer.getComponent(
+                    target, LevitateStackComponent.getComponentType());
+            if (stack != null) {
+                stack.remove(state.getConstructId());
+                if (stack.isEmpty()) {
+                    LevitateGlyph.clearLevitation(target, buffer);
+                    buffer.removeComponent(target, LevitateStackComponent.getComponentType());
+                } else {
+                    buffer.putComponent(target, LevitateStackComponent.getComponentType(), stack);
+                }
             }
+
+            EffectControllerComponent controller = buffer.getComponent(
+                    target, EffectControllerComponent.getComponentType());
+            if (controller != null) {
+                int effectIndex = EntityEffect.getAssetMap().getIndex(LEVITATE_EFFECT_ID);
+                if (effectIndex != Integer.MIN_VALUE) {
+                    controller.removeEffect(target, effectIndex, buffer);
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.atSevere().log("levitate cleanup failed: %s", e.getMessage());
         }
     }
 }

@@ -9,9 +9,9 @@ import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffec
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.OverlapBehavior;
 import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
 import com.hypixel.hytale.server.core.entity.EntityUtils;
-import com.hypixel.hytale.server.core.entity.knockback.KnockbackComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.physics.component.PhysicsValues;
+import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
 import com.hypixel.hytale.server.core.modules.projectile.config.StandardPhysicsProvider;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.GlyphFizzleEvent;
@@ -67,11 +67,11 @@ public static final String ID = "Halt";
                     physics.setState(StandardPhysicsProvider.STATE.INACTIVE);
                 }
             } else {
-                KnockbackComponent kb = new KnockbackComponent();
-                kb.setVelocity(new Vector3d(0, 0, 0));
-                kb.setVelocityType(ChangeVelocityType.Set);
-                kb.setDuration((float) duration);
-                accessor.putComponent(ref, KnockbackComponent.getComponentType(), kb);
+                Velocity vel = accessor.getComponent(ref, Velocity.getComponentType());
+                if (vel != null) {
+                    vel.getInstructions().clear();
+                    vel.addInstruction(Vector3d.ZERO, null, ChangeVelocityType.Set);
+                }
 
                 if (duration > 0) {
                     PhysicsValues original = EntityUtils.getPhysicsValues(ref, accessor);

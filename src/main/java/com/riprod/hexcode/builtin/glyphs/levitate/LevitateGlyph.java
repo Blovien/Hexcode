@@ -6,26 +6,20 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.OverlapBehavior;
 import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.protocol.ChangeVelocityType;
-import com.hypixel.hytale.server.core.entity.EntityUtils;
+import com.hypixel.hytale.server.core.entity.entities.player.movement.MovementManager;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.physics.component.PhysicsValues;
-import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.builtin.glyphs.levitate.style.LevitateStyle;
-import com.riprod.hexcode.core.common.construct.state.ConstructStateUtil;
 import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
-import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
-import com.riprod.hexcode.utils.HexDirectionUtil;
 import com.riprod.hexcode.utils.HexVarUtil;
 
 public class LevitateGlyph implements GlyphHandler {
@@ -39,9 +33,8 @@ public class LevitateGlyph implements GlyphHandler {
     public static final String ID = "Levitate";
 
     private static final String LEVITATE_EFFECT_ID = "Hexcode_Levitate";
-    private static final double DEFAULT_INTENSITY = 0.0;
+    private static final double DEFAULT_INTENSITY = 1.0;
     private static final double DEFAULT_DURATION = 10.0;
-    private static final double WEIGHTLESS_DRAG = 50.0;
 
     @Override
     public void execute(Glyph glyph, HexContext hexContext) {
@@ -52,20 +45,7 @@ public class LevitateGlyph implements GlyphHandler {
             return;
         }
 
-        double intensity = Math.max(0,
-                HexVarUtil.numberOrDefault(
-                        glyph.readSlot(LevitateGlyphSlots.INTENSITY, hexContext), DEFAULT_INTENSITY));
-        double duration = Math.max(1,
-                HexVarUtil.numberOrDefault(
-                        glyph.readSlot(LevitateGlyphSlots.DURATION, hexContext), DEFAULT_DURATION));
-        float durationSeconds = (float) duration;
-
         CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
-        applyToEntity(entityVar, (float) intensity, durationSeconds, glyph, hexContext, accessor);
-    }
-
-    private void applyToEntity(EntityVar entityVar, float intensity, float durationSeconds,
-            Glyph glyph, HexContext hexContext, CommandBuffer<EntityStore> accessor) {
         Ref<EntityStore> ref = entityVar.getRef(accessor);
         if (ref == null || !ref.isValid()) {
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
@@ -73,53 +53,86 @@ public class LevitateGlyph implements GlyphHandler {
             return;
         }
 
-        PhysicsValues currentPhysics = accessor.getComponent(ref, PhysicsValues.getComponentType());
+        float intensity = (float) Math.max(0,
+                HexVarUtil.numberOrDefault(
+                        glyph.readSlot(LevitateGlyphSlots.INTENSITY, hexContext), DEFAULT_INTENSITY));
+        float durationSeconds = (float) Math.max(1,
+                HexVarUtil.numberOrDefault(
+                        glyph.readSlot(LevitateGlyphSlots.DURATION, hexContext), DEFAULT_DURATION));
 
-        LevitateState existing = ConstructStateUtil.findState(
-                accessor, ref, LevitateGlyph.ID, LevitateState.class);
+        try {
+            LevitateState state = new LevitateState();
+            state.setAppliedIntensity(intensity);
+            state.setRemainingDuration(durationSeconds);
+            state.setColors(hexContext.getColors());
+            state.setNextGlyphIds(glyph.getNextLinks());
 
-        PhysicsValues originalCopy = existing != null && existing.getOriginalPhysicsValues() != null
-                ? new PhysicsValues(existing.getOriginalPhysicsValues())
-                : new PhysicsValues(currentPhysics);
+            LevitateStackComponent stack = accessor.getComponent(
+                    ref, LevitateStackComponent.getComponentType());
+            if (stack == null) {
+                stack = new LevitateStackComponent();
+            }
+            stack.put(state.getConstructId(), intensity);
+            accessor.putComponent(ref, LevitateStackComponent.getComponentType(), stack);
 
-        if (existing != null) {
-            existing.setIntensity(intensity);
-            existing.setRemainingDuration(durationSeconds);
-            existing.setColors(hexContext.getColors());
-            existing.setNextGlyphIds(glyph.getNextLinks());
-        } else {
-            LevitateState state = new LevitateState(intensity, durationSeconds,
-                    hexContext.getColors(), originalCopy, glyph.getNextLinks());
+            applyLevitation(ref, accessor);
+
+            EntityEffect levitateEffect = EntityEffect.getAssetMap().getAsset(LEVITATE_EFFECT_ID);
+            if (levitateEffect != null) {
+                EffectControllerComponent controller = accessor.getComponent(
+                        ref, EffectControllerComponent.getComponentType());
+                if (controller != null) {
+                    controller.addEffect(ref, levitateEffect, durationSeconds,
+                            OverlapBehavior.OVERWRITE, accessor);
+                }
+            } else {
+                LOGGER.atWarning().log("levitate: %s effect asset not found", LEVITATE_EFFECT_ID);
+            }
+
             HexConstructSpawner.applyWithState(
                     accessor, ref, hexContext, glyph, LevitateGlyph.ID, state);
-        }
 
-        double mass = currentPhysics.getMass();
-        double originalDrag = originalCopy.getDragCoefficient();
-        double drag = intensity <= 0 ? WEIGHTLESS_DRAG : originalDrag;
-        PhysicsValues levitatePhysics = new PhysicsValues(mass, drag, true);
-        accessor.putComponent(ref, PhysicsValues.getComponentType(), levitatePhysics);
-
-        Velocity vel = accessor.getComponent(ref, Velocity.getComponentType());
-        if (vel != null && vel.getY() < 0) {
-            vel.addInstruction(new Vector3d(0, -vel.getY(), 0), null, ChangeVelocityType.Add);
-        }
-
-        EntityEffect levitateEffect = EntityEffect.getAssetMap().getAsset(LEVITATE_EFFECT_ID);
-        if (levitateEffect != null) {
-            EffectControllerComponent controller = accessor.getComponent(
-                    ref, EffectControllerComponent.getComponentType());
-            if (controller != null) {
-                controller.addEffect(ref, levitateEffect, durationSeconds,
-                        OverlapBehavior.OVERWRITE, accessor);
+            TransformComponent tc = accessor.getComponent(ref, TransformComponent.getComponentType());
+            if (tc != null) {
+                LevitateStyle.renderActivation(tc.getPosition(), hexContext, accessor);
             }
-        } else {
-            LOGGER.atWarning().log("levitate: %s effect asset not found", LEVITATE_EFFECT_ID);
+        } catch (Exception e) {
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Cannot apply levitate", e);
         }
+    }
 
-        TransformComponent tc = accessor.getComponent(ref, TransformComponent.getComponentType());
-        if (tc != null) {
-            LevitateStyle.renderActivation(tc.getPosition(), hexContext, accessor);
+    public static void applyLevitation(Ref<EntityStore> ref, CommandBuffer<EntityStore> buffer) {
+        MovementManager mm = buffer.getComponent(ref, MovementManager.getComponentType());
+        if (mm != null) {
+            mm.getSettings().invertedGravity = true;
+            PlayerRef playerRef = buffer.getComponent(ref, PlayerRef.getComponentType());
+            if (playerRef != null) {
+                mm.update(playerRef.getPacketHandler());
+            }
+            return;
+        }
+        PhysicsValues current = buffer.getComponent(ref, PhysicsValues.getComponentType());
+        if (current != null) {
+            buffer.putComponent(ref, PhysicsValues.getComponentType(),
+                    new PhysicsValues(current.getMass(), current.getDragCoefficient(), true));
+        }
+    }
+
+    public static void clearLevitation(Ref<EntityStore> ref, CommandBuffer<EntityStore> buffer) {
+        MovementManager mm = buffer.getComponent(ref, MovementManager.getComponentType());
+        if (mm != null) {
+            mm.getSettings().invertedGravity = false;
+            PlayerRef playerRef = buffer.getComponent(ref, PlayerRef.getComponentType());
+            if (playerRef != null) {
+                mm.update(playerRef.getPacketHandler());
+            }
+            return;
+        }
+        PhysicsValues current = buffer.getComponent(ref, PhysicsValues.getComponentType());
+        if (current != null) {
+            buffer.putComponent(ref, PhysicsValues.getComponentType(),
+                    new PhysicsValues(current.getMass(), current.getDragCoefficient(), false));
         }
     }
 }
