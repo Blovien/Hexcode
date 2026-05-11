@@ -34,7 +34,6 @@ import com.riprod.hexcode.utils.SpellMana;
 public class IdleSystem extends HexcodeManager {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     private static final String HOLD_STALE_KEY = "idle_hold_stale";
-    // if tickInteraction hasn't fired in this many seconds, consider LMB released
     private static final float HOLD_STALE_THRESHOLD = 0.15f;
 
     @Override
@@ -69,7 +68,6 @@ public class IdleSystem extends HexcodeManager {
     @Override
     public void tick0(Ref<EntityStore> ref, HexcasterComponent comp, float dt,
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
-        // release detection: if tickInteraction stops firing, clear the holding flag
         HexcasterIdleComponent idleComp = buffer.ensureAndGetComponent(ref,
                 HexcasterIdleComponent.getComponentType());
         if (idleComp.isHoldingPrimary()) {
@@ -131,9 +129,6 @@ public class IdleSystem extends HexcodeManager {
 
         PlayerHexRoot hexRoot = new PlayerHexRoot(ref, accessor);
 
-        // staff-specific cast parameters: per-staff decay rate flows into the gate
-        // via HexContext; charge cap, decay subtraction, advanceCast, and
-        // tracker registration all happen in CastGate (HexCastEventSystem path).
         HexStaffComponent staff = CasterInventory.getHexStaffComponent(accessor, ref);
         float castDecayRate = staff != null ? staff.getCastDecayRate() : 0f;
 

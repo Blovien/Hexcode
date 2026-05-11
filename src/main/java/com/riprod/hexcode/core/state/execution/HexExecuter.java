@@ -27,18 +27,6 @@ public class HexExecuter {
     private HexExecuter() {
     }
 
-    /**
-     * Unified entry point for any cast (block imbuement, item-held proc, armor proc, staff,
-     * chat command, future continuation/resume). Injects runtime accessors onto the context
-     * and fires HexCastEvent for listeners/cancellation. The HexCastEventSystem handler picks
-     * up the event, runs CastGate.admit, then calls runPostGate to do the mana/glyph/continue
-     * work.
-     *
-     * <p>Callers no longer construct and dispatch HexCastEvent manually — they build a
-     * HexContext and hand it to this method. The buffer is the EntityStore CommandBuffer
-     * the cast will execute against (live cast path); cross-store callers (ChunkStore tick)
-     * must hop via world.execute first to obtain an EntityStore buffer.
-     */
     public static void cast(HexContext context, CommandBuffer<EntityStore> buffer) {
         ComponentAccessor<ChunkStore> chunkAccessor = buffer.getExternalData().getWorld().getChunkStore().getStore();
         context.UpdateAccessor(buffer);
@@ -47,14 +35,7 @@ public class HexExecuter {
         buffer.invoke(new HexCastEvent(context));
     }
 
-    /**
-     * Post-gate execution: called by HexCastEventSystem after CastGate.admit returns true.
-     * Runs the mana check, default-variable resolution, and dispatches to continueExecution
-     * starting from the hex's first glyph.
-     */
     public static void runPostGate(HexContext context, CommandBuffer<EntityStore> buffer) {
-        // ensure accessors are present (idempotent — already set by cast(), but
-        // defensive for any callers that fire HexCastEvent without going through cast()).
         if (context.getAccessor() == null) {
             context.UpdateAccessor(buffer);
             context.UpdateChunkAccessor(buffer.getExternalData().getWorld().getChunkStore().getStore());

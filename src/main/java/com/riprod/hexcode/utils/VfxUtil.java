@@ -50,8 +50,6 @@ public class VfxUtil {
     sound(soundId, pos, accessor);
   }
 
-  // glyph asset supplies the locked particle/sound; overrides supplies the
-  // caster's tint (nullable).
   public static void spawnPrimary(@Nullable HexStyleAsset overrides, @Nullable GlyphAsset glyphAsset,
       Vector3d pos, ComponentAccessor<EntityStore> accessor) {
     HexStyleAsset glyphStyle = glyphAsset != null ? glyphAsset.getStyle() : null;
@@ -96,8 +94,6 @@ public class VfxUtil {
       sound(glyphStyle.getTertiarySound(), pos, accessor);
   }
 
-  // overridable adornment. overrides wins; falls back to glyph asset default if
-  // unset.
   public static void spawnStyleParticle(@Nullable HexStyleAsset overrides, @Nullable GlyphAsset glyphAsset,
       Vector3d pos, ComponentAccessor<EntityStore> accessor) {
     HexStyleAsset glyphStyle = glyphAsset != null ? glyphAsset.getStyle() : null;

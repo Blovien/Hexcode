@@ -112,16 +112,8 @@ public final class PatchManager {
                 ownPackName, OVERRIDE_PACK_FULL_NAME, merged, OVERRIDES_TEMP_PATH, reason);
     }
 
-    // engine bulk-load races on parent->child cascade because documents Set iteration is undefined
-    // (AssetStore.java:354-362 + 1492-1511). re-decode each merged file individually in topo order
-    // (leaves first) so children's currently-registered path is OVERRIDE by the time parent re-loads.
     @SuppressWarnings({"rawtypes", "unchecked"})
     private void topoSortedReload() {
-        // Re-load each merged file individually to overwrite any vanilla pollution introduced
-        // by AssetStore.loadAssetsFromPaths' loadAllChildren auto-expansion during the bulk
-        // AssetPackRegisterEvent path. Skip files whose key has children registered in the
-        // store - reloading a parent re-triggers expansion and re-pollutes children. Parent
-        // assets get their correct content from the bulk load (no parent => no race for them).
         Path serverRoot = OVERRIDES_TEMP_PATH.resolve("Server");
         if (!Files.isDirectory(serverRoot)) return;
         int reloaded = 0;

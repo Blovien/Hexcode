@@ -96,6 +96,7 @@ public class ArcConstructHandler implements ConstructHandler<ArcState> {
                     new EntityVar(targetUuid.getUuid(), targetRef), hexContext);
         }
 
+        hexContext.UpdateAccessor(ctx.getBuffer());
         HexExecuter.continueExecution(List.of(branch), hexContext);
 
         state.advanceBranch();

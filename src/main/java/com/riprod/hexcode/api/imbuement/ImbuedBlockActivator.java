@@ -41,30 +41,6 @@ public final class ImbuedBlockActivator {
     private ImbuedBlockActivator() {
     }
 
-    /**
-     * Activate the imbuement on the block at {@code blockPos} from any context.
-     *
-     * <p>Slot/essence consumption runs synchronously and the returned outcome reflects that.
-     * The HexCastEvent dispatch is queued onto the world's task queue via
-     * {@link World#execute(Runnable)} and fires on the EntityStore bus next tick — this hop
-     * is required because {@code HexCastEventSystem} is registered on EntityStore only.
-     *
-     * <p>Safe from any caller context (ChunkStore tick, EntityStore tick, command handler,
-     * packet adapter, etc.). Callers on the EntityStore tick incur a 1-tick latency vs an
-     * inline dispatch — acceptable for block hex effects.
-     *
-     * <p>Cast configuration chains lowest-priority-first: the resolved {@link ImbuementProfileAsset}
-     * for this block's category supplies baseline {@code Defaults}; the consumed {@link EssenceAsset}
-     * (refill branch only) overlays its {@code VolatilityMultiplier} and {@code Colors}; the
-     * imbuement's own per-block {@code Overrides} have final say.
-     *
-     * <p>If the world is shutting down at the moment of dispatch, the queued task is rejected;
-     * the slot is already consumed but the cast is logged and dropped (matches the
-     * {@code ImbuedBlockPlacementHandler} precedent for deferred block-side mutations).
-     *
-     * <p>Not safe for every-tick polling — the essence-refill branch performs neighbour scans
-     * (O(6 chunk reads + container iteration)). Call only on explicit external triggers.
-     */
     @Nonnull
     public static ActivationOutcome tryConsume(@Nonnull World world, @Nonnull Vector3i blockPos) {
         ImbuedBlockComponent comp = BlockModule.getComponent(

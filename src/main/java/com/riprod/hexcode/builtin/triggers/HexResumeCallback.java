@@ -20,8 +20,6 @@ import com.riprod.hexcode.core.common.triggers.state.TriggerState;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 
-// builds a TriggerCallback that resumes a paused hex chain. each glyph supplies
-// its own projection function; this helper has zero knowledge of payload types.
 public final class HexResumeCallback {
 
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();

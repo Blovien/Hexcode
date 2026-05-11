@@ -33,13 +33,11 @@ public class SphereStyle implements CastingStyle {
             return positions;
         }
 
-        // distribute points across the upper hemisphere using fibonacci sphere
         float goldenAngle = (float) (Math.PI * (3.0 - Math.sqrt(5.0)));
 
         for (int i = 0; i < glyphCount; i++) {
-            // y ranges from 0 (equator) to 1 (top) for upper hemisphere
             float y = (float) i / (glyphCount - 1);
-            float pitch = (float) Math.asin(y); // 0 at equator, pi/2 at top
+            float pitch = (float) Math.asin(y);
 
             float yaw = goldenAngle * i;
 

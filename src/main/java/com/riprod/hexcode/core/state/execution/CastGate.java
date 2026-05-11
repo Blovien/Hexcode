@@ -13,9 +13,6 @@ import com.riprod.hexcode.core.state.execution.component.HexcasterIdleComponent;
 import com.riprod.hexcode.core.state.execution.component.PlayerHexRoot;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 
-// the central pre-execute policy gate. every cast that goes through HexCastEvent
-// passes through here; per-cast policy flags on HexContext decide whether
-// the player charge cap, decay accumulation, and tracker eviction apply.
 public final class CastGate {
 
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -24,7 +21,6 @@ public final class CastGate {
     }
 
     public static boolean admit(@Nonnull CommandBuffer<EntityStore> buffer, @Nonnull HexContext context) {
-        // non-player roots (block, npc, system) skip the player-scoped gate entirely.
         if (!(context.getHexRoot() instanceof PlayerHexRoot playerRoot)) {
             return true;
         }
@@ -41,7 +37,6 @@ public final class CastGate {
         tracker.setSlotKey(slotKey);
 
         if (slotKey == null) {
-            // staff path: enforce maxCharges cap, decay-adjust budget, accumulate decay.
             int max = (int) playerRoot.resolveMaxMagicCharges(buffer);
             if (max <= 0) {
                 sendNoSlotsMessage(buffer, casterRef);
@@ -56,8 +51,6 @@ public final class CastGate {
             tracker.setStartingBudget(startingBudget);
             idle.advanceCast(context.getCastDecayRate(), volMax);
         } else {
-            // slot-bound path: one cast per slot key. fizzle any prior cast on
-            // this slot; skip cap, decay-subtraction, and decay-accumulation.
             idle.fizzleSlot(slotKey);
         }
 

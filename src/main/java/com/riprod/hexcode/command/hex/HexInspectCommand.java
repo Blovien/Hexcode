@@ -91,7 +91,6 @@ public class HexInspectCommand extends AbstractPlayerCommand {
         Set<String> valueGlyphIds = new LinkedHashSet<>();
         int idx = 1;
 
-        // walk execution chain to assign indices and collect effects
         String currentId = hex.getFirstGlyphId();
         Set<String> walked = new java.util.HashSet<>();
         List<String> execQueue = new ArrayList<>();
@@ -116,7 +115,6 @@ public class HexInspectCommand extends AbstractPlayerCommand {
             }
         }
 
-        // assign indices to all value glyphs referenced by inputs/outputs
         for (Glyph g : hex.getGlyphs()) {
             if (!indexMap.containsKey(g.getId())) {
                 indexMap.put(g.getId(), idx++);
@@ -124,7 +122,6 @@ public class HexInspectCommand extends AbstractPlayerCommand {
             }
         }
 
-        // collect value glyphs reachable from effect inputs/outputs
         for (Glyph effect : effectGlyphs) {
             collectValues(hex, effect, valueGlyphIds, indexMap);
         }
@@ -133,7 +130,6 @@ public class HexInspectCommand extends AbstractPlayerCommand {
         lines.add("== Hex Staff (style: " + style + ") ==");
         lines.add("");
 
-        // execution chain
         for (Glyph g : effectGlyphs) {
             int num = indexMap.get(g.getId());
             StringBuilder sb = new StringBuilder();
@@ -175,7 +171,6 @@ public class HexInspectCommand extends AbstractPlayerCommand {
             }
         }
 
-        // values section
         if (!valueGlyphIds.isEmpty()) {
             lines.add("");
             lines.add("  Values:");

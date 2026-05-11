@@ -29,7 +29,6 @@ public class TargetFilter {
         double firstTMax = Double.MAX_VALUE;
         double firstTMin = Double.MAX_VALUE;
 
-        // find the closest ray hit to establish the depth cutoff
         for (int i = 0; i < candidates.size(); i++) {
             Ref<EntityStore> ref = candidates.get(i);
             if (ref == null || !ref.isValid()) {
@@ -51,7 +50,6 @@ public class TargetFilter {
             return null;
         }
 
-        // among hits whose entry is within the closest hit's volume, pick smallest
         Ref<EntityStore> best = null;
         double bestVolume = Double.MAX_VALUE;
 

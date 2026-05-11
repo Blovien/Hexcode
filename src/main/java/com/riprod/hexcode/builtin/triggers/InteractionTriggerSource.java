@@ -18,9 +18,6 @@ import com.riprod.hexcode.core.common.imbuement.component.ImbuedHotbarMarker;
 import com.riprod.hexcode.core.common.triggers.component.FireTriggerEvent;
 import com.riprod.hexcode.core.common.triggers.component.TriggerEvent;
 
-// converts inbound SyncInteractionChains packets into FireTriggerEvent on the
-// world tick. one source serves three trigger keys (Primary/Secondary/Use) since
-// the InteractionType field on the packet picks the key.
 public final class InteractionTriggerSource {
 
     private InteractionTriggerSource() {
