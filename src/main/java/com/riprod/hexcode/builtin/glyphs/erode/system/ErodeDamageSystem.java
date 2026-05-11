@@ -46,11 +46,8 @@ public class ErodeDamageSystem extends DamageEventSystem {
             float original = damage.getAmount();
             float amplified = original * (1.0f + state.getVulnerabilityMultiplier());
             damage.setAmount(amplified);
-
-            LOGGER.atInfo().log("erode: amplified damage %.2f -> %.2f (%.0f%% vulnerability)",
-                    original, amplified, state.getVulnerabilityMultiplier() * 100);
         } catch (Exception e) {
-            LOGGER.atSevere().log("[hexcode] ErodeDamageSystem failed: %s", e.getMessage());
+            LOGGER.atSevere().log("ErodeDamageSystem failed: %s", e.getMessage());
         }
     }
 }

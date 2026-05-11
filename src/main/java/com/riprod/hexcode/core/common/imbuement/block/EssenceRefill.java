@@ -1,42 +1,53 @@
 package com.riprod.hexcode.core.common.imbuement.block;
 
+import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.component.spatial.SpatialResource;
+import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.modules.block.components.ItemContainerBlock;
+import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.riprod.hexcode.core.common.imbuement.asset.EssenceAsset;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.List;
 
 public final class EssenceRefill {
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
-    private static final Vector3i[] FACE_OFFSETS = new Vector3i[] {
-            new Vector3i( 1,  0,  0),
-            new Vector3i(-1,  0,  0),
-            new Vector3i( 0,  1,  0),
-            new Vector3i( 0, -1,  0),
-            new Vector3i( 0,  0,  1),
-            new Vector3i( 0,  0, -1)
-    };
+    private static final double HORIZONTAL_RADIUS = 2.0;
+    private static final double VERTICAL_RADIUS = 2.0;
 
     private EssenceRefill() {
     }
 
     @Nullable
     public static EssenceAsset tryConsume(@Nonnull World world, @Nonnull Vector3i blockPos) {
-        for (Vector3i offset : FACE_OFFSETS) {
-            int x = blockPos.x + offset.x;
-            int y = blockPos.y + offset.y;
-            int z = blockPos.z + offset.z;
+        Store<ChunkStore> store = world.getChunkStore().getStore();
+        SpatialResource<Ref<ChunkStore>, ChunkStore> idx =
+                store.getResource(BlockModule.get().getItemContainerSpatialResourceType());
 
-            ItemContainerBlock container = BlockModule.getComponent(
-                    ItemContainerBlock.getComponentType(), world, x, y, z);
-            if (container == null) continue;
+        Vector3d center = new Vector3d(blockPos.x + 0.5, blockPos.y + 0.5, blockPos.z + 0.5);
+        List<Ref<ChunkStore>> results = SpatialResource.getThreadLocalReferenceList();
+        idx.getSpatialStructure().ordered3DAxis(center,
+                HORIZONTAL_RADIUS, VERTICAL_RADIUS, HORIZONTAL_RADIUS, results);
 
-            ItemContainer inv = container.getItemContainer();
+        LOGGER.atInfo().log("essence-refill: spatial scan around %s returned %d container(s)",
+                blockPos, results.size());
+
+        if (results.isEmpty()) return null;
+
+        for (Ref<ChunkStore> ref : results) {
+            if (!ref.isValid()) continue;
+            ItemContainerBlock chest = store.getComponent(ref, ItemContainerBlock.getComponentType());
+            if (chest == null) continue;
+            ItemContainer inv = chest.getItemContainer();
             if (inv == null) continue;
 
             short capacity = inv.getCapacity();
@@ -44,10 +55,14 @@ public final class EssenceRefill {
                 ItemStack stack = inv.getItemStack(slot);
                 if (stack == null || stack.isEmpty()) continue;
 
-                EssenceAsset essence = EssenceAsset.getAssetMap().getAsset(stack.getItemId());
+                String itemId = stack.getItemId();
+                EssenceAsset essence = EssenceAsset.getAssetMap().getAsset(itemId);
+                LOGGER.atInfo().log("essence-refill: slot %d itemId=%s essenceMatch=%s",
+                        slot, itemId, essence != null ? essence.getId() : "null");
                 if (essence == null) continue;
 
                 inv.removeItemStackFromSlot(slot, 1);
+                LOGGER.atInfo().log("essence-refill: consumed %s from container", essence.getId());
                 return essence;
             }
         }

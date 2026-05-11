@@ -1,9 +1,5 @@
 package com.riprod.hexcode.builtin.utils;
 
-// Resonate and Interfere are the only consumers permitted to assume that
-// a construct's pending chain corresponds to "Next slot" semantics.
-// all other glyphs must remain agnostic to handler-specific chain semantics.
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -45,8 +41,8 @@ public final class ConstructSplicer {
         List<String> casterChildren = casterGlyph.getNextLinks();
 
         HexContext targetCtx = target.getHexContext();
-        Hex targetHex = targetCtx.gethex();
-        Hex casterHex = caster.gethex();
+        Hex targetHex = targetCtx.getHex();
+        Hex casterHex = caster.getHex();
 
         int outputsRewired = rewireOutputs(casterHex, originalNext);
 

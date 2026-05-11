@@ -39,7 +39,8 @@ public final class NumberVar extends HexVar {
     @Override
     public PositionVar toPosition(ComponentAccessor<EntityStore> accessor) {
         double n = number == null ? 0.0 : number;
-        return new PositionVar(new Vector3d(n, n, n), false);
+        double c = Math.round((n / Math.sqrt(3.0)) * 100.0) / 100.0;
+        return new PositionVar(new Vector3d(c, c, c), false);
     }
 
     @Override

@@ -43,7 +43,6 @@ public class GlyphMath {
     }
 
     public static boolean isPointInGlyphArea(Vector3f glyphPos, Vector3f lookPos, float scale) {
-        // area scales with glyph scale (nested glyphs are smaller)
         float angularDistance = calculateAngularDistance(glyphPos, lookPos);
         float selectionRadius = getSelectionRadius(scale);
         return angularDistance <= selectionRadius;
@@ -54,7 +53,6 @@ public class GlyphMath {
     }
 
     public static float calculateAngularDistance(float pitchA, float yawA, float pitchB, float yawB) {
-        // spherical law of cosines
         double cosAngle = Math.sin(pitchA) * Math.sin(pitchB)
                 + Math.cos(pitchA) * Math.cos(pitchB) * Math.cos(yawA - yawB);
         cosAngle = Math.max(-1.0, Math.min(1.0, cosAngle));
@@ -62,7 +60,6 @@ public class GlyphMath {
     }
 
     public static float getSelectionRadius(float scale) {
-        // base radius ~15 degrees = ~0.26 radians, scaled by visual size
         float baseRadius = 0.12f;
         return baseRadius * scale;
     }

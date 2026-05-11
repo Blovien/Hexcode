@@ -1,5 +1,3 @@
 {
-  "Element": "lightning",
-  "VolatilityMultiplier": 1.0,
-  "Style": "Essence_Lightning"
+  "Colors": "Essence_Lightning"
 }

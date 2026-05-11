@@ -201,7 +201,7 @@ public static final String ID = "Ensnare";
 
         Ref<EntityStore> trackerRef = accessor.addEntity(holder, AddReason.SPAWN);
 
-        hexContext.getRoot().addDependency(hexContext, trackerRef);
+        hexContext.getHexRoot().addDependency(hexContext, trackerRef);
     }
 
     private static double harshScale(double value, double reference, double threshold, double exponent) {

@@ -13,6 +13,9 @@ import com.hypixel.hytale.codec.validation.ValidatorCache;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelParticle;
 import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
 import com.riprod.hexcode.core.state.execution.component.HexColors;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
+
+import javax.annotation.Nullable;
 
 public class HexBookAsset implements JsonAssetWithMap<String, DefaultAssetMap<String, HexBookAsset>> {
     public static final AssetBuilderCodec<String, HexBookAsset> CODEC;
@@ -26,6 +29,8 @@ public class HexBookAsset implements JsonAssetWithMap<String, DefaultAssetMap<St
     protected ModelParticle[] castingAuraParticles;
     protected ModelParticle[] craftingAuraParticles;
     protected String styleId;
+    @Nullable
+    protected HexContext defaults;
 
     public static AssetStore<String, HexBookAsset, DefaultAssetMap<String, HexBookAsset>> getAssetStore() {
         if (ASSET_STORE == null) {
@@ -72,6 +77,11 @@ public class HexBookAsset implements JsonAssetWithMap<String, DefaultAssetMap<St
         return HexStyleAsset.getAssetMap().getAsset(this.styleId);
     }
 
+    @Nullable
+    public HexContext getDefaults() {
+        return this.defaults;
+    }
+
     public HexColors getColors() {
         HexStyleAsset style = getStyle();
         if (style == null) return null;
@@ -109,6 +119,12 @@ public class HexBookAsset implements JsonAssetWithMap<String, DefaultAssetMap<St
                         a -> a.styleId,
                         (a, p) -> a.styleId = p.styleId)
                 .addValidatorLate(() -> HexStyleAsset.VALIDATOR_CACHE.getValidator().late())
+                .add()
+                .appendInherited(new KeyedCodec<>("Defaults", HexContext.CODEC),
+                        (a, v) -> a.defaults = v,
+                        a -> a.defaults,
+                        (a, p) -> a.defaults = p.defaults)
+                .documentation("Optional cast overrides applied when this book is wielded. Same shape as ImbuementProfileAsset.Defaults.")
                 .add()
                 .build();
         VALIDATOR_CACHE = new ValidatorCache<>(new AssetKeyValidator<>(HexBookAsset::getAssetStore));

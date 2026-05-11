@@ -1,11 +1,12 @@
 package com.riprod.hexcode.builtin.glyphs.force;
 
+import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.protocol.ChangeVelocityType;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
-import com.hypixel.hytale.server.core.modules.splitvelocity.VelocityConfig;
+import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
@@ -23,6 +24,9 @@ import com.riprod.hexcode.utils.HexVarUtil;
 public class ForceGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     public static final String ID = "Force";
+
+    // keeps resulting upward velocity below ~32 m/s gravity-cutoff threshold
+    private static final double MAX_Y_VELOCITY = 25.0;
     
     @Override
     public String getId() {
@@ -89,8 +93,10 @@ public class ForceGlyph implements GlyphHandler {
                 }
                 Vector3d force = new Vector3d(direction).scale(magnitude);
 
+                clampUpwardY(ref, force, hexContext.getAccessor());
+
                 VelocityUtil.applyVelocity(ref, force, ChangeVelocityType.Add,
-                        new VelocityConfig(), hexContext.getAccessor());
+                        new ForceVelocityConfig(), hexContext.getAccessor());
 
                 ForceGlyphStyle.render(targetPos, force, hexContext, hexContext.getAccessor());
             }
@@ -99,5 +105,19 @@ public class ForceGlyph implements GlyphHandler {
         }
 
         HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
+    }
+
+    private void clampUpwardY(Ref<EntityStore> ref, Vector3d force,
+            CommandBuffer<EntityStore> accessor) {
+        if (force.y <= 0) return;
+        Velocity vel = accessor.getComponent(ref, Velocity.getComponentType());
+        if (vel == null) return;
+        double currentY = vel.getClientVelocity().getY();
+        double headroom = MAX_Y_VELOCITY - currentY;
+        if (headroom <= 0) {
+            force.y = 0;
+        } else if (force.y > headroom) {
+            force.y = headroom;
+        }
     }
 }

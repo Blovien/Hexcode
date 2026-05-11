@@ -42,6 +42,11 @@ public final class BlockVar extends HexVar {
     }
 
     @Override
+    public BlockVar toBlockVar(ComponentAccessor<EntityStore> accessor) {
+        return this;
+    }
+
+    @Override
     public RotationVar toRotation(ComponentAccessor<EntityStore> accessor) {
         if (position == null) return new RotationVar(new Vector3f(0f, 0f, 0f));
         try {

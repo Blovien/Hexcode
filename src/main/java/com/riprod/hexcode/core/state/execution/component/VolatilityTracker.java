@@ -160,7 +160,27 @@ public class VolatilityTracker {
             .add()
             .build();
 
-    VolatilityTracker copy() {
+    // overlay: merge another tracker's non-default fields into this one.
+    // - non-zero startingBudget overrides (resets remainingBudget too)
+    // - non-1.0 multipliers compound (multiplicative)
+    // - executionId / slotKey / glyphUsageMap intentionally NOT overlaid;
+    //   they're per-cast identity, not configuration.
+    public VolatilityTracker applyOverridesFrom(VolatilityTracker other) {
+        if (other == null) return this;
+        if (other.startingBudget > 0f) {
+            this.startingBudget = other.startingBudget;
+            this.remainingBudget = other.startingBudget;
+        }
+        if (other.volatilityMultiplier != 1.0f) {
+            this.volatilityMultiplier *= other.volatilityMultiplier;
+        }
+        if (other.magicPowerMultiplier != 1.0f) {
+            this.magicPowerMultiplier *= other.magicPowerMultiplier;
+        }
+        return this;
+    }
+
+    public VolatilityTracker copy() {
         VolatilityTracker copy = new VolatilityTracker();
         copy.startingBudget = this.startingBudget;
         copy.remainingBudget = this.remainingBudget;

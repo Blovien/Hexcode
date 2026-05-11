@@ -223,6 +223,6 @@ public class ConjureGlyph implements GlyphHandler {
         glyph.writeSelfOutput(zoneEntityVar, hexContext);
         glyph.writeOutput(zoneEntityVar, hexContext);
 
-        hexContext.getRoot().addDependency(hexContext, zoneRef);
+        hexContext.getHexRoot().addDependency(hexContext, zoneRef);
     }
 }

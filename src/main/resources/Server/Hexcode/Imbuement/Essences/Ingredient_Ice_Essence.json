@@ -1,5 +1,7 @@
 {
-  "Element": "ice",
-  "VolatilityMultiplier": 1.0,
-  "Style": "Essence_Ice"
+  "Colors": {
+    "PrimaryColor": "#e6d9d9",
+    "SecondaryColor": "#464343",
+    "Alpha": 1.0
+  }
 }

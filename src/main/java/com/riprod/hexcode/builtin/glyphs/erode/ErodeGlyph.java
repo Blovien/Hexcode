@@ -1,24 +1,18 @@
 package com.riprod.hexcode.builtin.glyphs.erode;
 
-import java.time.Instant;
-
 import com.hypixel.hytale.component.CommandBuffer;
-import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.util.ChunkUtil;
-import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3i;
-import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.OverlapBehavior;
+import com.hypixel.hytale.server.core.asset.type.item.config.Item;
+import com.hypixel.hytale.server.core.asset.type.item.config.ItemTool;
 import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
-import com.hypixel.hytale.server.core.modules.blockhealth.BlockHealth;
-import com.hypixel.hytale.server.core.modules.blockhealth.BlockHealthChunk;
-import com.hypixel.hytale.server.core.modules.blockhealth.BlockHealthModule;
+import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
-import com.hypixel.hytale.server.core.modules.time.TimeResource;
-import com.hypixel.hytale.server.core.universe.world.World;
+import com.hypixel.hytale.server.core.modules.interaction.BlockHarvestUtils;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.GlyphFizzleEvent;
@@ -50,7 +44,9 @@ public static final String ID = "Erode";
     private static final double MAX_AMOUNT = 20.0;
     private static final float VULNERABILITY_SCALE = 0.05f;
     private static final float BLOCK_DAMAGE_SCALE = 0.05f;
-    private static final float FRAGILE_HP_THRESHOLD = 0.5f;
+    private static final String TOOL_ASSET_PREFIX = "Hexcode_Erode_Tool_T";
+    private static final int MIN_TIER = 1;
+    private static final int MAX_TIER = 6;
 
     @Override
     public boolean consumeVolatility(Glyph glyph, HexContext hexContext) {
@@ -90,7 +86,7 @@ public static final String ID = "Erode";
             applyToEntities(entityVar, vulnerabilityMultiplier, durationSeconds, glyph, hexContext, accessor);
         } else {
             BlockVar blockVar = HexVarUtil.resolveBlockVar(targets, hexContext);
-            if (blockVar != null) applyToBlocks(blockVar, amount, durationSeconds, hexContext, accessor);
+            if (blockVar != null) applyToBlocks(blockVar, amount, hexContext, accessor);
             HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
         }
     }
@@ -136,41 +132,52 @@ public static final String ID = "Erode";
                 vulnerabilityMultiplier * 100, durationSeconds);
     }
 
-    private void applyToBlocks(BlockVar blockVar, double amount, float durationSeconds,
+    private void applyToBlocks(BlockVar blockVar, double amount,
             HexContext hexContext, CommandBuffer<EntityStore> accessor) {
         Vector3i pos = blockVar.getValue();
         if (pos == null) return;
 
-        World world = accessor.getExternalData().getWorld();
-        int blockId = world.getBlock(pos.x, pos.y, pos.z);
-        if (blockId == BlockType.EMPTY_ID) return;
-
-        ChunkStore chunkStore = world.getChunkStore();
-        ComponentType<ChunkStore, BlockHealthChunk> bhcType =
-                BlockHealthModule.get().getBlockHealthChunkComponentType();
-
+        ChunkStore chunkStore = accessor.getExternalData().getWorld().getChunkStore();
         long chunkIndex = ChunkUtil.indexChunkFromBlock(pos.x, pos.z);
         Ref<ChunkStore> chunkRef = chunkStore.getChunkReference(chunkIndex);
         if (chunkRef == null || !chunkRef.isValid()) return;
 
-        BlockHealthChunk bhc = chunkStore.getStore().getComponent(chunkRef, bhcType);
-        if (bhc == null) return;
-
-        TimeResource timeResource = world.getEntityStore().getStore()
-                .getResource(TimeResource.getResourceType());
-        Instant now = timeResource.getNow();
-        float damage = (float) (amount * BLOCK_DAMAGE_SCALE);
-
-        BlockHealth result = bhc.damageBlock(now, world, pos, damage);
-
-        if (!result.isDestroyed() && result.getHealth() <= FRAGILE_HP_THRESHOLD) {
-            bhc.makeBlockFragile(pos, durationSeconds);
+        int tier = amountToTier(amount);
+        String toolId = TOOL_ASSET_PREFIX + tier;
+        Item toolItem = Item.getAssetMap().getAsset(toolId);
+        ItemTool tool = toolItem != null ? toolItem.getTool() : null;
+        if (tool == null) {
+            LOGGER.atWarning().log("erode: missing tool asset %s; block path no-op", toolId);
+            return;
         }
 
-        Vector3d blockCenter = new Vector3d(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5);
-        ErodeStyle.renderBlockHit(blockCenter, hexContext, accessor);
+        Ref<EntityStore> casterRef = hexContext.getCasterRef();
+        Player caster = (casterRef != null && casterRef.isValid())
+                ? accessor.getComponent(casterRef, Player.getComponentType())
+                : null;
 
-        LOGGER.atInfo().log("erode: damaged block at %s (hp=%.2f, fragile=%s)",
-                pos, result.getHealth(), result.getHealth() <= FRAGILE_HP_THRESHOLD);
+        float damageScale = (float) (amount * BLOCK_DAMAGE_SCALE);
+
+        BlockHarvestUtils.performBlockDamage(
+                caster,
+                casterRef,
+                pos,
+                null,
+                tool,
+                null,
+                false,
+                damageScale,
+                0,
+                chunkRef,
+                accessor,
+                chunkStore.getStore());
+
+        LOGGER.atInfo().log("erode: routed block hit at %s through harvest pipeline (tier=%d, scale=%.2f)",
+                pos, tier, damageScale);
+    }
+
+    private static int amountToTier(double amount) {
+        int t = (int) Math.floor((amount - 1) / 4) + 1;
+        return Math.max(MIN_TIER, Math.min(MAX_TIER, t));
     }
 }

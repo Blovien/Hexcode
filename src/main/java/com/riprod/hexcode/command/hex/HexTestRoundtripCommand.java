@@ -58,8 +58,6 @@ public class HexTestRoundtripCommand extends AbstractPlayerCommand {
             return;
         }
 
-        // mirror what HexCodec.serialize does internally so the original we
-        // compare against has the same glyph ids the codec sees.
         Hex expected = active.clone();
         HexUtils.validate(expected);
         HexUtils.compress(expected);
@@ -136,7 +134,6 @@ public class HexTestRoundtripCommand extends AbstractPlayerCommand {
             if (slotsA.size() != slotsB.size()) {
                 return "[" + i + "] slot count: " + slotsA.size() + " vs " + slotsB.size();
             }
-            // slot keys must match in order (LinkedHashMap preserves order)
             List<String> keysA = new ArrayList<>(slotsA.keySet());
             List<String> keysB = new ArrayList<>(slotsB.keySet());
             if (!keysA.equals(keysB)) {

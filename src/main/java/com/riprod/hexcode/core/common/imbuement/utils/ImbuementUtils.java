@@ -6,12 +6,18 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
+import org.bson.BsonValue;
+
+import com.hypixel.hytale.codec.EmptyExtraInfo;
+import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
+import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.saved.SavedHexAsset;
 import com.riprod.hexcode.core.common.hexes.utils.HexUtils;
 import com.riprod.hexcode.core.common.imbuement.ImbuementMetadata;
 import com.riprod.hexcode.core.common.imbuement.asset.ImbuementProfileAsset;
+import com.riprod.hexcode.core.common.imbuement.component.ImbuedBlockComponent;
 import com.riprod.hexcode.core.common.imbuement.component.ImbuementData;
 import com.riprod.hexcode.core.common.imbuement.registry.ImbuementProfileRegistry;
 
@@ -41,10 +47,7 @@ public class ImbuementUtils {
         Map<String, ImbuementData> map = new HashMap<>(readAll(item));
         if (data == null) map.remove(slotKey);
         else map.put(slotKey, data);
-        if (map.isEmpty()) {
-            return item.withMetadata(ImbuementMetadata.KEY, ImbuementMetadata.CODEC, null);
-        }
-        return item.withMetadata(ImbuementMetadata.KEY, ImbuementMetadata.CODEC, map);
+        return applyMetadata(item, map);
     }
 
     public static ItemStack clear(ItemStack item, String slotKey) {
@@ -52,10 +55,7 @@ public class ImbuementUtils {
     }
 
     public static ItemStack writeAll(ItemStack item, @Nullable Map<String, ImbuementData> slots) {
-        if (slots == null || slots.isEmpty()) {
-            return item.withMetadata(ImbuementMetadata.KEY, ImbuementMetadata.CODEC, null);
-        }
-        return item.withMetadata(ImbuementMetadata.KEY, ImbuementMetadata.CODEC, new HashMap<>(slots));
+        return applyMetadata(item, slots);
     }
 
     @Nullable
@@ -75,7 +75,24 @@ public class ImbuementUtils {
     }
 
     public static ItemStack clear(ItemStack item) {
-        return item.withMetadata(ImbuementMetadata.KEY, ImbuementMetadata.CODEC, null);
+        return applyMetadata(item, null);
+    }
+
+    private static ItemStack applyMetadata(ItemStack item, @Nullable Map<String, ImbuementData> slots) {
+        Map<String, ImbuementData> finalMap = (slots == null || slots.isEmpty()) ? null : new HashMap<>(slots);
+        ItemStack out = item.withMetadata(ImbuementMetadata.KEY, ImbuementMetadata.CODEC, finalMap);
+        BsonValue blockHolder = finalMap == null ? null : encodeBlockHolder(finalMap);
+        return out.withMetadata(ItemStack.Metadata.BLOCK_HOLDER, blockHolder);
+    }
+
+    private static BsonValue encodeBlockHolder(Map<String, ImbuementData> slots) {
+        Holder<ChunkStore> holder = ChunkStore.REGISTRY.newHolder();
+        ImbuedBlockComponent comp = holder.ensureAndGetComponent(ImbuedBlockComponent.getComponentType());
+        for (Map.Entry<String, ImbuementData> entry : slots.entrySet()) {
+            ImbuementData v = entry.getValue();
+            if (v != null) comp.write(entry.getKey(), v.copy());
+        }
+        return ChunkStore.REGISTRY.getEntityCodec().encode(holder, EmptyExtraInfo.EMPTY);
     }
 
     // hex resolution / construction helpers

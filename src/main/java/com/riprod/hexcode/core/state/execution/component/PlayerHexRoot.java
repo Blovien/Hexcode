@@ -1,19 +1,42 @@
 package com.riprod.hexcode.core.state.execution.component;
 
+import com.hypixel.hytale.codec.KeyedCodec;
+import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.server.core.entity.reference.PersistentRef;
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatValue;
 import com.hypixel.hytale.server.core.modules.entitystats.asset.DefaultEntityStatTypes;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.common.hexes.component.Hex;
+import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
+import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.stats.HexcodeEntityStatTypes;
 
 public class PlayerHexRoot implements HexRoot {
-    private final Ref<EntityStore> playerRef;
+    // canonical storage — codec'd. caches ref+uuid; setEntity(ref, accessor) populates
+    // both, so subsequent getEntity(...) calls return the cached ref without re-lookup.
+    private PersistentRef entity;
+    // hot-path cache for getSourceRef() no-arg. set at runtime construction.
+    // null after codec decode; callers needing live ref post-decode use getEntity().
+    private transient Ref<EntityStore> playerRef;
 
-    public PlayerHexRoot(Ref<EntityStore> playerRef) {
+    public PlayerHexRoot() {
+    }
+
+    public PlayerHexRoot(Ref<EntityStore> playerRef, ComponentAccessor<EntityStore> accessor) {
         this.playerRef = playerRef;
+        this.entity = new PersistentRef();
+        this.entity.setEntity(playerRef, accessor);
+    }
+
+    private PlayerHexRoot(PersistentRef entity, Ref<EntityStore> playerRef) {
+        this.entity = entity;
+        this.playerRef = playerRef;
+    }
+
+    public PersistentRef getEntity() {
+        return entity;
     }
 
     @Override
@@ -86,7 +109,6 @@ public class PlayerHexRoot implements HexRoot {
 
         EntityStatValue stat = statMap.get(idx);
         return stat != null ? stat.getMax() : 1.0f;
-
     }
 
     public float resolveVolatility(ComponentAccessor<EntityStore> accessor) {
@@ -109,8 +131,7 @@ public class PlayerHexRoot implements HexRoot {
             if (statMap != null) {
                 EntityStatValue chargesStat = statMap.get(chargesIndex);
                 if (chargesStat != null) {
-                    float cap = chargesStat.getMax();
-                    return cap;
+                    return chargesStat.getMax();
                 }
             }
         }
@@ -118,7 +139,21 @@ public class PlayerHexRoot implements HexRoot {
     }
 
     @Override
-    public HexRoot copy() {
-        return new PlayerHexRoot(playerRef);
+    public HexVar getRootVar(HexContext ctx) {
+        if (entity == null) return null;
+        return new EntityVar(entity);
     }
+
+    @Override
+    public HexRoot copy() {
+        return new PlayerHexRoot(entity, playerRef);
+    }
+
+    public static final BuilderCodec<PlayerHexRoot> CODEC = BuilderCodec
+            .builder(PlayerHexRoot.class, PlayerHexRoot::new, HexRoot.BASE_CODEC)
+            .append(new KeyedCodec<>("Player", PersistentRef.CODEC),
+                    (c, v) -> c.entity = v,
+                    c -> c.entity)
+            .add()
+            .build();
 }

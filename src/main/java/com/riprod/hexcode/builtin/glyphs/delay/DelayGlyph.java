@@ -131,6 +131,6 @@ public class DelayGlyph implements GlyphHandler {
 
         Ref<EntityStore> delayRef = accessor.addEntity(holder, AddReason.SPAWN);
 
-        hexContext.getRoot().addDependency(hexContext, delayRef);
+        hexContext.getHexRoot().addDependency(hexContext, delayRef);
     }
 }

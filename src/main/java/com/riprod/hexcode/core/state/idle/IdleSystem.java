@@ -23,7 +23,8 @@ import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingCompone
 import com.riprod.hexcode.core.state.execution.component.HexcasterIdleComponent;
 import com.riprod.hexcode.core.state.execution.component.PlayerHexRoot;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
-import com.riprod.hexcode.core.state.execution.events.CastingEventData;
+import com.riprod.hexcode.core.state.execution.HexExecuter;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
 import com.riprod.hexcode.utils.CleanupUtils;
@@ -33,7 +34,6 @@ import com.riprod.hexcode.utils.SpellMana;
 public class IdleSystem extends HexcodeManager {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     private static final String HOLD_STALE_KEY = "idle_hold_stale";
-    // if tickInteraction hasn't fired in this many seconds, consider LMB released
     private static final float HOLD_STALE_THRESHOLD = 0.15f;
 
     @Override
@@ -68,7 +68,6 @@ public class IdleSystem extends HexcodeManager {
     @Override
     public void tick0(Ref<EntityStore> ref, HexcasterComponent comp, float dt,
             Store<EntityStore> store, CommandBuffer<EntityStore> buffer) {
-        // release detection: if tickInteraction stops firing, clear the holding flag
         HexcasterIdleComponent idleComp = buffer.ensureAndGetComponent(ref,
                 HexcasterIdleComponent.getComponentType());
         if (idleComp.isHoldingPrimary()) {
@@ -128,11 +127,8 @@ public class IdleSystem extends HexcodeManager {
         Hex hexClone = activeHex.clone();
         HexUtils.validate(hexClone);
 
-        PlayerHexRoot hexRoot = new PlayerHexRoot(ref);
+        PlayerHexRoot hexRoot = new PlayerHexRoot(ref, accessor);
 
-        // staff-specific cast parameters: per-staff decay rate flows into the gate
-        // via CastingEventData; charge cap, decay subtraction, advanceCast, and
-        // tracker registration all happen in CastGate (HexCastEventSystem path).
         HexStaffComponent staff = CasterInventory.getHexStaffComponent(accessor, ref);
         float castDecayRate = staff != null ? staff.getCastDecayRate() : 0f;
 
@@ -156,10 +152,13 @@ public class IdleSystem extends HexcodeManager {
         comp.setTickLength(HOLD_STALE_KEY, 0f);
 
         VolatilityTracker tracker = new VolatilityTracker(volatilityMax, 1.0f, resolvedPower);
-        CastingEventData castData = new CastingEventData(hexClone, ref, baseMana, hexRoot, style, tracker);
-        castData.setCastDecayRate(castDecayRate);
+        HexContext context = new HexContext(hexClone, baseMana, hexRoot, style, tracker);
+        context.setCastDecayRate(castDecayRate);
 
-        accessor.invoke(new HexCastEvent(ref, castData));
+        if (staffAsset != null) context.applyNonDefaultsFrom(staffAsset.getDefaults());
+        if (bookAsset != null) context.applyNonDefaultsFrom(bookAsset.getDefaults());
+
+        HexExecuter.cast(context, accessor);
         return InteractionState.NotFinished;
     }
 

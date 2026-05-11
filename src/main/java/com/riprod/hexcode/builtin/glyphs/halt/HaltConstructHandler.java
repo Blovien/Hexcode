@@ -5,9 +5,12 @@ import java.util.List;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.protocol.ChangeVelocityType;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
 import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
 import com.hypixel.hytale.server.core.modules.physics.component.PhysicsValues;
+import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
 import com.hypixel.hytale.server.core.modules.projectile.config.StandardPhysicsProvider;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
@@ -26,7 +29,17 @@ public class HaltConstructHandler implements ConstructHandler<HaltState> {
         if (state == null) return true;
         if (state.isExpired()) return true;
         state.tick(dt);
+        clampVelocity(ctx);
         return !drainSustain(dt, status);
+    }
+
+    private void clampVelocity(ConstructTickContext ctx) {
+        Ref<EntityStore> target = ctx.getEntityRef();
+        if (target == null || !target.isValid()) return;
+        Velocity vel = ctx.getBuffer().getComponent(target, Velocity.getComponentType());
+        if (vel == null) return;
+        vel.getInstructions().clear();
+        vel.addInstruction(Vector3d.ZERO, null, ChangeVelocityType.Set);
     }
 
     @Override

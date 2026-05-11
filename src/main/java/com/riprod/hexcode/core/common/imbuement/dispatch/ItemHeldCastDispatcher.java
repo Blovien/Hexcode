@@ -8,17 +8,20 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.inventory.InventoryComponent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.api.event.HexCastEvent;
 import com.riprod.hexcode.builtin.triggers.InteractionPayload;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
+import com.riprod.hexcode.core.common.imbuement.asset.ImbuementProfileAsset;
 import com.riprod.hexcode.core.common.imbuement.component.ImbuementData;
+import com.riprod.hexcode.core.common.imbuement.extract.ItemStatExtractor;
+import com.riprod.hexcode.core.common.imbuement.registry.ImbuementProfileRegistry;
 import com.riprod.hexcode.core.common.imbuement.utils.ImbuementUtils;
 import com.riprod.hexcode.core.common.triggers.component.TriggerEvent;
 import com.riprod.hexcode.core.common.triggers.registry.Trigger;
+import com.riprod.hexcode.core.state.execution.HexExecuter;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.PlayerHexRoot;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
-import com.riprod.hexcode.core.state.execution.events.CastingEventData;
 import com.riprod.hexcode.utils.SpellMana;
 
 public final class ItemHeldCastDispatcher implements CastRootDispatcher {
@@ -40,20 +43,24 @@ public final class ItemHeldCastDispatcher implements CastRootDispatcher {
         Hex hex = ImbuementUtils.resolveHex(data);
         if (hex == null) return;
 
-        PlayerHexRoot hexRoot = new PlayerHexRoot(player);
-        float volatilityMax = hexRoot.resolveVolatility(buffer);
+        PlayerHexRoot hexRoot = new PlayerHexRoot(player, buffer);
+        float volatilityMax = ItemStatExtractor.extractVolatility(heldItem);
         float baseMana = SpellMana.computeTotalMana(hex);
-        float resolvedPower = hexRoot.resolveSpellPower(buffer);
+        float resolvedPower = 1.0f + ItemStatExtractor.extractPower(heldItem);
         VolatilityTracker tracker = new VolatilityTracker(volatilityMax, 1.0f, resolvedPower);
 
+        HexContext context = new HexContext(hex, baseMana, hexRoot, null, tracker);
+
+        ImbuementProfileAsset profile = ImbuementProfileRegistry.first(heldItem);
+        if (profile != null) context.applyNonDefaultsFrom(profile.getDefaults());
+        context.applyNonDefaultsFrom(data.getOverrides());
+
         HexVar defaultVar = trigger.resolveDefaultVariable(event);
-        CastingEventData castData = new CastingEventData(
-                hex, player, baseMana, hexRoot, data.getColors(), tracker);
-        if (defaultVar != null) castData.setDefaultVariable(defaultVar);
-        castData.setCastSlotKey(trigger.getId());
+        if (defaultVar != null) context.setDefaultVariable(defaultVar);
+        context.setCastSlotKey(trigger.getId());
 
         try {
-            buffer.invoke(new HexCastEvent(player, castData));
+            HexExecuter.cast(context, buffer);
         } catch (Exception e) {
             LOGGER.atSevere().log("%s imbuement dispatch failed: %s", trigger.getId(), e.getMessage());
         }

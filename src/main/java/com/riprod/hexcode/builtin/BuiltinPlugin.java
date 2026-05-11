@@ -169,7 +169,6 @@ public class BuiltinPlugin extends JavaPlugin {
 
     private void RegisterGlyphs() {
 
-        // tier 1
         GlyphRegistry.register(new SelfGlyph());
         GlyphRegistry.register(new ChaosGlyph());
         GlyphRegistry.register(new ForceGlyph());
@@ -177,7 +176,6 @@ public class BuiltinPlugin extends JavaPlugin {
         GlyphRegistry.register(new DrainGlyph());
         GlyphRegistry.register(new HaltGlyph());
 
-        // tier 2
         GlyphRegistry.register(new BeamGlyph());
         GlyphRegistry.register(new AreaGlyph());
         GlyphRegistry.register(new ProjectileGlyph());
@@ -192,7 +190,6 @@ public class BuiltinPlugin extends JavaPlugin {
         GlyphRegistry.register(new ScaleGlyph());
         GlyphRegistry.register(new DomainGlyph());
 
-        // tier 3
         GlyphRegistry.register(new IgniteGlyph());
         GlyphRegistry.register(new BoltGlyph());
         GlyphRegistry.register(new ArcGlyph());
@@ -206,7 +203,6 @@ public class BuiltinPlugin extends JavaPlugin {
         GlyphRegistry.register(new WarpGlyph());
         GlyphRegistry.register(new SwapGlyph());
 
-        // math glyphs (canReadValue + execute)
         GlyphRegistry.register(new MultiplyGlyph());
         GlyphRegistry.register(new AddGlyph());
         GlyphRegistry.register(new SubtractGlyph());
@@ -222,28 +218,22 @@ public class BuiltinPlugin extends JavaPlugin {
         GlyphRegistry.register(new RootGlyph());
         GlyphRegistry.register(new StyleGlyph());
 
-        // constructor glyphs (canReadValue + execute)
         GlyphRegistry.register(new PositionValue());
         GlyphRegistry.register(new RotationValue());
 
-        // numeric values
         for (int i = 1; i <= 16; i++) {
             GlyphRegistry.register(new NumberValue(i));
         }
         GlyphRegistry.register(new VariableValue());
         GlyphRegistry.register(new PiValue());
 
-        // debug / introspection
         GlyphRegistry.register(new DebugGlyph());
 
-        // output landmark (wave 2)
         GlyphRegistry.register(new OutputGlyph());
 
-        // caster state queries
         GlyphRegistry.register(new IsHoldingValue());
         GlyphRegistry.register(new ConcentrationGlyph());
 
-        // trigger glyphs
         GlyphRegistry.register(new OnPrimaryGlyph());
         GlyphRegistry.register(new OnSecondaryGlyph());
         GlyphRegistry.register(new OnUseGlyph());
@@ -307,7 +297,6 @@ public class BuiltinPlugin extends JavaPlugin {
                 .registerComponent(TriggerListenerComponent.class, TriggerListenerComponent::new);
         TriggerListenerComponent.setComponentType(triggerListenerType);
 
-        // imbuement archetype-filter markers — transient, no codec.
         ComponentType<EntityStore, ImbuedHotbarMarker> hotbarMarkerType = entityStoreRegistry
                 .registerComponent(ImbuedHotbarMarker.class, ImbuedHotbarMarker::new);
         ImbuedHotbarMarker.setComponentType(hotbarMarkerType);
@@ -323,23 +312,15 @@ public class BuiltinPlugin extends JavaPlugin {
         entityStoreRegistry.registerSystem(new ErodeDamageSystem());
         entityStoreRegistry.registerSystem(new FortifyDamageSystem());
 
-        // trigger sources
         entityStoreRegistry.registerSystem(new DeathTriggerSource());
         entityStoreRegistry.registerSystem(new CastTriggerSource());
-        // interaction source uses a packet adapter (not an EntityEventSystem),
-        // so it self-registers via PacketAdapters.registerInbound
         InteractionTriggerSource.register();
 
-        // damage-side imbuement sources. archetype-filtered via marker
-        // components so the framework skips unimbued entities entirely.
         entityStoreRegistry.registerSystem(new EntityHitEventSource.OnDamageDealtSystem());
         entityStoreRegistry.registerSystem(new EntityHitEventSource.OnDamageReceivedSystem());
 
-        // marker maintenance — reactive, fires only on InventoryChangeEvent.
         entityStoreRegistry.registerSystem(new ImbuementMarkerSystem());
 
-        // imbuement triggers — one Trigger per slot key, dispatched via the
-        // map<Source, CastRootDispatcher> in ImbuementTriggerBootstrap.
         TriggerRegistry.register(new PrimaryTrigger());
         TriggerRegistry.register(new SecondaryTrigger());
         TriggerRegistry.register(new UseTrigger());
@@ -351,17 +332,11 @@ public class BuiltinPlugin extends JavaPlugin {
         TriggerRegistry.register(new BlockTrigger());
         TriggerRegistry.register(new AttackedTrigger());
 
-        // manual triggers — registered so the slot-key validator passes for
-        // book pages and block default. no event source fires these; consumers
-        // (CasterInventory, ImbuedBlockActivator) read the imbuement metadata
-        // map directly.
         for (int i = 1; i <= 10; i++) {
             TriggerRegistry.register(new ManualTrigger(Integer.toString(i)));
         }
         TriggerRegistry.register(new ManualTrigger("Default"));
 
-        // single bootstrap subscribes every event-driven trigger to its
-        // dispatcher. replaces the per-trigger PrimaryImbuementBinder/etc.
         TriggerListenerRegistry.registerBootstrap(ImbuementTriggerBootstrap::register);
     }
 
@@ -386,7 +361,6 @@ public class BuiltinPlugin extends JavaPlugin {
         ConstructRegistry.register(IgniteGlyph.ID, new IgniteConstructHandler());
         ConstructRegistry.register(GrowthGlyph.ID, new GrowthConstructHandler());
 
-        // shared trigger sustain construct (sips volatility while waiting for an event)
         ConstructRegistry.register(TriggerConstructHandler.HANDLER_ID, new TriggerConstructHandler());
     }
 }

@@ -96,6 +96,7 @@ public class ArcConstructHandler implements ConstructHandler<ArcState> {
                     new EntityVar(targetUuid.getUuid(), targetRef), hexContext);
         }
 
+        hexContext.UpdateAccessor(ctx.getBuffer());
         HexExecuter.continueExecution(List.of(branch), hexContext);
 
         state.advanceBranch();
@@ -120,7 +121,7 @@ public class ArcConstructHandler implements ConstructHandler<ArcState> {
         float rangeScale = state.getMaxJumpDistance() / DEFAULT_JUMP_RANGE;
         float finalCost = baseCost * rangeScale;
 
-        if (hexContext.getRoot() == null) return true;
+        if (hexContext.getHexRoot() == null) return true;
         boolean ok = tracker.consumeVolatility(finalCost);
         if (ok) {
             tracker.incrementGlyphUsage(arcGlyph.getId());

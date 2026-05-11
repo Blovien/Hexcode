@@ -1,5 +1,3 @@
 {
-  "Element": "water",
-  "VolatilityMultiplier": 1.0,
-  "Style": "Essence_Water"
+  "Colors": "Essence_Water"
 }

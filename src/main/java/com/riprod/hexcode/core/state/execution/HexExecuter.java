@@ -2,23 +2,21 @@ package com.riprod.hexcode.core.state.execution;
 
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentAccessor;
-import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.HytaleServer;
-import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.GlyphFizzleEvent;
+import com.riprod.hexcode.api.event.HexCastEvent;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.component.Slot;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphRegistry;
-import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
+import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
-import com.riprod.hexcode.core.state.execution.events.CastingEventData;
 
 import java.util.Arrays;
 import java.util.List;
@@ -29,42 +27,54 @@ public class HexExecuter {
     private HexExecuter() {
     }
 
-    public static void cast(CommandBuffer<EntityStore> buffer, CastingEventData castingData) {
+    public static void cast(HexContext context, CommandBuffer<EntityStore> buffer) {
+        ComponentAccessor<ChunkStore> chunkAccessor = buffer.getExternalData().getWorld().getChunkStore().getStore();
+        context.UpdateAccessor(buffer);
+        context.UpdateChunkAccessor(chunkAccessor);
+        if (context.getStyle() == null) context.setStyle(HexStyleAsset.empty());
+        buffer.invoke(new HexCastEvent(context));
+    }
 
-        ComponentAccessor<ChunkStore> chunkAccessor = buffer.getExternalData().getWorld().getChunkStore()
-                .getStore();
+    public static void runPostGate(HexContext context, CommandBuffer<EntityStore> buffer) {
+        if (context.getAccessor() == null) {
+            context.UpdateAccessor(buffer);
+            context.UpdateChunkAccessor(buffer.getExternalData().getWorld().getChunkStore().getStore());
+        }
 
-        HexContext hexContext = new HexContext(buffer, chunkAccessor, castingData);
-
-        if (!castingData.getHexRoot().tryConsumeMana(castingData.getManaCost(), buffer)) {
+        if (context.getHexRoot() == null) {
             HytaleServer.get().getEventBus().dispatchFor(GlyphFizzleEvent.class)
-                    .dispatch(new GlyphFizzleEvent(null, GlyphFizzleEvent.Reason.INSUFFICIENT_MANA, hexContext));
+                    .dispatch(new GlyphFizzleEvent(null, GlyphFizzleEvent.Reason.ERROR, context));
             return;
         }
 
-        Hex hex = castingData.getHex();
+        if (!context.getHexRoot().tryConsumeMana(context.getManaCost(), buffer)) {
+            HytaleServer.get().getEventBus().dispatchFor(GlyphFizzleEvent.class)
+                    .dispatch(new GlyphFizzleEvent(null, GlyphFizzleEvent.Reason.INSUFFICIENT_MANA, context));
+            return;
+        }
+
+        Hex hex = context.getHex();
+        if (hex == null) {
+            HytaleServer.get().getEventBus().dispatchFor(GlyphFizzleEvent.class)
+                    .dispatch(new GlyphFizzleEvent(null, GlyphFizzleEvent.Reason.ERROR, context));
+            return;
+        }
         String startingGlyph = hex.getFirstGlyphId();
         if (startingGlyph == null) {
             HytaleServer.get().getEventBus().dispatchFor(GlyphFizzleEvent.class)
-                    .dispatch(new GlyphFizzleEvent(null, GlyphFizzleEvent.Reason.ERROR, hexContext));
+                    .dispatch(new GlyphFizzleEvent(null, GlyphFizzleEvent.Reason.ERROR, context));
             return;
         }
 
-        HexVar defaultVar = castingData.getDefaultVariable();
+        HexVar defaultVar = context.getDefaultVariable();
+        if (defaultVar == null) {
+            defaultVar = context.getHexRoot().getRootVar(context);
+        }
         if (defaultVar != null) {
-            hexContext.setVariable(Glyph.DEFAULT_SLOT, defaultVar);
-        } else {
-            Ref<EntityStore> targetRef = castingData.getTargetRef();
-            UUIDComponent uuidComponent = hexContext.getAccessor().getComponent(
-                    targetRef, UUIDComponent.getComponentType());
-            if (uuidComponent != null) {
-                EntityVar targetVar = new EntityVar(
-                        EntityVar.createRef(uuidComponent.getUuid(), targetRef));
-                hexContext.setVariable(Glyph.DEFAULT_SLOT, targetVar);
-            }
+            context.setVariable(Glyph.DEFAULT_SLOT, defaultVar);
         }
 
-        continueExecution(List.of(startingGlyph), hexContext);
+        continueExecution(List.of(startingGlyph), context);
     }
 
     public static void continueFromSlot(Glyph glyph, String slotKey, HexContext hexContext) {

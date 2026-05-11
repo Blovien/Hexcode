@@ -20,7 +20,7 @@ public class FizzleMessageListener implements Consumer<GlyphFizzleEvent> {
         HexContext ctx = event.getCtx();
         if (ctx == null || ctx.getAccessor() == null)
             return;
-        var root = ctx.getRoot();
+        var root = ctx.getHexRoot();
         Ref<EntityStore> caster = root.getSourceRef();
         if (caster == null || !caster.isValid())
             return;

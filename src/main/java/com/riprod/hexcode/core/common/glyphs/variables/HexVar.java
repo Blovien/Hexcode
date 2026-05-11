@@ -28,12 +28,17 @@ public abstract sealed class HexVar
         throw new UnsupportedOperationException(getClass().getSimpleName() + " cannot convert to Color");
     }
 
+    public BlockVar toBlockVar(ComponentAccessor<EntityStore> accessor) {
+        return null;
+    }
+
     public final HexVar convertTo(Class<? extends HexVar> target, ComponentAccessor<EntityStore> accessor) {
         if (target == this.getClass()) return this;
         if (target == NumberVar.class) return new NumberVar(toScalar());
         if (target == PositionVar.class) return toPosition(accessor);
         if (target == RotationVar.class) return toRotation(accessor);
         if (target == ColorVar.class) return toColor(accessor);
+        if (target == BlockVar.class) return toBlockVar(accessor);
         throw new UnsupportedOperationException(
                 getClass().getSimpleName() + " cannot convert to " + target.getSimpleName());
     }

@@ -9,7 +9,7 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.HexCastEvent;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
-import com.riprod.hexcode.core.state.execution.events.CastingEventData;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
 
 public class HexCastDiagnosticListener extends WorldEventSystem<EntityStore, HexCastEvent> {
 
@@ -23,11 +23,11 @@ public class HexCastDiagnosticListener extends WorldEventSystem<EntityStore, Hex
     public void handle(@Nonnull Store<EntityStore> store,
                        @Nonnull CommandBuffer<EntityStore> buffer,
                        @Nonnull HexCastEvent event) {
-        CastingEventData data = event.getCastingData();
-        Hex hex = event.getHex();
-        String firstGlyph = hex != null ? hex.getFirstGlyphId() : "<null>";
+        HexContext data = event.getContext();
+        Hex hex = data != null ? data.getHex() : null;
+        String firstGlyph = hex != null ? hex.get(hex.getFirstGlyphId()).getGlyphId() : "<null>";
         LOGGER.atInfo().log(
-                "[cast] firstGlyph=%s mana=%s cancelled=%s",
+                "firstGlyph=%s mana=%s cancelled=%s",
                 firstGlyph,
                 data != null ? data.getManaCost() : "<null>",
                 event.isCancelled());

@@ -15,6 +15,9 @@ import com.hypixel.hytale.server.core.asset.type.model.config.ModelParticle;
 import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
 import com.riprod.hexcode.core.state.casting.registery.CastingStyleValidator;
 import com.riprod.hexcode.core.state.execution.component.HexColors;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
+
+import javax.annotation.Nullable;
 
 public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<String, HexStaffAsset>> {
   private static AssetStore<String, HexStaffAsset, DefaultAssetMap<String, HexStaffAsset>> ASSET_STORE;
@@ -26,6 +29,8 @@ public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
   protected ModelParticle[] craftingAuraParticles;
   protected float castDecayRate = 0.05f;
   protected String styleId;
+  @Nullable
+  protected HexContext defaults;
 
   public static AssetStore<String, HexStaffAsset, DefaultAssetMap<String, HexStaffAsset>> getAssetStore() {
     if (ASSET_STORE == null) {
@@ -70,6 +75,11 @@ public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
   public HexStyleAsset getStyle() {
     if (this.styleId == null) return null;
     return HexStyleAsset.getAssetMap().getAsset(this.styleId);
+  }
+
+  @Nullable
+  public HexContext getDefaults() {
+    return this.defaults;
   }
 
   public HexColors getColors() {
@@ -117,6 +127,12 @@ public class HexStaffAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
           a -> a.styleId,
           (a, p) -> a.styleId = p.styleId)
       .addValidatorLate(() -> HexStyleAsset.VALIDATOR_CACHE.getValidator().late())
+      .add()
+      .appendInherited(new KeyedCodec<>("Defaults", HexContext.CODEC),
+          (a, v) -> a.defaults = v,
+          a -> a.defaults,
+          (a, p) -> a.defaults = p.defaults)
+      .documentation("Optional cast overrides applied when this staff is wielded. Same shape as ImbuementProfileAsset.Defaults.")
       .add()
       .build();
 
