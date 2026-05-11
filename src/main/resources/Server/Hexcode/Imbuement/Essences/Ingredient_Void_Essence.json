@@ -1,5 +1,6 @@
 {
   "Element": "void",
-  "VolatilityMultiplier": 1.0,
-  "Style": "Essence_Void"
+  "Defaults": {
+    "Style": "Essence_Void"
+  }
 }

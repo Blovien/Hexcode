@@ -8,13 +8,13 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.HexcasterIdleComponent;
 import com.riprod.hexcode.core.state.execution.component.PlayerHexRoot;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
-import com.riprod.hexcode.core.state.execution.events.CastingEventData;
 
 // the central pre-execute policy gate. every cast that goes through HexCastEvent
-// passes through here; per-cast policy flags on CastingEventData decide whether
+// passes through here; per-cast policy flags on HexContext decide whether
 // the player charge cap, decay accumulation, and tracker eviction apply.
 public final class CastGate {
 
@@ -23,9 +23,9 @@ public final class CastGate {
     private CastGate() {
     }
 
-    public static boolean admit(@Nonnull CommandBuffer<EntityStore> buffer, @Nonnull CastingEventData castData) {
+    public static boolean admit(@Nonnull CommandBuffer<EntityStore> buffer, @Nonnull HexContext context) {
         // non-player roots (block, npc, system) skip the player-scoped gate entirely.
-        if (!(castData.getHexRoot() instanceof PlayerHexRoot playerRoot)) {
+        if (!(context.getHexRoot() instanceof PlayerHexRoot playerRoot)) {
             return true;
         }
         Ref<EntityStore> casterRef = playerRoot.getSourceRef();
@@ -34,10 +34,10 @@ public final class CastGate {
         HexcasterIdleComponent idle = buffer.getComponent(casterRef, HexcasterIdleComponent.getComponentType());
         if (idle == null) return true;
 
-        VolatilityTracker tracker = castData.getVolatilityTracker();
+        VolatilityTracker tracker = context.getVolatilityTracker();
         if (tracker == null) return true;
 
-        String slotKey = castData.getCastSlotKey();
+        String slotKey = context.getCastSlotKey();
         tracker.setSlotKey(slotKey);
 
         if (slotKey == null) {
@@ -54,7 +54,7 @@ public final class CastGate {
             float startingBudget = Math.max(0f, volMax - idle.getCumulativeDecay());
             tracker.setBudget(startingBudget);
             tracker.setStartingBudget(startingBudget);
-            idle.advanceCast(castData.getCastDecayRate(), volMax);
+            idle.advanceCast(context.getCastDecayRate(), volMax);
         } else {
             // slot-bound path: one cast per slot key. fizzle any prior cast on
             // this slot; skip cap, decay-subtraction, and decay-accumulation.

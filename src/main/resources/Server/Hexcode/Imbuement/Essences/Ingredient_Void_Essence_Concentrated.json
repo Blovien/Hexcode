@@ -1,5 +1,7 @@
 {
   "Element": "void",
-  "VolatilityMultiplier": 2.0,
-  "Style": "Essence_Void"
+  "Defaults": {
+    "VolatilityTracker": { "VolatilityMultiplier": 2.0 },
+    "Style": "Essence_Void"
+  }
 }

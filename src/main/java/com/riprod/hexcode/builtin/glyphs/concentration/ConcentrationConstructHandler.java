@@ -66,7 +66,7 @@ public class ConcentrationConstructHandler implements ConstructHandler<Concentra
 
         // deep copy gives the release branch its own VolatilityTracker so zeroing the
         // held one (to kill any sustaining children of NEXT) won't take it down too
-        HexContext releaseCtx = heldCtx.copy();
+        HexContext releaseCtx = HexContext.cloneState(heldCtx);
 
         // register the release tracker so subsequent q presses can still cancel it
         HexcasterIdleComponent idle = buffer.getComponent(

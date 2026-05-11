@@ -1,5 +1,6 @@
 {
   "Element": "life",
-  "VolatilityMultiplier": 1.0,
-  "Style": "Essence_Life"
+  "Defaults": {
+    "Style": "Essence_Life"
+  }
 }

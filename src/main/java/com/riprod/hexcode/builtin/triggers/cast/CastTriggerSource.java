@@ -32,7 +32,8 @@ public class CastTriggerSource extends WorldEventSystem<EntityStore, HexCastEven
         TriggerListenerRegistry registry = buffer.getResource(TriggerListenerRegistry.getResourceType());
         if (registry == null || registry.countListeners(TriggerKey.CAST) == 0) return;
 
-        Ref<EntityStore> caster = event.getWielderRef();
+        Ref<EntityStore> caster = event.getContext().getHexRoot() != null
+                ? event.getContext().getHexRoot().getSourceRef() : null;
         if (caster == null || !caster.isValid()) return;
         UUIDComponent uuidComp = buffer.getComponent(caster, UUIDComponent.getComponentType());
         if (uuidComp == null) return;

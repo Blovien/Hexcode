@@ -1,15 +1,25 @@
 package com.riprod.hexcode.core.state.execution.component;
 
+import com.hypixel.hytale.codec.KeyedCodec;
+import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
+import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.imbuement.block.BlockImbuementCapacity;
 
 public class BlockHexRoot implements HexRoot {
 
-    private final Vector3i blockPos;
-    private final BlockImbuementCapacity.Capacity capacity;
+    private Vector3i blockPos;
+    // capacity is derived from blockPos+world at construction; not codec'd.
+    // decoded BlockHexRoot has null capacity (out-of-scope for this iteration —
+    // persisted hexRoot is round-trip data, not used at runtime by overlay).
+    private transient BlockImbuementCapacity.Capacity capacity;
+
+    public BlockHexRoot() {
+    }
 
     public BlockHexRoot(Vector3i blockPos, BlockImbuementCapacity.Capacity capacity) {
         this.blockPos = blockPos;
@@ -53,11 +63,16 @@ public class BlockHexRoot implements HexRoot {
         return false;
     }
 
-    public float resolveVolatility(ComponentAccessor<EntityStore> accessor) {
+    @Override
+    public HexVar getRootVar(HexContext ctx) {
+        return new BlockVar(blockPos);
+    }
+
+    public float resolveVolatility() {
         return (float) capacity.getSlots() * capacity.getVolatilityPerSlot();
     }
 
-    public float resolveSpellPower(ComponentAccessor<EntityStore> accessor) {
+    public float resolveSpellPower() {
         return 1.0f;
     }
 
@@ -65,4 +80,12 @@ public class BlockHexRoot implements HexRoot {
     public HexRoot copy() {
         return new BlockHexRoot(blockPos, capacity);
     }
+
+    public static final BuilderCodec<BlockHexRoot> CODEC = BuilderCodec
+            .builder(BlockHexRoot.class, BlockHexRoot::new, HexRoot.BASE_CODEC)
+            .append(new KeyedCodec<>("BlockPos", Vector3i.CODEC),
+                    (c, v) -> c.blockPos = v,
+                    c -> c.blockPos)
+            .add()
+            .build();
 }

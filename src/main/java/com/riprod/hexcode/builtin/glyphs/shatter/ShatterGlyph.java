@@ -174,7 +174,7 @@ public class ShatterGlyph implements GlyphHandler {
                 new ShatterState(branched, glyph));
 
         Ref<EntityStore> shardRef = hexContext.getAccessor().addEntity(holder, AddReason.SPAWN);
-        hexContext.getRoot().addDependency(branched, shardRef);
+        hexContext.getHexRoot().addDependency(branched, shardRef);
     }
 
     private List<Vector3d> computeConeDirections(Vector3d center, int count, double spread) {

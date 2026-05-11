@@ -44,7 +44,6 @@ import com.riprod.hexcode.core.common.triggers.registry.TriggerListenerRegistry;
 import com.riprod.hexcode.core.common.obelisk.registry.ObeliskHandlerRegistry;
 import com.riprod.hexcode.core.common.imbuement.component.ImbuedBlockComponent;
 import com.riprod.hexcode.core.common.imbuement.block.ImbuedBlockTickSystem;
-import com.riprod.hexcode.core.common.imbuement.block.ImbuedBlockPlacementHandler;
 import com.riprod.hexcode.core.common.imbuement.block.ImbuedBlockBreakHandler;
 import com.riprod.hexcode.core.common.pedestal.component.PedestalBlockComponent;
 import com.riprod.hexcode.core.common.pedestal.events.PedestalBlockEvent;
@@ -66,7 +65,10 @@ import com.riprod.hexcode.core.state.drawing.DrawingSystem;
 import com.riprod.hexcode.core.state.drawing.component.HexcasterDrawingComponent;
 import com.riprod.hexcode.core.state.drawing.registry.ShapeAsset;
 import com.riprod.hexcode.core.state.drawing.registry.TemplateAsset;
+import com.riprod.hexcode.core.state.execution.component.BlockHexRoot;
+import com.riprod.hexcode.core.state.execution.component.HexRoot;
 import com.riprod.hexcode.core.state.execution.component.HexcasterIdleComponent;
+import com.riprod.hexcode.core.state.execution.component.PlayerHexRoot;
 import com.riprod.hexcode.core.state.execution.events.HexCastEventSystem;
 import com.riprod.hexcode.core.state.idle.IdleSystem;
 import com.riprod.hexcode.interaction.HexStateChange;
@@ -349,7 +351,6 @@ public class Hexcode extends JavaPlugin {
         entityStoreRegistry.registerSystem(new HexCastDiagnosticListener());
         entityStoreRegistry.registerSystem(new HexcasterCleanupSystem());
         entityStoreRegistry.registerSystem(new SessionTickSystem());
-        entityStoreRegistry.registerSystem(new ImbuedBlockPlacementHandler());
         entityStoreRegistry.registerSystem(new ImbuedBlockBreakHandler());
 
         ResourceType<EntityStore, SpatialResource<Ref<EntityStore>, EntityStore>> hoverableSpatialResourceType = entityStoreRegistry
@@ -404,6 +405,9 @@ public class Hexcode extends JavaPlugin {
         HexVar.CODEC.register("Rotation", RotationVar.class, RotationVar.CODEC);
         HexVar.CODEC.register("Position", PositionVar.class, PositionVar.CODEC);
         HexVar.CODEC.register("Number", NumberVar.class, NumberVar.CODEC);
+
+        HexRoot.CODEC.register("Player", PlayerHexRoot.class, PlayerHexRoot.CODEC);
+        HexRoot.CODEC.register("Block", BlockHexRoot.class, BlockHexRoot.CODEC);
 
         StateRouter.registerState(HexState.IDLE, new IdleSystem());
         StateRouter.registerState(HexState.CASTING, new CastingSystem());

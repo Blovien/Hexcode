@@ -1,5 +1,7 @@
 {
   "Element": "life",
-  "VolatilityMultiplier": 2.0,
-  "Style": "Essence_Life"
+  "Defaults": {
+    "VolatilityTracker": { "VolatilityMultiplier": 2.0 },
+    "Style": "Essence_Life"
+  }
 }

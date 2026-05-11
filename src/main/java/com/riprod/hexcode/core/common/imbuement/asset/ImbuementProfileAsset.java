@@ -22,6 +22,7 @@ import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.riprod.hexcode.core.common.glyphs.registry.SlotAsset;
 import com.riprod.hexcode.core.common.imbuement.registry.ImbuementSlotKeyValidator;
 import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
 
 import javax.annotation.Nullable;
 import java.util.EnumMap;
@@ -41,6 +42,8 @@ public class ImbuementProfileAsset
     @Nullable
     protected ItemArmorSlot armorSlot;
     protected String[] excludedCategories = new String[0];
+    @Nullable
+    protected HexContext defaults;
     protected Map<String, SlotAsset> slots = new LinkedHashMap<>();
     @Nullable
     protected String displayModelOverride;
@@ -76,6 +79,11 @@ public class ImbuementProfileAsset
 
     public String[] getExcludedCategories() {
         return excludedCategories;
+    }
+
+    @Nullable
+    public HexContext getDefaults() {
+        return defaults;
     }
 
     public Map<String, SlotAsset> getSlots() {
@@ -125,6 +133,11 @@ public class ImbuementProfileAsset
                 .metadata(new UIEditor(new UIEditor.Dropdown("ItemCategories")))
                 .addValidatorLate(() -> new ArrayValidator<>(ItemCategory.VALIDATOR_CACHE.getValidator().late()).late())
                 .documentation("Optional. If any of an item's Categories matches an entry in this list, the profile rejects the item.")
+                .add()
+                .append(new KeyedCodec<>("Defaults", HexContext.CODEC),
+                        (a, v) -> a.defaults = v,
+                        a -> a.defaults)
+                .documentation("Optional per-profile cast value defaults. Applied after player resolution and before per-imbuement Overrides.")
                 .add()
                 .append(new KeyedCodec<>("Slots",
                         new MapCodec<>(SlotAsset.CODEC, LinkedHashMap::new, false)),

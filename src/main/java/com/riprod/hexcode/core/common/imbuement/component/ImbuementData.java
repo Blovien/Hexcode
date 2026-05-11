@@ -9,7 +9,7 @@ import com.riprod.hexcode.core.common.hexes.codec.HexCacheResource;
 import com.riprod.hexcode.core.common.hexes.codec.HexCodec;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.saved.SavedHexAsset;
-import com.riprod.hexcode.core.state.execution.component.HexColors;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
 
 public class ImbuementData {
 
@@ -19,14 +19,8 @@ public class ImbuementData {
     private Hex hex;
     @Nullable
     private String hexAssetId;
-    private float manaOverride = -1f;
-    private float manaMultiplier = 1.0f;
-    private float volatilityOverride = -1f;
-    private float volatilityMultiplier = 1.0f;
-    private float powerOverride = -1f;
-    private float powerMultiplier = 1.0f;
     @Nullable
-    private HexColors colors;
+    private HexContext overrides;
 
     public ImbuementData() {
     }
@@ -36,13 +30,7 @@ public class ImbuementData {
         copy.hexCompressedId = this.hexCompressedId;
         copy.hex = this.hex;
         copy.hexAssetId = this.hexAssetId;
-        copy.manaOverride = this.manaOverride;
-        copy.manaMultiplier = this.manaMultiplier;
-        copy.volatilityOverride = this.volatilityOverride;
-        copy.volatilityMultiplier = this.volatilityMultiplier;
-        copy.powerOverride = this.powerOverride;
-        copy.powerMultiplier = this.powerMultiplier;
-        copy.colors = this.colors;
+        copy.overrides = HexContext.cloneState(this.overrides);
         return copy;
     }
 
@@ -97,61 +85,13 @@ public class ImbuementData {
         this.hexAssetId = hexAssetId;
     }
 
-    public float getManaOverride() {
-        return manaOverride;
-    }
-
-    public void setManaOverride(float manaOverride) {
-        this.manaOverride = manaOverride;
-    }
-
-    public float getManaMultiplier() {
-        return manaMultiplier;
-    }
-
-    public void setManaMultiplier(float manaMultiplier) {
-        this.manaMultiplier = manaMultiplier;
-    }
-
-    public float getVolatilityOverride() {
-        return volatilityOverride;
-    }
-
-    public void setVolatilityOverride(float volatilityOverride) {
-        this.volatilityOverride = volatilityOverride;
-    }
-
-    public float getVolatilityMultiplier() {
-        return volatilityMultiplier;
-    }
-
-    public void setVolatilityMultiplier(float volatilityMultiplier) {
-        this.volatilityMultiplier = volatilityMultiplier;
-    }
-
-    public float getPowerOverride() {
-        return powerOverride;
-    }
-
-    public void setPowerOverride(float powerOverride) {
-        this.powerOverride = powerOverride;
-    }
-
-    public float getPowerMultiplier() {
-        return powerMultiplier;
-    }
-
-    public void setPowerMultiplier(float powerMultiplier) {
-        this.powerMultiplier = powerMultiplier;
-    }
-
     @Nullable
-    public HexColors getColors() {
-        return colors;
+    public HexContext getOverrides() {
+        return overrides;
     }
 
-    public void setColors(@Nullable HexColors colors) {
-        this.colors = colors;
+    public void setOverrides(@Nullable HexContext overrides) {
+        this.overrides = overrides;
     }
 
     public static final BuilderCodec<ImbuementData> CODEC = BuilderCodec
@@ -169,33 +109,10 @@ public class ImbuementData {
                     c -> c.hexAssetId)
             .addValidatorLate(() -> SavedHexAsset.VALIDATOR_CACHE.getValidator().late())
             .add()
-            .append(new KeyedCodec<>("ManaOverride", Codec.FLOAT),
-                    (c, v) -> c.manaOverride = v,
-                    c -> c.manaOverride)
-            .add()
-            .append(new KeyedCodec<>("ManaMultiplier", Codec.FLOAT),
-                    (c, v) -> c.manaMultiplier = v,
-                    c -> c.manaMultiplier)
-            .add()
-            .append(new KeyedCodec<>("VolatilityOverride", Codec.FLOAT),
-                    (c, v) -> c.volatilityOverride = v,
-                    c -> c.volatilityOverride)
-            .add()
-            .append(new KeyedCodec<>("VolatilityMultiplier", Codec.FLOAT),
-                    (c, v) -> c.volatilityMultiplier = v,
-                    c -> c.volatilityMultiplier)
-            .add()
-            .append(new KeyedCodec<>("PowerOverride", Codec.FLOAT),
-                    (c, v) -> c.powerOverride = v,
-                    c -> c.powerOverride)
-            .add()
-            .append(new KeyedCodec<>("PowerMultiplier", Codec.FLOAT),
-                    (c, v) -> c.powerMultiplier = v,
-                    c -> c.powerMultiplier)
-            .add()
-            .append(new KeyedCodec<>("Colors", HexColors.CODEC),
-                    (c, v) -> c.colors = v,
-                    c -> c.colors)
+            .append(new KeyedCodec<>("Overrides", HexContext.CODEC),
+                    (c, v) -> c.overrides = v,
+                    c -> c.overrides)
+            .documentation("Optional cast overrides applied at fire time. Snapshot of cast-affecting values written at imbue time from the source item's stat modifiers.")
             .add()
             .build();
 }

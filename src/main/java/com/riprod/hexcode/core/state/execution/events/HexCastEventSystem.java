@@ -24,7 +24,7 @@ public class HexCastEventSystem extends WorldEventSystem<EntityStore, HexCastEve
                        @Nonnull CommandBuffer<EntityStore> buffer,
                        @Nonnull HexCastEvent event) {
         if (event.isCancelled()) return;
-        if (!CastGate.admit(buffer, event.getCastingData())) return;
-        HexExecuter.cast(buffer, event.getCastingData());
+        if (!CastGate.admit(buffer, event.getContext())) return;
+        HexExecuter.runPostGate(event.getContext(), buffer);
     }
 }

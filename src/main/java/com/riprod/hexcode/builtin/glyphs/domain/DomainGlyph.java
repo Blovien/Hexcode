@@ -102,7 +102,7 @@ public static final String ID = "Domain";
         power = Math.max(0.1f, power);
 
         float upfrontCost = BASE_MANA_COST * (1 + (power - 1) * 0.5f);
-        if (!hexContext.getRoot().tryConsumeMana(upfrontCost, hexContext.getAccessor())) {
+        if (!hexContext.getHexRoot().tryConsumeMana(upfrontCost, hexContext.getAccessor())) {
             HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.INSUFFICIENT_MANA);
             return;
         }
@@ -147,6 +147,6 @@ public static final String ID = "Domain";
 
         DomainStyle.renderSpawn(anchorPos, (float) radius, hexContext, hexContext.getAccessor());
 
-        hexContext.getRoot().addDependency(hexContext, zoneRef);
+        hexContext.getHexRoot().addDependency(hexContext, zoneRef);
     }
 }

@@ -1,0 +1,21 @@
+{
+  "Tool": {
+    "Speed": 1.0,
+    "Specs": [
+      { "GatherType": "Benches",        "Power": 1.0, "Quality": 5 },
+      { "GatherType": "OreAdamantite",  "Power": 1.0, "Quality": 5 },
+      { "GatherType": "OreCobalt",      "Power": 1.0, "Quality": 5 },
+      { "GatherType": "OreCopper",      "Power": 1.0, "Quality": 5 },
+      { "GatherType": "OreGold",        "Power": 1.0, "Quality": 5 },
+      { "GatherType": "OreIron",        "Power": 1.0, "Quality": 5 },
+      { "GatherType": "OreMithril",     "Power": 1.0, "Quality": 5 },
+      { "GatherType": "OreSilver",      "Power": 1.0, "Quality": 5 },
+      { "GatherType": "OreThorium",     "Power": 1.0, "Quality": 5 },
+      { "GatherType": "Rocks",          "Power": 1.0, "Quality": 5 },
+      { "GatherType": "SoftBlocks",     "Power": 1.0, "Quality": 5 },
+      { "GatherType": "Soils",          "Power": 1.0, "Quality": 5 },
+      { "GatherType": "VolcanicRocks",  "Power": 1.0, "Quality": 5 },
+      { "GatherType": "Woods",          "Power": 1.0, "Quality": 5 }
+    ]
+  }
+}

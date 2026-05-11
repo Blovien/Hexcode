@@ -157,7 +157,7 @@ public class ProjectileGlyph implements GlyphHandler {
 
         UUIDComponent uuidComp = holder.getComponent(UUIDComponent.getComponentType());
         if (uuidComp != null) {
-            hexContext.getRoot().addDependency(hexContext, projectileRef);
+            hexContext.getHexRoot().addDependency(hexContext, projectileRef);
             EntityVar projectileVar = new EntityVar(uuidComp.getUuid(), projectileRef);
             glyph.writeOutput(projectileVar, hexContext);
         }

@@ -1,5 +1,6 @@
 {
   "Element": "fire",
-  "VolatilityMultiplier": 1.0,
-  "Style": "Essence_Fire"
+  "Defaults": {
+    "Style": "Essence_Fire"
+  }
 }

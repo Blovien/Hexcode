@@ -152,7 +152,7 @@ public static final String ID = "Glaciate";
         UUID iceUuid = iceUuidComp != null ? iceUuidComp.getUuid() : UUID.randomUUID();
         glyph.writeSelfOutput(new EntityVar(iceUuid, iceRef), hexContext);
 
-        hexContext.getRoot().addDependency(hexContext, iceRef);
+        hexContext.getHexRoot().addDependency(hexContext, iceRef);
 
         GlaciateStyle.renderSpawn(spawnPos, hexContext, hexContext.getAccessor());
     }

@@ -25,7 +25,6 @@ import com.hypixel.hytale.server.core.modules.entity.item.ItemComponent;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.imbuement.component.ImbuedBlockComponent;
-import com.riprod.hexcode.core.common.imbuement.component.ImbuementData;
 import com.riprod.hexcode.core.common.imbuement.utils.ImbuementUtils;
 
 public class ImbuedBlockBreakHandler extends EntityEventSystem<EntityStore, BreakBlockEvent> {
@@ -48,9 +47,7 @@ public class ImbuedBlockBreakHandler extends EntityEventSystem<EntityStore, Brea
             ImbuedBlockComponent comp = BlockModule.getComponent(
                     ImbuedBlockComponent.getComponentType(), world, pos.x, pos.y, pos.z);
             if (comp == null) return;
-
-            ImbuementData data = comp.read(ImbuementUtils.DEFAULT_SLOT);
-            if (data == null) return;
+            if (comp.getSlots().isEmpty()) return;
 
             BlockType blockType = event.getBlockType();
             String dropItemId = resolveDropItemId(blockType);
@@ -58,9 +55,7 @@ public class ImbuedBlockBreakHandler extends EntityEventSystem<EntityStore, Brea
 
             event.setCancelled(true);
 
-            ImbuementData snapshot = data.copy();
-            ItemStack drop = ImbuementUtils.write(new ItemStack(dropItemId),
-                    ImbuementUtils.DEFAULT_SLOT, snapshot);
+            ItemStack drop = ImbuementUtils.writeAll(new ItemStack(dropItemId), comp.getSlots());
             Vector3d dropPos = new Vector3d(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5);
 
             world.execute(() -> {

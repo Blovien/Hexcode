@@ -30,7 +30,7 @@ import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
-import com.riprod.hexcode.core.common.imbuement.block.ImbuedBlockActivator;
+import com.riprod.hexcode.api.imbuement.ImbuedBlockActivator;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
@@ -138,7 +138,7 @@ public class BoltGlyph implements GlyphHandler {
 
         BoltStyle.renderImpact(accessor, targetPos, hexContext);
 
-        ImbuedBlockActivator.ActivationOutcome outcome = ImbuedBlockActivator.tryConsume(accessor, world, blockPos);
+        ImbuedBlockActivator.ActivationOutcome outcome = ImbuedBlockActivator.tryConsume(world, blockPos);
         if (!outcome.isReady()) {
             triggerBlockInteraction(accessor, hexContext.getCasterRef(), world, blockPos);
         }

@@ -45,8 +45,8 @@ public final class ConstructSplicer {
         List<String> casterChildren = casterGlyph.getNextLinks();
 
         HexContext targetCtx = target.getHexContext();
-        Hex targetHex = targetCtx.gethex();
-        Hex casterHex = caster.gethex();
+        Hex targetHex = targetCtx.getHex();
+        Hex casterHex = caster.getHex();
 
         int outputsRewired = rewireOutputs(casterHex, originalNext);
 

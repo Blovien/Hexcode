@@ -51,7 +51,7 @@ public class DebugGlyph implements GlyphHandler {
 
         StringBuilder sb = new StringBuilder();
 
-        float mana = hexContext.getRoot().getCurrentMana(hexContext.getAccessor());
+        float mana = hexContext.getHexRoot().getCurrentMana(hexContext.getAccessor());
         float maxVol = hexContext.getVolatilityTracker().getStartingBudget();
         float curVol = hexContext.getVolatilityTracker().getRemainingBudget();
         sb.append(String.format("Mana: %.1f\n", mana));

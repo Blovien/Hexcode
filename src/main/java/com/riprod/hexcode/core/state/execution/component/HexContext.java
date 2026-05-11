@@ -5,9 +5,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
+
+import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.codec.codecs.map.MapCodec;
+import com.hypixel.hytale.codec.schema.metadata.ui.UIDisplayMode;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Ref;
@@ -15,44 +19,109 @@ import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.common.hexes.codec.HexFieldCodec;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
-import com.riprod.hexcode.core.common.imbuement.component.ImbuementData;
-import com.riprod.hexcode.core.state.execution.events.CastingEventData;
 
+// the unified state of a cast — both pre-cast intent and live execution state.
+// codec'd fields persist (used by ImbuementData.Overrides; future thaw-from-frozen).
+// transient fields (accessor, chunkAccessor) are runtime-injected at cast time.
+//
+// hex is stored as a live Hex object; codec compresses to string transparently via
+// HexFieldCodec.IMBUE (mirrors ImbuementData / SavedHexAsset / HexComponent patterns).
+// style is stored as a full HexStyleAsset; codec writes inline (preserves all fields
+// across serialize/deserialize, no styleId-resolution loss).
+//
+// scope of this iteration: the merged type is fully serializable; future iterations
+// add the freeze/thaw machinery (persisted dependency tracking, safe-point detection,
+// thaw registry) on top. for now, persisted HexContext captures cast intent + variables
+// + tracker — in-flight construct entities won't survive a thaw.
 public class HexContext {
-    private HexRoot root;
-    private CommandBuffer<EntityStore> accessor;
-    private ComponentAccessor<ChunkStore> chunkAccessor;
-    private Hex hex;
-    private Map<String, HexVar> variables;
-    private VolatilityTracker volatilityTracker;
-    private HexStyleAsset style;
-    private UUID executionId = UUID.randomUUID();
+    // === serialized fields ===
+    @Nullable private Hex hex;
+    @Nullable private HexRoot root;
+    @Nullable private VolatilityTracker volatilityTracker;
+    private float manaCost = -1f;
+    private float manaMultiplier = 1.0f;
+    @Nullable private HexStyleAsset style;
+    @Nullable private HexVar defaultVariable;
+    @Nullable private String castSlotKey;
+    private float castDecayRate = 0f;
+    private Map<String, HexVar> variables = new HashMap<>();
+    @Nullable
+    private UUID executionId;
 
-    public HexContext(CommandBuffer<EntityStore> accessor, ComponentAccessor<ChunkStore> chunkAccessor, CastingEventData castingData) {
-        this.accessor = accessor;
-        this.chunkAccessor = chunkAccessor;
-        this.root = castingData.getHexRoot();
-        this.hex = castingData.getHex();
-        this.variables = new HashMap<>();
-        this.volatilityTracker = castingData.getVolatilityTracker();
-        this.style = castingData.getStyle();
-        this.executionId = UUID.randomUUID();
-    }
+    // === transient fields (runtime-injected; not codec'd) ===
+    private transient CommandBuffer<EntityStore> accessor;
+    private transient ComponentAccessor<ChunkStore> chunkAccessor;
 
     public HexContext() {
-        this.variables = new HashMap<>();
     }
 
-    public HexRoot getRoot() {
-        return root;
+    public HexContext(Hex hex, float manaCost, HexRoot hexRoot, @Nullable HexStyleAsset style,
+            VolatilityTracker volatilityTracker) {
+        this.hex = hex;
+        this.manaCost = manaCost;
+        this.root = hexRoot;
+        this.style = style;
+        this.executionId = UUID.randomUUID();
+        setVolatilityTracker(volatilityTracker);
     }
 
-    public Ref<EntityStore> getCasterRef() {
-        return root != null ? root.getSourceRef() : null;
+    // === overlay: copy non-default fields from another state into this one.
+    //     volatility-overlay rules live on VolatilityTracker.applyOverridesFrom. ===
+    public HexContext applyNonDefaultsFrom(@Nullable HexContext other) {
+        if (other == null) return this;
+        if (other.hex != null) this.hex = other.hex;
+        if (other.manaCost >= 0f) this.manaCost = other.manaCost;
+        if (other.manaMultiplier != 1.0f) this.manaMultiplier *= other.manaMultiplier;
+        if (other.style != null) this.style = other.style;
+        if (other.castDecayRate > 0f) this.castDecayRate = other.castDecayRate;
+        if (other.volatilityTracker != null && this.volatilityTracker != null) {
+            this.volatilityTracker.applyOverridesFrom(other.volatilityTracker);
+        }
+        return this;
     }
 
+    // === full deep-copy clone, used by ImbuementData.copy() and similar ===
+    public static HexContext cloneState(HexContext src) {
+        if (src == null) return null;
+        HexContext copy = new HexContext();
+        copy.hex = src.hex != null ? src.hex.clone() : null;
+        copy.root = src.root != null ? src.root.copy() : null;
+        copy.volatilityTracker = src.volatilityTracker != null ? src.volatilityTracker.copy() : null;
+        copy.manaCost = src.manaCost;
+        copy.manaMultiplier = src.manaMultiplier;
+        copy.style = src.style != null ? src.style.clone() : null;
+        copy.defaultVariable = src.defaultVariable;
+        copy.castSlotKey = src.castSlotKey;
+        copy.castDecayRate = src.castDecayRate;
+        copy.variables = new HashMap<>(src.variables);
+        copy.executionId = src.executionId;
+        return copy;
+    }
+
+    // === branch: shares execution-time refs (root/accessor/hex/tracker/executionId),
+    //     copies variables for parallel sub-execution ===
+    public HexContext branch() {
+        HexContext branch = new HexContext();
+        branch.root = this.root;
+        branch.accessor = this.accessor;
+        branch.chunkAccessor = this.chunkAccessor;
+        branch.hex = this.hex;
+        branch.volatilityTracker = this.volatilityTracker;
+        branch.executionId = this.executionId;
+        branch.variables = new HashMap<>(this.variables);
+        branch.style = this.style;
+        branch.manaCost = this.manaCost;
+        branch.manaMultiplier = this.manaMultiplier;
+        branch.defaultVariable = this.defaultVariable;
+        branch.castSlotKey = this.castSlotKey;
+        branch.castDecayRate = this.castDecayRate;
+        return branch;
+    }
+
+    // === accessor injection (runtime, post-construction) ===
     public CommandBuffer<EntityStore> getAccessor() {
         return accessor;
     }
@@ -69,14 +138,36 @@ public class HexContext {
         this.chunkAccessor = newChunkAccessor;
     }
 
-    public Hex gethex() {
+    // === root + caster ref ===
+    @Nullable
+    public HexRoot getHexRoot() {
+        return root;
+    }
+
+    public void setHexRoot(HexRoot hexRoot) {
+        this.root = hexRoot;
+    }
+
+    @Nullable
+    public Ref<EntityStore> getCasterRef() {
+        return root != null ? root.getSourceRef() : null;
+    }
+
+    // === hex (single field; codec compresses to string on the wire) ===
+    @Nullable
+    public Hex getHex() {
         return hex;
+    }
+
+    public void setHex(@Nullable Hex hex) {
+        this.hex = hex;
     }
 
     public Glyph getGlyph(String id) {
         return hex.get(id);
     }
 
+    // === variables ===
     public Map<String, HexVar> getVariables() {
         return variables;
     }
@@ -93,24 +184,80 @@ public class HexContext {
         this.variables.put(slot, value);
     }
 
+    // === volatility ===
+    @Nullable
     public VolatilityTracker getVolatilityTracker() {
         return volatilityTracker;
     }
 
     public void setVolatilityTracker(VolatilityTracker volatilityTracker) {
         this.volatilityTracker = volatilityTracker;
-        volatilityTracker.setExecutionId(this.executionId);
+        if (volatilityTracker != null) volatilityTracker.setExecutionId(this.executionId);
     }
 
+    public float getVolatilityOverride() {
+        return this.volatilityTracker != null ? this.volatilityTracker.getStartingBudget() : 0f;
+    }
+
+    public void setVolatilityOverride(float volatilityOverride) {
+        if (this.volatilityTracker == null) return;
+        this.volatilityTracker.setBudget(volatilityOverride);
+        this.volatilityTracker.setStartingBudget(volatilityOverride);
+    }
+
+    public float getVolatilityMultiplier() {
+        return this.volatilityTracker != null ? this.volatilityTracker.getVolatilityMultiplier() : 1.0f;
+    }
+
+    public void setVolatilityMultiplier(float v) {
+        if (this.volatilityTracker != null) this.volatilityTracker.setVolatilityMultiplier(v);
+    }
+
+    public float getPowerMultiplier() {
+        return this.volatilityTracker != null ? this.volatilityTracker.getMagicPowerMultiplier() : 1.0f;
+    }
+
+    public void setPowerMultiplier(float v) {
+        if (this.volatilityTracker != null) this.volatilityTracker.setMagicPowerMultiplier(v);
+    }
+
+    public float getMagicPowerMultiplier() {
+        return getPowerMultiplier();
+    }
+
+    // === mana ===
+    public float getManaMultiplier() {
+        return manaMultiplier;
+    }
+
+    public void setManaMultiplier(float manaCostMultiplier) {
+        this.manaMultiplier = manaCostMultiplier;
+    }
+
+    public float getManaCost() {
+        return manaCost * manaMultiplier;
+    }
+
+    public void setManaCost(float manaCost) {
+        this.manaCost = manaCost;
+    }
+
+    public float getBaseManaCost() {
+        return manaCost;
+    }
+
+    // === style (full inline object; codec preserves all fields across serialize) ===
+    @Nullable
     public HexStyleAsset getStyle() {
         return style;
     }
 
-    public void setStyle(HexStyleAsset style) {
+    public void setStyle(@Nullable HexStyleAsset style) {
         this.style = style;
     }
 
     // compat abstraction over style.{primaryColor, secondaryColor, alpha}
+    @Nullable
     public HexColors getColors() {
         if (style == null) return null;
         HexColors c = new HexColors();
@@ -120,7 +267,7 @@ public class HexContext {
         return c;
     }
 
-    public void setColors(HexColors colors) {
+    public void setColors(@Nullable HexColors colors) {
         if (colors == null) return;
         if (style == null) style = HexStyleAsset.empty();
         style.setPrimaryColor(colors.getPrimaryColor() != null ? colors.getPrimaryColor().clone() : null);
@@ -128,28 +275,38 @@ public class HexContext {
         style.setAlpha(colors.getPrimaryAlpha());
     }
 
-    public float getMagicPowerMultiplier() {
-        return volatilityTracker != null ? volatilityTracker.getMagicPowerMultiplier() : 1.0f;
+    // === default variable + slot-bound cast metadata ===
+    @Nullable
+    public HexVar getDefaultVariable() {
+        return defaultVariable;
+    }
+
+    public void setDefaultVariable(@Nullable HexVar defaultVariable) {
+        this.defaultVariable = defaultVariable;
+    }
+
+    @Nullable
+    public String getCastSlotKey() {
+        return castSlotKey;
+    }
+
+    public void setCastSlotKey(@Nullable String castSlotKey) {
+        this.castSlotKey = castSlotKey;
+    }
+
+    public float getCastDecayRate() {
+        return castDecayRate;
+    }
+
+    public void setCastDecayRate(float castDecayRate) {
+        this.castDecayRate = castDecayRate;
     }
 
     public UUID getExecutionId() {
         return executionId;
     }
 
-    public HexContext branch() {
-        HexContext branch = new HexContext();
-        branch.root = this.root;
-        branch.accessor = this.accessor;
-        branch.chunkAccessor = this.chunkAccessor;
-        branch.hex = this.hex;
-        branch.volatilityTracker = this.volatilityTracker;
-        branch.executionId = this.executionId;
-        branch.variables = new HashMap<>(this.variables);
-        if (this.style != null)
-            branch.style = this.style.clone();
-        return branch;
-    }
-
+    // === debug walk ===
     public void toStringWalk(String id, StringBuilder sb, String prefix, boolean last, Set<String> visited) {
         Glyph node = hex.get(id);
         String connector = last ? "└── " : "├── ";
@@ -181,15 +338,24 @@ public class HexContext {
         visited.remove(id);
     }
 
+    // === codec ===
     public static final BuilderCodec<HexContext> CODEC = BuilderCodec
             .builder(HexContext.class, HexContext::new)
-            .append(new KeyedCodec<>("HexGraph", Hex.CODEC),
+            .append(new KeyedCodec<>("Hex", HexFieldCodec.IMBUE),
                     (c, v) -> c.hex = v,
                     c -> c.hex)
             .add()
-            .append(new KeyedCodec<>("Variables", new MapCodec<>(HexVar.CODEC, HashMap::new)),
-                    (c, v) -> c.variables = v,
-                    c -> c.variables)
+            .append(new KeyedCodec<>("Root", HexRoot.CODEC),
+                    (c, v) -> c.root = v,
+                    c -> c.root)
+            .add()
+            .append(new KeyedCodec<>("ManaCost", Codec.FLOAT),
+                    (c, v) -> c.manaCost = v,
+                    c -> c.manaCost)
+            .add()
+            .append(new KeyedCodec<>("ManaMultiplier", Codec.FLOAT),
+                    (c, v) -> c.manaMultiplier = v,
+                    c -> c.manaMultiplier)
             .add()
             .append(new KeyedCodec<>("VolatilityTracker", VolatilityTracker.CODEC),
                     (c, v) -> c.volatilityTracker = v,
@@ -199,18 +365,27 @@ public class HexContext {
                     (c, v) -> c.style = v,
                     c -> c.style)
             .add()
+            .append(new KeyedCodec<>("DefaultVariable", HexVar.CODEC),
+                    (c, v) -> c.defaultVariable = v,
+                    c -> c.defaultVariable)
+            .add()
+            .append(new KeyedCodec<>("CastSlotKey", Codec.STRING),
+                    (c, v) -> c.castSlotKey = v,
+                    c -> c.castSlotKey)
+            .add()
+            .append(new KeyedCodec<>("CastDecayRate", Codec.FLOAT),
+                    (c, v) -> c.castDecayRate = v,
+                    c -> c.castDecayRate)
+            .add()
+            .append(new KeyedCodec<>("Variables", new MapCodec<>(HexVar.CODEC, HashMap::new)),
+                    (c, v) -> c.variables = v,
+                    c -> c.variables)
+            .metadata(UIDisplayMode.HIDDEN)
+            .add()
+            .append(new KeyedCodec<>("ExecutionId", Codec.UUID_STRING),
+                    (c, v) -> c.executionId = v,
+                    c -> c.executionId)
+            .metadata(UIDisplayMode.HIDDEN)
+            .add()
             .build();
-
-    public HexContext copy() {
-        HexContext branch = new HexContext();
-        branch.root = this.root.copy();
-        branch.accessor = this.accessor;
-        branch.chunkAccessor = this.chunkAccessor;
-        branch.hex = this.hex.clone();
-        branch.volatilityTracker = this.volatilityTracker.copy();
-        branch.variables = new HashMap<>(this.variables);
-        if (this.style != null)
-            branch.style = this.style.clone();
-        return branch;
-    }
 }

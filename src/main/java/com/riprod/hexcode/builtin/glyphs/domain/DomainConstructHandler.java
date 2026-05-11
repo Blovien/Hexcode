@@ -64,7 +64,7 @@ public class DomainConstructHandler implements ConstructHandler<NoState> {
             return true;
         }
 
-        HexRoot root = status.getHexContext().getRoot();
+        HexRoot root = status.getHexContext().getHexRoot();
         if (root == null || !root.isAlive())
             return true;
         Ref<EntityStore> rootRef = root.getSourceRef();

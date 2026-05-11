@@ -23,7 +23,8 @@ import com.riprod.hexcode.core.state.crafting.component.HexcasterCraftingCompone
 import com.riprod.hexcode.core.state.execution.component.HexcasterIdleComponent;
 import com.riprod.hexcode.core.state.execution.component.PlayerHexRoot;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
-import com.riprod.hexcode.core.state.execution.events.CastingEventData;
+import com.riprod.hexcode.core.state.execution.HexExecuter;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
 import com.riprod.hexcode.utils.CleanupUtils;
@@ -128,10 +129,10 @@ public class IdleSystem extends HexcodeManager {
         Hex hexClone = activeHex.clone();
         HexUtils.validate(hexClone);
 
-        PlayerHexRoot hexRoot = new PlayerHexRoot(ref);
+        PlayerHexRoot hexRoot = new PlayerHexRoot(ref, accessor);
 
         // staff-specific cast parameters: per-staff decay rate flows into the gate
-        // via CastingEventData; charge cap, decay subtraction, advanceCast, and
+        // via HexContext; charge cap, decay subtraction, advanceCast, and
         // tracker registration all happen in CastGate (HexCastEventSystem path).
         HexStaffComponent staff = CasterInventory.getHexStaffComponent(accessor, ref);
         float castDecayRate = staff != null ? staff.getCastDecayRate() : 0f;
@@ -156,10 +157,13 @@ public class IdleSystem extends HexcodeManager {
         comp.setTickLength(HOLD_STALE_KEY, 0f);
 
         VolatilityTracker tracker = new VolatilityTracker(volatilityMax, 1.0f, resolvedPower);
-        CastingEventData castData = new CastingEventData(hexClone, ref, baseMana, hexRoot, style, tracker);
-        castData.setCastDecayRate(castDecayRate);
+        HexContext context = new HexContext(hexClone, baseMana, hexRoot, style, tracker);
+        context.setCastDecayRate(castDecayRate);
 
-        accessor.invoke(new HexCastEvent(ref, castData));
+        if (staffAsset != null) context.applyNonDefaultsFrom(staffAsset.getDefaults());
+        if (bookAsset != null) context.applyNonDefaultsFrom(bookAsset.getDefaults());
+
+        HexExecuter.cast(context, accessor);
         return InteractionState.NotFinished;
     }
 

@@ -10,8 +10,7 @@ import com.hypixel.hytale.assetstore.map.JsonAssetWithMap;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.validation.ValidatorCache;
-import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
-import com.riprod.hexcode.core.state.execution.component.HexColors;
+import com.riprod.hexcode.core.state.execution.component.HexContext;
 
 import javax.annotation.Nullable;
 
@@ -26,9 +25,8 @@ public class EssenceAsset
     protected String id;
     @Nullable
     protected String element;
-    protected float volatilityMultiplier = 1.0f;
     @Nullable
-    protected String styleId;
+    protected HexContext defaults;
 
     public static AssetStore<String, EssenceAsset, DefaultAssetMap<String, EssenceAsset>> getAssetStore() {
         if (ASSET_STORE == null) {
@@ -54,30 +52,9 @@ public class EssenceAsset
         return element;
     }
 
-    public float getVolatilityMultiplier() {
-        return volatilityMultiplier;
-    }
-
     @Nullable
-    public String getStyleId() {
-        return styleId;
-    }
-
-    @Nullable
-    public HexStyleAsset getStyle() {
-        if (styleId == null) return null;
-        return HexStyleAsset.getAssetMap().getAsset(styleId);
-    }
-
-    @Nullable
-    public HexColors getColors() {
-        HexStyleAsset style = getStyle();
-        if (style == null) return null;
-        HexColors c = new HexColors();
-        if (style.getPrimaryColor() != null) c.setPrimaryColor(style.getPrimaryColor().clone());
-        if (style.getSecondaryColor() != null) c.setSecondaryColor(style.getSecondaryColor().clone());
-        c.setPrimaryAlpha(style.getAlphaOrDefault());
-        return c;
+    public HexContext getDefaults() {
+        return defaults;
     }
 
     static {
@@ -92,16 +69,10 @@ public class EssenceAsset
                         a -> a.element)
                 .documentation("Optional canonical label (e.g. \"flame\", \"frost\"). Free-form; downstream may switch on this.")
                 .add()
-                .append(new KeyedCodec<>("VolatilityMultiplier", Codec.FLOAT),
-                        (a, v) -> a.volatilityMultiplier = v,
-                        a -> a.volatilityMultiplier)
-                .documentation("Multiplier applied to a block's cast volatility budget when this essence is consumed. 2.0 for concentrated variants.")
-                .add()
-                .append(new KeyedCodec<>("Style", HexStyleAsset.CHILD_ASSET_CODEC),
-                        (a, v) -> a.styleId = v,
-                        a -> a.styleId)
-                .addValidatorLate(() -> HexStyleAsset.VALIDATOR_CACHE.getValidator().late())
-                .documentation("HexStyleAsset id whose style overrides the base hex's style during this cast. Same shape as HexStaff/HexBook's Style field.")
+                .append(new KeyedCodec<>("Defaults", HexContext.CODEC),
+                        (a, v) -> a.defaults = v,
+                        a -> a.defaults)
+                .documentation("Cast overrides applied when this essence is consumed. Same shape as ImbuementProfileAsset.Defaults / ImbuementData.Overrides.")
                 .add()
                 .build();
         VALIDATOR_CACHE = new ValidatorCache<>(new AssetKeyValidator<>(EssenceAsset::getAssetStore));

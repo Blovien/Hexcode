@@ -150,7 +150,7 @@ public class PhaseGlyph implements GlyphHandler {
 
         Ref<EntityStore> phaseRef = accessor.addEntity(holder, AddReason.SPAWN);
 
-        hexContext.getRoot().addDependency(hexContext, phaseRef);
+        hexContext.getHexRoot().addDependency(hexContext, phaseRef);
 
         LOGGER.atInfo().log("phase: phased block for %.1f seconds", duration);
     }
