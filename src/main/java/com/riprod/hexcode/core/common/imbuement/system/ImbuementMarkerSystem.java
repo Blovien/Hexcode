@@ -53,12 +53,10 @@ public final class ImbuementMarkerSystem extends EntityEventSystem<EntityStore, 
 
     private static <C extends Component<EntityStore>> void updateMarker(CommandBuffer<EntityStore> buffer, Ref<EntityStore> ref,
             ItemContainer container, ComponentType<EntityStore, C> markerType, C newMarker) {
-        boolean shouldHave = containerHasImbuement(container);
-        boolean has = buffer.getComponent(ref, markerType) != null;
-        if (shouldHave && !has) {
-            buffer.addComponent(ref, markerType, newMarker);
-        } else if (!shouldHave && has) {
-            buffer.removeComponent(ref, markerType);
+        if (containerHasImbuement(container)) {
+            buffer.putComponent(ref, markerType, newMarker);
+        } else {
+            buffer.tryRemoveComponent(ref, markerType);
         }
     }
 

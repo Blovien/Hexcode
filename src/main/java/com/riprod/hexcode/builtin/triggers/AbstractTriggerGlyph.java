@@ -85,7 +85,7 @@ public abstract class AbstractTriggerGlyph implements GlyphHandler {
         } else {
             HexEffectsComponent fresh = new HexEffectsComponent();
             fresh.addEffect(effectId, construct);
-            buffer.addComponent(caster, HexEffectsComponent.getComponentType(), fresh);
+            buffer.putComponent(caster, HexEffectsComponent.getComponentType(), fresh);
         }
 
         TriggerListenerRegistry registry = buffer.getResource(TriggerListenerRegistry.getResourceType());
@@ -99,8 +99,6 @@ public abstract class AbstractTriggerGlyph implements GlyphHandler {
                 subscriptionId, triggerKey(), subjectUuid, subject, caster, null, callback, true);
         registry.subscribe(sub);
 
-        if (buffer.getComponent(subject, TriggerListenerComponent.getComponentType()) == null) {
-            buffer.addComponent(subject, TriggerListenerComponent.getComponentType(), new TriggerListenerComponent());
-        }
+        buffer.putComponent(subject, TriggerListenerComponent.getComponentType(), new TriggerListenerComponent());
     }
 }
