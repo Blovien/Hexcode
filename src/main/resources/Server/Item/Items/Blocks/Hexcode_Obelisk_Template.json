@@ -40,23 +40,20 @@
       "Definitions": {
         "Idle": {
           "Light": {
-            "Color": "#3a1a5e",
-            "Intensity": 1
+            "Color": "#3a1a5e"
           },
           "CustomModelAnimation": "Blocks/Hexcode/Obelisks/Animations/Obelisk_Idle.blockyanim",
           "CustomModel": "Blocks/Hexcode/Obelisks/Obelisk.blockymodel"
         },
         "Ready": {
           "Light": {
-            "Color": "#7b3fbf",
-            "Intensity": 2
+            "Color": "#7b3fbf"
           },
           "CustomModel": "Blocks/Hexcode/Obelisks/Obelisk.blockymodel"
         },
         "Selecting": {
           "Light": {
-            "Color": "#aa55ff",
-            "Intensity": 4
+            "Color": "#aa55ff"
           },
           "Particles": [
             {
@@ -73,8 +70,7 @@
         },
         "Crafting": {
           "Light": {
-            "Color": "#cc88ff",
-            "Intensity": 6
+            "Color": "#cc88ff"
           },
           "Particles": [
             {

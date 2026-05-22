@@ -43,28 +43,24 @@
       "Definitions": {
         "Idle": {
           "Light": {
-            "Color": "#88aabb",
-            "Intensity": 10
+            "Color": "#88aabb"
           }
         },
         "Ready": {
           "Light": {
-            "Color": "#446677",
-            "Intensity": 3
+            "Color": "#446677"
           },
           "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Old_Idle.blockyanim"
         },
         "Selecting": {
           "Light": {
-            "Color": "#446677",
-            "Intensity": 3
+            "Color": "#446677"
           },
           "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Old_Active.blockyanim"
         },
         "Crafting": {
           "Light": {
-            "Color": "#446677",
-            "Intensity": 3
+            "Color": "#446677"
           },
           "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Old_Active.blockyanim"
         }

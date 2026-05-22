@@ -90,7 +90,6 @@ import java.util.function.Consumer;
 import com.hypixel.hytale.assetstore.AssetRegistry;
 import com.hypixel.hytale.assetstore.event.LoadedAssetsEvent;
 import com.hypixel.hytale.assetstore.map.DefaultAssetMap;
-import com.hypixel.hytale.common.plugin.PluginIdentifier;
 import com.hypixel.hytale.event.EventPriority;
 import com.hypixel.hytale.server.core.asset.AssetPackRegisterEvent;
 import com.hypixel.hytale.server.core.asset.AssetPackUnregisterEvent;
@@ -137,7 +136,7 @@ public class Hexcode extends JavaPlugin {
                 this.getManifest().getVersion().toString());
 
         builtinPlugin = new BuiltinPlugin(init);
-        patchManager = new PatchManager(new PluginIdentifier(this.getManifest()).toString());
+        patchManager = new PatchManager(this.getManifest());
     }
 
     @Override
@@ -467,14 +466,12 @@ public class Hexcode extends JavaPlugin {
                 e -> patchManager.rebuildAndApply("boot:LoadAssetEvent"));
         this.getEventRegistry().register(AssetPackRegisterEvent.class, e -> {
             String name = e.getAssetPack().getName();
-            if (PatchManager.OVERRIDE_PACK_FULL_NAME.equals(name)) return;
-            if (PatchManager.HYTALOR_OVERRIDES_PACK.equals(name)) return;
+            if (PatchManager.isSyntheticOverridePack(name)) return;
             patchManager.rebuildAndApply("packRegister:" + name);
         });
         this.getEventRegistry().register(AssetPackUnregisterEvent.class, e -> {
             String name = e.getAssetPack().getName();
-            if (PatchManager.OVERRIDE_PACK_FULL_NAME.equals(name)) return;
-            if (PatchManager.HYTALOR_OVERRIDES_PACK.equals(name)) return;
+            if (PatchManager.isSyntheticOverridePack(name)) return;
             patchManager.rebuildAndApply("packUnregister:" + name);
         });
     }

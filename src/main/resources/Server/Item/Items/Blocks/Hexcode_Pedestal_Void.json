@@ -30,15 +30,13 @@
       "Definitions": {
         "Idle": {
           "Light": {
-            "Color": "#2a0040",
-            "Intensity": 1
+            "Color": "#2a0040"
           },
           "InteractionHint": "hexcode.blocks.pedestal.interact.idle"
         },
         "Ready": {
           "Light": {
-            "Color": "#440066",
-            "Intensity": 2
+            "Color": "#440066"
           },
           "Looping": true,
           "Particles": [
@@ -53,8 +51,7 @@
         },
         "Selecting": {
           "Light": {
-            "Color": "#6600aa",
-            "Intensity": 4
+            "Color": "#6600aa"
           },
           "Looping": true,
           "Particles": [
@@ -69,8 +66,7 @@
         },
         "Crafting": {
           "Light": {
-            "Color": "#8833cc",
-            "Intensity": 6
+            "Color": "#8833cc"
           },
           "Looping": true,
           "Particles": [

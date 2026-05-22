@@ -40,14 +40,12 @@
       "Definitions": {
         "Idle": {
           "Light": {
-            "Color": "#2a0040",
-            "Intensity": 1
+            "Color": "#2a0040"
           }
         },
         "Ready": {
           "Light": {
-            "Color": "#440066",
-            "Intensity": 2
+            "Color": "#440066"
           },
           "Particles": [
             {
@@ -61,8 +59,7 @@
         },
         "Selecting": {
           "Light": {
-            "Color": "#6600aa",
-            "Intensity": 4
+            "Color": "#6600aa"
           },
           "Particles": [
             {
@@ -77,8 +74,7 @@
         },
         "Crafting": {
           "Light": {
-            "Color": "#8833cc",
-            "Intensity": 6
+            "Color": "#8833cc"
           },
           "Particles": [
             {
