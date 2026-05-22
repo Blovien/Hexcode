@@ -94,7 +94,7 @@ import com.hypixel.hytale.event.EventPriority;
 import com.hypixel.hytale.server.core.asset.AssetPackRegisterEvent;
 import com.hypixel.hytale.server.core.asset.AssetPackUnregisterEvent;
 import com.hypixel.hytale.server.core.asset.LoadAssetEvent;
-import com.riprod.hexcode.patch.PatchManager;
+import com.riprod.patcher.PatchManager;
 import com.hypixel.hytale.builtin.asseteditor.AssetEditorPlugin;
 import com.hypixel.hytale.builtin.asseteditor.event.AssetEditorRequestDataSetEvent;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;

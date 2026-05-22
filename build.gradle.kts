@@ -1,6 +1,7 @@
 plugins {
     `maven-publish`
     id("hytale-mod") version "0.+"
+    id("com.gradleup.shadow") version "8.3.5"
 }
 
 
@@ -20,6 +21,22 @@ dependencies {
     compileOnly(libs.jspecify)
 
     compileOnly(fileTree("lib/") { include("*.jar") })
+
+    // patcher is bundled into hexcode's output jar via the Shadow plugin
+    implementation(files("deps/patcher-2.0.0.jar"))
+}
+
+tasks.shadowJar {
+    archiveClassifier.set("")
+    mergeServiceFiles()
+}
+
+tasks.jar {
+    enabled = false
+}
+
+tasks.build {
+    dependsOn(tasks.shadowJar)
 }
 
 hytale {
