@@ -102,7 +102,6 @@
       "Definitions": {
         "Idle": {
           "Light": {
-            "Intensity": 1,
             "Color": "#00bbdd"
           }
         },

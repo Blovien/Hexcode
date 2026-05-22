@@ -18,7 +18,7 @@
     "CustomModelTexture": [
       {
         "Texture": "Blocks/Hexcode/Pedestals/Pedestal_Fire.png",
-        "Weight": 1
+        "Weight": 2
       }
     ],
     "HitboxType": "Full",
@@ -31,16 +31,14 @@
       "Definitions": {
         "Idle": {
           "Light": {
-            "Color": "#ff4400",
-            "Intensity": 1
+            "Color": "#ff4400"
           },
           "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Idle.blockyanim",
           "InteractionHint": "hexcode.blocks.pedestal.interact.idle"
         },
         "Ready": {
           "Light": {
-            "Color": "#ff6600",
-            "Intensity": 2
+            "Color": "#ff6600"
           },
           "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Ready.blockyanim",
           "Looping": true,
@@ -56,8 +54,7 @@
         },
         "Selecting": {
           "Light": {
-            "Color": "#ff8800",
-            "Intensity": 4
+            "Color": "#ff8800"
           },
           "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Selecting.blockyanim",
           "Looping": true,
@@ -76,8 +73,7 @@
         },
         "Crafting": {
           "Light": {
-            "Color": "#ffaa00",
-            "Intensity": 6
+            "Color": "#ffaa00"
           },
           "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Arcane_Crafting.blockyanim",
           "Looping": true,
