@@ -23,7 +23,7 @@ dependencies {
     compileOnly(fileTree("lib/") { include("*.jar") })
 
     // patcher is bundled into hexcode's output jar via the Shadow plugin
-    implementation(files("deps/Patchly-2.0.0.jar"))
+    implementation(files("deps/Patchly-2.0.1.jar"))
 }
 
 tasks.shadowJar {
