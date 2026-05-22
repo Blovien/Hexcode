@@ -84,17 +84,16 @@ import com.riprod.hexcode.interaction.PedestalInteraction;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexTick;
 import com.riprod.hexcode.state.StateRouter;
+import com.riprod.patchly.PatchManager;
 
 import java.util.function.Consumer;
 
 import com.hypixel.hytale.assetstore.AssetRegistry;
-import com.hypixel.hytale.assetstore.event.LoadedAssetsEvent;
 import com.hypixel.hytale.assetstore.map.DefaultAssetMap;
 import com.hypixel.hytale.event.EventPriority;
 import com.hypixel.hytale.server.core.asset.AssetPackRegisterEvent;
 import com.hypixel.hytale.server.core.asset.AssetPackUnregisterEvent;
 import com.hypixel.hytale.server.core.asset.LoadAssetEvent;
-import com.riprod.patcher.PatchManager;
 import com.hypixel.hytale.builtin.asseteditor.AssetEditorPlugin;
 import com.hypixel.hytale.builtin.asseteditor.event.AssetEditorRequestDataSetEvent;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;

@@ -6,7 +6,7 @@ plugins {
 
 
 group = "com.riprod"
-version = "0.7.0"
+version = "0.7.1"
 val javaVersion = 25
 
 repositories {
@@ -23,7 +23,7 @@ dependencies {
     compileOnly(fileTree("lib/") { include("*.jar") })
 
     // patcher is bundled into hexcode's output jar via the Shadow plugin
-    implementation(files("deps/patcher-2.0.0.jar"))
+    implementation(files("deps/Patchly-2.0.0.jar"))
 }
 
 tasks.shadowJar {
