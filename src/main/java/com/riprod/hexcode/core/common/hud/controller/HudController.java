@@ -4,18 +4,15 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.entity.entities.Player;
-import com.hypixel.hytale.server.core.entity.entities.player.hud.CustomUIHud;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.hypixel.hytale.server.core.util.NotificationUtil;
 import com.riprod.hexcode.core.common.hud.adapter.HudAdapterFactory;
 import com.riprod.hexcode.core.common.hud.api.HudAdapter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 public final class HudController {
 
@@ -40,7 +37,6 @@ public final class HudController {
     }
 
     private final HudAdapter adapter;
-    private final Map<UUID, HexcodeHud> activeHuds = new ConcurrentHashMap<>();
 
     private HudController(@Nonnull HudAdapter adapter) {
         this.adapter = adapter;
@@ -63,7 +59,12 @@ public final class HudController {
         }
 
         HexcodeHud hud = ensureHud(player, playerRef);
-        if (hud == null) return;
+        if (hud == null) {
+            Message titleMsg = hasTitle ? title : Message.raw("");
+            Message descMsg = hasDescription ? Message.raw(description) : null;
+            NotificationUtil.sendNotification(playerRef.getPacketHandler(), titleMsg, descMsg);
+            return;
+        }
 
         UICommandBuilder cmd = new UICommandBuilder();
         cmd.set(INFO_ROOT + ".Visible", true);
@@ -81,17 +82,9 @@ public final class HudController {
         hideInfoIfActive(player, playerRef);
     }
 
-    public void tearDown(@Nonnull Player player, @Nonnull PlayerRef playerRef) {
-        UUID uuid = playerRef.getUuid();
-        HexcodeHud ours = activeHuds.remove(uuid);
-        if (ours != null && adapter.getCurrentHud(player, playerRef) == ours) {
-            adapter.clearHud(player, playerRef);
-        }
-    }
-
     private void hideInfoIfActive(@Nonnull Player player, @Nonnull PlayerRef playerRef) {
-        HexcodeHud hud = activeHuds.get(playerRef.getUuid());
-        if (hud == null || adapter.getCurrentHud(player, playerRef) != hud) return;
+        HexcodeHud hud = adapter.findOwnedHud(player, playerRef);
+        if (hud == null) return;
         UICommandBuilder cmd = new UICommandBuilder();
         cmd.set(INFO_ROOT + ".Visible", false);
         hud.apply(cmd);
@@ -99,20 +92,11 @@ public final class HudController {
 
     @Nullable
     private HexcodeHud ensureHud(@Nonnull Player player, @Nonnull PlayerRef playerRef) {
-        UUID uuid = playerRef.getUuid();
-        HexcodeHud existing = activeHuds.get(uuid);
-        CustomUIHud current = adapter.getCurrentHud(player, playerRef);
-        if (existing != null && current == existing) {
-            return existing;
-        }
-
-        if (current != null && current != existing) {
-            return null;
-        }
-
+        HexcodeHud existing = adapter.findOwnedHud(player, playerRef);
+        if (existing != null) return existing;
+        if (!adapter.canInstall(player, playerRef)) return null;
         HexcodeHud fresh = new HexcodeHud(playerRef);
         adapter.setHud(player, playerRef, fresh);
-        activeHuds.put(uuid, fresh);
         return fresh;
     }
 }
