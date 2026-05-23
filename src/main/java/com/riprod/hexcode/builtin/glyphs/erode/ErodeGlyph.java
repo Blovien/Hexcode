@@ -152,14 +152,9 @@ public static final String ID = "Erode";
         }
 
         Ref<EntityStore> casterRef = hexContext.getCasterRef();
-        Player caster = (casterRef != null && casterRef.isValid())
-                ? accessor.getComponent(casterRef, Player.getComponentType())
-                : null;
-
         float damageScale = (float) (amount * BLOCK_DAMAGE_SCALE);
 
         BlockHarvestUtils.performBlockDamage(
-                caster,
                 casterRef,
                 pos,
                 null,

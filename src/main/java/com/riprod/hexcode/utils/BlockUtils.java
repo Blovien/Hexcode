@@ -4,6 +4,8 @@ import javax.annotation.Nullable;
 
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.util.ChunkUtil;
+import com.hypixel.hytale.math.vector.Rotation3f;
+
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
@@ -93,7 +95,7 @@ public class BlockUtils {
 
             Player player = hexContext.getAccessor().getComponent(entityRef, Player.getComponentType());
             if (player != null) {
-                Vector3f rotation = tc.getRotation();
+                Rotation3f rotation = tc.getRotation();
                 Teleport teleport = Teleport.createForPlayer(dest, rotation);
                 hexContext.getAccessor().addComponent(entityRef, Teleport.getComponentType(), teleport);
             } else {

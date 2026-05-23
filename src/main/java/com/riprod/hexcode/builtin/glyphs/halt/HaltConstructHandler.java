@@ -39,7 +39,7 @@ public class HaltConstructHandler implements ConstructHandler<HaltState> {
         Velocity vel = ctx.getBuffer().getComponent(target, Velocity.getComponentType());
         if (vel == null) return;
         vel.getInstructions().clear();
-        vel.addInstruction(Vector3d.ZERO, null, ChangeVelocityType.Set);
+        vel.addInstruction(new Vector3d(), null, ChangeVelocityType.Set);
     }
 
     @Override

@@ -10,6 +10,7 @@ import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.protocol.MountController;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
@@ -29,9 +30,9 @@ public class RootSpawner {
         Vector3d playerPos = accessor.getComponent(playerRef, TransformComponent.getComponentType())
                 .getPosition();
         holder.addComponent(TransformComponent.getComponentType(),
-                new TransformComponent(playerPos, new Vector3f(0, 0, 0)));
+                new TransformComponent(playerPos, new Rotation3f()));
         holder.addComponent(MountedComponent.getComponentType(),
-                new MountedComponent(playerRef, new Vector3f(0, eyeHeight, 0),
+                new MountedComponent(playerRef, new Rotation3f(0, eyeHeight, 0),
                         MountController.Minecart));
 
         holder.addComponent(UUIDComponent.getComponentType(),

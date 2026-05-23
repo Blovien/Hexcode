@@ -11,6 +11,7 @@ import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.Invulnerable;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
@@ -61,7 +62,7 @@ public class HexConstructSpawner {
 
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
         holder.addComponent(TransformComponent.getComponentType(),
-                new TransformComponent(position, new Vector3f()));
+                new TransformComponent(position, new Rotation3f()));
         holder.ensureComponent(UUIDComponent.getComponentType());
         holder.addComponent(NetworkId.getComponentType(),
                 new NetworkId(buffer.getExternalData().takeNextNetworkId()));

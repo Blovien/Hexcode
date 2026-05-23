@@ -16,6 +16,8 @@ import java.util.TreeSet;
 import javax.annotation.Nullable;
 
 import org.joml.Vector3f;
+
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.Slot;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
@@ -291,7 +293,7 @@ public class HexCodecV15 {
         bw.write(EXTRAS_KIND_ROTATION, 8);
         boolean any = false;
         for (Glyph g : glyphs) {
-            Vector3f r = g.getRotation();
+            Rotation3f r = g.getRotation();
             boolean meaningful = r != null
                     && (Math.abs(r.x) > ROT_EPS || Math.abs(r.y) > ROT_EPS || Math.abs(r.z) > ROT_EPS);
             if (meaningful) {
@@ -461,7 +463,7 @@ public class HexCodecV15 {
             g.setVolatility(volatility);
             g.setEfficiency(efficiency);
             g.setPosition(position);
-            g.setRotation(new Vector3f(0f, 0f, 0f));
+            g.setRotation(new Rotation3f());
             g.getSlots().clear();
             g.getSlots().putAll(decodedSlots);
 
@@ -488,7 +490,7 @@ public class HexCodecV15 {
                             double ry = unquantRotByte(br.read(8));
                             double rz = unquantRotByte(br.read(8));
                             Glyph g = hex.get(placeholderIds.get(i));
-                            if (g != null) g.setRotation(new Vector3f((float) rx, (float) ry, (float) rz));
+                            if (g != null) g.setRotation(new Rotation3f((float) rx, (float) ry, (float) rz));
                         }
                     }
                 } else {

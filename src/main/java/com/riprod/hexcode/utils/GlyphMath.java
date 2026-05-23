@@ -6,6 +6,8 @@ import java.util.List;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 
+import com.hypixel.hytale.math.vector.Rotation3f;
+
 public class GlyphMath {
 
     private GlyphMath() {
@@ -18,28 +20,28 @@ public class GlyphMath {
         return new Vector3d(x, y, z);
     }
 
-    public static Vector3d sphericalToCartesian(Vector3f pos) {
-        return sphericalToCartesian(new Vector3d(0, 0, 0), pos.y, pos.x, pos.z());
+    public static Vector3d sphericalToCartesian(Rotation3f pos) {
+        return sphericalToCartesian(new Vector3d(0, 0, 0), pos.y, pos.x, pos.z);
     }
 
-    public static Vector3d sphericalToCartesian(Vector3d origin, Vector3f pos) {
+    public static Vector3d sphericalToCartesian(Vector3d origin, Rotation3f pos) {
         return sphericalToCartesian(origin, pos.y, pos.x, pos.z());
     }
 
-    public static Vector3f cartesianToSpherical(Vector3d origin, Vector3d point) {
+    public static Vector3d cartesianToSpherical(Vector3d origin, Rotation3f point) {
         double dx = point.x - origin.x;
         double dy = point.y - origin.y;
         double dz = point.z - origin.z;
 
         float distance = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
         if (distance < 0.0001) {
-            return new Vector3f(0, 0, 0);
+            return new Vector3d(0, 0, 0);
         }
 
         float yaw = (float) Math.atan2(dx, dz);
         float pitch = (float) Math.asin(dy / distance);
 
-        return new Vector3f(pitch, yaw, distance);
+        return new Vector3d(pitch, yaw, distance);
     }
 
     public static boolean isPointInGlyphArea(Vector3f glyphPos, Vector3f lookPos, float scale) {
@@ -64,23 +66,23 @@ public class GlyphMath {
         return baseRadius * scale;
     }
 
-    public static List<Vector3f> getChildRotations(int childrenCount,
+    public static List<Rotation3f> getChildRotations(int childrenCount,
             float parentScale, float distance) {
         if (childrenCount <= 0) {
             return null;
         }
 
         if (childrenCount == 1) {
-            return List.of(new Vector3f(0, 0, 0));
+            return List.of(new Rotation3f(0, 0, 0));
         }
 
         float angleIncrement = (float) (2 * Math.PI / childrenCount);
         float angularRadius = getSelectionRadius(parentScale) * 1.2f; // scales with the parent scale
 
-        List<Vector3f> childAngles = new ArrayList<>();
+        List<Rotation3f> childAngles = new ArrayList<>();
         for (int i = 0; i < childrenCount; i++) {
             float theta = i * angleIncrement;
-            Vector3f childPos = new Vector3f(
+            Rotation3f childPos = new Rotation3f(
                     angularRadius * (float) Math.cos(theta),
                     angularRadius * (float) Math.sin(theta),
                     distance);
@@ -89,7 +91,7 @@ public class GlyphMath {
         return childAngles;
     }
 
-    public static Vector3f toMountOffset(Vector3f childRotation, Vector3f parentRotation) {
+    public static Vector3f toMountOffset(Rotation3f childRotation, Rotation3f parentRotation) {
         float dpitch = childRotation.x;
         float dyaw = childRotation.y;
         return new Vector3f(

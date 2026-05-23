@@ -26,17 +26,16 @@ public final class OrientedDebugUtil {
 
     private static Matrix4d buildOrientedMatrix(Vector3d origin, Vector3d direction,
             double length, double diameter) {
-        Matrix4d tmp = new Matrix4d();
         Matrix4d matrix = new Matrix4d();
         matrix.identity();
         matrix.translate(origin);
 
         double angleY = Math.atan2(direction.z, direction.x);
-        matrix.rotateAxis(angleY + (Math.PI / 2), 0.0, 1.0, 0.0, tmp);
+        matrix.rotate(angleY + (Math.PI / 2), 0.0, 1.0, 0.0);
 
         double xzLen = Math.sqrt(direction.x * direction.x + direction.z * direction.z);
         double angleX = Math.atan2(xzLen, direction.y);
-        matrix.rotateAxis(angleX, 1.0, 0.0, 0.0, tmp);
+        matrix.rotate(angleX, 1.0, 0.0, 0.0);
 
         // cone is center-anchored; shift base to origin then scale
         matrix.translate(0.0, length / 2.0, 0.0);

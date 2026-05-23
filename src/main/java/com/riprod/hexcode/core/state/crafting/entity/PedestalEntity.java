@@ -14,6 +14,7 @@ import com.hypixel.hytale.component.Store;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.protocol.MountController;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.CustomModelTexture;
@@ -48,7 +49,7 @@ public class PedestalEntity {
         Vector3d anchorPos = getAnchorPosition(blockPos);
 
         holder.addComponent(TransformComponent.getComponentType(),
-                new TransformComponent(anchorPos, new Vector3f(0, 0, 0)));
+                new TransformComponent(anchorPos, new Rotation3f()));
         holder.addComponent(UUIDComponent.getComponentType(),
                 new UUIDComponent(UUID.randomUUID()));
         holder.ensureComponent(EntityStore.REGISTRY.getNonSerializedComponentType());
@@ -86,7 +87,7 @@ public class PedestalEntity {
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
 
         holder.addComponent(TransformComponent.getComponentType(),
-                new TransformComponent(anchorPos, new Vector3f(0, 0, 0)));
+                new TransformComponent(anchorPos, new Rotation3f()));
 
         holder.addComponent(UUIDComponent.getComponentType(),
                 new UUIDComponent(UUID.randomUUID()));

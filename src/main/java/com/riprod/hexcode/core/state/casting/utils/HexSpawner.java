@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import com.hypixel.hytale.builtin.mounts.MountedComponent;
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
@@ -36,10 +37,10 @@ public class HexSpawner {
         TransformComponent ownerTransform = accessor.getComponent(ownerRef, TransformComponent.getComponentType());
         Vector3d ownerPos = ownerTransform.getPosition();
         HeadRotation headRotation = accessor.getComponent(ownerRef, HeadRotation.getComponentType());
-        Vector3f ownerRotation = headRotation.getRotation();
+        Rotation3f ownerRotation = headRotation.getRotation();
 
         CastingStyle style = CastingStyleRegistry.getOrDefault(styleId);
-        List<Vector3f> rotations = style.getInitialPositions(hexes.size(), ownerRotation.y,
+        List<Rotation3f> rotations = style.getInitialPositions(hexes.size(), ownerRotation.y,
                 ownerRotation.x);
 
         for (int i = 0; i < hexes.size(); i++) {
@@ -55,7 +56,7 @@ public class HexSpawner {
             }
 
             HexComponent hexComponent = new HexComponent(hex);
-            Vector3f rot = rotations.get(i);
+            Rotation3f rot = rotations.get(i);
             Vector3d position = GlyphMath.sphericalToCartesian(rot);
             hexComponent.setRootRef(castingRootRef);
             hexComponent.setParentRef(castingRootRef);
@@ -75,12 +76,12 @@ public class HexSpawner {
 
             firstGlyphComponent.setHexRef(hexRef);
             firstGlyphComponent.setParentRef(hexRef);
-            firstGlyphComponent.setOffset(Vector3f.ZERO);
-            firstGlyphComponent.setRotation(rot);
+            firstGlyphComponent.setOffset(new Vector3f());
+            firstGlyphComponent.setRotation(new Rotation3f(rot.x, rot.y, rot.z));
             firstGlyphComponent.setScale(scaleMultiplier);
             hexComponent.setScale(scaleMultiplier);
 
-            GlyphSpawner.spawnGlyphs(accessor, hexComponent, firstGlyphComponent, ownerPos, rot);
+            GlyphSpawner.spawnGlyphs(accessor, hexComponent, firstGlyphComponent, ownerPos, new Rotation3f(rot.x, rot.y, rot.z));
         }
         return spawnedHexes;
 
@@ -101,16 +102,16 @@ public class HexSpawner {
         TransformComponent ownerTransform = accessor.getComponent(ownerRef, TransformComponent.getComponentType());
         Vector3d ownerPos = ownerTransform.getPosition();
         HeadRotation headRotation = accessor.getComponent(ownerRef, HeadRotation.getComponentType());
-        Vector3f ownerRotation = headRotation.getRotation();
+        Rotation3f ownerRotation = headRotation.getRotation();
 
-        Vector3f rot = new Vector3f(ownerRotation.x, ownerRotation.y, IN_AIR_SPAWN_DISTANCE);
+        Rotation3f rot = new Rotation3f(ownerRotation.x, ownerRotation.y, IN_AIR_SPAWN_DISTANCE);
         Vector3d position = GlyphMath.sphericalToCartesian(rot);
 
         HexComponent hexComponent = new HexComponent(hex);
         hexComponent.setRootRef(castingRootRef);
         hexComponent.setParentRef(castingRootRef);
         hexComponent.setOffset(new Vector3f((float) position.x, (float) position.y, (float) position.z));
-        hexComponent.setRotation(rot);
+        hexComponent.setRotation(new Rotation3f(rot.x, rot.y, rot.z));
         Ref<EntityStore> hexRef = CreateHex.createHexEntity(accessor, hexComponent, ownerPos);
         hexComponent.setSelfRef(hexRef);
 
@@ -120,8 +121,8 @@ public class HexSpawner {
         GlyphComponent firstGlyphComponent = new GlyphComponent(firstGlyph);
         firstGlyphComponent.setHexRef(hexRef);
         firstGlyphComponent.setParentRef(hexRef);
-        firstGlyphComponent.setOffset(Vector3f.ZERO);
-        firstGlyphComponent.setRotation(rot);
+        firstGlyphComponent.setOffset(new Vector3f());
+        firstGlyphComponent.setRotation(new Rotation3f(rot.x, rot.y, rot.z));
         firstGlyphComponent.setScale(scaleMultiplier);
         hexComponent.setScale(scaleMultiplier);
 
@@ -155,7 +156,7 @@ public class HexSpawner {
             childGlyph.setHexRef(droppedOnGlyph.getHexRef());
         }
 
-        MountedComponent mounted = new MountedComponent(droppedOnGlyph.getSelfRef(), Vector3f.ZERO,
+        MountedComponent mounted = new MountedComponent(droppedOnGlyph.getSelfRef(), new Rotation3f(),
                 MountController.Minecart);
         accessor.putComponent(firstGlyphRef, MountedComponent.getComponentType(), mounted);
 

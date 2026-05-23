@@ -47,7 +47,7 @@ public class ForceGlyph implements GlyphHandler {
                 : null;
         if (direction == null) direction = new Vector3d(0, 1, 0);
 
-        double appliedMagnitude = new Vector3d(direction).scale(magnitude).length();
+        double appliedMagnitude = new Vector3d(direction).mul(magnitude).length();
 
         GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
         float areaScale = computeAreaScale(appliedMagnitude, asset);
@@ -91,7 +91,7 @@ public class ForceGlyph implements GlyphHandler {
                 if (direction == null) {
                     direction = new Vector3d(0, 1, 0);
                 }
-                Vector3d force = new Vector3d(direction).scale(magnitude);
+                Vector3d force = new Vector3d(direction).mul(magnitude);
 
                 clampUpwardY(ref, force, hexContext.getAccessor());
 

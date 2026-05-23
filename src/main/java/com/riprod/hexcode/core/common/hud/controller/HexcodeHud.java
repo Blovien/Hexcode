@@ -8,10 +8,11 @@ import javax.annotation.Nonnull;
 
 public class HexcodeHud extends CustomUIHud {
 
+    public static final String KEY = "hexcode:main";
     public static final String SHELL_DOC = "Hexcode/Hud/Shell.ui";
 
     public HexcodeHud(@Nonnull PlayerRef playerRef) {
-        super(playerRef);
+        super(playerRef, KEY);
     }
 
     @Override

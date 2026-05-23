@@ -4,15 +4,15 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.entity.entities.Player;
+import com.hypixel.hytale.server.core.entity.entities.player.hud.CustomUIHud;
+import com.hypixel.hytale.server.core.entity.entities.player.hud.HudManager;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.hypixel.hytale.server.core.util.NotificationUtil;
-import com.riprod.hexcode.core.common.hud.adapter.HudAdapterFactory;
-import com.riprod.hexcode.core.common.hud.api.HudAdapter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.function.Consumer;
 
 public final class HudController {
 
@@ -20,83 +20,66 @@ public final class HudController {
     private static final String INFO_TITLE = "#HexcodeInfoTitle.TextSpans";
     private static final String INFO_DESCRIPTION = "#HexcodeInfoDescription.TextSpans";
 
-    private static HudController instance;
+    private HudController() {}
 
-    public static synchronized HudController boot() {
-        if (instance == null) {
-            instance = new HudController(HudAdapterFactory.create());
-        }
-        return instance;
+    public static void show(@Nonnull PlayerRef playerRef, @Nonnull Consumer<UICommandBuilder> build) {
+        HexcodeHud hud = ensureHud(playerRef);
+        UICommandBuilder cmd = new UICommandBuilder();
+        build.accept(cmd);
+        hud.apply(cmd);
     }
 
-    public static HudController get() {
-        if (instance == null) {
-            throw new IllegalStateException("HudController not booted");
-        }
-        return instance;
+    public static void clear(@Nonnull PlayerRef playerRef) {
+        playerRef.getComponent(Player.getComponentType()).getHudManager().removeCustomHud(playerRef, HexcodeHud.KEY);
     }
 
-    private final HudAdapter adapter;
-
-    private HudController(@Nonnull HudAdapter adapter) {
-        this.adapter = adapter;
-    }
-
-    public void showInfo(@Nonnull CommandBuffer<EntityStore> buffer,
-                         @Nonnull Ref<EntityStore> playerEntity,
-                         @Nullable Message title,
-                         @Nullable String description) {
-        Player player = buffer.getComponent(playerEntity, Player.getComponentType());
-        if (player == null) return;
+    public static void showInfo(@Nonnull CommandBuffer<EntityStore> buffer,
+                                @Nonnull Ref<EntityStore> playerEntity,
+                                @Nullable Message title,
+                                @Nullable String description) {
         PlayerRef playerRef = buffer.getComponent(playerEntity, PlayerRef.getComponentType());
         if (playerRef == null) return;
 
         boolean hasTitle = title != null && !title.toString().isEmpty();
         boolean hasDescription = description != null && !description.isEmpty();
         if (!hasTitle && !hasDescription) {
-            hideInfoIfActive(player, playerRef);
+            hideInfoIfActive(playerRef);
             return;
         }
 
-        HexcodeHud hud = ensureHud(player, playerRef);
-        if (hud == null) {
-            Message titleMsg = hasTitle ? title : Message.raw("");
-            Message descMsg = hasDescription ? Message.raw(description) : null;
-            NotificationUtil.sendNotification(playerRef.getPacketHandler(), titleMsg, descMsg);
-            return;
-        }
+        Message titleMsg = hasTitle ? title : Message.raw("");
+        Message descMsg = Message.raw(hasDescription ? description : "");
 
-        UICommandBuilder cmd = new UICommandBuilder();
-        cmd.set(INFO_ROOT + ".Visible", true);
-        cmd.set(INFO_TITLE, hasTitle ? title : Message.raw(""));
-        cmd.set(INFO_DESCRIPTION, Message.raw(hasDescription ? description : ""));
-        hud.apply(cmd);
+        show(playerRef, cmd -> {
+            cmd.set(INFO_ROOT + ".Visible", true);
+            cmd.set(INFO_TITLE, titleMsg);
+            cmd.set(INFO_DESCRIPTION, descMsg);
+        });
     }
 
-    public void hideInfo(@Nonnull CommandBuffer<EntityStore> buffer,
-                         @Nonnull Ref<EntityStore> playerEntity) {
-        Player player = buffer.getComponent(playerEntity, Player.getComponentType());
-        if (player == null) return;
+    public static void hideInfo(@Nonnull CommandBuffer<EntityStore> buffer,
+                                @Nonnull Ref<EntityStore> playerEntity) {
         PlayerRef playerRef = buffer.getComponent(playerEntity, PlayerRef.getComponentType());
         if (playerRef == null) return;
-        hideInfoIfActive(player, playerRef);
+        hideInfoIfActive(playerRef);
     }
 
-    private void hideInfoIfActive(@Nonnull Player player, @Nonnull PlayerRef playerRef) {
-        HexcodeHud hud = adapter.findOwnedHud(player, playerRef);
-        if (hud == null) return;
+    private static void hideInfoIfActive(@Nonnull PlayerRef playerRef) {
+        HudManager manager = playerRef.getComponent(Player.getComponentType()).getHudManager();
+        CustomUIHud existing = manager.getCustomHud(HexcodeHud.KEY);
+        if (!(existing instanceof HexcodeHud hud)) return;
         UICommandBuilder cmd = new UICommandBuilder();
         cmd.set(INFO_ROOT + ".Visible", false);
         hud.apply(cmd);
     }
 
-    @Nullable
-    private HexcodeHud ensureHud(@Nonnull Player player, @Nonnull PlayerRef playerRef) {
-        HexcodeHud existing = adapter.findOwnedHud(player, playerRef);
-        if (existing != null) return existing;
-        if (!adapter.canInstall(player, playerRef)) return null;
+    @Nonnull
+    private static HexcodeHud ensureHud(@Nonnull PlayerRef playerRef) {
+        HudManager manager = playerRef.getComponent(Player.getComponentType()).getHudManager();
+        CustomUIHud existing = manager.getCustomHud(HexcodeHud.KEY);
+        if (existing instanceof HexcodeHud hud) return hud;
         HexcodeHud fresh = new HexcodeHud(playerRef);
-        adapter.setHud(player, playerRef, fresh);
+        manager.addCustomHud(playerRef, fresh);
         return fresh;
     }
 }

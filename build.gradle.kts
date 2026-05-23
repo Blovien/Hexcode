@@ -197,6 +197,12 @@ afterEvaluate {
         targetTask.finalizedBy("syncBackAssets")
         if (targetTask is JavaExec) {
             targetTask.classpath += fileTree("lib/") { include("*.jar") }
+            // hytale-mod 0.7.2-alpha injects an empty string into jvmArgs when
+            // HytaleServer.aot is missing; java reads that as the main class. strip it.
+            targetTask.doFirst {
+                val exec = this as JavaExec
+                exec.jvmArgs = exec.jvmArgs?.filter { it.isNotEmpty() } ?: emptyList()
+            }
         }
     }
 }

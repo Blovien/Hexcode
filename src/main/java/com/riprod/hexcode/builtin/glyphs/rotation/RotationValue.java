@@ -3,6 +3,8 @@ package com.riprod.hexcode.builtin.glyphs.rotation;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.util.ChunkUtil;
+import com.hypixel.hytale.math.vector.Rotation3f;
+
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
@@ -45,7 +47,7 @@ public class RotationValue implements GlyphHandler {
         HexVar zVar = glyph.readSlot(RotationValueSlots.Z, hexContext);
 
         var accessor = hexContext.getAccessor();
-        return new RotationVar(new Vector3f(
+        return new RotationVar(new Rotation3f(
                 (float) HexVarUtil.rotationAxis(xVar, 0, accessor),
                 (float) HexVarUtil.rotationAxis(yVar, 1, accessor),
                 (float) HexVarUtil.rotationAxis(zVar, 2, accessor)));
@@ -81,7 +83,7 @@ public class RotationValue implements GlyphHandler {
         HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }
 
-    private void applyToEntity(EntityVar entityVar, Vector3f rotation, HexContext hexContext) {
+    private void applyToEntity(EntityVar entityVar, Rotation3f rotation, HexContext hexContext) {
         Ref<EntityStore> ref = entityVar.getRef(hexContext.getAccessor());
         if (ref == null || !ref.isValid()) return;
 
@@ -104,8 +106,8 @@ public class RotationValue implements GlyphHandler {
             }
 
             Vector3d position = tc.getPosition();
-            Vector3f headRotation = rotation.clone();
-            Vector3f bodyRotation = new Vector3f(0.0f, headRotation.y, 0.0f);
+            Rotation3f headRotation = new Rotation3f(rotation);
+            Rotation3f bodyRotation = new Rotation3f(0.0f, headRotation.y, 0.0f);
             Teleport teleport = Teleport.createExact(position, bodyRotation, headRotation);
             hexContext.getAccessor().addComponent(ref, Teleport.getComponentType(), teleport);
         } catch (Exception e) {
@@ -113,7 +115,7 @@ public class RotationValue implements GlyphHandler {
         }
     }
 
-    private void applyToProjectile(Ref<EntityStore> ref, Vector3f rotation, HexContext hexContext) {
+    private void applyToProjectile(Ref<EntityStore> ref, Rotation3f rotation, HexContext hexContext) {
         Velocity vel = hexContext.getAccessor().getComponent(ref, Velocity.getComponentType());
         double speed = 0.0;
         if (vel != null) {
@@ -141,7 +143,7 @@ public class RotationValue implements GlyphHandler {
         }
     }
 
-    private void applyToBlock(Vector3i pos, Vector3f rotation, HexContext hexContext) {
+    private void applyToBlock(Vector3i pos, Rotation3f rotation, HexContext hexContext) {
         try {
             World world = hexContext.getAccessor().getExternalData().getWorld();
             int blockId = world.getBlock(pos.x, pos.y, pos.z);

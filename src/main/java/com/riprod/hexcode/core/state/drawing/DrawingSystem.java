@@ -10,6 +10,7 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.shape.Box;
 import com.hypixel.hytale.math.vector.Transform;
+import com.hypixel.hytale.math.vector.Rotation3f;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 import com.hypixel.hytale.protocol.InteractionState;
@@ -116,7 +117,7 @@ public class DrawingSystem extends HexcodeManager {
         } else {
           Vector3d anchorPos = PedestalEntity.getAnchorPosition(session.getPedestalLocation());
           double maxRadius = pedestal.getMaxRadius();
-          double distSq = spawnPos.distanceSquaredTo(anchorPos);
+          double distSq = spawnPos.distanceSquared(anchorPos);
 
           if (distSq > maxRadius * maxRadius) {
             LOGGER.atInfo().log("drawn hex outside pedestal radius");
@@ -316,7 +317,7 @@ public class DrawingSystem extends HexcodeManager {
 
     GlyphComponent glyphComponent = new GlyphComponent(glyph);
 
-    Vector3f rotation = spawnPos.getRotation();
+    Rotation3f rotation = spawnPos.getRotation();
     glyphComponent.setRotation(rotation);
     glyph.setRotation(rotation);
 

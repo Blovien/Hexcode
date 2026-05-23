@@ -11,6 +11,7 @@ import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.logger.HytaleLogger;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.protocol.Color;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
@@ -54,7 +55,7 @@ public class InterfaceManager {
     float eyeHeight = playerModel.getModel().getEyeHeight();
     Vector3d eyePos = new Vector3d(transform.getPosition()).add(0, eyeHeight, 0);
 
-    Vector3f rotation = head.getRotation();
+    Rotation3f rotation = head.getRotation();
 
     Vector3d position = GlyphMath.sphericalToCartesian(eyePos, head.getRotation().y,
         head.getRotation().x, 2.0f);
@@ -92,7 +93,7 @@ public class InterfaceManager {
 
     float eyeHeight = playerModel.getModel().getEyeHeight();
     Vector3d eyePos = new Vector3d(transform.getPosition()).add(0, eyeHeight, 0);
-    Vector3f rotation = head.getRotation();
+    Rotation3f rotation = head.getRotation();
     Vector3d position = GlyphMath.sphericalToCartesian(eyePos, head.getRotation().y,
         head.getRotation().x, 2.0f);
 

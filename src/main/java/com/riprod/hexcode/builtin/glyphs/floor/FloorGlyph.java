@@ -2,6 +2,8 @@ package com.riprod.hexcode.builtin.glyphs.floor;
 
 import org.joml.Vector3d;
 import org.joml.Vector3f;
+
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
@@ -38,10 +40,10 @@ public class FloorGlyph implements GlyphHandler {
                         : new PositionVar(new Vector3d(op(v.x), op(v.y), op(v.z)), p.isAbsolute());
             }
             case RotationVar r -> {
-                Vector3f v = r.getValue();
+                Rotation3f v = r.getValue();
                 yield v == null
                         ? r
-                        : new RotationVar(new Vector3f((float) op(v.x), (float) op(v.y), (float) op(v.z)));
+                        : new RotationVar(new Rotation3f((float) op(v.x), (float) op(v.y), (float) op(v.z)));
             }
             default -> a;
         };

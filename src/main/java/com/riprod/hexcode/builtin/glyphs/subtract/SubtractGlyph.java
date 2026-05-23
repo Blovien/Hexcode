@@ -1,6 +1,8 @@
 package com.riprod.hexcode.builtin.glyphs.subtract;
 
 import com.hypixel.hytale.component.ComponentAccessor;
+import com.hypixel.hytale.math.vector.Rotation3f;
+
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -43,12 +45,12 @@ public class SubtractGlyph implements GlyphHandler {
             case PositionVar pa -> {
                 PositionVar pb = (PositionVar) b;
                 yield new PositionVar(
-                        new Vector3d(pa.getValue()).subtract(pb.getValue()),
+                        new Vector3d(pa.getValue()).sub(pb.getValue()),
                         pa.isAbsolute() && !pb.isAbsolute());
             }
             case RotationVar ra -> {
                 RotationVar rb = (RotationVar) b;
-                yield new RotationVar(new Vector3f(ra.getValue()).subtract(rb.getValue()));
+                yield new RotationVar(new Rotation3f(ra.getValue()).sub(rb.getValue()));
             }
             case ColorVar ca -> {
                 ColorVar cb = (ColorVar) b;
@@ -70,8 +72,8 @@ public class SubtractGlyph implements GlyphHandler {
                 yield p == null ? pv : new PositionVar(new Vector3d(-p.x, -p.y, -p.z), false);
             }
             case RotationVar rv -> {
-                Vector3f r = rv.getValue();
-                yield r == null ? rv : new RotationVar(new Vector3f(-r.x, -r.y, -r.z));
+                Rotation3f r = rv.getValue();
+                yield r == null ? rv : new RotationVar(new Rotation3f(-r.x, -r.y, -r.z));
             }
             case ColorVar cv -> new ColorVar(-cv.getR(), -cv.getG(), -cv.getB(), cv.getA());
             default -> v;

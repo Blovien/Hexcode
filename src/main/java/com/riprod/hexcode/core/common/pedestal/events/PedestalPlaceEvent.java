@@ -57,8 +57,8 @@ public class PedestalPlaceEvent extends RefSystem<ChunkStore> {
         int localX = ChunkUtil.xFromBlockInColumn(blockIndex);
         int localY = ChunkUtil.yFromBlockInColumn(blockIndex);
         int localZ = ChunkUtil.zFromBlockInColumn(blockIndex);
-        int blockX = ChunkUtil.worldCoordFromLocalCoord(blockChunk.x(), localX);
-        int blockZ = ChunkUtil.worldCoordFromLocalCoord(blockChunk.z(), localZ);
+        int blockX = ChunkUtil.worldCoordFromLocalCoord(blockChunk.getX(), localX);
+        int blockZ = ChunkUtil.worldCoordFromLocalCoord(blockChunk.getZ(), localZ);
         Vector3i blockPos = new Vector3i(blockX, localY, blockZ);
 
         pedestal.setLocation(blockPos);

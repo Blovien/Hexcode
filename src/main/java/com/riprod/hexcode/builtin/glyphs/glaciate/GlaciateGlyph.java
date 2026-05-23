@@ -6,6 +6,8 @@ import java.util.UUID;
 import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.math.vector.Rotation3f;
+
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
@@ -121,7 +123,7 @@ public static final String ID = "Glaciate";
                 hexContext.getAccessor(), hexContext, glyph, GlaciateGlyph.ID, new Vector3d(spawnPos),
                 new GlaciateState(glyph.getNextLinks()));
 
-        Vector3f rotation = new Vector3f();
+        Rotation3f rotation = new Rotation3f();
         holder.getComponent(TransformComponent.getComponentType())
                 .setRotation(rotation);
         holder.addComponent(HeadRotation.getComponentType(), new HeadRotation(rotation));
@@ -144,7 +146,7 @@ public static final String ID = "Glaciate";
                 new GlaciateComponent(DEFAULT_DAMAGE_RADIUS, DEFAULT_DAMAGE_MULTIPLIER, duration));
 
         GlaciatePhysicsConfig.INSTANCE.apply(holder, hexContext.getCasterRef(),
-                Vector3d.ZERO, hexContext.getAccessor(), false);
+                new Vector3d(), hexContext.getAccessor(), false);
 
         Ref<EntityStore> iceRef = hexContext.getAccessor().addEntity(holder, AddReason.SPAWN);
 

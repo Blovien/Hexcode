@@ -62,7 +62,7 @@ public static final String ID = "Halt";
             StandardPhysicsProvider physics = accessor.getComponent(ref,
                     StandardPhysicsProvider.getComponentType());
             if (physics != null) {
-                physics.getForceProviderStandardState().nextTickVelocity.assign(Vector3d.ZERO);
+                physics.getForceProviderStandardState().nextTickVelocity.set(0d, 0d, 0d);
                 if (duration > 0) {
                     physics.setState(StandardPhysicsProvider.STATE.INACTIVE);
                 }
@@ -70,7 +70,7 @@ public static final String ID = "Halt";
                 Velocity vel = accessor.getComponent(ref, Velocity.getComponentType());
                 if (vel != null) {
                     vel.getInstructions().clear();
-                    vel.addInstruction(Vector3d.ZERO, null, ChangeVelocityType.Set);
+                    vel.addInstruction(new Vector3d(), null, ChangeVelocityType.Set);
                 }
 
                 if (duration > 0) {

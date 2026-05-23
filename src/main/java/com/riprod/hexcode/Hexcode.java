@@ -36,7 +36,6 @@ import com.riprod.hexcode.core.common.hexstaff.component.HexStaffAsset;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.system.HoverableSpatialSystem;
-import com.riprod.hexcode.core.common.hud.controller.HudController;
 import com.riprod.hexcode.core.common.imbuement.asset.EssenceAsset;
 import com.riprod.hexcode.core.common.imbuement.asset.ImbuementProfileAsset;
 import com.riprod.hexcode.core.common.obelisk.component.ObeliskBlockComponent;
@@ -154,7 +153,6 @@ public class Hexcode extends JavaPlugin {
         this.registerInteractions();
         this.registerEvents();
         this.registerCommands();
-        HudController.boot();
         this.registerExternal();
 
         LOGGER.atInfo().log("Hexcode %s setup complete!", this.getManifest().getVersion().toString());

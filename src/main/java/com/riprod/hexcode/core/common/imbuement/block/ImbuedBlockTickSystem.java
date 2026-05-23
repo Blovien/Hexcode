@@ -78,8 +78,8 @@ public class ImbuedBlockTickSystem extends EntityTickingSystem<ChunkStore> {
         int localX = ChunkUtil.xFromBlockInColumn(blockIndex);
         int localY = ChunkUtil.yFromBlockInColumn(blockIndex);
         int localZ = ChunkUtil.zFromBlockInColumn(blockIndex);
-        int worldX = ChunkUtil.worldCoordFromLocalCoord(blockChunk.x(), localX);
-        int worldZ = ChunkUtil.worldCoordFromLocalCoord(blockChunk.z(), localZ);
+        int worldX = ChunkUtil.worldCoordFromLocalCoord(blockChunk.getX(), localX);
+        int worldZ = ChunkUtil.worldCoordFromLocalCoord(blockChunk.getZ(), localZ);
         return new Vector3i(worldX, localY, worldZ);
     }
 

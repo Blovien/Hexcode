@@ -38,7 +38,7 @@ public class ProjectileStyle {
 
         Vector3f color = resolveColor(overrides);
         World world = accessor.getExternalData().getWorld();
-        Vector3d trailEnd = new Vector3d(position).add(new Vector3d(direction).scale(2.0));
+        Vector3d trailEnd = new Vector3d(position).add(new Vector3d(direction).mul(2.0));
         VfxUtil.line(accessor, world, position, trailEnd, color, TRAIL_THICKNESS, TRAIL_DURATION, 0);
     }
 

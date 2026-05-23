@@ -35,7 +35,7 @@ public class ShatterStyle {
 
         Vector3f color = resolveColor(overrides);
         World world = accessor.getExternalData().getWorld();
-        Vector3d trailEnd = new Vector3d(position).add(new Vector3d(direction).scale(1.5));
+        Vector3d trailEnd = new Vector3d(position).add(new Vector3d(direction).mul(1.5));
         VfxUtil.line(accessor, world, position, trailEnd, color, LINE_THICKNESS, LINE_DURATION, 0);
     }
 

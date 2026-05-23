@@ -5,6 +5,7 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import org.joml.Vector3f;
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.protocol.MountController;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
@@ -27,7 +28,7 @@ public class CraftingDragHandler {
 
         accessor.tryRemoveComponent(entityRef, MountedComponent.getComponentType());
         accessor.addComponent(entityRef, MountedComponent.getComponentType(),
-                new MountedComponent(headAnchorRef, new Vector3f(0, 0, -2f), MountController.Minecart));
+                new MountedComponent(headAnchorRef, new Rotation3f(0, 0, -2f), MountController.Minecart));
 
         return headAnchorRef;
     }
@@ -39,10 +40,10 @@ public class CraftingDragHandler {
 
         TransformComponent headTransform = accessor.getComponent(headAnchorRef,
                 TransformComponent.getComponentType());
-        headTransform.getRotation().assign(
+        headTransform.getRotation().set(
                 headRot.getRotation().x,
                 headRot.getRotation().y,
-                0);
+                0f);
     }
 
     public static void endDrag(CommandBuffer<EntityStore> accessor,

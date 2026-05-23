@@ -15,6 +15,7 @@ import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import org.joml.Vector3f;
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.hexes.codec.HexFieldCodec;
@@ -44,7 +45,7 @@ public class HexComponent implements Component<EntityStore> {
 
     // transient
     private Vector3f offset = new Vector3f(); // offset from parent
-    private Vector3f rotation = new Vector3f(); // x = yaw, y = pitch, z = distance
+    private Rotation3f rotation = new Rotation3f(); // x = yaw, y = pitch, z = distance
     private float scale = 1f;
     private Map<String, Ref<EntityStore>> childGlyphRefs = new HashMap<>();
     private Ref<EntityStore> parentRef;
@@ -167,7 +168,7 @@ public class HexComponent implements Component<EntityStore> {
         return this.rotation.x;
     }
 
-    public Vector3f getRotation() {
+    public Rotation3f getRotation() {
         return this.rotation;
     }
 
@@ -183,7 +184,7 @@ public class HexComponent implements Component<EntityStore> {
         this.rotation.z = distance;
     }
 
-    public void setRotation(Vector3f rotation) {
+    public void setRotation(Rotation3f rotation) {
         this.rotation = rotation;
     }
 
@@ -229,7 +230,7 @@ public class HexComponent implements Component<EntityStore> {
         HexComponent copy = new HexComponent();
         copy.hex = this.hex.clone();
         copy.offset = new Vector3f(this.offset.x(), this.offset.y(), this.offset.z());
-        copy.rotation = new Vector3f(this.rotation.x(), this.rotation.y(), this.rotation.z());
+        copy.rotation = new Rotation3f(this.rotation.x(), this.rotation.y(), this.rotation.z());
         copy.scale = this.scale;
         copy.parentRef = this.parentRef;
         copy.selfRef = this.selfRef;

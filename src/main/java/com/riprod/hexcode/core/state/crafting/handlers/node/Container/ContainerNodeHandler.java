@@ -12,6 +12,7 @@ import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.math.shape.Box;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.protocol.DebugShape;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
@@ -91,7 +92,7 @@ public class ContainerNodeHandler extends BaseContainerHandler {
         } else {
             holder = EntityStore.REGISTRY.newHolder();
             holder.addComponent(TransformComponent.getComponentType(),
-                    new TransformComponent(globalPos, new Vector3f(0, 0, 0)));
+                    new TransformComponent(globalPos, new Rotation3f()));
             holder.ensureComponent(EntityStore.REGISTRY.getNonSerializedComponentType());
             holder.addComponent(UUIDComponent.getComponentType(),
                     new UUIDComponent(UUID.randomUUID()));
@@ -147,10 +148,10 @@ public class ContainerNodeHandler extends BaseContainerHandler {
             return hexRef;
         GlyphComponent firstGlyphComponent = new GlyphComponent(firstGlyph.clone());
 
-        Vector3f glyphRot = new Vector3f(PEDESTAL_GLYPH_PITCH, 0, GLYPH_DISPLAY_DISTANCE);
+        Rotation3f glyphRot = new Rotation3f(PEDESTAL_GLYPH_PITCH, 0, GLYPH_DISPLAY_DISTANCE);
         firstGlyphComponent.setHexRef(hexRef);
         firstGlyphComponent.setParentRef(hexRef);
-        firstGlyphComponent.setOffset(Vector3f.ZERO);
+        firstGlyphComponent.setOffset(new Vector3f());
         firstGlyphComponent.setRotation(glyphRot);
         firstGlyphComponent.setScale(scaleMultiplier);
         hexComponent.setScale(scaleMultiplier);

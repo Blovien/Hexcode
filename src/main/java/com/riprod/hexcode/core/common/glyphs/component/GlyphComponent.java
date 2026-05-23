@@ -6,6 +6,7 @@ import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import org.joml.Vector3f;
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -126,7 +127,7 @@ public class GlyphComponent implements Component<EntityStore> {
     }
 
     public void setYaw(float yaw) {
-        this.glyph.getRotation().y = yaw);
+        this.glyph.getRotation().y = yaw;
     }
 
     public float pitch() {
@@ -145,11 +146,11 @@ public class GlyphComponent implements Component<EntityStore> {
         this.glyph.getRotation().setZ(distance);
     }
 
-    public Vector3f getRotation() {
+    public Rotation3f getRotation() {
         return this.glyph.getRotation();
     }
 
-    public void setRotation(Vector3f rotation) {
+    public void setRotation(Rotation3f rotation) {
         this.glyph.setRotation(rotation);
     }
 

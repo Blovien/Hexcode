@@ -8,6 +8,8 @@ import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.math.vector.Rotation3f;
+
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 import com.hypixel.hytale.protocol.InteractionType;
@@ -95,7 +97,7 @@ public class ProjectileGlyph implements GlyphHandler {
         }
         direction = new Vector3d(direction.x / dirLen, direction.y / dirLen, direction.z / dirLen);
 
-        spawnPos.add(new Vector3d(direction).scale(1.5));
+        spawnPos.add(new Vector3d(direction).mul(1.5));
 
         double speed = HexVarUtil.numberOrDefault(speedVar, 30.0);
         if (speed <= 0)
@@ -117,7 +119,7 @@ public class ProjectileGlyph implements GlyphHandler {
         Holder<EntityStore> holder = HexConstructSpawner.create(hexContext.getAccessor(), hexContext, glyph,
                 ProjectileGlyph.ID, spawnPos);
 
-        Vector3f rotation = new Vector3f();
+        Rotation3f rotation = new Rotation3f();
         rotation.y = (float) Math.atan2(-direction.x, direction.z);
         rotation.x = (float) Math.asin(Math.max(-1.0, Math.min(1.0, -direction.y)));
 
@@ -137,7 +139,7 @@ public class ProjectileGlyph implements GlyphHandler {
         holder.addComponent(Interactions.getComponentType(),
                 new Interactions(buildInteractionsMap()));
 
-        Vector3d launchVelocity = new Vector3d(direction).scale(speed);
+        Vector3d launchVelocity = new Vector3d(direction).mul(speed);
         ProjectilePhysicsConfig physicsConfig = new ProjectilePhysicsConfig(gravity, bounces);
 
         Ref<EntityStore> parent = sourceVar instanceof EntityVar var ? var.getRef(hexContext.getAccessor())

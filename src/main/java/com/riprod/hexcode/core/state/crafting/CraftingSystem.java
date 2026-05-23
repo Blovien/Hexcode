@@ -197,7 +197,7 @@ public class CraftingSystem extends HexcodeManager {
                         pedestalLoc.x() + 0.5,
                         pedestalLoc.y() + 0.5,
                         pedestalLoc.z() + 0.5);
-                double distSq = playerPos.distanceSquaredTo(center);
+                double distSq = playerPos.distanceSquared(center);
                 int maxRadius = pedestal.getMaxRadius();
                 double maxSq = (double) maxRadius * maxRadius;
                 if (distSq > maxSq) {

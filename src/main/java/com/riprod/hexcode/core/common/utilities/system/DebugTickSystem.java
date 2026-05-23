@@ -20,6 +20,7 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.utilities.component.DebugComponent;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.math.vector.Rotation3f;
 
 public class DebugTickSystem extends EntityTickingSystem<EntityStore> {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -61,7 +62,7 @@ public class DebugTickSystem extends EntityTickingSystem<EntityStore> {
                             TransformComponent.getComponentType());
                     if (parentTransform != null) {
                         Vector3d parentPos = parentTransform.getPosition();
-                        Vector3f offset = mount.getAttachmentOffset();
+                        Rotation3f offset = mount.getAttachmentOffset();
                         pos = new Vector3d(
                                 parentPos.x + offset.x(),
                                 parentPos.y + offset.y(),
@@ -81,8 +82,8 @@ public class DebugTickSystem extends EntityTickingSystem<EntityStore> {
                 PlayerRef playerRef = store.getComponent(targetRef, PlayerRef.getComponentType());
                 if (playerRef != null) {
                     DisplayDebug packet = new DisplayDebug(
-                            debug.getShape(), matrix.asFloatData(),
-                            new com.hypixel.hytale.protocol.Vector3f(
+                            debug.getShape(), matrixToFloatArray(matrix),
+                            new Vector3f(
                                     debug.getColor().x, debug.getColor().y, debug.getColor().z),
                             debug.getFadeTime(), (byte) debug.getFlags(), null, debug.getOpacity());
                     playerRef.getPacketHandler().write(packet);
@@ -95,5 +96,11 @@ public class DebugTickSystem extends EntityTickingSystem<EntityStore> {
         } catch (Exception e) {
             LOGGER.atSevere().log("[hexcode] DebugTickSystem failed: %s", e.getMessage());
         }
+    }
+
+    private static float[] matrixToFloatArray(Matrix4d m) {
+        float[] arr = new float[16];
+        m.get(arr);
+        return arr;
     }
 }

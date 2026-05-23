@@ -6,6 +6,7 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
@@ -19,7 +20,7 @@ public class GlyphSpawner {
     private static final float GLYPH_HEIGHT_MULTIPLIER = 0.2f;
 
     public static void spawnGlyphs(CommandBuffer<EntityStore> accessor, HexComponent hex, GlyphComponent glyph,
-            Vector3d parentPos, Vector3f parentRot, Ref<EntityStore> playerRef) {
+            Vector3d parentPos, Rotation3f parentRot, Ref<EntityStore> playerRef) {
 
         Ref<EntityStore> glyphRef = CreateGlyph.createGlyph(accessor, glyph, parentPos, parentRot, playerRef);
         glyph.setSelfRef(glyphRef);
@@ -27,12 +28,12 @@ public class GlyphSpawner {
 
         List<Glyph> children = hex.getGlyphs(glyph.getNext());
 
-        List<Vector3f> childRotations = GlyphMath.getChildRotations(children.size(), glyph.getScale(),
+        List<Rotation3f> childRotations = GlyphMath.getChildRotations(children.size(), glyph.getScale(),
                 glyph.getRotation().z());
 
         for (int i = 0; i < children.size(); i++) {
             Glyph childGlyph = children.get(i);
-            Vector3f childRotation = childRotations.get(i);
+            Rotation3f childRotation = childRotations.get(i);
             if (hex.getChildGlyphRef(childGlyph.getId()) != null) {
                 continue;
             }
@@ -48,7 +49,7 @@ public class GlyphSpawner {
             childGlyphComponent.setRotation(childRotation);
             Vector3f offset = GlyphMath.toMountOffset(childRotation, childGlyph.getRotation());
             float yOffset = childGlyphComponent.getScale() * GLYPH_HEIGHT_MULTIPLIER;
-            Vector3f scaledOffset = new Vector3f(offset).add(0, 0, yOffset);
+            Vector3f scaledOffset = offset.add(0, 0, yOffset);
             childGlyphComponent.setVisualOffset(scaledOffset);
 
             childGlyphComponent.setParentRef(glyph.getSelfRef());

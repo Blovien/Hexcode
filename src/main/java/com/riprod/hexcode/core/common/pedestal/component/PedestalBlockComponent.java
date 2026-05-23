@@ -11,6 +11,7 @@ import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
@@ -51,7 +52,7 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
                     state -> state.maxRadius)
             .documentation("The radius in which players are detected")
             .add()
-            .appendInherited(new KeyedCodec<>("DisplayOffsetVector", Vector3f.CODEC),
+            .appendInherited(new KeyedCodec<>("DisplayOffsetVector", Rotation3f.CODEC),
                     (a, v) -> a.displayOffset = v,
                     a -> a.displayOffset,
                     (a, p) -> a.displayOffset = p.displayOffset)
@@ -85,7 +86,7 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
     private int obeliskRange = 30;
     private String referenceHolder = "Pedestal_Holder";
     private Map<String, AnimationSet> animationSetMap = Collections.emptyMap();
-    protected Vector3f displayOffset = new Vector3f(0f, 0.3f, 0f);
+    protected Rotation3f displayOffset = new Rotation3f(0f, 0.3f, 0f);
     // transient runtime
     private Map<String, Float> lastTickMap = new HashMap<>();
     private List<Vector3i> obeliskLocations = new ArrayList<>();
@@ -169,7 +170,7 @@ public class PedestalBlockComponent implements Component<ChunkStore> {
         return this.obeliskLocations.remove(obeliskLoc);
     }
 
-    public Vector3f getDisplayOffset() {
+    public Rotation3f getDisplayOffset() {
         return this.displayOffset;
     }
 

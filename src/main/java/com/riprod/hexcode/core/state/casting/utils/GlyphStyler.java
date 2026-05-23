@@ -9,6 +9,8 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.math.vector.Rotation3f;
+
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 import com.hypixel.hytale.protocol.MountController;
@@ -149,7 +151,8 @@ public class GlyphStyler {
             Vector3f newPosition) {
         try {
 
-            MountedComponent newMount = new MountedComponent(glyph.getParentRef(), newPosition,
+            MountedComponent newMount = new MountedComponent(glyph.getParentRef(),
+                    new Rotation3f(newPosition.x, newPosition.y, newPosition.z),
                     MountController.Minecart);
             accessor.putComponent(glyph.getSelfRef(), MountedComponent.getComponentType(), newMount);
 
@@ -189,7 +192,7 @@ public class GlyphStyler {
 
         if (children != null && !children.isEmpty()) {
 
-            List<Vector3f> childRotations = GlyphMath.getChildRotations(children.size(), parentGlyph.getScale(),
+            List<Rotation3f> childRotations = GlyphMath.getChildRotations(children.size(), parentGlyph.getScale(),
                     parentGlyph.getRotation().z());
 
             float scaleAmount = parentGlyph.getScale() * SCALE_MULTIPLIER;
@@ -200,7 +203,7 @@ public class GlyphStyler {
             for (int i = 0; i < children.size(); i++) {
                 Ref<EntityStore> childRef = children.get(i);
                 GlyphComponent child = accessor.getComponent(childRef, GlyphComponent.getComponentType());
-                Vector3f childRotation = childRotations.get(i);
+                Rotation3f childRotation = childRotations.get(i);
 
                 if (styledGlyphs.contains(child.getId())) {
                     continue;

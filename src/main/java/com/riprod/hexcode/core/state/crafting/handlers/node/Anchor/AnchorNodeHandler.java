@@ -10,6 +10,7 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.shape.Box;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.protocol.DebugShape;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
@@ -179,7 +180,7 @@ public class AnchorNodeHandler extends BaseAnchorHandler {
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
 
         holder.addComponent(TransformComponent.getComponentType(),
-                new TransformComponent(rootPos, new Vector3f(0, 0, 0)));
+                new TransformComponent(rootPos, new Rotation3f()));
 
         NodeComponent node = new NodeComponent(parentRef, NodeTypeId.ANCHOR);
 

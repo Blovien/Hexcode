@@ -6,6 +6,8 @@ import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.math.vector.Rotation3f;
+
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 import com.hypixel.hytale.protocol.InteractionState;
@@ -90,12 +92,12 @@ public class GlyphNodeHandler extends BaseGlyphHandler {
         TransformComponent headTransform = accessor.getComponent(headAnchorRef, TransformComponent.getComponentType());
         if (headTransform == null) return InteractionState.Finished;
 
-        Vector3f playerRotation = headTransform.getRotation();
+        Rotation3f playerRotation = headTransform.getRotation();
         TransformComponent nodeTransform = accessor.getComponent(nodeRef, TransformComponent.getComponentType());
         if (nodeTransform == null) return InteractionState.Finished;
 
-        nodeTransform.getPosition().assign(dropWorldPos);
-        nodeTransform.getRotation().assign(playerRotation);
+        nodeTransform.getPosition().set(dropWorldPos);
+        nodeTransform.getRotation().set(playerRotation);
 
         glyphComp.setOffset(dropOffset);
         glyphComp.setRotation(playerRotation);
@@ -163,8 +165,8 @@ public class GlyphNodeHandler extends BaseGlyphHandler {
         TransformComponent transform = accessor.getComponent(nodeRef, TransformComponent.getComponentType());
         if (transform == null) return;
 
-        transform.getPosition().assign(dropWorldPos);
-        transform.getRotation().assign(headRot.getRotation());
+        transform.getPosition().set(dropWorldPos);
+        transform.getRotation().set(headRot.getRotation());
     }
 
     @Override
@@ -223,7 +225,7 @@ public class GlyphNodeHandler extends BaseGlyphHandler {
             Vector3d position, Ref<EntityStore> playerRef, GlyphComponent glyphComp,
             Ref<EntityStore> hexEntityRef) {
         Glyph glyph = glyphComp.getGlyph();
-        Vector3f glyphRot = new Vector3f(glyph.getRotation().x, glyph.getRotation().y, 0);
+        Rotation3f glyphRot = new Rotation3f(glyph.getRotation().x, glyph.getRotation().y, 0);
         Holder<EntityStore> glyphHolder = CreateGlyph.createGlyphHolder(accessor, glyphComp, position, glyphRot);
 
         HoverableComponent hoverComp = new HoverableComponent(HoverableType.NODE);

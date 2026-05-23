@@ -1,6 +1,8 @@
 package com.riprod.hexcode.builtin.glyphs.beam.style;
 
 import com.hypixel.hytale.component.ComponentAccessor;
+import com.hypixel.hytale.math.vector.Rotation3f;
+
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 import com.hypixel.hytale.protocol.Color;
@@ -37,7 +39,7 @@ public class BeamStyle {
         Vector3f beamColor = resolveColor(overrides);
 
         World world = accessor.getExternalData().getWorld();
-        VfxUtil.spawnPrimaryDirected(overrides, asset(), origin, rotation, accessor);
+        VfxUtil.spawnPrimaryDirected(overrides, asset(), origin, new Rotation3f(rotation.x, rotation.y, rotation.z), accessor);
         VfxUtil.line(accessor, world, origin, endPoint, beamColor, LINE_THICKNESS, LINE_DURATION, DebugUtils.FLAG_FADE);
 
         if (hitType != HitType.MISS) {

@@ -40,7 +40,7 @@ public class ObeliskBlockUtil {
             return true;
         });
 
-        results.sort(Comparator.comparingInt(pair -> center.distanceSquaredTo(pair.getFirst())));
+        results.sort(Comparator.comparingLong(pair -> center.distanceSquared(pair.getFirst())));
 
         if (results.size() > maxCount) {
             return new ArrayList<>(results.subList(0, maxCount));

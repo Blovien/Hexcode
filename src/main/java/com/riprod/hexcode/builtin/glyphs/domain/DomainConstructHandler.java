@@ -211,7 +211,7 @@ public class DomainConstructHandler implements ConstructHandler<NoState> {
                 if (otherTransform == null)
                     continue;
 
-                double dist = new Vector3d(selfCenter).subtract(otherTransform.getPosition()).length();
+                double dist = new Vector3d(selfCenter).sub(otherTransform.getPosition()).length();
                 if (dist < self.getRadius() + other.getRadius()) {
                     if (self.getPower() <= other.getPower()) {
                         nowContested[0] = true;

@@ -142,8 +142,8 @@ public class PedestalSystem {
                 anchorPos.z + ACTIVE_HEX_OFFSET.z);
         TransformComponent anchorTransform = buffer.getComponent(selectedAnchorNodeRef,
                 TransformComponent.getComponentType());
-        anchorTransform.getPosition().assign(activePos);
-        anchorTransform.getRotation().assign(0, 0, 0);
+        anchorTransform.getPosition().set(activePos);
+        anchorTransform.getRotation().set(0f, 0f, 0f);
         if (buffer.getComponent(selectedAnchorNodeRef, MountedComponent.getComponentType()) != null) {
             buffer.removeComponent(selectedAnchorNodeRef, MountedComponent.getComponentType());
         }

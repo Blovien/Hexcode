@@ -13,6 +13,7 @@ import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.codec.codecs.map.MapCodec;
 import org.joml.Vector3f;
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphRegistry;
 import com.riprod.hexcode.core.common.glyphs.registry.SlotAsset;
@@ -33,7 +34,7 @@ public class Glyph {
     private float efficiency;
     private Map<String, Slot> slots;
     private Vector3f relPosition;
-    private Vector3f relRotation;
+    private Rotation3f relRotation;
 
     public Glyph() {
         this.glyphId = "";
@@ -42,7 +43,7 @@ public class Glyph {
         this.efficiency = 0;
         this.slots = new LinkedHashMap<>();
         this.relPosition = new Vector3f(0, 0, 0);
-        this.relRotation = new Vector3f(0, 0, 0);
+        this.relRotation = new Rotation3f(0, 0, 0);
     }
 
     public Glyph(GlyphAsset glyphAsset, float volatility, float efficiency) {
@@ -52,7 +53,7 @@ public class Glyph {
         this.efficiency = efficiency;
         this.slots = new LinkedHashMap<>();
         this.relPosition = new Vector3f(0, 0, 0);
-        this.relRotation = new Vector3f(0, 0, 0);
+        this.relRotation = new Rotation3f(0, 0, 0);
     }
 
     public String getGlyphId() {
@@ -95,11 +96,11 @@ public class Glyph {
         this.relPosition = position;
     }
 
-    public Vector3f getRotation() {
+    public Rotation3f getRotation() {
         return relRotation;
     }
 
-    public void setRotation(Vector3f rotation) {
+    public void setRotation(Rotation3f rotation) {
         this.relRotation = rotation;
     }
 
@@ -284,7 +285,7 @@ public class Glyph {
                         c -> new float[] { c.relPosition.x, c.relPosition.y, c.relPosition.z })
                 .add()
                 .append(new KeyedCodec<>("RelativeRotation", Codec.FLOAT_ARRAY),
-                        (c, v) -> c.relRotation = new Vector3f(v[0], v[1], v[2]),
+                        (c, v) -> c.relRotation = new Rotation3f(v[0], v[1], v[2]),
                         c -> new float[] { c.relRotation.x, c.relRotation.y, c.relRotation.z })
                 .add()
                 .build();
@@ -301,7 +302,7 @@ public class Glyph {
             clone.slots.put(entry.getKey(), entry.getValue().clone());
         }
         clone.relPosition = new Vector3f(this.relPosition.x, this.relPosition.y, this.relPosition.z);
-        clone.relRotation = new Vector3f(this.relRotation.x, this.relRotation.y, this.relRotation.z);
+        clone.relRotation = new Rotation3f(this.relRotation.x, this.relRotation.y, this.relRotation.z);
         return clone;
     }
 

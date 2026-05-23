@@ -10,6 +10,7 @@ import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Ref;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.server.core.entity.reference.PersistentRef;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
@@ -61,7 +62,7 @@ public final class EntityVar extends HexVar {
         if (entityRef == null || !entityRef.isValid()) {
             return new PositionVar(new Vector3d(0, 0, 0), true);
         }
-        Vector3d pos = accessor.getComponent(entityRef, TransformComponent.getComponentType()).getPosition().clone();
+        Vector3d pos = new Vector3d(accessor.getComponent(entityRef, TransformComponent.getComponentType()).getPosition());
         return new PositionVar(pos, true);
     }
 
@@ -69,14 +70,14 @@ public final class EntityVar extends HexVar {
     public RotationVar toRotation(ComponentAccessor<EntityStore> accessor) {
         Ref<EntityStore> entityRef = getRef(accessor);
         if (entityRef == null || !entityRef.isValid()) {
-            return new RotationVar(new Vector3f(0f, 0f, 0f));
+            return new RotationVar(new Rotation3f());
         }
         try {
             HeadRotation headRot = accessor.getComponent(entityRef, HeadRotation.getComponentType());
             if (headRot != null) return new RotationVar(headRot.getRotation());
         } catch (Exception e) {
         }
-        Vector3f r = accessor.getComponent(entityRef, TransformComponent.getComponentType()).getRotation();
+        Rotation3f r = accessor.getComponent(entityRef, TransformComponent.getComponentType()).getRotation();
         return new RotationVar(r);
     }
 

@@ -9,8 +9,10 @@ import java.util.Map;
 import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.math.vector.Rotation3f;
+
 import org.joml.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import org.joml.Vector3f;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
@@ -126,7 +128,7 @@ public class ShatterGlyph implements GlyphHandler {
         Model model = Model.createScaledModel(modelAsset, SHARD_SCALE);
 
         for (Vector3d dir : shardDirections) {
-            Vector3d shardSpawn = new Vector3d(spawnPos).add(new Vector3d(dir).scale(1.0));
+            Vector3d shardSpawn = new Vector3d(spawnPos).add(new Vector3d(dir).mul(1.0));
             spawnShard(hexContext, glyph, parent, shardSpawn, dir, speed, gravity, model);
         }
 
@@ -139,8 +141,8 @@ public class ShatterGlyph implements GlyphHandler {
 
         HexContext branched = hexContext.branch();
 
-        Vector3f rotation = new Vector3f();
-        rotation.y = (float) Math.atan2(-direction.x, direction.z));
+        Rotation3f rotation = new Rotation3f();
+        rotation.y = (float) Math.atan2(-direction.x, direction.z);
         rotation.setPitch((float) Math.asin(Math.max(-1.0, Math.min(1.0, -direction.y))));
 
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
@@ -162,7 +164,7 @@ public class ShatterGlyph implements GlyphHandler {
         holder.addComponent(Interactions.getComponentType(),
                 new Interactions(buildInteractionsMap()));
 
-        Vector3d launchVelocity = new Vector3d(direction).scale(speed);
+        Vector3d launchVelocity = new Vector3d(direction).mul(speed);
         new ProjectilePhysicsConfig(gravity, 0).apply(holder, parent,
                 launchVelocity, hexContext.getAccessor(), false);
 
@@ -202,9 +204,9 @@ public class ShatterGlyph implements GlyphHandler {
         for (int i = 0; i < ringCount; i++) {
             double azimuth = (2.0 * Math.PI * i) / ringCount;
 
-            Vector3d dir = new Vector3d(forward).scale(cosSpread)
-                    .add(new Vector3d(right).scale(sinSpread * Math.cos(azimuth)))
-                    .add(new Vector3d(up).scale(sinSpread * Math.sin(azimuth)));
+            Vector3d dir = new Vector3d(forward).mul(cosSpread)
+                    .add(new Vector3d(right).mul(sinSpread * Math.cos(azimuth)))
+                    .add(new Vector3d(up).mul(sinSpread * Math.sin(azimuth)));
             dir.normalize();
             directions.add(dir);
         }

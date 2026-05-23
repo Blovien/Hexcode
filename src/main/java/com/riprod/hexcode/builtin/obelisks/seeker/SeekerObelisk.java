@@ -21,18 +21,18 @@ public class SeekerObelisk implements ObeliskInterface {
         HoverableComponent hoverable = buffer.getComponent(hoveredRef, HoverableComponent.getComponentType());
         String description = hoverable != null ? hoverable.getHintText("description") : null;
 
-        HudController.get().showInfo(buffer, playerRef, title, description);
+        HudController.showInfo(buffer, playerRef, title, description);
     }
 
     @Override
     public void onUnhover(CommandBuffer<EntityStore> buffer, Ref<EntityStore> playerRef,
             Ref<EntityStore> unhoveredRef, ObeliskBlockComponent obelisk) {
-        HudController.get().hideInfo(buffer, playerRef);
+        HudController.hideInfo(buffer, playerRef);
     }
 
     @Override
     public void onExitCrafting(CommandBuffer<EntityStore> buffer, Ref<EntityStore> playerRef,
             ObeliskBlockComponent obelisk) {
-        HudController.get().hideInfo(buffer, playerRef);
+        HudController.hideInfo(buffer, playerRef);
     }
 }

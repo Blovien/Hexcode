@@ -22,7 +22,7 @@ public class VelocityUtil {
         if (type == ChangeVelocityType.Set && isProjectile(ref, buffer)) {
             StandardPhysicsProvider physics = buffer.getComponent(ref,
                     StandardPhysicsProvider.getComponentType());
-            physics.getForceProviderStandardState().nextTickVelocity.assign(velocity);
+            physics.getForceProviderStandardState().nextTickVelocity.set(velocity);
             if (physics.getState() != StandardPhysicsProvider.STATE.ACTIVE) {
                 physics.setState(StandardPhysicsProvider.STATE.ACTIVE);
             }

@@ -46,8 +46,8 @@ public class TriggerListenerComponent implements Component<EntityStore> {
     @Override
     public TriggerListenerComponent clone() {
         TriggerListenerComponent copy = new TriggerListenerComponent();
-        copy.lastPosition = this.lastPosition != null ? this.lastPosition.clone() : null;
-        copy.lastRotation = this.lastRotation != null ? this.lastRotation.clone() : null;
+        copy.lastPosition = this.lastPosition != null ? new Vector3d(this.lastPosition) : null;
+        copy.lastRotation = this.lastRotation != null ? new Vector3f(this.lastRotation) : null;
         return copy;
     }
 

@@ -24,6 +24,6 @@ public class GlyphPositioner {
             return;
         }
 
-        rootTransform.getRotation().assign(0, 0, 0);
+        rootTransform.getRotation().set(0f, 0f, 0f);
     }
 }

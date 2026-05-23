@@ -3,6 +3,7 @@ package com.riprod.hexcode.core.state.casting;
 import java.util.List;
 
 import com.hypixel.hytale.builtin.mounts.MountedComponent;
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
@@ -291,7 +292,7 @@ public class CastingSystem extends HexcodeManager {
 
             float distance = hoveredHex.getDistance();
             accessor.addComponent(glyphRef, MountedComponent.getComponentType(),
-                    new MountedComponent(headRootRef, new Vector3f(0, 0, -distance), MountController.Minecart));
+                    new MountedComponent(headRootRef, new Rotation3f(0, 0, -distance), MountController.Minecart));
         }
 
         castingComp.setDraggingHex(hoveredHex);
@@ -323,7 +324,7 @@ public class CastingSystem extends HexcodeManager {
             if (headRot != null) {
                 TransformComponent headTransform = accessor.getComponent(headAnchor,
                         TransformComponent.getComponentType());
-                headTransform.getRotation().assign(headRot.getRotation().x, headRot.getRotation().y, 0);
+                headTransform.getRotation().set(headRot.getRotation().x, headRot.getRotation().y, 0f);
             }
         }
 
@@ -400,13 +401,15 @@ public class CastingSystem extends HexcodeManager {
         GlyphStyler.hoverHex(accessor, null, castingComp);
         GlyphStyler.hoverGlyph(accessor, null, castingComp);
 
-        Vector3d dropPos = GlyphMath.sphericalToCartesian(draggedHex.getRotation());
-        Vector3f dropOffset = dropPos.toVector3f();
+        Rotation3f dhr = draggedHex.getRotation();
+        Vector3d dropPos = GlyphMath.sphericalToCartesian(dhr);
+        Vector3f dropOffset = new Vector3f((float) dropPos.x, (float) dropPos.y, (float) dropPos.z);
         draggedHex.setOffset(dropOffset);
 
+        Vector3f doff = draggedHex.getOffset();
         accessor.putComponent(draggedHex.getSelfRef(), MountedComponent.getComponentType(),
                 new MountedComponent(draggedHex.getRootRef(),
-                        new Vector3f(draggedHex.getOffset()),
+                        new Rotation3f(doff.x, doff.y, doff.z),
                         MountController.Minecart));
 
         return InteractionState.Finished;

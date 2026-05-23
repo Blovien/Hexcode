@@ -57,7 +57,9 @@ public static final String ID = "Beam";
         int beamLength = (int) HexVarUtil.number(
                 glyph.readSlot(BeamGlyphSlots.RANGE, hexContext, new NumberVar(32.0))).doubleValue();
 
-        Vector3f rotation = Vector3f.lookAt(direction);
+        double yaw = (float) Math.atan2(-direction.x, direction.z);
+        double pitch = (float) Math.asin(Math.max(-1.0, Math.min(1.0, -direction.y)));
+        com.hypixel.hytale.math.vector.Rotation3f rotation = new com.hypixel.hytale.math.vector.Rotation3f((float) pitch, (float) yaw, 0f);
         Transform transform = new Transform(new Vector3d(origin), rotation);
 
         Vector3d blockHitLocation = TargetUtil.getTargetLocation(transform, blockId -> blockId != 0,
@@ -68,7 +70,7 @@ public static final String ID = "Beam";
         double entityHitDist = Double.MAX_VALUE;
 
         if (blockHitLocation != null) {
-            blockHitDist = new Vector3d(origin).subtract(blockHitLocation).length();
+            blockHitDist = new Vector3d(origin).sub(blockHitLocation).length();
         }
 
         EntityVar sourceEntityVar = HexVarUtil.resolveEntityVar(posVar, hexContext);
@@ -81,12 +83,12 @@ public static final String ID = "Beam";
                 if (entityHit != null) {
                     Vector3d entityPos = hexContext.getAccessor().getComponent(entityHit,
                             TransformComponent.getComponentType()).getPosition();
-                    entityHitDist = new Vector3d(origin).subtract(entityPos).length();
+                    entityHitDist = new Vector3d(origin).sub(entityPos).length();
                 }
             }
         }
 
-        Vector3d beamOrigin = new Vector3d(origin).add(new Vector3d(direction).scale(1.5));
+        Vector3d beamOrigin = new Vector3d(origin).add(new Vector3d(direction).mul(1.5));
 
         Vector3d endPoint;
         BeamStyle.HitType hitType;
@@ -94,7 +96,7 @@ public static final String ID = "Beam";
         if (entityHit != null && entityHitDist < blockHitDist) {
             UUIDComponent uuidComp = hexContext.getAccessor().getComponent(entityHit, UUIDComponent.getComponentType());
             if (uuidComp == null) {
-                endPoint = new Vector3d(origin).add(new Vector3d(direction).scale(beamLength));
+                endPoint = new Vector3d(origin).add(new Vector3d(direction).mul(beamLength));
                 hitType = BeamStyle.HitType.MISS;
             } else {
                 EntityVar resultVar = new EntityVar(EntityVar.createRef(uuidComp.getUuid(), entityHit));
@@ -109,13 +111,13 @@ public static final String ID = "Beam";
             endPoint = blockHitLocation;
             hitType = BeamStyle.HitType.BLOCK;
         } else {
-            endPoint = new Vector3d(origin).add(new Vector3d(direction).scale(beamLength));
+            endPoint = new Vector3d(origin).add(new Vector3d(direction).mul(beamLength));
             hitType = BeamStyle.HitType.MISS;
             PositionVar resultVar = new PositionVar(endPoint, true);
             glyph.writeOutput(resultVar, hexContext);
         }
 
-        BeamStyle.render(beamOrigin, endPoint, rotation, hitType, hexContext, hexContext.getAccessor());
+        BeamStyle.render(beamOrigin, endPoint, new Vector3f(rotation.x, rotation.y, rotation.z), hitType, hexContext, hexContext.getAccessor());
 
         HexExecuter.continueFromSlot(glyph, Glyph.NEXT_SLOT, hexContext);
     }

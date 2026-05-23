@@ -3,6 +3,8 @@ package com.riprod.hexcode.builtin.staffStyles;
 import javax.annotation.Nonnull;
 
 import org.joml.Vector3f;
+
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.riprod.hexcode.core.state.casting.component.CastingStyle;
 
 import java.util.ArrayList;
@@ -22,15 +24,15 @@ public class ArcStyle implements CastingStyle {
 
     @Nonnull
     @Override
-    public List<Vector3f> getInitialPositions(int glyphCount, float lookYaw, float lookPitch) {
-        List<Vector3f> positions = new ArrayList<>();
+    public List<Rotation3f> getInitialPositions(int glyphCount, float lookYaw, float lookPitch) {
+        List<Rotation3f> positions = new ArrayList<>();
 
         if (glyphCount <= 0) {
             return positions;
         }
 
         if (glyphCount == 1) {
-            positions.add(new Vector3f(lookYaw, ARC_PITCH, DEFAULT_DISTANCE));
+            positions.add(new Rotation3f(lookYaw, ARC_PITCH, DEFAULT_DISTANCE));
             return positions;
         }
 
@@ -39,7 +41,7 @@ public class ArcStyle implements CastingStyle {
 
         for (int i = 0; i < glyphCount; i++) {
             float yaw = startYaw + angleStep * i;
-            positions.add(new Vector3f(ARC_PITCH, yaw, DEFAULT_DISTANCE));
+            positions.add(new Rotation3f(ARC_PITCH, yaw, DEFAULT_DISTANCE));
         }
 
         return positions;

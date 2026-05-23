@@ -3,6 +3,8 @@ package com.riprod.hexcode.builtin.staffStyles;
 import javax.annotation.Nonnull;
 
 import org.joml.Vector3f;
+
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.riprod.hexcode.core.state.casting.component.CastingStyle;
 
 import java.util.ArrayList;
@@ -21,15 +23,15 @@ public class SphereStyle implements CastingStyle {
 
     @Nonnull
     @Override
-    public List<Vector3f> getInitialPositions(int glyphCount, float lookYaw, float lookPitch) {
-        List<Vector3f> positions = new ArrayList<>();
+    public List<Rotation3f> getInitialPositions(int glyphCount, float lookYaw, float lookPitch) {
+        List<Rotation3f> positions = new ArrayList<>();
 
         if (glyphCount <= 0) {
             return positions;
         }
 
         if (glyphCount == 1) {
-            positions.add(new Vector3f(0f, (float) (Math.PI / 4), DEFAULT_DISTANCE));
+            positions.add(new Rotation3f(0f, (float) (Math.PI / 4), DEFAULT_DISTANCE));
             return positions;
         }
 
@@ -41,7 +43,7 @@ public class SphereStyle implements CastingStyle {
 
             float yaw = goldenAngle * i;
 
-            positions.add(new Vector3f(pitch, yaw, DEFAULT_DISTANCE));
+            positions.add(new Rotation3f(pitch, yaw, DEFAULT_DISTANCE));
         }
 
         return positions;
