@@ -4,9 +4,9 @@ import javax.annotation.Nullable;
 
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.util.ChunkUtil;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
-import com.hypixel.hytale.math.vector.Vector3i;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
+import org.joml.Vector3i;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
@@ -22,9 +22,9 @@ import com.riprod.hexcode.core.state.execution.component.HexContext;
 
 public class BlockUtils {
     public static void moveBlock(Vector3i source, Vector3d destination, World world) {
-        int srcX = source.getX();
-        int srcY = source.getY();
-        int srcZ = source.getZ();
+        int srcX = source.x();
+        int srcY = source.y();
+        int srcZ = source.z();
 
         int sourceBlockId = world.getBlock(srcX, srcY, srcZ);
         if (sourceBlockId == BlockType.EMPTY_ID)
@@ -32,9 +32,9 @@ public class BlockUtils {
 
         int rotation = world.getBlockRotationIndex(srcX, srcY, srcZ);
 
-        int destX = (int) Math.floor(destination.getX());
-        int destY = (int) Math.floor(destination.getY());
-        int destZ = (int) Math.floor(destination.getZ());
+        int destX = (int) Math.floor(destination.x());
+        int destY = (int) Math.floor(destination.y());
+        int destZ = (int) Math.floor(destination.z());
 
         Vector3i placement = findAirBlock(world, destX, destY, destZ);
         if (placement == null) {
@@ -45,9 +45,9 @@ public class BlockUtils {
 
         BlockType blockType = BlockType.getAssetMap().getAsset(sourceBlockId);
         WorldChunk destChunk = world.getChunk(
-                ChunkUtil.indexChunkFromBlock(placement.getX(), placement.getZ()));
+                ChunkUtil.indexChunkFromBlock(placement.x(), placement.z()));
         if (destChunk != null) {
-            destChunk.setBlock(placement.getX(), placement.getY(), placement.getZ(),
+            destChunk.setBlock(placement.x(), placement.y(), placement.z(),
                     sourceBlockId, blockType, rotation, 0, 0);
         }
     }
@@ -97,15 +97,15 @@ public class BlockUtils {
                 Teleport teleport = Teleport.createForPlayer(dest, rotation);
                 hexContext.getAccessor().addComponent(entityRef, Teleport.getComponentType(), teleport);
             } else {
-                tc.setPosition(new Vector3d(dest.getX(), dest.getY(), dest.getZ()));
+                tc.setPosition(new Vector3d(dest.x(), dest.y(), dest.z()));
             }
         } else if (var instanceof BlockVar blockVar && blockVar.getValue() != null) {
             moveBlock(blockVar.getValue(), dest, world);
         } else if (var instanceof PositionVar posVar && posVar.getValue() != null) {
             Vector3i sourceBlock = new Vector3i(
-                    (int) Math.floor(posVar.getValue().getX()),
-                    (int) Math.floor(posVar.getValue().getY()),
-                    (int) Math.floor(posVar.getValue().getZ()));
+                    (int) Math.floor(posVar.getValue().x()),
+                    (int) Math.floor(posVar.getValue().y()),
+                    (int) Math.floor(posVar.getValue().z()));
             moveBlock(sourceBlock, dest, world);
         }
     }

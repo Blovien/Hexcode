@@ -11,7 +11,7 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
-import com.hypixel.hytale.math.vector.Vector3f;
+import org.joml.Vector3f;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.Slot;
 import com.riprod.hexcode.core.common.hexes.component.Hex;

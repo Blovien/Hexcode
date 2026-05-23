@@ -8,8 +8,8 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
 import com.hypixel.hytale.protocol.MountController;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
@@ -39,8 +39,8 @@ public class HexSpawner {
         Vector3f ownerRotation = headRotation.getRotation();
 
         CastingStyle style = CastingStyleRegistry.getOrDefault(styleId);
-        List<Vector3f> rotations = style.getInitialPositions(hexes.size(), ownerRotation.getYaw(),
-                ownerRotation.getPitch());
+        List<Vector3f> rotations = style.getInitialPositions(hexes.size(), ownerRotation.y,
+                ownerRotation.x);
 
         for (int i = 0; i < hexes.size(); i++) {
             Hex hex = hexes.get(i);
@@ -103,7 +103,7 @@ public class HexSpawner {
         HeadRotation headRotation = accessor.getComponent(ownerRef, HeadRotation.getComponentType());
         Vector3f ownerRotation = headRotation.getRotation();
 
-        Vector3f rot = new Vector3f(ownerRotation.getPitch(), ownerRotation.getYaw(), IN_AIR_SPAWN_DISTANCE);
+        Vector3f rot = new Vector3f(ownerRotation.x, ownerRotation.y, IN_AIR_SPAWN_DISTANCE);
         Vector3d position = GlyphMath.sphericalToCartesian(rot);
 
         HexComponent hexComponent = new HexComponent(hex);

@@ -1,7 +1,7 @@
 package com.riprod.hexcode.core.common.glyphs.registry;
 
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.math.vector.Vector3f;
+import org.joml.Vector3f;
 import com.hypixel.hytale.protocol.DebugShape;
 import com.riprod.hexcode.core.state.crafting.constants.NodeTypeId;
 

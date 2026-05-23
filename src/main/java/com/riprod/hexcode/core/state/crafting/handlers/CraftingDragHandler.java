@@ -4,7 +4,7 @@ import com.hypixel.hytale.builtin.mounts.MountedComponent;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
-import com.hypixel.hytale.math.vector.Vector3f;
+import org.joml.Vector3f;
 import com.hypixel.hytale.protocol.MountController;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
@@ -40,8 +40,8 @@ public class CraftingDragHandler {
         TransformComponent headTransform = accessor.getComponent(headAnchorRef,
                 TransformComponent.getComponentType());
         headTransform.getRotation().assign(
-                headRot.getRotation().getPitch(),
-                headRot.getRotation().getYaw(),
+                headRot.getRotation().x,
+                headRot.getRotation().y,
                 0);
     }
 

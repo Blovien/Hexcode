@@ -6,8 +6,8 @@ import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
@@ -223,7 +223,7 @@ public class GlyphNodeHandler extends BaseGlyphHandler {
             Vector3d position, Ref<EntityStore> playerRef, GlyphComponent glyphComp,
             Ref<EntityStore> hexEntityRef) {
         Glyph glyph = glyphComp.getGlyph();
-        Vector3f glyphRot = new Vector3f(glyph.getRotation().getPitch(), glyph.getRotation().getYaw(), 0);
+        Vector3f glyphRot = new Vector3f(glyph.getRotation().x, glyph.getRotation().y, 0);
         Holder<EntityStore> glyphHolder = CreateGlyph.createGlyphHolder(accessor, glyphComp, position, glyphRot);
 
         HoverableComponent hoverComp = new HoverableComponent(HoverableType.NODE);

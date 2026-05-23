@@ -6,7 +6,7 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
 import com.hypixel.hytale.math.util.ChunkUtil;
-import com.hypixel.hytale.math.vector.Vector3i;
+import org.joml.Vector3i;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.world.World;
@@ -78,8 +78,8 @@ public class ImbuedBlockTickSystem extends EntityTickingSystem<ChunkStore> {
         int localX = ChunkUtil.xFromBlockInColumn(blockIndex);
         int localY = ChunkUtil.yFromBlockInColumn(blockIndex);
         int localZ = ChunkUtil.zFromBlockInColumn(blockIndex);
-        int worldX = ChunkUtil.worldCoordFromLocalCoord(blockChunk.getX(), localX);
-        int worldZ = ChunkUtil.worldCoordFromLocalCoord(blockChunk.getZ(), localZ);
+        int worldX = ChunkUtil.worldCoordFromLocalCoord(blockChunk.x(), localX);
+        int worldZ = ChunkUtil.worldCoordFromLocalCoord(blockChunk.z(), localZ);
         return new Vector3i(worldX, localY, worldZ);
     }
 

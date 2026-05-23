@@ -9,9 +9,9 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.spatial.SpatialResource;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.modules.entity.EntityModule;
-import com.hypixel.hytale.math.matrix.Matrix4d;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import org.joml.Matrix4d;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
 import com.hypixel.hytale.protocol.Color;
 import com.hypixel.hytale.protocol.DebugShape;
 import com.hypixel.hytale.protocol.SoundCategory;
@@ -143,7 +143,7 @@ public class VfxUtil {
       return;
     }
     ParticleUtil.spawnParticleEffect(particle.getSystemId(), pos,
-        rotation.getYaw(), rotation.getPitch(), rotation.getRoll(), 1.0f, effective, playerRefs, accessor);
+        rotation.y, rotation.x, rotation.getRoll(), 1.0f, effective, playerRefs, accessor);
   }
 
   private static int flowPhase = 0;

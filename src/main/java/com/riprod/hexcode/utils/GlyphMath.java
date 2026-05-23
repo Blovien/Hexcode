@@ -3,8 +3,8 @@ package com.riprod.hexcode.utils;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
 
 public class GlyphMath {
 
@@ -19,11 +19,11 @@ public class GlyphMath {
     }
 
     public static Vector3d sphericalToCartesian(Vector3f pos) {
-        return sphericalToCartesian(new Vector3d(0, 0, 0), pos.getYaw(), pos.getPitch(), pos.getZ());
+        return sphericalToCartesian(new Vector3d(0, 0, 0), pos.y, pos.x, pos.z());
     }
 
     public static Vector3d sphericalToCartesian(Vector3d origin, Vector3f pos) {
-        return sphericalToCartesian(origin, pos.getYaw(), pos.getPitch(), pos.getZ());
+        return sphericalToCartesian(origin, pos.y, pos.x, pos.z());
     }
 
     public static Vector3f cartesianToSpherical(Vector3d origin, Vector3d point) {
@@ -49,7 +49,7 @@ public class GlyphMath {
     }
 
     public static float calculateAngularDistance(Vector3f a, Vector3f b) {
-        return calculateAngularDistance(a.getPitch(), a.getYaw(), b.getPitch(), b.getYaw());
+        return calculateAngularDistance(a.x, a.y, b.x, b.y);
     }
 
     public static float calculateAngularDistance(float pitchA, float yawA, float pitchB, float yawB) {
@@ -90,11 +90,11 @@ public class GlyphMath {
     }
 
     public static Vector3f toMountOffset(Vector3f childRotation, Vector3f parentRotation) {
-        float dpitch = childRotation.getPitch();
-        float dyaw = childRotation.getYaw();
+        float dpitch = childRotation.x;
+        float dyaw = childRotation.y;
         return new Vector3f(
-                -dyaw * parentRotation.getZ(),
-                dpitch * parentRotation.getZ(),
+                -dyaw * parentRotation.z(),
+                dpitch * parentRotation.z(),
                 0);
     }
 }

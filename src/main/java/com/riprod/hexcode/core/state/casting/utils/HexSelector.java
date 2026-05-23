@@ -10,7 +10,7 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.math.vector.Vector3f;
+import org.joml.Vector3f;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -26,8 +26,8 @@ public class HexSelector {
     public static GlyphComponent findHoveredGlyph(CommandBuffer<EntityStore> accessor, Vector3f playerRotation,
             HexComponent hex) {
 
-        return findHoveredGlyph(accessor, playerRotation.getPitch(), playerRotation.getYaw(), hex,
-                List.of(hex.getHex().getFirstGlyphId()), 0f, 0f, new ArrayList<>());
+        return findHoveredGlyph(accessor, playerRotation.x, playerRotation.y, hex,
+            List.of(hex.getHex().getFirstGlyphId()), 0f, 0f, new ArrayList<>());
     }
 
     public static GlyphComponent findOutputChild(CommandBuffer<EntityStore> accessor, HexComponent hex,
@@ -79,8 +79,8 @@ public class HexSelector {
             }
             visitedGlyphs.add(childGlyph.getId());
 
-            float absolutePitch = parentPitch + childGlyph.getPitch();
-            float absoluteYaw = parentYaw + childGlyph.getYaw();
+            float absolutePitch = parentPitch + childGlyph.x;
+            float absoluteYaw = parentYaw + childGlyph.y;
 
             float angularDist = GlyphMath.calculateAngularDistance(playerPitch, playerYaw, absolutePitch, absoluteYaw);
             float selectionRadius = GlyphMath.getSelectionRadius(childGlyph.getScale());
@@ -103,8 +103,8 @@ public class HexSelector {
     public static HexComponent findHoveredHex(CommandBuffer<EntityStore> accessor, Vector3f headRotation,
             List<Ref<EntityStore>> hexes) {
 
-        float playerPitch = headRotation.getPitch();
-        float playerYaw = headRotation.getYaw();
+        float playerPitch = headRotation.x;
+        float playerYaw = headRotation.y;
 
         for (int i = 0; i < hexes.size(); i++) {
             Ref<EntityStore> hexRef = hexes.get(i);
@@ -116,7 +116,7 @@ public class HexSelector {
                 continue;
             }
 
-            float angularDist = GlyphMath.calculateAngularDistance(playerPitch, playerYaw, hex.getPitch(), hex.getYaw());
+            float angularDist = GlyphMath.calculateAngularDistance(playerPitch, playerYaw, hex.x, hex.y);
             float selectionRadius = GlyphMath.getSelectionRadius(hex.getScale());
 
             if (angularDist <= selectionRadius) {
@@ -144,9 +144,9 @@ public class HexSelector {
 
         Vector3f playerRotation = headRotation.getRotation();
 
-        hexComponent.setYaw(playerRotation.getYaw());
-        hexComponent.setPitch(playerRotation.getPitch());
-        glyphPos.getRotation().assign(hexComponent.getPitch(), hexComponent.getYaw(), 0);
+        hexComponent.y = playerRotation.y);
+        hexComponent.setPitch(playerRotation.x);
+        glyphPos.getRotation().assign(hexComponent.pitch(), hexComponent.yaw(), 0);
 
         List<Ref<EntityStore>> children = hexComponent.getChildGlyphRefsList();
         for (int i = 0; i < children.size(); i++) {
@@ -160,7 +160,7 @@ public class HexSelector {
             if (childTransform == null) {
                 continue;
             }
-            childTransform.getRotation().assign(hexComponent.getPitch(), hexComponent.getYaw(), 0);
+            childTransform.getRotation().assign(hexComponent.x, hexComponent.y, 0);
         }
     }
 

@@ -13,7 +13,7 @@ import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.RefSystem;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.util.ChunkUtil;
-import com.hypixel.hytale.math.vector.Vector3i;
+import org.joml.Vector3i;
 import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.BlockChunk;
@@ -57,8 +57,8 @@ public class PedestalPlaceEvent extends RefSystem<ChunkStore> {
         int localX = ChunkUtil.xFromBlockInColumn(blockIndex);
         int localY = ChunkUtil.yFromBlockInColumn(blockIndex);
         int localZ = ChunkUtil.zFromBlockInColumn(blockIndex);
-        int blockX = ChunkUtil.worldCoordFromLocalCoord(blockChunk.getX(), localX);
-        int blockZ = ChunkUtil.worldCoordFromLocalCoord(blockChunk.getZ(), localZ);
+        int blockX = ChunkUtil.worldCoordFromLocalCoord(blockChunk.x(), localX);
+        int blockZ = ChunkUtil.worldCoordFromLocalCoord(blockChunk.z(), localZ);
         Vector3i blockPos = new Vector3i(blockX, localY, blockZ);
 
         pedestal.setLocation(blockPos);

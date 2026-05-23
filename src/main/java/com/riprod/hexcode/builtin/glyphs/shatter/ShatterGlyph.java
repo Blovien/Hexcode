@@ -9,7 +9,7 @@ import java.util.Map;
 import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.math.vector.Vector3d;
+import org.joml.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
@@ -140,7 +140,7 @@ public class ShatterGlyph implements GlyphHandler {
         HexContext branched = hexContext.branch();
 
         Vector3f rotation = new Vector3f();
-        rotation.setYaw((float) Math.atan2(-direction.x, direction.z));
+        rotation.y = (float) Math.atan2(-direction.x, direction.z));
         rotation.setPitch((float) Math.asin(Math.max(-1.0, Math.min(1.0, -direction.y))));
 
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();

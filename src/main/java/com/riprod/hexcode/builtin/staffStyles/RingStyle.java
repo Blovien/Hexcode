@@ -2,7 +2,7 @@ package com.riprod.hexcode.builtin.staffStyles;
 
 import javax.annotation.Nonnull;
 
-import com.hypixel.hytale.math.vector.Vector3f;
+import org.joml.Vector3f;
 import com.riprod.hexcode.core.state.casting.component.CastingStyle;
 
 import java.util.ArrayList;

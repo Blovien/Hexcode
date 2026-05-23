@@ -4,9 +4,9 @@ import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.ComponentAccessor;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
-import com.hypixel.hytale.math.vector.Vector3i;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
+import org.joml.Vector3i;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.utils.BlockResolution;
@@ -107,7 +107,7 @@ public final class PositionVar extends HexVar {
 
     public static final BuilderCodec<PositionVar> CODEC = BuilderCodec
             .builder(PositionVar.class, PositionVar::new, HexVar.BASE_CODEC)
-            .append(new KeyedCodec<>("Position", com.hypixel.hytale.math.vector.Vector3d.CODEC),
+            .append(new KeyedCodec<>("Position", org.joml.Vector3d.CODEC),
                     (v, pos) -> v.position = pos,
                     v -> v.position)
             .add()

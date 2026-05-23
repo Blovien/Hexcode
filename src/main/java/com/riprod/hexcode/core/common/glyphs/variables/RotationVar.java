@@ -3,8 +3,8 @@ package com.riprod.hexcode.core.common.glyphs.variables;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.ComponentAccessor;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public final class RotationVar extends HexVar {
@@ -43,8 +43,8 @@ public final class RotationVar extends HexVar {
 
     public Vector3d forward() {
         if (rotation == null) return new Vector3d(0, 0, 1);
-        double yaw = rotation.getYaw();
-        double pitch = rotation.getPitch();
+        double yaw = rotation.y;
+        double pitch = rotation.x;
         double cosPitch = Math.cos(pitch);
         return new Vector3d(
                 -Math.sin(yaw) * cosPitch,
@@ -91,7 +91,7 @@ public final class RotationVar extends HexVar {
 
     public static final BuilderCodec<RotationVar> CODEC = BuilderCodec
             .builder(RotationVar.class, RotationVar::new, HexVar.BASE_CODEC)
-            .append(new KeyedCodec<>("Rotation", com.hypixel.hytale.math.vector.Vector3f.CODEC),
+            .append(new KeyedCodec<>("Rotation", org.joml.Vector3f.CODEC),
                     (v, rot) -> v.rotation = rot,
                     v -> v.rotation)
             .add()

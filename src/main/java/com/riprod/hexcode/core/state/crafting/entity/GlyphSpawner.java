@@ -4,8 +4,8 @@ import java.util.List;
 
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
@@ -28,7 +28,7 @@ public class GlyphSpawner {
         List<Glyph> children = hex.getGlyphs(glyph.getNext());
 
         List<Vector3f> childRotations = GlyphMath.getChildRotations(children.size(), glyph.getScale(),
-                glyph.getRotation().getZ());
+                glyph.getRotation().z());
 
         for (int i = 0; i < children.size(); i++) {
             Glyph childGlyph = children.get(i);

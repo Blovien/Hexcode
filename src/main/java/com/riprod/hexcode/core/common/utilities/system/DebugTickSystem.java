@@ -9,9 +9,9 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
-import com.hypixel.hytale.math.matrix.Matrix4d;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import org.joml.Matrix4d;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
 import com.hypixel.hytale.protocol.packets.player.DisplayDebug;
 import com.hypixel.hytale.server.core.modules.debug.DebugUtils;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
@@ -63,9 +63,9 @@ public class DebugTickSystem extends EntityTickingSystem<EntityStore> {
                         Vector3d parentPos = parentTransform.getPosition();
                         Vector3f offset = mount.getAttachmentOffset();
                         pos = new Vector3d(
-                                parentPos.x + offset.getX(),
-                                parentPos.y + offset.getY(),
-                                parentPos.z + offset.getZ());
+                                parentPos.x + offset.x(),
+                                parentPos.y + offset.y(),
+                                parentPos.z + offset.z());
                     }
                 }
             }

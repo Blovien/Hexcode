@@ -5,7 +5,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import com.hypixel.hytale.math.vector.Vector3f;
+import org.joml.Vector3f;
 
 public class RadialPositionUtil {
     public static List<Vector3f> calculateOffsets(int count, float radius, float angleOffset, @Nullable Vector3f centerOffset) {

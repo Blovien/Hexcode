@@ -9,8 +9,8 @@ import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
 import com.hypixel.hytale.protocol.Color;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
@@ -56,8 +56,8 @@ public class InterfaceManager {
 
     Vector3f rotation = head.getRotation();
 
-    Vector3d position = GlyphMath.sphericalToCartesian(eyePos, head.getRotation().getYaw(),
-        head.getRotation().getPitch(), 2.0f);
+    Vector3d position = GlyphMath.sphericalToCartesian(eyePos, head.getRotation().y,
+        head.getRotation().x, 2.0f);
 
     ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset("Trail_Anchor");
     Model model = Model.createUnitScaleModel(modelAsset);
@@ -93,8 +93,8 @@ public class InterfaceManager {
     float eyeHeight = playerModel.getModel().getEyeHeight();
     Vector3d eyePos = new Vector3d(transform.getPosition()).add(0, eyeHeight, 0);
     Vector3f rotation = head.getRotation();
-    Vector3d position = GlyphMath.sphericalToCartesian(eyePos, head.getRotation().getYaw(),
-        head.getRotation().getPitch(), 2.0f);
+    Vector3d position = GlyphMath.sphericalToCartesian(eyePos, head.getRotation().y,
+        head.getRotation().x, 2.0f);
 
     ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset("Trail_Anchor");
     Model model = Model.createUnitScaleModel(modelAsset);
@@ -123,8 +123,8 @@ public class InterfaceManager {
     }
     float eyeHeight = playerModel.getModel().getEyeHeight();
     Vector3d eyePos = new Vector3d(transform.getPosition()).add(0, eyeHeight, 0);
-    Vector3d position = GlyphMath.sphericalToCartesian(eyePos, head.getRotation().getYaw(),
-        head.getRotation().getPitch(), 2.0f);
+    Vector3d position = GlyphMath.sphericalToCartesian(eyePos, head.getRotation().y,
+        head.getRotation().x, 2.0f);
     TransformComponent trailTransform = accessor.getComponent(trailRef, TransformComponent.getComponentType());
     if (trailTransform == null) return;
     trailTransform.setPosition(position);
@@ -166,8 +166,8 @@ public class InterfaceManager {
     float eyeHeight = playerModel.getModel().getEyeHeight();
     Vector3d eyePos = new Vector3d(transform.getPosition()).add(0, eyeHeight, 0);
 
-    Vector3d position = GlyphMath.sphericalToCartesian(eyePos, head.getRotation().getYaw(),
-        head.getRotation().getPitch(), 2.0f);
+    Vector3d position = GlyphMath.sphericalToCartesian(eyePos, head.getRotation().y,
+        head.getRotation().x, 2.0f);
 
     TransformComponent trailTransform = accessor.getComponent(trailRef, TransformComponent.getComponentType());
     if (trailTransform == null) return;

@@ -7,8 +7,8 @@ import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
 import com.hypixel.hytale.protocol.MountController;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
@@ -24,7 +24,7 @@ public class CreateHex {
         holder.addComponent(HexComponent.getComponentType(), hex);
 
         TransformComponent hexTransform = new TransformComponent(parentPos,
-                new Vector3f(hex.getPitch(), hex.getYaw(), 0));
+                new Vector3f(hex.x, hex.y, 0));
 
         holder.addComponent(TransformComponent.getComponentType(), hexTransform);
 

@@ -9,8 +9,8 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
 import com.hypixel.hytale.protocol.MountController;
 import com.hypixel.hytale.server.core.modules.entity.component.EntityScaleComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
@@ -190,7 +190,7 @@ public class GlyphStyler {
         if (children != null && !children.isEmpty()) {
 
             List<Vector3f> childRotations = GlyphMath.getChildRotations(children.size(), parentGlyph.getScale(),
-                    parentGlyph.getRotation().getZ());
+                    parentGlyph.getRotation().z());
 
             float scaleAmount = parentGlyph.getScale() * SCALE_MULTIPLIER;
             if (children.size() == 1) {

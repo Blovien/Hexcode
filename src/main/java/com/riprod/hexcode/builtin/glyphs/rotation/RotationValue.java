@@ -3,9 +3,9 @@ package com.riprod.hexcode.builtin.glyphs.rotation;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.util.ChunkUtil;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
-import com.hypixel.hytale.math.vector.Vector3i;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
+import org.joml.Vector3i;
 import com.hypixel.hytale.protocol.ChangeVelocityType;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.Rotation;
@@ -105,7 +105,7 @@ public class RotationValue implements GlyphHandler {
 
             Vector3d position = tc.getPosition();
             Vector3f headRotation = rotation.clone();
-            Vector3f bodyRotation = new Vector3f(0.0f, headRotation.getYaw(), 0.0f);
+            Vector3f bodyRotation = new Vector3f(0.0f, headRotation.y, 0.0f);
             Teleport teleport = Teleport.createExact(position, bodyRotation, headRotation);
             hexContext.getAccessor().addComponent(ref, Teleport.getComponentType(), teleport);
         } catch (Exception e) {

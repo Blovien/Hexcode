@@ -3,7 +3,7 @@ package com.riprod.hexcode.builtin.glyphs.force;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.math.vector.Vector3d;
+import org.joml.Vector3d;
 import com.hypixel.hytale.protocol.ChangeVelocityType;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
@@ -112,7 +112,7 @@ public class ForceGlyph implements GlyphHandler {
         if (force.y <= 0) return;
         Velocity vel = accessor.getComponent(ref, Velocity.getComponentType());
         if (vel == null) return;
-        double currentY = vel.getClientVelocity().getY();
+        double currentY = vel.getClientVelocity().y();
         double headroom = MAX_Y_VELOCITY - currentY;
         if (headroom <= 0) {
             force.y = 0;

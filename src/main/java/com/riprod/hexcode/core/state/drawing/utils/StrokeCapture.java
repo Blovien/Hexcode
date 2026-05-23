@@ -29,8 +29,8 @@ public final class StrokeCapture {
         if (points == null || head == null) {
             return false;
         }
-        float yaw = head.getRotation().getYaw();
-        float pitch = head.getRotation().getPitch();
+        float yaw = head.getRotation().y;
+        float pitch = head.getRotation().x;
 
         if (!points.isEmpty()) {
             float lastYaw = points.getFloat(points.size() - 2);
