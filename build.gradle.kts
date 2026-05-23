@@ -16,6 +16,8 @@ repositories {
     }
 }
 
+val shaded by configurations.creating
+
 dependencies {
     compileOnly(libs.jetbrains.annotations)
     compileOnly(libs.jspecify)
@@ -23,12 +25,14 @@ dependencies {
     compileOnly(fileTree("lib/") { include("*.jar") })
 
     // patcher is bundled into hexcode's output jar via the Shadow plugin
+    shaded(files("deps/Patchly-2.0.1.jar"))
     implementation(files("deps/Patchly-2.0.1.jar"))
 }
 
 tasks.shadowJar {
     archiveClassifier.set("")
     mergeServiceFiles()
+    configurations = listOf(shaded)
 }
 
 tasks.jar {
