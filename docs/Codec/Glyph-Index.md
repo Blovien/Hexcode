@@ -364,6 +364,12 @@ Returns the value of PI
 
 ---
 
+### \[||\] Abs
+
+Returns the absolute value of an input. Converts vector -> magnitude as well.
+
+---
+
 ### \[V\] Variable
 
 Reads an input slot and saves it to it’s own reference, allowing for creation of a “snapshot” in time. Also enables outputting to another variable to overwrite it.
