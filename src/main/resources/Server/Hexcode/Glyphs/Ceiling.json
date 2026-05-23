@@ -1,0 +1,43 @@
+{
+  "Parent": "Glyph_Template",
+  "Title": "Ceiling",
+  "Description": "Rounds A up to the nearest whole number. Preserves type: Positions and Rotations are ceiled component-wise. Entities, Blocks and Colors pass through unchanged.",
+  "ModelPath": "Ceiling",
+  "BasePower": 0,
+  "ManaConsumption": 0,
+  "ShapeStructure": [
+    {
+      "ShapeId": "Line",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Up",
+      "Size": 1.0
+    },
+    {
+      "ShapeId": "Line",
+      "Size": 1.0
+    }
+  ],
+  "Slots": {
+    "a": {
+      "Style": "Input",
+      "Label": "A",
+      "Description": "Value to ceil",
+      "DefaultValue": 0
+    },
+    "Next": {
+      "Style": "Next",
+      "Label": "Next",
+      "Description": "The next glyph in the execution chain"
+    }
+  },
+  "Volatility": {
+    "InstantCost": 0.1,
+    "DrainPerSecond": 0.0,
+    "RepeatEscalation": {
+      "Base": 1.0,
+      "K": 10.0
+    }
+  }
+}
