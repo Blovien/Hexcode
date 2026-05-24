@@ -31,11 +31,11 @@ public final class OrientedDebugUtil {
         matrix.translate(origin);
 
         double angleY = Math.atan2(direction.z, direction.x);
-        matrix.rotate(angleY + (Math.PI / 2), 0.0, 1.0, 0.0);
+        matrix.rotate(-(angleY + (Math.PI / 2)), 0.0, 1.0, 0.0);
 
         double xzLen = Math.sqrt(direction.x * direction.x + direction.z * direction.z);
         double angleX = Math.atan2(xzLen, direction.y);
-        matrix.rotate(angleX, 1.0, 0.0, 0.0);
+        matrix.rotate(-angleX, 1.0, 0.0, 0.0);
 
         // cone is center-anchored; shift base to origin then scale
         matrix.translate(0.0, length / 2.0, 0.0);

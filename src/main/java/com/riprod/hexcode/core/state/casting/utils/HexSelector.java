@@ -145,9 +145,9 @@ public class HexSelector {
 
         Rotation3f playerRotation = headRotation.getRotation();
 
-        hexComponent.getRotation().x = playerRotation.y;
-        hexComponent.getRotation().y = playerRotation.x;
-        glyphPos.getRotation().set(hexComponent.getRotation().y, hexComponent.getRotation().x, 0);
+        hexComponent.getRotation().x = playerRotation.x;
+        hexComponent.getRotation().y = playerRotation.y;
+        glyphPos.getRotation().set(hexComponent.getRotation().x, hexComponent.getRotation().y, 0);
 
         List<Ref<EntityStore>> children = hexComponent.getChildGlyphRefsList();
         for (int i = 0; i < children.size(); i++) {

@@ -5,6 +5,7 @@ import javax.annotation.Nullable;
 
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.math.util.TrigMathUtil;
 import com.hypixel.hytale.math.vector.Rotation3f;
 
 import org.joml.Vector3d;
@@ -95,8 +96,12 @@ public class HexDirectionUtil {
             @Nonnull ComponentAccessor<EntityStore> accessor) {
         Vector3d dir = resolveDirection(var, null, accessor);
         if (dir == null) return null;
-        float yaw = (float) Math.atan2(-dir.x, -dir.z);
-        float pitch = (float) Math.asin(Math.max(-1.0, Math.min(1.0, -dir.y)));
+        double dlen = dir.length();
+        double nx = dlen > 1e-9 ? dir.x / dlen : 0;
+        double ny = dlen > 1e-9 ? dir.y / dlen : 0;
+        double nz = dlen > 1e-9 ? dir.z / dlen : 0;
+        float yaw = TrigMathUtil.atan2((float) -nx, (float) -nz);
+        float pitch = (float) Math.asin(Math.max(-1.0, Math.min(1.0, ny)));
         return new Rotation3f(pitch, yaw, 0f);
     }
 }

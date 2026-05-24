@@ -25,7 +25,7 @@ public class Glyph {
     public static final String NEXT_SLOT = "Next";
     public static final String DEFAULT_SLOT = "0";
 
-    private static final int MAX_RESOLVE_DEPTH = 8;
+    private static final int MAX_RESOLVE_DEPTH = 1028;
     private static final ThreadLocal<Integer> resolveDepth = ThreadLocal.withInitial(() -> 0);
 
     private String glyphId;

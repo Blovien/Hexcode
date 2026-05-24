@@ -214,9 +214,9 @@ public class VfxUtil {
     matrix.identity();
     matrix.translate(start.x, start.y, start.z);
     double angleY = Math.atan2(dirZ, dirX);
-    matrix.rotate(angleY + (Math.PI / 2), 0.0, 1.0, 0.0);
+    matrix.rotate(-(angleY + (Math.PI / 2)), 0.0, 1.0, 0.0);
     double angleX = Math.atan2(Math.sqrt(dirX * dirX + dirZ * dirZ), dirY);
-    matrix.rotate(angleX, 1.0, 0.0, 0.0);
+    matrix.rotate(-angleX, 1.0, 0.0, 0.0);
     matrix.translate(0.0, length / 2.0, 0.0);
     matrix.scale(thickness, length, thickness);
     int allFlags = flags | DebugUtils.FLAG_NO_WIREFRAME;
