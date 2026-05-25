@@ -64,9 +64,7 @@ public class GlyphMemory extends NPCMemory {
     @Nonnull
     @Override
     public Message getTooltipText() {
-        return Message.translation("hexcode.memories.glyph.tooltip")
-                .param("glyphName", Message.translation(getTitle()))
-                .param("glyphDescription", glyphDescriptionMessage(false));
+        return glyphDescriptionMessage(false);
     }
 
     private Message glyphDescriptionMessage(boolean allowVerbose) {

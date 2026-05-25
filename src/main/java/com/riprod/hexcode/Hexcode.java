@@ -15,6 +15,7 @@ import com.riprod.hexcode.core.common.construct.system.HexConstructSystem;
 import com.riprod.hexcode.core.common.construct.system.MountOrphanReaperSystem;
 import com.riprod.hexcode.core.common.effect.GlyphEffectSystem;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.common.glyphs.icon.GlyphIconStore;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.registry.SlotStyleAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
@@ -473,8 +474,10 @@ public class Hexcode extends JavaPlugin {
         this.getEventRegistry().registerGlobal(HexStateChangeEvent.class, new HexStateDiagnosticListener());
         this.getEventRegistry().registerGlobal(CraftingEvent.class, new CraftingNotificationListener());
         this.getEventRegistry().registerGlobal(GlyphDrawnEvent.class, new GlyphMemoryListener());
-        this.getEventRegistry().register(EventPriority.LAST, LoadAssetEvent.class,
-                e -> patchManager.rebuildAndApply("boot:LoadAssetEvent"));
+        this.getEventRegistry().register(EventPriority.LAST, LoadAssetEvent.class, e -> {
+            GlyphIconStore.generateMissing(this.getManifest());
+            patchManager.rebuildAndApply("boot:LoadAssetEvent");
+        });
         this.getEventRegistry().register(AssetPackRegisterEvent.class, e -> {
             String name = e.getAssetPack().getName();
             if (PatchManager.isSyntheticOverridePack(name)) return;
