@@ -121,10 +121,10 @@ public class SlotNodeHandler extends BaseSlotHandler {
         holder.addComponent(NetworkId.getComponentType(), new NetworkId(networkId));
 
         HoverableComponent hoverable = new HoverableComponent(HoverableType.NODE);
-        hoverable.setHintText("description", asset.getDescription());
+        hoverable.setHintText("description", Message.translation(asset.getDescription()));
         holder.addComponent(HoverableComponent.getComponentType(), hoverable);
         holder.addComponent(DisplayNameComponent.getComponentType(),
-                new DisplayNameComponent(Message.raw(asset.getLabel())));
+                new DisplayNameComponent(Message.translation(asset.getLabel())));
 
         holder.addComponent(NodeComponent.getComponentType(),
                 new NodeComponent(parentRef, rs.handlerId()));

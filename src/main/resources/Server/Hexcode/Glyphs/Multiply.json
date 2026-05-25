@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Multiply",
-  "Description": "Multiplies two values together",
+  "Title": "hexcode.glyphs.Multiply.name",
+  "Description": "hexcode.glyphs.Multiply.description",
   "ModelPath": "Multiply",
   "BasePower": 0,
   "ManaConsumption": 0,
@@ -18,20 +18,20 @@
   "Slots": {
     "a": {
       "Style": "Input",
-      "Label": "A",
-      "Description": "First operand",
+      "Label": "hexcode.glyphs.Multiply.a.name",
+      "Description": "hexcode.glyphs.Multiply.a.description",
       "DefaultValue": 0
     },
     "b": {
       "Style": "Input",
-      "Label": "B",
-      "Description": "Second operand",
+      "Label": "hexcode.glyphs.Multiply.b.name",
+      "Description": "hexcode.glyphs.Multiply.b.description",
       "DefaultValue": 0
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Multiply.Next.name",
+      "Description": "hexcode.glyphs.Multiply.Next.description"
     }
   },
   "Volatility": {

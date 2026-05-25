@@ -4,8 +4,8 @@
     "Parent": "Delay_Earth",
     "PrimaryModel": "OnCast"
   },
-  "Title": "On Cast",
-  "Description": "Pauses execution. Resumes when the caster casts another hex.",
+  "Title": "hexcode.glyphs.OnCast.name",
+  "Description": "hexcode.glyphs.OnCast.description",
   "ModelPath": "OnCast",
   "BasePower": 1.0,
   "ManaConsumption": 0,
@@ -22,8 +22,8 @@
   "Slots": {
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "Glyphs to run when the trigger fires"
+      "Label": "hexcode.glyphs.OnCast.Next.name",
+      "Description": "hexcode.glyphs.OnCast.Next.description"
     }
   },
   "Volatility": {

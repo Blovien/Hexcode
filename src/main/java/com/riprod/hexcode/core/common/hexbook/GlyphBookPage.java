@@ -8,6 +8,7 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.protocol.Color;
 import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime;
 import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
+import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.entity.entities.player.pages.InteractiveCustomUIPage;
 import com.hypixel.hytale.server.core.ui.builder.EventData;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
@@ -73,7 +74,7 @@ public class GlyphBookPage extends InteractiveCustomUIPage<GlyphBookPage.BookEve
             for (int i = 0; i < hexes.size(); i++) {
                 Hex hex = hexes.get(i);
                 String hexId = hex.getHexId();
-                String name = resolveDefaultName(hex);
+                Message name = resolveDefaultName(hex);
 
                 Color color = book.getHexColor(hexId);
                 String colorHex = color != null ? toHexString(color) : "#c4b5ff";
@@ -142,13 +143,13 @@ public class GlyphBookPage extends InteractiveCustomUIPage<GlyphBookPage.BookEve
         }
     }
 
-    private static String resolveDefaultName(Hex hex) {
-        if (hex.getFirstGlyphId() == null) return "Unnamed Hex";
+    private static Message resolveDefaultName(Hex hex) {
+        if (hex.getFirstGlyphId() == null) return Message.raw("Unnamed Hex");
         Glyph first = hex.get(hex.getFirstGlyphId());
-        if (first == null) return "Unnamed Hex";
+        if (first == null) return Message.raw("Unnamed Hex");
         GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(first.getGlyphId());
-        if (asset != null && asset.getTitle() != null) return asset.getTitle();
-        return first.getGlyphId();
+        if (asset != null && asset.getTitle() != null) return Message.translation(asset.getTitle());
+        return Message.raw(first.getGlyphId());
     }
 
     private static String toHexString(Color color) {

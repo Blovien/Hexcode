@@ -7,8 +7,8 @@
     },
     "PrimarySound": "SFX_Weapon_Charge_Swing"
   },
-  "Title": "Force",
-  "Description": "Applies directional force to all targets in a variable",
+  "Title": "hexcode.glyphs.Force.name",
+  "Description": "hexcode.glyphs.Force.description",
   "ModelPath": "Force",
   "BasePower": 1.0,
   "ManaConsumption": 8,
@@ -21,26 +21,26 @@
   "Slots": {
     "target": {
       "Style": "Input",
-      "Label": "Target",
-      "Description": "Variable containing the targets to affect"
+      "Label": "hexcode.glyphs.Force.target.name",
+      "Description": "hexcode.glyphs.Force.target.description"
     },
     "direction": {
       "Style": "Input",
-      "Label": "Direction",
-      "Description": "Direction vector for the effect",
+      "Label": "hexcode.glyphs.Force.direction.name",
+      "Description": "hexcode.glyphs.Force.direction.description",
       "Unique": true
     },
     "magnitude": {
       "Style": "Input",
-      "Label": "Magnitude",
-      "Description": "Strength of the applied force",
+      "Label": "hexcode.glyphs.Force.magnitude.name",
+      "Description": "hexcode.glyphs.Force.magnitude.description",
       "DefaultValue": 20,
       "Unique": true
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Force.Next.name",
+      "Description": "hexcode.glyphs.Force.Next.description"
     }
   },
   "Volatility": {

@@ -13,8 +13,8 @@
       "SystemId": "Projectile_Miss"
     }
   },
-  "Title": "Shatter",
-  "Description": "Launches ice shard projectiles in a cone from a position. Each shard triggers the next glyph where it lands.",
+  "Title": "hexcode.glyphs.Shatter.name",
+  "Description": "hexcode.glyphs.Shatter.description",
   "ModelPath": "Shatter",
   "BasePower": 1.0,
   "ManaConsumption": 32,
@@ -35,48 +35,48 @@
   "Slots": {
     "source": {
       "Style": "Input",
-      "Label": "Source",
-      "Description": "Position or entity to launch shards from",
+      "Label": "hexcode.glyphs.Shatter.source.name",
+      "Description": "hexcode.glyphs.Shatter.source.description",
       "Unique": true
     },
     "direction": {
       "Style": "Input",
-      "Label": "Direction",
-      "Description": "Central direction of the cone",
+      "Label": "hexcode.glyphs.Shatter.direction.name",
+      "Description": "hexcode.glyphs.Shatter.direction.description",
       "Unique": true
     },
     "count": {
       "Style": "Input",
-      "Label": "Count",
-      "Description": "Number of ice shards to launch",
+      "Label": "hexcode.glyphs.Shatter.count.name",
+      "Description": "hexcode.glyphs.Shatter.count.description",
       "DefaultValue": 5,
       "Unique": true
     },
     "spread": {
       "Style": "Input",
-      "Label": "Spread",
-      "Description": "Cone spread angle in radians",
+      "Label": "hexcode.glyphs.Shatter.spread.name",
+      "Description": "hexcode.glyphs.Shatter.spread.description",
       "DefaultValue": 0.5236,
       "Unique": true
     },
     "speed": {
       "Style": "Input",
-      "Label": "Speed",
-      "Description": "Shard launch speed",
+      "Label": "hexcode.glyphs.Shatter.speed.name",
+      "Description": "hexcode.glyphs.Shatter.speed.description",
       "DefaultValue": 20,
       "Unique": true
     },
     "gravity": {
       "Style": "Input",
-      "Label": "Gravity",
-      "Description": "Gravity applied to shards",
+      "Label": "hexcode.glyphs.Shatter.gravity.name",
+      "Description": "hexcode.glyphs.Shatter.gravity.description",
       "DefaultValue": 10,
       "Unique": true
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Shatter.Next.name",
+      "Description": "hexcode.glyphs.Shatter.Next.description"
     }
   },
   "Volatility": {

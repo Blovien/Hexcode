@@ -6,8 +6,8 @@
     },
     "PrimarySound": "SFX_Staff_Flame_Fireball_Impact"
   },
-  "Title": "Ignite",
-  "Description": "Sets targets on fire, dealing damage over time",
+  "Title": "hexcode.glyphs.Ignite.name",
+  "Description": "hexcode.glyphs.Ignite.description",
   "ModelPath": "Ignite",
   "BasePower": 1.0,
   "ManaConsumption": 15,
@@ -28,20 +28,20 @@
   "Slots": {
     "target": {
       "Style": "Input",
-      "Label": "Target",
-      "Description": "Variable containing the targets to affect"
+      "Label": "hexcode.glyphs.Ignite.target.name",
+      "Description": "hexcode.glyphs.Ignite.target.description"
     },
     "duration": {
       "Style": "Input",
-      "Label": "Duration",
-      "Description": "Duration of the burn effect in seconds",
+      "Label": "hexcode.glyphs.Ignite.duration.name",
+      "Description": "hexcode.glyphs.Ignite.duration.description",
       "DefaultValue": 5,
       "Unique": true
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Ignite.Next.name",
+      "Description": "hexcode.glyphs.Ignite.Next.description"
     }
   },
   "Volatility": {

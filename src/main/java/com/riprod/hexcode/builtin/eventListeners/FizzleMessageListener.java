@@ -3,6 +3,7 @@ package com.riprod.hexcode.builtin.eventListeners;
 import java.util.function.Consumer;
 
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.NotificationUtil;
@@ -26,14 +27,17 @@ public class FizzleMessageListener implements Consumer<GlyphFizzleEvent> {
         if (pr == null)
             return;
         NotificationUtil.sendNotification(pr.getPacketHandler(), resolveTitle(event.getGlyph()),
-                resolveDescription(event));
+                Message.raw(resolveDescription(event)));
     }
 
-    private static String resolveTitle(Glyph glyph) {
+    private static Message resolveTitle(Glyph glyph) {
         if (glyph == null)
-            return "Glyph Fizzled!";
+            return Message.raw("Glyph Fizzled!");
         GlyphAsset asset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
-        return ((asset != null && asset.getTitle() != null) ? asset.getTitle() : glyph.getGlyphId()) + " Fizzled!";
+        if (asset != null && asset.getTitle() != null) {
+            return Message.translation(asset.getTitle()).insert(" Fizzled!");
+        }
+        return Message.raw(glyph.getGlyphId() + " Fizzled!");
     }
 
     private static String resolveDescription(GlyphFizzleEvent reason) {

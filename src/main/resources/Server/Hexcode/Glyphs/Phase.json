@@ -14,8 +14,8 @@
     },
     "TertiarySound": "SFX_Phase_Crush"
   },
-  "Title": "Phase",
-  "Description": "Temporarily removes blocks from reality, restoring them after a delay",
+  "Title": "hexcode.glyphs.Phase.name",
+  "Description": "hexcode.glyphs.Phase.description",
   "ModelPath": "Phase",
   "ManaConsumption": 20,
   "ShapeStructure": [
@@ -35,27 +35,27 @@
   "Slots": {
     "target": {
       "Style": "Input",
-      "Label": "Target",
-      "Description": "Blocks to phase out of existence"
+      "Label": "hexcode.glyphs.Phase.target.name",
+      "Description": "hexcode.glyphs.Phase.target.description"
     },
     "duration": {
       "Style": "Input",
-      "Label": "Duration",
-      "Description": "How long blocks stay phased in ticks",
+      "Label": "hexcode.glyphs.Phase.duration.name",
+      "Description": "hexcode.glyphs.Phase.duration.description",
       "DefaultValue": 15,
       "Unique": true
     },
     "intensity": {
       "Style": "Input",
-      "Label": "Intensity",
-      "Description": "Maximum block hardness that can be phased",
+      "Label": "hexcode.glyphs.Phase.intensity.name",
+      "Description": "hexcode.glyphs.Phase.intensity.description",
       "DefaultValue": 20,
       "Unique": true
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Phase.Next.name",
+      "Description": "hexcode.glyphs.Phase.Next.description"
     }
   },
   "Volatility": {

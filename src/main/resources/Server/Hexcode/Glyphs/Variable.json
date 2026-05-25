@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Variable",
-  "Description": "A variable",
+  "Title": "hexcode.glyphs.Variable.name",
+  "Description": "hexcode.glyphs.Variable.description",
   "ModelPath": "Variable",
   "ShapeStructure": [
     {
@@ -12,18 +12,18 @@
   "Slots": {
     "target": {
       "Style": "Input",
-      "Label": "Input",
-      "Description": "Which variable to select"
+      "Label": "hexcode.glyphs.Variable.target.name",
+      "Description": "hexcode.glyphs.Variable.target.description"
     },
     "output": {
       "Style": "Input",
-      "Label": "Output",
-      "Description": "Where to save the variable"
+      "Label": "hexcode.glyphs.Variable.output.name",
+      "Description": "hexcode.glyphs.Variable.output.description"
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Variable.Next.name",
+      "Description": "hexcode.glyphs.Variable.Next.description"
     }
   },
   "ManaConsumption": 0,

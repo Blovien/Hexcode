@@ -4,8 +4,8 @@
     "Parent": "Delay_Earth",
     "PrimaryModel": "OnSecondary"
   },
-  "Title": "On Secondary",
-  "Description": "Pauses execution. Resumes when the caster performs a secondary interaction (e.g. block, charge).",
+  "Title": "hexcode.glyphs.OnSecondary.name",
+  "Description": "hexcode.glyphs.OnSecondary.description",
   "ModelPath": "OnSecondary",
   "BasePower": 1.0,
   "ManaConsumption": 0,
@@ -22,8 +22,8 @@
   "Slots": {
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "Glyphs to run when the trigger fires"
+      "Label": "hexcode.glyphs.OnSecondary.Next.name",
+      "Description": "hexcode.glyphs.OnSecondary.Next.description"
     }
   },
   "Volatility": {

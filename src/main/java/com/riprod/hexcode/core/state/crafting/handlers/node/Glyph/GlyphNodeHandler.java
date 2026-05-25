@@ -233,11 +233,11 @@ public class GlyphNodeHandler extends BaseGlyphHandler {
         try {
             GlyphAsset glyphAsset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
             if (glyphAsset != null) {
-                displayName = Message.raw(glyphAsset.getTitle())
+                displayName = Message.translation(glyphAsset.getTitle())
                         .color(GlyphStyleUtil.getQualityColor(glyph.getVolatility(), glyph.getEfficiency()));
-                hoverComp.setHintText("description", glyphAsset.getDescription());
-                hoverComp.setHintText("extra", "V " + Math.round(glyph.getVolatility() * 100.0) / 100.0
-                        + " | E " + Math.round(glyph.getEfficiency() * 100.0) / 100.0);
+                hoverComp.setHintText("description", Message.translation(glyphAsset.getDescription()));
+                hoverComp.setHintText("extra", Message.raw("V " + Math.round(glyph.getVolatility() * 100.0) / 100.0
+                        + " | E " + Math.round(glyph.getEfficiency() * 100.0) / 100.0));
             }
         } catch (Exception e) {
             LOGGER.atWarning().log("glyph node: failed to set hover hints: %s", e.getMessage());

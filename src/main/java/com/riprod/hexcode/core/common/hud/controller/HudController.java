@@ -36,19 +36,19 @@ public final class HudController {
     public static void showInfo(@Nonnull CommandBuffer<EntityStore> buffer,
                                 @Nonnull Ref<EntityStore> playerEntity,
                                 @Nullable Message title,
-                                @Nullable String description) {
+                                @Nullable Message description) {
         PlayerRef playerRef = buffer.getComponent(playerEntity, PlayerRef.getComponentType());
         if (playerRef == null) return;
 
         boolean hasTitle = title != null && !title.toString().isEmpty();
-        boolean hasDescription = description != null && !description.isEmpty();
+        boolean hasDescription = description != null && !description.toString().isEmpty();
         if (!hasTitle && !hasDescription) {
             hideInfoIfActive(playerRef);
             return;
         }
 
         Message titleMsg = hasTitle ? title : Message.raw("");
-        Message descMsg = Message.raw(hasDescription ? description : "");
+        Message descMsg = hasDescription ? description : Message.raw("");
 
         show(playerRef, cmd -> {
             cmd.set(INFO_ROOT + ".Visible", true);

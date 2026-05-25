@@ -19,7 +19,7 @@ public class SeekerObelisk implements ObeliskInterface {
         Message title = displayName != null ? displayName.getDisplayName() : null;
 
         HoverableComponent hoverable = buffer.getComponent(hoveredRef, HoverableComponent.getComponentType());
-        String description = hoverable != null ? hoverable.getHintText("description") : null;
+        Message description = hoverable != null ? hoverable.getHintText("description") : null;
 
         HudController.showInfo(buffer, playerRef, title, description);
     }

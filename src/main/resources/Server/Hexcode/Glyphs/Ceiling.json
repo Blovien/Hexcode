@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Ceiling",
-  "Description": "Rounds A up to the nearest whole number. Preserves type: Positions and Rotations are ceiled component-wise. Entities, Blocks and Colors pass through unchanged.",
+  "Title": "hexcode.glyphs.Ceiling.name",
+  "Description": "hexcode.glyphs.Ceiling.description",
   "ModelPath": "Ceiling",
   "BasePower": 0,
   "ManaConsumption": 0,
@@ -22,14 +22,14 @@
   "Slots": {
     "a": {
       "Style": "Input",
-      "Label": "A",
-      "Description": "Value to ceil",
+      "Label": "hexcode.glyphs.Ceiling.a.name",
+      "Description": "hexcode.glyphs.Ceiling.a.description",
       "DefaultValue": 0
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Ceiling.Next.name",
+      "Description": "hexcode.glyphs.Ceiling.Next.description"
     }
   },
   "Volatility": {

@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Floor",
-  "Description": "Rounds A down to the nearest whole number. Preserves type: Positions and Rotations are floored component-wise. Entities, Blocks and Colors pass through unchanged.",
+  "Title": "hexcode.glyphs.Floor.name",
+  "Description": "hexcode.glyphs.Floor.description",
   "ModelPath": "Floor",
   "BasePower": 0,
   "ManaConsumption": 0,
@@ -22,14 +22,14 @@
   "Slots": {
     "a": {
       "Style": "Input",
-      "Label": "A",
-      "Description": "Value to floor",
+      "Label": "hexcode.glyphs.Floor.a.name",
+      "Description": "hexcode.glyphs.Floor.a.description",
       "DefaultValue": 0
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Floor.Next.name",
+      "Description": "hexcode.glyphs.Floor.Next.description"
     }
   },
   "Volatility": {

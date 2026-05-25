@@ -117,12 +117,12 @@ public class ContainerNodeHandler extends BaseContainerHandler {
         holder.addComponent(BoundingBox.getComponentType(), new BoundingBox(PREVIEW_BOUNDING_BOX));
         HoverableComponent hoverable = new HoverableComponent(HoverableType.NODE);
         if (slotAsset != null && slotAsset.getDescription() != null) {
-            hoverable.setHintText("description", slotAsset.getDescription());
+            hoverable.setHintText("description", Message.translation(slotAsset.getDescription()));
         }
         holder.addComponent(HoverableComponent.getComponentType(), hoverable);
         if (slotAsset != null && slotAsset.getLabel() != null) {
             holder.addComponent(DisplayNameComponent.getComponentType(),
-                    new DisplayNameComponent(Message.raw(slotAsset.getLabel())));
+                    new DisplayNameComponent(Message.translation(slotAsset.getLabel())));
         }
         holder.addComponent(NodeComponent.getComponentType(), new NodeComponent(anchorRef, NodeTypeId.CONTAINER));
         holder.addComponent(DebugComponent.getComponentType(),

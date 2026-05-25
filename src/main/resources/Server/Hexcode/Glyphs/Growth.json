@@ -10,8 +10,8 @@
     },
     "SecondarySound": "SFX_Block_Break"
   },
-  "Title": "Growth",
-  "Description": "Restores the natural state of targets: heals entities, grows crops, repairs blocks",
+  "Title": "hexcode.glyphs.Growth.name",
+  "Description": "hexcode.glyphs.Growth.description",
   "ModelPath": "Growth",
   "BasePower": 1.0,
   "ManaConsumption": 12,
@@ -32,24 +32,24 @@
   "Slots": {
     "target": {
       "Style": "Input",
-      "Label": "Target",
-      "Description": "Variable containing the targets to affect"
+      "Label": "hexcode.glyphs.Growth.target.name",
+      "Description": "hexcode.glyphs.Growth.target.description"
     },
     "amount": {
       "Style": "Input",
-      "Label": "Amount",
-      "Description": "Restoration strength",
+      "Label": "hexcode.glyphs.Growth.amount.name",
+      "Description": "hexcode.glyphs.Growth.amount.description",
       "DefaultValue": 2.1,
       "Unique": true
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Growth.Next.name",
+      "Description": "hexcode.glyphs.Growth.Next.description"
     },
     "duration": {
-      "Label": "Duration",
-      "Description": "The length of the growth in seconds",
+      "Label": "hexcode.glyphs.Growth.duration.name",
+      "Description": "hexcode.glyphs.Growth.duration.description",
       "Style": "Input",
       "Unique": true,
       "DefaultValue": 10

@@ -8,6 +8,7 @@ import javax.annotation.Nonnull;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class HoverableComponent implements Component<EntityStore> {
@@ -37,7 +38,7 @@ public class HoverableComponent implements Component<EntityStore> {
     private HoverableType entityType = HoverableType.CONTAINER;
     private Ref<EntityStore> rootRef = null;
     private Ref<EntityStore> ownerRef = null;
-    private Map<String, String> tooltipText = new HashMap<>();
+    private Map<String, Message> tooltipText = new HashMap<>();
 
     public HoverableType getType() {
         return entityType;
@@ -63,15 +64,15 @@ public class HoverableComponent implements Component<EntityStore> {
         this.ownerRef = ownerRef;
     }
 
-    public String getHintText(String key) {
+    public Message getHintText(String key) {
         return tooltipText.get(key);
     }
 
-    public void setHintText(String key, String hintText) {
+    public void setHintText(String key, Message hintText) {
         this.tooltipText.put(key, hintText);
     }
 
-    public Map<String, String> getAllHintText() {
+    public Map<String, Message> getAllHintText() {
         return tooltipText;
     }
 

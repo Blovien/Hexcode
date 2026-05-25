@@ -4,8 +4,8 @@
     "Parent": "Delay_Earth",
     "PrimaryModel": "OnPrimary"
   },
-  "Title": "On Primary",
-  "Description": "Pauses execution. Resumes when the caster performs a primary interaction (e.g. weapon swing).",
+  "Title": "hexcode.glyphs.OnPrimary.name",
+  "Description": "hexcode.glyphs.OnPrimary.description",
   "ModelPath": "OnPrimary",
   "BasePower": 1.0,
   "ManaConsumption": 0,
@@ -22,8 +22,8 @@
   "Slots": {
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "Glyphs to run when the trigger fires"
+      "Label": "hexcode.glyphs.OnPrimary.Next.name",
+      "Description": "hexcode.glyphs.OnPrimary.Next.description"
     }
   },
   "Volatility": {

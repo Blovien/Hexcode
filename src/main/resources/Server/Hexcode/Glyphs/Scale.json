@@ -10,8 +10,8 @@
     },
     "SecondarySound": "SFX_Scale_End"
   },
-  "Title": "Scale",
-  "Description": "Temporarily scales an entity's visual size and collision box",
+  "Title": "hexcode.glyphs.Scale.name",
+  "Description": "hexcode.glyphs.Scale.description",
   "ModelPath": "Scale",
   "BasePower": 1.0,
   "ManaConsumption": 12,
@@ -32,28 +32,28 @@
   "Slots": {
     "target": {
       "Style": "Input",
-      "Label": "Target",
-      "Description": "Entity to scale",
+      "Label": "hexcode.glyphs.Scale.target.name",
+      "Description": "hexcode.glyphs.Scale.target.description",
       "Unique": true
     },
     "magnitude": {
       "Style": "Input",
-      "Label": "Magnitude",
-      "Description": "Scale factor (0.25-4.0)",
+      "Label": "hexcode.glyphs.Scale.magnitude.name",
+      "Description": "hexcode.glyphs.Scale.magnitude.description",
       "DefaultValue": 2.0,
       "Unique": true
     },
     "duration": {
       "Style": "Input",
-      "Label": "Duration",
-      "Description": "How long the scale lasts in seconds",
+      "Label": "hexcode.glyphs.Scale.duration.name",
+      "Description": "hexcode.glyphs.Scale.duration.description",
       "DefaultValue": 5,
       "Unique": true
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Scale.Next.name",
+      "Description": "hexcode.glyphs.Scale.Next.description"
     }
   },
   "Volatility": {

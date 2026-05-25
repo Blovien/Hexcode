@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Concentration",
-  "Description": "Sustains downstream glyphs while the caster holds the primary interaction. Releasing too early invalidates the hex.",
+  "Title": "hexcode.glyphs.Concentration.name",
+  "Description": "hexcode.glyphs.Concentration.description",
   "ModelPath": "Concentration",
   "BasePower": 0,
   "ManaConsumption": 0,
@@ -18,13 +18,13 @@
   "Slots": {
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "Children sustained while concentrating"
+      "Label": "hexcode.glyphs.Concentration.Next.name",
+      "Description": "hexcode.glyphs.Concentration.Next.description"
     },
     "release": {
       "Style": "Next",
-      "Label": "Release",
-      "Description": "Executes when you release concentration"
+      "Label": "hexcode.glyphs.Concentration.release.name",
+      "Description": "hexcode.glyphs.Concentration.release.description"
     }
   },
   "Volatility": {

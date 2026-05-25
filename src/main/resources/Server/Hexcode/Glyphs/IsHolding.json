@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Is Holding",
-  "Description": "Returns 1 if the caster is holding the primary cast button, 0 otherwise",
+  "Title": "hexcode.glyphs.IsHolding.name",
+  "Description": "hexcode.glyphs.IsHolding.description",
   "ModelPath": "IsHolding",
   "BasePower": 0,
   "ManaConsumption": 0,
@@ -18,8 +18,8 @@
   "Slots": {
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.IsHolding.Next.name",
+      "Description": "hexcode.glyphs.IsHolding.Next.description"
     }
   },
   "Volatility": {

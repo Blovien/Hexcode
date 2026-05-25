@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Greater",
-  "Description": "Branches execution if A is greater than B",
+  "Title": "hexcode.glyphs.Greater.name",
+  "Description": "hexcode.glyphs.Greater.description",
   "ModelPath": "Greater",
   "BasePower": 0,
   "ManaConsumption": 0,
@@ -14,20 +14,20 @@
   "Slots": {
     "a": {
       "Style": "Input",
-      "Label": "A",
-      "Description": "First operand",
+      "Label": "hexcode.glyphs.Greater.a.name",
+      "Description": "hexcode.glyphs.Greater.a.description",
       "DefaultValue": 0
     },
     "b": {
       "Style": "Input",
-      "Label": "B",
-      "Description": "Second operand",
+      "Label": "hexcode.glyphs.Greater.b.name",
+      "Description": "hexcode.glyphs.Greater.b.description",
       "DefaultValue": 0
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Greater.Next.name",
+      "Description": "hexcode.glyphs.Greater.Next.description"
     }
   },
   "Volatility": {

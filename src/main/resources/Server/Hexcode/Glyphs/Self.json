@@ -1,8 +1,8 @@
 {
   "Parent": "Glyph_Template",
   "Style": "Self_Growth",
-  "Title": "Self",
-  "Description": "Returns a reference to the caster",
+  "Title": "hexcode.glyphs.Self.name",
+  "Description": "hexcode.glyphs.Self.description",
   "ModelPath": "Self",
   "BasePower": 0,
   "ManaConsumption": 0,
@@ -15,8 +15,8 @@
   "Slots": {
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Self.Next.name",
+      "Description": "hexcode.glyphs.Self.Next.description"
     }
   },
   "Volatility": {

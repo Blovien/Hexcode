@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Terraform",
-  "Description": "Moves existing natural blocks from one position to another",
+  "Title": "hexcode.glyphs.Terraform.name",
+  "Description": "hexcode.glyphs.Terraform.description",
   "ModelPath": "Terraform",
   "BasePower": 1.0,
   "ManaConsumption": 35,
@@ -22,13 +22,13 @@
   "Slots": {
     "target": {
       "Style": "Input",
-      "Label": "Target",
-      "Description": "Variable containing the targets to affect"
+      "Label": "hexcode.glyphs.Terraform.target.name",
+      "Description": "hexcode.glyphs.Terraform.target.description"
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Terraform.Next.name",
+      "Description": "hexcode.glyphs.Terraform.Next.description"
     }
   },
   "Volatility": {

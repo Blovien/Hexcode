@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Root",
-  "Description": "The B-th root of A",
+  "Title": "hexcode.glyphs.Root.name",
+  "Description": "hexcode.glyphs.Root.description",
   "ModelPath": "Root",
   "BasePower": 0,
   "ManaConsumption": 0,
@@ -18,20 +18,20 @@
   "Slots": {
     "a": {
       "Style": "Input",
-      "Label": "A",
-      "Description": "Radicand",
+      "Label": "hexcode.glyphs.Root.a.name",
+      "Description": "hexcode.glyphs.Root.a.description",
       "DefaultValue": 0
     },
     "b": {
       "Style": "Input",
-      "Label": "B",
-      "Description": "Degree",
+      "Label": "hexcode.glyphs.Root.b.name",
+      "Description": "hexcode.glyphs.Root.b.description",
       "DefaultValue": 2
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Root.Next.name",
+      "Description": "hexcode.glyphs.Root.Next.description"
     }
   },
   "VolatilityEscalation": {

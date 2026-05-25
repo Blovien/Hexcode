@@ -14,8 +14,8 @@
     },
     "TertiarySound": "SFX_Ice_Break"
   },
-  "Title": "Glaciate",
-  "Description": "Conjures a solid ice block at a target with gravity and speed-based impact damage",
+  "Title": "hexcode.glyphs.Glaciate.name",
+  "Description": "hexcode.glyphs.Glaciate.description",
   "ModelPath": "Glaciate",
   "BasePower": 1.0,
   "ManaConsumption": 30,
@@ -36,33 +36,33 @@
   "Slots": {
     "target": {
       "Style": "Input",
-      "Label": "Target",
-      "Description": "Where to spawn the ice block",
+      "Label": "hexcode.glyphs.Glaciate.target.name",
+      "Description": "hexcode.glyphs.Glaciate.target.description",
       "Unique": true
     },
     "offset": {
       "Style": "Input",
-      "Label": "Offset",
-      "Description": "Spawn offset: number=height, position=relative offset, entity=absolute position",
+      "Label": "hexcode.glyphs.Glaciate.offset.name",
+      "Description": "hexcode.glyphs.Glaciate.offset.description",
       "DefaultValue": 5,
       "Unique": true
     },
     "duration": {
       "Style": "Input",
-      "Label": "Duration",
-      "Description": "How long the ice block persists",
+      "Label": "hexcode.glyphs.Glaciate.duration.name",
+      "Description": "hexcode.glyphs.Glaciate.duration.description",
       "DefaultValue": 15,
       "Unique": true
     },
     "immediate": {
       "Style": "Next",
-      "Label": "Immediate",
-      "Description": "Fires immediately after being cast"
+      "Label": "hexcode.glyphs.Glaciate.immediate.name",
+      "Description": "hexcode.glyphs.Glaciate.immediate.description"
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Glaciate.Next.name",
+      "Description": "hexcode.glyphs.Glaciate.Next.description"
     }
   },
   "Volatility": {

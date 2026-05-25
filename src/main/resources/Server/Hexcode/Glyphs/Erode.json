@@ -10,8 +10,8 @@
     },
     "SecondarySound": "SFX_Block_Break"
   },
-  "Title": "Erode",
-  "Description": "Weakens targets for a duration, increasing damage taken from all sources",
+  "Title": "hexcode.glyphs.Erode.name",
+  "Description": "hexcode.glyphs.Erode.description",
   "ModelPath": "Erode",
   "BasePower": 1.0,
   "ManaConsumption": 15,
@@ -32,27 +32,27 @@
   "Slots": {
     "target": {
       "Style": "Input",
-      "Label": "Target",
-      "Description": "Variable containing the targets to affect"
+      "Label": "hexcode.glyphs.Erode.target.name",
+      "Description": "hexcode.glyphs.Erode.target.description"
     },
     "amount": {
       "Style": "Input",
-      "Label": "Amount",
-      "Description": "Vulnerability increase per incoming hit",
+      "Label": "hexcode.glyphs.Erode.amount.name",
+      "Description": "hexcode.glyphs.Erode.amount.description",
       "DefaultValue": 15,
       "Unique": true
     },
     "duration": {
       "Style": "Input",
-      "Label": "Duration",
-      "Description": "How long the effect lasts in seconds",
+      "Label": "hexcode.glyphs.Erode.duration.name",
+      "Description": "hexcode.glyphs.Erode.duration.description",
       "DefaultValue": 6,
       "Unique": true
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Erode.Next.name",
+      "Description": "hexcode.glyphs.Erode.Next.description"
     }
   },
   "Volatility": {

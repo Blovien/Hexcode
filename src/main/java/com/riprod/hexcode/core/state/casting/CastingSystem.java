@@ -22,7 +22,10 @@ import com.hypixel.hytale.server.core.inventory.InventoryComponent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.api.event.GlyphDrawnEvent;
+import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.utils.CreateGlyph;
@@ -170,6 +173,8 @@ public class CastingSystem extends HexcodeManager {
             if (hex == null) {
                 return false;
             }
+
+            emitGlyphDrawn(ref, matched, volatility, efficiency, castingComp.getPendingShapes());
 
             execComp.resetCastState();
             execComp.setActiveHex(hex);
@@ -538,6 +543,8 @@ public class CastingSystem extends HexcodeManager {
             return;
         }
 
+        emitGlyphDrawn(ref, matched, volatility, efficiency, pending);
+
         List<Ref<EntityStore>> activeHexes = castingComp.getActiveHexes();
         Ref<EntityStore> hexRef = HexSpawner.spawnSingleHex(buffer, ref, castingRootRef, hex);
         if (hexRef == null) {
@@ -545,6 +552,13 @@ public class CastingSystem extends HexcodeManager {
             return;
         }
         activeHexes.add(hexRef);
+    }
+
+    private static void emitGlyphDrawn(Ref<EntityStore> ref, GlyphAsset matched,
+            float volatility, float efficiency, List<DrawnShapeComponent> shapes) {
+        Glyph glyph = new Glyph(matched, volatility, efficiency);
+        HytaleServer.get().getEventBus().dispatchFor(GlyphDrawnEvent.class)
+                .dispatch(new GlyphDrawnEvent(ref, glyph, shapes, matched));
     }
 
     private static ModelParticle[] mergeParticles(ModelParticle[] a, ModelParticle[] b) {

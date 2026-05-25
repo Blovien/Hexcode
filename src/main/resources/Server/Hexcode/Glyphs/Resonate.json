@@ -10,8 +10,8 @@
     },
     "SecondarySound": "SFX_Block_Break"
   },
-  "Title": "Resonate",
-  "Description": "Appends a parallel glyph chain to an ally's active hex construct. Can transfer mana to the construct's owner or directly to entities with a mana pool.",
+  "Title": "hexcode.glyphs.Resonate.name",
+  "Description": "hexcode.glyphs.Resonate.description",
   "ModelPath": "Resonate",
   "BasePower": 1.0,
   "ManaConsumption": 20,
@@ -28,13 +28,13 @@
   "Slots": {
     "target": {
       "Style": "Input",
-      "Label": "Target",
-      "Description": "Hex construct entities to resonate with"
+      "Label": "hexcode.glyphs.Resonate.target.name",
+      "Description": "hexcode.glyphs.Resonate.target.description"
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Resonate.Next.name",
+      "Description": "hexcode.glyphs.Resonate.Next.description"
     }
   },
   "Volatility": {

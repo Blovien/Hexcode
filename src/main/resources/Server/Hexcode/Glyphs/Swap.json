@@ -6,8 +6,8 @@
     },
     "PrimarySound": "SFX_Portal_Neutral"
   },
-  "Title": "Swap",
-  "Description": "Exchanges positions between two variable arrays element-by-element",
+  "Title": "hexcode.glyphs.Swap.name",
+  "Description": "hexcode.glyphs.Swap.description",
   "ModelPath": "Swap",
   "BasePower": 1.0,
   "ManaConsumption": 0,
@@ -28,20 +28,20 @@
   "Slots": {
     "a": {
       "Style": "Input",
-      "Label": "A",
-      "Description": "First operand",
+      "Label": "hexcode.glyphs.Swap.a.name",
+      "Description": "hexcode.glyphs.Swap.a.description",
       "Unique": true
     },
     "b": {
       "Style": "Input",
-      "Label": "B",
-      "Description": "Second operand",
+      "Label": "hexcode.glyphs.Swap.b.name",
+      "Description": "hexcode.glyphs.Swap.b.description",
       "Unique": true
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Swap.Next.name",
+      "Description": "hexcode.glyphs.Swap.Next.description"
     }
   },
   "Volatility": {

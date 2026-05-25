@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Skull",
-  "Description": "Launches a skull projectile at a target",
+  "Title": "hexcode.glyphs.Skull.name",
+  "Description": "hexcode.glyphs.Skull.description",
   "ModelPath": "Skull",
   "ShapeStructure": [
     {
@@ -16,13 +16,13 @@
   "Slots": {
     "target": {
       "Style": "Input",
-      "Label": "Target",
-      "Description": "Variable containing the targets to affect"
+      "Label": "hexcode.glyphs.Skull.target.name",
+      "Description": "hexcode.glyphs.Skull.target.description"
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Skull.Next.name",
+      "Description": "hexcode.glyphs.Skull.Next.description"
     }
   },
   "ManaConsumption": 0,

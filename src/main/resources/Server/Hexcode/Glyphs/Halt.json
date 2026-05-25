@@ -7,8 +7,8 @@
     },
     "PrimarySound": "SFX_Ice_Build"
   },
-  "Title": "Halt",
-  "Description": "Instantly zeros all velocity on targets, optionally sustaining suppression",
+  "Title": "hexcode.glyphs.Halt.name",
+  "Description": "hexcode.glyphs.Halt.description",
   "ModelPath": "Halt",
   "BasePower": 1.0,
   "ManaConsumption": 10,
@@ -21,20 +21,20 @@
   "Slots": {
     "target": {
       "Style": "Input",
-      "Label": "Target",
-      "Description": "Variable containing the targets to affect"
+      "Label": "hexcode.glyphs.Halt.target.name",
+      "Description": "hexcode.glyphs.Halt.target.description"
     },
     "duration": {
       "Style": "Input",
-      "Label": "Duration",
-      "Description": "Duration in seconds to sustain halt (0 = instant one-shot)",
+      "Label": "hexcode.glyphs.Halt.duration.name",
+      "Description": "hexcode.glyphs.Halt.duration.description",
       "DefaultValue": 0,
       "Unique": true
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Halt.Next.name",
+      "Description": "hexcode.glyphs.Halt.Next.description"
     }
   },
   "Volatility": {

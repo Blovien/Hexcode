@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Divide",
-  "Description": "Divides one value by another",
+  "Title": "hexcode.glyphs.Divide.name",
+  "Description": "hexcode.glyphs.Divide.description",
   "ModelPath": "Divide",
   "BasePower": 0,
   "ManaConsumption": 0,
@@ -14,20 +14,20 @@
   "Slots": {
     "a": {
       "Style": "Input",
-      "Label": "A",
-      "Description": "First operand",
+      "Label": "hexcode.glyphs.Divide.a.name",
+      "Description": "hexcode.glyphs.Divide.a.description",
       "DefaultValue": 0
     },
     "b": {
       "Style": "Input",
-      "Label": "B",
-      "Description": "Second operand",
+      "Label": "hexcode.glyphs.Divide.b.name",
+      "Description": "hexcode.glyphs.Divide.b.description",
       "DefaultValue": 1
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Divide.Next.name",
+      "Description": "hexcode.glyphs.Divide.Next.description"
     }
   },
   "Volatility": {
