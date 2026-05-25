@@ -149,6 +149,19 @@ public class HexSelector {
         hexComponent.getRotation().y = playerRotation.y;
         glyphPos.getRotation().set(hexComponent.getRotation().x, hexComponent.getRotation().y, 0);
 
+        String firstGlyphId = hexComponent.getHex().getFirstGlyphId();
+        if (firstGlyphId != null) {
+            Ref<EntityStore> firstGlyphRef = hexComponent.getChildGlyphRef(firstGlyphId);
+            if (firstGlyphRef != null && firstGlyphRef.isValid()) {
+                GlyphComponent firstGlyph = accessor.getComponent(firstGlyphRef,
+                        GlyphComponent.getComponentType());
+                if (firstGlyph != null) {
+                    firstGlyph.getRotation().x = hexComponent.getRotation().x;
+                    firstGlyph.getRotation().y = hexComponent.getRotation().y;
+                }
+            }
+        }
+
         List<Ref<EntityStore>> children = hexComponent.getChildGlyphRefsList();
         for (int i = 0; i < children.size(); i++) {
             Ref<EntityStore> childRef = children.get(i);

@@ -81,7 +81,7 @@ public class HexSpawner {
             firstGlyphComponent.setScale(scaleMultiplier);
             hexComponent.setScale(scaleMultiplier);
 
-            GlyphSpawner.spawnGlyphs(accessor, hexComponent, firstGlyphComponent, ownerPos, new Rotation3f(rot.x, rot.y, rot.z));
+            GlyphSpawner.spawnGlyphs(accessor, hexComponent, firstGlyphComponent, ownerPos, new Rotation3f(rot.x, rot.y, 0f));
         }
         return spawnedHexes;
 
@@ -126,7 +126,7 @@ public class HexSpawner {
         firstGlyphComponent.setScale(scaleMultiplier);
         hexComponent.setScale(scaleMultiplier);
 
-        GlyphSpawner.spawnGlyphs(accessor, hexComponent, firstGlyphComponent, ownerPos, rot);
+        GlyphSpawner.spawnGlyphs(accessor, hexComponent, firstGlyphComponent, ownerPos, new Rotation3f(rot.x, rot.y, 0f));
         return hexRef;
     }
 

@@ -32,7 +32,7 @@ public class ArcStyle implements CastingStyle {
         }
 
         if (glyphCount == 1) {
-            positions.add(new Rotation3f(lookYaw, ARC_PITCH, DEFAULT_DISTANCE));
+            positions.add(new Rotation3f(ARC_PITCH, lookYaw, DEFAULT_DISTANCE));
             return positions;
         }
 
