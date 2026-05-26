@@ -4,8 +4,8 @@
     "Parent": "Delay_Earth",
     "PrimaryModel": "OnDeath"
   },
-  "Title": "On Death",
-  "Description": "Pauses execution. Resumes when the subject dies; the killer (if known) is placed in slot 0.",
+  "Title": "hexcode.glyphs.OnDeath.name",
+  "Description": "hexcode.glyphs.OnDeath.description",
   "ModelPath": "OnDeath",
   "BasePower": 1.0,
   "ManaConsumption": 0,
@@ -22,8 +22,8 @@
   "Slots": {
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "Glyphs to run when the trigger fires"
+      "Label": "hexcode.glyphs.OnDeath.Next.name",
+      "Description": "hexcode.glyphs.OnDeath.Next.description"
     }
   },
   "Volatility": {

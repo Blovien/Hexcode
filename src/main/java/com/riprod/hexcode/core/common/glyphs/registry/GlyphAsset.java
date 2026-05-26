@@ -37,6 +37,7 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
     protected String modelPath;
     protected String title;
     protected String description;
+    protected String verboseDescription;
     protected float basePower = 1.0f;
     protected int manaConsumption = 10;
     protected boolean isReversable = false;
@@ -150,6 +151,10 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
         return this.description;
     }
 
+    public String getVerboseDescription() {
+        return this.verboseDescription;
+    }
+
     static {
         CODEC = buildCodec();
         VALIDATOR_CACHE = new ValidatorCache<>(new AssetKeyValidator<>(GlyphAsset::getAssetStore));
@@ -193,6 +198,11 @@ public class GlyphAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
                         (a, v) -> a.description = v, a -> a.description,
                         (a, p) -> a.description = p.description)
                 .documentation("The human-readable description of the glyph")
+                .add()
+                .appendInherited(new KeyedCodec<>("VerboseDescription", Codec.STRING),
+                        (a, v) -> a.verboseDescription = v, a -> a.verboseDescription,
+                        (a, p) -> a.verboseDescription = p.verboseDescription)
+                .documentation("Optional verbose description translation key for the glyph's memory entry")
                 .add()
                 .appendInherited(new KeyedCodec<>("ManaConsumption", Codec.INTEGER),
                         (a, v) -> a.manaConsumption = v, a -> a.manaConsumption,

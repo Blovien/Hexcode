@@ -8,8 +8,8 @@
     "PrimaryColor": "#ffffff",
     "SecondaryColor": "#ffffff"
   },
-  "Title": "Area",
-  "Description": "Sweeps a sphere around a center point and fans out separately to its Blocks and Entities branches, executing each once per matching target",
+  "Title": "hexcode.glyphs.Area.name",
+  "Description": "hexcode.glyphs.Area.description",
   "ModelPath": "Area",
   "BasePower": 1.0,
   "ManaConsumption": 5,
@@ -26,26 +26,26 @@
   "Slots": {
     "center": {
       "Style": "Input",
-      "Label": "Center",
-      "Description": "Center point to gather around",
+      "Label": "hexcode.glyphs.Area.center.name",
+      "Description": "hexcode.glyphs.Area.center.description",
       "Unique": true
     },
     "radius": {
       "Style": "Input",
-      "Label": "Radius",
-      "Description": "Radius of the gathering area",
+      "Label": "hexcode.glyphs.Area.radius.name",
+      "Description": "hexcode.glyphs.Area.radius.description",
       "DefaultValue": 2,
       "Unique": true
     },
     "Blocks": {
       "Style": "Next",
-      "Label": "Blocks",
-      "Description": "Executes once per non-empty block in the area"
+      "Label": "hexcode.glyphs.Area.Blocks.name",
+      "Description": "hexcode.glyphs.Area.Blocks.description"
     },
     "Next": {
       "Style": "Next",
-      "Label": "Entities",
-      "Description": "Executes once per entity in the area (excluding the caster)"
+      "Label": "hexcode.glyphs.Area.Next.name",
+      "Description": "hexcode.glyphs.Area.Next.description"
     }
   },
   "Volatility": {

@@ -9,8 +9,9 @@ import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.protocol.MountController;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
@@ -38,7 +39,7 @@ public class CreateGlyph {
         .getPosition();
 
     holder.addComponent(TransformComponent.getComponentType(),
-        new TransformComponent(playerPos, new Vector3f(0, 0, 0)));
+        new TransformComponent(playerPos, new Rotation3f()));
     holder.addComponent(UUIDComponent.getComponentType(),
         new UUIDComponent(UUID.randomUUID()));
 
@@ -52,14 +53,14 @@ public class CreateGlyph {
     holder.addComponent(NetworkId.getComponentType(), new NetworkId(networkId));
 
     holder.addComponent(MountedComponent.getComponentType(),
-        new MountedComponent(playerRef, new Vector3f(0, eyeHeight, 0),
+        new MountedComponent(playerRef, new Rotation3f(0, eyeHeight, 0),
             MountController.Minecart));
 
     return accessor.addEntity(holder, AddReason.SPAWN);
   }
 
   public static Holder<EntityStore> createGlyphHolder(ComponentAccessor<EntityStore> accessor, GlyphComponent glyph,
-      Vector3d parentPos, Vector3f parentRot) {
+      Vector3d parentPos, Rotation3f parentRot) {
     Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
 
     holder.addComponent(GlyphComponent.getComponentType(), glyph);
@@ -98,7 +99,8 @@ public class CreateGlyph {
     Ref<EntityStore> hexRoot = glyph.getParentRef();
 
     if (hexRoot != null) {
-      MountedComponent mountComponent = new MountedComponent(hexRoot, glyph.getOffset(),
+      Vector3f goff = glyph.getOffset();
+      MountedComponent mountComponent = new MountedComponent(hexRoot, new Rotation3f(goff.x, goff.y, goff.z),
           MountController.Minecart);
       holder.addComponent(MountedComponent.getComponentType(), mountComponent);
     }
@@ -107,7 +109,7 @@ public class CreateGlyph {
   }
 
   public static Ref<EntityStore> createGlyph(CommandBuffer<EntityStore> accessor, GlyphComponent glyph,
-      Vector3d parentPos, Vector3f parentRot, Ref<EntityStore> playerRef) {
+      Vector3d parentPos, Rotation3f parentRot, Ref<EntityStore> playerRef) {
 
     Holder<EntityStore> holder = createGlyphHolder(accessor, glyph, parentPos, parentRot);
     Ref<EntityStore> ref = createEntity(accessor, holder);

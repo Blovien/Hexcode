@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Subtract",
-  "Description": "Subtracts one value from another",
+  "Title": "hexcode.glyphs.Subtract.name",
+  "Description": "hexcode.glyphs.Subtract.description",
   "ModelPath": "Subtract",
   "BasePower": 0,
   "ManaConsumption": 0,
@@ -14,20 +14,20 @@
   "Slots": {
     "a": {
       "Style": "Input",
-      "Label": "A",
-      "Description": "First operand",
+      "Label": "hexcode.glyphs.Subtract.a.name",
+      "Description": "hexcode.glyphs.Subtract.a.description",
       "DefaultValue": 0
     },
     "b": {
       "Style": "Input",
-      "Label": "B",
-      "Description": "Second operand",
+      "Label": "hexcode.glyphs.Subtract.b.name",
+      "Description": "hexcode.glyphs.Subtract.b.description",
       "DefaultValue": 0
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Subtract.Next.name",
+      "Description": "hexcode.glyphs.Subtract.Next.description"
     }
   },
   "Volatility": {

@@ -7,8 +7,9 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector4d;
+import org.joml.Vector3d;
+import org.joml.Vector3i;
+import org.joml.Vector4d;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.protocol.WaitForDataFrom;
@@ -69,7 +70,7 @@ public class HexShatterMissInteraction extends SimpleInteraction {
             Glyph triggering = state.getTriggeringGlyph();
             if (hitPos != null) {
                 if (triggering != null) {
-                    triggering.writeOutput(new BlockVar(hitPos.toVector3i()), hexContext);
+                    triggering.writeOutput(new BlockVar(new Vector3i((int) Math.floor(hitPos.x), (int) Math.floor(hitPos.y), (int) Math.floor(hitPos.z))), hexContext);
                 }
                 ShatterStyle.renderShardHit(hitPos, hexContext, buffer);
             }

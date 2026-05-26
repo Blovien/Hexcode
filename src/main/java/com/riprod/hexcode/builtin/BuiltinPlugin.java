@@ -1,14 +1,7 @@
 package com.riprod.hexcode.builtin;
 
-import java.util.function.Consumer;
-
-import com.hypixel.hytale.builtin.asseteditor.AssetEditorPlugin;
-import com.hypixel.hytale.builtin.asseteditor.event.AssetEditorRequestDataSetEvent;
-import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentRegistryProxy;
 import com.hypixel.hytale.component.ComponentType;
-import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.event.EventRegistry;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
@@ -71,19 +64,16 @@ import com.riprod.hexcode.builtin.glyphs.domain.DomainAuraConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.domain.component.DomainZoneComponent;
 import com.riprod.hexcode.builtin.glyphs.drain.DrainGlyph;
 import com.riprod.hexcode.builtin.glyphs.drain.DrainConstructHandler;
-import com.riprod.hexcode.builtin.glyphs.drain.DrainState;
 import com.riprod.hexcode.builtin.glyphs.ensnare.EnsnareConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.ensnare.EnsnareGlyph;
 import com.riprod.hexcode.builtin.glyphs.ensnare.component.EnsnareComponent;
 import com.riprod.hexcode.builtin.glyphs.equal.EqualGlyph;
 import com.riprod.hexcode.builtin.glyphs.erode.ErodeConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.erode.ErodeGlyph;
-import com.riprod.hexcode.builtin.glyphs.erode.ErodeState;
 import com.riprod.hexcode.builtin.glyphs.erode.system.ErodeDamageSystem;
 import com.riprod.hexcode.builtin.glyphs.force.ForceGlyph;
 import com.riprod.hexcode.builtin.glyphs.fortify.FortifyGlyph;
 import com.riprod.hexcode.builtin.glyphs.fortify.FortifyConstructHandler;
-import com.riprod.hexcode.builtin.glyphs.fortify.FortifyState;
 import com.riprod.hexcode.builtin.glyphs.fortify.system.FortifyDamageSystem;
 import com.riprod.hexcode.builtin.glyphs.freeze.FreezeConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.freeze.FreezeGlyph;
@@ -96,14 +86,12 @@ import com.riprod.hexcode.builtin.glyphs.growth.GrowthGlyph;
 import com.riprod.hexcode.builtin.glyphs.gust.GustGlyph;
 import com.riprod.hexcode.builtin.glyphs.halt.HaltGlyph;
 import com.riprod.hexcode.builtin.glyphs.halt.HaltConstructHandler;
-import com.riprod.hexcode.builtin.glyphs.halt.HaltState;
 import com.riprod.hexcode.builtin.glyphs.ignite.IgniteConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.ignite.IgniteGlyph;
 import com.riprod.hexcode.builtin.glyphs.interfere.InterfereGlyph;
 import com.riprod.hexcode.builtin.glyphs.less.LessGlyph;
 import com.riprod.hexcode.builtin.glyphs.levitate.LevitateConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.levitate.LevitateGlyph;
-import com.riprod.hexcode.builtin.glyphs.levitate.LevitateState;
 import com.riprod.hexcode.builtin.glyphs.multiply.MultiplyGlyph;
 import com.riprod.hexcode.builtin.glyphs.number.NumberValue;
 import com.riprod.hexcode.builtin.glyphs.onCast.OnCastGlyph;
@@ -122,7 +110,6 @@ import com.riprod.hexcode.builtin.glyphs.projectile.system.ProjectileConstructHa
 import com.riprod.hexcode.builtin.glyphs.resonate.ResonateGlyph;
 import com.riprod.hexcode.builtin.glyphs.rotation.RotationValue;
 import com.riprod.hexcode.builtin.glyphs.scale.ScaleGlyph;
-import com.riprod.hexcode.builtin.glyphs.scale.components.ScaleState;
 import com.riprod.hexcode.builtin.glyphs.scale.handler.ScaleConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.self.SelfGlyph;
 import com.riprod.hexcode.builtin.glyphs.shatter.ShatterGlyph;
@@ -145,7 +132,6 @@ import com.riprod.hexcode.core.common.construct.registry.ConstructRegistry;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphRegistry;
 import com.riprod.hexcode.core.common.obelisk.registry.ObeliskHandlerRegistry;
 import com.riprod.hexcode.core.state.casting.registery.CastingStyleRegistry;
-import com.riprod.hexcode.core.state.crafting.handlers.node.NodeRouter;
 
 public class BuiltinPlugin extends JavaPlugin {
 

@@ -8,10 +8,11 @@ import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.spatial.SpatialResource;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.server.core.modules.entity.EntityModule;
-import com.hypixel.hytale.math.matrix.Matrix4d;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import org.joml.Matrix4d;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
 import com.hypixel.hytale.protocol.Color;
 import com.hypixel.hytale.protocol.DebugShape;
 import com.hypixel.hytale.protocol.SoundCategory;
@@ -62,7 +63,7 @@ public class VfxUtil {
   }
 
   public static void spawnPrimaryDirected(@Nullable HexStyleAsset overrides, @Nullable GlyphAsset glyphAsset,
-      Vector3d pos, Vector3f rotation, ComponentAccessor<EntityStore> accessor) {
+      Vector3d pos, Rotation3f rotation, ComponentAccessor<EntityStore> accessor) {
     HexStyleAsset glyphStyle = glyphAsset != null ? glyphAsset.getStyle() : null;
     if (glyphStyle == null)
       return;
@@ -130,7 +131,7 @@ public class VfxUtil {
   }
 
   private static void spawnConfiguredDirected(@Nullable ModelParticle particle, Vector3d pos,
-      Vector3f rotation, @Nullable Color tint, ComponentAccessor<EntityStore> accessor) {
+      Rotation3f rotation, @Nullable Color tint, ComponentAccessor<EntityStore> accessor) {
     if (particle == null || particle.getSystemId() == null)
       return;
     Color effective = tint != null ? tint : particle.getColor();
@@ -143,7 +144,7 @@ public class VfxUtil {
       return;
     }
     ParticleUtil.spawnParticleEffect(particle.getSystemId(), pos,
-        rotation.getYaw(), rotation.getPitch(), rotation.getRoll(), 1.0f, effective, playerRefs, accessor);
+        rotation.y, rotation.x, rotation.roll(), 1.0f, effective, playerRefs, accessor);
   }
 
   private static int flowPhase = 0;
@@ -209,14 +210,13 @@ public class VfxUtil {
     double length = Math.sqrt(dirX * dirX + dirY * dirY + dirZ * dirZ);
     if (length < 0.001)
       return;
-    Matrix4d tmp = new Matrix4d();
     Matrix4d matrix = new Matrix4d();
     matrix.identity();
     matrix.translate(start.x, start.y, start.z);
     double angleY = Math.atan2(dirZ, dirX);
-    matrix.rotateAxis(angleY + (Math.PI / 2), 0.0, 1.0, 0.0, tmp);
+    matrix.rotate(-(angleY + (Math.PI / 2)), 0.0, 1.0, 0.0);
     double angleX = Math.atan2(Math.sqrt(dirX * dirX + dirZ * dirZ), dirY);
-    matrix.rotateAxis(angleX, 1.0, 0.0, 0.0, tmp);
+    matrix.rotate(-angleX, 1.0, 0.0, 0.0);
     matrix.translate(0.0, length / 2.0, 0.0);
     matrix.scale(thickness, length, thickness);
     int allFlags = flags | DebugUtils.FLAG_NO_WIREFRAME;
@@ -228,9 +228,11 @@ public class VfxUtil {
 
     PlayerRef playerRef = accessor.getComponent(ref, PlayerRef.getComponentType());
     if (playerRef != null) {
+      float[] arr = new float[16];
+      matrix.get(arr);
       DisplayDebug packet = new DisplayDebug(
-          DebugShape.Cube, matrix.asFloatData(),
-          new com.hypixel.hytale.protocol.Vector3f(
+          DebugShape.Cube, arr,
+          new Vector3f(
               color.x, color.y, color.z),
           time, (byte) allFlags, null, 0.7f);
       playerRef.getPacketHandler().write(packet);

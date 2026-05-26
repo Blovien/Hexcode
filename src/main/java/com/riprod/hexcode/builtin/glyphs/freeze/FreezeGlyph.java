@@ -6,8 +6,8 @@ import java.util.List;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3i;
+import org.joml.Vector3d;
+import org.joml.Vector3i;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.OverlapBehavior;
@@ -83,9 +83,9 @@ public class FreezeGlyph implements GlyphHandler {
     }
 
     private static void placeIceBlock(World world, Vector3d pos, List<FrozenBlock> frozenBlocks) {
-        int footX = (int) Math.floor(pos.getX());
-        int footY = (int) Math.floor(pos.getY()) - 1;
-        int footZ = (int) Math.floor(pos.getZ());
+        int footX = (int) Math.floor(pos.x());
+        int footY = (int) Math.floor(pos.y()) - 1;
+        int footZ = (int) Math.floor(pos.z());
 
         int blockId = world.getBlock(footX, footY, footZ);
         if (blockId == BlockType.EMPTY_ID) return;

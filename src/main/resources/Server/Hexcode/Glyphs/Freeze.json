@@ -10,8 +10,8 @@
     },
     "SecondarySound": "SFX_Ice_Break"
   },
-  "Title": "Freeze",
-  "Description": "Total stasis on targets with ice surfaces",
+  "Title": "hexcode.glyphs.Freeze.name",
+  "Description": "hexcode.glyphs.Freeze.description",
   "ModelPath": "Freeze",
   "BasePower": 1.0,
   "ManaConsumption": 20,
@@ -32,20 +32,20 @@
   "Slots": {
     "target": {
       "Style": "Input",
-      "Label": "Target",
-      "Description": "Variable containing the targets to affect"
+      "Label": "hexcode.glyphs.Freeze.target.name",
+      "Description": "hexcode.glyphs.Freeze.target.description"
     },
     "duration": {
       "Style": "Input",
-      "Label": "Duration",
-      "Description": "Duration of the freeze effect in seconds",
+      "Label": "hexcode.glyphs.Freeze.duration.name",
+      "Description": "hexcode.glyphs.Freeze.duration.description",
       "DefaultValue": 10,
       "Unique": true
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Freeze.Next.name",
+      "Description": "hexcode.glyphs.Freeze.Next.description"
     }
   },
   "Volatility": {

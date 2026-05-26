@@ -1,8 +1,10 @@
 package com.riprod.hexcode.builtin.glyphs.power;
 
 import com.hypixel.hytale.component.ComponentAccessor;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.math.vector.Rotation3f;
+
+import org.joml.Vector3d;
+import org.joml.Vector3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
@@ -50,9 +52,9 @@ public class PowerGlyph implements GlyphHandler {
             }
             case RotationVar ra -> {
                 RotationVar rb = (RotationVar) b;
-                Vector3f va = ra.getValue();
-                Vector3f vb = rb.getValue();
-                yield new RotationVar(new Vector3f(
+                Rotation3f va = ra.getValue();
+                Rotation3f vb = rb.getValue();
+                yield new RotationVar(new Rotation3f(
                         (float) safePow(va.x, vb.x),
                         (float) safePow(va.y, vb.y),
                         (float) safePow(va.z, vb.z)));

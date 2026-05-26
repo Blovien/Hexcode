@@ -7,8 +7,10 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector4d;
+import org.joml.Vector3d;
+import org.joml.Vector3i;
+import org.joml.Vector4d;
+
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.protocol.WaitForDataFrom;
@@ -78,7 +80,7 @@ public class HexShatterHitInteraction extends SimpleInteraction {
                     resultVar = new EntityVar(uuid.getUuid(), targetRef);
                 }
             } else if (hitPos != null) {
-                resultVar = new BlockVar(hitPos.toVector3i());
+                resultVar = new BlockVar(new Vector3i((int) Math.floor(hitPos.x), (int) Math.floor(hitPos.y), (int) Math.floor(hitPos.z)));
             }
 
             if (hitPos != null) {

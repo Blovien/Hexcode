@@ -8,7 +8,9 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
-import com.hypixel.hytale.math.vector.Vector3f;
+import org.joml.Vector3f;
+
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.Slot;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
@@ -246,7 +248,7 @@ public class HexCodecV16 {
             g.setVolatility(volatility);
             g.setEfficiency(efficiency);
             g.setPosition(new Vector3f(0f, 0f, 0f));
-            g.setRotation(new Vector3f(0f, 0f, 0f));
+            g.setRotation(new Rotation3f());
             g.getSlots().clear();
             g.getSlots().putAll(decodedSlots);
 

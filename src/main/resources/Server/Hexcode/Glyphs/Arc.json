@@ -9,8 +9,8 @@
       "SystemId": "Shock_Spawner_Temporary"
     }
   },
-  "Title": "Arc",
-  "Description": "Chain lightning that fires each child on the next chain target",
+  "Title": "hexcode.glyphs.Arc.name",
+  "Description": "hexcode.glyphs.Arc.description",
   "ModelPath": "Arc",
   "ManaConsumption": 25,
   "ShapeStructure": [
@@ -30,27 +30,27 @@
   "Slots": {
     "target": {
       "Style": "Input",
-      "Label": "Target",
-      "Description": "Variable containing the targets to affect"
+      "Label": "hexcode.glyphs.Arc.target.name",
+      "Description": "hexcode.glyphs.Arc.target.description"
     },
     "jump": {
       "Style": "Input",
-      "Label": "Jump",
-      "Description": "Number of blocks to jump",
+      "Label": "hexcode.glyphs.Arc.jump.name",
+      "Description": "hexcode.glyphs.Arc.jump.description",
       "DefaultValue": 15,
       "Unique": true
     },
     "delay": {
       "Style": "Input",
-      "Label": "Delay",
-      "Description": "Seconds between each arc jump",
+      "Label": "hexcode.glyphs.Arc.delay.name",
+      "Description": "hexcode.glyphs.Arc.delay.description",
       "DefaultValue": 0.75,
       "Unique": true
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Arc.Next.name",
+      "Description": "hexcode.glyphs.Arc.Next.description"
     }
   },
   "Volatility": {

@@ -4,8 +4,10 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.hypixel.hytale.component.ComponentAccessor;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.math.vector.Rotation3f;
+
+import org.joml.Vector3d;
+import org.joml.Vector3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
@@ -28,7 +30,7 @@ public class HexVarUtil {
     }
 
     @Nullable
-    public static Vector3f rotation(@Nullable HexVar var, @Nonnull ComponentAccessor<EntityStore> accessor) {
+    public static Rotation3f rotation(@Nullable HexVar var, @Nonnull ComponentAccessor<EntityStore> accessor) {
         if (var == null) return null;
         RotationVar rv = var.toRotation(accessor);
         return rv == null ? null : rv.getValue();
@@ -56,7 +58,7 @@ public class HexVarUtil {
         if (var instanceof NumberVar nv) {
             return nv.getValue() == null ? 0.0 : nv.getValue();
         }
-        Vector3f v = rotation(var, accessor);
+        Rotation3f v = rotation(var, accessor);
         if (v == null) return 0.0;
         return switch (axis) {
             case 0 -> v.x;

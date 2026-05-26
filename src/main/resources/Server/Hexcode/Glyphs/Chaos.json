@@ -1,8 +1,8 @@
 {
   "Parent": "Glyph_Template",
   "Style": "Chaos_Void",
-  "Title": "Chaos",
-  "Description": "Generates a random number in the range [Min, Max)",
+  "Title": "hexcode.glyphs.Chaos.name",
+  "Description": "hexcode.glyphs.Chaos.description",
   "ModelPath": "Chaos",
   "BasePower": 1.0,
   "ManaConsumption": 0,
@@ -15,22 +15,22 @@
   "Slots": {
     "min": {
       "Style": "Input",
-      "Label": "Min",
-      "Description": "Lower bound (inclusive)",
+      "Label": "hexcode.glyphs.Chaos.min.name",
+      "Description": "hexcode.glyphs.Chaos.min.description",
       "DefaultValue": 0,
       "Unique": true
     },
     "max": {
       "Style": "Input",
-      "Label": "Max",
-      "Description": "Upper bound (exclusive)",
+      "Label": "hexcode.glyphs.Chaos.max.name",
+      "Description": "hexcode.glyphs.Chaos.max.description",
       "DefaultValue": 1,
       "Unique": true
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Chaos.Next.name",
+      "Description": "hexcode.glyphs.Chaos.Next.description"
     }
   },
   "Volatility": {

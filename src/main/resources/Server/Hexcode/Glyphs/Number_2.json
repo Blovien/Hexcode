@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Number 2",
-  "Description": "Provides the constant value 2",
+  "Title": "hexcode.glyphs.Number_2.name",
+  "Description": "hexcode.glyphs.Number_2.description",
   "ModelPath": "Number_2",
   "ShapeStructure": [
     {
@@ -16,8 +16,8 @@
   "Slots": {
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Number_2.Next.name",
+      "Description": "hexcode.glyphs.Number_2.Next.description"
     }
   },
   "ManaConsumption": 0,

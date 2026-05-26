@@ -10,8 +10,8 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3i;
+import org.joml.Vector3d;
+import org.joml.Vector3i;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.entity.entities.Player;
@@ -194,10 +194,10 @@ public class CraftingSystem extends HexcodeManager {
             Vector3d playerPos = transform.getPosition();
             if (playerPos != null) {
                 Vector3d center = new Vector3d(
-                        pedestalLoc.getX() + 0.5,
-                        pedestalLoc.getY() + 0.5,
-                        pedestalLoc.getZ() + 0.5);
-                double distSq = playerPos.distanceSquaredTo(center);
+                        pedestalLoc.x() + 0.5,
+                        pedestalLoc.y() + 0.5,
+                        pedestalLoc.z() + 0.5);
+                double distSq = playerPos.distanceSquared(center);
                 int maxRadius = pedestal.getMaxRadius();
                 double maxSq = (double) maxRadius * maxRadius;
                 if (distSq > maxSq) {

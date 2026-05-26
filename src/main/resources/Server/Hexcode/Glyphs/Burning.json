@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Burning",
-  "Description": "Emit a beam of fire in front of you, selecting everyone in your path",
+  "Title": "hexcode.glyphs.Burning.name",
+  "Description": "hexcode.glyphs.Burning.description",
   "ModelPath": "Burning",
   "BasePower": 1.0,
   "ManaConsumption": 0,
@@ -22,28 +22,28 @@
   "Slots": {
     "center": {
       "Style": "Input",
-      "Label": "Center",
-      "Description": "Position to center the explosion. Defaults to caster position",
+      "Label": "hexcode.glyphs.Burning.center.name",
+      "Description": "hexcode.glyphs.Burning.center.description",
       "Unique": true
     },
     "radius": {
       "Style": "Input",
-      "Label": "Radius",
-      "Description": "Radius of the fire explosion",
+      "Label": "hexcode.glyphs.Burning.radius.name",
+      "Description": "hexcode.glyphs.Burning.radius.description",
       "DefaultValue": 2.1,
       "Unique": true
     },
     "magnitude": {
       "Style": "Input",
-      "Label": "Magnitude",
-      "Description": "Strength of the explosion force and damage",
+      "Label": "hexcode.glyphs.Burning.magnitude.name",
+      "Description": "hexcode.glyphs.Burning.magnitude.description",
       "DefaultValue": 10,
       "Unique": true
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Burning.Next.name",
+      "Description": "hexcode.glyphs.Burning.Next.description"
     }
   },
   "Volatility": {

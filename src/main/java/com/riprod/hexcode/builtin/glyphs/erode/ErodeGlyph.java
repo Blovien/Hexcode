@@ -4,7 +4,7 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.util.ChunkUtil;
-import com.hypixel.hytale.math.vector.Vector3i;
+import org.joml.Vector3i;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.OverlapBehavior;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
@@ -152,14 +152,9 @@ public static final String ID = "Erode";
         }
 
         Ref<EntityStore> casterRef = hexContext.getCasterRef();
-        Player caster = (casterRef != null && casterRef.isValid())
-                ? accessor.getComponent(casterRef, Player.getComponentType())
-                : null;
-
         float damageScale = (float) (amount * BLOCK_DAMAGE_SCALE);
 
         BlockHarvestUtils.performBlockDamage(
-                caster,
                 casterRef,
                 pos,
                 null,

@@ -5,7 +5,8 @@ import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.math.vector.Vector3f;
+import org.joml.Vector3f;
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -121,16 +122,16 @@ public class GlyphComponent implements Component<EntityStore> {
         return slotEntityRefs;
     }
 
-    public float getYaw() {
-        return this.glyph.getRotation().getYaw();
+    public float yaw() {
+        return this.glyph.getRotation().y;
     }
 
     public void setYaw(float yaw) {
-        this.glyph.getRotation().setYaw(yaw);
+        this.glyph.getRotation().y = yaw;
     }
 
-    public float getPitch() {
-        return this.glyph.getRotation().getPitch();
+    public float pitch() {
+        return this.glyph.getRotation().x;
     }
 
     public void setPitch(float pitch) {
@@ -138,18 +139,18 @@ public class GlyphComponent implements Component<EntityStore> {
     }
 
     public float getDistance() {
-        return this.glyph.getRotation().getZ();
+        return this.glyph.getRotation().z();
     }
 
     public void setDistance(float distance) {
         this.glyph.getRotation().setZ(distance);
     }
 
-    public Vector3f getRotation() {
+    public Rotation3f getRotation() {
         return this.glyph.getRotation();
     }
 
-    public void setRotation(Vector3f rotation) {
+    public void setRotation(Rotation3f rotation) {
         this.glyph.setRotation(rotation);
     }
 

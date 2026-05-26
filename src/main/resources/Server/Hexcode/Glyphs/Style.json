@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Style",
-  "Description": "Override the active hex color with RGBA (0-255)",
+  "Title": "hexcode.glyphs.Style.name",
+  "Description": "hexcode.glyphs.Style.description",
   "ModelPath": "Style",
   "BasePower": 0,
   "ManaConsumption": 0,
@@ -22,37 +22,37 @@
   "Slots": {
     "style": {
       "Style": "Input",
-      "Label": "Style",
-      "Description": "Linked glyph whose style is applied as an override (overridable fields only)"
+      "Label": "hexcode.glyphs.Style.style.name",
+      "Description": "hexcode.glyphs.Style.style.description"
     },
     "r": {
       "Style": "Input",
-      "Label": "R",
-      "Description": "Red (0-255)",
+      "Label": "hexcode.glyphs.Style.r.name",
+      "Description": "hexcode.glyphs.Style.r.description",
       "DefaultValue": 0
     },
     "g": {
       "Style": "Input",
-      "Label": "G",
-      "Description": "Green (0-255)",
+      "Label": "hexcode.glyphs.Style.g.name",
+      "Description": "hexcode.glyphs.Style.g.description",
       "DefaultValue": 0
     },
     "b": {
       "Style": "Input",
-      "Label": "B",
-      "Description": "Blue (0-255)",
+      "Label": "hexcode.glyphs.Style.b.name",
+      "Description": "hexcode.glyphs.Style.b.description",
       "DefaultValue": 0
     },
     "a": {
       "Style": "Input",
-      "Label": "A",
-      "Description": "Alpha (0-255)",
+      "Label": "hexcode.glyphs.Style.a.name",
+      "Description": "hexcode.glyphs.Style.a.description",
       "DefaultValue": 255
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Style.Next.name",
+      "Description": "hexcode.glyphs.Style.Next.description"
     }
   },
   "VolatilityEscalation": {

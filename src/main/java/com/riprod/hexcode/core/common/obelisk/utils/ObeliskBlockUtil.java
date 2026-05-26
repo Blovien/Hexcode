@@ -5,7 +5,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.hypixel.hytale.math.block.BlockSphereUtil;
-import com.hypixel.hytale.math.vector.Vector3i;
+import org.joml.Vector3i;
 import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.riprod.hexcode.core.common.obelisk.component.ObeliskBlockComponent;
@@ -40,7 +40,7 @@ public class ObeliskBlockUtil {
             return true;
         });
 
-        results.sort(Comparator.comparingInt(pair -> center.distanceSquaredTo(pair.getFirst())));
+        results.sort(Comparator.comparingLong(pair -> center.distanceSquared(pair.getFirst())));
 
         if (results.size() > maxCount) {
             return new ArrayList<>(results.subList(0, maxCount));

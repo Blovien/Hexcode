@@ -1,8 +1,9 @@
 package com.riprod.hexcode.builtin.glyphs.add;
 
 import com.hypixel.hytale.component.ComponentAccessor;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.math.vector.Rotation3f;
+
+import org.joml.Vector3d;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
@@ -48,7 +49,7 @@ public class AddGlyph implements GlyphHandler {
             }
             case RotationVar ra -> {
                 RotationVar rb = (RotationVar) b;
-                yield new RotationVar(new Vector3f(ra.getValue()).add(rb.getValue()));
+                yield new RotationVar(new Rotation3f(ra.getValue()).add(rb.getValue()));
             }
             case ColorVar ca -> {
                 ColorVar cb = (ColorVar) b;

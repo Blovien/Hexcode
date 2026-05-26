@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Number 5",
-  "Description": "Provides the constant value 5",
+  "Title": "hexcode.glyphs.Number_5.name",
+  "Description": "hexcode.glyphs.Number_5.description",
   "ModelPath": "Number_5",
   "ShapeStructure": [
     {
@@ -16,8 +16,8 @@
   "Slots": {
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Number_5.Next.name",
+      "Description": "hexcode.glyphs.Number_5.Next.description"
     }
   },
   "ManaConsumption": 0,

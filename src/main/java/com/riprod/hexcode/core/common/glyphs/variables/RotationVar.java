@@ -3,21 +3,26 @@ package com.riprod.hexcode.core.common.glyphs.variables;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.ComponentAccessor;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public final class RotationVar extends HexVar {
-    private Vector3f rotation;
+    private Rotation3f rotation;
 
     public RotationVar() {
     }
 
-    public RotationVar(Vector3f rotation) {
+    public RotationVar(Rotation3f rotation) {
         this.rotation = rotation;
     }
 
-    public Vector3f getValue() {
+    public RotationVar(Vector3f rotation) {
+        this.rotation = rotation == null ? null : new Rotation3f(rotation.x, rotation.y, rotation.z);
+    }
+
+    public Rotation3f getValue() {
         return rotation;
     }
 
@@ -43,8 +48,8 @@ public final class RotationVar extends HexVar {
 
     public Vector3d forward() {
         if (rotation == null) return new Vector3d(0, 0, 1);
-        double yaw = rotation.getYaw();
-        double pitch = rotation.getPitch();
+        double yaw = rotation.y;
+        double pitch = rotation.x;
         double cosPitch = Math.cos(pitch);
         return new Vector3d(
                 -Math.sin(yaw) * cosPitch,
@@ -79,7 +84,8 @@ public final class RotationVar extends HexVar {
                 return -1;
             if (rb.rotation == null)
                 return 1;
-            return Double.compare(rotation.length(), rb.rotation.length());
+            return Double.compare(Math.sqrt(rotation.x*rotation.x + rotation.y*rotation.y + rotation.z*rotation.z),
+                                  Math.sqrt(rb.rotation.x*rb.rotation.x + rb.rotation.y*rb.rotation.y + rb.rotation.z*rb.rotation.z));
         }
         return super.compareTo(other);
     }
@@ -91,7 +97,7 @@ public final class RotationVar extends HexVar {
 
     public static final BuilderCodec<RotationVar> CODEC = BuilderCodec
             .builder(RotationVar.class, RotationVar::new, HexVar.BASE_CODEC)
-            .append(new KeyedCodec<>("Rotation", com.hypixel.hytale.math.vector.Vector3f.CODEC),
+            .append(new KeyedCodec<>("Rotation", Rotation3f.CODEC),
                     (v, rot) -> v.rotation = rot,
                     v -> v.rotation)
             .add()

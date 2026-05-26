@@ -2,8 +2,8 @@ package com.riprod.hexcode.core.common.triggers.component;
 
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class TriggerListenerComponent implements Component<EntityStore> {
@@ -46,8 +46,8 @@ public class TriggerListenerComponent implements Component<EntityStore> {
     @Override
     public TriggerListenerComponent clone() {
         TriggerListenerComponent copy = new TriggerListenerComponent();
-        copy.lastPosition = this.lastPosition != null ? this.lastPosition.clone() : null;
-        copy.lastRotation = this.lastRotation != null ? this.lastRotation.clone() : null;
+        copy.lastPosition = this.lastPosition != null ? new Vector3d(this.lastPosition) : null;
+        copy.lastRotation = this.lastRotation != null ? new Vector3f(this.lastRotation) : null;
         return copy;
     }
 

@@ -40,7 +40,8 @@ public class HexcasterCastingComponent implements Component<EntityStore> {
     private transient FloatArrayList currentStrokePoints = new FloatArrayList();
     private transient List<DrawnShapeComponent> pendingShapes = new ArrayList<>();
     private transient float finalizeTimer = 0f;
-    private transient float strokeElapsedSeconds = 0f;
+    private transient float finalizeDelaySeconds = 0f;
+    private transient long strokeStartMillis = 0L;
     private transient Ref<EntityStore> drawTrailRef = null;
 
     public HexcasterCastingComponent() {
@@ -135,7 +136,8 @@ public class HexcasterCastingComponent implements Component<EntityStore> {
         this.currentStrokePoints.clear();
         this.pendingShapes.clear();
         this.finalizeTimer = 0f;
-        this.strokeElapsedSeconds = 0f;
+        this.finalizeDelaySeconds = 0f;
+        this.strokeStartMillis = 0L;
         this.drawTrailRef = null;
     }
 
@@ -175,16 +177,20 @@ public class HexcasterCastingComponent implements Component<EntityStore> {
         this.finalizeTimer = timer;
     }
 
-    public float getStrokeElapsedSeconds() {
-        return strokeElapsedSeconds;
+    public float getFinalizeDelaySeconds() {
+        return finalizeDelaySeconds;
     }
 
-    public void setStrokeElapsedSeconds(float seconds) {
-        this.strokeElapsedSeconds = seconds;
+    public void setFinalizeDelaySeconds(float seconds) {
+        this.finalizeDelaySeconds = seconds;
     }
 
-    public void addStrokeElapsedSeconds(float dt) {
-        this.strokeElapsedSeconds += dt;
+    public long getStrokeStartMillis() {
+        return strokeStartMillis;
+    }
+
+    public void setStrokeStartMillis(long millis) {
+        this.strokeStartMillis = millis;
     }
 
     @Nullable
@@ -212,7 +218,8 @@ public class HexcasterCastingComponent implements Component<EntityStore> {
         this.currentStrokePoints.clear();
         this.pendingShapes.clear();
         this.finalizeTimer = 0f;
-        this.strokeElapsedSeconds = 0f;
+        this.finalizeDelaySeconds = 0f;
+        this.strokeStartMillis = 0L;
         this.drawTrailRef = null;
     }
 

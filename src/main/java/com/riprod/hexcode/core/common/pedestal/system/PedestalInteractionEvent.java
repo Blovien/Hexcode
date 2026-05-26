@@ -3,7 +3,8 @@ package com.riprod.hexcode.core.common.pedestal.system;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.math.vector.Vector3i;
+import org.joml.Vector3d;
+import org.joml.Vector3i;
 import com.hypixel.hytale.protocol.BlockPosition;
 import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.Message;
@@ -167,7 +168,7 @@ public class PedestalInteractionEvent {
 
             PedestalSystem.handleItemPlacement(accessor, player, chosen, chosenSlot,
                     pedestalComponent, session, blockPos);
-            VfxUtil.particle("Area_Pulse", blockPos.toVector3d(), accessor);
+            VfxUtil.particle("Area_Pulse", new Vector3d(blockPos.x, blockPos.y, blockPos.z), accessor);
             PedestalSystem.handleReady(accessor, session, pedestalComponent, world);
             return;
         }
@@ -188,8 +189,9 @@ public class PedestalInteractionEvent {
         logger.atInfo().log("pedestal: hasItem, state=%s skipSelecting=%s", state, skipSelecting);
         if (state == PedestalState.CRAFTING) {
             if (skipSelecting) {
+                Vector3i locA = pedestalComponent.getLocation();
                 VfxUtil.sound("SFX_Deployable_Totem_Heal_Despawn",
-                        pedestalComponent.getLocation().toVector3d(), accessor);
+                        new Vector3d(locA.x, locA.y, locA.z), accessor);
                 PedestalSystem.exitCrafting(accessor, playerRef, pedestalComponent, session);
                 SessionUtils.endSession(accessor, existingSessionRef, world);
                 return;
@@ -197,10 +199,12 @@ public class PedestalInteractionEvent {
             PedestalSystem.exitCrafting(accessor, playerRef, pedestalComponent, session);
             PedestalSystem.enterSelecting(pedestalComponent, player, world, accessor);
         } else if (state == PedestalState.SELECTING) {
-            VfxUtil.sound("SFX_Deployable_Totem_Heal_Despawn", pedestalComponent.getLocation().toVector3d(), accessor);
+            Vector3i locB = pedestalComponent.getLocation();
+            VfxUtil.sound("SFX_Deployable_Totem_Heal_Despawn", new Vector3d(locB.x, locB.y, locB.z), accessor);
             SessionUtils.endSession(accessor, existingSessionRef, world);
         } else {
-            VfxUtil.sound("SFX_Arcane_Workbench_Open_Local", pedestalComponent.getLocation().toVector3d(), accessor);
+            Vector3i locC = pedestalComponent.getLocation();
+            VfxUtil.sound("SFX_Arcane_Workbench_Open_Local", new Vector3d(locC.x, locC.y, locC.z), accessor);
             PedestalSystem.enterSelecting(pedestalComponent, player, world, accessor);
         }
     }

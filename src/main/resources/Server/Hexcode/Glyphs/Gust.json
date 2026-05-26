@@ -14,8 +14,8 @@
     },
     "TertiarySound": "SFX_Fireball_Death"
   },
-  "Title": "Gust",
-  "Description": "Radial force pushing targets away from a center point",
+  "Title": "hexcode.glyphs.Gust.name",
+  "Description": "hexcode.glyphs.Gust.description",
   "ModelPath": "Gust",
   "BasePower": 1.0,
   "ManaConsumption": 15,
@@ -36,28 +36,28 @@
   "Slots": {
     "center": {
       "Style": "Input",
-      "Label": "Center",
-      "Description": "Position to center the effect around",
+      "Label": "hexcode.glyphs.Gust.center.name",
+      "Description": "hexcode.glyphs.Gust.center.description",
       "Unique": true
     },
     "radius": {
       "Style": "Input",
-      "Label": "Radius",
-      "Description": "Radius of the area of effect",
+      "Label": "hexcode.glyphs.Gust.radius.name",
+      "Description": "hexcode.glyphs.Gust.radius.description",
       "DefaultValue": 5,
       "Unique": true
     },
     "magnitude": {
       "Style": "Input",
-      "Label": "Magnitude",
-      "Description": "Strength of the applied force",
+      "Label": "hexcode.glyphs.Gust.magnitude.name",
+      "Description": "hexcode.glyphs.Gust.magnitude.description",
       "DefaultValue": 15,
       "Unique": true
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Gust.Next.name",
+      "Description": "hexcode.glyphs.Gust.Next.description"
     }
   },
   "Volatility": {

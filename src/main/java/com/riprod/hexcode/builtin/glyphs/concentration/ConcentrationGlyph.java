@@ -6,7 +6,9 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.math.vector.Rotation3f;
+
+import org.joml.Vector3f;
 import com.hypixel.hytale.protocol.MountController;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
@@ -85,13 +87,13 @@ public class ConcentrationGlyph implements GlyphHandler {
             TransformComponent casterTransform, Ref<EntityStore> casterRef, HexContext hexContext) {
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
         holder.addComponent(TransformComponent.getComponentType(),
-                new TransformComponent(casterTransform.getPosition(), new Vector3f()));
+                new TransformComponent(casterTransform.getPosition(), new Rotation3f()));
         holder.ensureComponent(UUIDComponent.getComponentType());
         holder.addComponent(NetworkId.getComponentType(),
                 new NetworkId(accessor.getExternalData().takeNextNetworkId()));
         holder.ensureComponent(EntityStore.REGISTRY.getNonSerializedComponentType());
         holder.addComponent(MountedComponent.getComponentType(),
-                new MountedComponent(casterRef, MOUNT_OFFSET, MountController.Minecart));
+                new MountedComponent(casterRef, new Rotation3f(MOUNT_OFFSET.x, MOUNT_OFFSET.y, MOUNT_OFFSET.z), MountController.Minecart));
 
         String modelId = ConcentrationStyle.resolveModelId(hexContext);
         ModelAsset modelAsset = modelId != null ? ModelAsset.getAssetMap().getAsset(modelId) : null;

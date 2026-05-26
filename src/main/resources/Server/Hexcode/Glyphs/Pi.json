@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Pi",
-  "Description": "The value of Pi",
+  "Title": "hexcode.glyphs.Pi.name",
+  "Description": "hexcode.glyphs.Pi.description",
   "ModelPath": "Pi",
   "ShapeStructure": [
     {
@@ -16,8 +16,8 @@
   "Slots": {
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Pi.Next.name",
+      "Description": "hexcode.glyphs.Pi.Next.description"
     }
   },
   "ManaConsumption": 0,

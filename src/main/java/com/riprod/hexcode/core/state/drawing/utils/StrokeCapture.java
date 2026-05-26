@@ -5,14 +5,13 @@ import javax.annotation.Nullable;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.protocol.Color;
-import com.hypixel.hytale.protocol.packets.connection.PongType;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
-import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.state.drawing.component.DrawnShapeComponent;
 import com.riprod.hexcode.core.state.drawing.system.InterfaceManager;
 import com.riprod.hexcode.core.state.drawing.system.shapes.DollarOneFixedDetector;
 import com.riprod.hexcode.core.state.drawing.system.shapes.ShapeDetector;
+import com.riprod.hexcode.utils.LatencyUtil;
 
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 
@@ -22,6 +21,8 @@ public final class StrokeCapture {
     private static final float TWO_PI = (float) (2 * Math.PI);
     private static final ShapeDetector DEFAULT_DETECTOR = new DollarOneFixedDetector();
 
+    private static final int PING_CREDIT_CAP_MS = 500;
+
     private StrokeCapture() {
     }
 
@@ -29,8 +30,8 @@ public final class StrokeCapture {
         if (points == null || head == null) {
             return false;
         }
-        float yaw = head.getRotation().getYaw();
-        float pitch = head.getRotation().getPitch();
+        float yaw = head.getRotation().y;
+        float pitch = head.getRotation().x;
 
         if (!points.isEmpty()) {
             float lastYaw = points.getFloat(points.size() - 2);
@@ -79,26 +80,13 @@ public final class StrokeCapture {
         result.setPoints(InterfaceManager.getPositionsFromAngles(accessor, points, playerRef, 4.0f));
         Color color = InterfaceManager.getColorFromQuality(result.getVolatility());
         result.setColor(color);
-        result.setSpeed(drawDurationMs);
 
-        float forgiveness = pingForgiveness(accessor, playerRef);
-        result.setVolatility(Math.min(1f, result.getVolatility() * forgiveness));
+        int ping = LatencyUtil.pingMillis(accessor, playerRef);
+        // server-driven feedback eats into effective draw time, so credit latency back
+        result.setSpeed(Math.max(1L, drawDurationMs - Math.min(ping, PING_CREDIT_CAP_MS)));
 
         float maxSize = Math.max(Math.abs(maxYaw - minYaw), Math.abs(maxPitch - minPitch));
         result.setSize(maxSize);
         return result;
-    }
-
-    private static float pingForgiveness(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> playerRef) {
-        try {
-            int pingMs = (int) accessor.getComponent(playerRef, PlayerRef.getComponentType())
-                    .getPacketHandler()
-                    .getPingInfo(PongType.Direct)
-                    .getPingMetricSet()
-                    .getLastValue();
-            return Math.min(3f, 1f + Math.min(pingMs, 500) / 1000f);
-        } catch (Exception e) {
-            return 1f;
-        }
     }
 }

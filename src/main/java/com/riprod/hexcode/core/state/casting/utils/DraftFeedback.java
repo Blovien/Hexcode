@@ -2,7 +2,7 @@ package com.riprod.hexcode.core.state.casting.utils;
 
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.math.vector.Vector3d;
+import org.joml.Vector3d;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
@@ -35,7 +35,7 @@ public final class DraftFeedback {
         }
         float eyeHeight = modelComp.getModel().getEyeHeight();
         Vector3d eye = new Vector3d(transform.getPosition()).add(0, eyeHeight, 0);
-        return GlyphMath.sphericalToCartesian(eye, head.getRotation().getYaw(),
-                head.getRotation().getPitch(), FORWARD_DISTANCE);
+        return GlyphMath.sphericalToCartesian(eye, head.getRotation().y,
+                head.getRotation().x, FORWARD_DISTANCE);
     }
 }

@@ -8,8 +8,9 @@ import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector4d;
+import org.joml.Vector3d;
+import org.joml.Vector4d;
+import org.joml.Vector3i;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.protocol.WaitForDataFrom;
@@ -66,7 +67,7 @@ public class HexProjectileBounceInteraction extends SimpleInteraction {
                 return;
             }
             Vector3d hitPos = new Vector3d(hitLocation.x, hitLocation.y, hitLocation.z);
-            HexVar resultVar = new BlockVar(hitPos.toVector3i());
+            HexVar resultVar = new BlockVar(new Vector3i((int) Math.floor(hitPos.x), (int) Math.floor(hitPos.y), (int) Math.floor(hitPos.z)));
             ProjectileStyle.renderBlockHit(hitPos, hexContext, buffer);
             Glyph triggering = state.getTriggeringGlyph();
 

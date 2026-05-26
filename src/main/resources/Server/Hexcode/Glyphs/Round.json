@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Round",
-  "Description": "Rounds A to the nearest whole number. Preserves type: Positions and Rotations are rounded component-wise. Entities, Blocks and Colors pass through unchanged.",
+  "Title": "hexcode.glyphs.Round.name",
+  "Description": "hexcode.glyphs.Round.description",
   "ModelPath": "Round",
   "BasePower": 0,
   "ManaConsumption": 0,
@@ -22,14 +22,14 @@
   "Slots": {
     "a": {
       "Style": "Input",
-      "Label": "A",
-      "Description": "Value to round",
+      "Label": "hexcode.glyphs.Round.a.name",
+      "Description": "hexcode.glyphs.Round.a.description",
       "DefaultValue": 0
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Round.Next.name",
+      "Description": "hexcode.glyphs.Round.Next.description"
     }
   },
   "Volatility": {

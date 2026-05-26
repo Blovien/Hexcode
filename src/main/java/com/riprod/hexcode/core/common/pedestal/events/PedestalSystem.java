@@ -9,9 +9,9 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
-import com.hypixel.hytale.math.vector.Vector3i;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
+import org.joml.Vector3i;
 import com.hypixel.hytale.protocol.AnimationSlot;
 import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.entity.AnimationUtils;
@@ -142,8 +142,8 @@ public class PedestalSystem {
                 anchorPos.z + ACTIVE_HEX_OFFSET.z);
         TransformComponent anchorTransform = buffer.getComponent(selectedAnchorNodeRef,
                 TransformComponent.getComponentType());
-        anchorTransform.getPosition().assign(activePos);
-        anchorTransform.getRotation().assign(0, 0, 0);
+        anchorTransform.getPosition().set(activePos);
+        anchorTransform.getRotation().set(0f, 0f, 0f);
         if (buffer.getComponent(selectedAnchorNodeRef, MountedComponent.getComponentType()) != null) {
             buffer.removeComponent(selectedAnchorNodeRef, MountedComponent.getComponentType());
         }

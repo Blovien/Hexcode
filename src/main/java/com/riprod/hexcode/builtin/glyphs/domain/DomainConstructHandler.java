@@ -8,8 +8,8 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -211,7 +211,7 @@ public class DomainConstructHandler implements ConstructHandler<NoState> {
                 if (otherTransform == null)
                     continue;
 
-                double dist = new Vector3d(selfCenter).subtract(otherTransform.getPosition()).length();
+                double dist = new Vector3d(selfCenter).sub(otherTransform.getPosition()).length();
                 if (dist < self.getRadius() + other.getRadius()) {
                     if (self.getPower() <= other.getPower()) {
                         nowContested[0] = true;

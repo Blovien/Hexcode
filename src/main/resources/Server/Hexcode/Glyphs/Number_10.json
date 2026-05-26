@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Number 10",
-  "Description": "Provides the constant value 10",
+  "Title": "hexcode.glyphs.Number_10.name",
+  "Description": "hexcode.glyphs.Number_10.description",
   "ModelPath": "Number_10",
   "ShapeStructure": [
     {
@@ -16,8 +16,8 @@
   "Slots": {
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Number_10.Next.name",
+      "Description": "hexcode.glyphs.Number_10.Next.description"
     }
   },
   "ManaConsumption": 0,

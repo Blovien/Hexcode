@@ -6,8 +6,10 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.math.vector.Rotation3f;
+
+import org.joml.Vector3d;
+import org.joml.Vector3f;
 import com.hypixel.hytale.protocol.MountController;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
@@ -219,13 +221,13 @@ public class ScaleGlyph implements GlyphHandler {
             Vector3d spawnPos, Ref<EntityStore> targetRef, HexContext hexContext) {
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
         holder.addComponent(TransformComponent.getComponentType(),
-                new TransformComponent(spawnPos, new Vector3f()));
+                new TransformComponent(spawnPos, new Rotation3f()));
         holder.ensureComponent(UUIDComponent.getComponentType());
         holder.addComponent(NetworkId.getComponentType(),
                 new NetworkId(accessor.getExternalData().takeNextNetworkId()));
         holder.ensureComponent(EntityStore.REGISTRY.getNonSerializedComponentType());
         holder.addComponent(MountedComponent.getComponentType(),
-                new MountedComponent(targetRef, MOUNT_OFFSET, MountController.Minecart));
+                new MountedComponent(targetRef, new Rotation3f(MOUNT_OFFSET.x, MOUNT_OFFSET.y, MOUNT_OFFSET.z), MountController.Minecart));
 
         String modelId = ScaleStyle.resolveModelId(hexContext);
         ModelAsset modelAsset = modelId != null ? ModelAsset.getAssetMap().getAsset(modelId) : null;

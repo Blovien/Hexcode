@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Tan",
-  "Description": "Tangent of A (radians)",
+  "Title": "hexcode.glyphs.Tan.name",
+  "Description": "hexcode.glyphs.Tan.description",
   "ModelPath": "Tan",
   "BasePower": 0,
   "ManaConsumption": 0,
@@ -18,14 +18,14 @@
   "Slots": {
     "a": {
       "Style": "Input",
-      "Label": "A",
-      "Description": "Angle in radians",
+      "Label": "hexcode.glyphs.Tan.a.name",
+      "Description": "hexcode.glyphs.Tan.a.description",
       "DefaultValue": 0
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Tan.Next.name",
+      "Description": "hexcode.glyphs.Tan.Next.description"
     }
   },
   "VolatilityEscalation": {

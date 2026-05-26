@@ -9,8 +9,10 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.math.vector.Rotation3f;
+
+import org.joml.Vector3d;
+import org.joml.Vector3f;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
@@ -120,7 +122,7 @@ public class DelayGlyph implements GlyphHandler {
             holder.addComponent(PersistentModel.getComponentType(),
                     new PersistentModel(model.toReference()));
 
-            Vector3f rotVar = HexVarUtil.rotation(defaultVar, accessor);
+            Rotation3f rotVar = HexVarUtil.rotation(defaultVar, accessor);
             if (rotVar != null) {
                 holder.putComponent(TransformComponent.getComponentType(),
                         new TransformComponent(spawnPos, rotVar));

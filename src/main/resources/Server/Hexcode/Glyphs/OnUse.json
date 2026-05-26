@@ -4,8 +4,8 @@
     "Parent": "Delay_Earth",
     "PrimaryModel": "OnUse"
   },
-  "Title": "On Use",
-  "Description": "Pauses execution. Resumes when the caster uses an item (e.g. consumes food, activates).",
+  "Title": "hexcode.glyphs.OnUse.name",
+  "Description": "hexcode.glyphs.OnUse.description",
   "ModelPath": "OnUse",
   "BasePower": 1.0,
   "ManaConsumption": 0,
@@ -22,8 +22,8 @@
   "Slots": {
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "Glyphs to run when the trigger fires"
+      "Label": "hexcode.glyphs.OnUse.Next.name",
+      "Description": "hexcode.glyphs.OnUse.Next.description"
     }
   },
   "Volatility": {

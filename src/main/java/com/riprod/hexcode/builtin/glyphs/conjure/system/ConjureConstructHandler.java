@@ -7,7 +7,7 @@ import java.util.UUID;
 
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
-import com.hypixel.hytale.math.vector.Vector3d;
+import org.joml.Vector3d;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
@@ -65,7 +65,7 @@ public class ConjureConstructHandler implements ConstructHandler<NoState> {
             Vector3d velocity = vel.getVelocity();
             if (velocity.length() > 0) {
                 Vector3d pos = transform.getPosition();
-                pos.assign(
+                pos.set(
                         pos.x + velocity.x * dt,
                         pos.y + velocity.y * dt,
                         pos.z + velocity.z * dt);

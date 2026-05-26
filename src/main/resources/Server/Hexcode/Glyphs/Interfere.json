@@ -14,8 +14,8 @@
     },
     "TertiarySound": "SFX_Block_Break"
   },
-  "Title": "Interfere",
-  "Description": "Hijacks all active hex constructs on the target, replacing their continuation with this chain. Strips hex effects from targets without active constructs.",
+  "Title": "hexcode.glyphs.Interfere.name",
+  "Description": "hexcode.glyphs.Interfere.description",
   "ModelPath": "Interfere",
   "BasePower": 1.0,
   "ManaConsumption": 22,
@@ -32,13 +32,13 @@
   "Slots": {
     "target": {
       "Style": "Input",
-      "Label": "Target",
-      "Description": "Entity to interfere with"
+      "Label": "hexcode.glyphs.Interfere.target.name",
+      "Description": "hexcode.glyphs.Interfere.target.description"
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Interfere.Next.name",
+      "Description": "hexcode.glyphs.Interfere.Next.description"
     }
   },
   "Volatility": {

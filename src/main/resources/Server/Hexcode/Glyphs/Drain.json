@@ -10,8 +10,8 @@
     },
     "SecondarySound": "SFX_Drain_Complete"
   },
-  "Title": "Drain",
-  "Description": "Channels HP or Stamina into Mana over time. As a value, reads resource fill percentage.",
+  "Title": "hexcode.glyphs.Drain.name",
+  "Description": "hexcode.glyphs.Drain.description",
   "ModelPath": "Drain",
   "BasePower": 1.0,
   "ManaConsumption": 0,
@@ -24,37 +24,37 @@
   "Slots": {
     "hp": {
       "Style": "Input",
-      "Label": "HP",
-      "Description": "Drain HP > Mana (1:1)"
+      "Label": "hexcode.glyphs.Drain.hp.name",
+      "Description": "hexcode.glyphs.Drain.hp.description"
     },
     "stamina": {
       "Style": "Input",
-      "Label": "Stamina",
-      "Description": "Drain Stamina > Mana (lossy)"
+      "Label": "hexcode.glyphs.Drain.stamina.name",
+      "Description": "hexcode.glyphs.Drain.stamina.description"
     },
     "target": {
       "Style": "Input",
-      "Label": "Target",
-      "Description": "Entity to drain. Filter slot for Mana",
+      "Label": "hexcode.glyphs.Drain.target.name",
+      "Description": "hexcode.glyphs.Drain.target.description",
       "Unique": true
     },
     "duration": {
       "Style": "Input",
-      "Label": "Duration",
-      "Description": "Seconds to channel over",
+      "Label": "hexcode.glyphs.Drain.duration.name",
+      "Description": "hexcode.glyphs.Drain.duration.description",
       "DefaultValue": 1,
       "Unique": true
     },
     "destination": {
       "Style": "Input",
-      "Label": "Destination",
-      "Description": "Entity whose Mana will receive the drained resource. Defaults to caster. HP source is only allowed when draining self.",
+      "Label": "hexcode.glyphs.Drain.destination.name",
+      "Description": "hexcode.glyphs.Drain.destination.description",
       "Unique": true
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Drain.Next.name",
+      "Description": "hexcode.glyphs.Drain.Next.description"
     }
   },
   "Volatility": {

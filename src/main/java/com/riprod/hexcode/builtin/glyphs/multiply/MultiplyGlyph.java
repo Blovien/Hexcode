@@ -1,8 +1,10 @@
 package com.riprod.hexcode.builtin.glyphs.multiply;
 
 import com.hypixel.hytale.component.ComponentAccessor;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.math.vector.Rotation3f;
+
+import org.joml.Vector3d;
+import org.joml.Vector3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
@@ -42,11 +44,11 @@ public class MultiplyGlyph implements GlyphHandler {
             }
             case PositionVar pa -> {
                 PositionVar pb = (PositionVar) b;
-                yield new PositionVar(new Vector3d(pa.getValue()).scale(pb.getValue()), false);
+                yield new PositionVar(new Vector3d(pa.getValue()).mul(pb.getValue()), false);
             }
             case RotationVar ra -> {
                 RotationVar rb = (RotationVar) b;
-                yield new RotationVar(new Vector3f(ra.getValue()).scale(rb.getValue()));
+                yield new RotationVar(new Rotation3f(ra.getValue()).mul(new Rotation3f(rb.getValue())));
             }
             case ColorVar ca -> {
                 ColorVar cb = (ColorVar) b;

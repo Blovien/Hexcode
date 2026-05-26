@@ -3,7 +3,7 @@ package com.riprod.hexcode.builtin.glyphs.halt;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.math.vector.Vector3d;
+import org.joml.Vector3d;
 import com.hypixel.hytale.protocol.ChangeVelocityType;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.OverlapBehavior;
@@ -62,7 +62,7 @@ public static final String ID = "Halt";
             StandardPhysicsProvider physics = accessor.getComponent(ref,
                     StandardPhysicsProvider.getComponentType());
             if (physics != null) {
-                physics.getForceProviderStandardState().nextTickVelocity.assign(Vector3d.ZERO);
+                physics.getForceProviderStandardState().nextTickVelocity.set(0d, 0d, 0d);
                 if (duration > 0) {
                     physics.setState(StandardPhysicsProvider.STATE.INACTIVE);
                 }
@@ -70,7 +70,7 @@ public static final String ID = "Halt";
                 Velocity vel = accessor.getComponent(ref, Velocity.getComponentType());
                 if (vel != null) {
                     vel.getInstructions().clear();
-                    vel.addInstruction(Vector3d.ZERO, null, ChangeVelocityType.Set);
+                    vel.addInstruction(new Vector3d(), null, ChangeVelocityType.Set);
                 }
 
                 if (duration > 0) {

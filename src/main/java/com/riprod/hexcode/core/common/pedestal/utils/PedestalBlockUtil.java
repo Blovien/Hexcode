@@ -3,7 +3,7 @@ package com.riprod.hexcode.core.common.pedestal.utils;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.util.ChunkUtil;
-import com.hypixel.hytale.math.vector.Vector3i;
+import org.joml.Vector3i;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.world.World;
@@ -55,6 +55,6 @@ public class PedestalBlockUtil {
         return BlockModule.getComponent(
                 PedestalBlockComponent.getComponentType(),
                 buffer.getExternalData().getWorld(),
-                pos.getX(), pos.getY(), pos.getZ());
+                pos.x(), pos.y(), pos.z());
     }
 }

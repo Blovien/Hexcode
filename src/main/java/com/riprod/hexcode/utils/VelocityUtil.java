@@ -3,7 +3,7 @@ package com.riprod.hexcode.utils;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.math.vector.Vector3d;
+import org.joml.Vector3d;
 import com.hypixel.hytale.protocol.ChangeVelocityType;
 import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
 import com.hypixel.hytale.server.core.modules.projectile.config.StandardPhysicsProvider;
@@ -22,7 +22,7 @@ public class VelocityUtil {
         if (type == ChangeVelocityType.Set && isProjectile(ref, buffer)) {
             StandardPhysicsProvider physics = buffer.getComponent(ref,
                     StandardPhysicsProvider.getComponentType());
-            physics.getForceProviderStandardState().nextTickVelocity.assign(velocity);
+            physics.getForceProviderStandardState().nextTickVelocity.set(velocity);
             if (physics.getState() != StandardPhysicsProvider.STATE.ACTIVE) {
                 physics.setState(StandardPhysicsProvider.STATE.ACTIVE);
             }

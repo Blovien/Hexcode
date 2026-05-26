@@ -1,8 +1,10 @@
 package com.riprod.hexcode.builtin.glyphs.divide;
 
 import com.hypixel.hytale.component.ComponentAccessor;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.math.vector.Rotation3f;
+
+import org.joml.Vector3d;
+import org.joml.Vector3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
@@ -53,9 +55,9 @@ public class DivideGlyph implements GlyphHandler {
             }
             case RotationVar ra -> {
                 RotationVar rb = (RotationVar) b;
-                Vector3f va = ra.getValue();
-                Vector3f vb = rb.getValue();
-                yield new RotationVar(new Vector3f(
+                Rotation3f va = ra.getValue();
+                Rotation3f vb = rb.getValue();
+                yield new RotationVar(new Rotation3f(
                         vb.x != 0 ? va.x / vb.x : va.x,
                         vb.y != 0 ? va.y / vb.y : va.y,
                         vb.z != 0 ? va.z / vb.z : va.z));
@@ -99,7 +101,7 @@ public class DivideGlyph implements GlyphHandler {
             return v != null && (v.x == 0 || v.y == 0 || v.z == 0);
         }
         if (b instanceof RotationVar rb) {
-            Vector3f v = rb.getValue();
+            Rotation3f v = rb.getValue();
             return v != null && (v.x == 0 || v.y == 0 || v.z == 0);
         }
         if (b instanceof ColorVar cb) {

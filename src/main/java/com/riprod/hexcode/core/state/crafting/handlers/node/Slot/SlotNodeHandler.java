@@ -12,8 +12,9 @@ import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.math.shape.Box;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.protocol.MountController;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
@@ -102,7 +103,7 @@ public class SlotNodeHandler extends BaseSlotHandler {
         Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
 
         holder.addComponent(TransformComponent.getComponentType(),
-                new TransformComponent(slotPos, new Vector3f(0, 0, 0)));
+                new TransformComponent(slotPos, new Rotation3f()));
 
         holder.addComponent(SlotComponent.getComponentType(), new SlotComponent(slotKey));
 
@@ -120,16 +121,16 @@ public class SlotNodeHandler extends BaseSlotHandler {
         holder.addComponent(NetworkId.getComponentType(), new NetworkId(networkId));
 
         HoverableComponent hoverable = new HoverableComponent(HoverableType.NODE);
-        hoverable.setHintText("description", asset.getDescription());
+        hoverable.setHintText("description", Message.translation(asset.getDescription()));
         holder.addComponent(HoverableComponent.getComponentType(), hoverable);
         holder.addComponent(DisplayNameComponent.getComponentType(),
-                new DisplayNameComponent(Message.raw(asset.getLabel())));
+                new DisplayNameComponent(Message.translation(asset.getLabel())));
 
         holder.addComponent(NodeComponent.getComponentType(),
                 new NodeComponent(parentRef, rs.handlerId()));
 
         holder.addComponent(MountedComponent.getComponentType(),
-                new MountedComponent(parentRef, offset, MountController.Minecart));
+                new MountedComponent(parentRef, new Rotation3f(offset.x, offset.y, offset.z), MountController.Minecart));
 
         return accessor.addEntity(holder, AddReason.SPAWN);
     }

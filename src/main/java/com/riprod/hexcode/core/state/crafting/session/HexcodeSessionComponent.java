@@ -17,8 +17,10 @@ import com.hypixel.hytale.codec.codecs.EnumCodec;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.math.vector.Vector3f;
-import com.hypixel.hytale.math.vector.Vector3i;
+import com.hypixel.hytale.math.vector.Vector3iUtil;
+
+import org.joml.Vector3f;
+import org.joml.Vector3i;
 import com.hypixel.hytale.protocol.Color;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -45,7 +47,7 @@ public class HexcodeSessionComponent implements Component<EntityStore> {
                     (c, v) -> c.sourceSlot = v,
                     c -> c.sourceSlot)
             .add()
-            .append(new KeyedCodec<>("PedestalLocation", Vector3i.CODEC),
+            .append(new KeyedCodec<>("PedestalLocation", Vector3iUtil.CODEC),
                     (c, v) -> c.pedestalLocation = v,
                     c -> c.pedestalLocation)
             .add()
@@ -315,14 +317,14 @@ public class HexcodeSessionComponent implements Component<EntityStore> {
     public HexcodeSessionComponent clone() {
         HexcodeSessionComponent copy = new HexcodeSessionComponent();
         copy.sessionId = this.sessionId;
-        copy.pedestalLocation = this.pedestalLocation != null ? this.pedestalLocation.clone() : null;
+        copy.pedestalLocation = this.pedestalLocation != null ? new Vector3i(this.pedestalLocation) : null;
         copy.isOpen = this.isOpen;
         copy.ownerRef = this.ownerRef;
         copy.participantRefs = new HashSet<>(this.participantRefs);
         copy.storedItem = this.storedItem;
         copy.sourceSlot = this.sourceSlot;
         copy.profileId = this.profileId;
-        copy.cachedGlyphColor = this.cachedGlyphColor != null ? this.cachedGlyphColor.clone() : null;
+        copy.cachedGlyphColor = this.cachedGlyphColor != null ? new Vector3f(this.cachedGlyphColor) : null;
         copy.cachedGlyphProtocolColor = this.cachedGlyphProtocolColor;
         copy.blockState = this.blockState;
         copy.anchorRef = this.anchorRef;

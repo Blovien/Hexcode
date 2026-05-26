@@ -7,9 +7,10 @@ import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
-import com.hypixel.hytale.math.vector.Vector3i;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
+import org.joml.Vector3i;
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.server.core.inventory.InventoryComponent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.entity.item.ItemComponent;
@@ -133,7 +134,7 @@ public class PedestalItemUtil {
         ItemStack essenceStack = new ItemStack(essenceItemId, 1);
         Vector3d dropPos = new Vector3d(blockPos.x + 0.5, blockPos.y + 1.0, blockPos.z + 0.5);
         Holder<EntityStore> holder = ItemComponent.generateItemDrop(
-                accessor, essenceStack, dropPos, Vector3f.ZERO, 0f, 0.2f, 0f);
+                accessor, essenceStack, dropPos, new Rotation3f(), 0f, 0.2f, 0f);
         if (holder == null) {
             return null;
         }
@@ -149,7 +150,7 @@ public class PedestalItemUtil {
 
         Vector3d dropPos = new Vector3d(blockPos.x + 0.5, blockPos.y + 1.0, blockPos.z + 0.5);
         Holder<EntityStore> holder = ItemComponent.generateItemDrop(
-                accessor, bookStack, dropPos, Vector3f.ZERO, 0f, 0.2f, 0f);
+                accessor, bookStack, dropPos, new Rotation3f(), 0f, 0.2f, 0f);
         if (holder == null) {
             return null;
         }

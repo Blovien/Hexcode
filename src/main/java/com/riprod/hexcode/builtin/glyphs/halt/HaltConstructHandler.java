@@ -5,7 +5,7 @@ import java.util.List;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.math.vector.Vector3d;
+import org.joml.Vector3d;
 import com.hypixel.hytale.protocol.ChangeVelocityType;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
 import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
@@ -39,7 +39,7 @@ public class HaltConstructHandler implements ConstructHandler<HaltState> {
         Velocity vel = ctx.getBuffer().getComponent(target, Velocity.getComponentType());
         if (vel == null) return;
         vel.getInstructions().clear();
-        vel.addInstruction(Vector3d.ZERO, null, ChangeVelocityType.Set);
+        vel.addInstruction(new Vector3d(), null, ChangeVelocityType.Set);
     }
 
     @Override

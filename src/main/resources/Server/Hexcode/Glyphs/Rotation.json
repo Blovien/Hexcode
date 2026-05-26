@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Rotation",
-  "Description": "Constructs a rotation from pitch, yaw, roll components",
+  "Title": "hexcode.glyphs.Rotation.name",
+  "Description": "hexcode.glyphs.Rotation.description",
   "ModelPath": "Rotation",
   "ShapeStructure": [
     {
@@ -16,31 +16,31 @@
   "Slots": {
     "x": {
       "Style": "Input",
-      "Label": "Pitch",
-      "Description": "X component",
+      "Label": "hexcode.glyphs.Rotation.x.name",
+      "Description": "hexcode.glyphs.Rotation.x.description",
       "DefaultValue": 0
     },
     "y": {
       "Style": "Input",
-      "Label": "Yaw",
-      "Description": "Y component",
+      "Label": "hexcode.glyphs.Rotation.y.name",
+      "Description": "hexcode.glyphs.Rotation.y.description",
       "DefaultValue": 0
     },
     "z": {
       "Style": "Input",
-      "Label": "Roll",
-      "Description": "Z component",
+      "Label": "hexcode.glyphs.Rotation.z.name",
+      "Description": "hexcode.glyphs.Rotation.z.description",
       "DefaultValue": 0
     },
     "target": {
       "Style": "Input",
-      "Label": "Target",
-      "Description": "Optional entity to apply this rotation to. If wired, the constructed rotation is teleported onto the target's body and head."
+      "Label": "hexcode.glyphs.Rotation.target.name",
+      "Description": "hexcode.glyphs.Rotation.target.description"
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Rotation.Next.name",
+      "Description": "hexcode.glyphs.Rotation.Next.description"
     }
   },
   "ManaConsumption": 0,

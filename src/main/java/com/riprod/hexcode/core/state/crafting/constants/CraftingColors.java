@@ -1,6 +1,6 @@
 package com.riprod.hexcode.core.state.crafting.constants;
 
-import com.hypixel.hytale.math.vector.Vector3f;
+import org.joml.Vector3f;
 
 public class CraftingColors {
 

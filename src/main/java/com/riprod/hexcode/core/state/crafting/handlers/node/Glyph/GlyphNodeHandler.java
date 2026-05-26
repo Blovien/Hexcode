@@ -6,8 +6,10 @@ import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.math.vector.Rotation3f;
+
+import org.joml.Vector3d;
+import org.joml.Vector3f;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
@@ -90,12 +92,12 @@ public class GlyphNodeHandler extends BaseGlyphHandler {
         TransformComponent headTransform = accessor.getComponent(headAnchorRef, TransformComponent.getComponentType());
         if (headTransform == null) return InteractionState.Finished;
 
-        Vector3f playerRotation = headTransform.getRotation();
+        Rotation3f playerRotation = headTransform.getRotation();
         TransformComponent nodeTransform = accessor.getComponent(nodeRef, TransformComponent.getComponentType());
         if (nodeTransform == null) return InteractionState.Finished;
 
-        nodeTransform.getPosition().assign(dropWorldPos);
-        nodeTransform.getRotation().assign(playerRotation);
+        nodeTransform.getPosition().set(dropWorldPos);
+        nodeTransform.getRotation().set(playerRotation);
 
         glyphComp.setOffset(dropOffset);
         glyphComp.setRotation(playerRotation);
@@ -163,8 +165,8 @@ public class GlyphNodeHandler extends BaseGlyphHandler {
         TransformComponent transform = accessor.getComponent(nodeRef, TransformComponent.getComponentType());
         if (transform == null) return;
 
-        transform.getPosition().assign(dropWorldPos);
-        transform.getRotation().assign(headRot.getRotation());
+        transform.getPosition().set(dropWorldPos);
+        transform.getRotation().set(headRot.getRotation());
     }
 
     @Override
@@ -223,7 +225,7 @@ public class GlyphNodeHandler extends BaseGlyphHandler {
             Vector3d position, Ref<EntityStore> playerRef, GlyphComponent glyphComp,
             Ref<EntityStore> hexEntityRef) {
         Glyph glyph = glyphComp.getGlyph();
-        Vector3f glyphRot = new Vector3f(glyph.getRotation().getPitch(), glyph.getRotation().getYaw(), 0);
+        Rotation3f glyphRot = new Rotation3f(glyph.getRotation().x, glyph.getRotation().y, 0);
         Holder<EntityStore> glyphHolder = CreateGlyph.createGlyphHolder(accessor, glyphComp, position, glyphRot);
 
         HoverableComponent hoverComp = new HoverableComponent(HoverableType.NODE);
@@ -231,11 +233,11 @@ public class GlyphNodeHandler extends BaseGlyphHandler {
         try {
             GlyphAsset glyphAsset = GlyphAsset.getAssetMap().getAsset(glyph.getGlyphId());
             if (glyphAsset != null) {
-                displayName = Message.raw(glyphAsset.getTitle())
+                displayName = Message.translation(glyphAsset.getTitle())
                         .color(GlyphStyleUtil.getQualityColor(glyph.getVolatility(), glyph.getEfficiency()));
-                hoverComp.setHintText("description", glyphAsset.getDescription());
-                hoverComp.setHintText("extra", "V " + Math.round(glyph.getVolatility() * 100.0) / 100.0
-                        + " | E " + Math.round(glyph.getEfficiency() * 100.0) / 100.0);
+                hoverComp.setHintText("description", Message.translation(glyphAsset.getDescription()));
+                hoverComp.setHintText("extra", Message.raw("V " + Math.round(glyph.getVolatility() * 100.0) / 100.0
+                        + " | E " + Math.round(glyph.getEfficiency() * 100.0) / 100.0));
             }
         } catch (Exception e) {
             LOGGER.atWarning().log("glyph node: failed to set hover hints: %s", e.getMessage());

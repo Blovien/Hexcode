@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Equal",
-  "Description": "Branches execution if A equals B. Assigns A to output if B is absent.",
+  "Title": "hexcode.glyphs.Equal.name",
+  "Description": "hexcode.glyphs.Equal.description",
   "ModelPath": "Equal",
   "BasePower": 0,
   "ManaConsumption": 0,
@@ -18,29 +18,29 @@
   "Slots": {
     "a": {
       "Style": "Input",
-      "Label": "A",
-      "Description": "First operand or value to assign",
+      "Label": "hexcode.glyphs.Equal.a.name",
+      "Description": "hexcode.glyphs.Equal.a.description",
       "DefaultValue": 1
     },
     "b": {
       "Style": "Input",
-      "Label": "B",
-      "Description": "Second operand (omit for assignment mode)"
+      "Label": "hexcode.glyphs.Equal.b.name",
+      "Description": "hexcode.glyphs.Equal.b.description"
     },
     "Next": {
       "Style": "Next",
-      "Label": "Equal",
-      "Description": "If the values are equal"
+      "Label": "hexcode.glyphs.Equal.Next.name",
+      "Description": "hexcode.glyphs.Equal.Next.description"
     },
     "Greater": {
       "Style": "Next",
-      "Label": "Greater",
-      "Description": "If A is greater than B"
+      "Label": "hexcode.glyphs.Equal.Greater.name",
+      "Description": "hexcode.glyphs.Equal.Greater.description"
     },
     "Less": {
       "Style": "Next",
-      "Label": "Less",
-      "Description": "If A is less than B"
+      "Label": "hexcode.glyphs.Equal.Less.name",
+      "Description": "hexcode.glyphs.Equal.Less.description"
     }
   },
   "Volatility": {

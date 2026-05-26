@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Power",
-  "Description": "A raised to the power of B",
+  "Title": "hexcode.glyphs.Power.name",
+  "Description": "hexcode.glyphs.Power.description",
   "ModelPath": "Power",
   "BasePower": 0,
   "ManaConsumption": 0,
@@ -14,20 +14,20 @@
   "Slots": {
     "a": {
       "Style": "Input",
-      "Label": "A",
-      "Description": "Base",
+      "Label": "hexcode.glyphs.Power.a.name",
+      "Description": "hexcode.glyphs.Power.a.description",
       "DefaultValue": 0
     },
     "b": {
       "Style": "Input",
-      "Label": "B",
-      "Description": "Exponent",
+      "Label": "hexcode.glyphs.Power.b.name",
+      "Description": "hexcode.glyphs.Power.b.description",
       "DefaultValue": 1
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Power.Next.name",
+      "Description": "hexcode.glyphs.Power.Next.description"
     }
   },
   "VolatilityEscalation": {

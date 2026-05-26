@@ -1,6 +1,6 @@
 package com.riprod.hexcode.builtin.glyphs.freeze.component;
 
-import com.hypixel.hytale.math.vector.Vector3i;
+import org.joml.Vector3i;
 
 public class FrozenBlock {
 

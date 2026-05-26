@@ -10,8 +10,8 @@
     },
     "SecondarySound": "SFX_Staff_Fire_Shoot"
   },
-  "Title": "Bolt",
-  "Description": "Instant single-target energy discharge or remote block interaction",
+  "Title": "hexcode.glyphs.Bolt.name",
+  "Description": "hexcode.glyphs.Bolt.description",
   "ModelPath": "Bolt",
   "BasePower": 1.0,
   "ManaConsumption": 20,
@@ -32,20 +32,20 @@
   "Slots": {
     "target": {
       "Style": "Input",
-      "Label": "Target",
-      "Description": "Variable containing the targets to affect"
+      "Label": "hexcode.glyphs.Bolt.target.name",
+      "Description": "hexcode.glyphs.Bolt.target.description"
     },
     "power": {
       "Style": "Input",
-      "Label": "Power",
-      "Description": "Damage or power level of the bolt",
+      "Label": "hexcode.glyphs.Bolt.power.name",
+      "Description": "hexcode.glyphs.Bolt.power.description",
       "DefaultValue": 15,
       "Unique": true
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Bolt.Next.name",
+      "Description": "hexcode.glyphs.Bolt.Next.description"
     }
   },
   "Volatility": {

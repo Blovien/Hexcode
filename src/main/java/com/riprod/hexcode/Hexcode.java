@@ -15,6 +15,7 @@ import com.riprod.hexcode.core.common.construct.system.HexConstructSystem;
 import com.riprod.hexcode.core.common.construct.system.MountOrphanReaperSystem;
 import com.riprod.hexcode.core.common.effect.GlyphEffectSystem;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
+import com.riprod.hexcode.core.common.glyphs.icon.GlyphIconStore;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.registry.SlotStyleAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
@@ -36,7 +37,6 @@ import com.riprod.hexcode.core.common.hexstaff.component.HexStaffAsset;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffComponent;
 import com.riprod.hexcode.core.common.hover.component.HoverableComponent;
 import com.riprod.hexcode.core.common.hover.system.HoverableSpatialSystem;
-import com.riprod.hexcode.core.common.hud.controller.HudController;
 import com.riprod.hexcode.core.common.imbuement.asset.EssenceAsset;
 import com.riprod.hexcode.core.common.imbuement.asset.ImbuementProfileAsset;
 import com.riprod.hexcode.core.common.obelisk.component.ObeliskBlockComponent;
@@ -115,6 +115,12 @@ import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import com.riprod.hexcode.api.event.CraftingEvent;
 import com.riprod.hexcode.api.event.GlyphFizzleEvent;
+import com.riprod.hexcode.api.event.GlyphDrawnEvent;
+import com.riprod.hexcode.builtin.eventListeners.GlyphMemoryListener;
+import com.riprod.hexcode.core.common.memories.GlyphMemory;
+import com.riprod.hexcode.core.common.memories.GlyphMemoryProvider;
+import com.hypixel.hytale.builtin.adventure.memories.MemoriesPlugin;
+import com.hypixel.hytale.builtin.adventure.memories.memories.Memory;
 import com.riprod.hexcode.api.event.HexStateChangeEvent;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
@@ -154,7 +160,6 @@ public class Hexcode extends JavaPlugin {
         this.registerInteractions();
         this.registerEvents();
         this.registerCommands();
-        HudController.boot();
         this.registerExternal();
 
         LOGGER.atInfo().log("Hexcode %s setup complete!", this.getManifest().getVersion().toString());
@@ -413,6 +418,13 @@ public class Hexcode extends JavaPlugin {
         HexRoot.CODEC.register("Player", PlayerHexRoot.class, PlayerHexRoot.CODEC);
         HexRoot.CODEC.register("Block", BlockHexRoot.class, BlockHexRoot.CODEC);
 
+        if (MemoriesPlugin.get() != null) {
+            Memory.CODEC.register(GlyphMemory.ID, GlyphMemory.class, GlyphMemory.CODEC);
+            MemoriesPlugin.get().registerMemoryProvider(new GlyphMemoryProvider());
+        } else {
+            LOGGER.atWarning().log("[hexcode] MemoriesPlugin unavailable; glyph memories disabled");
+        }
+
         StateRouter.registerState(HexState.IDLE, new IdleSystem());
         StateRouter.registerState(HexState.CASTING, new CastingSystem());
         StateRouter.registerState(HexState.DRAWING, new DrawingSystem());
@@ -461,8 +473,11 @@ public class Hexcode extends JavaPlugin {
         this.getEventRegistry().registerGlobal(GlyphFizzleEvent.class, new GlyphDiagnosticListener());
         this.getEventRegistry().registerGlobal(HexStateChangeEvent.class, new HexStateDiagnosticListener());
         this.getEventRegistry().registerGlobal(CraftingEvent.class, new CraftingNotificationListener());
-        this.getEventRegistry().register(EventPriority.LAST, LoadAssetEvent.class,
-                e -> patchManager.rebuildAndApply("boot:LoadAssetEvent"));
+        this.getEventRegistry().registerGlobal(GlyphDrawnEvent.class, new GlyphMemoryListener());
+        this.getEventRegistry().register(EventPriority.LAST, LoadAssetEvent.class, e -> {
+            GlyphIconStore.generateMissing(this.getManifest());
+            patchManager.rebuildAndApply("boot:LoadAssetEvent");
+        });
         this.getEventRegistry().register(AssetPackRegisterEvent.class, e -> {
             String name = e.getAssetPack().getName();
             if (PatchManager.isSyntheticOverridePack(name)) return;

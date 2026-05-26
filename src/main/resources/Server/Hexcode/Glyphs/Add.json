@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Add",
-  "Description": "Adds two values together",
+  "Title": "hexcode.glyphs.Add.name",
+  "Description": "hexcode.glyphs.Add.description",
   "ModelPath": "Add",
   "BasePower": 0,
   "ManaConsumption": 0,
@@ -18,20 +18,20 @@
   "Slots": {
     "a": {
       "Style": "Input",
-      "Label": "A",
-      "Description": "First operand",
+      "Label": "hexcode.glyphs.Add.a.name",
+      "Description": "hexcode.glyphs.Add.a.description",
       "DefaultValue": 0
     },
     "b": {
       "Style": "Input",
-      "Label": "B",
-      "Description": "Second operand",
+      "Label": "hexcode.glyphs.Add.b.name",
+      "Description": "hexcode.glyphs.Add.b.description",
       "DefaultValue": 0
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Add.Next.name",
+      "Description": "hexcode.glyphs.Add.Next.description"
     }
   },
   "Volatility": {

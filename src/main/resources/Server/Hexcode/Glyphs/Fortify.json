@@ -10,8 +10,8 @@
     },
     "SecondarySound": "SFX_Block_Break"
   },
-  "Title": "Fortify",
-  "Description": "Increases resilience of targets for a duration",
+  "Title": "hexcode.glyphs.Fortify.name",
+  "Description": "hexcode.glyphs.Fortify.description",
   "ModelPath": "Fortify",
   "BasePower": 1.0,
   "ManaConsumption": 15,
@@ -32,27 +32,27 @@
   "Slots": {
     "target": {
       "Style": "Input",
-      "Label": "Target",
-      "Description": "Variable containing the targets to affect"
+      "Label": "hexcode.glyphs.Fortify.target.name",
+      "Description": "hexcode.glyphs.Fortify.target.description"
     },
     "amount": {
       "Style": "Input",
-      "Label": "Amount",
-      "Description": "Damage reduction per incoming hit",
+      "Label": "hexcode.glyphs.Fortify.amount.name",
+      "Description": "hexcode.glyphs.Fortify.amount.description",
       "DefaultValue": 15,
       "Unique": true
     },
     "duration": {
       "Style": "Input",
-      "Label": "Duration",
-      "Description": "How long the effect lasts in seconds",
+      "Label": "hexcode.glyphs.Fortify.duration.name",
+      "Description": "hexcode.glyphs.Fortify.duration.description",
       "DefaultValue": 200,
       "Unique": true
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Fortify.Next.name",
+      "Description": "hexcode.glyphs.Fortify.Next.description"
     }
   },
   "Volatility": {

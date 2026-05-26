@@ -9,7 +9,7 @@ import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.riprod.hexcode.core.common.obelisk.registry.ObeliskHandlerKeyValidator;
 import com.riprod.hexcode.core.common.obelisk.registry.ObeliskHandlerRegistry;
-import com.hypixel.hytale.math.vector.Vector3i;
+import org.joml.Vector3i;
 
 import javax.annotation.Nonnull;
 

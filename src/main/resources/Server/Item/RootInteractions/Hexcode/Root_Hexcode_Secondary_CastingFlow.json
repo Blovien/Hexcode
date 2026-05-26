@@ -31,7 +31,8 @@
               "ClearSoundEventOnFinish": true
             },
             "Forks": {
-              "Primary": "Hexbook_Primary"
+              "Primary": "Hexbook_Primary",
+              "Ability2": "Hexstaff_Ability2"
             },
             "Next": {
               "Type": "Simple",

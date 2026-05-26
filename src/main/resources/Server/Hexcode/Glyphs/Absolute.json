@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Absolute",
-  "Description": "Absolute value of A. Numbers/Positions/Colors/Rotations become a positive number (magnitude). Entities and blocks pass through unchanged.",
+  "Title": "hexcode.glyphs.Absolute.name",
+  "Description": "hexcode.glyphs.Absolute.description",
   "ModelPath": "Absolute",
   "BasePower": 0,
   "ManaConsumption": 0,
@@ -18,14 +18,14 @@
   "Slots": {
     "a": {
       "Style": "Input",
-      "Label": "A",
-      "Description": "Value to take the absolute value of",
+      "Label": "hexcode.glyphs.Absolute.a.name",
+      "Description": "hexcode.glyphs.Absolute.a.description",
       "DefaultValue": 0
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Absolute.Next.name",
+      "Description": "hexcode.glyphs.Absolute.Next.description"
     }
   },
   "Volatility": {

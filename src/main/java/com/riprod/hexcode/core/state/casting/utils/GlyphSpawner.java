@@ -8,8 +8,9 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
@@ -19,12 +20,12 @@ import com.riprod.hexcode.utils.GlyphMath;
 
 public class GlyphSpawner {
     public static void spawnGlyphs(CommandBuffer<EntityStore> accessor, HexComponent hex, GlyphComponent glyph,
-            Vector3d parentPos, Vector3f parentRot) {
+            Vector3d parentPos, Rotation3f parentRot) {
             spawnGlyphs(accessor, hex, glyph, parentPos, parentRot, null);
     }
 
     public static void spawnGlyphs(CommandBuffer<EntityStore> accessor, HexComponent hex, GlyphComponent glyph,
-            Vector3d parentPos, Vector3f parentRot, Ref<EntityStore> playerRef) {
+            Vector3d parentPos, Rotation3f parentRot, Ref<EntityStore> playerRef) {
 
         Ref<EntityStore> glyphRef = CreateGlyph.createGlyph(accessor, glyph, parentPos, parentRot, playerRef);
         glyph.setSelfRef(glyphRef);
@@ -32,12 +33,12 @@ public class GlyphSpawner {
 
         List<Glyph> children = hex.getGlyphs(glyph.getNext());
 
-        List<Vector3f> childRotations = GlyphMath.getChildRotations(children.size(), glyph.getScale(), glyph.getRotation().getZ());
+        List<Rotation3f> childRotations = GlyphMath.getChildRotations(children.size(), glyph.getScale(), glyph.getRotation().z());
 
         for (int i = 0; i < children.size(); i++) {
 
             Glyph childGlyph = children.get(i);
-            Vector3f childRotation = childRotations.get(i);
+            Rotation3f childRotation = childRotations.get(i);
             if (hex.getChildGlyphRef(childGlyph.getId()) != null) {
                 continue;
             }

@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Cos",
-  "Description": "Cosine of A (radians)",
+  "Title": "hexcode.glyphs.Cos.name",
+  "Description": "hexcode.glyphs.Cos.description",
   "ModelPath": "Cos",
   "BasePower": 0,
   "ManaConsumption": 0,
@@ -18,14 +18,14 @@
   "Slots": {
     "a": {
       "Style": "Input",
-      "Label": "A",
-      "Description": "Angle in radians",
+      "Label": "hexcode.glyphs.Cos.a.name",
+      "Description": "hexcode.glyphs.Cos.a.description",
       "DefaultValue": 0
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Cos.Next.name",
+      "Description": "hexcode.glyphs.Cos.Next.description"
     }
   },
   "VolatilityEscalation": {

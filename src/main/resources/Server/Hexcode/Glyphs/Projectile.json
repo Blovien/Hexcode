@@ -14,8 +14,8 @@
     },
     "PrimaryModel": "Glyph_Projectile_Flight"
   },
-  "Title": "Projectile",
-  "Description": "Launches a projectile that triggers child glyphs on collision",
+  "Title": "hexcode.glyphs.Projectile.name",
+  "Description": "hexcode.glyphs.Projectile.description",
   "ModelPath": "Projectile",
   "BasePower": 1.0,
   "ManaConsumption": 3,
@@ -32,51 +32,51 @@
   "Slots": {
     "source": {
       "Style": "Input",
-      "Label": "Source",
-      "Description": "Entity to launch the projectile from",
+      "Label": "hexcode.glyphs.Projectile.source.name",
+      "Description": "hexcode.glyphs.Projectile.source.description",
       "Unique": true
     },
     "direction": {
       "Style": "Input",
-      "Label": "Direction",
-      "Description": "Launch direction, defaults to source entity's look direction",
+      "Label": "hexcode.glyphs.Projectile.direction.name",
+      "Description": "hexcode.glyphs.Projectile.direction.description",
       "Unique": true
     },
     "speed": {
       "Style": "Input",
-      "Label": "Speed",
-      "Description": "Speed of the projectile",
+      "Label": "hexcode.glyphs.Projectile.speed.name",
+      "Description": "hexcode.glyphs.Projectile.speed.description",
       "DefaultValue": 30,
       "Unique": true
     },
     "gravity": {
       "Style": "Input",
-      "Label": "Gravity",
-      "Description": "The amount that gravity affects the projectile",
+      "Label": "hexcode.glyphs.Projectile.gravity.name",
+      "Description": "hexcode.glyphs.Projectile.gravity.description",
       "DefaultValue": 0,
       "Unique": true
     },
     "bounces": {
       "Style": "Input",
-      "Label": "Bounces",
-      "Description": "The number of bounces the projectile will have",
+      "Label": "hexcode.glyphs.Projectile.bounces.name",
+      "Description": "hexcode.glyphs.Projectile.bounces.description",
       "DefaultValue": 0,
       "Unique": true
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Projectile.Next.name",
+      "Description": "hexcode.glyphs.Projectile.Next.description"
     },
     "immediate": {
       "Style": "Next",
-      "Label": "Immediate",
-      "Description": "Fires immediately after the projectile is created"
+      "Label": "hexcode.glyphs.Projectile.immediate.name",
+      "Description": "hexcode.glyphs.Projectile.immediate.description"
     },
     "bounce": {
       "Style": "Next",
-      "Label": "OnBounce",
-      "Description": "Fires once for every bounce"
+      "Label": "hexcode.glyphs.Projectile.bounce.name",
+      "Description": "hexcode.glyphs.Projectile.bounce.description"
     }
   },
   "Volatility": {

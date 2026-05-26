@@ -12,9 +12,10 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.EntityEventSystem;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
-import com.hypixel.hytale.math.vector.Vector3i;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
+import org.joml.Vector3i;
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.event.events.ecs.BreakBlockEvent;
@@ -63,7 +64,7 @@ public class ImbuedBlockBreakHandler extends EntityEventSystem<EntityStore, Brea
             world.execute(() -> world.breakBlock(pos.x, pos.y, pos.z, 0));
 
             Holder<EntityStore> dropHolder = ItemComponent.generateItemDrop(
-                    buffer, drop, dropPos, Vector3f.ZERO, 0f, 0f, 0f);
+                    buffer, drop, dropPos, new Rotation3f(), 0f, 0f, 0f);
             if (dropHolder == null) return;
             buffer.addEntity(dropHolder, AddReason.SPAWN);
         } catch (Exception e) {

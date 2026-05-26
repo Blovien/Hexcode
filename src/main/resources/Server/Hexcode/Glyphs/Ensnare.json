@@ -13,8 +13,8 @@
     },
     "TertiarySound": "SFX_Ensnare_End"
   },
-  "Title": "Ensnare",
-  "Description": "Creates spike formations that trap and damage entities in the area",
+  "Title": "hexcode.glyphs.Ensnare.name",
+  "Description": "hexcode.glyphs.Ensnare.description",
   "ModelPath": "Ensnare",
   "BasePower": 1.0,
   "ManaConsumption": 18,
@@ -35,35 +35,35 @@
   "Slots": {
     "target": {
       "Style": "Input",
-      "Label": "Target",
-      "Description": "Center position or entity for the rupture area",
+      "Label": "hexcode.glyphs.Ensnare.target.name",
+      "Description": "hexcode.glyphs.Ensnare.target.description",
       "Unique": true
     },
     "radius": {
       "Style": "Input",
-      "Label": "Radius",
-      "Description": "Radius of the rupture area in blocks",
+      "Label": "hexcode.glyphs.Ensnare.radius.name",
+      "Description": "hexcode.glyphs.Ensnare.radius.description",
       "DefaultValue": 2.1,
       "Unique": true
     },
     "damage": {
       "Style": "Input",
-      "Label": "Damage",
-      "Description": "Spike damage per hit",
+      "Label": "hexcode.glyphs.Ensnare.damage.name",
+      "Description": "hexcode.glyphs.Ensnare.damage.description",
       "DefaultValue": 3,
       "Unique": true
     },
     "duration": {
       "Style": "Input",
-      "Label": "Duration",
-      "Description": "Duration in ticks before spikes despawn",
+      "Label": "hexcode.glyphs.Ensnare.duration.name",
+      "Description": "hexcode.glyphs.Ensnare.duration.description",
       "DefaultValue": 4,
       "Unique": true
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Ensnare.Next.name",
+      "Description": "hexcode.glyphs.Ensnare.Next.description"
     }
   },
   "Volatility": {

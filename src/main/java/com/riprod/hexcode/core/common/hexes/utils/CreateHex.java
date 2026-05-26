@@ -7,8 +7,9 @@ import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.protocol.MountController;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
@@ -24,7 +25,7 @@ public class CreateHex {
         holder.addComponent(HexComponent.getComponentType(), hex);
 
         TransformComponent hexTransform = new TransformComponent(parentPos,
-                new Vector3f(hex.getPitch(), hex.getYaw(), 0));
+                new Rotation3f(hex.getRotation().x, hex.getRotation().y, 0));
 
         holder.addComponent(TransformComponent.getComponentType(), hexTransform);
 
@@ -36,7 +37,8 @@ public class CreateHex {
         Ref<EntityStore> hexParent = hex.getParentRef();
 
         if (hexParent != null) {
-            MountedComponent mounted = new MountedComponent(hexParent, hex.getOffset(),
+            Vector3f hoff = hex.getOffset();
+            MountedComponent mounted = new MountedComponent(hexParent, new Rotation3f(hoff.x, hoff.y, hoff.z),
                     MountController.Minecart);
             holder.addComponent(MountedComponent.getComponentType(), mounted);
         }

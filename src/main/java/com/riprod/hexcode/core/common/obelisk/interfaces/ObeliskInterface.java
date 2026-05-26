@@ -6,7 +6,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.obelisk.component.ObeliskBlockComponent;
 import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
-import com.hypixel.hytale.math.vector.Vector3i;
+import org.joml.Vector3i;
 
 public interface ObeliskInterface {
 

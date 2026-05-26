@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Less",
-  "Description": "Branches execution if A is less than B",
+  "Title": "hexcode.glyphs.Less.name",
+  "Description": "hexcode.glyphs.Less.description",
   "ModelPath": "Less",
   "BasePower": 0,
   "ManaConsumption": 0,
@@ -14,20 +14,20 @@
   "Slots": {
     "a": {
       "Style": "Input",
-      "Label": "A",
-      "Description": "First operand",
+      "Label": "hexcode.glyphs.Less.a.name",
+      "Description": "hexcode.glyphs.Less.a.description",
       "DefaultValue": 0
     },
     "b": {
       "Style": "Input",
-      "Label": "B",
-      "Description": "Second operand",
+      "Label": "hexcode.glyphs.Less.b.name",
+      "Description": "hexcode.glyphs.Less.b.description",
       "DefaultValue": 0
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Less.Next.name",
+      "Description": "hexcode.glyphs.Less.Next.description"
     }
   },
   "Volatility": {

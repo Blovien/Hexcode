@@ -11,8 +11,8 @@
     },
     "PrimaryModel": "Delay"
   },
-  "Title": "Delay",
-  "Description": "Delays execution of child glyphs by a duration in seconds",
+  "Title": "hexcode.glyphs.Delay.name",
+  "Description": "hexcode.glyphs.Delay.description",
   "ModelPath": "Delay",
   "BasePower": 1.0,
   "ManaConsumption": 0,
@@ -25,15 +25,15 @@
   "Slots": {
     "duration": {
       "Style": "Input",
-      "Label": "Duration",
-      "Description": "How long to delay in seconds",
+      "Label": "hexcode.glyphs.Delay.duration.name",
+      "Description": "hexcode.glyphs.Delay.duration.description",
       "Unique": true,
       "DefaultValue": 1
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Delay.Next.name",
+      "Description": "hexcode.glyphs.Delay.Next.description"
     }
   },
   "Volatility": {

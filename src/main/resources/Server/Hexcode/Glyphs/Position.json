@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Position",
-  "Description": "Constructs a position X Y and Z components",
+  "Title": "hexcode.glyphs.Position.name",
+  "Description": "hexcode.glyphs.Position.description",
   "ModelPath": "Position",
   "ShapeStructure": [
     {
@@ -16,26 +16,26 @@
   "Slots": {
     "x": {
       "Style": "Input",
-      "Label": "X",
-      "Description": "X component",
+      "Label": "hexcode.glyphs.Position.x.name",
+      "Description": "hexcode.glyphs.Position.x.description",
       "DefaultValue": 0
     },
     "y": {
       "Style": "Input",
-      "Label": "Y",
-      "Description": "Y component",
+      "Label": "hexcode.glyphs.Position.y.name",
+      "Description": "hexcode.glyphs.Position.y.description",
       "DefaultValue": 0
     },
     "z": {
       "Style": "Input",
-      "Label": "Z",
-      "Description": "Z component",
+      "Label": "hexcode.glyphs.Position.z.name",
+      "Description": "hexcode.glyphs.Position.z.description",
       "DefaultValue": 0
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Position.Next.name",
+      "Description": "hexcode.glyphs.Position.Next.description"
     }
   },
   "ManaConsumption": 0,

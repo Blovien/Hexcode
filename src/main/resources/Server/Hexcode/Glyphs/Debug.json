@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Debug",
-  "Description": "Debugs hex state.",
+  "Title": "hexcode.glyphs.Debug.name",
+  "Description": "hexcode.glyphs.Debug.description",
   "ModelPath": "Debug",
   "BasePower": 0,
   "ManaConsumption": 0,
@@ -18,13 +18,13 @@
   "Slots": {
     "slot": {
       "Style": "Input",
-      "Label": "Inspect",
-      "Description": "Connect to several variables to inspect their values."
+      "Label": "hexcode.glyphs.Debug.slot.name",
+      "Description": "hexcode.glyphs.Debug.slot.description"
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "The next glyph in the execution chain"
+      "Label": "hexcode.glyphs.Debug.Next.name",
+      "Description": "hexcode.glyphs.Debug.Next.description"
     }
   },
   "Volatility": {

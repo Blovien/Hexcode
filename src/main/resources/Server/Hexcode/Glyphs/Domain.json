@@ -1,7 +1,7 @@
 {
   "Parent": "Glyph_Template",
-  "Title": "Domain",
-  "Description": "Domain Expansion. Decreases volatility within domain.",
+  "Title": "hexcode.glyphs.Domain.name",
+  "Description": "hexcode.glyphs.Domain.description",
   "ModelPath": "Domain",
   "BasePower": 1.0,
   "ManaConsumption": 40,
@@ -22,40 +22,40 @@
   "Slots": {
     "target": {
       "Style": "Input",
-      "Label": "Target",
-      "Description": "Anchor position for domain center",
+      "Label": "hexcode.glyphs.Domain.target.name",
+      "Description": "hexcode.glyphs.Domain.target.description",
       "Unique": true
     },
     "magnitude": {
       "Style": "Input",
-      "Label": "Radius",
-      "Description": "Sphere radius (2-15 blocks)",
+      "Label": "hexcode.glyphs.Domain.magnitude.name",
+      "Description": "hexcode.glyphs.Domain.magnitude.description",
       "DefaultValue": 5,
       "Unique": true
     },
     "duration": {
       "Style": "Input",
-      "Label": "Duration",
-      "Description": "Lifetime in seconds",
+      "Label": "hexcode.glyphs.Domain.duration.name",
+      "Description": "hexcode.glyphs.Domain.duration.description",
       "DefaultValue": 10,
       "Unique": true
     },
     "power": {
       "Style": "Input",
-      "Label": "Power",
-      "Description": "Contestation power (higher wins, costs more upfront mana)",
+      "Label": "hexcode.glyphs.Domain.power.name",
+      "Description": "hexcode.glyphs.Domain.power.description",
       "DefaultValue": 0,
       "Unique": true
     },
     "immediate": {
       "Style": "Next",
-      "Label": "Immediate",
-      "Description": "Fires immediately after the domain is spawned"
+      "Label": "hexcode.glyphs.Domain.immediate.name",
+      "Description": "hexcode.glyphs.Domain.immediate.description"
     },
     "Next": {
       "Style": "Next",
-      "Label": "Next",
-      "Description": "Fires per entity entering the domain (excluding caster)"
+      "Label": "hexcode.glyphs.Domain.Next.name",
+      "Description": "hexcode.glyphs.Domain.Next.description"
     }
   },
   "Volatility": {
