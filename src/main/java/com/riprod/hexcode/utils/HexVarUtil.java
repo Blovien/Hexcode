@@ -7,7 +7,6 @@ import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.math.vector.Rotation3f;
 
 import org.joml.Vector3d;
-import org.joml.Vector3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;

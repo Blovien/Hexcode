@@ -373,7 +373,7 @@ public class DollarOneFixedDetector implements ShapeDetector {
         if (initialized) return;
         initialized = true;
 
-        ShapeCacheManager.ensureLoaded();
+        // ShapeCacheManager.ensureLoaded();
 
         int[] counts = { 0, 0 };
         ShapeAsset.getAssetMap().getAssetMap().forEach((key, asset) -> {

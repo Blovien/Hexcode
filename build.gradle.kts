@@ -6,7 +6,7 @@ plugins {
 
 
 group = "com.riprod"
-version = "0.8.0-5.pre.9"
+version = "0.8.0-Beta-5"
 val javaVersion = 25
 
 repositories {
@@ -25,8 +25,8 @@ dependencies {
     compileOnly(fileTree("lib/") { include("*.jar") })
 
     // patcher is bundled into hexcode's output jar via the Shadow plugin
-    shaded(files("deps/Patchly-2.0.1.jar"))
-    implementation(files("deps/Patchly-2.0.1.jar"))
+    shaded(files("deps/Patchly-2.1.0.jar"))
+    implementation(files("deps/Patchly-2.1.0.jar"))
 }
 
 tasks.shadowJar {
@@ -51,7 +51,7 @@ hytale {
 
     // uncomment if you want to develop your mod against the pre-release version of the game.
     //
-    updateChannel = "pre-release"
+    // updateChannel = "pre-release"
 }
 
 java {

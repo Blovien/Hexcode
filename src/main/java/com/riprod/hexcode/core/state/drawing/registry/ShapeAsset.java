@@ -21,7 +21,6 @@ public class ShapeAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
     protected String id;
     protected Boolean canRotate;
     protected Boolean centerFilled;
-    protected String imagePath;
     protected long expectedSpeed;
 
     public static AssetStore<String, ShapeAsset, DefaultAssetMap<String, ShapeAsset>> getAssetStore() {
@@ -52,10 +51,6 @@ public class ShapeAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
         return this.centerFilled;
     }
 
-    public String getImagePath() {
-        return this.imagePath;
-    }
-
     public long getExpectedSpeed() {
         return this.expectedSpeed;
     }
@@ -76,10 +71,6 @@ public class ShapeAsset implements JsonAssetWithMap<String, DefaultAssetMap<Stri
                 .add()
                 .append(new KeyedCodec<>("CenterFilled", Codec.BOOLEAN),
                         (a, v) -> a.centerFilled = v, a -> a.centerFilled)
-                .add()
-                .append(new KeyedCodec<>("ImagePath", Codec.STRING),
-                        (a, v) -> a.imagePath = v, a -> a.imagePath)
-                .addValidator(Validators.nonEmptyString())
                 .add()
                 .append(new KeyedCodec<>("ExpectedSpeed", Codec.LONG),
                         (a, v) -> a.expectedSpeed = v, a -> a.expectedSpeed)
