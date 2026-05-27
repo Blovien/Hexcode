@@ -98,8 +98,10 @@ public class PedestalEntity {
 
         addDisplayRendering(pedestal, session.getProfile(), holder, stack, pedestal.getReferenceHolder(), 1.0f);
 
+        var posOff = pedestal.getDisplayOffset();
+
         holder.addComponent(MountedComponent.getComponentType(),
-                new MountedComponent(session.getAnchorRef(), pedestal.getDisplayOffset(),
+                new MountedComponent(session.getAnchorRef(), new Rotation3f(posOff.x, posOff.y, posOff.z),
                         MountController.Minecart));
 
         return accessor.addEntity(holder, AddReason.SPAWN);
