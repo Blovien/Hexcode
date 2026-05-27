@@ -589,11 +589,11 @@ Sin.Next.name=Next
 Sin.Next.description=The next glyph in the execution chain
 
 Skull.name=Skull
-Skull.description=Launches a skull projectile at a target
-Skull.target.name=Target
-Skull.target.description=Variable containing the targets to affect
-Skull.Next.name=Next
-Skull.Next.description=The next glyph in the execution chain
+Skull.description=<b>???</b>
+Skull.target.name=???
+Skull.target.description=???
+Skull.Next.name=???
+Skull.Next.description=???
 
 Style.name=Style
 Style.description=Override the active hex color with RGBA (0-255)

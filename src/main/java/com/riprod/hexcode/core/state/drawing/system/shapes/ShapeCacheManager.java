@@ -29,7 +29,7 @@ public class ShapeCacheManager {
 
         ShapeAsset.getAssetMap().getAssetMap().forEach((key, asset) -> {
             try {
-                String imageId = asset.getImagePath();
+                String imageId = /* asset.getImagePath(); */ key; // Use key as imageId since ImagePath is removed
                 if (!imageData.containsKey(key)) {
                     boolean[][] imgData = importImageData(key, imageId);
                     int[][] distData = computeDistanceTransform(imgData);
@@ -149,7 +149,7 @@ public class ShapeCacheManager {
         // attempt to load missing data
         ShapeAsset asset = ShapeAsset.getAssetMap().getAsset(key);
         if (asset != null) {
-            data = importImageData(key, asset.getImagePath());
+            data = importImageData(key, key);
             imageData.put(key, data);
         } else {
             LOGGER.atSevere().log("Shape asset not found for key: " + key);

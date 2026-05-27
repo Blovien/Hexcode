@@ -4,8 +4,8 @@
       "Categories+": [
         {
           "Id": "Arcane_Hexcode",
-          "Name": "hexcode.workbench.benchCategories.hex",
-          "Icon": "Icons/CraftingCategories/Arcane/Arcane_Hexbook.png"
+          "Icon": "Icons/CraftingCategories/Arcane/Arcane_Hexbook.png",
+          "Name": "hexcode.workbench.benchCategories.hex"
         }
       ]
     }

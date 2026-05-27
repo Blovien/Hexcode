@@ -23,19 +23,6 @@ import com.riprod.hexcode.core.common.hexes.codec.HexFieldCodec;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
 
-// the unified state of a cast — both pre-cast intent and live execution state.
-// codec'd fields persist (used by ImbuementData.Overrides; future thaw-from-frozen).
-// transient fields (accessor, chunkAccessor) are runtime-injected at cast time.
-//
-// hex is stored as a live Hex object; codec compresses to string transparently via
-// HexFieldCodec.IMBUE (mirrors ImbuementData / SavedHexAsset / HexComponent patterns).
-// style is stored as a full HexStyleAsset; codec writes inline (preserves all fields
-// across serialize/deserialize, no styleId-resolution loss).
-//
-// scope of this iteration: the merged type is fully serializable; future iterations
-// add the freeze/thaw machinery (persisted dependency tracking, safe-point detection,
-// thaw registry) on top. for now, persisted HexContext captures cast intent + variables
-// + tracker — in-flight construct entities won't survive a thaw.
 public class HexContext {
     // === serialized fields ===
     @Nullable private Hex hex;
