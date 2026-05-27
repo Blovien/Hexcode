@@ -34,6 +34,7 @@ import com.riprod.hexcode.builtin.glyphs.absolute.AbsoluteGlyph;
 import com.riprod.hexcode.builtin.glyphs.add.AddGlyph;
 import com.riprod.hexcode.builtin.glyphs.ceiling.CeilingGlyph;
 import com.riprod.hexcode.builtin.glyphs.cos.CosGlyph;
+import com.riprod.hexcode.builtin.glyphs.cross.CrossGlyph;
 import com.riprod.hexcode.builtin.glyphs.floor.FloorGlyph;
 import com.riprod.hexcode.builtin.glyphs.round.RoundGlyph;
 import com.riprod.hexcode.builtin.glyphs.pi.PiValue;
@@ -62,6 +63,7 @@ import com.riprod.hexcode.builtin.glyphs.domain.DomainConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.domain.DomainGlyph;
 import com.riprod.hexcode.builtin.glyphs.domain.DomainAuraConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.domain.component.DomainZoneComponent;
+import com.riprod.hexcode.builtin.glyphs.dot.DotGlyph;
 import com.riprod.hexcode.builtin.glyphs.drain.DrainGlyph;
 import com.riprod.hexcode.builtin.glyphs.drain.DrainConstructHandler;
 import com.riprod.hexcode.builtin.glyphs.ensnare.EnsnareConstructHandler;
@@ -212,6 +214,8 @@ public class BuiltinPlugin extends JavaPlugin {
 
         GlyphRegistry.register(new PositionValue());
         GlyphRegistry.register(new RotationValue());
+        GlyphRegistry.register(new DotGlyph());
+        GlyphRegistry.register(new CrossGlyph());
 
         for (int i = 1; i <= 16; i++) {
             GlyphRegistry.register(new NumberValue(i));

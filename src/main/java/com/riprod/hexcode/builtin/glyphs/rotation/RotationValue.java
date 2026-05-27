@@ -55,6 +55,12 @@ public class RotationValue implements GlyphHandler {
 
     @Override
     public HexVar readValue(Glyph glyph, HexContext hexContext) {
+        HexVar self = hexContext.getVariable(glyph.getId());
+
+        if (self != null) {
+            return self;
+        }
+
         return compute(glyph, hexContext);
     }
 
@@ -85,7 +91,8 @@ public class RotationValue implements GlyphHandler {
 
     private void applyToEntity(EntityVar entityVar, Rotation3f rotation, HexContext hexContext) {
         Ref<EntityStore> ref = entityVar.getRef(hexContext.getAccessor());
-        if (ref == null || !ref.isValid()) return;
+        if (ref == null || !ref.isValid())
+            return;
 
         // projectile path: re-aim velocity while preserving speed
         if (VelocityUtil.isProjectile(ref, hexContext.getAccessor())) {
@@ -96,7 +103,8 @@ public class RotationValue implements GlyphHandler {
         try {
             TransformComponent tc = hexContext.getAccessor().getComponent(ref,
                     TransformComponent.getComponentType());
-            if (tc == null) return;
+            if (tc == null)
+                return;
 
             HeadRotation hr = hexContext.getAccessor().getComponent(ref,
                     HeadRotation.getComponentType());
@@ -123,9 +131,10 @@ public class RotationValue implements GlyphHandler {
             if (current != null) {
                 speed = Math.sqrt(current.x * current.x + current.y * current.y + current.z * current.z);
             }
-            
+
         }
-        if (speed <= 0.0001) speed = 1.0;
+        if (speed <= 0.0001)
+            speed = 1.0;
 
         double yaw = rotation.y;
         double pitch = rotation.x;
@@ -147,9 +156,11 @@ public class RotationValue implements GlyphHandler {
         try {
             World world = hexContext.getAccessor().getExternalData().getWorld();
             int blockId = world.getBlock(pos.x, pos.y, pos.z);
-            if (blockId == BlockType.EMPTY_ID) return;
+            if (blockId == BlockType.EMPTY_ID)
+                return;
             BlockType blockType = BlockType.getAssetMap().getAsset(blockId);
-            if (blockType == null) return;
+            if (blockType == null)
+                return;
             Rotation yaw = quarter(rotation.y);
             int rotationIndex = RotationTuple.index(yaw, Rotation.None, Rotation.None);
             // preserve block-entity state, skip particles, skip filler churn

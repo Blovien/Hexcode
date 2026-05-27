@@ -28,9 +28,12 @@ public class MultiplyGlyph implements GlyphHandler {
     private HexVar compute(Glyph glyph, HexContext hexContext) {
         HexVar a = glyph.readSlot(MultiplyGlyphSlots.A, hexContext);
         HexVar b = glyph.readSlot(MultiplyGlyphSlots.B, hexContext);
-        if (a == null && b == null) return null;
-        if (a == null) return b;
-        if (b == null) return a;
+        if (a == null && b == null)
+            return null;
+        if (a == null)
+            return b;
+        if (b == null)
+            return a;
 
         ComponentAccessor<EntityStore> buf = hexContext.getAccessor();
         a = a.resolveSelf(b, buf);
@@ -75,6 +78,11 @@ public class MultiplyGlyph implements GlyphHandler {
 
     @Override
     public HexVar readValue(Glyph glyph, HexContext hexContext) {
+        HexVar self = hexContext.getVariable(glyph.getId());
+
+        if (self != null) {
+            return self;
+        }
         return compute(glyph, hexContext);
     }
 }

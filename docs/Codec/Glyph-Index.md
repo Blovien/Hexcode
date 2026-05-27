@@ -8,37 +8,41 @@ draft: false
 
 Hexcode is built upon Three Basic Shapes. That is…
 
-### □ **Square**
+---
 
-It means Divinity, the idea of Self or Creation. 
+#### 1- □ **Square**
 
-### ◯ **Circle**
+*It means Divinity, the idea of Self or Creation.*
 
-It means Energy. The presence of force or heat.
+#### 2- ◯ **Circle**
 
-### △ **Triangle**
+*It means Energy. The presence of force or heat.*
 
-It means Time. The passage of, or the duration through.
+#### 3- △ **Triangle**
+
+*It means Time. The passage of, or the duration through.*
 
 Beyond these basic three types, there exists three Anti-Shapes. These provide the Inverse Effect of the base three shapes
 
-### ◇ **Diamond** (Anti-Square)
 
-Means Death, Chaos, and Destruction. The absence of order.
+#### 4- ◇ **Diamond** (Anti-Square)
 
-### 𝟢 **Oval** (Anti-Circle)
+*Means Death, Chaos, and Destruction. The absence of order.*
 
-It means the absence of Energy. To be Void or Cold. 
+#### 5- 𝟢 **Oval** (Anti-Circle)
 
-### ▽ **Upside-Down Triangle** (Anti-Triangle)
+*It means the absence of Energy. To be Void or Cold.*
 
-It means Immediate, Instant, or sometimes even Negative passage of time. 
+#### 6- ▽ **Upside-Down Triangle** (Anti-Triangle)
+
+*It means Immediate, Instant, or sometimes even Negative passage of time.*
+
 
 The combination of these six shapes are what form the backbone of every single glyph in Hexcode. The combination of ◯△ means Energy over Time. This manifests as what appears to be a Projectile \- the physical creation of energy passing through time and space. All of hexcode follows this logic.
 
 Refer to the **Creating Glyphs** section of the main document for how to create your glyphs. The following is every glyph in Hexcode in order of Tier and Type
 
-## Tier 1
+# Tier 1
 
 These are the foundational glyphs. Single-shape draws.
 
@@ -78,9 +82,10 @@ Randomly generates a number between the Min (default 0\) and Max (default 1\) va
 
 Used to modify Entity Stats like mana / stamina / health  
 Can be used to either gain knowledge of the target’s current stats OR to transfer from one stat to another (stamina \-\> mana or mana \-\> hp \- etc)  
+
 ---
 
-## Tier 2
+# Tier 2
 
 Two-shape draws. These are the core toolbox for building useful hexes. Most of these cost very low mana or volatility, serving as a way to prop up the Tier 3 glyphs naturally.
 
@@ -89,6 +94,7 @@ Two-shape draws. These are the core toolbox for building useful hexes. Most of t
 ### \[◯△\] Projectile
 
 Your cheapest selector. Launches a projectile that triggers child glyphs on collision. Children do not execute until the projectile hits something. You can add Gravity, Bounces, or Speed as configuration options.  
+
 ---
 
 ### \[□◯\] Beam
@@ -100,6 +106,7 @@ Raycasts from an entity in a direction and stores the first thing it hits. Your 
 ### \[◯□\] Area
 
 Collects all targets within a radius around a center point. Your area-of-effect selector. For every entity in the area, it triggers downstream glyphs. This can get pricey very quickly and typically eats up all your volatility immediately. If you hit a block, it selects all blocks. If you hit an entity, it selects all entities.  
+
 ---
 
 ### \[△△\] Debug
@@ -139,7 +146,7 @@ Sustains downstream glyphs while the caster holds the primary interaction. Relea
 
 ---
 
-## Tier 3
+# Tier 3
 
 Three-shape draws. These are the Effects, the glyphs that do stuff. Generally, these are a lot more expensive than Tier 2 glyphs. 
 
@@ -250,6 +257,7 @@ Teleports targets to a destination position. High flat mana cost. Costs more vol
 ### \[▽◯▽\] Swap
 
 Exchanges positions between two variable arrays element-by-element. Item at index i in A swaps position with item at index i in B. If arrays are different lengths, extra elements are skipped.  
+
 ---
 
 ### \[□□□\] Domain
@@ -385,6 +393,24 @@ Rounds A up to the nearest whole number. Preserves type: Positions and Rotations
 ### \[|◯|\] Round
 
 Rounds A to the nearest whole number. Preserves type: Positions and Rotations are rounded component-wise. Entities, Blocks and Colors pass through unchanged.
+
+---
+
+### \[|◯|\] Round
+
+Rounds A to the nearest whole number. Preserves type: Positions and Rotations are rounded component-wise. Entities, Blocks and Colors pass through unchanged.
+
+---
+
+### \[<\>◯\] Dot Product
+
+Derives the dot product of two vectors. Will convert a number to a vector (i.e. 1 = (1, 1, 1)) or a rotation to a vector with a magnitude of 1. 
+
+---
+
+### \[<\>\\ / \] Cross Product
+
+Derives the cross product of two vectors. Will convert a number to a vector (i.e. 1 = (1, 1, 1)) or a rotation to a vector with a magnitude of 1.
 
 ---
 
