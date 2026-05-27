@@ -17,14 +17,21 @@ public class CosGlyph implements GlyphHandler {
 
     private HexVar compute(Glyph glyph, HexContext hexContext) {
         HexVar a = glyph.readSlot(CosGlyphSlots.A, hexContext);
-        if (a == null) return null;
+        if (a == null)
+            return null;
         Double s = a.toScalar();
-        if (s == null) return null;
+        if (s == null)
+            return null;
         return new NumberVar(Math.cos(s));
     }
 
     @Override
     public HexVar readValue(Glyph glyph, HexContext hexContext) {
+        HexVar self = hexContext.getVariable(glyph.getId());
+
+        if (self != null) {
+            return self;
+        }
         return compute(glyph, hexContext);
     }
 

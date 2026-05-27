@@ -18,6 +18,10 @@ public final class NumberVar extends HexVar {
         this.number = number;
     }
 
+    public NumberVar(Float number) {
+        this.number = number == null ? null : number.doubleValue();
+    }
+
     public NumberVar(int number) {
         this.number = (double) number;
     }

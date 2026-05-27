@@ -152,6 +152,24 @@ Domain.immediate.description=Fires immediately after the domain is spawned
 Domain.Next.name=Next
 Domain.Next.description=Fires per entity entering the domain (excluding caster)
 
+Dot.name=Dot Product
+Dot.description=Derives the dot product of two vector inputs.
+Dot.v.name=The first vector
+Dot.w.name=The second vector
+Dot.w.description=The second vector of the dot product
+Dot.v.description=The first vector of the dot product
+Dot.Next.name=Next Glyph
+Dot.Next.description=The next glyph in the execution chain 
+
+Cross.name=Cross Product
+Cross.description=Derives the cross product of two vector inputs.
+Cross.v.name=The first vector
+Cross.w.name=The second vector
+Cross.v.description=The first vector of the cross product
+Cross.w.description=The second vector of the cross product
+Cross.Next.name=Next Glyph
+Cross.Next.description=The next glyph in the execution chain
+
 Drain.name=Drain
 Drain.description=Channels HP or Stamina into Mana over time. As a value, reads resource fill percentage.
 Drain.hp.name=HP

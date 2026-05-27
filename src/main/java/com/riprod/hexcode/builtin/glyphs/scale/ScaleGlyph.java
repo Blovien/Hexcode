@@ -30,6 +30,7 @@ import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
+import com.riprod.hexcode.core.common.glyphs.variables.NumberVar;
 import com.riprod.hexcode.core.state.execution.HexExecuter;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
@@ -82,16 +83,47 @@ public class ScaleGlyph implements GlyphHandler {
         try {
             HexVar targets = glyph.readSlot(ScaleGlyphSlots.TARGET, hexContext);
             EntityVar entityVar = HexVarUtil.resolveEntityVar(targets, hexContext);
-            if (entityVar == null) return 1.0f;
+            if (entityVar == null)
+                return 1.0f;
             CommandBuffer<EntityStore> accessor = hexContext.getAccessor();
             Ref<EntityStore> targetRef = entityVar.getRef(accessor);
-            if (targetRef == null || !targetRef.isValid()) return 1.0f;
+            if (targetRef == null || !targetRef.isValid())
+                return 1.0f;
             ScaleStackComponent stack = accessor.getComponent(
                     targetRef, ScaleStackComponent.getComponentType());
             return stack != null ? stack.productOfContributions() : 1.0f;
         } catch (Exception e) {
             return 1.0f;
         }
+    }
+
+    @Override
+    public HexVar readValue(Glyph glyph, HexContext hexContext) {
+        var targets = glyph.readSlot(ScaleGlyphSlots.TARGET, hexContext);
+        var entityVar = HexVarUtil.resolveEntityVar(targets, hexContext);
+        if (entityVar == null) {
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Target must be a creature");
+            return new NumberVar(1);
+        }
+
+        var accessor = hexContext.getAccessor();
+        var targetRef = entityVar.getRef(accessor);
+
+        if (targetRef == null || !targetRef.isValid()) {
+            HexExecuter.fail(glyph, hexContext, GlyphFizzleEvent.Reason.HANDLER_FAILED,
+                    "Target is no longer available");
+            return new NumberVar(1);
+        }
+
+        ScaleStackComponent stack = accessor.getComponent(
+                targetRef, ScaleStackComponent.getComponentType());
+
+        if (stack == null) {
+            return new NumberVar(1);
+        }
+
+        return new NumberVar(stack.productOfContributions());
     }
 
     @Override
@@ -208,8 +240,9 @@ public class ScaleGlyph implements GlyphHandler {
         ModelAsset asset = baseAssetId != null
                 ? ModelAsset.getAssetMap().getAsset(baseAssetId)
                 : null;
-        if (asset == null) return;
-        
+        if (asset == null)
+            return;
+
         Model scaled = Model.createScaledModel(asset, effective);
         buffer.putComponent(targetRef, ModelComponent.getComponentType(),
                 new ModelComponent(scaled));
@@ -227,7 +260,9 @@ public class ScaleGlyph implements GlyphHandler {
                 new NetworkId(accessor.getExternalData().takeNextNetworkId()));
         holder.ensureComponent(EntityStore.REGISTRY.getNonSerializedComponentType());
         holder.addComponent(MountedComponent.getComponentType(),
-                new MountedComponent(targetRef, new Rotation3f(MOUNT_OFFSET.x, MOUNT_OFFSET.y, MOUNT_OFFSET.z), MountController.Minecart));
+                new MountedComponent(targetRef,
+                        new Rotation3f(MOUNT_OFFSET.x, MOUNT_OFFSET.y, MOUNT_OFFSET.z),
+                        MountController.Minecart));
 
         String modelId = ScaleStyle.resolveModelId(hexContext);
         ModelAsset modelAsset = modelId != null ? ModelAsset.getAssetMap().getAsset(modelId) : null;

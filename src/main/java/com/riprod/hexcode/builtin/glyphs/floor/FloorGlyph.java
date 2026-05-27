@@ -27,7 +27,8 @@ public class FloorGlyph implements GlyphHandler {
 
     private HexVar compute(Glyph glyph, HexContext hexContext) {
         HexVar a = glyph.readSlot(FloorGlyphSlots.A, hexContext);
-        if (a == null) return null;
+        if (a == null)
+            return null;
         return switch (a) {
             case NumberVar n -> {
                 Double v = n.getValue();
@@ -51,6 +52,11 @@ public class FloorGlyph implements GlyphHandler {
 
     @Override
     public HexVar readValue(Glyph glyph, HexContext hexContext) {
+        HexVar self = hexContext.getVariable(glyph.getId());
+
+        if (self != null) {
+            return self;
+        }
         return compute(glyph, hexContext);
     }
 
