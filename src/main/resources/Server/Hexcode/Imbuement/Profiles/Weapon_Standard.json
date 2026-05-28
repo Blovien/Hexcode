@@ -1,6 +1,8 @@
 {
   "CategoryId": "Items.Weapons",
-  "ExcludedCategories": ["Hexcode.Staves"],
+  "ExcludedCategories": [
+    "Hexcode.Staves"
+  ],
   "Slots": {
     "Primary": {
       "Label": "Primary",
@@ -46,6 +48,11 @@
       "Label": "On Block",
       "Description": "Execute when blocking incoming damage with this weapon",
       "Style": "Next"
+    }
+  },
+  "Defaults": {
+    "VolatilityTracker": {
+      "StartingBudget": 20
     }
   }
 }
