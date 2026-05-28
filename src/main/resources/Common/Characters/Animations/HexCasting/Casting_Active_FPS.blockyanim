@@ -69,12 +69,12 @@
       "orientation": [
         {
           "time": 0,
-          "delta": {"x": -0.36824, "y": -0.26795, "z": 0.47788, "w": 0.75116},
+          "delta": {"x": -0.21966, "y": -0.3055, "z": 0.71095, "w": 0.59411},
           "interpolationType": "smooth"
         },
         {
-          "time": 52,
-          "delta": {"x": -0.32832, "y": -0.22201, "z": 0.46016, "w": 0.79446},
+          "time": 60,
+          "delta": {"x": -0.23257, "y": -0.32094, "z": 0.70412, "w": 0.58917},
           "interpolationType": "smooth"
         }
       ],
@@ -87,7 +87,7 @@
       "orientation": [
         {
           "time": 0,
-          "delta": {"x": -0.25882, "y": 0, "z": 0, "w": 0.96593},
+          "delta": {"x": -0.17365, "y": 0, "z": 0, "w": 0.98481},
           "interpolationType": "smooth"
         }
       ],
@@ -99,8 +99,8 @@
       "position": [],
       "orientation": [
         {
-          "time": 0,
-          "delta": {"x": -0.09393, "y": 0.17832, "z": 0.32639, "w": 0.9235},
+          "time": 8,
+          "delta": {"x": -0.12619, "y": 0.99124, "z": -0.03828, "w": -0.00713},
           "interpolationType": "smooth"
         }
       ],
@@ -112,66 +112,29 @@
       "position": [
         {
           "time": 0,
-          "delta": {"x": 1.10361, "y": -2.11226, "z": 1.8222},
+          "delta": {"x": -15.79, "y": -18.61, "z": -6.16},
+          "interpolationType": "smooth"
+        },
+        {
+          "time": 79,
+          "delta": {"x": -10.97, "y": -20.61, "z": 4.84},
           "interpolationType": "smooth"
         }
       ],
       "orientation": [
         {
-          "time": 0,
-          "delta": {"x": -0.33037, "y": 0.24321, "z": 0.08852, "w": 0.90767},
+          "time": 14,
+          "delta": {"x": -0.65474, "y": 0.04006, "z": 0.15074, "w": 0.73959},
           "interpolationType": "smooth"
-        }
-      ],
-      "shapeStretch": [],
-      "shapeVisible": [],
-      "shapeUvOffset": []
-    },
-    "Book-Bot": {
-      "position": [],
-      "orientation": [
+        },
         {
-          "time": 0,
-          "delta": {"x": 0, "y": 0, "z": -0.57358, "w": 0.81915},
+          "time": 54,
+          "delta": {"x": -0.85566, "y": -0.13967, "z": 0.06942, "w": -0.49348},
           "interpolationType": "smooth"
-        }
-      ],
-      "shapeStretch": [],
-      "shapeVisible": [],
-      "shapeUvOffset": []
-    },
-    "Page-Bot": {
-      "position": [],
-      "orientation": [
+        },
         {
-          "time": 0,
-          "delta": {"x": 0, "y": 0, "z": 0.98079, "w": 0.19509},
-          "interpolationType": "smooth"
-        }
-      ],
-      "shapeStretch": [],
-      "shapeVisible": [],
-      "shapeUvOffset": []
-    },
-    "Book-Top": {
-      "position": [],
-      "orientation": [
-        {
-          "time": 0,
-          "delta": {"x": 0, "y": 0, "z": 0.69151, "w": 0.72236},
-          "interpolationType": "smooth"
-        }
-      ],
-      "shapeStretch": [],
-      "shapeVisible": [],
-      "shapeUvOffset": []
-    },
-    "Page-Top": {
-      "position": [],
-      "orientation": [
-        {
-          "time": 0,
-          "delta": {"x": 0, "y": 0, "z": 0, "w": 1},
+          "time": 79,
+          "delta": {"x": -0.72924, "y": -0.15134, "z": 0.03769, "w": -0.66624},
           "interpolationType": "smooth"
         }
       ],

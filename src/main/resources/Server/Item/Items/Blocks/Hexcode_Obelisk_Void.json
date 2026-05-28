@@ -1,92 +1,102 @@
 {
-  "TranslationProperties": {
-    "Name": "hexcode.blocks.Hexcode_Obelisk_Void.name",
-    "Description": "hexcode.blocks.Hexcode_Obelisk_Void.description"
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [
+      0,
+      19,
+      0
+    ],
+    "Translation": [
+      0,
+      -28
+    ]
+  },
+  "Tags": {
+    "Type": [
+      "Deco"
+    ],
+    "Family": [
+      "Hexcode"
+    ]
   },
   "Icon": "Icons/ItemsGenerated/Hexcode_Obelisk_Void.png",
   "Categories": [
     "Hexcode.Obelisks"
   ],
+  "TranslationProperties": {
+    "Name": "hexcode.blocks.Hexcode_Obelisk_Void.name",
+    "Description": "hexcode.blocks.Hexcode_Obelisk_Void.description"
+  },
+  "Quality": "Legendary",
+  "ItemSoundSetId": "ISS_Blocks_Stone",
   "PlayerAnimationsId": "Block",
+  "Recipe": {
+    "Input": [
+      {
+        "ItemId": "Ingredient_Void_Essence_Concentrated",
+        "Quantity": 20,
+        "Metadata": {}
+      },
+      {
+        "ItemId": "Ingredient_Bar_Adamantite",
+        "ResourceTypeId": "",
+        "Quantity": 30,
+        "Metadata": {}
+      },
+      {
+        "ItemId": "Ingredient_Voidheart",
+        "Quantity": 30,
+        "Metadata": {}
+      },
+      {
+        "ItemId": "Rock_Volcanic_Cobble",
+        "Quantity": 100,
+        "Metadata": {}
+      }
+    ],
+    "PrimaryOutput": {
+      "Metadata": {}
+    },
+    "BenchRequirement": [
+      {
+        "Id": "Arcanebench",
+        "Categories": [
+          "Arcane_Hexcode"
+        ]
+      }
+    ]
+  },
   "BlockType": {
     "DrawType": "Model",
-    "Material": "Solid",
-    "Opacity": "Transparent",
-    "CustomModel": "Blocks/Hexcode/Obelisks/Void_Obelisk.blockymodel",
     "CustomModelTexture": [
       {
         "Texture": "Blocks/Hexcode/Obelisks/Void_Obelisk.png",
         "Weight": 1
       }
     ],
-    "HitboxType": "Full",
-    "BlockSoundSetId": "Stone",
+    "CustomModel": "Blocks/Hexcode/Obelisks/Void_Obelisk.blockymodel",
+    "Material": "Solid",
+    "Opacity": "Transparent",
+    "CustomModelScale": 1.5,
+    "CustomModelAnimation": "Blocks/Hexcode/Obelisks/Animations/Obelisk_Void_Idle.blockyanim",
     "BlockParticleSetId": "Stone",
-    "Flags": {},
+    "VariantRotation": "NESW",
     "Gathering": {
       "Breaking": {
         "GatherType": "SoftBlocks"
       }
     },
-    "BlockEntity": {
-      "Components": {
-        "Hexcode_ObeliskBlock": {
-          "Power": 10,
-          "HandlerId": "import_export"
-        }
-      }
-    },
-    "State": {
-      "Definitions": {
-        "Idle": {
-          "Light": {
-            "Color": "#2a0040"
+    "HitboxType": "Full",
+    "Interactions": {
+      "Use": {
+        "Interactions": [
+          {
+            "Type": "HexImportExportInteraction"
           }
-        },
-        "Ready": {
-          "Light": {
-            "Color": "#440066"
-          },
-          "Particles": [
-            {
-              "SystemId": "Void_Obelisk_Ready",
-              "DetachedFromModel": false,
-              "PositionOffset": {
-                "Y": 0
-              }
-            }
-          ]
-        },
-        "Selecting": {
-          "Light": {
-            "Color": "#6600aa"
-          },
-          "Particles": [
-            {
-              "SystemId": "Void_Obelisk_Selecting",
-              "DetachedFromModel": false,
-              "PositionOffset": {
-                "Y": 0
-              }
-            }
-          ],
-          "Looping": false
-        },
-        "Crafting": {
-          "Light": {
-            "Color": "#8833cc"
-          },
-          "Particles": [
-            {
-              "SystemId": "Void_Obelisk_Crafting",
-              "DetachedFromModel": false
-            }
-          ],
-          "CustomModelAnimation": "Blocks/Hexcode/Obelisks/Animations/Obelisk_Void_Crafting.blockyanim",
-          "Looping": true
-        }
+        ]
       }
     },
+    "BlockSoundSetId": "Stone",
     "Support": {
       "Down": [
         {
@@ -102,68 +112,68 @@
         {}
       ]
     },
-    "VariantRotation": "NESW",
-    "Looping": true,
-    "CustomModelScale": 1.5,
-    "Interactions": {
-      "Use": {
-        "Interactions": [
-          {
-            "Type": "HexImportExportInteraction"
-          }
-        ]
+    "State": {
+      "Definitions": {
+        "Idle": {
+          "CustomModelAnimation": "Blocks/Hexcode/Obelisks/Animations/Obelisk_Void_Idle.blockyanim",
+          "Light": {
+            "Color": "#2a0040"
+          },
+          "Looping": false
+        },
+        "Ready": {
+          "CustomModelAnimation": "Blocks/Hexcode/Obelisks/Animations/Obelisk_Void_Selecting.blockyanim",
+          "Light": {
+            "Color": "#440066"
+          },
+          "Particles": [
+            {
+              "SystemId": "Void_Obelisk_Ready",
+              "PositionOffset": {
+                "Y": 0
+              },
+              "DetachedFromModel": false
+            }
+          ]
+        },
+        "Selecting": {
+          "CustomModelAnimation": "Blocks/Hexcode/Obelisks/Animations/Obelisk_Void_Selecting.blockyanim",
+          "Light": {
+            "Color": "#6600aa"
+          },
+          "Particles": [
+            {
+              "SystemId": "Void_Obelisk_Selecting",
+              "PositionOffset": {
+                "Y": 0
+              },
+              "DetachedFromModel": false
+            }
+          ],
+          "Looping": false
+        },
+        "Crafting": {
+          "CustomModelAnimation": "Blocks/Hexcode/Obelisks/Animations/Obelisk_Void_Crafting.blockyanim",
+          "Light": {
+            "Color": "#8833cc"
+          },
+          "Particles": [
+            {
+              "SystemId": "Void_Obelisk_Crafting",
+              "DetachedFromModel": false
+            }
+          ],
+          "Looping": true
+        }
+      }
+    },
+    "BlockEntity": {
+      "Components": {
+        "Hexcode_ObeliskBlock": {
+          "Power": 10,
+          "HandlerId": "import_export"
+        }
       }
     }
-  },
-  "Tags": {
-    "Type": [
-      "Deco"
-    ],
-    "Family": [
-      "Hexcode"
-    ]
-  },
-  "ItemSoundSetId": "ISS_Blocks_Stone",
-  "IconProperties": {
-    "Scale": 0.58823,
-    "Rotation": [
-      0,
-      19,
-      0
-    ],
-    "Translation": [
-      0,
-      -28
-    ]
-  },
-  "Recipe": {
-    "BenchRequirement": [
-      {
-        "Id": "Arcanebench",
-        "Categories": [
-          "Arcane_Hexcode"
-        ]
-      }
-    ],
-    "Input": [
-      {
-        "ItemId": "Ingredient_Void_Essence_Concentrated",
-        "Quantity": 20
-      },
-      {
-        "ItemId": "Ingredient_Bar_Adamantite",
-        "ResourceTypeId": "",
-        "Quantity": 30
-      },
-      {
-        "ItemId": "Ingredient_Voidheart",
-        "Quantity": 30
-      },
-      {
-        "ItemId": "Rock_Volcanic_Cobble",
-        "Quantity": 100
-      }
-    ]
-  },
-  "Quality": "Legendary"
+  }
 }

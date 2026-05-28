@@ -4,21 +4,74 @@
   "LinearFiltering": true,
   "LightInfluence": 0,
   "MaxConcurrentParticles": 30,
-  "ParticleLifeSpan": { "Min": 0.5, "Max": 0.8 },
-  "SpawnRate": { "Min": 30, "Max": 30 },
+  "ParticleLifeSpan": {
+    "Min": 0.5,
+    "Max": 0.8
+  },
+  "SpawnRate": {
+    "Min": 30,
+    "Max": 30
+  },
   "SpawnBurst": true,
-  "TotalParticles": { "Min": 20, "Max": 30 },
-  "InitialVelocity": { "Yaw": { "Min": 0, "Max": 360 }, "Pitch": { "Min": 30, "Max": 80 }, "Speed": { "Min": 5, "Max": 12 } },
-  "Attractors": [{
-    "LinearAcceleration": { "Y": -10 }
-  }],
+  "TotalParticles": {
+    "Min": 20,
+    "Max": 30
+  },
+  "InitialVelocity": {
+    "Yaw": {
+      "Min": 0,
+      "Max": 360
+    },
+    "Pitch": {
+      "Min": 30,
+      "Max": 80
+    },
+    "Speed": {
+      "Min": 5,
+      "Max": 12
+    }
+  },
+  "Attractors": [
+    {
+      "LinearAcceleration": {
+        "Y": -10
+      }
+    }
+  ],
   "Particle": {
     "Texture": "Particles/Textures/Shapes/Fragment_GS.png",
-    "FrameSize": { "Width": 32, "Height": 32 },
+    "FrameSize": {
+      "Width": 32,
+      "Height": 32
+    },
     "ScaleRatioConstraint": "OneToOne",
     "Animation": {
-      "0": { "Opacity": 1.0, "Color": "#9944cc", "Scale": { "X": { "Min": 0.15, "Max": 0.35 }, "Y": { "Min": 0.15, "Max": 0.35 } } },
-      "100": { "Opacity": 0, "Color": "#4400aa", "Scale": { "X": { "Min": 0.05, "Max": 0.05 }, "Y": { "Min": 0.05, "Max": 0.05 } } }
+      "0": {
+        "Opacity": 1.0,
+        "Scale": {
+          "X": {
+            "Min": 0.15,
+            "Max": 0.35
+          },
+          "Y": {
+            "Min": 0.15,
+            "Max": 0.35
+          }
+        }
+      },
+      "100": {
+        "Opacity": 0,
+        "Scale": {
+          "X": {
+            "Min": 0.05,
+            "Max": 0.05
+          },
+          "Y": {
+            "Min": 0.05,
+            "Max": 0.05
+          }
+        }
+      }
     }
   }
 }

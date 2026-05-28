@@ -2,6 +2,8 @@ package com.riprod.hexcode.builtin.obelisks.importexport.interactions;
 
 import javax.annotation.Nonnull;
 
+import org.joml.Vector3i;
+
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
@@ -51,6 +53,9 @@ public class ImportInteraction extends SimpleInteraction {
                 return;
             }
 
+            var targetBlock = ctx.getTargetBlock();
+            var targetBlockLocation = new Vector3i(targetBlock.x, targetBlock.y, targetBlock.z);
+
             HexcasterComponent casterComp = buffer.getComponent(playerRef,
                     HexcasterComponent.getComponentType());
 
@@ -73,7 +78,7 @@ public class ImportInteraction extends SimpleInteraction {
                 return;
 
             Store<EntityStore> store = buffer.getExternalData().getWorld().getEntityStore().getStore();
-            player.getPageManager().openCustomPage(playerRef, store, new ImportExportPage(ref));
+            player.getPageManager().openCustomPage(playerRef, store, new ImportExportPage(ref, targetBlockLocation));
 
             ctx.getState().state = InteractionState.Finished;
             super.tick0(firstRun, time, type, ctx, cooldown);

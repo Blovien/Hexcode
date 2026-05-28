@@ -1,59 +1,131 @@
 {
+  "IconProperties": {
+    "Scale": 0.5,
+    "Rotation": [
+      23,
+      9,
+      0
+    ],
+    "Translation": [
+      0,
+      -17
+    ]
+  },
   "Parent": "Hexcode_Pedestal_Template",
-  "TranslationProperties": {
-    "Name": "hexcode.blocks.Hexcode_Pedestal_Void.name",
-    "Description": "hexcode.blocks.Hexcode_Pedestal_Void.description"
+  "Tags": {
+    "Type": [
+      "Deco"
+    ],
+    "Family": [
+      "Hexcode"
+    ]
   },
   "Icon": "Icons/ItemsGenerated/Hexcode_Pedestal_Void.png",
   "Categories": [
     "Hexcode.Pedestals"
   ],
+  "TranslationProperties": {
+    "Name": "hexcode.blocks.Hexcode_Pedestal_Void.name",
+    "Description": "hexcode.blocks.Hexcode_Pedestal_Void.description"
+  },
+  "Quality": "Epic",
+  "ItemSoundSetId": "ISS_Blocks_Stone",
   "PlayerAnimationsId": "Block",
+  "Recipe": {
+    "Input": [
+      {
+        "ItemId": "Ingredient_Void_Essence_Concentrated",
+        "Metadata": {}
+      },
+      {
+        "ItemId": "Rock_Crystal_Purple_Block",
+        "Quantity": 25,
+        "Metadata": {}
+      },
+      {
+        "ItemId": "Ingredient_Bar_Silver",
+        "Quantity": 10,
+        "Metadata": {}
+      },
+      {
+        "ItemId": "Ingredient_Voidheart",
+        "Quantity": 25,
+        "Metadata": {}
+      }
+    ],
+    "PrimaryOutput": {
+      "Metadata": {}
+    },
+    "BenchRequirement": [
+      {
+        "Id": "Arcanebench",
+        "Categories": [
+          "Arcane_Hexcode"
+        ]
+      }
+    ]
+  },
   "BlockType": {
     "DrawType": "Model",
-    "Material": "Solid",
-    "Opacity": "Transparent",
-    "CustomModel": "Blocks/Hexcode/Pedestals/Pedestal_Void_Transparent.blockymodel",
     "CustomModelTexture": [
       {
         "Texture": "Blocks/Hexcode/Pedestals/Pedestal_Void.png",
         "Weight": 1
       }
     ],
-    "HitboxType": "Full",
-    "BlockSoundSetId": "Stone",
+    "CustomModel": "Blocks/Hexcode/Pedestals/Pedestal_Void_Transparent.blockymodel",
+    "Material": "Solid",
+    "Opacity": "Transparent",
+    "CustomModelScale": 1,
+    "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Void_Idle.blockyanim",
     "BlockParticleSetId": "Stone",
+    "VariantRotation": "NESW",
     "Flags": {
       "IsUsable": true
+    },
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "SoftBlocks"
+      }
+    },
+    "HitboxType": "Full",
+    "BlockSoundSetId": "Stone",
+    "Support": {
+      "Down": [
+        {
+          "FaceType": "Full"
+        }
+      ]
     },
     "State": {
       "Definitions": {
         "Idle": {
+          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Void_Idle.blockyanim",
           "Light": {
             "Color": "#2a0040"
           },
           "InteractionHint": "hexcode.blocks.pedestal.interact.idle"
         },
         "Ready": {
+          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Void_Ready.blockyanim",
           "Light": {
-            "Color": "#440066"
+            "Color": "#92c"
           },
-          "Looping": true,
+          "Effect": [
+            "None"
+          ],
           "Particles": [
             {
               "SystemId": "Void_Ready"
             }
           ],
-          "Effect": [
-            "None"
-          ],
           "InteractionHint": "hexcode.blocks.pedestal.interact.ready"
         },
         "Selecting": {
+          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Void_Selecting.blockyanim",
           "Light": {
             "Color": "#6600aa"
           },
-          "Looping": true,
           "Particles": [
             {
               "SystemId": "Rune_System"
@@ -62,13 +134,14 @@
               "SystemId": "Void_Selecting"
             }
           ],
-          "InteractionHint": "hexcode.blocks.pedestal.interact.selecting"
+          "InteractionHint": "hexcode.blocks.pedestal.interact.selecting",
+          "Looping": true
         },
         "Crafting": {
+          "CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Void_Crafting.blockyanim",
           "Light": {
             "Color": "#8833cc"
           },
-          "Looping": true,
           "Particles": [
             {
               "SystemId": "Room_Spawner"
@@ -80,7 +153,8 @@
               "SystemId": "Void_Crafting"
             }
           ],
-          "InteractionHint": "hexcode.blocks.pedestal.interact.crafting"
+          "InteractionHint": "hexcode.blocks.pedestal.interact.crafting",
+          "Looping": true
         }
       }
     },
@@ -137,69 +211,6 @@
           }
         }
       }
-    },
-    "Gathering": {
-      "Breaking": {
-        "GatherType": "SoftBlocks"
-      }
-    },
-    "Support": {
-      "Down": [
-        {
-          "FaceType": "Full"
-        }
-      ]
-    },
-    "VariantRotation": "NESW",
-    "CustomModelScale": 1
-  },
-  "Tags": {
-    "Type": [
-      "Deco"
-    ],
-    "Family": [
-      "Hexcode"
-    ]
-  },
-  "ItemSoundSetId": "ISS_Blocks_Stone",
-  "IconProperties": {
-    "Scale": 0.5,
-    "Rotation": [
-      23,
-      9,
-      0
-    ],
-    "Translation": [
-      0,
-      -17
-    ]
-  },
-  "Recipe": {
-    "Input": [
-      {
-        "ItemId": "Ingredient_Void_Essence_Concentrated"
-      },
-      {
-        "ItemId": "Rock_Crystal_Purple_Block",
-        "Quantity": 25
-      },
-      {
-        "ItemId": "Ingredient_Bar_Silver",
-        "Quantity": 10
-      },
-      {
-        "ItemId": "Ingredient_Voidheart",
-        "Quantity": 25
-      }
-    ],
-    "BenchRequirement": [
-      {
-        "Id": "Arcanebench",
-        "Categories": [
-          "Arcane_Hexcode"
-        ]
-      }
-    ]
-  },
-  "Quality": "Epic"
+    }
+  }
 }

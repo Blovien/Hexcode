@@ -8,5 +8,5 @@
   "Effects": {
     "ClearAnimationOnFinish": true
   },
-  "CancelOnItemChange": true
+  "CancelOnItemChange": false
 }

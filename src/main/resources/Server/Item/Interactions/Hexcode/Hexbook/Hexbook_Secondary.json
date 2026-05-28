@@ -10,7 +10,7 @@
       "Crafting": "Root_Hexcode_Secondary_DrawingFlow",
       "Casting": "Root_Hexcode_Secondary_CastingFlow"
     },
-    "CancelOnItemChange": true,
+    "CancelOnItemChange": false,
     "Effects": {
       "ClearAnimationOnFinish": true
     }

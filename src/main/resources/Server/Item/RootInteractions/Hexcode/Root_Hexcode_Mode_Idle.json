@@ -5,7 +5,8 @@
       "TargetState": "IDLE",
       "CancelOnOtherClick": false,
       "Effects": {
-        "ItemAnimationId": "HexExecution_Primary"
+        "ItemAnimationId": "HexExecution_Primary",
+        "ClearAnimationOnFinish": true
       },
       "Next": {
         "Type": "HexModeExit",

@@ -30,11 +30,10 @@
     "Animation": {
       "0": {
         "FrameIndex": { "Min": 0, "Max": 3 },
-        "Opacity": 0.7,
-        "Color": "#ffffff"
+        "Opacity": 0.7
       },
       "50": { "Opacity": 0.8 },
-      "100": { "Opacity": 0, "Color": "#a2f7ff" }
+      "100": { "Opacity": 0 }
     },
     "InitialAnimationFrame": {
       "Scale": { "X": { "Min": 0.2, "Max": 0.4 } },

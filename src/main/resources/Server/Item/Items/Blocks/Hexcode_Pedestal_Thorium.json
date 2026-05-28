@@ -1,206 +1,221 @@
 {
-  "Parent": "Hexcode_Pedestal_Template",
-  "TranslationProperties": {
-    "Name": "hexcode.blocks.Hexcode_Pedestal_Thorium.name",
-    "Description": "hexcode.blocks.Hexcode_Pedestal_Thorium.description"
-  },
-  "Icon": "Icons/ItemsGenerated/Hexcode_Pedestal_Thorium.png",
-  "Categories": [
-    "Hexcode.Pedestals"
-  ],
-  "PlayerAnimationsId": "Block",
-  "BlockType": {
-    "DrawType": "Model",
-    "Material": "Solid",
-    "Opacity": "Transparent",
-    "CustomModel": "Blocks/Hexcode/Pedestals/Pedestal_Thorium.blockymodel",
-    "CustomModelTexture": [
-      {
-        "Texture": "Blocks/Hexcode/Pedestals/Pedestal_Thorium.png",
-        "Weight": 1
-      }
-    ],
-    "HitboxType": "Full",
-    "BlockSoundSetId": "Stone",
-    "BlockParticleSetId": "Stone",
-    "Flags": {
-      "IsUsable": true
-    },
-    "State": {
-      "Definitions": {
-        "Idle": {
-          "Light": {
-            "Color": "#446677"
-          },
-          "InteractionHint": "hexcode.blocks.pedestal.interact.idle"
-        },
-        "Ready": {
-          "Light": {
-            "Color": "#5588aa"
-          },
-          "Looping": true,
-          "Particles": [
-            {
-              "SystemId": "Thorium_Ready"
-            }
-          ],
-          "Effect": [
-            "None"
-          ],
-          "InteractionHint": "hexcode.blocks.pedestal.interact.ready"
-        },
-        "Selecting": {
-          "Light": {
-            "Color": "#77aabb"
-          },
-          "Looping": true,
-          "Particles": [
-            {
-              "SystemId": "Rune_System"
-            },
-            {
-              "SystemId": "Thorium_Selecting"
-            }
-          ],
-          "InteractionHint": "hexcode.blocks.pedestal.interact.selecting"
-        },
-        "Crafting": {
-          "Light": {
-            "Color": "#99ccdd"
-          },
-          "Looping": true,
-          "Particles": [
-            {
-              "SystemId": "Room_Spawner"
-            },
-            {
-              "SystemId": "Glyph_Spawner"
-            },
-            {
-              "SystemId": "Thorium_Crafting"
-            }
-          ],
-          "InteractionHint": "hexcode.blocks.pedestal.interact.crafting"
-        }
-      }
-    },
-    "BlockEntity": {
-      "Components": {
-        "Hexcode_PedestalBlock": {
-          "MaxObelisks": 2,
-          "HolderReference": "Pedestal_Holder",
-          "ObeliskRange": 5,
-          "PerPlayer": false,
-          "MaxRadius": 8,
-          "AnimationSets": {
-            "Ready": {
-              "Animations": [
-                {
-                  "Animation": "VFX/Animations/Pedestal_Idle.blockyanim"
-                }
-              ]
-            },
-            "Idle": {
-              "Animations": [
-                {
-                  "Animation": "VFX/Animations/Pedestal_Idle.blockyanim",
-                  "Speed": 0.8,
-                  "Looping": true
-                }
-              ]
-            },
-            "Selecting": {
-              "Animations": [
-                {
-                  "Animation": "VFX/Animations/Pedestal_Active.blockyanim",
-                  "Speed": 0.8,
-                  "Looping": true,
-                  "BlendingDuration": 0.5
-                }
-              ]
-            },
-            "Crafting": {
-              "Animations": [
-                {
-                  "Animation": "VFX/Animations/Pedestal_Active.blockyanim",
-                  "Speed": 0.8,
-                  "Looping": true,
-                  "BlendingDuration": 0.5
-                }
-              ]
-            }
-          },
-          "DisplayOffsetVector": {
-            "Y": 1,
-            "Z": 0,
-            "X": 0
-          }
-        }
-      }
-    },
-    "Gathering": {
-      "Breaking": {
-        "GatherType": "SoftBlocks"
-      }
-    },
-    "Support": {
-      "Down": [
-        {
-          "FaceType": "Full"
-        }
-      ]
-    },
-    "VariantRotation": "NESW",
-    "CustomModelScale": 1.2
-  },
-  "Tags": {
-    "Type": [
-      "Deco"
-    ],
-    "Family": [
-      "Hexcode"
-    ]
-  },
-  "ItemSoundSetId": "ISS_Blocks_Stone",
-  "IconProperties": {
-    "Scale": 0.6,
-    "Rotation": [
-      22.5,
-      47,
-      24
-    ],
-    "Translation": [
-      0,
-      -18
-    ]
-  },
-  "Recipe": {
-    "BenchRequirement": [
-      {
-        "Id": "Arcanebench",
-        "Categories": [
-          "Arcane_Hexcode"
-        ]
-      }
-    ],
-    "Input": [
-      {
-        "ItemId": "Ingredient_Life_Essence_Concentrated",
-        "Quantity": 1
-      },
-      {
-        "ResourceTypeId": "Rock",
-        "Quantity": 40
-      },
-      {
-        "ItemId": "Ingredient_Bar_Gold",
-        "Quantity": 10
-      },
-      {
-        "ItemId": "Ingredient_Bar_Thorium",
-        "Quantity": 10
-      }
-    ]
-  },
-  "Quality": "Uncommon"
+	"IconProperties": {
+		"Scale": 0.6,
+		"Rotation": [
+			22.5,
+			47,
+			24
+		],
+		"Translation": [
+			0,
+			-18
+		]
+	},
+	"Parent": "Hexcode_Pedestal_Template",
+	"Tags": {
+		"Type": [
+			"Deco"
+		],
+		"Family": [
+			"Hexcode"
+		]
+	},
+	"Icon": "Icons/ItemsGenerated/Hexcode_Pedestal_Thorium.png",
+	"Categories": [
+		"Hexcode.Pedestals"
+	],
+	"TranslationProperties": {
+		"Name": "hexcode.blocks.Hexcode_Pedestal_Thorium.name",
+		"Description": "hexcode.blocks.Hexcode_Pedestal_Thorium.description"
+	},
+	"Quality": "Uncommon",
+	"ItemSoundSetId": "ISS_Blocks_Stone",
+	"PlayerAnimationsId": "Block",
+	"Recipe": {
+		"Input": [
+			{
+				"ItemId": "Ingredient_Life_Essence_Concentrated",
+				"Quantity": 1,
+				"Metadata": {}
+			},
+			{
+				"ResourceTypeId": "Rock",
+				"Quantity": 40,
+				"Metadata": {}
+			},
+			{
+				"ItemId": "Ingredient_Bar_Gold",
+				"Quantity": 10,
+				"Metadata": {}
+			},
+			{
+				"ItemId": "Ingredient_Bar_Thorium",
+				"Quantity": 10,
+				"Metadata": {}
+			}
+		],
+		"PrimaryOutput": {
+			"Metadata": {}
+		},
+		"BenchRequirement": [
+			{
+				"Id": "Arcanebench",
+				"Categories": [
+					"Arcane_Hexcode"
+				]
+			}
+		]
+	},
+	"BlockType": {
+		"DrawType": "Model",
+		"CustomModelTexture": [
+			{
+				"Texture": "Blocks/Hexcode/Pedestals/Pedestal_Thorium.png",
+				"Weight": 1
+			}
+		],
+		"CustomModel": "Blocks/Hexcode/Pedestals/Pedestal_Thorium.blockymodel",
+		"Material": "Solid",
+		"Opacity": "Transparent",
+		"CustomModelScale": 1.2,
+		"CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Life_Idle.blockyanim",
+		"BlockParticleSetId": "Stone",
+		"VariantRotation": "NESW",
+		"Flags": {
+			"IsUsable": true
+		},
+		"Gathering": {
+			"Breaking": {
+				"GatherType": "SoftBlocks"
+			}
+		},
+		"HitboxType": "Full",
+		"BlockSoundSetId": "Stone",
+		"Looping": false,
+		"Support": {
+			"Down": [
+				{
+					"FaceType": "Full"
+				}
+			]
+		},
+		"State": {
+			"Definitions": {
+				"Idle": {
+					"CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Life_Idle.blockyanim",
+					"Light": {
+						"Color": "#446677"
+					},
+					"InteractionHint": "hexcode.blocks.pedestal.interact.idle",
+					"Looping": false
+				},
+				"Ready": {
+					"DrawType": "Model",
+					"CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Life_Ready.blockyanim",
+					"Light": {
+						"Color": "#2a2"
+					},
+					"Effect": [
+						"None"
+					],
+					"Particles": [
+						{
+							"SystemId": "Thorium_Ready"
+						}
+					],
+					"InteractionHint": "hexcode.blocks.pedestal.interact.ready",
+					"Looping": false
+				},
+				"Selecting": {
+					"CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Life_Selecting.blockyanim",
+					"Light": {
+						"Color": "#77aabb"
+					},
+					"Particles": [
+						{
+							"SystemId": "Rune_System"
+						},
+						{
+							"SystemId": "Thorium_Selecting"
+						}
+					],
+					"InteractionHint": "hexcode.blocks.pedestal.interact.selecting",
+					"Looping": true
+				},
+				"Crafting": {
+					"CustomModelAnimation": "Blocks/Hexcode/Pedestals/Animations/Pedestal_Life_Crafting.blockyanim",
+					"Light": {
+						"Color": "#99ccdd"
+					},
+					"Particles": [
+						{
+							"SystemId": "Room_Spawner"
+						},
+						{
+							"SystemId": "Glyph_Spawner"
+						},
+						{
+							"SystemId": "Thorium_Crafting"
+						}
+					],
+					"InteractionHint": "hexcode.blocks.pedestal.interact.crafting",
+					"Looping": true
+				}
+			}
+		},
+		"BlockEntity": {
+			"Components": {
+				"Hexcode_PedestalBlock": {
+					"MaxObelisks": 2,
+					"HolderReference": "Pedestal_Holder",
+					"ObeliskRange": 5,
+					"PerPlayer": false,
+					"MaxRadius": 8,
+					"AnimationSets": {
+						"Ready": {
+							"Animations": [
+								{
+									"Animation": "VFX/Animations/Pedestal_Idle.blockyanim"
+								}
+							]
+						},
+						"Idle": {
+							"Animations": [
+								{
+									"Animation": "VFX/Animations/Pedestal_Idle.blockyanim",
+									"Speed": 0.8,
+									"Looping": true
+								}
+							]
+						},
+						"Selecting": {
+							"Animations": [
+								{
+									"Animation": "VFX/Animations/Pedestal_Active.blockyanim",
+									"Speed": 0.8,
+									"Looping": true,
+									"BlendingDuration": 0.5
+								}
+							]
+						},
+						"Crafting": {
+							"Animations": [
+								{
+									"Animation": "VFX/Animations/Pedestal_Active.blockyanim",
+									"Speed": 0.8,
+									"Looping": true,
+									"BlendingDuration": 0.5
+								}
+							]
+						}
+					},
+					"DisplayOffsetVector": {
+						"Y": 1,
+						"Z": 0,
+						"X": 0
+					}
+				}
+			}
+		}
+	}
 }

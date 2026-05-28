@@ -7,6 +7,10 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 
+import org.joml.Vector3d;
+import org.joml.Vector3f;
+import org.joml.Vector3i;
+
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
@@ -19,6 +23,7 @@ import com.hypixel.hytale.server.core.ui.builder.EventData;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.world.ParticleUtil;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexes.codec.DecodeIssue;
 import com.riprod.hexcode.core.common.hexes.codec.DecodeResult;
@@ -27,6 +32,7 @@ import com.riprod.hexcode.core.common.hexes.component.HexComponent;
 import com.riprod.hexcode.core.common.hexes.utils.HexUtils;
 import com.riprod.hexcode.core.state.crafting.session.HexcodeSessionComponent;
 import com.riprod.hexcode.core.state.crafting.session.SessionUtils;
+import com.riprod.hexcode.utils.VfxUtil;
 
 public class ImportExportPage extends InteractiveCustomUIPage<ImportExportPage.PageEventData> {
 
@@ -34,8 +40,11 @@ public class ImportExportPage extends InteractiveCustomUIPage<ImportExportPage.P
 
     private String fieldValue = "";
 
-    public ImportExportPage(@Nonnull PlayerRef playerRef) {
+    private Vector3i obeliskPosition;
+
+    public ImportExportPage(@Nonnull PlayerRef playerRef, Vector3i obeliskPosition) {
         super(playerRef, CustomPageLifetime.CanDismissOrCloseThroughInteraction, PageEventData.CODEC);
+        this.obeliskPosition = obeliskPosition;
     }
 
     @Override
@@ -136,6 +145,7 @@ public class ImportExportPage extends InteractiveCustomUIPage<ImportExportPage.P
         cmd.set("#DataField.Value", encoded);
         cmd.set("#StatusLabel.Text", "Exported hex from slot " + slotKey + ".");
         sendUpdate(cmd);
+        SpawnParticleEffect(new Vector3d(obeliskPosition), store);
     }
 
     private void handleImport(Ref<EntityStore> ref, Store<EntityStore> store) {
@@ -181,6 +191,8 @@ public class ImportExportPage extends InteractiveCustomUIPage<ImportExportPage.P
             msg.append('\n').append(warnings);
         }
         updateStatus(msg.toString());
+
+        SpawnParticleEffect(new Vector3d(obeliskPosition), store);
     }
 
     private void updateStatus(String message) {
@@ -191,7 +203,8 @@ public class ImportExportPage extends InteractiveCustomUIPage<ImportExportPage.P
 
     private static List<DecodeIssue> filterNonInfo(List<DecodeIssue> issues) {
         List<DecodeIssue> out = new ArrayList<>();
-        if (issues == null) return out;
+        if (issues == null)
+            return out;
         for (DecodeIssue issue : issues) {
             if (issue.getSeverity() != DecodeIssue.Severity.INFO) {
                 out.add(issue);
@@ -201,7 +214,8 @@ public class ImportExportPage extends InteractiveCustomUIPage<ImportExportPage.P
     }
 
     private static String formatIssues(List<DecodeIssue> issues, int maxLines) {
-        if (issues == null || issues.isEmpty()) return "";
+        if (issues == null || issues.isEmpty())
+            return "";
         Set<String> seen = new LinkedHashSet<>();
         for (DecodeIssue issue : issues) {
             seen.add(truncate(issue.getMessage(), MAX_ISSUE_LINE));
@@ -209,8 +223,10 @@ public class ImportExportPage extends InteractiveCustomUIPage<ImportExportPage.P
         StringBuilder out = new StringBuilder();
         int rendered = 0;
         for (String line : seen) {
-            if (rendered >= maxLines) break;
-            if (rendered > 0) out.append('\n');
+            if (rendered >= maxLines)
+                break;
+            if (rendered > 0)
+                out.append('\n');
             out.append("• ").append(line);
             rendered++;
         }
@@ -222,9 +238,16 @@ public class ImportExportPage extends InteractiveCustomUIPage<ImportExportPage.P
     }
 
     private static String truncate(String s, int max) {
-        if (s == null) return "";
-        if (s.length() <= max) return s;
+        if (s == null)
+            return "";
+        if (s.length() <= max)
+            return s;
         return s.substring(0, Math.max(0, max - 1)) + "…";
+    }
+
+    private static void SpawnParticleEffect(Vector3d position, Store<EntityStore> store) {
+        ParticleUtil.spawnParticleEffect("ForgottenTemple_Beam", position.add(0.5, 0.5, 0.5), 0, 0, (float) Math.toRadians(-90), 1, 100,
+                store);
     }
 
     public static class PageEventData {

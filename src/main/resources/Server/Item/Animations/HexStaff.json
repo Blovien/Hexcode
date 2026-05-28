@@ -56,6 +56,11 @@
       "ThirdPerson": "Characters/Animations/HexCasting/Execution_Primary.blockyanim",
       "FirstPerson": "Characters/Animations/HexCasting/Execution_Primary_FPS.blockyanim",
       "Speed": 1
+    },
+    "HexCasting_Exit": {
+      "ThirdPerson": "Characters/Animations/Items/Off_Handed/Book/Idle.blockyanim",
+      "FirstPerson": "Characters/Animations/Items/Off_Handed/Book/Idle_FPS.blockyanim",
+      "Speed": 0.5
     }
   }
 }

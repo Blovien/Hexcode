@@ -13,7 +13,8 @@
             "Effects": {
               "ItemAnimationId": "HexCasting_Enter",
               "WorldSoundEventId": "SFX_Hexcode_Casting_Enter",
-              "ItemPlayerAnimationsId": "HexStaff"
+              "ItemPlayerAnimationsId": "HexStaff",
+                "ClearAnimationOnFinish": true
             }
           },
           {
@@ -38,7 +39,8 @@
               "Type": "Simple",
               "Effects": {
                 "ItemAnimationId": "HexCasting_Exit",
-                "WorldSoundEventId": "SFX_Hexcode_Casting_Exit"
+                "WorldSoundEventId": "SFX_Hexcode_Casting_Exit",
+                "ClearAnimationOnFinish": true
               }
             }
           },

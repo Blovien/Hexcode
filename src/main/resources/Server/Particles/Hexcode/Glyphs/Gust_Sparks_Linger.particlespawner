@@ -4,27 +4,91 @@
   "LinearFiltering": true,
   "LightInfluence": 0,
   "MaxConcurrentParticles": 15,
-  "ParticleLifeSpan": { "Min": 0.8, "Max": 1.5 },
-  "SpawnRate": { "Min": 15, "Max": 15 },
-  "SpawnBurst": true,
-  "TotalParticles": { "Min": 10, "Max": 15 },
-  "InitialVelocity": {
-    "Yaw": { "Min": 0, "Max": 360 },
-    "Pitch": { "Min": 30, "Max": 120 },
-    "Speed": { "Min": 1, "Max": 4 }
+  "ParticleLifeSpan": {
+    "Min": 0.8,
+    "Max": 1.5
   },
-  "Attractors": [{
-    "DampingMultiplier": { "X": 0.92, "Y": 0.92, "Z": 0.92 },
-    "LinearAcceleration": { "Y": -2 }
-  }],
+  "SpawnRate": {
+    "Min": 15,
+    "Max": 15
+  },
+  "SpawnBurst": true,
+  "TotalParticles": {
+    "Min": 10,
+    "Max": 15
+  },
+  "InitialVelocity": {
+    "Yaw": {
+      "Min": 0,
+      "Max": 360
+    },
+    "Pitch": {
+      "Min": 30,
+      "Max": 120
+    },
+    "Speed": {
+      "Min": 1,
+      "Max": 4
+    }
+  },
+  "Attractors": [
+    {
+      "DampingMultiplier": {
+        "X": 0.92,
+        "Y": 0.92,
+        "Z": 0.92
+      },
+      "LinearAcceleration": {
+        "Y": -2
+      }
+    }
+  ],
   "Particle": {
     "Texture": "Particles/Textures/Basic/Spark_Direction.png",
-    "FrameSize": { "Width": 32, "Height": 32 },
+    "FrameSize": {
+      "Width": 32,
+      "Height": 32
+    },
     "ScaleRatioConstraint": "None",
     "Animation": {
-      "0": { "Opacity": 1.0, "Color": "#ff66cc", "Scale": { "X": { "Min": 0.1, "Max": 0.1 }, "Y": { "Min": 0.1, "Max": 0.1 } } },
-      "20": { "Color": "#cc44ff", "Scale": { "X": { "Min": 0.08, "Max": 0.08 }, "Y": { "Min": 0.5, "Max": 0.5 } } },
-      "100": { "Opacity": 0, "Color": "#220044", "Scale": { "X": { "Min": 0.02, "Max": 0.02 }, "Y": { "Min": 0.02, "Max": 0.02 } } }
+      "0": {
+        "Opacity": 1.0,
+        "Scale": {
+          "X": {
+            "Min": 0.1,
+            "Max": 0.1
+          },
+          "Y": {
+            "Min": 0.1,
+            "Max": 0.1
+          }
+        }
+      },
+      "20": {
+        "Scale": {
+          "X": {
+            "Min": 0.08,
+            "Max": 0.08
+          },
+          "Y": {
+            "Min": 0.5,
+            "Max": 0.5
+          }
+        }
+      },
+      "100": {
+        "Opacity": 0,
+        "Scale": {
+          "X": {
+            "Min": 0.02,
+            "Max": 0.02
+          },
+          "Y": {
+            "Min": 0.02,
+            "Max": 0.02
+          }
+        }
+      }
     }
   }
 }
