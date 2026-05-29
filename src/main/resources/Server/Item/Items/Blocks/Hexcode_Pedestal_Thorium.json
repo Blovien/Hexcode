@@ -54,9 +54,6 @@
 				"Metadata": {}
 			}
 		],
-		"PrimaryOutput": {
-			"Metadata": {}
-		},
 		"BenchRequirement": [
 			{
 				"Id": "Arcanebench",
