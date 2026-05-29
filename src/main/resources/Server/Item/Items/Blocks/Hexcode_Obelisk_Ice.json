@@ -34,23 +34,19 @@
     "Input": [
       {
         "ItemId": "Ingredient_Ice_Essence_Concentrated",
-        "Quantity": 15,
-        "Metadata": {}
+        "Quantity": 15
       },
       {
         "ItemId": "Ingredient_Bar_Cobalt",
-        "Quantity": 100,
-        "Metadata": {}
+        "Quantity": 100
       },
       {
         "ItemId": "Plant_Petals_Azure",
-        "Quantity": 30,
-        "Metadata": {}
+        "Quantity": 30
       },
       {
         "ItemId": "Rock_Shale_Cobble",
-        "Quantity": 100,
-        "Metadata": {}
+        "Quantity": 100
       }
     ],
     "BenchRequirement": [
