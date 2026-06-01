@@ -9,14 +9,18 @@ import javax.annotation.Nullable;
 import org.bson.BsonValue;
 
 import com.hypixel.hytale.codec.EmptyExtraInfo;
+import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.common.hexes.codec.HexCacheResource;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.saved.SavedHexAsset;
 import com.riprod.hexcode.core.common.hexes.utils.HexUtils;
 import com.riprod.hexcode.core.common.imbuement.ImbuementMetadata;
 import com.riprod.hexcode.core.common.imbuement.asset.ImbuementProfileAsset;
+import com.riprod.hexcode.core.common.imbuement.asset.ImbuementType;
 import com.riprod.hexcode.core.common.imbuement.component.ImbuedBlockComponent;
 import com.riprod.hexcode.core.common.imbuement.component.ImbuementData;
 import com.riprod.hexcode.core.common.imbuement.registry.ImbuementProfileRegistry;
@@ -81,8 +85,13 @@ public class ImbuementUtils {
     private static ItemStack applyMetadata(ItemStack item, @Nullable Map<String, ImbuementData> slots) {
         Map<String, ImbuementData> finalMap = (slots == null || slots.isEmpty()) ? null : new HashMap<>(slots);
         ItemStack out = item.withMetadata(ImbuementMetadata.KEY, ImbuementMetadata.CODEC, finalMap);
-        BsonValue blockHolder = finalMap == null ? null : encodeBlockHolder(finalMap);
+        BsonValue blockHolder = (finalMap == null || !isBlockImbuement(item)) ? null : encodeBlockHolder(finalMap);
         return out.withMetadata(ItemStack.Metadata.BLOCK_HOLDER, blockHolder);
+    }
+
+    private static boolean isBlockImbuement(ItemStack item) {
+        ImbuementProfileAsset profile = resolveProfile(item);
+        return profile != null && profile.getType() == ImbuementType.Block;
     }
 
     private static BsonValue encodeBlockHolder(Map<String, ImbuementData> slots) {
@@ -98,12 +107,15 @@ public class ImbuementUtils {
     // hex resolution / construction helpers
 
     @Nullable
-    public static Hex resolveHex(ImbuementData data) {
-        if (data.getHex() != null) return data.getHex().clone();
+    public static Hex resolveHex(ImbuementData data, ComponentAccessor<EntityStore> accessor) {
         if (data.getHexCompressedId() != null) {
-            Hex hex = HexUtils.deserialize(data.getHexCompressedId());
-            if (hex != null) return hex.clone();
+            HexCacheResource cache = accessor.getResource(HexCacheResource.getResourceType());
+            Hex hex = cache != null
+                    ? cache.getOrDecode(data.getHexCompressedId())
+                    : HexUtils.deserialize(data.getHexCompressedId());
+            if (hex != null) return cache != null ? hex : hex.clone();
         }
+        if (data.getHex() != null) return data.getHex().clone();
         if (data.getHexAssetId() != null) {
             SavedHexAsset saved = SavedHexAsset.getAssetMap().getAsset(data.getHexAssetId());
             if (saved != null && saved.getHex() != null) return saved.getHex().clone();
@@ -113,7 +125,7 @@ public class ImbuementUtils {
 
     public static ImbuementData fromHex(Hex hex) {
         ImbuementData data = new ImbuementData();
-        data.setHex(hex);
+        data.setHexFromValue(hex);
         return data;
     }
 

@@ -8,11 +8,11 @@
     ]
   },
   "Categories": [
+    "Items.Hexcode",
     "Hexcode.Books",
     "Items.Weapons"
   ],
   "MaxStack": 1,
-  "MaxCapacity": 8,
   "Utility": {
     "Usable": true
   },
@@ -20,5 +20,6 @@
   "Interactions": {
     "Secondary": "Hexbook_Secondary"
   },
-  "Quality": "Template"
+  "Quality": "Template",
+  "SubCategory": "Books"
 }

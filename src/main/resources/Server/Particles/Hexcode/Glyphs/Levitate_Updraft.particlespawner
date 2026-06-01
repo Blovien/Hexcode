@@ -8,15 +8,10 @@
   "SpawnRate": { "Min": 6, "Max": 8 },
   "SpawnBurst": true,
   "TotalParticles": { "Min": 12, "Max": 16 },
-  "SpawnArea": {
-    "Shape": "Sphere",
-    "Radius": 0.6
-  },
   "Particle": {
     "Texture": "Particles/Textures/Basic/Glow.png",
     "FrameSize": { "Width": 32, "Height": 32 },
     "ScaleRatioConstraint": "OneToOne",
-    "Velocity": { "Y": { "Min": 5.0, "Max": 8.0 } },
     "Animation": {
       "0": { "Opacity": 0.8, "Color": "#bb88ee", "Scale": { "X": { "Min": 0.5, "Max": 0.8 }, "Y": { "Min": 0.5, "Max": 0.8 } } },
       "100": { "Opacity": 0, "Color": "#9966cc", "Scale": { "X": { "Min": 0.05, "Max": 0.1 }, "Y": { "Min": 0.05, "Max": 0.1 } } }

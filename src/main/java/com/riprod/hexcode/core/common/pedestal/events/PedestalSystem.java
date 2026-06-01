@@ -85,7 +85,7 @@ public class PedestalSystem {
             Vector3f offset = offsets.get(i++);
             String slotKey = entry.getKey();
             SlotAsset slotAsset = entry.getValue();
-            Hex hex = session.getHexAt(slotKey);
+            Hex hex = session.getHexAt(slotKey, buffer);
             Ref<EntityStore> hexRef = ContainerNodeHandler.INSTANCE.spawnContainer(buffer, hex, anchorRef,
                     anchorPos, offset, playerRef, slotAsset);
             if (hexRef != null) {

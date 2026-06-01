@@ -1,0 +1,23 @@
+{
+  "Children+": [
+    {
+      "Id": "Hexcode",
+      "Name": "server.ui.itemcategory.hexcode",
+      "Icon": "Icons/ItemCategories/Hexcode.png",
+       "SubCategories": [
+        {
+          "Id": "Staffs",
+          "Name": "server.ui.itemcategory.subcategory.staffs.name",
+          "Order": 10,
+          "Description": "server.ui.itemcategory.subcategory.staffs.description"
+        },
+        {
+          "Id": "Books",
+          "Name": "server.ui.itemcategory.subcategory.books.name",
+          "Order": 20,
+          "Description": "server.ui.itemcategory.subcategory.books.description"
+        }
+      ]
+    }
+  ]
+}

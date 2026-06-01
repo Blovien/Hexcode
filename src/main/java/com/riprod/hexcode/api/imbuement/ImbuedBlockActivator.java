@@ -68,7 +68,7 @@ public final class ImbuedBlockActivator {
             status = ActivationStatus.READY_FROM_ESSENCE;
         }
 
-        Hex hex = ImbuementUtils.resolveHex(base);
+        Hex hex = ImbuementUtils.resolveHex(base, world.getEntityStore().getStore());
         if (hex == null) {
             LOGGER.atWarning().log("[hexcode] block at %s has unresolvable hex", blockPos);
             return new ActivationOutcome(ActivationStatus.EXECUTION_FAILED, base);

@@ -5,7 +5,6 @@ import javax.annotation.Nullable;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
-import com.riprod.hexcode.core.common.hexes.codec.HexCacheResource;
 import com.riprod.hexcode.core.common.hexes.codec.HexCodec;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.saved.SavedHexAsset;
@@ -53,27 +52,14 @@ public class ImbuementData {
         return hex;
     }
 
-    public void setHex(@Nullable Hex hex) {
-        this.hex = hex;
-    }
-
     public void setHexFromValue(@Nullable Hex hex) {
-        if (hex == null) {
+        if (hex == null || hex.getGlyphs().isEmpty()) {
             this.hexCompressedId = null;
             this.hex = null;
         } else {
-            this.hexCompressedId = HexCodec.serializeImbue(hex);
+            this.hexCompressedId = HexCodec.serialize(hex);
             this.hex = null;
         }
-    }
-
-    @Nullable
-    public Hex resolveHex(HexCacheResource cache) {
-        if (hexCompressedId != null) {
-            Hex resolved = cache.getOrDecode(hexCompressedId);
-            if (resolved != null) return resolved;
-        }
-        return hex;
     }
 
     @Nullable
@@ -96,6 +82,8 @@ public class ImbuementData {
 
     public static final BuilderCodec<ImbuementData> CODEC = BuilderCodec
             .builder(ImbuementData.class, ImbuementData::new)
+            .versioned()
+            .codecVersion(1)
             .append(new KeyedCodec<>("CompressedId", Codec.STRING),
                     (c, v) -> c.hexCompressedId = v,
                     c -> c.hexCompressedId)

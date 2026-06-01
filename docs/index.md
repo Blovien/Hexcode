@@ -6,71 +6,45 @@ draft: false
 ---
 ![image](https://media.forgecdn.net/attachments/description/1448311/description_24df6807-f0ae-457a-a068-9cbaf45f3e11.png)
 
-___Hexcode is in Early Access.  Things will break, progression may not be 100%. Join [https://discord.hexcodec.com](https://discord.hexcodec.com) to report bugs, give suggestions, and shape the future of magic___ 
+_Join the discord [here](https://discord.hexcodec.com/) to report bugs, give suggestions, and shape the future of magic_
 
-"What is magic?" - It's an age-old question. Some say it's a myth; others, a legend. Some say it's our lifeblood. Others say it's divine intervention._
+- Guides for getting started: [**docs.hexcodec.com**](https://docs.hexcodec.com/)
+  
+"What is magic?" - It's an age-old question. Some say it's a myth; others, a legend. Some say it's our lifeblood. Others say it's divine intervention.
 
-_Yet still there are those who refuse to settle for soft belief. Who want to mold it, shape it, control it. Those who wish to understand not just what magic does, but how it does it._
+_Yet still there are those who refuse to settle for soft belief. Those who want to mold it, shape it, control it. Those who wish to understand not just what magic does, but how it does it._
 
 _Those people wish to understand magic._
 
-## ___**Hexcode**___
+---
 
 All of ORBIS's magic was built by the mages of old - the incredible minds whose grimoires we still read and wield today. Hexcode is simply the way they did it.
 
 Hexcode opens the door and lets you see inside. It's up to you to take the first step. The power of the universe is at your fingertips just as long as you're willing to grab it.
 
-## ![image](https://media.forgecdn.net/attachments/description/1448311/description_9792dd6a-2955-43b7-bd69-387ca672f4a3.png)___**How do you make Magic?**___
 
-Hexcode runs on one philosophy: a prepared wizard is a dangerous wizard. So, to be dangerous, you must prepare.
+So this brings the question...
+![image](https://media.forgecdn.net/attachments/description/1448311/description_d923e00e-0080-483c-a14a-6fde0ab89a41.png)
 
-Crafting spells can take time. It can be frustrating. But the moment one of your own hexes finally fires the way you imagined it? There's nothing else like it.
+Hexcode is magic in it's purest form. There are no mages before you, you ARE the one to innovate on this new form. It gives you full control, and doesn't stand in your way. It is up to you whether you use that power for good or evil.
 
-Draw your glyphs in the air and watch them materialize in front of you. Click a glyph to reveal its inputs and its "Next" node. Drag "Next" onto another glyph to link them.
+---
 
-Linked glyphs execute one after the other. This is where Hexcode's real power lives: turning a handful of individual Glyphs into a full Hex.
+![image](https://media.forgecdn.net/attachments/description/1448311/description_8354a437-148e-4824-b4c8-dbd9db80d4ee.png)
+All glyphs are drawn and discovered. No more scrolling through a menu or hunting for the right node. Everything is at your fingertips, a shape away.
 
-When you're done, your Hex saves to your book. Reopen the menu any time to edit, rewire, or rebuild.
+---
 
-To cast: put your book in your offhand and your staff in your mainhand, hold right-click to show the hexes around you, and select a Hex to set it as Active. Left-click to cast.
+![image](https://media.forgecdn.net/attachments/description/1448311/description_dde4c714-1d5b-4908-9dca-3dbbbe5ea5ee.png)
 
-# ![image](https://media.forgecdn.net/attachments/description/1448311/description_b587eb55-ca1e-4a94-9c24-d7b6981f3a64.png) ___**Getting Started**___
+Hexcode grows as you do. You'll never feel out of your depths as you progressively discover more and more possibilities.
 
-To get going, you'll need three things, all crafted at the Magician's Table:
+---
+![image](https://media.forgecdn.net/attachments/description/1448311/description_b6686089-69c9-4244-ac38-b235c9feaaa2.png)
 
-*   a Hexstaff
-*   a Hexbook
-*   a Pedestal
+Fully asset-driven and expandable. Nothing in hexcode is hardcoded. You can customize, tweak, and change any aspect of hexcode to your liking. Whether you are a server owner or mod developer, Hexcode will adapt to however you wish. 
 
-### The Pedestal
-
-The Pedestal is where your Hexbook becomes more than ink. Place it down, drop your book on top, and the pedestal will read every Hex you've written and project them into the air as floating glyphs orbiting the stone.
-
-Walk around the ring. Pick the Hex you want to bring to life. That Hex becomes your **Active Hex**, the one your staff will cast when you left-click.
-
-### The Hexstaff
-
-Your staff is your focus. It is the wand, the catalyst, the lens through which raw intent becomes a shaped spell.
-
-Different staffs carry different budgets: how much **Mana** they can spend in a cast, how much **Stability** they can safely contain before the spell starts to unravel, and how efficiently they turn thought into force. A Crude staff is a starter tool. An Onyxium staff is a masterwork. Every tier in between is a new ceiling to push against.
-
-### The Hexbook
-
-The book is your library. Every Hex you've ever drawn lives inside it, editable, rebindable, and ready. Carry a book full of utility Hexes for exploration, or a book full of combat Hexes for a fight. Swap books the way a warrior swaps weapons.
-
-### Glyph Tiers
-
-Not every glyph is available from the start. Glyphs are organized into three tiers plus a Utility tier, and each one comes with its own **stability cost**:
-
-\> **Utility** - Cheap foundational glyphs. Numbers, variables, self-reference.
-
-\> **Tier 1** - The fundamentals
-
-\> **Tier 2** - The who
-
-\> **Tier 3** - The what
-
-Higher-tier glyphs do more, but they cost more stability. Stuff a low-tier staff with Tier 3 glyphs and the spell will misfire, fizzle, or backfire. Balancing your stability budget against your ambitions is the heart of the craft.
+---
 
 # ![image](https://media.forgecdn.net/attachments/description/1448311/description_d8617dfc-82ba-44b4-ba5a-7d1726edd070.png) **_A Language, Not a Menu_**
 

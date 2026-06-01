@@ -4,10 +4,6 @@
     "Name": "hexcode.items.Hex_Book.name",
     "Description": "hexcode.items.Hex_Book.description"
   },
-  "Categories": [
-    "Hexcode.Books",
-    "Items.Weapons"
-  ],
   "Quality": "Rare",
   "ItemLevel": 30,
   "Model": "Items/Tools/Book/Hex_Book.blockymodel",

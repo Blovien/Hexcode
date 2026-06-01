@@ -78,7 +78,6 @@ public class PedestalPlaceEvent extends RefSystem<ChunkStore> {
             if (ped != null) {
                 ped.setAnchorRef(anchorRef);
             }
-            LOGGER.atInfo().log("pedestal holder spawned at %s", blockPos);
         });
     }
 

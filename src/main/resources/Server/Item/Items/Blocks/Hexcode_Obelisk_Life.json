@@ -1,13 +1,10 @@
 {
+  "Parent": "Hexcode_Obelisk_Template",
   "TranslationProperties": {
     "Name": "hexcode.blocks.Hexcode_Obelisk_Life.name",
     "Description": "hexcode.blocks.Hexcode_Obelisk_Life.description"
   },
   "Icon": "Icons/ItemsGenerated/Hexcode_Obelisk_Life.png",
-  "Categories": [
-    "Hexcode.Obelisks"
-  ],
-  "PlayerAnimationsId": "Block",
   "BlockType": {
     "DrawType": "Model",
     "Material": "Solid",
@@ -97,13 +94,6 @@
         }
       }
     },
-    "Support": {
-      "Down": [
-        {
-          "FaceType": "Full"
-        }
-      ]
-    },
     "Supporting": {
       "Down": [
         {}
@@ -115,15 +105,6 @@
     "VariantRotation": "NESW",
     "CustomModelScale": 1.3
   },
-  "Tags": {
-    "Type": [
-      "Deco"
-    ],
-    "Family": [
-      "Hexcode"
-    ]
-  },
-  "ItemSoundSetId": "ISS_Blocks_Stone",
   "IconProperties": {
     "Scale": 0.4,
     "Rotation": [

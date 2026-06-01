@@ -17,6 +17,7 @@ import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.common.hexes.codec.HexFieldCodec;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 
 public class HexcasterIdleComponent implements Component<EntityStore> {
@@ -25,7 +26,7 @@ public class HexcasterIdleComponent implements Component<EntityStore> {
 
     public static final BuilderCodec<HexcasterIdleComponent> CODEC = BuilderCodec
             .builder(HexcasterIdleComponent.class, HexcasterIdleComponent::new)
-            .append(new KeyedCodec<>("Hex", Hex.CODEC),
+            .append(new KeyedCodec<>("Hex", HexFieldCodec.PLAYER),
                     (c, v) -> c.hex = v,
                     c -> c.hex)
             .add()

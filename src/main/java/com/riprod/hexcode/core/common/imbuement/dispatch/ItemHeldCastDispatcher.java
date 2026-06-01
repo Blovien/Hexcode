@@ -40,7 +40,7 @@ public final class ItemHeldCastDispatcher implements CastRootDispatcher {
 
         ImbuementData data = ImbuementUtils.read(heldItem, trigger.getId());
         if (data == null) return;
-        Hex hex = ImbuementUtils.resolveHex(data);
+        Hex hex = ImbuementUtils.resolveHex(data, buffer);
         if (hex == null) return;
 
         PlayerHexRoot hexRoot = new PlayerHexRoot(player, buffer);

@@ -12,25 +12,12 @@
 		]
 	},
 	"Parent": "Hexcode_Pedestal_Template",
-	"Tags": {
-		"Type": [
-			"Deco"
-		],
-		"Family": [
-			"Hexcode"
-		]
-	},
 	"Icon": "Icons/ItemsGenerated/Hexcode_Pedestal_Thorium.png",
-	"Categories": [
-		"Hexcode.Pedestals"
-	],
 	"TranslationProperties": {
 		"Name": "hexcode.blocks.Hexcode_Pedestal_Thorium.name",
 		"Description": "hexcode.blocks.Hexcode_Pedestal_Thorium.description"
 	},
 	"Quality": "Uncommon",
-	"ItemSoundSetId": "ISS_Blocks_Stone",
-	"PlayerAnimationsId": "Block",
 	"Recipe": {
 		"Input": [
 			{
@@ -92,13 +79,6 @@
 		"HitboxType": "Full",
 		"BlockSoundSetId": "Stone",
 		"Looping": false,
-		"Support": {
-			"Down": [
-				{
-					"FaceType": "Full"
-				}
-			]
-		},
 		"State": {
 			"Definitions": {
 				"Idle": {

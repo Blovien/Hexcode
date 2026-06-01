@@ -4,10 +4,6 @@
     "Name": "hexcode.items.Fire_Hexbook.name",
     "Description": "hexcode.items.Fire_Hexbook.description"
   },
-  "Categories": [
-    "Hexcode.Books",
-    "Items.Weapons"
-  ],
   "Icon": "Icons/ItemsGenerated/Fire_Hexbook.png",
   "Quality": "Epic",
   "ItemLevel": 40,

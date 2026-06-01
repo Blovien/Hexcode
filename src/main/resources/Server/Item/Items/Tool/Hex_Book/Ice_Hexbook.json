@@ -4,10 +4,6 @@
     "Name": "hexcode.items.Ice_Hexbook.name",
     "Description": "hexcode.items.Ice_Hexbook.description"
   },
-  "Categories": [
-    "Hexcode.Books",
-    "Items.Weapons"
-  ],
   "Icon": "Icons/ItemsGenerated/Ice_Hexbook.png",
   "Quality": "Epic",
   "ItemLevel": 40,

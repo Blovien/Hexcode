@@ -1,4 +1,5 @@
 {
+  "Parent": "Hexcode_Obelisk_Template",
   "IconProperties": {
     "Scale": 0.5,
     "Rotation": [
@@ -11,25 +12,12 @@
       -26
     ]
   },
-  "Tags": {
-    "Type": [
-      "Deco"
-    ],
-    "Family": [
-      "Hexcode"
-    ]
-  },
   "Icon": "Icons/ItemsGenerated/Hexcode_Obelisk_Ice.png",
-  "Categories": [
-    "Hexcode.Obelisks"
-  ],
   "TranslationProperties": {
     "Name": "hexcode.blocks.Hexcode_Obelisk_Ice.name",
     "Description": "hexcode.blocks.Hexcode_Obelisk_Ice.description"
   },
   "Quality": "Epic",
-  "ItemSoundSetId": "ISS_Blocks_Stone",
-  "PlayerAnimationsId": "Block",
   "Recipe": {
     "Input": [
       {
@@ -83,13 +71,6 @@
     },
     "HitboxType": "Full",
     "BlockSoundSetId": "Stone",
-    "Support": {
-      "Down": [
-        {
-          "FaceType": "Full"
-        }
-      ]
-    },
     "Supporting": {
       "Down": [
         {}

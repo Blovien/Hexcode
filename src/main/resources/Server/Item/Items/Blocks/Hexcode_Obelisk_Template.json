@@ -5,8 +5,10 @@
   },
   "Icon": "Icons/ItemsGenerated/Hexcode_Obelisk.png",
   "Categories": [
-    "Hexcode.Obelisks"
+    "Hexcode.Obelisks",
+    "Blocks.Hexcode"
   ],
+  "SubCategory": "Obelisks",
   "PlayerAnimationsId": "Block",
   "BlockType": {
     "DrawType": "Model",
@@ -82,13 +84,6 @@
           "CustomModel": "Blocks/Hexcode/Obelisks/Obelisk.blockymodel"
         }
       }
-    },
-    "Support": {
-      "Down": [
-        {
-          "FaceType": "Full"
-        }
-      ]
     },
     "Supporting": {
       "Down": [

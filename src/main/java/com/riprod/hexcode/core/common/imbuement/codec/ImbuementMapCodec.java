@@ -69,9 +69,6 @@ public final class ImbuementMapCodec implements Codec<Map<String, ImbuementData>
     private static boolean looksLikeLegacy(BsonDocument doc) {
         if (doc.isEmpty()) return false;
         Set<String> fields = codecFieldNames();
-        // slot-shape guard: if any value is a sub-document carrying an ImbuementData
-        // field, treat the outer doc as a slot map even if a slot key happens to
-        // collide with a field name
         for (BsonValue value : doc.values()) {
             if (value != null && value.isDocument()) {
                 BsonDocument nested = value.asDocument();
