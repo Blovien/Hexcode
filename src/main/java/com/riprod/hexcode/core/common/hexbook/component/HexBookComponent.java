@@ -33,9 +33,6 @@ public class HexBookComponent implements Component<EntityStore> {
                             c.hexes = new ArrayList<>();
                         }
                     },
-                    // empty / null hexes (unfilled or scrubbed pages) are dropped
-                    // on save — the codec only persists pages with content. page
-                    // ordering compacts as a side-effect.
                     c -> c.hexes.stream()
                             .filter(h -> h != null && !h.getGlyphs().isEmpty())
                             .toArray(Hex[]::new))

@@ -4,10 +4,6 @@
     "Name": "hexcode.items.Life_Hexbook.name",
     "Description": "hexcode.items.Life_Hexbook.description"
   },
-  "Categories": [
-    "Hexcode.Books",
-    "Items.Weapons"
-  ],
   "Icon": "Icons/ItemsGenerated/Life_Hexbook.png",
   "Quality": "Epic",
   "ItemLevel": 40,

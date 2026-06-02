@@ -5,8 +5,10 @@
   },
   "Icon": "Icons/ItemsGenerated/Hexcode_Pedestal_Template.png",
   "Categories": [
-    "Hexcode.Pedestals"
+    "Hexcode.Pedestals",
+    "Blocks.Hexcode"
   ],
+  "SubCategory": "Pedestals",
   "PlayerAnimationsId": "Block",
   "BlockType": {
     "DrawType": "Model",
@@ -119,13 +121,6 @@
       "Breaking": {
         "GatherType": "SoftBlocks"
       }
-    },
-    "Support": {
-      "Down": [
-        {
-          "FaceType": "Full"
-        }
-      ]
     },
     "CustomModelScale": 0.6,
     "VariantRotation": "NESW"

@@ -4,10 +4,6 @@
     "Name": "hexcode.items.Void_Hexbook.name",
     "Description": "hexcode.items.Void_Hexbook.description"
   },
-  "Categories": [
-    "Hexcode.Books",
-    "Items.Weapons"
-  ],
   "Icon": "Icons/ItemsGenerated/Void_Hexbook.png",
   "Quality": "Epic",
   "ItemLevel": 40,

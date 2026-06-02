@@ -35,6 +35,7 @@
     "RenderDualWielded": false
   },
   "Categories": [
+    "Items.Hexcode",
     "Items.Weapons",
     "Hexcode.Staves"
   ],
@@ -42,5 +43,6 @@
   "MaxStack": 1,
   "DisplayEntityStatsHUD": [
     "SignatureEnergy"
-  ]
+  ],
+  "SubCategory": "Staffs"
 }

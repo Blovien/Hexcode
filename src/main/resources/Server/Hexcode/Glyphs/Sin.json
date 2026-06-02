@@ -28,14 +28,6 @@
       "Description": "hexcode.glyphs.Sin.Next.description"
     }
   },
-  "VolatilityEscalation": {
-    "InstantCost": 0.25,
-    "DrainPerSecond": 0,
-    "RepeatEscalation": {
-      "Base": 1.0,
-      "K": 5.0
-    }
-  },
   "Volatility": {
     "InstantCost": 0.1,
     "DrainPerSecond": 0.0,

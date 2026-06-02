@@ -38,6 +38,7 @@ public class ImbuementProfileAsset
 
     protected AssetExtraInfo.Data data;
     protected String id;
+    protected ImbuementType type = ImbuementType.Item;
     protected String categoryId = "";
     @Nullable
     protected ItemArmorSlot armorSlot;
@@ -66,6 +67,10 @@ public class ImbuementProfileAsset
     @Override
     public String getId() {
         return this.id;
+    }
+
+    public ImbuementType getType() {
+        return type;
     }
 
     public String getCategoryId() {
@@ -115,6 +120,10 @@ public class ImbuementProfileAsset
                         asset -> asset.id,
                         (asset, data) -> asset.data = data,
                         asset -> asset.data)
+                .append(new KeyedCodec<>("Type", new EnumCodec<>(ImbuementType.class)),
+                        (a, v) -> { if (v != null) a.type = v; },
+                        a -> a.type)
+                .add()
                 .append(new KeyedCodec<>("CategoryId", Codec.STRING),
                         (a, v) -> { if (v != null) a.categoryId = v; },
                         a -> a.categoryId)

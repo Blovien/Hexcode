@@ -1,3 +1,16 @@
 items.Example_Block.name=Example Block
 
 memories.categories.Hexcode.title=Hexcode
+
+ui.itemcategory.hexcode=Hexcode
+
+ui.itemcategory.subcategory.pedestals.name=Pedestals
+ui.itemcategory.subcategory.pedestals.description=Placed and used for Hexcrafting
+ui.itemcategory.subcategory.obelisks.name=Obelisks
+ui.itemcategory.subcategory.obelisks.description=Used to enhance pedestals
+
+ui.itemcategory.subcategory.staffs.name=Hex Staffs
+ui.itemcategory.subcategory.staffs.description=Used to channel hex energy
+
+ui.itemcategory.subcategory.books.name=Hex Books
+ui.itemcategory.subcategory.books.description=Used to store hexes across casts

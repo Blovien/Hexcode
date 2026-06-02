@@ -122,7 +122,7 @@ public class ImportExportPage extends InteractiveCustomUIPage<ImportExportPage.P
             }
         }
         if (hex == null || hex.getGlyphs().isEmpty()) {
-            hex = session.getHexAt(slotKey);
+            hex = session.getHexAt(slotKey, store);
         }
         if (hex == null || hex.getGlyphs().isEmpty()) {
             updateStatus("Slot " + slotKey + " is empty — nothing to export.");

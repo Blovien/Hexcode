@@ -15,6 +15,7 @@ import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.codec.codecs.EnumCodec;
 import com.hypixel.hytale.component.Component;
+import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.vector.Vector3iUtil;
@@ -190,10 +191,10 @@ public class HexcodeSessionComponent implements Component<EntityStore> {
     }
 
     @Nullable
-    public Hex getHexAt(String slotKey) {
+    public Hex getHexAt(String slotKey, ComponentAccessor<EntityStore> accessor) {
         if (slotKey == null) return null;
         ImbuementData data = ImbuementUtils.read(storedItem, slotKey);
-        return data != null ? ImbuementUtils.resolveHex(data) : null;
+        return data != null ? ImbuementUtils.resolveHex(data, accessor) : null;
     }
 
     public int getSlotCount() {

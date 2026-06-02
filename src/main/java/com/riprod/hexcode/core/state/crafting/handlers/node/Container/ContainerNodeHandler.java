@@ -200,7 +200,7 @@ public class ContainerNodeHandler extends BaseContainerHandler {
         session.setActiveSlotKey(slotKey);
 
         HexComponent hexComp = accessor.getComponent(node, HexComponent.getComponentType());
-        Hex storedHex = session.getHexAt(slotKey);
+        Hex storedHex = session.getHexAt(slotKey, accessor);
 
         if (hexComp != null) {
             Map<String, Ref<EntityStore>> oldChildren = hexComp.getChildGlyphRefs();

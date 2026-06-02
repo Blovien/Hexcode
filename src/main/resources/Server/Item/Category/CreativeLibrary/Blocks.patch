@@ -1,0 +1,23 @@
+{
+  "Children+": [
+    {
+      "Id": "Hexcode",
+      "Name": "server.ui.itemcategory.hexcode",
+      "Icon": "Icons/ItemCategories/Hexcode.png",
+      "SubCategories": [
+        {
+          "Id": "Pedestals",
+          "Name": "server.ui.itemcategory.subcategory.pedestals.name",
+          "Order": 10,
+          "Description": "server.ui.itemcategory.subcategory.pedestals.description"
+        },
+        {
+          "Id": "Obelisks",
+          "Name": "server.ui.itemcategory.subcategory.obelisks.name",
+          "Order": 20,
+          "Description": "server.ui.itemcategory.subcategory.obelisks.description"
+        }
+      ]
+    }
+  ]
+}

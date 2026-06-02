@@ -30,14 +30,6 @@
       "Description": "hexcode.glyphs.Power.Next.description"
     }
   },
-  "VolatilityEscalation": {
-    "InstantCost": 0.5,
-    "DrainPerSecond": 0,
-    "RepeatEscalation": {
-      "Base": 1.0,
-      "K": 5.0
-    }
-  },
   "Volatility": {
     "InstantCost": 0.1,
     "DrainPerSecond": 0.0,

@@ -5,8 +5,8 @@ import javax.annotation.Nullable;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
-import com.riprod.hexcode.core.common.hexes.codec.HexCacheResource;
 import com.riprod.hexcode.core.common.hexes.codec.HexCodec;
+import com.riprod.hexcode.core.common.hexes.codec.HexCodecException;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.saved.SavedHexAsset;
 import com.riprod.hexcode.core.state.execution.component.HexContext;
@@ -53,27 +53,19 @@ public class ImbuementData {
         return hex;
     }
 
-    public void setHex(@Nullable Hex hex) {
-        this.hex = hex;
-    }
-
     public void setHexFromValue(@Nullable Hex hex) {
-        if (hex == null) {
-            this.hexCompressedId = null;
-            this.hex = null;
-        } else {
-            this.hexCompressedId = HexCodec.serializeImbue(hex);
-            this.hex = null;
-        }
+        this.hexCompressedId = encodeOrNull(hex);
+        this.hex = null;
     }
 
     @Nullable
-    public Hex resolveHex(HexCacheResource cache) {
-        if (hexCompressedId != null) {
-            Hex resolved = cache.getOrDecode(hexCompressedId);
-            if (resolved != null) return resolved;
+    private static String encodeOrNull(@Nullable Hex hex) {
+        if (hex == null || hex.getGlyphs().isEmpty()) return null;
+        try {
+            return HexCodec.serialize(hex);
+        } catch (HexCodecException e) {
+            return null;
         }
-        return hex;
     }
 
     @Nullable
@@ -96,13 +88,15 @@ public class ImbuementData {
 
     public static final BuilderCodec<ImbuementData> CODEC = BuilderCodec
             .builder(ImbuementData.class, ImbuementData::new)
+            .versioned()
+            .codecVersion(1)
             .append(new KeyedCodec<>("CompressedId", Codec.STRING),
                     (c, v) -> c.hexCompressedId = v,
-                    c -> c.hexCompressedId)
+                    c -> c.hexCompressedId != null ? c.hexCompressedId : encodeOrNull(c.hex))
             .add()
             .append(new KeyedCodec<>("Hex", Hex.CODEC),
                     (c, v) -> c.hex = v,
-                    c -> c.hex)
+                    c -> c.hexCompressedId == null && encodeOrNull(c.hex) == null ? c.hex : null)
             .add()
             .append(new KeyedCodec<>("AssetId", Codec.STRING),
                     (c, v) -> c.hexAssetId = v,

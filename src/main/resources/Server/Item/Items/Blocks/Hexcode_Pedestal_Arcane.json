@@ -5,10 +5,6 @@
     "Description": "hexcode.blocks.Hexcode_Pedestal_Arcane.description"
   },
   "Icon": "Icons/ItemsGenerated/Hexcode_Pedestal_Arcane.png",
-  "Categories": [
-    "Hexcode.Pedestals"
-  ],
-  "PlayerAnimationsId": "Block",
   "BlockType": {
     "DrawType": "Model",
     "Material": "Solid",
@@ -153,25 +149,9 @@
         "GatherType": "SoftBlocks"
       }
     },
-    "Support": {
-      "Down": [
-        {
-          "FaceType": "Full"
-        }
-      ]
-    },
     "VariantRotation": "NESW",
     "CustomModelScale": 1
   },
-  "Tags": {
-    "Type": [
-      "Deco"
-    ],
-    "Family": [
-      "Hexcode"
-    ]
-  },
-  "ItemSoundSetId": "ISS_Blocks_Stone",
   "IconProperties": {
     "Scale": 0.6,
     "Rotation": [

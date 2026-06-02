@@ -12,25 +12,12 @@
     ]
   },
   "Parent": "Hexcode_Pedestal_Template",
-  "Tags": {
-    "Type": [
-      "Deco"
-    ],
-    "Family": [
-      "Hexcode"
-    ]
-  },
   "Icon": "Icons/ItemsGenerated/Hexcode_Pedestal_Void.png",
-  "Categories": [
-    "Hexcode.Pedestals"
-  ],
   "TranslationProperties": {
     "Name": "hexcode.blocks.Hexcode_Pedestal_Void.name",
     "Description": "hexcode.blocks.Hexcode_Pedestal_Void.description"
   },
   "Quality": "Epic",
-  "ItemSoundSetId": "ISS_Blocks_Stone",
-  "PlayerAnimationsId": "Block",
   "Recipe": {
     "Input": [
       {
@@ -83,13 +70,6 @@
     },
     "HitboxType": "Full",
     "BlockSoundSetId": "Stone",
-    "Support": {
-      "Down": [
-        {
-          "FaceType": "Full"
-        }
-      ]
-    },
     "State": {
       "Definitions": {
         "Idle": {

@@ -1,4 +1,5 @@
 {
+  "Parent": "Hexcode_Obelisk_Template",
   "IconProperties": {
     "Scale": 0.58823,
     "Rotation": [
@@ -11,25 +12,12 @@
       -28
     ]
   },
-  "Tags": {
-    "Type": [
-      "Deco"
-    ],
-    "Family": [
-      "Hexcode"
-    ]
-  },
   "Icon": "Icons/ItemsGenerated/Hexcode_Obelisk_Void.png",
-  "Categories": [
-    "Hexcode.Obelisks"
-  ],
   "TranslationProperties": {
     "Name": "hexcode.blocks.Hexcode_Obelisk_Void.name",
     "Description": "hexcode.blocks.Hexcode_Obelisk_Void.description"
   },
   "Quality": "Legendary",
-  "ItemSoundSetId": "ISS_Blocks_Stone",
-  "PlayerAnimationsId": "Block",
   "Recipe": {
     "Input": [
       {
@@ -89,13 +77,6 @@
       }
     },
     "BlockSoundSetId": "Stone",
-    "Support": {
-      "Down": [
-        {
-          "FaceType": "Full"
-        }
-      ]
-    },
     "Supporting": {
       "Down": [
         {}

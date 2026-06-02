@@ -176,7 +176,7 @@ public class CasterInventory {
         entries.sort(Comparator.comparing(Map.Entry::getKey, slotKeyComparator()));
         List<Hex> hexes = new ArrayList<>(entries.size());
         for (Map.Entry<String, ImbuementData> e : entries) {
-            Hex h = ImbuementUtils.resolveHex(e.getValue());
+            Hex h = ImbuementUtils.resolveHex(e.getValue(), store);
             if (h != null) hexes.add(h);
         }
         return hexes;

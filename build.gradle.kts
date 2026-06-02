@@ -1,12 +1,12 @@
 plugins {
     `maven-publish`
     id("hytale-mod") version "0.+"
-    id("com.gradleup.shadow") version "8.3.5"
+    id("com.gradleup.shadow") version "9.4.2"
 }
 
 
 group = "com.riprod"
-version = "0.8.4-Beta-5.2"
+version = "0.8.5-Beta-5.2"
 val javaVersion = 25
 
 repositories {
@@ -33,6 +33,7 @@ tasks.shadowJar {
     archiveClassifier.set("")
     mergeServiceFiles()
     configurations = listOf(shaded)
+    relocate("com.riprod.patchly", "com.riprod.hexcode.shaded.patchly")
 }
 
 tasks.jar {

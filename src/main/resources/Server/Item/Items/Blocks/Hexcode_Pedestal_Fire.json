@@ -5,10 +5,6 @@
     "Description": "hexcode.blocks.Hexcode_Pedestal_Fire.description"
   },
   "Icon": "Icons/ItemsGenerated/Hexcode_Pedestal_Fire.png",
-  "Categories": [
-    "Hexcode.Pedestals"
-  ],
-  "PlayerAnimationsId": "Block",
   "BlockType": {
     "DrawType": "Model",
     "Material": "Solid",
@@ -146,23 +142,8 @@
         "GatherType": "SoftBlocks"
       }
     },
-    "Support": {
-      "Down": [
-        {
-          "FaceType": "Full"
-        }
-      ]
-    },
     "CustomModelScale": 1,
     "VariantRotation": "NESW"
-  },
-  "Tags": {
-    "Type": [
-      "Deco"
-    ],
-    "Family": [
-      "Hexcode"
-    ]
   },
   "ItemSoundSetId": "ISS_Blocks_Stone",
   "IconProperties": {

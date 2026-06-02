@@ -53,7 +53,7 @@ public final class ItemEquippedArmorCastDispatcher implements CastRootDispatcher
 
             ImbuementData data = ImbuementUtils.read(stack, trigger.getId());
             if (data == null) continue;
-            Hex hex = ImbuementUtils.resolveHex(data);
+            Hex hex = ImbuementUtils.resolveHex(data, buffer);
             if (hex == null) continue;
 
             fireOne(trigger, event, buffer, player, stack, hex, data, profile);
