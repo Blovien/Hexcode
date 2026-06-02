@@ -21,28 +21,21 @@
   "Recipe": {
     "Input": [
       {
-        "ItemId": "Ingredient_Void_Essence_Concentrated",
-        "Metadata": {}
+        "ItemId": "Ingredient_Void_Essence_Concentrated"
       },
       {
         "ItemId": "Rock_Crystal_Purple_Block",
-        "Quantity": 25,
-        "Metadata": {}
+        "Quantity": 25
       },
       {
         "ItemId": "Ingredient_Bar_Silver",
-        "Quantity": 10,
-        "Metadata": {}
+        "Quantity": 10
       },
       {
         "ItemId": "Ingredient_Voidheart",
-        "Quantity": 25,
-        "Metadata": {}
+        "Quantity": 25
       }
     ],
-    "PrimaryOutput": {
-      "Metadata": {}
-    },
     "BenchRequirement": [
       {
         "Id": "Arcanebench",

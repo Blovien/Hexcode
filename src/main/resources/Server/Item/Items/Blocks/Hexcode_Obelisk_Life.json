@@ -133,7 +133,6 @@
       },
       {
         "ItemId": "Ingredient_Bar_Cobalt",
-        "ResourceTypeId": "",
         "Quantity": 20
       },
       {
@@ -141,7 +140,6 @@
         "Quantity": 30
       },
       {
-        "ItemId": "",
         "Quantity": 100,
         "ResourceTypeId": "Rock"
       }
