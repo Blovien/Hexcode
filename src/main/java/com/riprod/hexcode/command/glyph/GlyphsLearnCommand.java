@@ -66,12 +66,10 @@ public class GlyphsLearnCommand extends AbstractPlayerCommand {
         Glyph glyph = new Glyph(asset, accuracy, speed);
         Hex hex = new Hex(glyph);
 
-        boolean ok = CasterInventory.withHexBook(store, playerEntityRef, HexSlot.Both, book -> {
-            book.addHex(hex);
-        });
+        boolean ok = CasterInventory.addHexToBook(store, playerEntityRef, HexSlot.Both, hex);
 
         if (!ok) {
-            playerRef.sendMessage(Message.raw("No hexbook found in hand"));
+            playerRef.sendMessage(Message.raw("No hexbook found in hand, or it is full"));
             return;
         }
 

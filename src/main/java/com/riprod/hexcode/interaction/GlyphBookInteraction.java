@@ -11,11 +11,12 @@ import com.hypixel.hytale.server.core.entity.InteractionContext;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHandler;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.SimpleInteraction;
+import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.core.common.hexbook.GlyphBookPage;
-import com.riprod.hexcode.core.common.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.common.hexcaster.utils.CasterInventory;
+import com.riprod.hexcode.core.common.hexcaster.utils.PlayerUtils;
 import com.riprod.hexcode.utils.HexSlot;
 import io.sentry.util.Pair;
 
@@ -50,15 +51,14 @@ public class GlyphBookInteraction extends SimpleInteraction {
             return;
         }
 
-        Pair<HexSlot, HexBookComponent> bookResult =
-                CasterInventory.getHexBookComponent(store, playerRef, HexSlot.OffHand);
-        if (bookResult == null) {
+        Pair<ItemStack, HexSlot> bookPair = PlayerUtils.getItemFromInventory(store, playerRef, HexSlot.OffHand, true);
+        if (bookPair == null || CasterInventory.getHexBookAsset(bookPair.getFirst()) == null) {
             ctx.getState().state = InteractionState.Failed;
             return;
         }
 
         PlayerRef pRef = store.getComponent(playerRef, PlayerRef.getComponentType());
-        GlyphBookPage page = new GlyphBookPage(pRef, bookResult.getFirst());
+        GlyphBookPage page = new GlyphBookPage(pRef, bookPair.getSecond());
         player.getPageManager().openCustomPage(playerRef, store, page);
 
         ctx.getState().state = InteractionState.Finished;

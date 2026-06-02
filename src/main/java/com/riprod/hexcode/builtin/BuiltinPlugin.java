@@ -248,6 +248,7 @@ public class BuiltinPlugin extends JavaPlugin {
         CastingStyleRegistry.register(new ArcStyle());
         CastingStyleRegistry.register(new RingStyle());
         CastingStyleRegistry.register(new SphereStyle());
+        CastingStyleRegistry.setDefault(RingStyle.ID);
     }
 
     private void RegisterInteractions() {

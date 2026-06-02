@@ -84,7 +84,6 @@ public class CastingSystem extends HexcodeManager {
         castingComp.setStrokeStartMillis(0L);
 
         HexStaffComponent staff = CasterInventory.getHexStaffComponent(buffer, ref);
-        HexBookComponent book = CasterInventory.getHexBookComponent(buffer, ref);
 
         if (staff == null) {
             LOGGER.atSevere().log("Player is missing required HexStaffComponent to enter casting mode");
