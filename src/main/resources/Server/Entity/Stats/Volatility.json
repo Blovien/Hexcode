@@ -5,14 +5,12 @@
   "ResetType": "MaxValue",
   "Regenerating": [
     {
-      "$Comment": "Mana regeneration for players - very slow, forces drain usage in combat",
-      "Interval": 10,
+      "Interval": 0.5,
       "Amount": 100,
       "RegenType": "Percentage",
       "Conditions": [
         {
-          "Id": "Alive",
-          "Inverse": false
+          "Id": "Alive"
         },
         {
           "Id": "IsPlayer"

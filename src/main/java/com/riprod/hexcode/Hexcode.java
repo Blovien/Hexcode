@@ -137,21 +137,21 @@ public class Hexcode extends JavaPlugin {
 
     public Hexcode(JavaPluginInit init) {
         super(init);
+        patchManager = new PatchManager(this); // setup patchly
         LOGGER.atInfo().log("Hexcode spell-crafting mod v%s initializing...",
                 this.getManifest().getVersion().toString());
 
         builtinPlugin = new BuiltinPlugin(init);
-        patchManager = new PatchManager(this.getManifest());
     }
 
     @Override
     public java.util.concurrent.CompletableFuture<Void> preLoad() {
-        patchManager.preLoad();
         return super.preLoad();
     }
 
     @Override
     protected void setup() {
+        patchManager.install(); // init patchly
         this.registerAssets();
 
         this.registerEntityComponents();
@@ -169,14 +169,16 @@ public class Hexcode extends JavaPlugin {
     private void registerAssets() {
         AssetRegistry.register(
                 HytaleAssetStore
-                        .builder(SlotStyleAsset.class, new DefaultAssetMap<String, SlotStyleAsset>())
+                        .builder(SlotStyleAsset.class,
+                                new DefaultAssetMap<String, SlotStyleAsset>())
                         .setPath("Hexcode/SlotStyles")
                         .setCodec(SlotStyleAsset.CODEC)
                         .setKeyFunction(SlotStyleAsset::getId)
                         .build());
         AssetRegistry.register(
                 HytaleAssetStore
-                        .builder(HexStyleAsset.class, new DefaultAssetMap<String, HexStyleAsset>())
+                        .builder(HexStyleAsset.class,
+                                new DefaultAssetMap<String, HexStyleAsset>())
                         .setPath("Hexcode/HexStyles")
                         .setCodec(HexStyleAsset.CODEC)
                         .setKeyFunction(HexStyleAsset::getId)
@@ -370,8 +372,9 @@ public class Hexcode extends JavaPlugin {
                 HexCacheResource.class, HexCacheResource::new);
         HexCacheResource.setResourceType(resourceType);
 
-        ResourceType<EntityStore, TriggerListenerRegistry> triggerRegistryType = entityStoreRegistry.registerResource(
-                TriggerListenerRegistry.class, TriggerListenerRegistry::new);
+        ResourceType<EntityStore, TriggerListenerRegistry> triggerRegistryType = entityStoreRegistry
+                .registerResource(
+                        TriggerListenerRegistry.class, TriggerListenerRegistry::new);
         TriggerListenerRegistry.setResourceType(triggerRegistryType);
 
     }
@@ -480,12 +483,14 @@ public class Hexcode extends JavaPlugin {
         });
         this.getEventRegistry().register(AssetPackRegisterEvent.class, e -> {
             String name = e.getAssetPack().getName();
-            if (PatchManager.isSyntheticOverridePack(name)) return;
+            if (PatchManager.isSyntheticOverridePack(name))
+                return;
             patchManager.rebuildAndApply("packRegister:" + name);
         });
         this.getEventRegistry().register(AssetPackUnregisterEvent.class, e -> {
             String name = e.getAssetPack().getName();
-            if (PatchManager.isSyntheticOverridePack(name)) return;
+            if (PatchManager.isSyntheticOverridePack(name))
+                return;
             patchManager.rebuildAndApply("packUnregister:" + name);
         });
     }
@@ -515,12 +520,14 @@ public class Hexcode extends JavaPlugin {
         EventRegistry events = AssetEditorPlugin.get().getEventRegistry();
         events.register(AssetEditorRequestDataSetEvent.class, "HexcodeObeliskHandlers",
                 (Consumer<AssetEditorRequestDataSetEvent>) e -> e
-                        .setResults(ObeliskHandlerRegistry.getAll().keySet().toArray(String[]::new)));
+                        .setResults(ObeliskHandlerRegistry.getAll().keySet()
+                                .toArray(String[]::new)));
         events.register(AssetEditorRequestDataSetEvent.class, "HexcodeCastingStyles",
                 (Consumer<AssetEditorRequestDataSetEvent>) e -> e
                         .setResults(CastingStyleRegistry.keys().toArray(String[]::new)));
         events.register(AssetEditorRequestDataSetEvent.class, "HexcodeNodeHandlers",
-                (Consumer<AssetEditorRequestDataSetEvent>) e -> e.setResults(NodeRouter.keys().toArray(String[]::new)));
+                (Consumer<AssetEditorRequestDataSetEvent>) e -> e
+                        .setResults(NodeRouter.keys().toArray(String[]::new)));
     }
 
     private static void onPlayerConnect(PlayerConnectEvent event) {
