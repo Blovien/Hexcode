@@ -22,11 +22,11 @@ import com.riprod.hexcode.builtin.glyphs.glaciate.style.GlaciateStyle;
 import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
 import com.riprod.hexcode.core.common.construct.component.HexStatus;
 import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
+import com.riprod.hexcode.api.execution.HexExecuter;
+import com.riprod.hexcode.core.common.execution.component.HexContext;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.Slot;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
-import com.riprod.hexcode.core.state.execution.HexExecuter;
-import com.riprod.hexcode.core.state.execution.component.HexContext;
 
 public class GlaciateConstructHandler implements ConstructHandler<GlaciateState> {
 

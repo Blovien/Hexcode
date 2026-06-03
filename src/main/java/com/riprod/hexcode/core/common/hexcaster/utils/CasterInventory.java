@@ -14,6 +14,7 @@ import com.riprod.hexcode.core.common.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffAsset;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffComponent;
+import com.riprod.hexcode.core.common.imbuement.asset.ImbuementProfileAsset;
 import com.riprod.hexcode.core.common.imbuement.component.ImbuementData;
 import com.riprod.hexcode.core.common.imbuement.utils.ImbuementUtils;
 import com.riprod.hexcode.utils.HexSlot;
@@ -21,6 +22,7 @@ import com.riprod.hexcode.utils.HexSlot;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,72 +33,61 @@ public class CasterInventory {
     public static final String METADATA_KEY_HEX_STAFF = "HexStaff";
     public static final String METADATA_KEY_HEX_BOOK = "HexBook";
 
-    @Nullable
-    public static HexBookComponent getHexBookComponent(ComponentAccessor<EntityStore> store,
-            Ref<EntityStore> playerRef) {
-        Pair<HexSlot, HexBookComponent> result = getHexBookComponent(store, playerRef, HexSlot.OffHand);
-        return result != null ? result.getSecond() : null;
-    }
-
-    @Nullable
-    public static Pair<HexSlot, HexBookComponent> getHexBookComponent(ComponentAccessor<EntityStore> store,
-            Ref<EntityStore> playerRef, HexSlot slot) {
-        Pair<ItemStack, HexSlot> inventoryPair = PlayerUtils.getItemFromInventory(store, playerRef, slot, true);
-        if (inventoryPair == null) {
-            LOGGER.atWarning().log("could not read inventory for entity ref: " + playerRef);
-            return null;
-        }
-        slot = inventoryPair.getSecond();
-        ItemStack inventoryItem = inventoryPair.getFirst();
-
-        if (inventoryItem == null || inventoryItem.isEmpty()) {
-            LOGGER.atInfo().log("No item in hand");
-            return null;
-        }
-
-        HexBookComponent existingComponent = inventoryItem.getFromMetadataOrNull(METADATA_KEY_HEX_BOOK,
-                HexBookComponent.CODEC);
-        if (existingComponent != null) {
-            return new Pair<>(inventoryPair.getSecond(), existingComponent);
-        }
-
-        HexBookAsset bookAsset = getHexBookAsset(inventoryItem);
-        if (bookAsset == null) {
-            LOGGER.atInfo().log("No HexBook asset found for item in main hand");
-            return null;
-        }
-
-        HexBookComponent newComponent = new HexBookComponent(bookAsset);
-        ItemStack newStack = inventoryItem.withMetadata(METADATA_KEY_HEX_BOOK, HexBookComponent.CODEC, newComponent);
-
-        PlayerUtils.setHandItem(store, playerRef, slot, newStack);
-
-        return new Pair<>(slot, newComponent);
-    }
-
-    public static void saveHexBookComponent(ComponentAccessor<EntityStore> store,
-            Ref<EntityStore> playerRef, HexBookComponent component) {
-        saveHexBookComponent(store, playerRef, component, HexSlot.OffHand);
-    }
-
-    public static void saveHexBookComponent(ComponentAccessor<EntityStore> store,
-            Ref<EntityStore> playerRef, HexBookComponent component, HexSlot slot) {
-        ItemStack item = PlayerUtils.getHandItem(store, playerRef, slot);
-        if (item == null || item.isEmpty()) return;
-        ItemStack newStack = item.withMetadata(METADATA_KEY_HEX_BOOK, HexBookComponent.CODEC, component);
-        PlayerUtils.setHandItem(store, playerRef, slot, newStack);
-    }
-
-    public static boolean withHexBook(ComponentAccessor<EntityStore> store,
-            Ref<EntityStore> playerRef, HexSlot slot,
-            java.util.function.Consumer<HexBookComponent> mutator) {
-
-        Pair<HexSlot, HexBookComponent> result = getHexBookComponent(store, playerRef, slot);
-        if (result == null) return false;
-
-        mutator.accept(result.getSecond());
-        saveHexBookComponent(store, playerRef, result.getSecond(), result.getFirst());
+    public static boolean addHexToBook(ComponentAccessor<EntityStore> store,
+            Ref<EntityStore> playerRef, HexSlot slot, Hex hex) {
+        Pair<ItemStack, HexSlot> pair = PlayerUtils.getItemFromInventory(store, playerRef, slot, true);
+        if (pair == null) return false;
+        ItemStack item = pair.getFirst();
+        if (item == null || item.isEmpty() || getHexBookAsset(item) == null) return false;
+        Map<String, ImbuementData> map = new LinkedHashMap<>(ImbuementUtils.readAll(item));
+        String key = nextFreeBookSlot(item, map);
+        if (key == null) return false;
+        map.put(key, ImbuementUtils.fromHex(hex));
+        PlayerUtils.setHandItem(store, playerRef, pair.getSecond(), ImbuementUtils.writeAll(item, map));
         return true;
+    }
+
+    public static boolean removeGlyphFromBook(ComponentAccessor<EntityStore> store,
+            Ref<EntityStore> playerRef, HexSlot slot, String glyphAssetId) {
+        Pair<ItemStack, HexSlot> pair = PlayerUtils.getItemFromInventory(store, playerRef, slot, true);
+        if (pair == null) return false;
+        ItemStack item = pair.getFirst();
+        if (item == null || item.isEmpty() || getHexBookAsset(item) == null) return false;
+        Map<String, ImbuementData> map = new LinkedHashMap<>(ImbuementUtils.readAll(item));
+        String found = null;
+        for (Map.Entry<String, ImbuementData> e : map.entrySet()) {
+            Hex h = ImbuementUtils.resolveHex(e.getValue(), store);
+            if (h != null && h.getGlyphs().stream().anyMatch(g -> glyphAssetId.equals(g.getGlyphId()))) {
+                found = e.getKey();
+                break;
+            }
+        }
+        if (found == null) return false;
+        map.remove(found);
+        PlayerUtils.setHandItem(store, playerRef, pair.getSecond(), ImbuementUtils.writeAll(item, map));
+        return true;
+    }
+
+    private static List<Hex> resolveBookHexes(ComponentAccessor<EntityStore> store,
+            Map<String, ImbuementData> map) {
+        List<Map.Entry<String, ImbuementData>> entries = new ArrayList<>(map.entrySet());
+        entries.sort(Comparator.comparing(Map.Entry::getKey, slotKeyComparator()));
+        List<Hex> hexes = new ArrayList<>(entries.size());
+        for (Map.Entry<String, ImbuementData> e : entries) {
+            Hex h = ImbuementUtils.resolveHex(e.getValue(), store);
+            if (h != null) hexes.add(h);
+        }
+        return hexes;
+    }
+
+    @Nullable
+    private static String nextFreeBookSlot(ItemStack item, Map<String, ImbuementData> map) {
+        ImbuementProfileAsset profile = ImbuementUtils.resolveProfile(item);
+        if (profile == null) return null;
+        for (String key : profile.getSlots().keySet()) {
+            if (!map.containsKey(key)) return key;
+        }
+        return null;
     }
 
     public static void saveHexStaffComponent(ComponentAccessor<EntityStore> store,
@@ -172,14 +163,7 @@ public class CasterInventory {
         }
         if (existing.isEmpty()) return List.of();
 
-        List<Map.Entry<String, ImbuementData>> entries = new ArrayList<>(existing.entrySet());
-        entries.sort(Comparator.comparing(Map.Entry::getKey, slotKeyComparator()));
-        List<Hex> hexes = new ArrayList<>(entries.size());
-        for (Map.Entry<String, ImbuementData> e : entries) {
-            Hex h = ImbuementUtils.resolveHex(e.getValue(), store);
-            if (h != null) hexes.add(h);
-        }
-        return hexes;
+        return resolveBookHexes(store, existing);
     }
 
     private static Comparator<String> slotKeyComparator() {

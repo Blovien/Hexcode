@@ -19,10 +19,10 @@ import com.hypixel.hytale.codec.validation.validator.ArrayValidator;
 import com.hypixel.hytale.protocol.ItemArmorSlot;
 import com.hypixel.hytale.server.core.asset.type.item.config.ItemCategory;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
+import com.riprod.hexcode.core.common.execution.component.HexContext;
 import com.riprod.hexcode.core.common.glyphs.registry.SlotAsset;
 import com.riprod.hexcode.core.common.imbuement.registry.ImbuementSlotKeyValidator;
 import com.riprod.hexcode.core.state.crafting.constants.PedestalState;
-import com.riprod.hexcode.core.state.execution.component.HexContext;
 
 import javax.annotation.Nullable;
 import java.util.EnumMap;

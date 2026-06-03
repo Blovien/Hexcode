@@ -29,11 +29,11 @@ import com.riprod.hexcode.builtin.glyphs.ensnare.component.EnsnareComponent;
 import com.riprod.hexcode.builtin.glyphs.ensnare.component.SpikeEntry;
 import com.riprod.hexcode.builtin.glyphs.ensnare.style.EnsnareStyle;
 import com.riprod.hexcode.core.common.construct.system.HexConstructSpawner;
+import com.riprod.hexcode.api.execution.HexExecuter;
+import com.riprod.hexcode.core.common.execution.component.HexContext;
+import com.riprod.hexcode.core.common.execution.component.VolatilityTracker;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
-import com.riprod.hexcode.core.state.execution.HexExecuter;
-import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 import com.riprod.hexcode.utils.HexDirectionUtil;
 import com.riprod.hexcode.utils.HexVarUtil;
 

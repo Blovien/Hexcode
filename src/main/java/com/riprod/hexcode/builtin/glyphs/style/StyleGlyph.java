@@ -3,6 +3,8 @@ package com.riprod.hexcode.builtin.glyphs.style;
 import com.hypixel.hytale.component.ComponentAccessor;
 import org.joml.Vector3d;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.api.execution.HexExecuter;
+import com.riprod.hexcode.core.common.execution.component.HexContext;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.component.Slot;
@@ -14,8 +16,6 @@ import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.common.glyphs.variables.RotationVar;
 import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
-import com.riprod.hexcode.core.state.execution.HexExecuter;
-import com.riprod.hexcode.core.state.execution.component.HexContext;
 
 public class StyleGlyph implements GlyphHandler {
     public static final String ID = "Style";
@@ -110,9 +110,9 @@ public class StyleGlyph implements GlyphHandler {
                 && glyph.getSlots().get(StyleGlyphSlots.B).getFirstLink() != null;
     }
 
-    private static com.riprod.hexcode.core.state.execution.component.HexColors toHexColorsOverride(double[] rgba) {
-        com.riprod.hexcode.core.state.execution.component.HexColors c =
-                new com.riprod.hexcode.core.state.execution.component.HexColors();
+    private static com.riprod.hexcode.core.common.execution.component.HexColors toHexColorsOverride(double[] rgba) {
+        com.riprod.hexcode.core.common.execution.component.HexColors c =
+                new com.riprod.hexcode.core.common.execution.component.HexColors();
         c.setOverride(rgba[0] / 255.0, rgba[1] / 255.0, rgba[2] / 255.0, rgba[3] / 255.0);
         return c;
     }

@@ -10,8 +10,10 @@ import com.hypixel.hytale.server.core.inventory.InventoryComponent;
 import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.state.execution.HexExecuter;
-import com.riprod.hexcode.core.state.execution.component.HexContext;
+import com.riprod.hexcode.api.execution.HexExecuter;
+import com.riprod.hexcode.core.common.execution.component.HexContext;
+import com.riprod.hexcode.core.common.execution.component.PlayerHexRoot;
+import com.riprod.hexcode.core.common.execution.component.VolatilityTracker;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.imbuement.asset.ImbuementProfileAsset;
@@ -21,8 +23,6 @@ import com.riprod.hexcode.core.common.imbuement.registry.ImbuementProfileRegistr
 import com.riprod.hexcode.core.common.imbuement.utils.ImbuementUtils;
 import com.riprod.hexcode.core.common.triggers.component.TriggerEvent;
 import com.riprod.hexcode.core.common.triggers.registry.Trigger;
-import com.riprod.hexcode.core.state.execution.component.PlayerHexRoot;
-import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 import com.riprod.hexcode.utils.SpellMana;
 
 public final class ItemEquippedArmorCastDispatcher implements CastRootDispatcher {

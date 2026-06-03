@@ -13,7 +13,7 @@ import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayer
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.common.hexbook.component.HexBookComponent;
+import com.riprod.hexcode.core.common.execution.component.HexcasterIdleComponent;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexcaster.utils.CasterInventory;
 import com.riprod.hexcode.core.common.hexes.codec.DecodeIssue;
@@ -21,7 +21,6 @@ import com.riprod.hexcode.core.common.hexes.codec.DecodeResult;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.utils.HexUtils;
 import com.riprod.hexcode.core.common.hexstaff.component.HexStaffComponent;
-import com.riprod.hexcode.core.state.execution.component.HexcasterIdleComponent;
 import com.riprod.hexcode.utils.HexSlot;
 
 public class HexSerializeCommand extends AbstractPlayerCommand {
@@ -104,20 +103,12 @@ public class HexSerializeCommand extends AbstractPlayerCommand {
                 }
             }
 
-            HexBookComponent book = CasterInventory.getHexBookComponent(store, playerEntityRef);
-            if (book == null) {
-                send(playerRef, "you need to hold a hex book in your off hand");
+            boolean ok = CasterInventory.addHexToBook(store, playerEntityRef, HexSlot.OffHand, hex);
+            if (!ok) {
+                send(playerRef, "you need to hold a hex book in your off hand (or it is full)");
                 return;
             }
-
-            if (!book.canAddHex()) {
-                send(playerRef, "your hex book is full");
-                return;
-            }
-
-            book.addHex(hex);
-            CasterInventory.saveHexBookComponent(store, playerEntityRef, book);
-            send(playerRef, "imported hex into book slot " + book.getHexes().size());
+            send(playerRef, "imported hex into book");
         }
     }
 

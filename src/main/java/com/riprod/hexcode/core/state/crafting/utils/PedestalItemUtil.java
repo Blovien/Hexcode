@@ -15,8 +15,6 @@ import com.hypixel.hytale.server.core.inventory.InventoryComponent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.entity.item.ItemComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.common.hexbook.component.HexBookAsset;
-import com.riprod.hexcode.core.common.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.common.hexcaster.utils.CasterInventory;
 import com.riprod.hexcode.core.common.hexcaster.utils.PlayerUtils;
 import com.riprod.hexcode.utils.HexSlot;
@@ -68,37 +66,6 @@ public class PedestalItemUtil {
 
     public static boolean isEmptyHand(@Nullable ItemStack item) {
         return item == null || item.isEmpty();
-    }
-
-    public static ItemStack ensureHexBookComponent(ItemStack bookStack) {
-        if (bookStack == null || bookStack.isEmpty()) {
-            return bookStack;
-        }
-
-        HexBookComponent existing = bookStack.getFromMetadataOrNull(
-                CasterInventory.METADATA_KEY_HEX_BOOK, HexBookComponent.CODEC);
-        if (existing != null) {
-            return bookStack;
-        }
-
-        HexBookAsset bookAsset = CasterInventory.getHexBookAsset(bookStack);
-        if (bookAsset == null) {
-            LOGGER.atWarning().log("no HexBookAsset for item %s", bookStack.getItem().getId());
-            return bookStack;
-        }
-
-        HexBookComponent newComponent = new HexBookComponent(bookAsset);
-        return bookStack.withMetadata(
-                CasterInventory.METADATA_KEY_HEX_BOOK, HexBookComponent.CODEC, newComponent);
-    }
-
-    public static ItemStack saveHexBookComponent(ItemStack bookStack, HexBookComponent component) {
-        if (bookStack == null || bookStack.isEmpty()) {
-            LOGGER.atWarning().log("cannot save HexBookComponent to empty ItemStack");
-            return bookStack;
-        }
-        return bookStack.withMetadata(
-                CasterInventory.METADATA_KEY_HEX_BOOK, HexBookComponent.CODEC, component);
     }
 
     public static void returnBookToPlayer(ComponentAccessor<EntityStore> accessor, Ref<EntityStore> ref,

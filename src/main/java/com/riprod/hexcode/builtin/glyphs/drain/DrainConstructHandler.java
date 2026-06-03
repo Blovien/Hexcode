@@ -14,7 +14,7 @@ import com.riprod.hexcode.builtin.glyphs.drain.style.DrainStyle;
 import com.riprod.hexcode.core.common.construct.component.ConstructTickContext;
 import com.riprod.hexcode.core.common.construct.component.HexStatus;
 import com.riprod.hexcode.core.common.construct.handler.ConstructHandler;
-import com.riprod.hexcode.core.state.execution.HexExecuter;
+import com.riprod.hexcode.api.execution.HexExecuter;
 
 public class DrainConstructHandler implements ConstructHandler<DrainState> {
 

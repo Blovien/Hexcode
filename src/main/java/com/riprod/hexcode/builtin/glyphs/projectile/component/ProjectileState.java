@@ -8,8 +8,8 @@ import javax.annotation.Nullable;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.common.execution.component.HexContext;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
-import com.riprod.hexcode.core.state.execution.component.HexContext;
 
 public class ProjectileState implements Component<EntityStore> {
 

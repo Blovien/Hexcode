@@ -7,12 +7,12 @@ import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.HytaleServer;
 import com.riprod.hexcode.api.event.GlyphFizzleEvent;
+import com.riprod.hexcode.core.common.execution.component.HexContext;
+import com.riprod.hexcode.core.common.execution.component.VolatilityTracker;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphConfig;
 import com.riprod.hexcode.core.common.glyphs.registry.VolatilityAsset;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
-import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 
 public interface GlyphHandler {
     HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();

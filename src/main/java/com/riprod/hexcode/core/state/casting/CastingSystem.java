@@ -27,12 +27,12 @@ import com.hypixel.hytale.server.core.modules.time.TimeResource;
 import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.GlyphDrawnEvent;
+import com.riprod.hexcode.core.common.execution.component.HexcasterIdleComponent;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphComponent;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.glyphs.utils.CreateGlyph;
 import com.riprod.hexcode.core.common.hexbook.component.HexBookAsset;
-import com.riprod.hexcode.core.common.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexcaster.utils.CasterInventory;
 import com.riprod.hexcode.core.common.hexcaster.utils.PlayerUtils;
@@ -54,7 +54,6 @@ import com.riprod.hexcode.core.state.drawing.system.GlyphCreationManager;
 import com.riprod.hexcode.core.state.drawing.system.InterfaceManager;
 import com.riprod.hexcode.core.state.drawing.utils.ShapeComparator;
 import com.riprod.hexcode.core.state.drawing.utils.StrokeCapture;
-import com.riprod.hexcode.core.state.execution.component.HexcasterIdleComponent;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexcodeManager;
 import com.riprod.hexcode.utils.CleanupUtils;
@@ -84,7 +83,6 @@ public class CastingSystem extends HexcodeManager {
         castingComp.setStrokeStartMillis(0L);
 
         HexStaffComponent staff = CasterInventory.getHexStaffComponent(buffer, ref);
-        HexBookComponent book = CasterInventory.getHexBookComponent(buffer, ref);
 
         if (staff == null) {
             LOGGER.atSevere().log("Player is missing required HexStaffComponent to enter casting mode");

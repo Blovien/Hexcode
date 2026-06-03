@@ -39,17 +39,9 @@ public class GlyphsForgetCommand extends AbstractPlayerCommand {
             return;
         }
 
-        boolean[] removed = {false};
-        boolean ok = CasterInventory.withHexBook(store, playerEntityRef, HexSlot.Both, book -> {
-            removed[0] = book.removeGlyph(asset.getId());
-        });
+        boolean removed = CasterInventory.removeGlyphFromBook(store, playerEntityRef, HexSlot.Both, asset.getId());
 
-        if (!ok) {
-            playerRef.sendMessage(Message.raw("No hexbook found in hand"));
-            return;
-        }
-
-        if (removed[0]) {
+        if (removed) {
             playerRef.sendMessage(Message.raw("(debug) Forgot glyph '" + glyphId + "' from your hexbook!"));
         } else {
             playerRef.sendMessage(Message.raw("(debug) Glyph '" + glyphId + "' was not found in your hexbook."));

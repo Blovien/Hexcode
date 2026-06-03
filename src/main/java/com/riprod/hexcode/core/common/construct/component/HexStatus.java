@@ -6,8 +6,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.riprod.hexcode.core.common.construct.state.ConstructState;
+import com.riprod.hexcode.core.common.execution.component.HexContext;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
-import com.riprod.hexcode.core.state.execution.component.HexContext;
 
 public class HexStatus<S extends ConstructState> {
 

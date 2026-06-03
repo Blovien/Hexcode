@@ -3,9 +3,6 @@ package com.riprod.hexcode.core.state.casting.registery;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import com.riprod.hexcode.builtin.staffStyles.ArcStyle;
-import com.riprod.hexcode.builtin.staffStyles.RingStyle;
-import com.riprod.hexcode.builtin.staffStyles.SphereStyle;
 import com.riprod.hexcode.core.state.casting.component.CastingStyle;
 
 import java.util.HashMap;
@@ -17,11 +14,18 @@ public class CastingStyleRegistry {
 
     private static final Map<String, CastingStyle> styles = new HashMap<>();
 
+    @Nullable
+    private static String defaultStyleId;
+
     private CastingStyleRegistry() {
     }
 
     public static void register(@Nonnull CastingStyle style) {
         styles.put(style.getStyleId(), style);
+    }
+
+    public static void setDefault(@Nonnull String styleId) {
+        defaultStyleId = styleId;
     }
 
     @Nullable
@@ -37,9 +41,13 @@ public class CastingStyleRegistry {
     @Nonnull
     public static CastingStyle getOrDefault(@Nonnull String styleId) {
         CastingStyle style = styles.get(styleId);
-        if (style == null) {
-            style = styles.get(RingStyle.ID);
+        if (style == null && defaultStyleId != null) {
+            style = styles.get(defaultStyleId);
         }
-        return style != null ? style : new RingStyle();
+        if (style == null) {
+            throw new IllegalStateException(
+                    "no casting style for '" + styleId + "' and no registered default");
+        }
+        return style;
     }
 }

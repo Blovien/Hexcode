@@ -23,12 +23,12 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.config.dat
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.builtin.glyphs.shatter.component.ShatterState;
 import com.riprod.hexcode.builtin.glyphs.shatter.style.ShatterStyle;
+import com.riprod.hexcode.api.execution.HexExecuter;
+import com.riprod.hexcode.core.common.execution.component.HexContext;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
-import com.riprod.hexcode.core.state.execution.HexExecuter;
-import com.riprod.hexcode.core.state.execution.component.HexContext;
 
 public class HexShatterHitInteraction extends SimpleInteraction {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();

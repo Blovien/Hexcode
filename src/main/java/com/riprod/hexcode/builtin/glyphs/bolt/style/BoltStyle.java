@@ -11,10 +11,10 @@ import com.hypixel.hytale.server.core.asset.type.entityeffect.config.OverlapBeha
 import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.riprod.hexcode.core.common.execution.component.HexColors;
+import com.riprod.hexcode.core.common.execution.component.HexContext;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
-import com.riprod.hexcode.core.state.execution.component.HexColors;
-import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.utils.VfxUtil;
 
 public class BoltStyle {

@@ -1,4 +1,4 @@
-package com.riprod.hexcode.core.state.execution;
+package com.riprod.hexcode.core.common.execution;
 
 import javax.annotation.Nonnull;
 
@@ -8,10 +8,10 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.HexcasterIdleComponent;
-import com.riprod.hexcode.core.state.execution.component.PlayerHexRoot;
-import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
+import com.riprod.hexcode.core.common.execution.component.HexContext;
+import com.riprod.hexcode.core.common.execution.component.HexcasterIdleComponent;
+import com.riprod.hexcode.core.common.execution.component.PlayerHexRoot;
+import com.riprod.hexcode.core.common.execution.component.VolatilityTracker;
 
 public final class CastGate {
 

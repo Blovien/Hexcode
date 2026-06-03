@@ -1,8 +1,0 @@
-Button {
-  Anchor: (Width: 28, Height: 28, Right: 4);
-  Style: (
-    Default: (Background: #ffffff),
-    Hovered: (Background: #dddddd),
-    Pressed: (Background: #aaaaaa)
-  );
-}

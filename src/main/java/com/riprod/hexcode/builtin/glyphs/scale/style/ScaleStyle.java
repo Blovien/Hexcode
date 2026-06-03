@@ -4,9 +4,9 @@ import com.hypixel.hytale.component.ComponentAccessor;
 import org.joml.Vector3d;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.builtin.glyphs.scale.ScaleGlyph;
+import com.riprod.hexcode.core.common.execution.component.HexContext;
 import com.riprod.hexcode.core.common.glyphs.registry.GlyphAsset;
 import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
-import com.riprod.hexcode.core.state.execution.component.HexContext;
 import com.riprod.hexcode.utils.VfxUtil;
 
 public class ScaleStyle {
