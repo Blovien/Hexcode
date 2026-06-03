@@ -33,15 +33,6 @@ public class CasterInventory {
     public static final String METADATA_KEY_HEX_STAFF = "HexStaff";
     public static final String METADATA_KEY_HEX_BOOK = "HexBook";
 
-    public static List<Hex> getBookHexes(ComponentAccessor<EntityStore> store,
-            Ref<EntityStore> playerRef, HexSlot slot) {
-        Pair<ItemStack, HexSlot> pair = PlayerUtils.getItemFromInventory(store, playerRef, slot, true);
-        if (pair == null) return List.of();
-        ItemStack item = pair.getFirst();
-        if (item == null || item.isEmpty()) return List.of();
-        return resolveBookHexes(store, ImbuementUtils.readAll(item));
-    }
-
     public static boolean addHexToBook(ComponentAccessor<EntityStore> store,
             Ref<EntityStore> playerRef, HexSlot slot, Hex hex) {
         Pair<ItemStack, HexSlot> pair = PlayerUtils.getItemFromInventory(store, playerRef, slot, true);

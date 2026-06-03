@@ -25,7 +25,6 @@ import com.riprod.hexcode.core.common.glyphs.variables.NumberVar;
 import com.riprod.hexcode.core.common.glyphs.variables.PositionVar;
 import com.riprod.hexcode.core.common.glyphs.variables.RotationVar;
 import com.riprod.hexcode.core.common.hexbook.component.HexBookAsset;
-import com.riprod.hexcode.core.common.hexbook.component.HexBookComponent;
 import com.riprod.hexcode.core.common.hexcaster.StaffUnequipEvent;
 import com.riprod.hexcode.core.common.hexcaster.component.HexcasterComponent;
 import com.riprod.hexcode.core.common.hexcaster.system.HexcasterCleanupSystem;
@@ -79,7 +78,6 @@ import com.riprod.hexcode.interaction.HexModeExit;
 import com.riprod.hexcode.interaction.HexStateBranch;
 import com.riprod.hexcode.interaction.HexAbility;
 import com.riprod.hexcode.interaction.HexItemCondition;
-import com.riprod.hexcode.interaction.GlyphBookInteraction;
 import com.riprod.hexcode.interaction.PedestalInteraction;
 import com.riprod.hexcode.state.HexState;
 import com.riprod.hexcode.state.HexTick;
@@ -280,12 +278,6 @@ public class Hexcode extends JavaPlugin {
                 HexComponent.CODEC);
         HexComponent.setComponentType(hexComponentType);
 
-        ComponentType<EntityStore, HexBookComponent> hexBookComponentType = entityStoreRegistry
-                .registerComponent(
-                        HexBookComponent.class, "HexBook",
-                        HexBookComponent.CODEC);
-        HexBookComponent.setComponentType(hexBookComponentType);
-
         ComponentType<EntityStore, HexStaffComponent> hexStaffComponentType = entityStoreRegistry
                 .registerComponent(
                         HexStaffComponent.class, "HexStaff",
@@ -445,8 +437,6 @@ public class Hexcode extends JavaPlugin {
         Interaction.CODEC.register("PedestalInteraction", PedestalInteraction.class, PedestalInteraction.CODEC);
         Interaction.CODEC.register("HexItemCondition", HexItemCondition.class, HexItemCondition.CODEC);
         Interaction.CODEC.register("HexAbility", HexAbility.class, HexAbility.CODEC);
-        Interaction.CODEC.register("GlyphBookInteraction", GlyphBookInteraction.class,
-                GlyphBookInteraction.CODEC);
         Interaction.CODEC.register("HexProjectileHit",
                 com.riprod.hexcode.builtin.glyphs.projectile.interaction.HexProjectileHitInteraction.class,
                 com.riprod.hexcode.builtin.glyphs.projectile.interaction.HexProjectileHitInteraction.CODEC);
