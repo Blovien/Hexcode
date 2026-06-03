@@ -8,8 +8,8 @@ import com.hypixel.hytale.component.system.WorldEventSystem;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.HexCastEvent;
+import com.riprod.hexcode.core.common.execution.component.HexContext;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
-import com.riprod.hexcode.core.state.execution.component.HexContext;
 
 public class HexCastDiagnosticListener extends WorldEventSystem<EntityStore, HexCastEvent> {
 

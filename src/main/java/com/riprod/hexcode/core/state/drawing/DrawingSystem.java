@@ -53,9 +53,6 @@ import it.unimi.dsi.fastutil.floats.FloatArrayList;
 
 public class DrawingSystem extends HexcodeManager {
   private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
-  private static final Box PREVIEW_BOUNDING_BOX = new Box(-0.25, -0.25, -0.25, 0.25, 0.25, 0.25);
-  private static final float GLYPH_DISPLAY_DISTANCE = 1.0f;
-  private static final float PEDESTAL_GLYPH_PITCH = (float) (-Math.PI / 2);
 
   private static ShapeDetector shapeDetector = new DollarOneFixedDetector();
 

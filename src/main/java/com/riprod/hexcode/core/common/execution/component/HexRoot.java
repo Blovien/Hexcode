@@ -1,4 +1,4 @@
-package com.riprod.hexcode.core.state.execution.component;
+package com.riprod.hexcode.core.common.execution.component;
 
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.codec.lookup.CodecMapCodec;

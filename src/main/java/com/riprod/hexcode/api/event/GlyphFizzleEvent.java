@@ -1,8 +1,8 @@
 package com.riprod.hexcode.api.event;
 
 import com.hypixel.hytale.event.IEvent;
+import com.riprod.hexcode.core.common.execution.component.HexContext;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
-import com.riprod.hexcode.core.state.execution.component.HexContext;
 
 public class GlyphFizzleEvent implements IEvent<Void> {
 

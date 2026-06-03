@@ -1,4 +1,4 @@
-package com.riprod.hexcode.core.state.execution;
+package com.riprod.hexcode.core.common.execution;
 
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentAccessor;
@@ -8,6 +8,8 @@ import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.GlyphFizzleEvent;
 import com.riprod.hexcode.api.event.HexCastEvent;
+import com.riprod.hexcode.core.common.execution.component.HexContext;
+import com.riprod.hexcode.core.common.execution.component.VolatilityTracker;
 import com.riprod.hexcode.core.common.glyphs.component.Glyph;
 import com.riprod.hexcode.core.common.glyphs.component.GlyphHandler;
 import com.riprod.hexcode.core.common.glyphs.component.Slot;
@@ -15,16 +17,14 @@ import com.riprod.hexcode.core.common.glyphs.registry.GlyphRegistry;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.riprod.hexcode.core.common.hexes.component.Hex;
 import com.riprod.hexcode.core.common.hexes.registry.HexStyleAsset;
-import com.riprod.hexcode.core.state.execution.component.HexContext;
-import com.riprod.hexcode.core.state.execution.component.VolatilityTracker;
 
 import java.util.Arrays;
 import java.util.List;
 
-public class HexExecuter {
+public class CoreHexExecuter {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
-    private HexExecuter() {
+    private CoreHexExecuter() {
     }
 
     public static void cast(HexContext context, CommandBuffer<EntityStore> buffer) {

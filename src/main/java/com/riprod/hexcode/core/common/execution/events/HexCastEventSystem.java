@@ -1,4 +1,4 @@
-package com.riprod.hexcode.core.state.execution.events;
+package com.riprod.hexcode.core.common.execution.events;
 
 import javax.annotation.Nonnull;
 
@@ -8,8 +8,8 @@ import com.hypixel.hytale.component.system.WorldEventSystem;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.riprod.hexcode.api.event.HexCastEvent;
-import com.riprod.hexcode.core.state.execution.CastGate;
-import com.riprod.hexcode.core.state.execution.HexExecuter;
+import com.riprod.hexcode.core.common.execution.CastGate;
+import com.riprod.hexcode.core.common.execution.CoreHexExecuter;
 
 public class HexCastEventSystem extends WorldEventSystem<EntityStore, HexCastEvent> {
 
@@ -25,6 +25,6 @@ public class HexCastEventSystem extends WorldEventSystem<EntityStore, HexCastEve
                        @Nonnull HexCastEvent event) {
         if (event.isCancelled()) return;
         if (!CastGate.admit(buffer, event.getContext())) return;
-        HexExecuter.runPostGate(event.getContext(), buffer);
+        CoreHexExecuter.runPostGate(event.getContext(), buffer);
     }
 }
