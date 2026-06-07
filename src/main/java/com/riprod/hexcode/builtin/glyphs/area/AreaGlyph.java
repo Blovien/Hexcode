@@ -32,10 +32,11 @@ import com.riprod.hexcode.utils.HexVarUtil;
 
 public class AreaGlyph implements GlyphHandler {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+    
     @Override
-public String getId() { return ID; };
+    public String getId() { return ID; };
 
-public static final String ID = "Area";
+    public static final String ID = "Area";
 
     private static final double DEFAULT_RADIUS = 5.0;
     private static final float VOLATILITY_COST_MULTIPLIER = 1.67f;
