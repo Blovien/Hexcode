@@ -2,18 +2,7 @@ plugins {
     `maven-publish`
     id("hytale-mod") version "0.+"
     id("com.gradleup.shadow") version "9.4.2"
-}
-
-
-group = "com.riprod"
-version = "0.8.6"
-val javaVersion = 25
-
-repositories {
-    mavenCentral()
-    maven("https://maven.hytale-modding.info/releases") {
-        name = "HytaleModdingReleases"
-    }
+    id("com.azuredoom.hytale-tools") version "1.0.38"
 }
 
 val shaded by configurations.creating
@@ -28,6 +17,17 @@ dependencies {
     shaded(files("deps/Patchly-3.1.1.jar"))
     implementation(files("deps/Patchly-3.1.1.jar"))
 }
+
+hytaleTools {
+    manifestGroup = 'Riprod'
+    modCredits = 'Riprod'
+    patchline = 'release'
+    modId = 'Hexcode'
+    mainClass = 'com.riprod.hexcode.Hexcode'
+    manifestOptionalDependencies='Riprod:Patchly=*'
+
+    injectServerJavadocsIntoSources = true
+}  
 
 tasks.shadowJar {
     archiveClassifier.set("")
