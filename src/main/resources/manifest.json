@@ -1,20 +1,25 @@
 {
-  "Group": "${plugin_group}",
-  "Name": "${plugin_name}",
-  "Version": "${plugin_version}",
-  "Description": "${plugin_description}",
-  "Authors": [
-    {
-      "Name": "${plugin_author}"
+    "Group": "Riprod",
+    "Name": "Hexcode",
+    "Version": "unspecified",
+    "Description": "",
+    "Authors": [
+        {
+            "Name": "Riprod"
+        }
+    ],
+    "Website": "",
+    "ServerVersion": "0.8.6",
+    "Dependencies": {
+        "Hytale:AssetModule": "*"
+    },
+    "OptionalDependencies": {
+        "Riprod:Patchly": "*"
+    },
+    "DisabledByDefault": false,
+    "IncludesAssetPack": false,
+    "Main": "com.riprod.hexcode.Hexcode",
+    "UpdateChecker": {
+        "CurseForge": ""
     }
-  ],
-  "Website": "${plugin_website}",
-  "ServerVersion": "${server_version}",
-  "Dependencies": {},
-  "OptionalDependencies": {
-    "Riprod:Patchly": "*"
-  },
-  "DisabledByDefault": false,
-  "IncludesAssetPack": true,
-  "Main": "${plugin_main_entrypoint}"
 }

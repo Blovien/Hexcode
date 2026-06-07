@@ -1,0 +1,46 @@
+plugins {
+    id 'java'
+    id 'com.gradleup.shadow' version '9.4.2'
+    id 'com.azuredoom.hytale-tools' version '1.0.38'
+}
+repositories {
+    mavenCentral()
+    gradlePluginPortal()
+    maven { url "https://www.cursemaven.com" }
+}
+
+configurations {
+    shadowBundle
+    implementation.extendsFrom(shadowBundle)
+}
+
+dependencies {
+    compileOnly libs.jetbrains.annotations
+    compileOnly libs.jspecify
+
+    // patcher is bundled into hexcode's output jar via the Shadow plugin
+    shadowBundle('curse.maven:patchly-1550889:8188362')
+}
+
+hytaleTools {
+    manifestGroup 'Riprod'
+    modCredits 'Riprod'
+    patchline 'release'
+    modId 'Hexcode'
+    manifestServerVersion '0.8.6'
+    mainClass 'com.riprod.hexcode.Hexcode'
+    manifestOptionalDependencies 'Riprod:Patchly=*'
+
+    injectServerJavadocsIntoSources = true
+}  
+
+shadowJar {
+    archiveClassifier.set('')
+    mergeServiceFiles()
+    configurations = [project.configurations.shadowBundle]
+    relocate('com.riprod.patchly', 'com.riprod.hexcode.shaded.patchly')
+}
+
+tasks.build {
+    dependsOn("spotlessApply", "shadowJar")
+}
