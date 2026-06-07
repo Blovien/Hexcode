@@ -11,6 +11,7 @@ import org.joml.Vector3d;
 import org.joml.Vector3i;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
+import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.TargetUtil;
@@ -27,7 +28,6 @@ import com.riprod.hexcode.core.common.glyphs.variables.BlockVar;
 import com.riprod.hexcode.core.common.glyphs.variables.EntityVar;
 import com.riprod.hexcode.core.common.glyphs.variables.HexVar;
 import com.hypixel.hytale.server.core.entity.reference.PersistentRef;
-import com.riprod.hexcode.utils.HexDirectionUtil;
 import com.riprod.hexcode.utils.HexVarUtil;
 
 public class AreaGlyph implements GlyphHandler {
@@ -91,9 +91,7 @@ public class AreaGlyph implements GlyphHandler {
             for (PersistentRef ref : gatherEntities(center, radius, hexContext)) {
                 Ref<EntityStore> entRef = ref.getEntity(accessor);
                 if (entRef != null && entRef.isValid()) {
-                    com.hypixel.hytale.server.core.modules.entity.component.TransformComponent t =
-                            accessor.getComponent(entRef,
-                                    com.hypixel.hytale.server.core.modules.entity.component.TransformComponent.getComponentType());
+                    TransformComponent t = accessor.getComponent(entRef, TransformComponent.getComponentType());
                     if (t != null) {
                         AreaStyle.renderHit(t.getPosition(), hexContext, accessor);
                     }

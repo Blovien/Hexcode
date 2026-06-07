@@ -3,10 +3,12 @@ package com.riprod.hexcode.builtin.glyphs.beam;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.util.TrigMathUtil;
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.math.vector.Transform;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
+import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.TargetUtil;
@@ -63,8 +65,8 @@ public static final String ID = "Beam";
         double ny = dlen > 1e-9 ? direction.y / dlen : 0;
         double nz = dlen > 1e-9 ? direction.z / dlen : 0;
         float yaw = TrigMathUtil.atan2((float) -nx, (float) -nz);
-        float pitch = (float) Math.asin(Math.max(-1.0, Math.min(1.0, ny)));
-        com.hypixel.hytale.math.vector.Rotation3f rotation = new com.hypixel.hytale.math.vector.Rotation3f(pitch, yaw, 0f);
+        float pitch = (float) Math.asin(Math.clamp(ny, -1.0, 1.0));
+        Rotation3f rotation = new Rotation3f(pitch, yaw, 0f);
         Transform transform = new Transform(new Vector3d(origin), rotation);
 
         Vector3d blockHitLocation = TargetUtil.getTargetLocation(transform, blockId -> blockId != 0,
@@ -83,7 +85,7 @@ public static final String ID = "Beam";
             Ref<EntityStore> sourceRef = sourceEntityVar.getRef(hexContext.getAccessor());
             if (sourceRef != null && sourceRef.isValid()
                     && hexContext.getAccessor().getComponent(sourceRef,
-                            com.hypixel.hytale.server.core.modules.entity.component.HeadRotation.getComponentType()) != null) {
+                            HeadRotation.getComponentType()) != null) {
                 entityHit = TargetUtil.getTargetEntity(sourceRef, (float) beamLength, hexContext.getAccessor());
                 if (entityHit != null) {
                     Vector3d entityPos = hexContext.getAccessor().getComponent(entityHit,

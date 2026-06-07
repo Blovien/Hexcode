@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
+
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
@@ -21,7 +23,7 @@ public class VolatilityTracker {
     // the player's maxCharges cap). non-null = slot-bound cast (one per slot key
     // per player; a new cast on the same key fizzles the previous). cancelAll
     // dispels regardless of this field.
-    @javax.annotation.Nullable
+    @Nullable
     private String slotKey;
 
     public VolatilityTracker(float startingBudget, float volatilityMultiplier) {
@@ -123,12 +125,12 @@ public class VolatilityTracker {
         this.executionId = executionId;
     }
 
-    @javax.annotation.Nullable
+    @Nullable
     public String getSlotKey() {
         return slotKey;
     }
 
-    public void setSlotKey(@javax.annotation.Nullable String slotKey) {
+    public void setSlotKey(@Nullable String slotKey) {
         this.slotKey = slotKey;
     }
 
