@@ -23,16 +23,27 @@ dependencies {
 }
 
 hytaleTools {
-    manifestGroup 'Riprod'
-    modCredits 'Riprod'
-    patchline 'release'
-    modId 'Hexcode'
-    manifestServerVersion '0.8.6'
-    mainClass 'com.riprod.hexcode.Hexcode'
-    manifestOptionalDependencies 'Riprod:Patchly=*'
+    javaVersion = project.java_version as Integer
+    hytaleVersion = project.hytale_version.toString()
+    manifestServerVersion = project.manifestServerVersion.toString()
+    manifestGroup = project.manifest_group.toString()
+    modId = project.mod_id.toString()
+    modDescription = project.mod_description.toString()
+    modUrl = project.mod_url.toString()
+    mainClass = project.main_class.toString()
+    modCredits = project.mod_credits.toString()
+    manifestDependencies = project.manifest_dependencies.toString()
+    manifestOptionalDependencies = project.manifest_opt_dependencies.toString()
+    curseforgeId = project.curseforgeID.toString()
+    disabledByDefault = project.disabled_by_default.toString().toBoolean()
+    includesPack = project.includes_pack.toString().toBoolean()
+    patchline = project.patchline.toString()
 
-    injectServerJavadocsIntoSources = true
-}  
+    debugEnabled = true
+    debugSuspend = false
+
+    requireDcevm = true
+} 
 
 shadowJar {
     archiveClassifier.set('')
@@ -42,5 +53,6 @@ shadowJar {
 }
 
 tasks.build {
-    dependsOn("spotlessApply", "shadowJar")
+    dependsOn("shadowJar")
 }
+

@@ -1,25 +1,25 @@
 {
-    "Group": "Riprod",
+    "Group": "com.riprod",
     "Name": "Hexcode",
-    "Version": "unspecified",
-    "Description": "",
+    "Version": "0.8.6",
+    "Description": "A modern, flexible leveling system for Hytale",
     "Authors": [
         {
             "Name": "Riprod"
         }
     ],
-    "Website": "",
-    "ServerVersion": "0.8.6",
+    "Website": "https://modtale.net/mod/hexcode",
+    "ServerVersion": ">=0.5.0 <0.6.0",
     "Dependencies": {
-        "Hytale:AssetModule": "*"
+        
     },
     "OptionalDependencies": {
         "Riprod:Patchly": "*"
     },
     "DisabledByDefault": false,
-    "IncludesAssetPack": false,
+    "IncludesAssetPack": true,
     "Main": "com.riprod.hexcode.Hexcode",
     "UpdateChecker": {
-        "CurseForge": ""
+        "CurseForge": "1414678"
     }
 }
