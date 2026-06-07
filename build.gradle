@@ -9,6 +9,15 @@ repositories {
     maven { url "https://www.cursemaven.com" }
 }
 
+java {
+	withSourcesJar()
+	withJavadocJar()
+}
+
+base {
+    archivesName = 'Hexcode'
+}
+
 configurations {
     shadowBundle
     implementation.extendsFrom(shadowBundle)
@@ -17,8 +26,6 @@ configurations {
 dependencies {
     compileOnly libs.jetbrains.annotations
     compileOnly libs.jspecify
-
-    // patcher is bundled into hexcode's output jar via the Shadow plugin
     shadowBundle('curse.maven:patchly-1550889:8188362')
 }
 
